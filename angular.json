@@ -1,0 +1,38 @@
+{
+  "version": 1,
+  "projects": {
+    "finanzas-web": {
+      "projectType": "application",
+      "root": "",
+      "sourceRoot": "src",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "src/main.ts",
+            "index": "src/index.html",
+            "tsConfig": "tsconfig.app.json",
+            "assets": [{ "glob": "**/*", "input": "public" }],
+            "styles": ["src/styles.css"],
+            "outputPath": "dist",
+            "budgets": [{ "type": "initial", "maximumWarning": "700kB", "maximumError": "1MB" }]
+          },
+          "configurations": {
+            "production": { "outputHashing": "all" },
+            "development": { "optimization": false, "sourceMap": true }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "options": { "buildTarget": "finanzas-web:build:development", "host": "127.0.0.1" }
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": { "runner": "vitest", "tsConfig": "tsconfig.spec.json" }
+        }
+      }
+    }
+  },
+  "cli": { "analytics": false }
+}

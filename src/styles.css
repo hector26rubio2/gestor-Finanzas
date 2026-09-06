@@ -1,0 +1,199 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap');
+:root {
+  color-scheme: light;
+  --bg: #f5f8f6;
+  --nav: #f9fbfa;
+  --surface: #fff;
+  --text: #122522;
+  --muted: #657873;
+  --line: #dce6e2;
+  --accent: #07836b;
+  --accent-soft: #e4f3ee;
+  --accent-contrast: #fff;
+  --danger: #dc554e;
+  --success: #098268;
+  --shadow: 0 20px 55px #233d3520;
+  --font: 'DM Sans', system-ui, sans-serif;
+  --display: 'Manrope', system-ui, sans-serif;
+  --radius: 14px;
+}
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #061a20;
+  --nav: #082128;
+  --surface: #0b2830;
+  --text: #edf8f5;
+  --muted: #9eb5b0;
+  --line: #1d4147;
+  --accent: #29b98f;
+  --accent-soft: #103c39;
+  --accent-contrast: #031b18;
+  --danger: #ff7169;
+  --success: #51d3a9;
+  --shadow: 0 22px 62px #0008;
+}
+:root[data-theme='ocean'] {
+  color-scheme: dark;
+  --bg: #071827;
+  --nav: #0a2033;
+  --surface: #102a40;
+  --text: #edf7ff;
+  --muted: #9cb5c9;
+  --line: #28465e;
+  --accent: #38bdf8;
+  --accent-soft: #123c52;
+  --accent-contrast: #03202d;
+  --danger: #fb7185;
+  --success: #5eead4;
+  --shadow: 0 22px 62px #0007;
+}
+:root[data-theme='sand'] {
+  color-scheme: light;
+  --bg: #f5f0e8;
+  --nav: #eee5d8;
+  --surface: #fffaf2;
+  --text: #322a22;
+  --muted: #76695c;
+  --line: #dfd2c1;
+  --accent: #a24f2a;
+  --accent-soft: #f2dfcf;
+  --accent-contrast: #fff;
+  --danger: #ba3d47;
+  --success: #39745c;
+}
+:root[data-theme='berry'] {
+  color-scheme: dark;
+  --bg: #1b1020;
+  --nav: #25132b;
+  --surface: #301a37;
+  --text: #fff4ff;
+  --muted: #c8aeca;
+  --line: #54345b;
+  --accent: #f0abfc;
+  --accent-soft: #4a2352;
+  --accent-contrast: #2a0d2f;
+  --danger: #fb7185;
+  --success: #6ee7b7;
+}
+:root[data-density='compact'] {
+  font-size: 14px;
+}
+* {
+  box-sizing: border-box;
+}
+html {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+}
+body {
+  margin: 0;
+  min-width: 320px;
+  background: var(--bg);
+}
+html,
+body {
+  scrollbar-width: none;
+}
+html::-webkit-scrollbar,
+body::-webkit-scrollbar,
+*::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+}
+* {
+  scrollbar-width: none;
+}
+button,
+input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
+select,
+textarea {
+  font: inherit;
+}
+button {
+  cursor: pointer;
+  min-height: 34px;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 600;
+  line-height: 1.2;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease;
+}
+button:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+  background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+}
+button:active:not(:disabled) {
+  transform: translateY(1px);
+}
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
+select,
+textarea {
+  width: 100%;
+  min-height: 36px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 7px 10px;
+  line-height: 1.25;
+  transition:
+    border-color 0.16s ease,
+    box-shadow 0.16s ease,
+    background-color 0.16s ease;
+}
+select {
+  appearance: none;
+  padding-right: 34px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):hover,
+select:hover,
+textarea:hover {
+  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+}
+input::placeholder,
+textarea::placeholder {
+  color: color-mix(in srgb, var(--muted) 78%, transparent);
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+}
+textarea:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  outline-offset: 1px;
+  border-color: var(--accent);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
