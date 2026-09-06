@@ -25,6 +25,9 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Escribir config de API desde la variable del repositorio
+        if: ${{ vars.API_BASE_URL != '' }}
+        run: echo "window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: '${{ vars.API_BASE_URL }}' };" > public/config.js
       - run: pnpm exec ng build --base-href /gestor-Finanzas/
       - run: touch dist/browser/.nojekyll
       - uses: actions/upload-pages-artifact@v3
