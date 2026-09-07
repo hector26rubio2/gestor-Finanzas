@@ -19,12 +19,21 @@ import { DemoStore } from './store';
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
   private readonly store = inject(DemoStore);
+  private sessionSignature: string | null = null;
+
+  async start(): Promise<void> {
+    await this.initialize();
+    if (this.store.runtime.mode !== 'api') return;
+    window.setInterval(() => void this.pollSession(), 60_000);
+    window.addEventListener('focus', () => void this.pollSession());
+  }
 
   async initialize(): Promise<void> {
     if (this.store.runtime.mode !== 'api') return;
     this.store.remoteState.set('loading');
     try {
       const session = await firstValueFrom(this.api.session());
+      this.sessionSignature = this.signature(session);
       const capabilities = new Set(session.capabilities);
       const canViewLedger = capabilities.has(ApiCapability.viewLedger);
       const canViewAccounts = canViewLedger || capabilities.has(ApiCapability.viewAccounts);
@@ -41,7 +50,7 @@ export class RemoteBootstrap {
             : of({ items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false }),
           preferences: canViewLedger ? this.api.preferences() : of(null),
           featureFlags: canViewLedger ? this.api.featureFlags() : of([]),
-          notifications: canViewLedger ? this.api.notifications() : of([]),
+          notifications: this.api.notifications(),
         }),
       );
       this.store.data.set(
@@ -90,6 +99,26 @@ export class RemoteBootstrap {
       this.store.remoteState.set('error');
       this.store.user.set(null);
     }
+  }
+
+  /** Revisa la sesión y recarga todo cuando un administrador cambia los permisos. */
+  async pollSession(): Promise<void> {
+    if (this.store.runtime.mode !== 'api' || this.store.remoteState() === 'loading') return;
+    try {
+      const session = await firstValueFrom(this.api.session());
+      const signature = this.signature(session);
+      if (this.sessionSignature !== null && signature !== this.sessionSignature) await this.initialize();
+    } catch {
+      /* los errores transitorios se ignoran; el próximo ciclo reintenta */
+    }
+  }
+
+  private signature(session: ApiSession): string {
+    return JSON.stringify([
+      [...session.capabilities].sort(),
+      [...(session.permissions ?? [])].sort(),
+      session.isSuperAdmin === true,
+    ]);
   }
 
   private toViewUser(session: ApiSession): (typeof this.store.users)[number] {

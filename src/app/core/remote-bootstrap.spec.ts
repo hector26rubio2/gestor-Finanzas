@@ -64,13 +64,51 @@ describe('RemoteBootstrap', () => {
     expect(api.cards).toHaveBeenCalledOnce();
     expect(api.categories).toHaveBeenCalledOnce();
     expect(api.movements).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
+    expect(api.notifications).toHaveBeenCalledOnce();
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
     expect(api.preferences).not.toHaveBeenCalled();
     expect(api.featureFlags).not.toHaveBeenCalled();
-    expect(api.notifications).not.toHaveBeenCalled();
     expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
     expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
+  });
+
+  it('reloads everything when the session permissions change', async () => {
+    const upgraded = {
+      ...session,
+      capabilities: [...session.capabilities, 2],
+      permissions: [...session.permissions, 'movement.create'],
+    };
+    let current = session;
+    const api = {
+      session: vi.fn(() => of(current)),
+      accounts: vi.fn(() => of([])),
+      cards: vi.fn(() => of([])),
+      categories: vi.fn(() => of([])),
+      people: vi.fn(() => of([])),
+      debts: vi.fn(() => of([])),
+      investments: vi.fn(() => of([])),
+      movements: vi.fn(() => of(emptyPage)),
+      preferences: vi.fn(() => of(null)),
+      featureFlags: vi.fn(() => of([])),
+      notifications: vi.fn(() => of([])),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    const bootstrap = TestBed.inject(RemoteBootstrap);
+    await bootstrap.initialize();
+    await bootstrap.pollSession();
+    current = upgraded;
+    await bootstrap.pollSession();
+
+    expect(api.session).toHaveBeenCalledTimes(4);
+    expect(api.accounts).toHaveBeenCalledTimes(2);
+    expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(upgraded.permissions);
   });
 
   it('treats 401 as an anonymous visitor instead of a connection error', async () => {

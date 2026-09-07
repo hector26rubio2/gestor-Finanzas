@@ -11,6 +11,6 @@ bootstrapApplication(AppComponent, {
     provideRouter(routes),
     provideHttpClient(),
     { provide: API_TRANSPORT, useClass: HttpApiTransport },
-    provideAppInitializer(() => inject(RemoteBootstrap).initialize()),
+    provideAppInitializer(() => inject(RemoteBootstrap).start()),
   ],
 }).catch(console.error);
