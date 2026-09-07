@@ -26,6 +26,8 @@ const capabilityNames: Record<number, string[]> = {
   256: ['reports'],
   512: ['administration'],
   1024: ['administration', 'theme.customize'],
+  2048: ['dashboard'],
+  4096: ['movements'],
 };
 
 @Injectable({ providedIn: 'root' })
@@ -109,7 +111,7 @@ export class RemoteBootstrap {
       id: session.user.id,
       name: session.user.displayName,
       email: session.user.email,
-      capabilities: [...new Set(session.capabilities.flatMap((capability) => capabilityNames[capability] ?? []))],
+      capabilities: [...new Set([...(session.isSuperAdmin ? ['superadmin'] : []), ...session.capabilities.flatMap((capability) => capabilityNames[capability] ?? [])])],
     };
   }
 

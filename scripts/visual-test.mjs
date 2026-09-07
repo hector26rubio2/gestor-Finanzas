@@ -156,6 +156,13 @@ async function exerciseInteractions(page) {
 async function testViewport(browser, viewport) {
   const context = await browser.newContext({ viewport, colorScheme: 'light' });
   const page = await context.newPage();
+  await page.route('**/config.js', async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/javascript',
+      body: "window.__FINANZAS_CONFIG__ = { mode: 'demo' };",
+    });
+  });
   const consoleErrors = [];
   const failures = [];
   page.on('console', (message) => {

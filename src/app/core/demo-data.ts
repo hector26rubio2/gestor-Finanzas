@@ -114,6 +114,7 @@ export const demoUsers = [
       'reports',
       'notifications',
       'administration',
+      'superadmin',
       'settings',
       'movement.create',
       'account.create',

@@ -11,25 +11,12 @@ window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://su-api.onrender
 El modo `demo` usa únicamente datos ficticios en memoria. El modo `api` consume la superficie `/api/v1`, envía la cookie de sesión, obtiene CSRF antes de cada escritura y nunca sustituye un fallo remoto por datos demo. El backend debe permitir mediante CORS el origen exacto del frontend y credenciales.
 
 ```powershell
-pnpm install
-pnpm start
-pnpm build
-pnpm test
-pnpm lint
+pnpm --dir apps/web start
+pnpm --dir apps/web build
+pnpm --dir apps/web test
+pnpm --dir apps/web lint
 ```
 
 Perfiles demo: Valentina tiene todas las capacidades; Daniel permite comprobar navegación restringida. El conjunto de datos cubre septiembre de 2025 a agosto de 2026 y puede restaurarse desde Preferencias.
 
 La sesión remota define las capacidades efectivas; el cliente carga solo los módulos autorizados. Los endpoints que todavía no existen siguen presentándose como prototipo sin escritura remota. Los componentes no consumen IPC o HTTP directamente.
-
-## Despliegue en GitHub Pages
-
-`.github/workflows/deploy.yml` construye y publica el sitio en cada push a
-`main` (Settings → Pages → Source: GitHub Actions). Queda en
-`https://hector26rubio2.github.io/gestor-Finanzas/` con `--base-href` ajustado
-al subpath.
-
-Para conectar la API de Render: cambia `public/config.js` a
-`{ mode: 'api', apiBaseUrl: 'https://finanzas-api.onrender.com' }` y configura
-en Render `Security__AllowedReturnOrigins__0` como `https://hector26rubio2.github.io`
-(origen sin ruta: esquema + host).

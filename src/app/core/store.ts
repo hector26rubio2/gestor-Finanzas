@@ -71,7 +71,7 @@ export const navigation = [
   { path: 'planning', label: 'Planificación', icon: '↗', group: 'ANÁLISIS', capability: 'planning' },
   { path: 'reports', label: 'Reportes', icon: '▥', group: 'ANÁLISIS', capability: 'reports' },
   { path: 'notifications', label: 'Notificaciones', icon: '◎', group: 'ESPACIO', capability: 'notifications' },
-  { path: 'admin', label: 'Administración', icon: '⚙', group: 'ESPACIO', capability: 'administration' },
+  { path: 'admin', label: 'Administración', icon: '⚙', group: 'ESPACIO', capability: 'superadmin' },
   { path: 'settings', label: 'Preferencias', icon: '☷', group: 'ESPACIO', capability: 'settings' },
 ];
 
