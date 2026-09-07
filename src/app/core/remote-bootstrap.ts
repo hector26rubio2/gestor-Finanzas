@@ -8,6 +8,7 @@ import {
   ApiInvestment,
   ApiMovement,
   ApiNotification,
+  ApiRequestError,
   ApiSession,
   FinanceApiClient,
 } from './api-client';
@@ -91,6 +92,12 @@ export class RemoteBootstrap {
       this.store.categories.set(result.categories);
       this.store.remoteState.set('ready');
     } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 401) {
+        this.store.remoteError.set('');
+        this.store.user.set(null);
+        this.store.remoteState.set('anonymous');
+        return;
+      }
       this.store.remoteError.set(error instanceof Error ? error.message : 'No fue posible cargar la API.');
       this.store.remoteState.set('error');
       this.store.user.set(null);

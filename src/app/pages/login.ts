@@ -25,6 +25,9 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
           ><button (click)="login(1)">Entrar como revisor</button>
         } @else if (store.remoteState() === 'loading') {
           <p role="status">Conectando con la API…</p>
+        } @else if (store.remoteState() === 'anonymous') {
+          <p>Inicia sesión con Google para continuar.</p>
+          <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> Iniciar sesión con Google</a>
         } @else {
           <p class="api-error" role="alert">{{ store.remoteError() }}</p>
           <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> Iniciar sesión con Google</a>

@@ -83,7 +83,7 @@ export class DemoStore {
   readonly data = signal(this.provider.load());
   readonly users = demoUsers;
   readonly user = signal<(typeof demoUsers)[number] | null>(null);
-  readonly remoteState = signal<'demo' | 'loading' | 'ready' | 'error'>(
+  readonly remoteState = signal<'demo' | 'loading' | 'ready' | 'anonymous' | 'error'>(
     this.runtime.mode === 'demo' ? 'demo' : 'loading',
   );
   readonly remoteError = signal('');

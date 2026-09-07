@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from './api-client';
+import { ApiRequestError, FinanceApiClient } from './api-client';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
 import { DemoStore } from './store';
@@ -65,5 +65,24 @@ describe('RemoteBootstrap', () => {
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
     expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
+  });
+
+  it('treats 401 as an anonymous visitor instead of a connection error', async () => {
+    const api = {
+      session: vi.fn(() => throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' }))),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    await TestBed.inject(RemoteBootstrap).initialize();
+
+    const store = TestBed.inject(DemoStore);
+    expect(store.remoteState()).toBe('anonymous');
+    expect(store.remoteError()).toBe('');
+    expect(store.user()).toBeNull();
   });
 });
