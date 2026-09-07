@@ -32,6 +32,7 @@ jobs:
         run: |
           echo "window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: '$API_BASE_URL' };" > public/config.js
       - run: pnpm exec ng build --base-href /gestor-Finanzas/
+      - run: cp dist/browser/index.html dist/browser/404.html
       - run: touch dist/browser/.nojekyll
       - uses: actions/upload-pages-artifact@v3
         with:
