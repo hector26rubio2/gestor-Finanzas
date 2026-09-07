@@ -148,6 +148,7 @@ export const ApiCapability = {
   manageOrganization: 1024,
   viewDashboard: 2048,
   viewMovements: 4096,
+  viewAccounts: 8192,
 } as const;
 
 export interface ApiAccount {

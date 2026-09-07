@@ -1,12 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { DemoStore } from '../core/store';
+import { CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
 type WidgetType = 'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap';
-type Widget = { id: string; title: string; kicker: string; type: WidgetType; wide: boolean };
+type Widget = { id: string; title: string; kicker: string; type: WidgetType; wide: boolean; capability?: string };
 
 @Component({
   standalone: true,
@@ -19,9 +19,11 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         <h1>Hola, {{ store.user()?.name?.split(' ')?.[0] }}</h1>
         <p>Explora tus finanzas: cada filtro actualiza toda la visual.</p>
       </div>
-      <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
-        {{ customizing() ? 'Terminar' : 'Personalizar' }}
-      </button>
+      @if (caps.allows('movement.create')) {
+        <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
+          {{ customizing() ? 'Terminar' : 'Personalizar' }}
+        </button>
+      }
     </header>
     <section class="filter-panel" aria-labelledby="filters-title">
       <header>
@@ -1004,6 +1006,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
 })
 export class DashboardComponent {
   readonly store = inject(DemoStore);
+  readonly caps = inject(CAPABILITIES);
   readonly customizing = signal(false);
   readonly scale = signal<Scale>('month');
   readonly anchor = signal('2026-08-31');
@@ -1023,27 +1026,60 @@ export class DashboardComponent {
     { value: 'year', label: 'Año' },
   ];
   readonly all = signal<Widget[]>([
-    { id: 'flow', title: 'Flujo de caja', kicker: 'INGRESOS Y GASTOS', type: 'flow', wide: true },
+    {
+      id: 'flow',
+      title: 'Flujo de caja',
+      kicker: 'INGRESOS Y GASTOS',
+      type: 'flow',
+      wide: true,
+      capability: 'dashboard',
+    },
     {
       id: 'categories',
       title: 'Gastos por categoría',
       kicker: 'DISTRIBUCIÓN INTERACTIVA',
       type: 'categories',
       wide: false,
+      capability: 'dashboard',
     },
-    { id: 'accounts', title: 'Gasto por cuenta y tarjeta', kicker: 'MEDIOS DE PAGO', type: 'accounts', wide: false },
-    { id: 'trend', title: 'Evolución del gasto', kicker: 'TENDENCIA', type: 'trend', wide: true },
+    {
+      id: 'accounts',
+      title: 'Gasto por cuenta y tarjeta',
+      kicker: 'MEDIOS DE PAGO',
+      type: 'accounts',
+      wide: false,
+      capability: 'dashboard',
+    },
+    {
+      id: 'trend',
+      title: 'Evolución del gasto',
+      kicker: 'TENDENCIA',
+      type: 'trend',
+      wide: true,
+      capability: 'movement.create',
+    },
     {
       id: 'commitments',
       title: 'Disponible tras compromisos',
       kicker: 'PRÓXIMOS 30 DÍAS',
       type: 'accounts',
       wide: false,
+      capability: 'planning',
     },
-    { id: 'health', title: 'Salud financiera', kicker: 'ALERTAS Y OPORTUNIDADES', type: 'categories', wide: false },
+    {
+      id: 'health',
+      title: 'Salud financiera',
+      kicker: 'ALERTAS Y OPORTUNIDADES',
+      type: 'categories',
+      wide: false,
+      capability: 'planning',
+    },
   ]);
-  readonly widgets = computed(() => this.all().filter((w) => !this.hiddenIds().includes(w.id)));
-  readonly hidden = computed(() => this.all().filter((w) => this.hiddenIds().includes(w.id)));
+  canSee(widget: Widget): boolean {
+    return !widget.capability || this.caps.allows(widget.capability);
+  }
+  readonly widgets = computed(() => this.all().filter((w) => !this.hiddenIds().includes(w.id) && this.canSee(w)));
+  readonly hidden = computed(() => this.all().filter((w) => this.hiddenIds().includes(w.id) && this.canSee(w)));
   readonly allCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
   readonly accountOptions = computed(() =>
     this.store.data().accounts.filter((a) => this.accountType() === 'all' || a.type === this.accountType()),

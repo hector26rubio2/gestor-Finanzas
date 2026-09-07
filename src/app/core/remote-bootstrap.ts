@@ -27,15 +27,16 @@ export class RemoteBootstrap {
       const session = await firstValueFrom(this.api.session());
       const capabilities = new Set(session.capabilities);
       const canViewLedger = capabilities.has(ApiCapability.viewLedger);
+      const canViewAccounts = canViewLedger || capabilities.has(ApiCapability.viewAccounts);
       const result = await firstValueFrom(
         forkJoin({
-          accounts: canViewLedger ? this.api.accounts() : of([]),
-          cards: canViewLedger ? this.api.cards() : of([]),
-          categories: canViewLedger ? this.api.categories() : of([]),
+          accounts: canViewAccounts ? this.api.accounts() : of([]),
+          cards: canViewAccounts ? this.api.cards() : of([]),
+          categories: canViewAccounts ? this.api.categories() : of([]),
           people: capabilities.has(ApiCapability.managePeople) ? this.api.people() : of([]),
           debts: canViewLedger ? this.api.debts() : of([]),
           investments: capabilities.has(ApiCapability.manageInvestments) ? this.api.investments() : of([]),
-          movements: canViewLedger
+          movements: capabilities.has(ApiCapability.viewMovements)
             ? this.api.movements({ page: 1, pageSize: 25 })
             : of({ items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false }),
           preferences: canViewLedger ? this.api.preferences() : of(null),

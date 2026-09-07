@@ -18,10 +18,10 @@ describe('RemoteBootstrap', () => {
       isActive: true,
       createdAt: '',
     },
-    capabilities: [1],
+    capabilities: [2048, 4096, 8192],
     organizations: [],
     expiresAt: '',
-    permissions: ['dashboard', 'movements', 'accounts', 'calendar', 'reports', 'notifications', 'settings'],
+    permissions: ['dashboard', 'movements', 'accounts', 'calendar'],
   };
 
   beforeEach(() => TestBed.resetTestingModule());
@@ -62,9 +62,13 @@ describe('RemoteBootstrap', () => {
 
     expect(api.accounts).toHaveBeenCalledOnce();
     expect(api.cards).toHaveBeenCalledOnce();
+    expect(api.categories).toHaveBeenCalledOnce();
     expect(api.movements).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
+    expect(api.preferences).not.toHaveBeenCalled();
+    expect(api.featureFlags).not.toHaveBeenCalled();
+    expect(api.notifications).not.toHaveBeenCalled();
     expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
     expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
   });
