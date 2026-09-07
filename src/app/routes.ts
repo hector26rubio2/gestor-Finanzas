@@ -20,7 +20,7 @@ export const routes: Routes = [
         ? import('./pages/dashboard').then((m) => m.DashboardComponent)
         : n.path === 'admin'
           ? import('./pages/admin').then((m) => m.AdminComponent)
-        : import('./pages/workspace').then((m) => m.WorkspaceComponent),
+          : import('./pages/workspace').then((m) => m.WorkspaceComponent),
   })),
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
   { path: '**', redirectTo: 'dashboard' },

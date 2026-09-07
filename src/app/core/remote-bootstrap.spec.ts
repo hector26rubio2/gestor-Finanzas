@@ -21,6 +21,7 @@ describe('RemoteBootstrap', () => {
     capabilities: [1],
     organizations: [],
     expiresAt: '',
+    permissions: ['dashboard', 'movements', 'accounts', 'calendar', 'reports', 'notifications', 'settings'],
   };
 
   beforeEach(() => TestBed.resetTestingModule());
@@ -65,6 +66,7 @@ describe('RemoteBootstrap', () => {
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
     expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
+    expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
   });
 
   it('treats 401 as an anonymous visitor instead of a connection error', async () => {

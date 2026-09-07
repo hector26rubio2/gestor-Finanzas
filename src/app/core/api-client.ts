@@ -131,7 +131,24 @@ export interface ApiSession {
   organizations: readonly ApiOrganization[];
   expiresAt: string;
   isSuperAdmin?: boolean;
+  permissions?: readonly string[];
 }
+
+export const ApiCapability = {
+  viewLedger: 1,
+  recordMovements: 2,
+  manageAccounts: 4,
+  manageCards: 8,
+  managePeople: 16,
+  manageInvestments: 32,
+  manageRecurrences: 64,
+  issueSettlements: 128,
+  exportData: 256,
+  manageMembers: 512,
+  manageOrganization: 1024,
+  viewDashboard: 2048,
+  viewMovements: 4096,
+} as const;
 
 export interface ApiAccount {
   id: string;
@@ -287,16 +304,34 @@ export interface ApiAdminUser {
   capabilities: readonly string[];
   isSuperAdmin?: boolean;
   createdAt?: string;
-  memberships?: readonly { id: string; organizationId: string; organizationName: string; status: string; effectiveCapabilities: readonly string[]; roles: readonly ApiAdminRole[] }[];
+  memberships?: readonly {
+    id: string;
+    organizationId: string;
+    organizationName: string;
+    status: string;
+    effectiveCapabilities: readonly string[];
+    roles: readonly ApiAdminRole[];
+  }[];
 }
 export interface ApiAdminRole {
   id: string;
   name: string;
-  description: string;
-  memberCount: number;
+  description: string | null;
+  organizationId?: string;
   capabilities: readonly string[];
   isSystem: boolean;
-  organizationId?: string;
+}
+export interface ApiCapabilityDescriptor {
+  key: string;
+  module: string;
+  description: string;
+}
+export interface ApiAdminFeatureFlag {
+  key: string;
+  organizationId: string | null;
+  userId: string | null;
+  isEnabled: boolean;
+  updatedAt: string;
 }
 export interface ApiClientError {
   id: string;
@@ -554,30 +589,78 @@ export class FinanceApiClient {
     });
   }
   adminUsers(page = 1, size = 25, search = '') {
-    return this.transport.request<ApiPage<ApiAdminUser>>({ method: 'GET', path: API_ROUTES.adminUsers, params: { page, size, search } });
+    return this.transport.request<ApiPage<ApiAdminUser>>({
+      method: 'GET',
+      path: API_ROUTES.adminUsers,
+      params: { page, size, search },
+    });
   }
   setAdminUserActive(id: string, isActive: boolean) {
     return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminUserActive(id), body: { isActive } });
   }
   setAdminUserCapability(id: string, organizationId: string, capability: string, isAllowed: boolean | null) {
-    return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminUserCapability(id), body: { organizationId, capability, isAllowed } });
+    return this.transport.request<void>({
+      method: 'PUT',
+      path: API_ROUTES.adminUserCapability(id),
+      body: { organizationId, capability, isAllowed },
+    });
   }
-  adminRoles() { return this.get<readonly ApiAdminRole[]>(API_ROUTES.adminRoles); }
-  adminFeatureFlags() { return this.get<readonly ApiFeatureFlag[]>(API_ROUTES.superAdminFeatureFlags); }
-  updateAdminFeatureFlag(key: string, request: { organizationId?: string | null; userId?: string | null; isEnabled: boolean }) {
-    return this.transport.request<ApiFeatureFlag>({ method: 'PUT', path: API_ROUTES.superAdminFeatureFlag(key), body: request });
+  adminRoles() {
+    return this.get<readonly ApiAdminRole[]>(API_ROUTES.adminRoles);
+  }
+  superAdminCapabilities() {
+    return this.get<readonly ApiCapabilityDescriptor[]>(API_ROUTES.superAdminCapabilities);
+  }
+  assignAdminUserRoles(id: string, organizationId: string, roleIds: readonly string[]) {
+    return this.transport.request<void>({
+      method: 'PUT',
+      path: API_ROUTES.adminUserRoles(id),
+      body: { organizationId, roleIds },
+    });
+  }
+  adminFeatureFlags() {
+    return this.get<readonly ApiAdminFeatureFlag[]>(API_ROUTES.superAdminFeatureFlags);
+  }
+  updateAdminFeatureFlag(
+    key: string,
+    request: { organizationId?: string | null; userId?: string | null; isEnabled: boolean },
+  ) {
+    return this.transport.request<ApiFeatureFlag>({
+      method: 'PUT',
+      path: API_ROUTES.superAdminFeatureFlag(key),
+      body: request,
+    });
   }
   superAdminAudit(page = 1, size = 50) {
-    return this.transport.request<ApiPage<ApiAuditEvent>>({ method: 'GET', path: API_ROUTES.superAdminAudit, params: { page, size } });
+    return this.transport.request<ApiPage<ApiAuditEvent>>({
+      method: 'GET',
+      path: API_ROUTES.superAdminAudit,
+      params: { page, size },
+    });
   }
-  saveAdminRole(id: string | null, request: { organizationId?: string; name: string; description: string; capabilities: readonly string[] }) {
-    return this.transport.request<ApiAdminRole>({ method: id ? 'PUT' : 'POST', path: id ? API_ROUTES.adminRole(id) : API_ROUTES.adminRoles, body: request });
+  saveAdminRole(
+    id: string | null,
+    request: { organizationId?: string; name: string; description: string; capabilities: readonly string[] },
+  ) {
+    return this.transport.request<ApiAdminRole>({
+      method: id ? 'PUT' : 'POST',
+      path: id ? API_ROUTES.adminRole(id) : API_ROUTES.adminRoles,
+      body: request,
+    });
   }
   adminErrors(page = 1, size = 25, status = '') {
-    return this.transport.request<ApiPage<ApiClientError>>({ method: 'GET', path: API_ROUTES.adminErrors, params: { page, size, status } });
+    return this.transport.request<ApiPage<ApiClientError>>({
+      method: 'GET',
+      path: API_ROUTES.adminErrors,
+      params: { page, size, status },
+    });
   }
   updateAdminError(id: string, status: ApiClientError['status'], resolution?: string) {
-    return this.transport.request<ApiClientError>({ method: 'PUT', path: API_ROUTES.adminError(id), body: { status, resolution } });
+    return this.transport.request<ApiClientError>({
+      method: 'PUT',
+      path: API_ROUTES.adminError(id),
+      body: { status, resolution },
+    });
   }
   recurrences() {
     return this.get<readonly ApiRecurrence[]>(API_ROUTES.recurrences);
@@ -674,6 +757,7 @@ export const API_ROUTES = {
   adminUsers: '/api/v1/superadmin/users',
   adminRoles: '/api/v1/superadmin/roles',
   adminErrors: '/api/v1/superadmin/errors',
+  superAdminCapabilities: '/api/v1/superadmin/capabilities',
   superAdminFeatureFlags: '/api/v1/superadmin/feature-flags',
   superAdminAudit: '/api/v1/superadmin/audit',
   recurrences: '/api/v1/recurrences',
@@ -686,6 +770,7 @@ export const API_ROUTES = {
   adminFeatureFlag: (key: string) => `/api/v1/admin/feature-flags/${encodeURIComponent(key)}`,
   adminUserActive: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/active`,
   adminUserCapability: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/capability-override`,
+  adminUserRoles: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/roles`,
   adminRole: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}`,
   adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,
   superAdminFeatureFlag: (key: string) => `/api/v1/superadmin/feature-flags/${encodeURIComponent(key)}`,

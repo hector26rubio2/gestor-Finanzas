@@ -3,6 +3,7 @@ import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { Account, DemoData, Movement } from './demo-data';
 import {
   ApiAccount,
+  ApiCapability,
   ApiCard,
   ApiDebtPosition,
   ApiInvestment,
@@ -13,22 +14,6 @@ import {
   FinanceApiClient,
 } from './api-client';
 import { DemoStore } from './store';
-
-const capabilityNames: Record<number, string[]> = {
-  1: ['dashboard', 'movements', 'accounts', 'calendar', 'reports', 'notifications', 'settings'],
-  2: ['movement.create'],
-  4: ['account.create'],
-  8: ['accounts'],
-  16: ['people'],
-  32: ['portfolio', 'planning'],
-  64: ['movements'],
-  128: ['people'],
-  256: ['reports'],
-  512: ['administration'],
-  1024: ['administration', 'theme.customize'],
-  2048: ['dashboard'],
-  4096: ['movements'],
-};
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
@@ -41,15 +26,15 @@ export class RemoteBootstrap {
     try {
       const session = await firstValueFrom(this.api.session());
       const capabilities = new Set(session.capabilities);
-      const canViewLedger = capabilities.has(1);
+      const canViewLedger = capabilities.has(ApiCapability.viewLedger);
       const result = await firstValueFrom(
         forkJoin({
           accounts: canViewLedger ? this.api.accounts() : of([]),
           cards: canViewLedger ? this.api.cards() : of([]),
           categories: canViewLedger ? this.api.categories() : of([]),
-          people: capabilities.has(16) ? this.api.people() : of([]),
+          people: capabilities.has(ApiCapability.managePeople) ? this.api.people() : of([]),
           debts: canViewLedger ? this.api.debts() : of([]),
-          investments: capabilities.has(32) ? this.api.investments() : of([]),
+          investments: capabilities.has(ApiCapability.manageInvestments) ? this.api.investments() : of([]),
           movements: canViewLedger
             ? this.api.movements({ page: 1, pageSize: 25 })
             : of({ items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false }),
@@ -111,7 +96,7 @@ export class RemoteBootstrap {
       id: session.user.id,
       name: session.user.displayName,
       email: session.user.email,
-      capabilities: [...new Set([...(session.isSuperAdmin ? ['superadmin'] : []), ...session.capabilities.flatMap((capability) => capabilityNames[capability] ?? [])])],
+      capabilities: [...(session.permissions ?? [])],
     };
   }
 
