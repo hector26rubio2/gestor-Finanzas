@@ -11,6 +11,7 @@ import {
   ApiClientError,
   FinanceApiClient,
 } from '../core/api-client';
+import { P } from '../core/permissions';
 import { CAPABILITIES, DemoStore } from '../core/store';
 
 type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
@@ -34,7 +35,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       </header>
 
       <nav class="tabs" aria-label="Secciones de administración">
-        @for (item of tabs; track item.id) {
+        @for (item of tabs(); track item.id) {
           <button [class.active]="tab() === item.id" (click)="tab.set(item.id)">
             <span>{{ item.icon }}</span
             >{{ item.label }}
@@ -153,7 +154,9 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                       </td>
                       <td>{{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : 'Sin acceso' }}</td>
                       <td>
-                        <button class="icon-btn" aria-label="Administrar usuario" (click)="openUser(user)">→</button>
+                        @if (caps.allows(P.administracion.usuarios.editar)) {
+                          <button class="icon-btn" aria-label="Administrar usuario" (click)="openUser(user)">→</button>
+                        }
                       </td>
                     </tr>
                   }
@@ -171,7 +174,9 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
               <h2>Roles y capacidades</h2>
               <p>Los roles agrupan permisos; las excepciones se aplican por usuario.</p>
             </div>
-            <button class="primary" (click)="newRole()">＋ Crear rol</button>
+            @if (caps.allows(P.administracion.roles.crear)) {
+              <button class="primary" (click)="newRole()">＋ Crear rol</button>
+            }
           </section>
           <section class="role-grid">
             @for (role of roles(); track role.id) {
@@ -181,7 +186,10 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                   ><span
                     ><h3>{{ role.name }}</h3>
                     <small>{{ memberCount(role.id) }} miembros</small></span
-                  ><button class="icon-btn" (click)="editRole(role)">✎</button>
+                  >
+                  @if (caps.allows(P.administracion.roles.editar)) {
+                    <button class="icon-btn" (click)="editRole(role)">✎</button>
+                  }
                 </header>
                 <p>{{ role.description || 'Sin descripción.' }}</p>
                 <div class="chips">
@@ -1116,7 +1124,8 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 export class AdminComponent implements OnInit {
   readonly store = inject(DemoStore);
   private api = inject(FinanceApiClient);
-  private caps = inject(CAPABILITIES);
+  readonly caps = inject(CAPABILITIES);
+  readonly P = P;
   readonly tab = signal<Tab>('summary');
   readonly users = signal<ApiAdminUser[]>([]);
   readonly roles = signal<readonly ApiAdminRole[]>([]);
@@ -1135,14 +1144,17 @@ export class AdminComponent implements OnInit {
   auditSearch = '';
   auditAction = 'all';
   errorStatus = 'all';
-  readonly tabs = [
-    { id: 'summary' as Tab, label: 'Resumen', icon: '◈' },
-    { id: 'users' as Tab, label: 'Usuarios', icon: '♧' },
-    { id: 'roles' as Tab, label: 'Roles y capacidades', icon: '◇' },
-    { id: 'flags' as Tab, label: 'Feature Flags', icon: '⚑' },
-    { id: 'audit' as Tab, label: 'Auditoría', icon: '▤' },
-    { id: 'errors' as Tab, label: 'Errores', icon: '!' },
+  private readonly allTabs = [
+    { id: 'summary' as Tab, label: 'Resumen', icon: '◈', capability: P.administracion.ver },
+    { id: 'users' as Tab, label: 'Usuarios', icon: '♧', capability: P.administracion.usuarios.listar },
+    { id: 'roles' as Tab, label: 'Roles y capacidades', icon: '◇', capability: P.administracion.roles.listar },
+    { id: 'flags' as Tab, label: 'Feature Flags', icon: '⚑', capability: P.administracion.banderas.listar },
+    { id: 'audit' as Tab, label: 'Auditoría', icon: '▤', capability: P.administracion.auditoria.listar },
+    { id: 'errors' as Tab, label: 'Errores', icon: '!', capability: P.administracion.errores.listar },
   ];
+
+  /** La consola era todo o nada: quien entraba veía y podía las seis pestañas. */
+  readonly tabs = computed(() => this.allTabs.filter((item) => this.caps.allows(item.capability)));
   readonly capabilityGroups = computed(() => {
     const groups = new Map<string, ApiCapabilityDescriptor[]>();
     for (const descriptor of this.capabilityCatalog()) {
@@ -1195,16 +1207,28 @@ export class AdminComponent implements OnInit {
     this.errors().filter((e) => this.errorStatus === 'all' || e.status === this.errorStatus),
   );
   async ngOnInit() {
-    if (!this.caps.allows('administration') && !this.caps.allows('superadmin')) return;
+    if (!this.caps.allows(P.administracion.ver)) return;
     if (this.store.runtime.mode !== 'api') return;
     try {
+      // Solo se pide lo que el permiso abre: así una sesión sin una pestaña no
+      // provoca un 403 en el arranque de la consola.
       const [u, r, a, e, f, c] = await Promise.all([
-        firstValueFrom(this.api.adminUsers()),
-        firstValueFrom(this.api.adminRoles()),
-        firstValueFrom(this.api.superAdminAudit(1, 50)),
-        firstValueFrom(this.api.adminErrors()),
-        firstValueFrom(this.api.adminFeatureFlags()),
-        firstValueFrom(this.api.superAdminCapabilities()),
+        this.caps.allows(P.administracion.usuarios.listar)
+          ? firstValueFrom(this.api.adminUsers())
+          : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
+        this.caps.allows(P.administracion.roles.listar) ? firstValueFrom(this.api.adminRoles()) : Promise.resolve([]),
+        this.caps.allows(P.administracion.auditoria.listar)
+          ? firstValueFrom(this.api.superAdminAudit(1, 50))
+          : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
+        this.caps.allows(P.administracion.errores.listar)
+          ? firstValueFrom(this.api.adminErrors())
+          : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
+        this.caps.allows(P.administracion.banderas.listar)
+          ? firstValueFrom(this.api.adminFeatureFlags())
+          : Promise.resolve([]),
+        this.caps.allows(P.administracion.capacidades.listar)
+          ? firstValueFrom(this.api.superAdminCapabilities())
+          : Promise.resolve([]),
       ]);
       this.users.set(
         u.items.map((user) => ({

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DemoStore } from './core/store';
+import { P } from './core/permissions';
+import { CAPABILITIES, DemoStore } from './core/store';
 import { OverlayComponent } from './ui/ui';
 
 type FormField = {
@@ -290,6 +291,7 @@ function movementFields(kind: string, store: DemoStore): FormField[] {
 })
 export class MovementFormComponent {
   readonly store = inject(DemoStore);
+  private readonly capabilities = inject(CAPABILITIES);
   readonly error = signal('');
   readonly types = [
     { value: 'expense', label: 'Gasto' },
@@ -346,6 +348,17 @@ export class MovementFormComponent {
   async submit() {
     try {
       this.error.set('');
+      // Ultima linea antes de escribir. El servidor tiene la palabra final, pero
+      // avisar aqui evita mandar una peticion que va a volver con 403.
+      const permiso =
+        this.model.kind === 'transfer'
+          ? P.movimientos.transferencias.crear
+          : this.model.kind === 'payment'
+            ? P.movimientos.pagos.crear
+            : this.model.id
+              ? P.movimientos.editar
+              : P.movimientos.crear;
+      if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite esta operación.');
       const source = this.store.account(this.model['accountId']);
       const target = this.store.account(this.model['targetId']);
       if (this.model.kind === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
@@ -472,6 +485,7 @@ export class MovementFormComponent {
   ],
 })
 export class AccountFormComponent {
+  private readonly capabilities = inject(CAPABILITIES);
   readonly error = signal('');
   name = 'Ahorro principal';
   type: 'savings' | 'cash' | 'credit' = 'savings';
@@ -490,6 +504,9 @@ export class AccountFormComponent {
   async save() {
     try {
       this.error.set('');
+      // Una tarjeta la crea quien administra tarjetas; una cuenta, quien administra cuentas.
+      const permiso = this.type === 'credit' ? P.cuentas.tarjetas.crear : P.cuentas.crear;
+      if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite crear cuentas.');
       await this.store.createAccount(
         this.name,
         this.type,
@@ -624,6 +641,7 @@ export class AccountFormComponent {
   ],
 })
 export class ManagementFormComponent {
+  private readonly capabilities = inject(CAPABILITIES);
   readonly store = inject(DemoStore);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
@@ -650,6 +668,14 @@ export class ManagementFormComponent {
   async save() {
     try {
       this.error.set('');
+      const permisos: Record<string, string> = {
+        category: P.cuentas.categorias.crear,
+        person: P.personas.crear,
+        investment: P.patrimonio.inversiones.crear,
+        recurrence: P.calendario.recurrencias.crear,
+      };
+      const permiso = permisos[this.kind()];
+      if (permiso && !this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite esta operación.');
       if (!this.name.trim()) throw new Error('El nombre es obligatorio.');
       if (this.kind() === 'category') await this.store.createCategory(this.name, this.color, this.icon);
       if (this.kind() === 'person') await this.store.createPerson(this.name, this.email, this.relationship);

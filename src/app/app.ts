@@ -1,5 +1,8 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { FinanceApiClient } from './core/api-client';
+import { P } from './core/permissions';
 import { CAPABILITIES, DemoStore, navigation } from './core/store';
 import { MovementFormComponent } from './forms';
 
@@ -12,6 +15,7 @@ import { MovementFormComponent } from './forms';
     @if (!store.user()) {
       <router-outlet />
     } @else {
+      <a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
       <div class="app" [class.collapsed]="collapsed()">
         <aside [class.mobile-open]="mobileOpen()">
           <div class="brand-row">
@@ -96,11 +100,14 @@ import { MovementFormComponent } from './forms';
                 >♢
                 @if (store.unread()) {
                   <i>{{ store.unread() }}</i>
-                }</a
-              ><button class="primary" (click)="store.open()">＋ Nuevo movimiento</button>
+                }
+              </a>
+              @if (caps.allows(P.movimientos.crear)) {
+                <button class="primary" (click)="store.open()">＋ Nuevo movimiento</button>
+              }
             </div>
           </header>
-          <main><router-outlet /></main>
+          <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
         </section>
       </div>
       @if (store.form() && store.form()?.kind !== 'account') {
@@ -497,7 +504,9 @@ import { MovementFormComponent } from './forms';
 })
 export class AppComponent {
   readonly store = inject(DemoStore);
-  private caps = inject(CAPABILITIES);
+  readonly caps = inject(CAPABILITIES);
+  readonly P = P;
+  private readonly api = inject(FinanceApiClient);
   private router = inject(Router);
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
@@ -524,6 +533,16 @@ export class AppComponent {
     this.profileOpen.set(false);
   }
   async logout(): Promise<void> {
+    // Antes solo limpiaba senales locales y dejaba viva la sesion del servidor:
+    // quien cerraba sesion desde el menu de perfil seguia autenticado.
+    if (this.store.runtime.mode === 'api') {
+      try {
+        await firstValueFrom(this.api.logout());
+      } catch {
+        /* la sesion local se cierra igual; el servidor la caducara */
+      }
+    }
+    this.store.forgetDemoSession();
     this.store.user.set(null);
     this.store.form.set(null);
     this.store.inspector.set(null);

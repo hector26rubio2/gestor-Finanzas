@@ -25,6 +25,13 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # Nada se despliega a Pages sin pasar antes lint, formato y pruebas.
+      - name: Lint
+        run: pnpm lint
+      - name: Formato
+        run: pnpm format:check
+      - name: Pruebas
+        run: pnpm test
       - name: Escribir config de API desde la variable del repositorio
         if: ${{ vars.API_BASE_URL != '' }}
         env:

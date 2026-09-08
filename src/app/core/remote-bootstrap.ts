@@ -3,6 +3,7 @@ import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { Account, DemoData, Movement } from './demo-data';
 import {
   ApiAccount,
+  ApiAccountKind,
   ApiCapability,
   ApiCard,
   ApiDebtPosition,
@@ -13,6 +14,8 @@ import {
   ApiSession,
   FinanceApiClient,
 } from './api-client';
+import { parseAmount, parseMoney, parseRate } from './money';
+import { MovementKindCatalog, signOf } from './movement-kinds';
 import { DemoStore } from './store';
 
 @Injectable({ providedIn: 'root' })
@@ -22,6 +25,7 @@ export class RemoteBootstrap {
   private sessionSignature: string | null = null;
 
   async start(): Promise<void> {
+    this.store.restoreDemoSession();
     await this.initialize();
     if (this.store.runtime.mode !== 'api') return;
     window.setInterval(() => void this.pollSession(), 60_000);
@@ -33,12 +37,25 @@ export class RemoteBootstrap {
     this.store.remoteState.set('loading');
     try {
       const session = await firstValueFrom(this.api.session());
+
+      // Sin permisos el menu sale vacio y ninguna ruta abre. Antes eso ocurria en
+      // silencio y parecia una aplicacion rota; ahora se dice lo que pasa.
+      if (!session.permissions?.length) {
+        this.store.remoteError.set(
+          'La sesión no trae permisos. Pide a quien administra que revise tus roles o tu membresía.',
+        );
+        this.store.remoteState.set('error');
+        this.store.user.set(null);
+        return;
+      }
+
       this.sessionSignature = this.signature(session);
       const capabilities = new Set(session.capabilities);
       const canViewLedger = capabilities.has(ApiCapability.viewLedger);
       const canViewAccounts = canViewLedger || capabilities.has(ApiCapability.viewAccounts);
       const result = await firstValueFrom(
         forkJoin({
+          movementKinds: canViewLedger ? this.api.movementKinds() : of([]),
           accounts: canViewAccounts ? this.api.accounts() : of([]),
           cards: canViewAccounts ? this.api.cards() : of([]),
           categories: canViewAccounts ? this.api.categories() : of([]),
@@ -53,8 +70,13 @@ export class RemoteBootstrap {
           notifications: this.api.notifications(),
         }),
       );
+      // El catálogo entra antes que los movimientos: la familia de cada clase se
+      // deriva de la tabla publicada, no de números escritos a mano en el cliente.
+      const catalog = new MovementKindCatalog(result.movementKinds);
+      this.store.kindCatalog.set(catalog);
       this.store.data.set(
         this.toViewData(
+          catalog,
           result.accounts,
           result.cards,
           result.movements.items,
@@ -86,6 +108,7 @@ export class RemoteBootstrap {
         }));
       }
       this.store.featureFlags.set(Object.fromEntries(result.featureFlags.map((flag) => [flag.key, flag.isEnabled])));
+      this.store.featureFlagsLoaded.set(true);
       this.store.categories.set(result.categories);
       this.store.remoteState.set('ready');
     } catch (error) {
@@ -131,6 +154,7 @@ export class RemoteBootstrap {
   }
 
   private toViewData(
+    catalog: MovementKindCatalog,
     accounts: readonly ApiAccount[],
     cards: readonly ApiCard[],
     movements: readonly ApiMovement[],
@@ -143,11 +167,11 @@ export class RemoteBootstrap {
       ...accounts.map((account) => ({
         id: account.id,
         name: account.name,
-        type: account.kind === 1 ? ('cash' as const) : ('savings' as const),
+        type: account.kind === ApiAccountKind.cash ? ('cash' as const) : ('savings' as const),
         currency: account.currency,
         openingBalance: 0,
-        lastFour: account.lastFour ?? '0000',
-        color: '#087f68',
+        lastFour: account.lastFour ?? undefined,
+        institution: account.institution ?? undefined,
       })),
       ...cards.map((card) => ({
         id: card.id,
@@ -155,38 +179,36 @@ export class RemoteBootstrap {
         type: 'credit' as const,
         currency: card.currency,
         openingBalance: 0,
-        limit: Number(card.creditLimit.amount),
-        lastFour: card.lastFour ?? '0000',
-        color: '#4338ca',
+        limit: parseMoney(card.creditLimit),
+        lastFour: card.lastFour ?? undefined,
         cutDay: card.cycle.statementDay,
         dueDay: card.cycle.paymentDueDay,
       })),
     ];
     const debtByPerson = new Map(debts.map((debt) => [debt.counterparty.id, debt]));
+    // Los campos que la API todavía no expone se dejan ausentes a propósito.
+    // Rellenarlos con constantes plausibles —riesgo «Medio», liquidez
+    // «Programada», cero unidades— los presentaba en pantalla como si fueran
+    // datos medidos. Un dato que falta se comunica; no se sustituye.
     return {
       accounts: viewAccounts,
-      movements: movements.map((movement) => this.toMovement(movement)),
+      movements: movements.map((movement) => this.toMovement(catalog, movement)),
       people: people.map((person) => {
         const position = debtByPerson.get(person.id);
         return {
           id: person.id,
           name: person.displayName,
-          owed: Number(position?.receivable.amount ?? 0),
-          owing: Number(position?.ownDebt.amount ?? 0),
-          relationship: 'Otro' as const,
+          owed: parseMoney(position?.receivable),
+          owing: parseMoney(position?.ownDebt),
         };
       }),
       investments: investments.map((investment) => ({
         id: investment.id,
         name: investment.name,
         type: investment.instrumentType,
-        cost: Number(investment.costBasis.amount),
-        value: Number(investment.marketValue?.amount ?? investment.costBasis.amount),
-        institution: 'Sin especificar',
+        cost: parseMoney(investment.costBasis),
+        value: parseMoney(investment.marketValue ?? investment.costBasis),
         currency: investment.currency,
-        units: 0,
-        risk: 'Medio' as const,
-        liquidity: 'Programada' as const,
       })),
       notifications: notifications.map((notification) => ({
         id: notification.id,
@@ -208,32 +230,24 @@ export class RemoteBootstrap {
     }
   }
 
-  private toMovement(source: ApiMovement): Movement {
+  private toMovement(catalog: MovementKindCatalog, source: ApiMovement): Movement {
     const accountId = source.links['account'] ?? source.links['card'] ?? '';
-    const sign = source.flow === 2 || (source.flow === 0 && source.effect === 2) ? -1 : 1;
-    const kind: Movement['kind'] =
-      source.kind === 1
-        ? 'income'
-        : source.kind === 10 || source.kind === 11
-          ? 'transfer'
-          : source.kind === 21
-            ? 'payment'
-            : 'expense';
+    const sign = signOf(source.flow, source.effect);
     return {
       id: source.id,
       date: source.date,
       description: source.description ?? 'Sin descripción',
       accountId,
       category: source.linkNames['category']?.name ?? 'Sin categoría',
-      kind,
-      amount: Number(source.amount.base.amount) * sign,
+      kind: catalog.family(source.kind, source.effect, source.flow),
+      amount: parseMoney(source.amount.base) * sign,
       status: 'confirmed',
       person: source.linkNames['counterparty']?.name,
       ownership: source.links['counterparty'] ? 'loaned' : 'own',
       recurring: Boolean(source.links['recurrence']),
       originalCurrency: source.amount.original.currency === 'USD' ? 'USD' : 'COP',
-      originalAmount: Number(source.amount.original.amount),
-      exchangeRate: Number(source.amount.rate),
+      originalAmount: parseAmount(source.amount.original.amount, source.amount.original.currency),
+      exchangeRate: parseRate(source.amount.rate),
     };
   }
 }

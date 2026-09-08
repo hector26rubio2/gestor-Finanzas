@@ -12,7 +12,9 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
-import { CAPABILITIES, DemoStore } from '../core/store';
+import { toCsv, downloadCsv } from '../core/csv';
+import { P } from '../core/permissions';
+import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import {
   ApiAuditEvent,
@@ -23,6 +25,8 @@ import {
 } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { DemoAuditEvent } from '../core/demo-data';
+import { parseMoney } from '../core/money';
+import { signOf } from '../core/movement-kinds';
 
 const labels: Record<string, { title: string; eyebrow: string; description: string }> = {
   movements: {
@@ -77,6 +81,9 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
   },
 };
 
+/** Marca de dato ausente. Un campo que la API no publica se comunica, no se rellena. */
+const SIN_DATO = '—';
+
 @Component({
   standalone: true,
   imports: [
@@ -98,19 +105,25 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
           <p>{{ meta().description }}</p>
         </div>
         <div class="head-actions">
-          @if (page() === 'accounts') {
+          @if (page() === 'accounts' && can(P.cuentas.crear)) {
             <button (click)="store.form.set({ kind: 'account' })">＋ Nueva cuenta</button>
           }
-          @if (page() === 'movements') {
+          @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
             <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">＋ Nueva categoría</button>
           }
-          @if (page() === 'people') {
+          @if (page() === 'people' && can(P.personas.crear)) {
             <button (click)="store.form.set({ kind: 'person' })">＋ Persona</button>
           }
-          @if (page() === 'portfolio') {
+          @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
             <button (click)="store.form.set({ kind: 'investment' })">＋ Inversión</button>
           }
-          @if (page() === 'notifications') {
+          @if (page() === 'reports' && can(P.reportes.exportar)) {
+            <button (click)="exportReport()">⇩ Exportar CSV</button>
+          }
+          @if (page() === 'movements' && can(P.reportes.exportar)) {
+            <button class="secondary-action" (click)="exportMovements()">⇩ Exportar CSV</button>
+          }
+          @if (page() === 'notifications' && can(P.notificaciones.editar)) {
             <button (click)="readAll()">Marcar como leídas</button>
           }
         </div>
@@ -140,16 +153,25 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         @case ('notifications') {
           <ng-container *ngTemplateOutlet="notifications"></ng-container>
         }
-        @case ('admin') {
-          <ng-container *ngTemplateOutlet="admin"></ng-container>
-        }
         @case ('settings') {
           <ng-container *ngTemplateOutlet="settings"></ng-container>
         }
       }
     </article>
     <ng-template #filters
-      ><section class="filters">
+      ><button
+        type="button"
+        class="filters-toggle"
+        [attr.aria-expanded]="filtersOpen()"
+        aria-controls="panel-filtros"
+        (click)="filtersOpen.update((open) => !open)"
+      >
+        Filtros
+        @if (activeFilterCount()) {
+          <i>{{ activeFilterCount() }}</i>
+        }
+      </button>
+      <section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
         <label
           >Buscar<input
             #searchInput
@@ -197,7 +219,10 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
             <option value="loan">Préstamos y créditos</option>
             <option value="recurring">Recurrentes</option>
           </select></label
-        ><button (click)="clearFilters()">Restablecer</button>
+        >
+        @if (hasActiveFilters()) {
+          <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
+        }
       </section></ng-template
     >
     <ng-template #movements
@@ -267,7 +292,7 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
             >
               <span>{{ a.type === 'credit' ? 'CRÉDITO' : a.type === 'savings' ? 'AHORROS' : 'EFECTIVO' }}</span
               ><b>{{ a.name }}</b
-              ><em>•••• {{ a.lastFour }}</em
+              ><em>{{ a.lastFour ? '•••• ' + a.lastFour : 'Sin terminación' }}</em
               ><small
                 >{{ a.type === 'credit' ? 'Deuda' : 'Saldo' }}
                 <strong>{{ store.money(displayBalance(a)) }}</strong></small
@@ -373,7 +398,7 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         <aside class="agenda">
           <h3>Próximos compromisos</h3>
           @for (item of projectedOccurrences(); track item.recurrence.id + item.occurrence) {
-            <button class="projected" (click)="materialize(item)">
+            <button class="projected" [disabled]="!can(P.calendario.proyecciones.crear)" (click)="materialize(item)">
               <span>{{ item.recurrence.name }} · proyectado</span
               ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
             </button>
@@ -529,6 +554,9 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
           </select></label
         >
         <p>Todos los indicadores conservan trazabilidad al libro central.</p>
+        @if (can(P.reportes.exportar)) {
+          <button type="button" class="export-action" (click)="exportReport()">⇩ Exportar CSV</button>
+        }
       </section>
       <section class="kpis mini report-kpis">
         <demo-kpi label="Flujo neto" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
@@ -651,70 +679,13 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
             </div>
             @if (n.id === 'notice-purchase') {
               <button (click)="reviewNotification(n.id)">Revisar</button>
-            } @else {
+            } @else if (can(P.notificaciones.editar)) {
               <button (click)="mark(n.id)">Marcar leída</button>
             }
           </article>
         }
       </section></ng-template
     >
-    <ng-template #admin
-      ><section class="kpis mini">
-        <demo-kpi label="Organización" value="Personal" hint="Espacio financiero activo" /><demo-kpi
-          label="Miembros"
-          value="2"
-          hint="Propietaria y revisor"
-        /><demo-kpi label="Funciones piloto" value="4" hint="No conceden permisos" />
-      </section>
-      <section class="admin-flags" aria-labelledby="feature-flags-title">
-        <div>
-          <h2 id="feature-flags-title">Funciones en despliegue</h2>
-          <p>Activa funciones por configuración, nunca por roles escritos en el frontend.</p>
-        </div>
-        @for (flag of featureFlagRows(); track flag.key) {
-          <label
-            ><span
-              ><b>{{ flag.key }}</b
-              ><small>{{ flag.enabled ? 'Activa' : 'Pausada' }}</small></span
-            ><input type="checkbox" [checked]="flag.enabled" (change)="toggleFeature(flag.key, !flag.enabled)"
-          /></label>
-        } @empty {
-          <p>No hay feature flags configuradas.</p>
-        }
-      </section>
-      <section class="audit-list" aria-labelledby="audit-title">
-        <h2 id="audit-title">Auditoría reciente</h2>
-        <div class="audit-filters">
-          <label
-            >Usuario<select [ngModel]="auditActor()" (ngModelChange)="auditActor.set($event)">
-              <option value="all">Todos</option>
-              @for (actor of auditActors(); track actor) {
-                <option [value]="actor">{{ actor }}</option>
-              }
-            </select></label
-          ><label
-            >Módulo<select [ngModel]="auditModule()" (ngModelChange)="auditModule.set($event)">
-              <option value="all">Todos</option>
-              @for (module of auditModules(); track module) {
-                <option [value]="module">{{ module }}</option>
-              }
-            </select></label
-          >
-        </div>
-        @for (event of visibleAuditEvents(); track event.id) {
-          <article>
-            <b>{{ event.action }}</b
-            ><span
-              >{{ event.actor }} · {{ event.module }} · {{ event.entityType }} ·
-              {{ event.createdAt | date: 'medium' }}</span
-            ><em [class.rejected]="event.result === 'Rechazado'">{{ event.result }}</em>
-          </article>
-        } @empty {
-          <p>No hay eventos que coincidan con estos filtros.</p>
-        }
-      </section>
-      <section class="table-zone"><demo-table [columns]="userColumns" [rows]="userRows" [selectable]="false" /></section
-    ></ng-template>
     <ng-template #settings
       ><section class="settings-grid">
         <article class="wide">
@@ -722,13 +693,17 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
           <p>Crea una identidad personal, comprueba su contraste en la vista previa y guárdala para este usuario.</p>
           <label
             >Nombre del tema<input
-              [disabled]="!canCustomize"
+              [disabled]="!canCustomize()"
               [ngModel]="store.preferences().name"
               (ngModelChange)="setThemeValue('name', $event)"
           /></label>
           <div class="theme-picks">
             @for (theme of themes; track theme.id) {
-              <button [attr.aria-pressed]="store.preferences().theme === theme.id" (click)="setTheme(theme.id)">
+              <button
+                [attr.aria-pressed]="store.preferences().theme === theme.id"
+                [disabled]="!can(P.preferencias.editar)"
+                (click)="setTheme(theme.id)"
+              >
                 <i [style.background]="theme.preview"></i>{{ theme.label }}
               </button>
             }
@@ -737,48 +712,48 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
             <label
               >Color de acento<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().accent"
                 (ngModelChange)="setAccent($event)"
             /></label>
             <label
               >Primario<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().primary"
                 (ngModelChange)="setThemeValue('primary', $event)"
             /></label>
             <label
               >Secundario<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().secondary"
                 (ngModelChange)="setThemeValue('secondary', $event)"
             /></label>
             <label
               >Texto<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().text"
                 (ngModelChange)="setThemeValue('text', $event)"
             /></label>
             <label
               >Superficie<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().surface"
                 (ngModelChange)="setThemeValue('surface', $event)"
             /></label>
             <label
               >Bordes<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().border"
                 (ngModelChange)="setThemeValue('border', $event)"
             /></label>
             <label
               >Densidad<select
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().density"
                 (ngModelChange)="setDensity($event)"
               >
@@ -792,13 +767,13 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
                 type="range"
                 min="4"
                 max="24"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().radius"
                 (ngModelChange)="setRadius($event)"
               /><b>{{ store.preferences().radius }} px</b></label
             >
           </div>
-          @if (!canCustomize) {
+          @if (!canCustomize()) {
             <p role="note">Tu acceso permite elegir presets, pero no personalizarlos.</p>
           }
           <section class="theme-preview" aria-label="Vista previa del tema">
@@ -814,20 +789,29 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
               <button>Acción principal</button>
             </div>
           </section>
-          <button type="button" (click)="saveCustomTheme()">Guardar tema personalizado</button>
+          <button type="button" [disabled]="!canCustomize()" (click)="saveCustomTheme()">
+            Guardar tema personalizado
+          </button>
         </article>
         <article>
           <h2>Tipografía e idioma</h2>
           <label
-            >Tipografía<select [ngModel]="store.preferences().font" (ngModelChange)="setFont($event)">
+            >Tipografía<select
+              [ngModel]="store.preferences().font"
+              [disabled]="!can(P.preferencias.editar)"
+              (ngModelChange)="setFont($event)"
+            >
               @for (font of fonts; track font.value) {
                 <option [value]="font.value">{{ font.label }}</option>
               }
             </select></label
           ><label
-            >Idioma<select [ngModel]="store.preferences().locale" (ngModelChange)="setLocale($event)">
+            >Idioma<select
+              [ngModel]="store.preferences().locale"
+              [disabled]="!can(P.preferencias.editar)"
+              (ngModelChange)="setLocale($event)"
+            >
               <option value="es-CO">Español (Colombia)</option>
-              <option value="en-US">English</option>
               <option value="pt-BR">Português (Brasil)</option>
               <option value="fr-FR">Français</option>
             </select></label
@@ -836,7 +820,9 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         <article>
           <h2>Datos locales</h2>
           <p>Doce meses, cientos de movimientos y relaciones reproducibles.</p>
-          <button (click)="store.reset()">Restaurar información inicial</button>
+          <button [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
+            Restaurar información inicial
+          </button>
           <button (click)="logout()">Cerrar sesión</button>
         </article>
       </section></ng-template
@@ -902,19 +888,23 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         </ol>
         <footer>
           @if (store.inspector()?.type === 'movement') {
-            <button (click)="editSelected()">Editar</button>
-            @if (selectedMovement()?.person) {
+            @if (can(P.movimientos.editar)) {
+              <button (click)="editSelected()">Editar</button>
+            }
+            @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
               <button (click)="shareSelected()">Registrar compra compartida</button>
             }
-            <button class="danger-action" (click)="reverseSelected()">Reversar</button>
+            @if (can(P.movimientos.deshabilitar)) {
+              <button class="danger-action" (click)="reverseSelected()">Reversar</button>
+            }
           }
-          @if (store.inspector()?.type === 'person') {
+          @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
             <button class="action" (click)="issueSelectedSettlement()">Generar liquidación</button>
           }
-          @if (store.inspector()?.type === 'card' && !cardPaymentMode()) {
+          @if (store.inspector()?.type === 'card' && !cardPaymentMode() && can(P.movimientos.pagos.crear)) {
             <button class="action" (click)="cardPaymentMode.set(true)">Registrar abono</button>
           }
-          @if (store.inspector()?.type === 'account') {
+          @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
             <button class="danger-action" (click)="deactivateSelectedAccount()">Desactivar cuenta</button>
           }
           @if (store.inspector()?.type === 'day') {
@@ -941,7 +931,7 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         @if (store.inspector()?.type === 'movement' && calendarReturnDate()) {
           <button class="back-link" (click)="returnToCalendarDay()">← Volver a movimientos del día</button>
         }
-        @if (store.inspector()?.type === 'card' && cardPaymentMode()) {
+        @if (store.inspector()?.type === 'card' && cardPaymentMode() && can(P.movimientos.pagos.crear)) {
           <section class="card-payment">
             <header>
               <div>
@@ -1033,7 +1023,20 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         font-size: 0.84rem;
       }
       .head-actions button,
-      .filters button,
+      .filters .quiet-reset {
+        align-self: end;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--control-line);
+        border-radius: 9px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .filters .quiet-reset:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
       .action {
         background: var(--accent);
         color: var(--accent-contrast);
@@ -1046,6 +1049,30 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         background: var(--surface);
         color: var(--accent);
         box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 12%, transparent);
+      }
+      .filters-toggle {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 44px;
+        margin-bottom: 10px;
+        border: 1px solid var(--control-line);
+        border-radius: 12px;
+        background: var(--surface);
+        font-weight: 600;
+      }
+      .filters-toggle i {
+        display: inline-grid;
+        place-items: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-contrast);
+        font-style: normal;
+        font-size: 0.75rem;
       }
       .filters {
         display: grid;
@@ -2378,6 +2405,12 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
         }
       }
       @media (max-width: 700px) {
+        .filters-toggle {
+          display: flex;
+        }
+        .filters.collapsed {
+          display: none;
+        }
         .workspace-page {
           height: auto;
           min-height: calc(100dvh - 100px);
@@ -2492,7 +2525,13 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly Math = Math;
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
-  readonly canCustomize = this.capabilities.allows('theme.customize');
+  readonly P = P;
+  /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
+  readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
+  /** Comprobacion puntual desde plantilla. */
+  can(permiso: string): boolean {
+    return this.capabilities.allows(permiso);
+  }
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(FinanceApiClient);
@@ -2548,7 +2587,7 @@ export class WorkspaceComponent implements AfterViewInit {
           (type === 'all' || account.type === type) &&
           (!query ||
             account.name.toLocaleLowerCase('es').includes(query) ||
-            account.lastFour.toLocaleLowerCase('es').includes(query)),
+            (account.lastFour ?? '').toLocaleLowerCase('es').includes(query)),
       );
   });
   readonly accountPage = signal(0);
@@ -2833,7 +2872,6 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly calendarYear = signal(2026);
   readonly calendarMonth = signal(7);
   readonly selectedCalendarDate = signal('2026-08-18');
-  readonly calendarYears = Array.from({ length: 7 }, (_, index) => 2023 + index);
   readonly calendarMonths = Array.from({ length: 12 }, (_, value) => ({
     value,
     label: new Intl.DateTimeFormat('es-CO', { month: 'long' }).format(new Date(Date.UTC(2026, value, 1))),
@@ -2886,7 +2924,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-06', label: 'Junio 2026' },
     { value: '2026-05', label: 'Mayo 2026' },
   ];
-  readonly reportBars = [52, 68, 61, 82, 73, 88];
   readonly reportPeriod = signal('6');
   readonly reportMovements = computed(() => {
     const periods = [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
@@ -2968,6 +3005,7 @@ export class WorkspaceComponent implements AfterViewInit {
     return { name: top?.[0] ?? 'Sin datos', value: top?.[1] ?? 0 };
   });
   readonly themes = [
+    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
     { id: 'light', label: 'Verona claro', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
     { id: 'dark', label: 'Esmeralda noche', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
     { id: 'ocean', label: 'Océano', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
@@ -2986,16 +3024,19 @@ export class WorkspaceComponent implements AfterViewInit {
     { label: 'Courier', value: "'Courier New', monospace" },
     { label: 'System UI', value: 'system-ui, sans-serif' },
   ];
+  // Fecha, concepto e importe son las tres columnas que nunca se ocultan en una
+  // tabla financiera. El importe estaba al final de nueve y quedaba fuera de
+  // pantalla; el resto pasa detras porque se puede desplazar sin perder el dato.
   readonly movementColumns = [
     { key: 'date', label: 'Fecha' },
     { key: 'description', label: 'Descripción' },
+    { key: 'amount', label: 'Importe' },
     { key: 'account', label: 'Cuenta o tarjeta' },
     { key: 'effect', label: 'Débito / crédito' },
+    { key: 'currency', label: 'Moneda / tasa' },
     { key: 'financing', label: 'Cuotas / préstamo' },
     { key: 'responsibility', label: 'Responsabilidad' },
     { key: 'recurrence', label: 'Recurrencia' },
-    { key: 'currency', label: 'Moneda / tasa' },
-    { key: 'amount', label: 'Importe' },
   ];
   readonly peopleColumns = [
     { key: 'name', label: 'Persona' },
@@ -3047,7 +3088,7 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly movementRows = computed(() =>
     this.filteredMovementData().map((m) => ({
       id: m.id,
-      date: m.date,
+      date: this.formatDate(m.date),
       description: m.description,
       account: this.store.account(m.accountId)?.name,
       effect: m.status === 'pending' ? 'Pendiente' : m.amount < 0 ? 'Débito' : 'Crédito',
@@ -3080,7 +3121,7 @@ export class WorkspaceComponent implements AfterViewInit {
     this.store.data().people.map((p) => ({
       id: p.id,
       name: p.name,
-      relationship: p.relationship,
+      relationship: p.relationship ?? SIN_DATO,
       owed: this.store.money(p.owed),
       owing: this.store.money(p.owing),
       balance: this.store.money(p.owed - p.owing),
@@ -3095,8 +3136,8 @@ export class WorkspaceComponent implements AfterViewInit {
       id: i.id,
       name: i.name,
       type: i.type,
-      institution: i.institution,
-      risk: `${i.risk} · ${i.liquidity}`,
+      institution: i.institution ?? SIN_DATO,
+      risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
       cost: this.store.money(i.cost),
       value: this.store.money(i.value),
       return: ((i.value / i.cost - 1) * 100).toFixed(1) + ' %',
@@ -3121,8 +3162,79 @@ export class WorkspaceComponent implements AfterViewInit {
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
       queueMicrotask(() => this.searchInput?.nativeElement.focus());
     if (this.page() === 'calendar') void this.loadCalendarProjection();
-    if (this.page() === 'admin') void this.loadAdministration();
   }
+  /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
+  readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
+  readonly activeFilterCount = computed(
+    () =>
+      [
+        this.store.query() !== '',
+        this.store.period() !== 'all',
+        this.store.accountFilter() !== 'all',
+        this.movementAccountType() !== 'all',
+        this.movementCategory() !== 'all',
+        this.movementOperation() !== 'all',
+      ].filter(Boolean).length,
+  );
+  /** El boton de restablecer solo aparece cuando hay algo que restablecer. */
+  readonly hasActiveFilters = computed(
+    () =>
+      this.store.query() !== '' ||
+      this.store.period() !== 'all' ||
+      this.store.accountFilter() !== 'all' ||
+      this.movementAccountType() !== 'all' ||
+      this.movementCategory() !== 'all' ||
+      this.movementOperation() !== 'all',
+  );
+  /** Una sola forma de escribir una fecha en toda la aplicacion, con el idioma de las preferencias. */
+  formatDate(value: string): string {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return new Intl.DateTimeFormat(this.store.preferences().locale, {
+      dateStyle: 'medium',
+      timeZone: 'UTC',
+    }).format(parsed);
+  }
+  /**
+   * Exporta el periodo del informe: una fila por mes con ingresos, gastos y neto, y
+   * debajo el reparto por categoria. Es lo que protege `reportes.exportar`.
+   */
+  exportReport(): void {
+    const SALTO = '\r\n';
+    if (!this.can(P.reportes.exportar)) return;
+    const meses = toCsv(this.reportSeries(), [
+      { header: 'Mes', value: (fila) => fila.month },
+      { header: 'Ingresos', value: (fila) => fila.income },
+      { header: 'Gastos', value: (fila) => fila.expense },
+      { header: 'Neto', value: (fila) => fila.net },
+    ]);
+    const categorias = toCsv(this.reportCategories(), [
+      { header: 'Categoria', value: (fila) => fila.name },
+      { header: 'Gasto', value: (fila) => fila.value },
+      { header: 'Porcentaje', value: (fila) => fila.percent },
+    ]);
+    const periodo = `Periodo;${this.reportPeriod()} meses`;
+    downloadCsv(`finanzas-reporte-${this.reportPeriod()}m.csv`, [periodo, '', meses, '', categorias].join(SALTO));
+    this.store.toast.set('Reporte exportado.');
+  }
+
+  /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
+  exportMovements(): void {
+    if (!this.can(P.reportes.exportar)) return;
+    const filas = this.movementRows();
+    downloadCsv(
+      `finanzas-movimientos-${new Date().toISOString().slice(0, 10)}.csv`,
+      toCsv(
+        filas,
+        this.movementColumns.map((columna) => ({
+          header: columna.label,
+          value: (fila: Record<string, unknown>) => fila[columna.key],
+        })),
+      ),
+    );
+    this.store.toast.set(`${filas.length} movimientos exportados.`);
+  }
+
   clearFilters() {
     this.store.query.set('');
     this.store.period.set('all');
@@ -3193,44 +3305,17 @@ export class WorkspaceComponent implements AfterViewInit {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo confirmar la ocurrencia.');
     }
   }
-  async loadAdministration() {
-    if (this.store.runtime.mode !== 'api') return;
-    try {
-      const result = await firstValueFrom(this.api.audit(1, 12));
-      this.auditEvents.set(result.items);
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la auditoría.');
-    }
-  }
-  async toggleFeature(key: string, enabled: boolean) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.featureFlags.update((flags) => ({ ...flags, [key]: enabled }));
-      return;
-    }
-    try {
-      const updated = await firstValueFrom(this.api.updateFeatureFlag(key, { isEnabled: enabled }));
-      this.store.featureFlags.update((flags) => ({ ...flags, [updated.key]: updated.isEnabled }));
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la función.');
-    }
-  }
   private toRemoteMovement(source: ApiMovement): import('../core/demo-data').Movement {
-    const sign = source.flow === 2 || (source.flow === 0 && source.effect === 2) ? -1 : 1;
+    // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
+    // duplicada la expresión de signo y la lista de clases escrita a mano.
     return {
       id: source.id,
       date: source.date,
       description: source.description ?? 'Sin descripción',
       accountId: source.links['account'] ?? source.links['card'] ?? '',
       category: source.linkNames['category']?.name ?? 'Sin categoría',
-      kind:
-        source.kind === 1
-          ? 'income'
-          : source.kind === 10 || source.kind === 11
-            ? 'transfer'
-            : source.kind === 21
-              ? 'payment'
-              : 'expense',
-      amount: Number(source.amount.base.amount) * sign,
+      kind: this.store.kindCatalog().family(source.kind, source.effect, source.flow),
+      amount: parseMoney(source.amount.base) * signOf(source.flow, source.effect),
       status: 'confirmed',
       person: source.linkNames['counterparty']?.name,
       ownership: source.links['counterparty'] ? 'loaned' : 'own',
@@ -3285,28 +3370,6 @@ export class WorkspaceComponent implements AfterViewInit {
   monthMovementCount(month: number) {
     const prefix = `${this.calendarYear()}-${String(month + 1).padStart(2, '0')}`;
     return this.store.data().movements.filter((movement) => movement.date.startsWith(prefix)).length;
-  }
-  shiftMonth(direction: -1 | 1) {
-    const date = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + direction, 1));
-    this.calendarYear.set(date.getUTCFullYear());
-    this.calendarMonth.set(date.getUTCMonth());
-    this.selectedCalendarDate.set(date.toISOString().slice(0, 10));
-    void this.loadCalendarProjection();
-  }
-  setCalendarMonth(month: number | string) {
-    this.calendarMonth.set(Number(month));
-    void this.loadCalendarProjection();
-  }
-  setCalendarYear(year: number | string) {
-    this.calendarYear.set(Number(year));
-    void this.loadCalendarProjection();
-  }
-  goToDate(iso: string) {
-    if (!iso) return;
-    const date = new Date(`${iso}T00:00:00Z`);
-    this.calendarYear.set(date.getUTCFullYear());
-    this.calendarMonth.set(date.getUTCMonth());
-    this.selectCalendarDay(iso);
   }
   selectCalendarDay(iso: string) {
     this.selectedCalendarDate.set(iso);
@@ -3425,7 +3488,7 @@ export class WorkspaceComponent implements AfterViewInit {
       ];
     if (a)
       return [
-        ['Terminación', '•••• ' + a.lastFour],
+        ['Terminación', a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
         ['Moneda', a.currency],
         [
           'TRM de referencia',
@@ -3521,17 +3584,6 @@ export class WorkspaceComponent implements AfterViewInit {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo generar la liquidación.');
     }
   }
-  paySelected() {
-    const a = this.selectedAccount();
-    if (a)
-      this.store.open(
-        'payment',
-        this.store.data().accounts.find((x) => x.type === 'savings')?.id,
-        undefined,
-        undefined,
-        a.id,
-      );
-  }
   async deactivateSelectedAccount() {
     const account = this.selectedAccount();
     if (!account || account.type === 'credit') return;
@@ -3545,7 +3597,7 @@ export class WorkspaceComponent implements AfterViewInit {
       await firstValueFrom(
         this.api.updateAccount(account.id, {
           name: account.name,
-          lastFour: account.lastFour,
+          lastFour: account.lastFour ?? null,
           isDefault: false,
           isActive: false,
         }),
@@ -3556,10 +3608,6 @@ export class WorkspaceComponent implements AfterViewInit {
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo desactivar la cuenta.');
     }
-  }
-  openFirstDayMovement() {
-    const m = this.dayMoves(this.store.inspector()?.id ?? this.selectedCalendarDate())[0];
-    if (m) this.store.inspect('movement', m.id);
   }
   async readAll() {
     if (this.store.runtime.mode === 'api') {
@@ -3593,7 +3641,7 @@ export class WorkspaceComponent implements AfterViewInit {
   }
   setTheme(theme: (typeof this.themes)[number]['id']) {
     this.store.preferences.update((p) => ({ ...p, theme }));
-    document.documentElement.dataset['theme'] = theme;
+    applyTheme(theme);
     this.persistPreferences();
   }
   setFont(font: string) {

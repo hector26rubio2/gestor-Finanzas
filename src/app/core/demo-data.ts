@@ -1,3 +1,4 @@
+import { P } from './permissions';
 /** All amounts are signed COP values. Fixtures never touch a remote service. */
 export interface Movement {
   id: string;
@@ -27,19 +28,24 @@ export interface Account {
   currency: string;
   openingBalance: number;
   limit?: number;
-  lastFour: string;
-  color: string;
+  /** Ausente cuando la API no la publica. No se inventa un «0000». */
+  lastFour?: string;
+  color?: string;
+  institution?: string;
   cutDay?: number;
   dueDay?: number;
   exchangeRate?: number;
 }
+
+export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
 
 export interface Person {
   id: string;
   name: string;
   owed: number;
   owing: number;
-  relationship: 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
+  /** Ausente mientras la API no la publique: mostrarla como «Otro» era inventarla. */
+  relationship?: PersonRelationship;
   email?: string;
   averagePaymentDays?: number;
   paymentDelayDeviation?: number;
@@ -51,11 +57,12 @@ export interface Investment {
   type: string;
   value: number;
   cost: number;
-  institution: string;
   currency: string;
-  units: number;
-  risk: 'Bajo' | 'Medio' | 'Alto';
-  liquidity: 'Inmediata' | 'Programada' | 'Al vencimiento';
+  /** Los cuatro siguientes faltan en el contrato actual. Ausente ≠ cero ni «Medio». */
+  institution?: string;
+  units?: number;
+  risk?: 'Bajo' | 'Medio' | 'Alto';
+  liquidity?: 'Inmediata' | 'Programada' | 'Al vencimiento';
   maturityDate?: string;
   annualRate?: number;
   fees?: number;
@@ -98,34 +105,161 @@ export function createEmptyData(): DemoData {
   };
 }
 
+/**
+ * Perfiles del modo demo. Llevan los mismos códigos que emite el servidor, para que
+ * probar sin API ejercite exactamente las mismas comprobaciones que en producción.
+ * Daniel es de solo lectura: sirve para ver qué desaparece sin permisos de escritura.
+ */
 export const demoUsers = [
   {
     id: 'demo-owner',
     name: 'Valentina Torres',
     email: 'valentina@example.test',
     capabilities: [
-      'dashboard',
-      'movements',
-      'accounts',
-      'calendar',
-      'people',
-      'portfolio',
-      'planning',
-      'reports',
-      'notifications',
-      'administration',
-      'superadmin',
-      'settings',
-      'movement.create',
-      'account.create',
-      'theme.customize',
-    ],
+      P.sesion.ver,
+      P.sesion.monedas.listar,
+      P.dashboard.ver,
+      P.dashboard.listar,
+      P.dashboard.tabla.ver,
+      P.dashboard.detalle.ver,
+      P.dashboard.kpi.balance,
+      P.dashboard.kpi.ingresos,
+      P.dashboard.kpi.gastos,
+      P.dashboard.kpi.recuento,
+      P.dashboard.widget.editar,
+      P.dashboard.widget.crear,
+      P.dashboard.widget.flujo,
+      P.dashboard.widget.categorias,
+      P.dashboard.widget.cuentas,
+      P.dashboard.widget.tendencia,
+      P.dashboard.widget.compromisos,
+      P.dashboard.widget.salud,
+      P.dashboard.widget.propios,
+      P.movimientos.ver,
+      P.movimientos.listar,
+      P.movimientos.detalle.ver,
+      P.movimientos.clases.listar,
+      P.movimientos.crear,
+      P.movimientos.editar,
+      P.movimientos.deshabilitar,
+      P.movimientos.transferencias.crear,
+      P.movimientos.pagos.crear,
+      P.cuentas.ver,
+      P.cuentas.listar,
+      P.cuentas.crear,
+      P.cuentas.editar,
+      P.cuentas.deshabilitar,
+      P.cuentas.extracto.ver,
+      P.cuentas.historial.ver,
+      P.cuentas.tarjetas.listar,
+      P.cuentas.tarjetas.crear,
+      P.cuentas.tarjetas.editar,
+      P.cuentas.categorias.listar,
+      P.cuentas.categorias.crear,
+      P.cuentas.categorias.editar,
+      P.calendario.ver,
+      P.calendario.listar,
+      P.calendario.recurrencias.listar,
+      P.calendario.recurrencias.crear,
+      P.calendario.proyecciones.crear,
+      P.personas.ver,
+      P.personas.listar,
+      P.personas.crear,
+      P.personas.editar,
+      P.personas.deudas.listar,
+      P.personas.obligaciones.listar,
+      P.personas.compras.listar,
+      P.personas.compras.crear,
+      P.personas.liquidaciones.listar,
+      P.personas.liquidaciones.crear,
+      P.patrimonio.ver,
+      P.patrimonio.listar,
+      P.patrimonio.inversiones.crear,
+      P.patrimonio.inversiones.editar,
+      P.planificacion.ver,
+      P.planificacion.listar,
+      P.reportes.ver,
+      P.reportes.listar,
+      P.reportes.exportar,
+      P.reportes.comparativo.ver,
+      P.reportes.categorias.ver,
+      P.reportes.tendencia.ver,
+      P.reportes.deuda.ver,
+      P.reportes.patrimonio.ver,
+      P.reportes.hallazgos.ver,
+      P.notificaciones.ver,
+      P.notificaciones.listar,
+      P.notificaciones.editar,
+      P.preferencias.ver,
+      P.preferencias.listar,
+      P.preferencias.editar,
+      P.preferencias.tema.editar,
+      P.preferencias.datos.eliminar,
+      P.organizacion.auditoria.listar,
+      P.organizacion.banderas.listar,
+      P.organizacion.banderas.editar,
+      P.organizacion.miembros.listar,
+      P.organizacion.miembros.crear,
+      P.administracion.ver,
+      P.administracion.usuarios.listar,
+      P.administracion.usuarios.editar,
+      P.administracion.usuarios.deshabilitar,
+      P.administracion.roles.listar,
+      P.administracion.roles.crear,
+      P.administracion.roles.editar,
+      P.administracion.roles.eliminar,
+      P.administracion.capacidades.listar,
+      P.administracion.banderas.listar,
+      P.administracion.banderas.editar,
+      P.administracion.auditoria.listar,
+      P.administracion.errores.listar,
+      P.administracion.errores.editar,
+    ] as string[],
   },
   {
     id: 'demo-reviewer',
     name: 'Daniel Ríos',
     email: 'daniel@example.test',
-    capabilities: ['dashboard', 'movements', 'accounts', 'calendar', 'reports', 'notifications', 'settings'],
+    capabilities: [
+      P.sesion.ver,
+      P.sesion.monedas.listar,
+      P.dashboard.ver,
+      P.dashboard.listar,
+      P.dashboard.tabla.ver,
+      P.dashboard.detalle.ver,
+      P.dashboard.kpi.balance,
+      P.dashboard.kpi.ingresos,
+      P.dashboard.kpi.gastos,
+      P.dashboard.kpi.recuento,
+      P.dashboard.widget.flujo,
+      P.dashboard.widget.categorias,
+      P.dashboard.widget.cuentas,
+      P.dashboard.widget.tendencia,
+      P.dashboard.widget.propios,
+      P.movimientos.ver,
+      P.movimientos.listar,
+      P.movimientos.detalle.ver,
+      P.movimientos.clases.listar,
+      P.cuentas.ver,
+      P.cuentas.listar,
+      P.cuentas.extracto.ver,
+      P.cuentas.historial.ver,
+      P.cuentas.tarjetas.listar,
+      P.cuentas.categorias.listar,
+      P.calendario.ver,
+      P.calendario.listar,
+      P.reportes.ver,
+      P.reportes.listar,
+      P.reportes.comparativo.ver,
+      P.reportes.categorias.ver,
+      P.reportes.tendencia.ver,
+      P.notificaciones.ver,
+      P.notificaciones.listar,
+      P.notificaciones.editar,
+      P.preferencias.ver,
+      P.preferencias.listar,
+      P.preferencias.editar,
+    ] as string[],
   },
 ];
 
