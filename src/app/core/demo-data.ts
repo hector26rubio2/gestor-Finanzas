@@ -27,19 +27,24 @@ export interface Account {
   currency: string;
   openingBalance: number;
   limit?: number;
-  lastFour: string;
-  color: string;
+  /** Ausente cuando la API no la publica. No se inventa un «0000». */
+  lastFour?: string;
+  color?: string;
+  institution?: string;
   cutDay?: number;
   dueDay?: number;
   exchangeRate?: number;
 }
+
+export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
 
 export interface Person {
   id: string;
   name: string;
   owed: number;
   owing: number;
-  relationship: 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
+  /** Ausente mientras la API no la publique: mostrarla como «Otro» era inventarla. */
+  relationship?: PersonRelationship;
   email?: string;
   averagePaymentDays?: number;
   paymentDelayDeviation?: number;
@@ -51,11 +56,12 @@ export interface Investment {
   type: string;
   value: number;
   cost: number;
-  institution: string;
   currency: string;
-  units: number;
-  risk: 'Bajo' | 'Medio' | 'Alto';
-  liquidity: 'Inmediata' | 'Programada' | 'Al vencimiento';
+  /** Los cuatro siguientes faltan en el contrato actual. Ausente ≠ cero ni «Medio». */
+  institution?: string;
+  units?: number;
+  risk?: 'Bajo' | 'Medio' | 'Alto';
+  liquidity?: 'Inmediata' | 'Programada' | 'Al vencimiento';
   maturityDate?: string;
   annualRate?: number;
   fees?: number;

@@ -2,6 +2,8 @@ import { computed, inject, Injectable, InjectionToken, Injector, signal } from '
 import { firstValueFrom } from 'rxjs';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
 import { ApiCategory, FinanceApiClient } from './api-client';
+import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from './money';
+import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from './movement-kinds';
 import { RUNTIME_CONFIG } from './runtime';
 
 export interface DataProvider {
@@ -91,6 +93,8 @@ export class DemoStore {
   readonly remoteMovementSize = signal(25);
   readonly remoteMovementTotal = signal(0);
   readonly featureFlags = signal<Record<string, boolean>>(this.data().featureFlags);
+  /** Tabla de invariantes publicada por la API. Vacía en modo demo, donde los datos ya traen su familia. */
+  readonly kindCatalog = signal(EMPTY_KIND_CATALOG);
   readonly categories = signal<readonly ApiCategory[]>([]);
   readonly preferences = inject(PREFERENCES);
   readonly query = signal('');
@@ -127,36 +131,39 @@ export class DemoStore {
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)),
   );
   readonly income = computed(() =>
-    this.movements()
-      .filter((m) => m.kind === 'income')
-      .reduce((s, m) => s + m.amount, 0),
+    sumBy(
+      this.movements().filter((m) => m.kind === 'income'),
+      (m) => m.amount,
+    ),
   );
-  readonly expense = computed(
-    () =>
-      -this.movements()
-        .filter((m) => m.kind === 'expense')
-        .reduce((s, m) => s + m.amount, 0),
+  readonly expense = computed(() =>
+    sumBy(
+      this.movements().filter((m) => m.kind === 'expense'),
+      (m) => -m.amount,
+    ),
   );
   readonly unread = computed(() => this.data().notifications.filter((n) => !n.read).length);
   readonly history = signal<{ date: string; action: string }[]>([
     { date: '2026-08-31', action: 'Información financiera inicial cargada' },
   ]);
   readonly debt = computed(() =>
-    this.data()
-      .accounts.filter((a) => a.type === 'credit')
-      .reduce((s, a) => s + Math.max(0, -this.balance(a)), 0),
+    sumBy(
+      this.data().accounts.filter((a) => a.type === 'credit'),
+      (a) => Math.max(0, -this.balance(a)),
+    ),
   );
   readonly available = computed(() =>
-    this.data()
-      .accounts.filter((a) => a.type !== 'credit')
-      .reduce((s, a) => s + this.balance(a), 0),
+    sumBy(
+      this.data().accounts.filter((a) => a.type !== 'credit'),
+      (a) => this.balance(a),
+    ),
   );
-  money(value: number, currency = 'COP') {
-    return new Intl.NumberFormat(this.preferences().locale, {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0,
-    }).format(value);
+  /**
+   * Formato con código de moneda explícito: `$` a secas es ambiguo en Colombia y
+   * esta aplicación muestra COP, USD y EUR en la misma pantalla.
+   */
+  money(value: number, currency = BASE_CURRENCY) {
+    return formatAmount(value, currency, this.preferences().locale);
   }
   account(id: string) {
     return this.data().accounts.find((a) => a.id === id);
@@ -285,7 +292,7 @@ export class DemoStore {
           accountId: leg.links['account'] ?? leg.links['card'] ?? '',
           category: 'Transferencias',
           kind: input.kind as Movement['kind'],
-          amount: Number(leg.amount.base.amount) * (leg.flow === 2 ? -1 : 1),
+          amount: parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect),
           status: 'confirmed',
         }));
         this.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
@@ -298,9 +305,9 @@ export class DemoStore {
       const created = await firstValueFrom(
         this.injector.get(FinanceApiClient).createMovement({
           date: input.date,
-          kind: isIncome ? 1 : isCard ? 20 : 2,
-          effect: isIncome ? 1 : 2,
-          flow: isIncome ? 1 : 2,
+          kind: isIncome ? MovementKind.income : isCard ? MovementKind.cardPurchase : MovementKind.expense,
+          effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
+          flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
           amount: {
             amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
             currency: input.originalCurrency ?? account.currency,
@@ -312,7 +319,7 @@ export class DemoStore {
           idempotencyKey: crypto.randomUUID(),
         }),
       );
-      const sign = created.flow === 2 || (created.flow === 0 && created.effect === 2) ? -1 : 1;
+      const sign = signOf(created.flow, created.effect);
       const movement: Movement = {
         id: created.id,
         date: created.date,
@@ -320,7 +327,7 @@ export class DemoStore {
         accountId: input.accountId,
         category: input.category,
         kind: input.kind as Movement['kind'],
-        amount: Number(created.amount.base.amount) * sign,
+        amount: parseMoney(created.amount.base) * sign,
         status: 'confirmed',
         person: input.person,
         ownership: input.person ? 'loaned' : (input.ownership ?? 'own'),
@@ -410,9 +417,8 @@ export class DemoStore {
               type: 'credit',
               currency: created.currency,
               openingBalance: 0,
-              limit: Number(created.creditLimit.amount),
-              lastFour: created.lastFour ?? '0000',
-              color: '#4338ca',
+              limit: parseMoney(created.creditLimit),
+              lastFour: created.lastFour ?? undefined,
               cutDay: created.cycle.statementDay,
               dueDay: created.cycle.paymentDueDay,
             },
@@ -443,8 +449,7 @@ export class DemoStore {
         type,
         currency: created.currency,
         openingBalance: 0,
-        lastFour: created.lastFour ?? '0000',
-        color: '#087f68',
+        lastFour: created.lastFour ?? undefined,
       };
       this.data.update((data) => ({ ...data, accounts: [...data.accounts, account] }));
       if (openingResult) {
@@ -459,7 +464,7 @@ export class DemoStore {
               accountId: created.id,
               category: 'Apertura',
               kind: 'income',
-              amount: Number(movement.amount.base.amount),
+              amount: parseMoney(movement.amount.base),
               status: 'confirmed',
             },
             ...data.movements,
@@ -555,8 +560,8 @@ export class DemoStore {
             id: created.id,
             name: created.name,
             type: created.instrumentType,
-            cost: Number(created.costBasis.amount),
-            value: Number(created.marketValue?.amount ?? created.costBasis.amount),
+            cost: parseMoney(created.costBasis),
+            value: parseMoney(created.marketValue ?? created.costBasis),
             institution: 'Sin especificar',
             currency,
             units: 0,
