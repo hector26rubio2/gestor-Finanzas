@@ -1238,6 +1238,17 @@ export class AdminComponent implements OnInit {
     });
   }
 
+  /**
+   * Los códigos que el catálogo conoce. Si todavía no ha llegado, no se filtra: es
+   * preferible mandar lo que había a vaciar los permisos de un rol por una carrera.
+   */
+  private permisosDelCatalogo(permisos: readonly string[]): readonly string[] {
+    const catalogo = this.permissionCatalog();
+    if (!catalogo.length) return permisos;
+    const conocidos = new Set(catalogo.map((permiso) => permiso.code));
+    return permisos.filter((codigo) => conocidos.has(codigo));
+  }
+
   togglePermiso(code: string) {
     this.roleDraft.update((rol) =>
       rol
@@ -1471,13 +1482,18 @@ export class AdminComponent implements OnInit {
           name: r.name,
           description: r.description ?? '',
           capabilities: r.capabilities,
-          permissions: r.permissions,
+          // Solo códigos del catálogo que esta pantalla pintó: un rol traído de una
+          // versión anterior puede llevar cadenas que el servidor ya no reconoce, y
+          // devolvérselas hacía fallar el guardado sin haber tocado nada.
+          permissions: this.permisosDelCatalogo(r.permissions),
         }),
       );
       this.roles.update((xs) => (r.id ? xs.map((x) => (x.id === saved.id ? saved : x)) : [...xs, saved]));
       this.roleDraft.set(null);
-    } catch {
-      this.store.toast.set('No fue posible guardar el rol.');
+    } catch (error) {
+      // El servidor dice qué código sobra; callarlo dejaba un «no fue posible» sin pista.
+      const motivo = error instanceof Error ? error.message : '';
+      this.store.toast.set(motivo ? `No fue posible guardar el rol: ${motivo}` : 'No fue posible guardar el rol.');
     }
   }
   toggleFlag(flag: { key: string; organizationId: string | null; userId: string | null; isEnabled: boolean }) {
