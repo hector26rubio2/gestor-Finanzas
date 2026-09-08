@@ -143,8 +143,16 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
                     </defs>
                     <path class="area income-area" [attr.d]="areaPath('income')" />
                     <path class="area expense-area" [attr.d]="areaPath('expense')" />
-                    <polyline class="income-line" [attr.points]="linePoints('income')" />
-                    <polyline class="expense-line" [attr.points]="linePoints('expense')" />
+                    <polyline
+                      class="income-line"
+                      vector-effect="non-scaling-stroke"
+                      [attr.points]="linePoints('income')"
+                    />
+                    <polyline
+                      class="expense-line"
+                      vector-effect="non-scaling-stroke"
+                      [attr.points]="linePoints('expense')"
+                    />
                   </svg>
                   <div class="line-labels">
                     @for (point of timeline(); track point.key) {

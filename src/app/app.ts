@@ -12,6 +12,7 @@ import { MovementFormComponent } from './forms';
     @if (!store.user()) {
       <router-outlet />
     } @else {
+      <a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
       <div class="app" [class.collapsed]="collapsed()">
         <aside [class.mobile-open]="mobileOpen()">
           <div class="brand-row">
@@ -100,7 +101,7 @@ import { MovementFormComponent } from './forms';
               ><button class="primary" (click)="store.open()">＋ Nuevo movimiento</button>
             </div>
           </header>
-          <main><router-outlet /></main>
+          <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
         </section>
       </div>
       @if (store.form() && store.form()?.kind !== 'account') {

@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700&display=swap');
 :root {
   color-scheme: light;
   --bg: #f5f8f6;
   --nav: #f9fbfa;
   --surface: #fff;
   --text: #122522;
-  --muted: #657873;
+  --muted: #5a6a65;
   --line: #dce6e2;
+  --control-line: #7d8f8a;
   --accent: #07836b;
   --accent-soft: #e4f3ee;
   --accent-contrast: #fff;
-  --danger: #dc554e;
+  --danger: #c0392f;
   --success: #098268;
   --shadow: 0 20px 55px #233d3520;
   --font: 'DM Sans', system-ui, sans-serif;
@@ -25,6 +25,7 @@
   --text: #edf8f5;
   --muted: #9eb5b0;
   --line: #1d4147;
+  --control-line: #57858b;
   --accent: #29b98f;
   --accent-soft: #103c39;
   --accent-contrast: #031b18;
@@ -40,6 +41,7 @@
   --text: #edf7ff;
   --muted: #9cb5c9;
   --line: #28465e;
+  --control-line: #63899e;
   --accent: #38bdf8;
   --accent-soft: #123c52;
   --accent-contrast: #03202d;
@@ -55,6 +57,7 @@
   --text: #322a22;
   --muted: #76695c;
   --line: #dfd2c1;
+  --control-line: #8f7f6d;
   --accent: #a24f2a;
   --accent-soft: #f2dfcf;
   --accent-contrast: #fff;
@@ -69,6 +72,7 @@
   --text: #fff4ff;
   --muted: #c8aeca;
   --line: #54345b;
+  --control-line: #946f9c;
   --accent: #f0abfc;
   --accent-soft: #4a2352;
   --accent-contrast: #2a0d2f;
@@ -114,7 +118,7 @@ button {
   cursor: pointer;
   min-height: 34px;
   padding: 6px 11px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-line);
   border-radius: 9px;
   background: var(--surface);
   color: var(--text);
@@ -143,7 +147,7 @@ select,
 textarea {
   width: 100%;
   min-height: 36px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--control-line);
   border-radius: 9px;
   background: var(--surface);
   color: var(--text);
@@ -196,4 +200,59 @@ textarea:focus-visible {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* U-7: los botones de la barra superior median 33-40 px de ancho; el minimo
+   tactil recomendado es 44x44. Y a 16 px los campos evitan el zoom de iOS. */
+@media (pointer: coarse) {
+  button,
+  a.bell {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+@media (max-width: 780px) {
+  input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
+  select,
+  textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme]) {
+    color-scheme: dark;
+    --bg: #061a20;
+    --nav: #082128;
+    --surface: #0b2830;
+    --text: #edf8f5;
+    --muted: #9eb5b0;
+    --line: #1d4147;
+    --control-line: #57858b;
+    --accent: #29b98f;
+    --accent-soft: #103c39;
+    --accent-contrast: #031b18;
+    --danger: #ff7169;
+    --success: #51d3a9;
+    --shadow: 0 22px 62px #0008;
+  }
+}
+
+/* U-9: primer elemento tabulable de la aplicacion. Sin el, quien navega con
+   teclado recorre los once enlaces de la barra lateral en cada cambio de ruta. */
+.saltar-al-contenido {
+  position: absolute;
+  left: 8px;
+  top: -100px;
+  z-index: 200;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+  text-decoration: none;
+  transition: top 0.14s ease;
+}
+.saltar-al-contenido:focus-visible {
+  top: 8px;
 }
