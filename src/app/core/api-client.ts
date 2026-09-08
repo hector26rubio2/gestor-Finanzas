@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
-import { Observable, catchError, switchMap, throwError } from 'rxjs';
+import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
+import { ApiMovementKindSpec } from './movement-kinds';
 import { RUNTIME_CONFIG } from './runtime';
 
 /**
@@ -37,10 +38,23 @@ export class ApiRequestError extends Error {
   }
 }
 
+/**
+ * Transporte HTTP con token CSRF cacheado.
+ *
+ * Antes se pedía un token nuevo antes de cada escritura y el servidor rotaba la
+ * cookie en cada llamada: dos escrituras concurrentes se anulaban entre sí
+ * (A obtiene T1, B obtiene T2 y sobreescribe la cookie, A envía T1 → 403), y
+ * toda mutación pagaba una ida y vuelta extra. Ahora el token se pide una vez,
+ * se comparte entre peticiones en vuelo y sólo se renueva cuando el servidor lo
+ * rechaza con `security.csrf_invalid`.
+ */
 @Injectable()
 export class HttpApiTransport implements ApiTransport {
   private readonly http = inject(HttpClient);
   private readonly config = inject(RUNTIME_CONFIG);
+  private csrfToken: string | null = null;
+  private csrfInFlight: Observable<string> | null = null;
+
   request<TResponse, TBody = unknown>(request: ApiRequest<TBody>): Observable<TResponse> {
     let params = new HttpParams();
     for (const [key, value] of Object.entries(request.params ?? {})) {
@@ -48,6 +62,7 @@ export class HttpApiTransport implements ApiTransport {
     }
     if (this.config.mode !== 'api' || !this.config.apiBaseUrl)
       return throwError(() => new Error('El transporte HTTP no está activo en modo demo.'));
+
     const unsafe = request.method !== 'GET';
     const send = (csrfToken?: string) => {
       let headers = new HttpHeaders({ Accept: 'application/json' });
@@ -60,16 +75,58 @@ export class HttpApiTransport implements ApiTransport {
         withCredentials: true,
       });
     };
+
     const response$ = unsafe
-      ? this.http
-          .get<{ token: string }>(`${this.config.apiBaseUrl}${API_ROUTES.csrf}`, { withCredentials: true })
-          .pipe(switchMap(({ token }) => send(token)))
+      ? this.csrf().pipe(
+          switchMap((token) =>
+            send(token).pipe(
+              catchError((error: HttpErrorResponse) =>
+                this.isStaleCsrf(error)
+                  ? this.csrf(true).pipe(switchMap((renewed) => send(renewed)))
+                  : throwError(() => error),
+              ),
+            ),
+          ),
+        )
       : send();
+
     return response$.pipe(
       catchError((error: HttpErrorResponse) =>
         throwError(() => new ApiRequestError(error.status, (error.error ?? {}) as ApiProblem)),
       ),
     );
+  }
+
+  /** Descarta el token en memoria. La sesión nueva traerá el suyo. */
+  forgetCsrfToken(): void {
+    this.csrfToken = null;
+    this.csrfInFlight = null;
+  }
+
+  private csrf(renew = false): Observable<string> {
+    if (renew) this.forgetCsrfToken();
+    if (this.csrfToken) return of(this.csrfToken);
+    if (this.csrfInFlight) return this.csrfInFlight;
+
+    this.csrfInFlight = this.http
+      .get<{ token: string }>(`${this.config.apiBaseUrl}${API_ROUTES.csrf}`, { withCredentials: true })
+      .pipe(
+        switchMap(({ token }) => {
+          this.csrfToken = token;
+          this.csrfInFlight = null;
+          return of(token);
+        }),
+        catchError((error) => {
+          this.csrfInFlight = null;
+          return throwError(() => error);
+        }),
+        shareReplay({ bufferSize: 1, refCount: true }),
+      );
+    return this.csrfInFlight;
+  }
+
+  private isStaleCsrf(error: HttpErrorResponse): boolean {
+    return error.status === 403 && (error.error as ApiProblem | null)?.code === 'security.csrf_invalid';
   }
 }
 
@@ -150,6 +207,9 @@ export const ApiCapability = {
   viewMovements: 4096,
   viewAccounts: 8192,
 } as const;
+
+/** Espejo de `AccountKindDto`. Los valores numéricos son parte del contrato. */
+export const ApiAccountKind = { cash: 1, checking: 2, savings: 3, wallet: 4, other: 99 } as const;
 
 export interface ApiAccount {
   id: string;
@@ -392,6 +452,10 @@ export class FinanceApiClient {
   session() {
     return this.get<ApiSession>(API_ROUTES.session);
   }
+  /** Tabla de invariantes por clase de movimiento: viaja como dato, no se reescribe aquí. */
+  movementKinds() {
+    return this.get<readonly ApiMovementKindSpec[]>(API_ROUTES.movementKinds);
+  }
   csrf() {
     return this.get<{ token: string }>(API_ROUTES.csrf);
   }
@@ -626,7 +690,7 @@ export class FinanceApiClient {
     key: string,
     request: { organizationId?: string | null; userId?: string | null; isEnabled: boolean },
   ) {
-    return this.transport.request<ApiFeatureFlag>({
+    return this.transport.request<ApiAdminFeatureFlag>({
       method: 'PUT',
       path: API_ROUTES.superAdminFeatureFlag(key),
       body: request,

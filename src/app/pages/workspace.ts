@@ -23,6 +23,8 @@ import {
 } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { DemoAuditEvent } from '../core/demo-data';
+import { parseMoney } from '../core/money';
+import { signOf } from '../core/movement-kinds';
 
 const labels: Record<string, { title: string; eyebrow: string; description: string }> = {
   movements: {
@@ -76,6 +78,9 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
     description: 'Temas, tipografía, idioma y preferencias personales.',
   },
 };
+
+/** Marca de dato ausente. Un campo que la API no publica se comunica, no se rellena. */
+const SIN_DATO = '—';
 
 @Component({
   standalone: true,
@@ -267,7 +272,7 @@ const labels: Record<string, { title: string; eyebrow: string; description: stri
             >
               <span>{{ a.type === 'credit' ? 'CRÉDITO' : a.type === 'savings' ? 'AHORROS' : 'EFECTIVO' }}</span
               ><b>{{ a.name }}</b
-              ><em>•••• {{ a.lastFour }}</em
+              ><em>{{ a.lastFour ? '•••• ' + a.lastFour : 'Sin terminación' }}</em
               ><small
                 >{{ a.type === 'credit' ? 'Deuda' : 'Saldo' }}
                 <strong>{{ store.money(displayBalance(a)) }}</strong></small
@@ -2548,7 +2553,7 @@ export class WorkspaceComponent implements AfterViewInit {
           (type === 'all' || account.type === type) &&
           (!query ||
             account.name.toLocaleLowerCase('es').includes(query) ||
-            account.lastFour.toLocaleLowerCase('es').includes(query)),
+            (account.lastFour ?? '').toLocaleLowerCase('es').includes(query)),
       );
   });
   readonly accountPage = signal(0);
@@ -3080,7 +3085,7 @@ export class WorkspaceComponent implements AfterViewInit {
     this.store.data().people.map((p) => ({
       id: p.id,
       name: p.name,
-      relationship: p.relationship,
+      relationship: p.relationship ?? SIN_DATO,
       owed: this.store.money(p.owed),
       owing: this.store.money(p.owing),
       balance: this.store.money(p.owed - p.owing),
@@ -3095,8 +3100,8 @@ export class WorkspaceComponent implements AfterViewInit {
       id: i.id,
       name: i.name,
       type: i.type,
-      institution: i.institution,
-      risk: `${i.risk} · ${i.liquidity}`,
+      institution: i.institution ?? SIN_DATO,
+      risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
       cost: this.store.money(i.cost),
       value: this.store.money(i.value),
       return: ((i.value / i.cost - 1) * 100).toFixed(1) + ' %',
@@ -3215,22 +3220,16 @@ export class WorkspaceComponent implements AfterViewInit {
     }
   }
   private toRemoteMovement(source: ApiMovement): import('../core/demo-data').Movement {
-    const sign = source.flow === 2 || (source.flow === 0 && source.effect === 2) ? -1 : 1;
+    // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
+    // duplicada la expresión de signo y la lista de clases escrita a mano.
     return {
       id: source.id,
       date: source.date,
       description: source.description ?? 'Sin descripción',
       accountId: source.links['account'] ?? source.links['card'] ?? '',
       category: source.linkNames['category']?.name ?? 'Sin categoría',
-      kind:
-        source.kind === 1
-          ? 'income'
-          : source.kind === 10 || source.kind === 11
-            ? 'transfer'
-            : source.kind === 21
-              ? 'payment'
-              : 'expense',
-      amount: Number(source.amount.base.amount) * sign,
+      kind: this.store.kindCatalog().family(source.kind, source.effect, source.flow),
+      amount: parseMoney(source.amount.base) * signOf(source.flow, source.effect),
       status: 'confirmed',
       person: source.linkNames['counterparty']?.name,
       ownership: source.links['counterparty'] ? 'loaned' : 'own',
@@ -3425,7 +3424,7 @@ export class WorkspaceComponent implements AfterViewInit {
       ];
     if (a)
       return [
-        ['Terminación', '•••• ' + a.lastFour],
+        ['Terminación', a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
         ['Moneda', a.currency],
         [
           'TRM de referencia',
@@ -3545,7 +3544,7 @@ export class WorkspaceComponent implements AfterViewInit {
       await firstValueFrom(
         this.api.updateAccount(account.id, {
           name: account.name,
-          lastFour: account.lastFour,
+          lastFour: account.lastFour ?? null,
           isDefault: false,
           isActive: false,
         }),
