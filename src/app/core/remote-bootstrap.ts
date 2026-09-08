@@ -37,6 +37,18 @@ export class RemoteBootstrap {
     this.store.remoteState.set('loading');
     try {
       const session = await firstValueFrom(this.api.session());
+
+      // Sin permisos el menu sale vacio y ninguna ruta abre. Antes eso ocurria en
+      // silencio y parecia una aplicacion rota; ahora se dice lo que pasa.
+      if (!session.permissions?.length) {
+        this.store.remoteError.set(
+          'La sesión no trae permisos. Pide a quien administra que revise tus roles o tu membresía.',
+        );
+        this.store.remoteState.set('error');
+        this.store.user.set(null);
+        return;
+      }
+
       this.sessionSignature = this.signature(session);
       const capabilities = new Set(session.capabilities);
       const canViewLedger = capabilities.has(ApiCapability.viewLedger);
@@ -96,6 +108,7 @@ export class RemoteBootstrap {
         }));
       }
       this.store.featureFlags.set(Object.fromEntries(result.featureFlags.map((flag) => [flag.key, flag.isEnabled])));
+      this.store.featureFlagsLoaded.set(true);
       this.store.categories.set(result.categories);
       this.store.remoteState.set('ready');
     } catch (error) {

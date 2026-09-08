@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { P } from '../core/permissions';
 import { CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 
@@ -19,7 +20,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         <h1>Hola, {{ store.user()?.name?.split(' ')?.[0] }}</h1>
         <p>Explora tus finanzas: cada filtro actualiza toda la visual.</p>
       </div>
-      @if (caps.allows('movement.create')) {
+      @if (caps.allows(P.dashboard.widget.editar)) {
         <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
           {{ customizing() ? 'Terminar' : 'Personalizar' }}
         </button>
@@ -1013,6 +1014,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
   ],
 })
 export class DashboardComponent {
+  readonly P = P;
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
   readonly customizing = signal(false);
@@ -1040,7 +1042,7 @@ export class DashboardComponent {
       kicker: 'INGRESOS Y GASTOS',
       type: 'flow',
       wide: true,
-      capability: 'dashboard',
+      capability: P.dashboard.widget.flujo,
     },
     {
       id: 'categories',
@@ -1048,7 +1050,7 @@ export class DashboardComponent {
       kicker: 'DISTRIBUCIÓN INTERACTIVA',
       type: 'categories',
       wide: false,
-      capability: 'dashboard',
+      capability: P.dashboard.widget.categorias,
     },
     {
       id: 'accounts',
@@ -1056,7 +1058,7 @@ export class DashboardComponent {
       kicker: 'MEDIOS DE PAGO',
       type: 'accounts',
       wide: false,
-      capability: 'dashboard',
+      capability: P.dashboard.widget.cuentas,
     },
     {
       id: 'trend',
@@ -1064,7 +1066,7 @@ export class DashboardComponent {
       kicker: 'TENDENCIA',
       type: 'trend',
       wide: true,
-      capability: 'movement.create',
+      capability: P.dashboard.widget.tendencia,
     },
     {
       id: 'commitments',
@@ -1072,7 +1074,7 @@ export class DashboardComponent {
       kicker: 'PRÓXIMOS 30 DÍAS',
       type: 'accounts',
       wide: false,
-      capability: 'planning',
+      capability: P.dashboard.widget.compromisos,
     },
     {
       id: 'health',
@@ -1080,11 +1082,13 @@ export class DashboardComponent {
       kicker: 'ALERTAS Y OPORTUNIDADES',
       type: 'categories',
       wide: false,
-      capability: 'planning',
+      capability: P.dashboard.widget.salud,
     },
   ]);
   canSee(widget: Widget): boolean {
-    return !widget.capability || this.caps.allows(widget.capability);
+    // Antes, un widget sin capacidad era visible para cualquiera, y los creados por
+    // el usuario nacian asi. Ahora heredan el permiso de los widgets propios.
+    return this.caps.allows(widget.capability ?? P.dashboard.widget.propios);
   }
   readonly widgets = computed(() => this.all().filter((w) => !this.hiddenIds().includes(w.id) && this.canSee(w)));
   readonly hidden = computed(() => this.all().filter((w) => this.hiddenIds().includes(w.id) && this.canSee(w)));

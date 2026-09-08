@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
 import { ApiCategory, FinanceApiClient } from './api-client';
 import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from './money';
+import { P } from './permissions';
 import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from './movement-kinds';
 import { RUNTIME_CONFIG } from './runtime';
 
@@ -27,7 +28,15 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
   providedIn: 'root',
   factory: () => {
     const store = inject(DemoStore);
-    return { enabled: (key) => store.featureFlags()[key] ?? true };
+    return {
+      // Una clave ausente habilita: no toda ruta tiene bandera, y exigir una por cada
+      // una cerraria la aplicacion entera. Lo que no puede pasar es abrir cuando el
+      // catalogo nunca llego: ahi el silencio significa "no lo se", no "adelante".
+      enabled: (key) => {
+        if (store.runtime.mode === 'api' && !store.featureFlagsLoaded()) return false;
+        return store.featureFlags()[key] ?? true;
+      },
+    };
   },
 });
 export interface Preferences {
@@ -76,18 +85,19 @@ export function applyTheme(theme: Preferences['theme']): void {
   else document.documentElement.dataset['theme'] = theme;
 }
 
+/** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
 export const navigation = [
-  { path: 'dashboard', label: 'Dashboard', icon: '◈', group: 'PANORAMA', capability: 'dashboard' },
-  { path: 'movements', label: 'Movimientos', icon: '⇄', group: 'MI DINERO', capability: 'movements' },
-  { path: 'calendar', label: 'Calendario', icon: '▦', group: 'MI DINERO', capability: 'calendar' },
-  { path: 'accounts', label: 'Cuentas y tarjetas', icon: '▣', group: 'MI DINERO', capability: 'accounts' },
-  { path: 'people', label: 'Personas y deudas', icon: '♧', group: 'MI DINERO', capability: 'people' },
-  { path: 'portfolio', label: 'Patrimonio', icon: '◇', group: 'MI DINERO', capability: 'portfolio' },
-  { path: 'planning', label: 'Planificación', icon: '↗', group: 'ANÁLISIS', capability: 'planning' },
-  { path: 'reports', label: 'Reportes', icon: '▥', group: 'ANÁLISIS', capability: 'reports' },
-  { path: 'notifications', label: 'Notificaciones', icon: '◎', group: 'ESPACIO', capability: 'notifications' },
-  { path: 'admin', label: 'Administración', icon: '⚙', group: 'ESPACIO', capability: 'superadmin' },
-  { path: 'settings', label: 'Preferencias', icon: '☷', group: 'ESPACIO', capability: 'settings' },
+  { path: 'dashboard', label: 'Dashboard', icon: '◈', group: 'PANORAMA', capability: P.dashboard.ver },
+  { path: 'movements', label: 'Movimientos', icon: '⇄', group: 'MI DINERO', capability: P.movimientos.ver },
+  { path: 'calendar', label: 'Calendario', icon: '▦', group: 'MI DINERO', capability: P.calendario.ver },
+  { path: 'accounts', label: 'Cuentas y tarjetas', icon: '▣', group: 'MI DINERO', capability: P.cuentas.ver },
+  { path: 'people', label: 'Personas y deudas', icon: '♧', group: 'MI DINERO', capability: P.personas.ver },
+  { path: 'portfolio', label: 'Patrimonio', icon: '◇', group: 'MI DINERO', capability: P.patrimonio.ver },
+  { path: 'planning', label: 'Planificación', icon: '↗', group: 'ANÁLISIS', capability: P.planificacion.ver },
+  { path: 'reports', label: 'Reportes', icon: '▥', group: 'ANÁLISIS', capability: P.reportes.ver },
+  { path: 'notifications', label: 'Notificaciones', icon: '◎', group: 'ESPACIO', capability: P.notificaciones.ver },
+  { path: 'admin', label: 'Administración', icon: '⚙', group: 'ESPACIO', capability: P.administracion.ver },
+  { path: 'settings', label: 'Preferencias', icon: '☷', group: 'ESPACIO', capability: P.preferencias.ver },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -106,6 +116,8 @@ export class DemoStore {
   readonly remoteMovementSize = signal(25);
   readonly remoteMovementTotal = signal(0);
   readonly featureFlags = signal<Record<string, boolean>>(this.data().featureFlags);
+  /** Distingue «catalogo cargado y sin esta clave» de «catalogo nunca cargado». */
+  readonly featureFlagsLoaded = signal(this.runtime.mode !== 'api');
   /** Tabla de invariantes publicada por la API. Vacía en modo demo, donde los datos ya traen su familia. */
   readonly kindCatalog = signal(EMPTY_KIND_CATALOG);
   readonly categories = signal<readonly ApiCategory[]>([]);

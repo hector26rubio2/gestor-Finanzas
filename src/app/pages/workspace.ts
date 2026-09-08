@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
+import { P } from '../core/permissions';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import {
@@ -103,19 +104,19 @@ const SIN_DATO = '—';
           <p>{{ meta().description }}</p>
         </div>
         <div class="head-actions">
-          @if (page() === 'accounts') {
+          @if (page() === 'accounts' && can(P.cuentas.crear)) {
             <button (click)="store.form.set({ kind: 'account' })">＋ Nueva cuenta</button>
           }
-          @if (page() === 'movements') {
+          @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
             <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">＋ Nueva categoría</button>
           }
-          @if (page() === 'people') {
+          @if (page() === 'people' && can(P.personas.crear)) {
             <button (click)="store.form.set({ kind: 'person' })">＋ Persona</button>
           }
-          @if (page() === 'portfolio') {
+          @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
             <button (click)="store.form.set({ kind: 'investment' })">＋ Inversión</button>
           }
-          @if (page() === 'notifications') {
+          @if (page() === 'notifications' && can(P.notificaciones.editar)) {
             <button (click)="readAll()">Marcar como leídas</button>
           }
         </div>
@@ -144,9 +145,6 @@ const SIN_DATO = '—';
         }
         @case ('notifications') {
           <ng-container *ngTemplateOutlet="notifications"></ng-container>
-        }
-        @case ('admin') {
-          <ng-container *ngTemplateOutlet="admin"></ng-container>
         }
         @case ('settings') {
           <ng-container *ngTemplateOutlet="settings"></ng-container>
@@ -393,7 +391,7 @@ const SIN_DATO = '—';
         <aside class="agenda">
           <h3>Próximos compromisos</h3>
           @for (item of projectedOccurrences(); track item.recurrence.id + item.occurrence) {
-            <button class="projected" (click)="materialize(item)">
+            <button class="projected" [disabled]="!can(P.calendario.proyecciones.crear)" (click)="materialize(item)">
               <span>{{ item.recurrence.name }} · proyectado</span
               ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
             </button>
@@ -671,70 +669,13 @@ const SIN_DATO = '—';
             </div>
             @if (n.id === 'notice-purchase') {
               <button (click)="reviewNotification(n.id)">Revisar</button>
-            } @else {
+            } @else if (can(P.notificaciones.editar)) {
               <button (click)="mark(n.id)">Marcar leída</button>
             }
           </article>
         }
       </section></ng-template
     >
-    <ng-template #admin
-      ><section class="kpis mini">
-        <demo-kpi label="Organización" value="Personal" hint="Espacio financiero activo" /><demo-kpi
-          label="Miembros"
-          value="2"
-          hint="Propietaria y revisor"
-        /><demo-kpi label="Funciones piloto" value="4" hint="No conceden permisos" />
-      </section>
-      <section class="admin-flags" aria-labelledby="feature-flags-title">
-        <div>
-          <h2 id="feature-flags-title">Funciones en despliegue</h2>
-          <p>Activa funciones por configuración, nunca por roles escritos en el frontend.</p>
-        </div>
-        @for (flag of featureFlagRows(); track flag.key) {
-          <label
-            ><span
-              ><b>{{ flag.key }}</b
-              ><small>{{ flag.enabled ? 'Activa' : 'Pausada' }}</small></span
-            ><input type="checkbox" [checked]="flag.enabled" (change)="toggleFeature(flag.key, !flag.enabled)"
-          /></label>
-        } @empty {
-          <p>No hay feature flags configuradas.</p>
-        }
-      </section>
-      <section class="audit-list" aria-labelledby="audit-title">
-        <h2 id="audit-title">Auditoría reciente</h2>
-        <div class="audit-filters">
-          <label
-            >Usuario<select [ngModel]="auditActor()" (ngModelChange)="auditActor.set($event)">
-              <option value="all">Todos</option>
-              @for (actor of auditActors(); track actor) {
-                <option [value]="actor">{{ actor }}</option>
-              }
-            </select></label
-          ><label
-            >Módulo<select [ngModel]="auditModule()" (ngModelChange)="auditModule.set($event)">
-              <option value="all">Todos</option>
-              @for (module of auditModules(); track module) {
-                <option [value]="module">{{ module }}</option>
-              }
-            </select></label
-          >
-        </div>
-        @for (event of visibleAuditEvents(); track event.id) {
-          <article>
-            <b>{{ event.action }}</b
-            ><span
-              >{{ event.actor }} · {{ event.module }} · {{ event.entityType }} ·
-              {{ event.createdAt | date: 'medium' }}</span
-            ><em [class.rejected]="event.result === 'Rechazado'">{{ event.result }}</em>
-          </article>
-        } @empty {
-          <p>No hay eventos que coincidan con estos filtros.</p>
-        }
-      </section>
-      <section class="table-zone"><demo-table [columns]="userColumns" [rows]="userRows" [selectable]="false" /></section
-    ></ng-template>
     <ng-template #settings
       ><section class="settings-grid">
         <article class="wide">
@@ -742,13 +683,17 @@ const SIN_DATO = '—';
           <p>Crea una identidad personal, comprueba su contraste en la vista previa y guárdala para este usuario.</p>
           <label
             >Nombre del tema<input
-              [disabled]="!canCustomize"
+              [disabled]="!canCustomize()"
               [ngModel]="store.preferences().name"
               (ngModelChange)="setThemeValue('name', $event)"
           /></label>
           <div class="theme-picks">
             @for (theme of themes; track theme.id) {
-              <button [attr.aria-pressed]="store.preferences().theme === theme.id" (click)="setTheme(theme.id)">
+              <button
+                [attr.aria-pressed]="store.preferences().theme === theme.id"
+                [disabled]="!can(P.preferencias.editar)"
+                (click)="setTheme(theme.id)"
+              >
                 <i [style.background]="theme.preview"></i>{{ theme.label }}
               </button>
             }
@@ -757,48 +702,48 @@ const SIN_DATO = '—';
             <label
               >Color de acento<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().accent"
                 (ngModelChange)="setAccent($event)"
             /></label>
             <label
               >Primario<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().primary"
                 (ngModelChange)="setThemeValue('primary', $event)"
             /></label>
             <label
               >Secundario<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().secondary"
                 (ngModelChange)="setThemeValue('secondary', $event)"
             /></label>
             <label
               >Texto<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().text"
                 (ngModelChange)="setThemeValue('text', $event)"
             /></label>
             <label
               >Superficie<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().surface"
                 (ngModelChange)="setThemeValue('surface', $event)"
             /></label>
             <label
               >Bordes<input
                 type="color"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().border"
                 (ngModelChange)="setThemeValue('border', $event)"
             /></label>
             <label
               >Densidad<select
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().density"
                 (ngModelChange)="setDensity($event)"
               >
@@ -812,13 +757,13 @@ const SIN_DATO = '—';
                 type="range"
                 min="4"
                 max="24"
-                [disabled]="!canCustomize"
+                [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().radius"
                 (ngModelChange)="setRadius($event)"
               /><b>{{ store.preferences().radius }} px</b></label
             >
           </div>
-          @if (!canCustomize) {
+          @if (!canCustomize()) {
             <p role="note">Tu acceso permite elegir presets, pero no personalizarlos.</p>
           }
           <section class="theme-preview" aria-label="Vista previa del tema">
@@ -834,18 +779,28 @@ const SIN_DATO = '—';
               <button>Acción principal</button>
             </div>
           </section>
-          <button type="button" (click)="saveCustomTheme()">Guardar tema personalizado</button>
+          <button type="button" [disabled]="!canCustomize()" (click)="saveCustomTheme()">
+            Guardar tema personalizado
+          </button>
         </article>
         <article>
           <h2>Tipografía e idioma</h2>
           <label
-            >Tipografía<select [ngModel]="store.preferences().font" (ngModelChange)="setFont($event)">
+            >Tipografía<select
+              [ngModel]="store.preferences().font"
+              [disabled]="!can(P.preferencias.editar)"
+              (ngModelChange)="setFont($event)"
+            >
               @for (font of fonts; track font.value) {
                 <option [value]="font.value">{{ font.label }}</option>
               }
             </select></label
           ><label
-            >Idioma<select [ngModel]="store.preferences().locale" (ngModelChange)="setLocale($event)">
+            >Idioma<select
+              [ngModel]="store.preferences().locale"
+              [disabled]="!can(P.preferencias.editar)"
+              (ngModelChange)="setLocale($event)"
+            >
               <option value="es-CO">Español (Colombia)</option>
               <option value="pt-BR">Português (Brasil)</option>
               <option value="fr-FR">Français</option>
@@ -855,7 +810,9 @@ const SIN_DATO = '—';
         <article>
           <h2>Datos locales</h2>
           <p>Doce meses, cientos de movimientos y relaciones reproducibles.</p>
-          <button (click)="store.reset()">Restaurar información inicial</button>
+          <button [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
+            Restaurar información inicial
+          </button>
           <button (click)="logout()">Cerrar sesión</button>
         </article>
       </section></ng-template
@@ -921,19 +878,23 @@ const SIN_DATO = '—';
         </ol>
         <footer>
           @if (store.inspector()?.type === 'movement') {
-            <button (click)="editSelected()">Editar</button>
-            @if (selectedMovement()?.person) {
+            @if (can(P.movimientos.editar)) {
+              <button (click)="editSelected()">Editar</button>
+            }
+            @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
               <button (click)="shareSelected()">Registrar compra compartida</button>
             }
-            <button class="danger-action" (click)="reverseSelected()">Reversar</button>
+            @if (can(P.movimientos.deshabilitar)) {
+              <button class="danger-action" (click)="reverseSelected()">Reversar</button>
+            }
           }
-          @if (store.inspector()?.type === 'person') {
+          @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
             <button class="action" (click)="issueSelectedSettlement()">Generar liquidación</button>
           }
-          @if (store.inspector()?.type === 'card' && !cardPaymentMode()) {
+          @if (store.inspector()?.type === 'card' && !cardPaymentMode() && can(P.movimientos.pagos.crear)) {
             <button class="action" (click)="cardPaymentMode.set(true)">Registrar abono</button>
           }
-          @if (store.inspector()?.type === 'account') {
+          @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
             <button class="danger-action" (click)="deactivateSelectedAccount()">Desactivar cuenta</button>
           }
           @if (store.inspector()?.type === 'day') {
@@ -960,7 +921,7 @@ const SIN_DATO = '—';
         @if (store.inspector()?.type === 'movement' && calendarReturnDate()) {
           <button class="back-link" (click)="returnToCalendarDay()">← Volver a movimientos del día</button>
         }
-        @if (store.inspector()?.type === 'card' && cardPaymentMode()) {
+        @if (store.inspector()?.type === 'card' && cardPaymentMode() && can(P.movimientos.pagos.crear)) {
           <section class="card-payment">
             <header>
               <div>
@@ -2554,7 +2515,13 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly Math = Math;
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
-  readonly canCustomize = this.capabilities.allows('theme.customize');
+  readonly P = P;
+  /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
+  readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
+  /** Comprobacion puntual desde plantilla. */
+  can(permiso: string): boolean {
+    return this.capabilities.allows(permiso);
+  }
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private api = inject(FinanceApiClient);
@@ -2895,7 +2862,6 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly calendarYear = signal(2026);
   readonly calendarMonth = signal(7);
   readonly selectedCalendarDate = signal('2026-08-18');
-  readonly calendarYears = Array.from({ length: 7 }, (_, index) => 2023 + index);
   readonly calendarMonths = Array.from({ length: 12 }, (_, value) => ({
     value,
     label: new Intl.DateTimeFormat('es-CO', { month: 'long' }).format(new Date(Date.UTC(2026, value, 1))),
@@ -2948,7 +2914,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-06', label: 'Junio 2026' },
     { value: '2026-05', label: 'Mayo 2026' },
   ];
-  readonly reportBars = [52, 68, 61, 82, 73, 88];
   readonly reportPeriod = signal('6');
   readonly reportMovements = computed(() => {
     const periods = [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
@@ -3187,7 +3152,6 @@ export class WorkspaceComponent implements AfterViewInit {
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
       queueMicrotask(() => this.searchInput?.nativeElement.focus());
     if (this.page() === 'calendar') void this.loadCalendarProjection();
-    if (this.page() === 'admin') void this.loadAdministration();
   }
   /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
   readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
@@ -3291,27 +3255,6 @@ export class WorkspaceComponent implements AfterViewInit {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo confirmar la ocurrencia.');
     }
   }
-  async loadAdministration() {
-    if (this.store.runtime.mode !== 'api') return;
-    try {
-      const result = await firstValueFrom(this.api.audit(1, 12));
-      this.auditEvents.set(result.items);
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la auditoría.');
-    }
-  }
-  async toggleFeature(key: string, enabled: boolean) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.featureFlags.update((flags) => ({ ...flags, [key]: enabled }));
-      return;
-    }
-    try {
-      const updated = await firstValueFrom(this.api.updateFeatureFlag(key, { isEnabled: enabled }));
-      this.store.featureFlags.update((flags) => ({ ...flags, [updated.key]: updated.isEnabled }));
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la función.');
-    }
-  }
   private toRemoteMovement(source: ApiMovement): import('../core/demo-data').Movement {
     // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
     // duplicada la expresión de signo y la lista de clases escrita a mano.
@@ -3377,28 +3320,6 @@ export class WorkspaceComponent implements AfterViewInit {
   monthMovementCount(month: number) {
     const prefix = `${this.calendarYear()}-${String(month + 1).padStart(2, '0')}`;
     return this.store.data().movements.filter((movement) => movement.date.startsWith(prefix)).length;
-  }
-  shiftMonth(direction: -1 | 1) {
-    const date = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + direction, 1));
-    this.calendarYear.set(date.getUTCFullYear());
-    this.calendarMonth.set(date.getUTCMonth());
-    this.selectedCalendarDate.set(date.toISOString().slice(0, 10));
-    void this.loadCalendarProjection();
-  }
-  setCalendarMonth(month: number | string) {
-    this.calendarMonth.set(Number(month));
-    void this.loadCalendarProjection();
-  }
-  setCalendarYear(year: number | string) {
-    this.calendarYear.set(Number(year));
-    void this.loadCalendarProjection();
-  }
-  goToDate(iso: string) {
-    if (!iso) return;
-    const date = new Date(`${iso}T00:00:00Z`);
-    this.calendarYear.set(date.getUTCFullYear());
-    this.calendarMonth.set(date.getUTCMonth());
-    this.selectCalendarDay(iso);
   }
   selectCalendarDay(iso: string) {
     this.selectedCalendarDate.set(iso);
@@ -3613,17 +3534,6 @@ export class WorkspaceComponent implements AfterViewInit {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo generar la liquidación.');
     }
   }
-  paySelected() {
-    const a = this.selectedAccount();
-    if (a)
-      this.store.open(
-        'payment',
-        this.store.data().accounts.find((x) => x.type === 'savings')?.id,
-        undefined,
-        undefined,
-        a.id,
-      );
-  }
   async deactivateSelectedAccount() {
     const account = this.selectedAccount();
     if (!account || account.type === 'credit') return;
@@ -3648,10 +3558,6 @@ export class WorkspaceComponent implements AfterViewInit {
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo desactivar la cuenta.');
     }
-  }
-  openFirstDayMovement() {
-    const m = this.dayMoves(this.store.inspector()?.id ?? this.selectedCalendarDate())[0];
-    if (m) this.store.inspect('movement', m.id);
   }
   async readAll() {
     if (this.store.runtime.mode === 'api') {
