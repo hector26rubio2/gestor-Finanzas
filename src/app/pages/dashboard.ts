@@ -23,7 +23,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         <h1>Hola, {{ store.user()?.name?.split(' ')?.[0] }}</h1>
         <p>Explora tus finanzas: cada filtro actualiza toda la visual.</p>
       </div>
-      @if (caps.allows(P.dashboard.widget.editar)) {
+      @if (puedePersonalizar()) {
         <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
           {{ customizing() ? 'Terminar' : 'Personalizar' }}
         </button>
@@ -86,17 +86,22 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       </div>
       <p class="summary" role="status">{{ periodLabel() }} · {{ movements().length }} movimientos</p>
     </section>
-    <section class="kpis" aria-label="Indicadores filtrados">
-      <demo-kpi label="Balance del periodo" [value]="store.money(net())" [hint]="periodLabel()" /><demo-kpi
-        label="Ingresos"
-        [value]="store.money(income())"
-        hint="Según filtros activos"
-      /><demo-kpi label="Gastos" [value]="store.money(expense())" hint="Según filtros activos" /><demo-kpi
-        label="Movimientos"
-        [value]="movements().length.toLocaleString()"
-        hint="Registros visibles"
-      />
-    </section>
+    @if (algunKpi()) {
+      <section class="kpis" aria-label="Indicadores filtrados">
+        @if (caps.allows(P.dashboard.kpi.balance)) {
+          <demo-kpi label="Balance del periodo" [value]="store.money(net())" [hint]="periodLabel()" />
+        }
+        @if (caps.allows(P.dashboard.kpi.ingresos)) {
+          <demo-kpi label="Ingresos" [value]="store.money(income())" hint="Según filtros activos" />
+        }
+        @if (caps.allows(P.dashboard.kpi.gastos)) {
+          <demo-kpi label="Gastos" [value]="store.money(expense())" hint="Según filtros activos" />
+        }
+        @if (caps.allows(P.dashboard.kpi.recuento)) {
+          <demo-kpi label="Movimientos" [value]="movements().length.toLocaleString()" hint="Registros visibles" />
+        }
+      </section>
+    }
     <section class="grid">
       @for (widget of widgets(); track widget.id) {
         <article class="widget" [class.wide]="widget.wide">
@@ -107,23 +112,29 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
             </div>
             @if (customizing()) {
               <div class="widget-actions">
-                <button class="quiet" type="button" aria-label="Mover arriba" (click)="move(widget.id, -1)">↑</button>
-                <button class="quiet" type="button" aria-label="Mover abajo" (click)="move(widget.id, 1)">↓</button>
-                <select
-                  aria-label="Tipo de visualización"
-                  [ngModel]="widget.type"
-                  (ngModelChange)="changeType(widget.id, $event)"
-                >
-                  <option value="flow">Líneas comparativas</option>
-                  <option value="trend">Área de tendencia</option>
-                  <option value="categories">Barras horizontales</option>
-                  <option value="accounts">Tabla resumida</option>
-                  <option value="scatter">Dispersión</option>
-                  <option value="donut">Composición radial</option>
-                  <option value="stacked">Área apilada</option>
-                  <option value="heatmap">Mapa de intensidad</option>
-                </select>
-                <button class="quiet" type="button" (click)="hide(widget.id)">Ocultar</button>
+                @if (caps.allows(P.dashboard.widget.orden.editar)) {
+                  <button class="quiet" type="button" aria-label="Mover arriba" (click)="move(widget.id, -1)">↑</button>
+                  <button class="quiet" type="button" aria-label="Mover abajo" (click)="move(widget.id, 1)">↓</button>
+                }
+                @if (caps.allows(P.dashboard.widget.tipo.editar)) {
+                  <select
+                    aria-label="Tipo de visualización"
+                    [ngModel]="widget.type"
+                    (ngModelChange)="changeType(widget.id, $event)"
+                  >
+                    <option value="flow">Líneas comparativas</option>
+                    <option value="trend">Área de tendencia</option>
+                    <option value="categories">Barras horizontales</option>
+                    <option value="accounts">Tabla resumida</option>
+                    <option value="scatter">Dispersión</option>
+                    <option value="donut">Composición radial</option>
+                    <option value="stacked">Área apilada</option>
+                    <option value="heatmap">Mapa de intensidad</option>
+                  </select>
+                }
+                @if (caps.allows(P.dashboard.widget.deshabilitar)) {
+                  <button class="quiet" type="button" (click)="hide(widget.id)">Ocultar</button>
+                }
               </div>
             }
           </header>
@@ -299,24 +310,32 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         </article>
       }
     </section>
-    <section class="recent">
-      <header>
-        <div>
-          <span>DETALLE ENLAZADO</span>
-          <h2>Movimientos del periodo</h2>
-        </div>
-        <a routerLink="/movements">Ver todos</a>
-      </header>
-      <demo-table [columns]="columns" [rows]="rows()" (rowSelected)="inspect($event)" />
-    </section>
+    @if (caps.allows(P.dashboard.tabla.ver)) {
+      <section class="recent">
+        <header>
+          <div>
+            <span>DETALLE ENLAZADO</span>
+            <h2>Movimientos del periodo</h2>
+          </div>
+          @if (caps.allows(P.movimientos.ver)) {
+            <a routerLink="/movements">Ver todos</a>
+          }
+        </header>
+        <demo-table [columns]="columns" [rows]="rows()" (rowSelected)="inspect($event)" />
+      </section>
+    }
     @if (customizing()) {
       <aside class="customize">
         <b>Diseño del dashboard</b>
-        <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">＋ Crear widget</button>
-        @for (widget of hidden(); track widget.id) {
-          <button type="button" (click)="show(widget.id)">＋ {{ widget.title }}</button>
-        } @empty {
-          <span>Todos visibles</span>
+        @if (caps.allows(P.dashboard.widget.crear)) {
+          <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">＋ Crear widget</button>
+        }
+        @if (caps.allows(P.dashboard.widget.deshabilitar)) {
+          @for (widget of hidden(); track widget.id) {
+            <button type="button" (click)="show(widget.id)">＋ {{ widget.title }}</button>
+          } @empty {
+            <span>Todos visibles</span>
+          }
         }
       </aside>
     }
@@ -1022,6 +1041,28 @@ export class DashboardComponent {
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
   readonly customizing = signal(false);
+
+  /**
+   * Personalizar agrupa cuatro acciones distintas: reordenar, cambiar de tipo, ocultar
+   * y crear. El botón aparece si alguna está concedida, y dentro cada control comprueba
+   * la suya. Así se puede dar «solo reorganizar» sin dar «cambiar de visualización».
+   */
+  readonly puedePersonalizar = computed(
+    () =>
+      this.caps.allows(P.dashboard.widget.orden.editar) ||
+      this.caps.allows(P.dashboard.widget.tipo.editar) ||
+      this.caps.allows(P.dashboard.widget.deshabilitar) ||
+      this.caps.allows(P.dashboard.widget.crear),
+  );
+
+  /** Sin ningún KPI concedido la franja se retira entera, en vez de quedar vacía. */
+  readonly algunKpi = computed(
+    () =>
+      this.caps.allows(P.dashboard.kpi.balance) ||
+      this.caps.allows(P.dashboard.kpi.ingresos) ||
+      this.caps.allows(P.dashboard.kpi.gastos) ||
+      this.caps.allows(P.dashboard.kpi.recuento),
+  );
   readonly scale = signal<Scale>('month');
   readonly anchor = signal('2026-08-31');
   readonly accountId = signal('all');
@@ -1355,12 +1396,15 @@ export class DashboardComponent {
     this.localCategory.set('all');
   }
   hide(id: string) {
+    if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
     this.hiddenIds.update((x) => [...x, id]);
   }
   show(id: string) {
+    if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
     this.hiddenIds.update((x) => x.filter((v) => v !== id));
   }
   move(id: string, direction: number) {
+    if (!this.caps.allows(P.dashboard.widget.orden.editar)) return;
     this.all.update((items) => {
       const next = [...items],
         index = next.findIndex((item) => item.id === id),
@@ -1371,10 +1415,12 @@ export class DashboardComponent {
     });
   }
   changeType(id: string, type: string) {
+    if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) => items.map((item) => (item.id === id ? { ...item, type: type as WidgetType } : item)));
   }
   createWidget(event: Event) {
     event.preventDefault();
+    if (!this.caps.allows(P.dashboard.widget.crear)) return;
     const title = this.newWidgetTitle.trim();
     if (!title) return;
     this.all.update((items) => [
@@ -1415,6 +1461,7 @@ export class DashboardComponent {
     this.anchor.set(this.iso(date));
   }
   inspect(row: Record<string, unknown>) {
+    if (!this.caps.allows(P.dashboard.detalle.ver)) return;
     this.store.inspect('movement', String(row['id']));
   }
   typeLabel(type: string) {

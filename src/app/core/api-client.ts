@@ -395,9 +395,39 @@ export interface ApiAdminRole {
   name: string;
   description: string | null;
   organizationId?: string;
+  /** Capacidades íntegramente concedidas. Derivada del servidor, solo lectura. */
   capabilities: readonly string[];
+  /** Permisos concedidos, uno por acción. Es lo que se edita. */
+  permissions: readonly string[];
   isSystem: boolean;
 }
+/** Un permiso del catálogo: código, dónde vive y qué concede. */
+export interface ApiPermissionDescriptor {
+  code: string;
+  resource: string;
+  action: number;
+  level: number;
+  description: string;
+}
+
+/** Espejo de `PermissionActionDto`. */
+export const ApiPermissionAction: Readonly<Record<number, string>> = {
+  1: 'Ver',
+  2: 'Listar',
+  3: 'Crear',
+  4: 'Editar',
+  5: 'Eliminar',
+  6: 'Deshabilitar',
+  7: 'Exportar',
+};
+
+/** Espejo de `PermissionLevelDto`. */
+export const ApiPermissionLevel: Readonly<Record<number, string>> = {
+  1: 'básico',
+  2: 'avanzado',
+  3: 'premium',
+};
+
 export interface ApiCapabilityDescriptor {
   key: string;
   module: string;
@@ -689,6 +719,10 @@ export class FinanceApiClient {
   adminRoles() {
     return this.get<readonly ApiAdminRole[]>(API_ROUTES.adminRoles);
   }
+  /** Catálogo completo: una fila por acción, que es lo que pinta el editor de roles. */
+  superAdminPermissions() {
+    return this.get<readonly ApiPermissionDescriptor[]>(API_ROUTES.superAdminPermissions);
+  }
   superAdminCapabilities() {
     return this.get<readonly ApiCapabilityDescriptor[]>(API_ROUTES.superAdminCapabilities);
   }
@@ -721,7 +755,13 @@ export class FinanceApiClient {
   }
   saveAdminRole(
     id: string | null,
-    request: { organizationId?: string; name: string; description: string; capabilities: readonly string[] },
+    request: {
+      organizationId?: string;
+      name: string;
+      description: string;
+      capabilities: readonly string[];
+      permissions?: readonly string[];
+    },
   ) {
     return this.transport.request<ApiAdminRole>({
       method: id ? 'PUT' : 'POST',
@@ -839,6 +879,7 @@ export const API_ROUTES = {
   adminRoles: '/api/v1/superadmin/roles',
   adminErrors: '/api/v1/superadmin/errors',
   superAdminCapabilities: '/api/v1/superadmin/capabilities',
+  superAdminPermissions: '/api/v1/superadmin/permissions',
   superAdminFeatureFlags: '/api/v1/superadmin/feature-flags',
   superAdminAudit: '/api/v1/superadmin/audit',
   recurrences: '/api/v1/recurrences',

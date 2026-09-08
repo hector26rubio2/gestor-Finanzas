@@ -8,6 +8,9 @@ import {
   ApiAdminUser,
   ApiAuditEvent,
   ApiCapabilityDescriptor,
+  ApiPermissionAction,
+  ApiPermissionDescriptor,
+  ApiPermissionLevel,
   ApiClientError,
   FinanceApiClient,
 } from '../core/api-client';
@@ -404,18 +407,28 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
               </select></label
             >
           }
-          @for (group of capabilityGroups(); track group.name) {
+          @for (group of permissionGroups(); track group.name) {
             <section class="cap-group">
-              <h4>{{ group.name }}</h4>
-              @for (cap of group.items; track cap.key) {
+              <header class="cap-group-head">
+                <h4>{{ group.name }}</h4>
+                <div class="cap-bulk">
+                  <span>{{ marcadosEn(group.items) }} de {{ group.items.length }}</span>
+                  <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">Todo</button>
+                  <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">Nada</button>
+                </div>
+              </header>
+              @for (permiso of group.items; track permiso.code) {
                 <label
                   ><span
-                    ><b>{{ cap.description }}</b
-                    ><small>{{ cap.key }}</small></span
+                    ><b>{{ permiso.description }}</b>
+                    <small
+                      ><em class="cap-action">{{ accionDe(permiso) }}</em> · {{ permiso.code }} ·
+                      {{ nivelDe(permiso) }}</small
+                    ></span
                   ><input
                     type="checkbox"
-                    [checked]="role.capabilities.includes(cap.key)"
-                    (change)="toggleRoleCapability(cap.key)"
+                    [checked]="role.permissions.includes(permiso.code)"
+                    (change)="togglePermiso(permiso.code)"
                 /></label>
               }
             </section>
@@ -1001,6 +1014,32 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       .cap-group h4 {
         margin: 14px 0 5px;
       }
+      .cap-group-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        position: sticky;
+        top: 0;
+        background: var(--panel);
+        z-index: 1;
+      }
+      .cap-bulk {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+      .cap-bulk button {
+        padding: 3px 9px;
+        font-size: 12px;
+      }
+      .cap-action {
+        font-style: normal;
+        font-weight: 600;
+        color: var(--accent);
+      }
       .cap-group label {
         padding: 9px 2px;
       }
@@ -1165,6 +1204,52 @@ export class AdminComponent implements OnInit {
     return [...groups.entries()].map(([module, items]) => ({ name: module, items }));
   });
   readonly capabilityCount = computed(() => this.capabilityCatalog().length);
+
+  /** Catálogo granular, agrupado por recurso: es como se lee y como se concede. */
+  readonly permissionCatalog = signal<readonly ApiPermissionDescriptor[]>([]);
+  readonly permissionGroups = computed(() => {
+    const groups = new Map<string, ApiPermissionDescriptor[]>();
+    for (const permiso of this.permissionCatalog()) {
+      const items = groups.get(permiso.resource) ?? [];
+      items.push(permiso);
+      groups.set(permiso.resource, items);
+    }
+    return [...groups.entries()].map(([name, items]) => ({ name, items }));
+  });
+
+  accionDe(permiso: ApiPermissionDescriptor): string {
+    return ApiPermissionAction[permiso.action] ?? 'Acción';
+  }
+  nivelDe(permiso: ApiPermissionDescriptor): string {
+    return ApiPermissionLevel[permiso.level] ?? 'básico';
+  }
+  marcadosEn(items: readonly ApiPermissionDescriptor[]): number {
+    const concedidos = this.roleDraft()?.permissions ?? [];
+    return items.filter((permiso) => concedidos.includes(permiso.code)).length;
+  }
+
+  /** Marca o desmarca un recurso entero: con noventa y cinco casillas hace falta. */
+  marcarGrupo(items: readonly ApiPermissionDescriptor[], marcar: boolean) {
+    this.roleDraft.update((rol) => {
+      if (!rol) return rol;
+      const codigos = items.map((permiso) => permiso.code);
+      const restantes = rol.permissions.filter((codigo) => !codigos.includes(codigo));
+      return { ...rol, permissions: marcar ? [...restantes, ...codigos] : restantes };
+    });
+  }
+
+  togglePermiso(code: string) {
+    this.roleDraft.update((rol) =>
+      rol
+        ? {
+            ...rol,
+            permissions: rol.permissions.includes(code)
+              ? rol.permissions.filter((x) => x !== code)
+              : [...rol.permissions, code],
+          }
+        : rol,
+    );
+  }
   readonly organizations = computed(() => {
     const map = new Map<string, string>();
     for (const user of this.users())
@@ -1212,7 +1297,7 @@ export class AdminComponent implements OnInit {
     try {
       // Solo se pide lo que el permiso abre: así una sesión sin una pestaña no
       // provoca un 403 en el arranque de la consola.
-      const [u, r, a, e, f, c] = await Promise.all([
+      const [u, r, a, e, f, c, p] = await Promise.all([
         this.caps.allows(P.administracion.usuarios.listar)
           ? firstValueFrom(this.api.adminUsers())
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
@@ -1229,6 +1314,9 @@ export class AdminComponent implements OnInit {
         this.caps.allows(P.administracion.capacidades.listar)
           ? firstValueFrom(this.api.superAdminCapabilities())
           : Promise.resolve([]),
+        this.caps.allows(P.administracion.capacidades.listar)
+          ? firstValueFrom(this.api.superAdminPermissions())
+          : Promise.resolve([]),
       ]);
       this.users.set(
         u.items.map((user) => ({
@@ -1241,6 +1329,7 @@ export class AdminComponent implements OnInit {
       this.audit.set([...a.items]);
       this.adminFlags.set(f);
       this.capabilityCatalog.set(c);
+      this.permissionCatalog.set(p);
       this.errors.set(
         e.items.map((error) => ({
           ...error,
@@ -1344,11 +1433,17 @@ export class AdminComponent implements OnInit {
       description: '',
       organizationId: this.organizations()[0]?.id ?? '',
       capabilities: [],
+      permissions: [],
       isSystem: false,
     });
   }
   editRole(r: ApiAdminRole) {
-    this.roleDraft.set({ ...r, capabilities: [...r.capabilities], organizationId: r.organizationId ?? '' });
+    this.roleDraft.set({
+      ...r,
+      capabilities: [...r.capabilities],
+      permissions: [...(r.permissions ?? [])],
+      organizationId: r.organizationId ?? '',
+    });
   }
   toggleRoleCapability(key: string) {
     this.roleDraft.update((r) =>
@@ -1376,6 +1471,7 @@ export class AdminComponent implements OnInit {
           name: r.name,
           description: r.description ?? '',
           capabilities: r.capabilities,
+          permissions: r.permissions,
         }),
       );
       this.roles.update((xs) => (r.id ? xs.map((x) => (x.id === saved.id ? saved : x)) : [...xs, saved]));

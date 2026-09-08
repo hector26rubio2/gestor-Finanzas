@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { P } from './core/permissions';
-import { CAPABILITIES, DemoStore } from './core/store';
+import { CAPABILITIES, CapabilitiesProvider, DemoStore } from './core/store';
 import { OverlayComponent } from './ui/ui';
 
 type FormField = {
@@ -11,8 +11,11 @@ type FormField = {
   options?: { value: string; label: string }[];
   required?: boolean;
 };
-function movementFields(kind: string, store: DemoStore): FormField[] {
-  const validAccounts = store.data().accounts.filter((a) => kind === 'expense' || a.type !== 'credit');
+function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvider): FormField[] {
+  const validAccounts = store
+    .data()
+    .accounts.filter((a) => kind === 'expense' || a.type !== 'credit')
+    .filter((a) => a.type !== 'credit' || caps.allows(P.movimientos.creditos.crear));
   const accounts = validAccounts.map((a) => ({
     value: a.id,
     label: `${a.name} · ${a.type === 'credit' ? 'Crédito' : a.type === 'savings' ? 'Ahorros' : 'Efectivo'}`,
@@ -108,8 +111,10 @@ function movementFields(kind: string, store: DemoStore): FormField[] {
             type: 'select' as const,
             options: [
               { value: '', label: 'No es préstamo' },
-              { value: 'lent', label: 'Dinero que presté' },
-              { value: 'borrowed', label: 'Dinero que me prestaron' },
+              ...(caps.allows(P.personas.prestamos.crear) ? [{ value: 'lent', label: 'Dinero que presté' }] : []),
+              ...(caps.allows(P.personas.deudas.crear)
+                ? [{ value: 'borrowed', label: 'Dinero que me prestaron' }]
+                : []),
               { value: 'repayment', label: 'Pago o devolución de préstamo' },
             ],
           },
@@ -137,7 +142,7 @@ function movementFields(kind: string, store: DemoStore): FormField[] {
   template: ` <demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
     ><form (ngSubmit)="submit()">
       <div class="types" role="group" aria-label="Tipo de movimiento">
-        @for (t of types; track t.value) {
+        @for (t of types(); track t.value) {
           <button
             type="button"
             [attr.aria-pressed]="model.kind === t.value"
@@ -293,13 +298,20 @@ export class MovementFormComponent {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
   readonly error = signal('');
-  readonly types = [
-    { value: 'expense', label: 'Gasto' },
-    { value: 'income', label: 'Ingreso' },
-    { value: 'transfer', label: 'Transferencia' },
-  ];
+  /**
+   * Cada figura del ledger se libera por separado: se puede conceder registrar gastos
+   * sin conceder transferir. La lista se recorta a lo concedido para que no aparezca un
+   * botón que el servidor va a rechazar con un 403.
+   */
+  readonly types = computed(() =>
+    [
+      { value: 'expense', label: 'Gasto', permiso: P.movimientos.crear },
+      { value: 'income', label: 'Ingreso', permiso: P.movimientos.crear },
+      { value: 'transfer', label: 'Transferencia', permiso: P.movimientos.transferencias.crear },
+    ].filter((t) => this.capabilities.allows(t.permiso)),
+  );
   model: Record<string, any> = {};
-  readonly fields = computed(() => movementFields(this.store.form()?.kind ?? 'expense', this.store));
+  readonly fields = computed(() => movementFields(this.store.form()?.kind ?? 'expense', this.store, this.capabilities));
   readonly title = computed(() =>
     this.store.form()?.notificationId
       ? 'Revisar compra detectada'
@@ -342,7 +354,9 @@ export class MovementFormComponent {
     if (key === 'installmentCurrent' || key === 'installmentTotal')
       return this.store.account(this.model['accountId'])?.type === 'credit';
     if (key === 'originalAmount' || key === 'exchangeRate') return this.model['originalCurrency'] === 'USD';
-    if (key === 'loanProduct') return !!this.model['loanRole'];
+    if (key === 'loanRole') return this.capabilities.allows(P.movimientos.prestamos.crear);
+    if (key === 'loanProduct')
+      return !!this.model['loanRole'] && this.capabilities.allows(P.movimientos.creditos.crear);
     return true;
   }
   async submit() {
@@ -359,7 +373,15 @@ export class MovementFormComponent {
               ? P.movimientos.editar
               : P.movimientos.crear;
       if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite esta operación.');
+      if (this.model['loanRole'] && !this.capabilities.allows(P.movimientos.prestamos.crear))
+        throw new Error('Tu acceso no permite registrar préstamos.');
+      if (this.model['loanProduct'] && !this.capabilities.allows(P.movimientos.creditos.crear))
+        throw new Error('Tu acceso no permite registrar créditos.');
       const source = this.store.account(this.model['accountId']);
+      // Un gasto cargado a una tarjeta se registra como compra a crédito, no como gasto
+      // corriente: es otra clase de movimiento y otra concesión.
+      if (source?.type === 'credit' && !this.capabilities.allows(P.movimientos.creditos.crear))
+        throw new Error('Tu acceso no permite registrar compras a crédito.');
       const target = this.store.account(this.model['targetId']);
       if (this.model.kind === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
         throw new Error(
@@ -382,9 +404,9 @@ export class MovementFormComponent {
     ><form (ngSubmit)="save()">
       <label
         >Tipo<select name="type" [(ngModel)]="type">
-          <option value="savings">Ahorros</option>
-          <option value="cash">Efectivo</option>
-          <option value="credit">Crédito</option>
+          @for (option of accountTypes(); track option.value) {
+            <option [value]="option.value">{{ option.label }}</option>
+          }
         </select></label
       ><label>Nombre<input name="name" [(ngModel)]="name" required /></label
       ><label
@@ -488,6 +510,15 @@ export class AccountFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly error = signal('');
   name = 'Ahorro principal';
+
+  /** Un tipo de cuenta por permiso: se puede dar el ahorro y retener la tarjeta. */
+  readonly accountTypes = computed(() =>
+    [
+      { value: 'savings' as const, label: 'Ahorros', permiso: P.cuentas.ahorro.crear },
+      { value: 'cash' as const, label: 'Efectivo', permiso: P.cuentas.efectivo.crear },
+      { value: 'credit' as const, label: 'Crédito', permiso: P.cuentas.tarjetas.crear },
+    ].filter((option) => this.capabilities.allows(option.permiso)),
+  );
   type: 'savings' | 'cash' | 'credit' = 'savings';
   currency = 'COP';
   exchangeRate = 4168.35;
@@ -505,7 +536,12 @@ export class AccountFormComponent {
     try {
       this.error.set('');
       // Una tarjeta la crea quien administra tarjetas; una cuenta, quien administra cuentas.
-      const permiso = this.type === 'credit' ? P.cuentas.tarjetas.crear : P.cuentas.crear;
+      const permiso =
+        this.type === 'credit'
+          ? P.cuentas.tarjetas.crear
+          : this.type === 'cash'
+            ? P.cuentas.efectivo.crear
+            : P.cuentas.ahorro.crear;
       if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite crear cuentas.');
       await this.store.createAccount(
         this.name,
