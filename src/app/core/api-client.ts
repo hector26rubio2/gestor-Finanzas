@@ -291,11 +291,27 @@ export interface ApiInvestment {
   isActive: boolean;
 }
 
+export interface ApiPeriodPoint {
+  date: string;
+  income: ApiMoney;
+  expense: ApiMoney;
+  net: ApiMoney;
+}
+
+export interface ApiCategoryTotal {
+  category: ApiLinkRef;
+  type: number;
+  total: ApiMoney;
+  movementCount: number;
+}
+
 export interface ApiDashboard {
   period: { income: ApiMoney; expense: ApiMoney; net: ApiMoney; period: { start: string; end: string } };
   accounts: readonly { account: ApiLinkRef; balance: ApiMoney; asOf: string }[];
   cards: readonly unknown[];
-  topCategories: readonly unknown[];
+  topCategories: readonly ApiCategoryTotal[];
+  /** Un punto por día del periodo. El cliente agrupa; no suma importes. */
+  series: readonly ApiPeriodPoint[];
   asOf: string;
 }
 

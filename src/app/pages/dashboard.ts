@@ -1,6 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
+import { ApiDashboard, FinanceApiClient } from '../core/api-client';
+import { parseMoney, sumBy } from '../core/money';
 import { P } from '../core/permissions';
 import { CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
@@ -1015,6 +1018,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
 })
 export class DashboardComponent {
   readonly P = P;
+  private readonly api = inject(FinanceApiClient);
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
   readonly customizing = signal(false);
@@ -1138,6 +1142,24 @@ export class DashboardComponent {
       new Date(`${this.anchor()}T12:00:00Z`),
     );
   });
+  /**
+   * Cifras del periodo calculadas por el servidor.
+   *
+   * El contrato de DashboardDto lo dice: «el cliente no suma saldos ni deduce deudas por
+   * su cuenta». Hasta ahora esta pantalla lo incumplia porque calculaba sobre la pagina
+   * de 25 movimientos del arranque, asi que sus numeros describian esa pagina y no el
+   * periodo. En modo demo no hay servidor y se sigue calculando en local.
+   */
+  readonly remote = signal<ApiDashboard | null>(null);
+
+  private readonly cargaRemota = effect(() => {
+    const rango = this.range();
+    if (this.store.runtime.mode !== 'api' || !this.caps.allows(P.dashboard.listar)) return;
+    void firstValueFrom(this.api.dashboard(rango.start, rango.end))
+      .then((valor) => this.remote.set(valor))
+      .catch(() => this.remote.set(null));
+  });
+
   readonly base = computed(() =>
     this.store.data().movements.filter((m) => {
       const a = this.store.account(m.accountId);
@@ -1161,21 +1183,54 @@ export class DashboardComponent {
   readonly movements = computed(() =>
     this.base().filter((m) => this.globalCategory() === 'all' || m.category === this.globalCategory()),
   );
-  readonly income = computed(() =>
-    this.movements()
-      .filter((m) => m.kind === 'income')
-      .reduce((s, m) => s + Math.max(0, m.amount), 0),
-  );
-  readonly expense = computed(
-    () =>
-      -this.movements()
-        .filter((m) => m.kind === 'expense')
-        .reduce((s, m) => s + Math.min(0, m.amount), 0),
-  );
-  readonly net = computed(() => this.movements().reduce((s, m) => s + m.amount, 0));
+  readonly income = computed(() => {
+    const remoto = this.remoteAplicable();
+    if (remoto) return parseMoney(remoto.period.income);
+    return sumBy(
+      this.movements().filter((m) => m.kind === 'income'),
+      (m) => Math.max(0, m.amount),
+    );
+  });
+  readonly expense = computed(() => {
+    const remoto = this.remoteAplicable();
+    if (remoto) return parseMoney(remoto.period.expense);
+    return sumBy(
+      this.movements().filter((m) => m.kind === 'expense'),
+      (m) => -Math.min(0, m.amount),
+    );
+  });
+  readonly net = computed(() => {
+    const remoto = this.remoteAplicable();
+    if (remoto) return parseMoney(remoto.period.net);
+    return sumBy(this.movements(), (m) => m.amount);
+  });
+
+  /**
+   * El servidor no conoce los filtros locales de cuenta, tipo o categoria. Mientras
+   * haya alguno activo, la cifra del servidor no responde a lo que el usuario ve, asi
+   * que manda el calculo local sobre lo cargado. Sin filtros, manda el servidor.
+   */
+  private readonly remoteAplicable = computed(() => {
+    const sinFiltrosLocales =
+      this.accountId() === 'all' && this.accountType() === 'all' && this.globalCategory() === 'all';
+    const remoto = this.remote();
+    return sinFiltrosLocales && remoto && remoto.period.period.start === this.range().start ? remoto : null;
+  });
   readonly timeline = computed(() => {
+    const remoto = this.remoteAplicable();
+    const puntos = remoto
+      ? remoto.series.map((punto) => ({
+          date: punto.date,
+          income: parseMoney(punto.income),
+          expense: parseMoney(punto.expense),
+        }))
+      : this.movements().map((m) => ({
+          date: m.date,
+          income: m.kind === 'income' && m.amount > 0 ? m.amount : 0,
+          expense: m.kind === 'expense' && m.amount < 0 ? -m.amount : 0,
+        }));
     const map = new Map<string, { key: string; label: string; income: number; expense: number }>();
-    for (const m of this.movements()) {
+    for (const m of puntos) {
       const d = new Date(`${m.date}T12:00:00Z`),
         key = this.scale() === 'year' ? m.date.slice(0, 7) : m.date,
         label =
@@ -1187,8 +1242,8 @@ export class DashboardComponent {
                 timeZone: 'UTC',
               }).format(d),
         p = map.get(key) ?? { key, label, income: 0, expense: 0 };
-      if (m.kind === 'income' && m.amount > 0) p.income += m.amount;
-      if (m.kind === 'expense' && m.amount < 0) p.expense -= m.amount;
+      p.income += m.income;
+      p.expense += m.expense;
       map.set(key, p);
     }
     const values = [...map.values()].sort((a, b) => a.key.localeCompare(b.key)),
