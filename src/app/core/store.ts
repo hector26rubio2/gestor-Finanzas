@@ -31,7 +31,8 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
   },
 });
 export interface Preferences {
-  theme: 'light' | 'dark' | 'ocean' | 'sand' | 'berry';
+  /** `system` no estampa data-theme y deja que mande prefers-color-scheme. */
+  theme: 'system' | 'light' | 'dark' | 'ocean' | 'sand' | 'berry';
   accent: string;
   font: string;
   locale: string;
@@ -48,7 +49,7 @@ export const PREFERENCES = new InjectionToken('Preferences', {
   providedIn: 'root',
   factory: () =>
     signal<Preferences>({
-      theme: 'light',
+      theme: 'system',
       accent: '#087f68',
       font: 'Inter, system-ui, sans-serif',
       locale: 'es-CO',
@@ -62,6 +63,18 @@ export const PREFERENCES = new InjectionToken('Preferences', {
       border: '#dce6e2',
     }),
 });
+
+const DEMO_SESSION_KEY = 'finanzas.demo.perfil';
+
+/**
+ * Estampa el tema elegido. Con `system` retira el atributo para que la consulta
+ * `prefers-color-scheme` de styles.css decida: antes se estampaba siempre
+ * `light` y quien tenia el sistema en oscuro recibia la aplicacion en claro.
+ */
+export function applyTheme(theme: Preferences['theme']): void {
+  if (theme === 'system') delete document.documentElement.dataset['theme'];
+  else document.documentElement.dataset['theme'] = theme;
+}
 
 export const navigation = [
   { path: 'dashboard', label: 'Dashboard', icon: '◈', group: 'PANORAMA', capability: 'dashboard' },
@@ -177,6 +190,39 @@ export class DemoStore {
   inspect(type: string, id: string) {
     const old = this.inspector();
     this.inspector.set({ type, id, previous: old ? { type: old.type, id: old.id } : undefined });
+  }
+  /**
+   * Solo en modo demo: el perfil elegido vivia en memoria y un F5 devolvia a la
+   * pantalla de bienvenida. En modo API manda la cookie de sesion.
+   */
+  rememberDemoSession(index: number): void {
+    try {
+      sessionStorage.setItem(DEMO_SESSION_KEY, String(index));
+    } catch {
+      /* almacenamiento no disponible: la sesion sigue viviendo en memoria */
+    }
+  }
+  restoreDemoSession(): void {
+    if (this.runtime.mode !== 'demo' || this.user()) return;
+    try {
+      // Number(null) es 0, y 0 es un indice valido: sin esta guarda, no haber
+      // iniciado sesion entraba como el primer perfil.
+      const stored = sessionStorage.getItem(DEMO_SESSION_KEY);
+      if (stored === null) return;
+      const index = Number.parseInt(stored, 10);
+      if (Number.isInteger(index) && index >= 0 && index < this.users.length) {
+        this.user.set(this.users[index]);
+      }
+    } catch {
+      /* almacenamiento no disponible: se muestra la bienvenida */
+    }
+  }
+  forgetDemoSession(): void {
+    try {
+      sessionStorage.removeItem(DEMO_SESSION_KEY);
+    } catch {
+      /* nada que limpiar */
+    }
   }
   reset() {
     this.data.set(this.provider.load());

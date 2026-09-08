@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { DemoStore, Preferences } from '../core/store';
+import { applyTheme, DemoStore, Preferences } from '../core/store';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 @Component({
   standalone: true,
@@ -37,12 +37,12 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
         <label
           >Idioma<select [value]="store.preferences().locale" (change)="locale($event)">
             <option value="es-CO">Español (Colombia)</option>
-            <option value="en-US">English</option>
             <option value="pt-BR">Português (Brasil)</option>
             <option value="fr-FR">Français</option>
           </select></label
         ><label
           >Tema<select (change)="theme($event)">
+            <option value="system">Igual que el sistema</option>
             <option value="light">Verona claro</option>
             <option value="dark">Esmeralda noche</option>
             <option value="ocean">Océano</option>
@@ -221,12 +221,13 @@ export class LoginComponent {
   private remote = inject(RemoteBootstrap);
   login(index: number) {
     this.store.user.set(this.store.users[index]);
+    this.store.rememberDemoSession(index);
     void this.router.navigateByUrl('/dashboard');
   }
   theme(event: Event) {
     const theme = (event.target as HTMLSelectElement).value as Preferences['theme'];
     this.store.preferences.update((p) => ({ ...p, theme }));
-    document.documentElement.dataset['theme'] = theme;
+    applyTheme(theme);
   }
   locale(event: Event) {
     const locale = (event.target as HTMLSelectElement).value;

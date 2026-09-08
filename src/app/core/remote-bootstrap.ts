@@ -25,6 +25,7 @@ export class RemoteBootstrap {
   private sessionSignature: string | null = null;
 
   async start(): Promise<void> {
+    this.store.restoreDemoSession();
     await this.initialize();
     if (this.store.runtime.mode !== 'api') return;
     window.setInterval(() => void this.pollSession(), 60_000);

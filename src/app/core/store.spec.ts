@@ -78,3 +78,41 @@ describe('DemoStore', () => {
     expect(store.history()[0].action).toContain('Recurrencia Arriendo futuro');
   });
 });
+
+describe('sesión demo persistida', () => {
+  beforeEach(() => {
+    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    TestBed.resetTestingModule();
+    sessionStorage.clear();
+  });
+
+  it('no inicia sesión cuando no hay perfil guardado', () => {
+    const store = TestBed.inject(DemoStore);
+    store.restoreDemoSession();
+    // Number(null) es 0 y 0 es un índice válido: sin la guarda explícita, no
+    // haber iniciado sesión entraba como el primer perfil.
+    expect(store.user()).toBeNull();
+  });
+
+  it('recupera el perfil elegido tras recargar', () => {
+    const store = TestBed.inject(DemoStore);
+    store.rememberDemoSession(1);
+    store.restoreDemoSession();
+    expect(store.user()).toBe(store.users[1]);
+  });
+
+  it('ignora un índice guardado fuera de rango', () => {
+    const store = TestBed.inject(DemoStore);
+    sessionStorage.setItem('finanzas.demo.perfil', '99');
+    store.restoreDemoSession();
+    expect(store.user()).toBeNull();
+  });
+
+  it('olvida el perfil al cerrar sesión', () => {
+    const store = TestBed.inject(DemoStore);
+    store.rememberDemoSession(0);
+    store.forgetDemoSession();
+    store.restoreDemoSession();
+    expect(store.user()).toBeNull();
+  });
+});

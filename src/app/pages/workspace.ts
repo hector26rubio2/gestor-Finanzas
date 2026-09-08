@@ -12,7 +12,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
-import { CAPABILITIES, DemoStore } from '../core/store';
+import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import {
   ApiAuditEvent,
@@ -154,7 +154,19 @@ const SIN_DATO = '—';
       }
     </article>
     <ng-template #filters
-      ><section class="filters">
+      ><button
+        type="button"
+        class="filters-toggle"
+        [attr.aria-expanded]="filtersOpen()"
+        aria-controls="panel-filtros"
+        (click)="filtersOpen.update((open) => !open)"
+      >
+        Filtros
+        @if (activeFilterCount()) {
+          <i>{{ activeFilterCount() }}</i>
+        }
+      </button>
+      <section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
         <label
           >Buscar<input
             #searchInput
@@ -202,7 +214,10 @@ const SIN_DATO = '—';
             <option value="loan">Préstamos y créditos</option>
             <option value="recurring">Recurrentes</option>
           </select></label
-        ><button (click)="clearFilters()">Restablecer</button>
+        >
+        @if (hasActiveFilters()) {
+          <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
+        }
       </section></ng-template
     >
     <ng-template #movements
@@ -832,7 +847,6 @@ const SIN_DATO = '—';
           ><label
             >Idioma<select [ngModel]="store.preferences().locale" (ngModelChange)="setLocale($event)">
               <option value="es-CO">Español (Colombia)</option>
-              <option value="en-US">English</option>
               <option value="pt-BR">Português (Brasil)</option>
               <option value="fr-FR">Français</option>
             </select></label
@@ -1038,7 +1052,20 @@ const SIN_DATO = '—';
         font-size: 0.84rem;
       }
       .head-actions button,
-      .filters button,
+      .filters .quiet-reset {
+        align-self: end;
+        min-height: 40px;
+        padding: 0 14px;
+        border: 1px solid var(--control-line);
+        border-radius: 9px;
+        background: transparent;
+        color: var(--muted);
+        font-weight: 600;
+      }
+      .filters .quiet-reset:hover {
+        color: var(--text);
+        border-color: var(--accent);
+      }
       .action {
         background: var(--accent);
         color: var(--accent-contrast);
@@ -1051,6 +1078,30 @@ const SIN_DATO = '—';
         background: var(--surface);
         color: var(--accent);
         box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 12%, transparent);
+      }
+      .filters-toggle {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        min-height: 44px;
+        margin-bottom: 10px;
+        border: 1px solid var(--control-line);
+        border-radius: 12px;
+        background: var(--surface);
+        font-weight: 600;
+      }
+      .filters-toggle i {
+        display: inline-grid;
+        place-items: center;
+        min-width: 22px;
+        height: 22px;
+        padding: 0 6px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: var(--accent-contrast);
+        font-style: normal;
+        font-size: 0.75rem;
       }
       .filters {
         display: grid;
@@ -2383,6 +2434,12 @@ const SIN_DATO = '—';
         }
       }
       @media (max-width: 700px) {
+        .filters-toggle {
+          display: flex;
+        }
+        .filters.collapsed {
+          display: none;
+        }
         .workspace-page {
           height: auto;
           min-height: calc(100dvh - 100px);
@@ -2973,6 +3030,7 @@ export class WorkspaceComponent implements AfterViewInit {
     return { name: top?.[0] ?? 'Sin datos', value: top?.[1] ?? 0 };
   });
   readonly themes = [
+    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
     { id: 'light', label: 'Verona claro', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
     { id: 'dark', label: 'Esmeralda noche', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
     { id: 'ocean', label: 'Océano', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
@@ -2991,16 +3049,19 @@ export class WorkspaceComponent implements AfterViewInit {
     { label: 'Courier', value: "'Courier New', monospace" },
     { label: 'System UI', value: 'system-ui, sans-serif' },
   ];
+  // Fecha, concepto e importe son las tres columnas que nunca se ocultan en una
+  // tabla financiera. El importe estaba al final de nueve y quedaba fuera de
+  // pantalla; el resto pasa detras porque se puede desplazar sin perder el dato.
   readonly movementColumns = [
     { key: 'date', label: 'Fecha' },
     { key: 'description', label: 'Descripción' },
+    { key: 'amount', label: 'Importe' },
     { key: 'account', label: 'Cuenta o tarjeta' },
     { key: 'effect', label: 'Débito / crédito' },
+    { key: 'currency', label: 'Moneda / tasa' },
     { key: 'financing', label: 'Cuotas / préstamo' },
     { key: 'responsibility', label: 'Responsabilidad' },
     { key: 'recurrence', label: 'Recurrencia' },
-    { key: 'currency', label: 'Moneda / tasa' },
-    { key: 'amount', label: 'Importe' },
   ];
   readonly peopleColumns = [
     { key: 'name', label: 'Persona' },
@@ -3052,7 +3113,7 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly movementRows = computed(() =>
     this.filteredMovementData().map((m) => ({
       id: m.id,
-      date: m.date,
+      date: this.formatDate(m.date),
       description: m.description,
       account: this.store.account(m.accountId)?.name,
       effect: m.status === 'pending' ? 'Pendiente' : m.amount < 0 ? 'Débito' : 'Crédito',
@@ -3127,6 +3188,38 @@ export class WorkspaceComponent implements AfterViewInit {
       queueMicrotask(() => this.searchInput?.nativeElement.focus());
     if (this.page() === 'calendar') void this.loadCalendarProjection();
     if (this.page() === 'admin') void this.loadAdministration();
+  }
+  /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
+  readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
+  readonly activeFilterCount = computed(
+    () =>
+      [
+        this.store.query() !== '',
+        this.store.period() !== 'all',
+        this.store.accountFilter() !== 'all',
+        this.movementAccountType() !== 'all',
+        this.movementCategory() !== 'all',
+        this.movementOperation() !== 'all',
+      ].filter(Boolean).length,
+  );
+  /** El boton de restablecer solo aparece cuando hay algo que restablecer. */
+  readonly hasActiveFilters = computed(
+    () =>
+      this.store.query() !== '' ||
+      this.store.period() !== 'all' ||
+      this.store.accountFilter() !== 'all' ||
+      this.movementAccountType() !== 'all' ||
+      this.movementCategory() !== 'all' ||
+      this.movementOperation() !== 'all',
+  );
+  /** Una sola forma de escribir una fecha en toda la aplicacion, con el idioma de las preferencias. */
+  formatDate(value: string): string {
+    const parsed = new Date(`${value}T00:00:00Z`);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return new Intl.DateTimeFormat(this.store.preferences().locale, {
+      dateStyle: 'medium',
+      timeZone: 'UTC',
+    }).format(parsed);
   }
   clearFilters() {
     this.store.query.set('');
@@ -3592,7 +3685,7 @@ export class WorkspaceComponent implements AfterViewInit {
   }
   setTheme(theme: (typeof this.themes)[number]['id']) {
     this.store.preferences.update((p) => ({ ...p, theme }));
-    document.documentElement.dataset['theme'] = theme;
+    applyTheme(theme);
     this.persistPreferences();
   }
   setFont(font: string) {
