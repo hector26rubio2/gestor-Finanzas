@@ -12,6 +12,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
+import { toCsv, downloadCsv } from '../core/csv';
 import { P } from '../core/permissions';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
@@ -115,6 +116,12 @@ const SIN_DATO = '—';
           }
           @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
             <button (click)="store.form.set({ kind: 'investment' })">＋ Inversión</button>
+          }
+          @if (page() === 'reports' && can(P.reportes.exportar)) {
+            <button (click)="exportReport()">⇩ Exportar CSV</button>
+          }
+          @if (page() === 'movements' && can(P.reportes.exportar)) {
+            <button class="secondary-action" (click)="exportMovements()">⇩ Exportar CSV</button>
           }
           @if (page() === 'notifications' && can(P.notificaciones.editar)) {
             <button (click)="readAll()">Marcar como leídas</button>
@@ -547,6 +554,9 @@ const SIN_DATO = '—';
           </select></label
         >
         <p>Todos los indicadores conservan trazabilidad al libro central.</p>
+        @if (can(P.reportes.exportar)) {
+          <button type="button" class="export-action" (click)="exportReport()">⇩ Exportar CSV</button>
+        }
       </section>
       <section class="kpis mini report-kpis">
         <demo-kpi label="Flujo neto" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
@@ -3185,6 +3195,46 @@ export class WorkspaceComponent implements AfterViewInit {
       timeZone: 'UTC',
     }).format(parsed);
   }
+  /**
+   * Exporta el periodo del informe: una fila por mes con ingresos, gastos y neto, y
+   * debajo el reparto por categoria. Es lo que protege `reportes.exportar`.
+   */
+  exportReport(): void {
+    const SALTO = '\r\n';
+    if (!this.can(P.reportes.exportar)) return;
+    const meses = toCsv(this.reportSeries(), [
+      { header: 'Mes', value: (fila) => fila.month },
+      { header: 'Ingresos', value: (fila) => fila.income },
+      { header: 'Gastos', value: (fila) => fila.expense },
+      { header: 'Neto', value: (fila) => fila.net },
+    ]);
+    const categorias = toCsv(this.reportCategories(), [
+      { header: 'Categoria', value: (fila) => fila.name },
+      { header: 'Gasto', value: (fila) => fila.value },
+      { header: 'Porcentaje', value: (fila) => fila.percent },
+    ]);
+    const periodo = `Periodo;${this.reportPeriod()} meses`;
+    downloadCsv(`finanzas-reporte-${this.reportPeriod()}m.csv`, [periodo, '', meses, '', categorias].join(SALTO));
+    this.store.toast.set('Reporte exportado.');
+  }
+
+  /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
+  exportMovements(): void {
+    if (!this.can(P.reportes.exportar)) return;
+    const filas = this.movementRows();
+    downloadCsv(
+      `finanzas-movimientos-${new Date().toISOString().slice(0, 10)}.csv`,
+      toCsv(
+        filas,
+        this.movementColumns.map((columna) => ({
+          header: columna.label,
+          value: (fila: Record<string, unknown>) => fila[columna.key],
+        })),
+      ),
+    );
+    this.store.toast.set(`${filas.length} movimientos exportados.`);
+  }
+
   clearFilters() {
     this.store.query.set('');
     this.store.period.set('all');
