@@ -39,7 +39,7 @@ describe('FinanceApiClient', () => {
     expect((await promise).user.displayName).toBe('Demo');
   });
 
-  it('obtains a fresh CSRF token before every unsafe request', async () => {
+  it('obtains a CSRF token before the first unsafe request', async () => {
     const movementsPromise = firstValueFrom(api.movements({ page: 1, pageSize: 10 }));
     const csrf = http.expectOne('https://api.example.test/api/v1/auth/csrf');
     expect(csrf.request.withCredentials).toBe(true);
@@ -110,13 +110,57 @@ describe('FinanceApiClient', () => {
     classification.flush({ id: 'movement-1' });
     await reclassify;
 
+    // Sin pedir un token nuevo: el de la escritura anterior sigue vigente.
     const reversal = firstValueFrom(api.reverseMovement('movement-1', { date: '2026-09-05', reason: 'Duplicado' }));
-    http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'csrf-2' });
     const request = http.expectOne('https://api.example.test/api/v1/movements/movement-1/reversal');
+    expect(request.request.headers.get('X-CSRF-Token')).toBe('csrf-1');
     expect(request.request.method).toBe('POST');
     expect(request.request.body).toEqual({ date: '2026-09-05', reason: 'Duplicado' });
     request.flush({ id: 'reversal-1' });
     await reversal;
+  });
+
+  it('reuses the CSRF token instead of rotating it on every write', async () => {
+    // El servidor reescribía la cookie en cada GET /csrf: dos escrituras
+    // concurrentes se anulaban entre sí y toda mutación pagaba una ida y vuelta.
+    const first = firstValueFrom(api.createPerson({ displayName: 'Ana' }));
+    http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'unico' });
+    const firstRequest = http.expectOne('https://api.example.test/api/v1/people');
+    expect(firstRequest.request.headers.get('X-CSRF-Token')).toBe('unico');
+    firstRequest.flush({ id: 'p-1', displayName: 'Ana' });
+    await first;
+
+    const second = firstValueFrom(api.createPerson({ displayName: 'Beto' }));
+    const secondRequest = http.expectOne('https://api.example.test/api/v1/people');
+    expect(secondRequest.request.headers.get('X-CSRF-Token')).toBe('unico');
+    secondRequest.flush({ id: 'p-2', displayName: 'Beto' });
+    await second;
+  });
+
+  it('renews the CSRF token only when the server rejects it', async () => {
+    const first = firstValueFrom(api.createPerson({ displayName: 'Ana' }));
+    http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'viejo' });
+    http.expectOne('https://api.example.test/api/v1/people').flush({ id: 'p-1', displayName: 'Ana' });
+    await first;
+
+    const retried = firstValueFrom(api.createPerson({ displayName: 'Beto' }));
+    http
+      .expectOne('https://api.example.test/api/v1/people')
+      .flush({ code: 'security.csrf_invalid' }, { status: 403, statusText: 'Forbidden' });
+    http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'nuevo' });
+    const replay = http.expectOne('https://api.example.test/api/v1/people');
+    expect(replay.request.headers.get('X-CSRF-Token')).toBe('nuevo');
+    replay.flush({ id: 'p-2', displayName: 'Beto' });
+    expect((await retried).id).toBe('p-2');
+  });
+
+  it('does not retry a forbidden response that is not a stale CSRF token', async () => {
+    const promise = firstValueFrom(api.createPerson({ displayName: 'Ana' }));
+    http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'vigente' });
+    http
+      .expectOne('https://api.example.test/api/v1/people')
+      .flush({ code: 'authorization.denied' }, { status: 403, statusText: 'Forbidden' });
+    await expect(promise).rejects.toMatchObject({ status: 403 });
   });
 
   it('materializes projected recurrences explicitly', async () => {
