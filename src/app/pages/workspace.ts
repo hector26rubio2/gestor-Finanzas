@@ -5,6 +5,7 @@ import {
   ElementRef,
   ViewChild,
   computed,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -120,7 +121,7 @@ const SIN_DATO = '—';
           @if (page() === 'reports' && can(P.reportes.exportar)) {
             <button (click)="exportReport()">⇩ Exportar CSV</button>
           }
-          @if (page() === 'movements' && can(P.reportes.exportar)) {
+          @if (page() === 'movements' && can(P.movimientos.exportar)) {
             <button class="secondary-action" (click)="exportMovements()">⇩ Exportar CSV</button>
           }
           @if (page() === 'notifications' && can(P.notificaciones.editar)) {
@@ -414,11 +415,13 @@ const SIN_DATO = '—';
     >
     <ng-template #people
       ><section class="kpis mini">
-        <demo-kpi label="Me deben" [value]="store.money(peopleOwed())" hint="Cuentas por cobrar" /><demo-kpi
-          label="Les debo"
-          [value]="store.money(peopleOwing())"
-          hint="Obligaciones propias"
-        /><demo-kpi
+        @if (can(P.personas.deudas.listar)) {
+          <demo-kpi label="Me deben" [value]="store.money(peopleOwed())" hint="Cuentas por cobrar" />
+        }
+        @if (can(P.personas.obligaciones.listar)) {
+          <demo-kpi label="Les debo" [value]="store.money(peopleOwing())" hint="Obligaciones propias" />
+        }
+        <demo-kpi
           label="Personas"
           [value]="store.data().people.length.toString()"
           hint="Con relaciones activas"
@@ -460,7 +463,7 @@ const SIN_DATO = '—';
     ></ng-template>
     <ng-template #planning
       ><nav class="tabs" role="tablist" aria-label="Tipo de simulación">
-        @for (tab of planningTabs; track tab) {
+        @for (tab of visiblePlanningTabs(); track tab) {
           <button
             type="button"
             role="tab"
@@ -472,78 +475,83 @@ const SIN_DATO = '—';
           </button>
         }
       </nav>
-      <section class="scenario-planner" role="tabpanel" [attr.aria-label]="'Planificación de ' + planningTab()">
-        <aside class="planner-controls">
-          <header>
-            <span>PARÁMETROS</span>
-            <h2>{{ planningCopy().parameterTitle }}</h2>
-            <p>{{ planningCopy().helper }}</p>
-          </header>
-          <label
-            >{{ planningCopy().amountLabel
-            }}<input
-              type="range"
-              [min]="planningCopy().min"
-              [max]="planningCopy().max"
-              [step]="planningCopy().step"
-              [ngModel]="monthly()"
-              (ngModelChange)="monthly.set(+$event)"
-            /><b>{{ store.money(monthly()) }}</b
-            ><small>{{ planningCopy().rangeHint }}</small></label
-          ><label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" /></label>
-          <div class="planner-note">
-            <b>Supuesto del cálculo</b><span>{{ planningCopy().assumption }}</span>
-          </div>
-        </aside>
-        <div class="planner-results">
-          <section class="planner-kpis" aria-label="Comparación del plan">
-            @for (metric of planningMetrics(); track metric.label) {
-              <article>
-                <span>{{ metric.label }}</span
-                ><strong>{{ metric.value }}</strong
-                ><small>{{ metric.hint }}</small>
-              </article>
-            }
-          </section>
-          <article class="projection-card">
+      @if (!visiblePlanningTabs().length) {
+        <p class="empty-note">Tu acceso no incluye ninguna simulación de planificación.</p>
+      }
+      @if (visiblePlanningTabs().length) {
+        <section class="scenario-planner" role="tabpanel" [attr.aria-label]="'Planificación de ' + planningTab()">
+          <aside class="planner-controls">
             <header>
-              <div>
-                <span>PROYECCIÓN</span>
-                <h2>{{ planningCopy().chartTitle }}</h2>
-                <p>{{ planningCopy().chartDescription }}</p>
-              </div>
-              <div class="chart-legend">
-                <span class="current-key">{{ planningCopy().currentLabel }}</span
-                ><span class="proposal-key">{{ planningCopy().proposedLabel }}</span>
-              </div>
+              <span>PARÁMETROS</span>
+              <h2>{{ planningCopy().parameterTitle }}</h2>
+              <p>{{ planningCopy().helper }}</p>
             </header>
-            <div class="projection-plot" role="img" [attr.aria-label]="planningCopy().chartDescription">
-              <div class="y-labels">
-                <span>{{ compactMoney(planningChartMax()) }}</span
-                ><span>{{ compactMoney(planningChartMax() / 2) }}</span
-                ><span>$0</span>
-              </div>
-              <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-                <g class="grid-lines">
-                  <line x1="0" y1="10" x2="600" y2="10" />
-                  <line x1="0" y1="110" x2="600" y2="110" />
-                  <line x1="0" y1="210" x2="600" y2="210" />
-                </g>
-                <polyline class="current-line" [attr.points]="planningCurrentPoints()" />
-                <polyline class="proposal-line" [attr.points]="planningProposedPoints()" />
-              </svg>
-              <div class="x-labels">
-                <span>Hoy</span><span>3 meses</span><span>6 meses</span><span>9 meses</span><span>12 meses</span>
-              </div>
+            <label
+              >{{ planningCopy().amountLabel
+              }}<input
+                type="range"
+                [min]="planningCopy().min"
+                [max]="planningCopy().max"
+                [step]="planningCopy().step"
+                [ngModel]="monthly()"
+                (ngModelChange)="monthly.set(+$event)"
+              /><b>{{ store.money(monthly()) }}</b
+              ><small>{{ planningCopy().rangeHint }}</small></label
+            ><label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" /></label>
+            <div class="planner-note">
+              <b>Supuesto del cálculo</b><span>{{ planningCopy().assumption }}</span>
             </div>
-          </article>
-          <p class="planner-disclaimer">
-            Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus
-            saldos.
-          </p>
-        </div>
-      </section></ng-template
-    >
+          </aside>
+          <div class="planner-results">
+            <section class="planner-kpis" aria-label="Comparación del plan">
+              @for (metric of planningMetrics(); track metric.label) {
+                <article>
+                  <span>{{ metric.label }}</span
+                  ><strong>{{ metric.value }}</strong
+                  ><small>{{ metric.hint }}</small>
+                </article>
+              }
+            </section>
+            <article class="projection-card">
+              <header>
+                <div>
+                  <span>PROYECCIÓN</span>
+                  <h2>{{ planningCopy().chartTitle }}</h2>
+                  <p>{{ planningCopy().chartDescription }}</p>
+                </div>
+                <div class="chart-legend">
+                  <span class="current-key">{{ planningCopy().currentLabel }}</span
+                  ><span class="proposal-key">{{ planningCopy().proposedLabel }}</span>
+                </div>
+              </header>
+              <div class="projection-plot" role="img" [attr.aria-label]="planningCopy().chartDescription">
+                <div class="y-labels">
+                  <span>{{ compactMoney(planningChartMax()) }}</span
+                  ><span>{{ compactMoney(planningChartMax() / 2) }}</span
+                  ><span>$0</span>
+                </div>
+                <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+                  <g class="grid-lines">
+                    <line x1="0" y1="10" x2="600" y2="10" />
+                    <line x1="0" y1="110" x2="600" y2="110" />
+                    <line x1="0" y1="210" x2="600" y2="210" />
+                  </g>
+                  <polyline class="current-line" [attr.points]="planningCurrentPoints()" />
+                  <polyline class="proposal-line" [attr.points]="planningProposedPoints()" />
+                </svg>
+                <div class="x-labels">
+                  <span>Hoy</span><span>3 meses</span><span>6 meses</span><span>9 meses</span><span>12 meses</span>
+                </div>
+              </div>
+            </article>
+            <p class="planner-disclaimer">
+              Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus
+              saldos.
+            </p>
+          </div>
+        </section>
+      }
+    </ng-template>
     <ng-template #reports
       ><section class="report-toolbar" aria-label="Filtros de reportes">
         <label
@@ -565,107 +573,119 @@ const SIN_DATO = '—';
         <demo-kpi label="Mayor categoría" [value]="topCategory().name" [hint]="store.money(topCategory().value)" />
       </section>
       <section class="report-grid">
-        <div class="chart">
-          <h2>Ingresos frente a gastos</h2>
-          <p class="chart-description">Comparación mensual; verde representa ingresos y coral representa gastos.</p>
-          <div class="chart-legend">
-            <span class="income-key">Ingresos</span><span class="expense-key">Gastos</span>
-          </div>
-          <div class="paired-bars" role="img" aria-label="Ingresos y gastos mensuales en pesos colombianos">
-            @for (v of reportSeries(); track v.month) {
-              <div>
-                <span class="pair"
-                  ><i [style.height.%]="v.incomePercent"
-                    ><em>{{ compactMoney(v.income) }}</em></i
-                  ><i [style.height.%]="v.expensePercent"
-                    ><em>{{ compactMoney(v.expense) }}</em></i
-                  ></span
-                ><b>{{ v.month }}</b>
-              </div>
-            }
-          </div>
-          <small class="chart-unit">Importes en COP · cada barra representa un mes</small>
-        </div>
-        <div class="chart">
-          <h2>Gastos por categoría</h2>
-          <p class="chart-description">Participación de las categorías con mayor gasto.</p>
-          <div class="category-report">
-            <div class="donut">
-              <b>{{ store.money(reportExpenses()) }}</b>
+        @if (can(P.reportes.comparativo.ver)) {
+          <div class="chart">
+            <h2>Ingresos frente a gastos</h2>
+            <p class="chart-description">Comparación mensual; verde representa ingresos y coral representa gastos.</p>
+            <div class="chart-legend">
+              <span class="income-key">Ingresos</span><span class="expense-key">Gastos</span>
             </div>
-            <ul>
-              @for (category of reportCategories(); track category.name) {
-                <li>
-                  <i [style.background]="category.color"></i><span>{{ category.name }}</span
-                  ><b>{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
-                </li>
+            <div class="paired-bars" role="img" aria-label="Ingresos y gastos mensuales en pesos colombianos">
+              @for (v of reportSeries(); track v.month) {
+                <div>
+                  <span class="pair"
+                    ><i [style.height.%]="v.incomePercent"
+                      ><em>{{ compactMoney(v.income) }}</em></i
+                    ><i [style.height.%]="v.expensePercent"
+                      ><em>{{ compactMoney(v.expense) }}</em></i
+                    ></span
+                  ><b>{{ v.month }}</b>
+                </div>
               }
+            </div>
+            <small class="chart-unit">Importes en COP · cada barra representa un mes</small>
+          </div>
+        }
+        @if (can(P.reportes.categorias.ver)) {
+          <div class="chart">
+            <h2>Gastos por categoría</h2>
+            <p class="chart-description">Participación de las categorías con mayor gasto.</p>
+            <div class="category-report">
+              <div class="donut">
+                <b>{{ store.money(reportExpenses()) }}</b>
+              </div>
+              <ul>
+                @for (category of reportCategories(); track category.name) {
+                  <li>
+                    <i [style.background]="category.color"></i><span>{{ category.name }}</span
+                    ><b>{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
+                  </li>
+                }
+              </ul>
+            </div>
+          </div>
+        }
+        @if (can(P.reportes.tendencia.ver)) {
+          <div class="chart full">
+            <h2>Tendencia mensual</h2>
+            <p class="chart-description">Evolución del flujo neto del periodo seleccionado.</p>
+            <div class="report-line" role="img" aria-label="Flujo neto mensual en pesos colombianos">
+              <span class="axis-y"
+                ><b>{{ compactMoney(reportNetRange()) }}</b
+                ><em>$0</em><b>-{{ compactMoney(reportNetRange()) }}</b></span
+              ><svg viewBox="0 0 600 160" preserveAspectRatio="none">
+                <line class="zero" x1="0" y1="80" x2="600" y2="80" />
+                <polyline [attr.points]="reportNetPoints()" />
+              </svg>
+              <div class="axis-x">
+                @for (v of reportSeries(); track v.month) {
+                  <span
+                    >{{ v.month }}<small>{{ compactMoney(v.net) }}</small></span
+                  >
+                }
+              </div>
+            </div>
+            <small class="chart-unit">Flujo neto = ingresos − gastos · importes en COP</small>
+          </div>
+        }
+        @if (can(P.reportes.deuda.ver)) {
+          <div class="chart">
+            <h2>Salud de deuda</h2>
+            <dl class="report-facts">
+              <div>
+                <dt>Utilización de cupo</dt>
+                <dd>34 %</dd>
+              </div>
+              <div>
+                <dt>Próximo vencimiento</dt>
+                <dd>5 sep</dd>
+              </div>
+              <div>
+                <dt>Intereses estimados</dt>
+                <dd>{{ store.money(184000) }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
+        @if (can(P.reportes.patrimonio.ver)) {
+          <div class="chart">
+            <h2>Patrimonio</h2>
+            <dl class="report-facts">
+              <div>
+                <dt>Activos líquidos</dt>
+                <dd>{{ store.money(store.available()) }}</dd>
+              </div>
+              <div>
+                <dt>Inversiones</dt>
+                <dd>{{ store.money(investmentValue()) }}</dd>
+              </div>
+              <div>
+                <dt>Deuda</dt>
+                <dd>{{ store.money(store.debt()) }}</dd>
+              </div>
+            </dl>
+          </div>
+        }
+        @if (can(P.reportes.hallazgos.ver)) {
+          <div class="chart full">
+            <h2>Hallazgos del periodo</h2>
+            <ul class="insights">
+              <li>Los gastos variables representan el 41 % del total.</li>
+              <li>La categoría Hogar aumentó frente al periodo anterior.</li>
+              <li>Hay 3 cargos pendientes de clasificación.</li>
             </ul>
           </div>
-        </div>
-        <div class="chart full">
-          <h2>Tendencia mensual</h2>
-          <p class="chart-description">Evolución del flujo neto del periodo seleccionado.</p>
-          <div class="report-line" role="img" aria-label="Flujo neto mensual en pesos colombianos">
-            <span class="axis-y"
-              ><b>{{ compactMoney(reportNetRange()) }}</b
-              ><em>$0</em><b>-{{ compactMoney(reportNetRange()) }}</b></span
-            ><svg viewBox="0 0 600 160" preserveAspectRatio="none">
-              <line class="zero" x1="0" y1="80" x2="600" y2="80" />
-              <polyline [attr.points]="reportNetPoints()" />
-            </svg>
-            <div class="axis-x">
-              @for (v of reportSeries(); track v.month) {
-                <span
-                  >{{ v.month }}<small>{{ compactMoney(v.net) }}</small></span
-                >
-              }
-            </div>
-          </div>
-          <small class="chart-unit">Flujo neto = ingresos − gastos · importes en COP</small>
-        </div>
-        <div class="chart">
-          <h2>Salud de deuda</h2>
-          <dl class="report-facts">
-            <div>
-              <dt>Utilización de cupo</dt>
-              <dd>34 %</dd>
-            </div>
-            <div>
-              <dt>Próximo vencimiento</dt>
-              <dd>5 sep</dd>
-            </div>
-            <div>
-              <dt>Intereses estimados</dt>
-              <dd>{{ store.money(184000) }}</dd>
-            </div>
-          </dl>
-        </div>
-        <div class="chart">
-          <h2>Patrimonio</h2>
-          <dl class="report-facts">
-            <div>
-              <dt>Activos líquidos</dt>
-              <dd>{{ store.money(store.available()) }}</dd>
-            </div>
-            <div>
-              <dt>Inversiones</dt>
-              <dd>{{ store.money(investmentValue()) }}</dd>
-            </div>
-            <div>
-              <dt>Deuda</dt>
-              <dd>{{ store.money(store.debt()) }}</dd>
-            </div>
-          </dl>
-        </div>
-        <div class="chart full">
-          <h2>Hallazgos del periodo</h2>
-          <ul class="insights">
-            <li>Los gastos variables representan el 41 % del total.</li>
-            <li>La categoría Hogar aumentó frente al periodo anterior.</li>
-            <li>Hay 3 cargos pendientes de clasificación.</li>
-          </ul>
-        </div>
+        }
       </section></ng-template
     >
     <ng-template #notifications
@@ -2657,7 +2677,22 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly cardEstimatedInterest = computed(() => Math.round(this.cardDebt() * 0.023));
   readonly cardStatementTotal = computed(() => Math.round(this.nextInstallments() + this.cardEstimatedInterest()));
   readonly planningTabs = ['Deudas', 'Compra', 'Vacaciones', 'Inversión'] as const;
+
+  /** Cada simulación se libera por separado: se puede planificar deudas y no vacaciones. */
+  private readonly planningPermissions: Record<(typeof this.planningTabs)[number], string> = {
+    Deudas: P.planificacion.deudas.ver,
+    Compra: P.planificacion.compras.ver,
+    Vacaciones: P.planificacion.vacaciones.ver,
+    Inversión: P.planificacion.inversiones.ver,
+  };
+  readonly visiblePlanningTabs = computed(() =>
+    this.planningTabs.filter((tab) => this.can(this.planningPermissions[tab])),
+  );
   readonly planningTab = signal<(typeof this.planningTabs)[number]>('Deudas');
+  private readonly ajustarPlanificacion = effect(() => {
+    const visibles = this.visiblePlanningTabs();
+    if (visibles.length && !visibles.includes(this.planningTab())) this.planningTab.set(visibles[0]);
+  });
   readonly monthly = signal(1200000);
   targetDate = '2027-08-31';
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
@@ -3220,7 +3255,7 @@ export class WorkspaceComponent implements AfterViewInit {
 
   /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
   exportMovements(): void {
-    if (!this.can(P.reportes.exportar)) return;
+    if (!this.can(P.movimientos.exportar)) return;
     const filas = this.movementRows();
     downloadCsv(
       `finanzas-movimientos-${new Date().toISOString().slice(0, 10)}.csv`,

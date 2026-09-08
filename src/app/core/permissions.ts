@@ -30,6 +30,9 @@ export const P = {
     widget: {
       editar: 'dashboard.widget.editar',
       crear: 'dashboard.widget.crear',
+      deshabilitar: 'dashboard.widget.deshabilitar',
+      orden: { editar: 'dashboard.widget.orden.editar' },
+      tipo: { editar: 'dashboard.widget.tipo.editar' },
       flujo: 'dashboard.widget.flujo.ver',
       categorias: 'dashboard.widget.categorias.ver',
       cuentas: 'dashboard.widget.cuentas.ver',
@@ -47,7 +50,10 @@ export const P = {
     deshabilitar: 'movimientos.deshabilitar',
     detalle: { ver: 'movimientos.detalle.ver' },
     clases: { listar: 'movimientos.clases.listar' },
+    exportar: 'movimientos.exportar',
     transferencias: { crear: 'movimientos.transferencias.crear' },
+    prestamos: { crear: 'movimientos.prestamos.crear' },
+    creditos: { crear: 'movimientos.creditos.crear' },
     pagos: { crear: 'movimientos.pagos.crear' },
   },
   cuentas: {
@@ -56,6 +62,8 @@ export const P = {
     crear: 'cuentas.crear',
     editar: 'cuentas.editar',
     deshabilitar: 'cuentas.deshabilitar',
+    ahorro: { crear: 'cuentas.ahorro.crear' },
+    efectivo: { crear: 'cuentas.efectivo.crear' },
     extracto: { ver: 'cuentas.extracto.ver' },
     historial: { ver: 'cuentas.historial.ver' },
     tarjetas: {
@@ -83,7 +91,8 @@ export const P = {
     listar: 'personas.listar',
     crear: 'personas.crear',
     editar: 'personas.editar',
-    deudas: { listar: 'personas.deudas.listar' },
+    deudas: { listar: 'personas.deudas.listar', crear: 'personas.deudas.crear' },
+    prestamos: { crear: 'personas.prestamos.crear' },
     obligaciones: { listar: 'personas.obligaciones.listar' },
     compras: { listar: 'personas.compras.listar', crear: 'personas.compras.crear' },
     liquidaciones: { listar: 'personas.liquidaciones.listar', crear: 'personas.liquidaciones.crear' },
@@ -96,6 +105,10 @@ export const P = {
   planificacion: {
     ver: 'planificacion.ver',
     listar: 'planificacion.listar',
+    deudas: { ver: 'planificacion.deudas.ver' },
+    compras: { ver: 'planificacion.compras.ver' },
+    vacaciones: { ver: 'planificacion.vacaciones.ver' },
+    inversiones: { ver: 'planificacion.inversiones.ver' },
   },
   reportes: {
     ver: 'reportes.ver',
