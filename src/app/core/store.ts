@@ -87,17 +87,23 @@ export function applyTheme(theme: Preferences['theme']): void {
 
 /** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
 export const navigation = [
-  { path: 'dashboard', label: 'Dashboard', icon: '◈', group: 'PANORAMA', capability: P.dashboard.ver },
-  { path: 'movements', label: 'Movimientos', icon: '⇄', group: 'MI DINERO', capability: P.movimientos.ver },
-  { path: 'calendar', label: 'Calendario', icon: '▦', group: 'MI DINERO', capability: P.calendario.ver },
-  { path: 'accounts', label: 'Cuentas y tarjetas', icon: '▣', group: 'MI DINERO', capability: P.cuentas.ver },
-  { path: 'people', label: 'Personas y deudas', icon: '♧', group: 'MI DINERO', capability: P.personas.ver },
-  { path: 'portfolio', label: 'Patrimonio', icon: '◇', group: 'MI DINERO', capability: P.patrimonio.ver },
-  { path: 'planning', label: 'Planificación', icon: '↗', group: 'ANÁLISIS', capability: P.planificacion.ver },
-  { path: 'reports', label: 'Reportes', icon: '▥', group: 'ANÁLISIS', capability: P.reportes.ver },
-  { path: 'notifications', label: 'Notificaciones', icon: '◎', group: 'ESPACIO', capability: P.notificaciones.ver },
-  { path: 'admin', label: 'Administración', icon: '⚙', group: 'ESPACIO', capability: P.administracion.ver },
-  { path: 'settings', label: 'Preferencias', icon: '☷', group: 'ESPACIO', capability: P.preferencias.ver },
+  { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'PANORAMA', capability: P.dashboard.ver },
+  { path: 'movements', label: 'Movimientos', icon: 'movements', group: 'MI DINERO', capability: P.movimientos.ver },
+  { path: 'calendar', label: 'Calendario', icon: 'calendar', group: 'MI DINERO', capability: P.calendario.ver },
+  { path: 'accounts', label: 'Cuentas y tarjetas', icon: 'accounts', group: 'MI DINERO', capability: P.cuentas.ver },
+  { path: 'people', label: 'Personas y deudas', icon: 'people', group: 'MI DINERO', capability: P.personas.ver },
+  { path: 'portfolio', label: 'Patrimonio', icon: 'portfolio', group: 'MI DINERO', capability: P.patrimonio.ver },
+  { path: 'planning', label: 'Planificación', icon: 'planning', group: 'ANÁLISIS', capability: P.planificacion.ver },
+  { path: 'reports', label: 'Reportes', icon: 'reports', group: 'ANÁLISIS', capability: P.reportes.ver },
+  {
+    path: 'notifications',
+    label: 'Notificaciones',
+    icon: 'notifications',
+    group: 'ESPACIO',
+    capability: P.notificaciones.ver,
+  },
+  { path: 'admin', label: 'Administración', icon: 'admin', group: 'ESPACIO', capability: P.administracion.ver },
+  { path: 'settings', label: 'Preferencias', icon: 'settings', group: 'ESPACIO', capability: P.preferencias.ver },
 ];
 
 @Injectable({ providedIn: 'root' })

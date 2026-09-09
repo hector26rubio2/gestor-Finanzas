@@ -66,6 +66,16 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(componente.widgets()).toHaveLength(cuantos);
   });
 
+  it('el panel de diseño no se dibuja vacío para quien solo reorganiza', () => {
+    preparar([P.dashboard.ver, P.dashboard.listar, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.componentInstance.customizing.set(true);
+    fixture.detectChanges();
+
+    // Quedaba una caja con el título «Diseño del dashboard» y ningún botón dentro.
+    expect(fixture.nativeElement.querySelector('aside.customize')).toBeNull();
+  });
+
   it('sin ninguna de las cuatro acciones el botón de personalizar no se ofrece', () => {
     preparar([P.dashboard.ver, P.dashboard.listar]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;

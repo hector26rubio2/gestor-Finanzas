@@ -11,6 +11,7 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { IconComponent } from './icon';
 
 export interface TableColumn {
   key: string;
@@ -20,6 +21,7 @@ export interface TableColumn {
 @Component({
   selector: 'demo-table',
   standalone: true,
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -82,7 +84,7 @@ export interface TableColumn {
       >
       <div class="pages">
         <button type="button" aria-label="Primera página" [disabled]="currentPage() === 0" (click)="setPage(0)">
-          ⇤
+          <demo-icon name="first" />
         </button>
         <button
           type="button"
@@ -91,7 +93,7 @@ export interface TableColumn {
           [disabled]="currentPage() === 0"
           (click)="setPage(currentPage() - 1)"
         >
-          ←</button
+          <demo-icon name="previous" /></button
         ><label class="page-jump"
           >Página
           <select aria-label="Ir a página" [value]="currentPage()" (change)="setPageFromEvent($event)">
@@ -107,7 +109,7 @@ export interface TableColumn {
           [disabled]="currentPage() + 1 >= pageCount()"
           (click)="setPage(currentPage() + 1)"
         >
-          →</button
+          <demo-icon name="next" /></button
         ><button
           type="button"
           aria-label="Última página"
@@ -232,6 +234,16 @@ export interface TableColumn {
         outline-offset: -2px;
       }
       @media (max-width: 520px) {
+        /*
+         * Sin recorte: las tarjetas son más altas que el hueco y las cortaba el host.
+         * El ancho sí se sujeta —min-width: 0 sobre un hijo flexible— o la tabla impone
+         * su ancho natural y aparece scroll horizontal en toda la página.
+         */
+        :host {
+          overflow: visible;
+          min-width: 0;
+          max-width: 100%;
+        }
         .viewport {
           overflow: visible;
           padding: 10px;
@@ -280,8 +292,29 @@ export interface TableColumn {
         td.empty {
           display: block;
         }
+        /*
+         * El pie tenía tres grupos en fila con salto de línea libre, y a 375px acababa en
+         * tres renglones descuadrados de 99px. En rejilla cada cosa cae en su sitio: el
+         * rango arriba, y debajo las filas por página junto a los controles.
+         */
         footer {
-          gap: 10px;
+          display: grid;
+          grid-template-columns: 1fr;
+          justify-items: center;
+          gap: 12px;
+          padding: 14px 12px;
+          position: sticky;
+          bottom: 0;
+          background: var(--surface);
+        }
+        .pages {
+          flex-wrap: wrap;
+          justify-content: center;
+          gap: 8px;
+        }
+        .pages button {
+          min-width: 44px;
+          min-height: 44px;
         }
       }
     `,
@@ -361,6 +394,8 @@ export class DataTableComponent {
   styles: [
     `
       dialog {
+        /* Sin esto, al llegar al final del modal el gesto continúa en la página. */
+        overscroll-behavior: contain;
         padding: 0;
         border: 1px solid var(--line);
         border-radius: 20px;

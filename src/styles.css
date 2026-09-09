@@ -114,8 +114,24 @@ select,
 textarea {
   font: inherit;
 }
+/*
+ * Las cifras van en versales de ancho fijo. Con anchos proporcionales un 1 ocupa menos
+ * que un 8, así que una columna de importes queda desalineada y un total que cambia
+ * hace bailar el texto de al lado. En una aplicación de dinero se nota en cada pantalla.
+ */
+table td,
+.money,
+.amount,
+strong,
+b,
+kbd,
+time {
+  font-variant-numeric: tabular-nums;
+}
 button {
   cursor: pointer;
+  /* Quita la espera de 300 ms que el navegador guarda por si es un doble toque. */
+  touch-action: manipulation;
   min-height: 34px;
   padding: 6px 11px;
   border: 1px solid var(--control-line);
