@@ -28,7 +28,6 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
     <main class="admin-page">
       <header class="page-head">
         <div>
-          <span class="eyebrow">CONTROL DE PLATAFORMA</span>
           <h1>Administración</h1>
           <p>Gobierna accesos, despliegues y trazabilidad desde un solo lugar.</p>
         </div>
@@ -491,7 +490,6 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       <aside class="drawer">
         <header>
           <div>
-            <span class="eyebrow">EVENTO DE AUDITORÍA</span>
             <h2>{{ event.action }}</h2>
           </div>
           <button class="icon-btn" (click)="selectedAudit.set(null)">×</button>

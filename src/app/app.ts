@@ -117,6 +117,25 @@ import { MovementFormComponent } from './forms';
         display: block;
         min-height: 100dvh;
       }
+      /*
+       * Un unico momento, al entrar. Al pasar de la pantalla de acceso al armazon el
+       * documento crece de golpe —de 986 a 3076 px medidos— y el corte se ve como un
+       * tiron. Solo opacidad: nada de deslizamiento, que es el efecto por defecto de
+       * cualquier plantilla y aqui no aporta.
+       */
+      @keyframes entrada-del-armazon {
+        from {
+          opacity: 0;
+        }
+      }
+      .app {
+        animation: entrada-del-armazon 0.26s ease-out both;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .app {
+          animation: none;
+        }
+      }
       .app {
         display: grid;
         grid-template-columns: 238px minmax(0, 1fr);

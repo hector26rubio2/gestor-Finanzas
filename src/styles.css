@@ -170,6 +170,55 @@ button:disabled {
   cursor: not-allowed;
   opacity: 0.48;
 }
+
+/*
+ * Las tres variantes de boton, definidas una sola vez.
+ *
+ * Estaban por convencion y no por regla: «primary» se redefinia suelto en seis
+ * componentes, «quiet» en uno, y en el resto de la aplicacion las dos clases no hacian
+ * absolutamente nada. En la lista de avisos, la accion principal y la secundaria se
+ * pintaban identicas —mismo fondo, mismo borde, mismo color— y quien miraba la pantalla
+ * no tenia forma de saber cual era cual.
+ *
+ * Aqui se diferencian por relleno, no por matiz: llena la que manda, contorno la que
+ * acompana, sin caja la que casi no importa. Es la jerarquia que sigue funcionando en
+ * escala de grises y para quien no distingue colores.
+ */
+.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 650;
+}
+
+.quiet {
+  background: transparent;
+  border-color: transparent;
+  color: var(--muted);
+}
+
+.danger {
+  background: transparent;
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+  color: var(--danger);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 86%, var(--text));
+    border-color: color-mix(in srgb, var(--accent) 86%, var(--text));
+  }
+  /* El contorno de «quiet» aparece al apuntarlo: en reposo no compite con nada. */
+  .quiet:hover:not(:disabled) {
+    background: var(--accent-soft);
+    border-color: var(--line);
+    color: var(--text);
+  }
+  .danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--danger) 12%, transparent);
+    border-color: var(--danger);
+  }
+}
 input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
 select,
 textarea {
