@@ -16,20 +16,26 @@ import {
 } from './api-client';
 import { parseAmount, parseMoney, parseRate } from './money';
 import { MovementKindCatalog, signOf } from './movement-kinds';
+import { Router } from '@angular/router';
 import { DemoStore } from './store';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
   private readonly store = inject(DemoStore);
+  private readonly router = inject(Router);
   private sessionSignature: string | null = null;
 
   async start(): Promise<void> {
     this.store.restoreDemoSession();
     await this.initialize();
     if (this.store.runtime.mode !== 'api') return;
+    // El sondeo se queda como respaldo: cubre el canal caido, el navegador sin
+    // EventSource y el despliegue con mas de una instancia, donde el aviso puede salir
+    // por una maquina distinta de la que atiende esta pestana.
     window.setInterval(() => void this.pollSession(), 60_000);
     window.addEventListener('focus', () => void this.pollSession());
+    this.escucharCambiosDeAcceso();
   }
 
   async initialize(): Promise<void> {
@@ -125,6 +131,56 @@ export class RemoteBootstrap {
   }
 
   /** Revisa la sesión y recarga todo cuando un administrador cambia los permisos. */
+  /**
+   * Escucha el canal en vivo de cambios de acceso.
+   *
+   * Sin esto, quitar un permiso tardaba hasta un minuto en verse: el servidor ya
+   * rechazaba la peticion —la cookie se revalida contra la base en cada llamada— pero la
+   * pantalla seguia ofreciendo la entrada de menu retirada, que es peor que no mostrarla
+   * porque invita a intentarlo.
+   *
+   * Eventos del servidor y no un socket: el flujo va en un solo sentido y EventSource ya
+   * trae reconexion automatica. El aviso no lleva datos; solo dice que hay que releer.
+   */
+  private escucharCambiosDeAcceso(): void {
+    if (this.store.runtime.mode !== 'api' || typeof EventSource === 'undefined') return;
+    try {
+      const fuente = new EventSource(`${this.store.runtime.apiBaseUrl}/api/v1/events`, {
+        withCredentials: true,
+      });
+      fuente.addEventListener('permisos', () => void this.initialize());
+    } catch {
+      // Si el canal no se puede abrir, queda el sondeo.
+    }
+  }
+
+  /**
+   * Cierra la sesion y devuelve a la pantalla de acceso.
+   *
+   * Estaba escrito dos veces —en el menu de perfil y en Preferencias— y las dos copias
+   * habian divergido: la de Preferencias no olvidaba el perfil demo, asi que en modo
+   * local seguias dentro, y si la llamada al servidor fallaba se rendia sin limpiar
+   * nada, dejandote autenticado en pantalla. Una sola implementacion no puede divergir.
+   *
+   * Si el servidor no responde, la sesion local se cierra igual: quedarse dentro porque
+   * la red fallo es lo contrario de lo que pide quien pulsa «cerrar sesion». La cookie
+   * caduca por su cuenta.
+   */
+  async cerrarSesion(): Promise<void> {
+    if (this.store.runtime.mode === 'api') {
+      try {
+        await firstValueFrom(this.api.logout());
+      } catch {
+        /* la sesion local se cierra igual; el servidor la caducara */
+      }
+    }
+    this.store.forgetDemoSession();
+    this.store.user.set(null);
+    this.store.form.set(null);
+    this.store.inspector.set(null);
+    await this.router.navigateByUrl('/login');
+  }
+
   async pollSession(): Promise<void> {
     if (this.store.runtime.mode !== 'api' || this.store.remoteState() === 'loading') return;
     try {

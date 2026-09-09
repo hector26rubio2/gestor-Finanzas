@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
 import { toCsv, downloadCsv } from '../core/csv';
 import { P } from '../core/permissions';
+import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
@@ -2604,6 +2605,7 @@ export class WorkspaceComponent implements AfterViewInit {
   }
   private route = inject(ActivatedRoute);
   private router = inject(Router);
+  private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   private movementRequest = 0;
   readonly projectedOccurrences = signal<readonly ApiProjectedOccurrence[]>([]);
@@ -3806,17 +3808,6 @@ export class WorkspaceComponent implements AfterViewInit {
       );
   }
   async logout(): Promise<void> {
-    if (this.store.runtime.mode === 'api') {
-      try {
-        await firstValueFrom(this.api.logout());
-      } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : 'No fue posible cerrar la sesión remota.');
-        return;
-      }
-    }
-    this.store.user.set(null);
-    this.store.form.set(null);
-    this.store.inspector.set(null);
-    await this.router.navigateByUrl('/login');
+    await this.arranque.cerrarSesion();
   }
 }
