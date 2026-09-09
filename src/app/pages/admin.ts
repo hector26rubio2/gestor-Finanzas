@@ -816,6 +816,17 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         padding: 0;
         min-height: 34px;
       }
+      /*
+       * El mínimo táctil de 44px vive en styles.css, pero como regla sobre \`button\` la
+       * vence cualquier selector de componente por especificidad. Se repite aquí con el
+       * mismo alcance para que no se pierda en el dedo del usuario.
+       */
+      @media (pointer: coarse) {
+        .icon-btn {
+          width: 44px;
+          min-height: 44px;
+        }
+      }
       .primary {
         background: var(--accent);
         border-color: var(--accent);

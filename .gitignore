@@ -5,3 +5,9 @@ artifacts/
 *.log
 .DS_Store
 Thumbs.db
+
+# Habilidades de agente instaladas localmente (skills add). Son herramientas del
+# entorno de quien programa, no del producto: no viajan con el repositorio.
+.agents/
+.claude/
+skills-lock.json

@@ -1443,6 +1443,20 @@ const SIN_DATO = '—';
         padding: 0;
         border-radius: 50%;
       }
+      /*
+       * El mínimo táctil de 44px vive en styles.css, pero como regla sobre \`button\` la
+       * vence cualquier selector de componente por especificidad. Se repite aquí con el
+       * mismo alcance para que no se pierda en el dedo del usuario.
+       */
+      @media (pointer: coarse) {
+        .calendar-toolbar .icon-button {
+          width: 44px;
+          height: 44px;
+        }
+        .head-actions button {
+          min-height: 44px;
+        }
+      }
       .calendar-toolbar .today-button {
         color: var(--accent);
         border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
@@ -2461,8 +2475,14 @@ const SIN_DATO = '—';
         .kpis {
           grid-template-columns: 1fr 1fr;
         }
+        /*
+         * En móvil la tabla se convierte en tarjetas y crece con los datos: una lista de
+         * 424 movimientos pide miles de píxeles. Fijarla a 520px la desbordaba —el pie de
+         * paginación quedaba encima de las filas y el resto se recortaba—. Fluye con la
+         * página, que además es como se navega con el pulgar: sin scroll anidado.
+         */
         .table-zone {
-          height: 520px;
+          height: auto;
           flex: none;
         }
         .cards {

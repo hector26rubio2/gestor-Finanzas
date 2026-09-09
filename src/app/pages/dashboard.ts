@@ -6,6 +6,7 @@ import { ApiDashboard, FinanceApiClient } from '../core/api-client';
 import { parseMoney, sumBy } from '../core/money';
 import { P } from '../core/permissions';
 import { CAPABILITIES, DemoStore } from '../core/store';
+import { IconComponent } from '../ui/icon';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
@@ -14,7 +15,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
 
 @Component({
   standalone: true,
-  imports: [FormsModule, RouterLink, KpiComponent, DataTableComponent, OverlayComponent],
+  imports: [FormsModule, RouterLink, KpiComponent, DataTableComponent, OverlayComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<article class="dashboard">
     <header class="hero">
@@ -113,8 +114,12 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
             @if (customizing()) {
               <div class="widget-actions">
                 @if (caps.allows(P.dashboard.widget.orden.editar)) {
-                  <button class="quiet" type="button" aria-label="Mover arriba" (click)="move(widget.id, -1)">↑</button>
-                  <button class="quiet" type="button" aria-label="Mover abajo" (click)="move(widget.id, 1)">↓</button>
+                  <button class="quiet" type="button" aria-label="Mover arriba" (click)="move(widget.id, -1)">
+                    <demo-icon name="chevronUp" />
+                  </button>
+                  <button class="quiet" type="button" aria-label="Mover abajo" (click)="move(widget.id, 1)">
+                    <demo-icon name="chevronDown" />
+                  </button>
                 }
                 @if (caps.allows(P.dashboard.widget.tipo.editar)) {
                   <select
@@ -324,11 +329,13 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         <demo-table [columns]="columns" [rows]="rows()" (rowSelected)="inspect($event)" />
       </section>
     }
-    @if (customizing()) {
+    @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
       <aside class="customize">
         <b>Diseño del dashboard</b>
         @if (caps.allows(P.dashboard.widget.crear)) {
-          <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">＋ Crear widget</button>
+          <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">
+            <demo-icon name="plus" /> Crear widget
+          </button>
         }
         @if (caps.allows(P.dashboard.widget.deshabilitar)) {
           @for (widget of hidden(); track widget.id) {
