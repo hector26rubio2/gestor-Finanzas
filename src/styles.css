@@ -11,6 +11,7 @@
   --accent-soft: #e4f3ee;
   --accent-contrast: #fff;
   --danger: #c0392f;
+  --warning: #b7791f;
   --success: #098268;
   --shadow: 0 20px 55px #233d3520;
   --font: 'DM Sans', system-ui, sans-serif;
@@ -30,6 +31,7 @@
   --accent-soft: #103c39;
   --accent-contrast: #031b18;
   --danger: #ff7169;
+  --warning: #e0a94a;
   --success: #51d3a9;
   --shadow: 0 22px 62px #0008;
 }
@@ -46,6 +48,7 @@
   --accent-soft: #123c52;
   --accent-contrast: #03202d;
   --danger: #fb7185;
+  --warning: #e0a94a;
   --success: #5eead4;
   --shadow: 0 22px 62px #0007;
 }
@@ -62,6 +65,7 @@
   --accent-soft: #f2dfcf;
   --accent-contrast: #fff;
   --danger: #ba3d47;
+  --warning: #a97b2e;
   --success: #39745c;
 }
 :root[data-theme='berry'] {
@@ -77,6 +81,7 @@
   --accent-soft: #4a2352;
   --accent-contrast: #2a0d2f;
   --danger: #fb7185;
+  --warning: #e0a94a;
   --success: #6ee7b7;
 }
 :root[data-density='compact'] {
@@ -147,9 +152,16 @@ button {
     box-shadow 0.16s ease,
     transform 0.16s ease;
 }
-button:hover:not(:disabled) {
-  border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
-  background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+/*
+ * El hover solo donde hay un puntero fino. En una pantalla tactil el navegador deja el
+ * estado puesto despues de tocar, asi que un boton se queda resaltado como si el dedo
+ * siguiera encima.
+ */
+@media (hover: hover) and (pointer: fine) {
+  button:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+    background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+  }
 }
 button:active:not(:disabled) {
   transform: translateY(1px);
@@ -188,10 +200,12 @@ select {
     5px 5px;
   background-repeat: no-repeat;
 }
-input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):hover,
-select:hover,
-textarea:hover {
-  border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+@media (hover: hover) and (pointer: fine) {
+  input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):hover,
+  select:hover,
+  textarea:hover {
+    border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+  }
 }
 input::placeholder,
 textarea::placeholder {
@@ -249,6 +263,7 @@ textarea:focus-visible {
     --accent-soft: #103c39;
     --accent-contrast: #031b18;
     --danger: #ff7169;
+    --warning: #e0a94a;
     --success: #51d3a9;
     --shadow: 0 22px 62px #0008;
   }
@@ -259,7 +274,10 @@ textarea:focus-visible {
 .saltar-al-contenido {
   position: absolute;
   left: 8px;
-  top: -100px;
+  top: 8px;
+  /* Se aparta con transform, no con «top»: mover una propiedad de posicion obliga
+     al navegador a recalcular el diseno en cada fotograma. */
+  transform: translateY(calc(-100% - 24px));
   z-index: 200;
   padding: 10px 16px;
   border-radius: 8px;
@@ -267,8 +285,8 @@ textarea:focus-visible {
   color: var(--accent-contrast);
   font-weight: 600;
   text-decoration: none;
-  transition: top 0.14s ease;
+  transition: transform 0.14s ease-out;
 }
 .saltar-al-contenido:focus-visible {
-  top: 8px;
+  transform: translateY(0);
 }

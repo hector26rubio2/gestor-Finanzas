@@ -79,7 +79,7 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
         max-width: 600px;
       }
       .story span {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.13em;
         color: var(--accent);

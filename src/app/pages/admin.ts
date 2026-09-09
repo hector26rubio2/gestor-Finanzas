@@ -541,7 +541,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         margin-bottom: 22px;
       }
       .eyebrow {
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         letter-spacing: 0.14em;
         color: var(--accent);
         font-weight: 800;
@@ -602,7 +602,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       }
       .tabs em {
         font-style: normal;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         padding: 2px 6px;
         border-radius: 20px;
         background: var(--accent-soft);
@@ -866,7 +866,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         flex-wrap: wrap;
       }
       .chips span {
-        font-size: 0.69rem;
+        font-size: 0.72rem;
         padding: 4px 7px;
         background: var(--accent-soft);
         border-radius: 6px;
@@ -907,7 +907,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         width: auto;
         padding: 0 8px;
         text-transform: uppercase;
-        font-size: 0.66rem;
+        font-size: 0.72rem;
         font-weight: 800;
       }
       .rollout {
@@ -925,7 +925,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         border-radius: 20px;
         background: var(--line);
         position: relative;
-        transition: 0.2s;
+        transition: background-color 0.16s ease-out;
       }
       .switch > span:after {
         content: '';
@@ -936,8 +936,9 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         top: 3px;
         background: white;
         border-radius: 50%;
-        transition: 0.2s;
-        box-shadow: 0 1px 3px #0004;
+        /* Sin lista de propiedades esto era «transition: all». */
+        transition: transform 0.16s ease-out;
+        box-shadow: 0 1px 3px color-mix(in srgb, var(--text) 25%, transparent);
       }
       .switch input:checked + span {
         background: var(--accent);
