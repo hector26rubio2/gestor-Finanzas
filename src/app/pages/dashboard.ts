@@ -21,7 +21,6 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
   template: `<article class="dashboard">
     <header class="hero">
       <div>
-        <span>PANORAMA FINANCIERO</span>
         <h1>Hola, {{ store.user()?.name?.split(' ')?.[0] }}</h1>
         <p>Explora tus finanzas: cada filtro actualiza toda la visual.</p>
       </div>
@@ -34,7 +33,6 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
     <section class="filter-panel" aria-labelledby="filters-title">
       <header>
         <div>
-          <span>FILTROS ENLAZADOS</span>
           <h2 id="filters-title">Vista general</h2>
         </div>
         <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">Limpiar filtros</button>
@@ -320,7 +318,6 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       <section class="recent">
         <header>
           <div>
-            <span>DETALLE ENLAZADO</span>
             <h2>Movimientos del periodo</h2>
           </div>
           @if (caps.allows(P.movimientos.ver)) {

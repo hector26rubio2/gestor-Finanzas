@@ -30,55 +30,50 @@ import { DemoAuditEvent } from '../core/demo-data';
 import { parseMoney } from '../core/money';
 import { signOf } from '../core/movement-kinds';
 
-const labels: Record<string, { title: string; eyebrow: string; description: string }> = {
+/*
+ * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
+ * dice nada que el titulo no diga ya, y es el adorno mas repetido de las interfaces
+ * generadas. La estructura tiene que codificar informacion, no decorarla.
+ */
+const labels: Record<string, { title: string; description: string }> = {
   movements: {
     title: 'Movimientos',
-    eyebrow: 'LIBRO CENTRAL',
     description: 'Todos los efectos económicos, en un único lugar.',
   },
   calendar: {
     title: 'Calendario',
-    eyebrow: 'AGENDA FINANCIERA',
     description: 'Consulta operaciones y compromisos sin deformar el calendario.',
   },
   accounts: {
     title: 'Cuentas y tarjetas',
-    eyebrow: 'MI DINERO',
     description: 'Explora cuentas, tarjetas y sus movimientos relacionados.',
   },
   people: {
     title: 'Personas y deudas',
-    eyebrow: 'OBLIGACIONES',
     description: 'Lo que debes y lo que te deben, sin compensaciones engañosas.',
   },
   portfolio: {
     title: 'Patrimonio e inversiones',
-    eyebrow: 'PATRIMONIO',
     description: 'Activos, pasivos y posiciones vinculadas a movimientos.',
   },
   planning: {
     title: 'Planificación',
-    eyebrow: 'PROYECCIONES',
     description: 'Compara alternativas sin modificar movimientos reales.',
   },
   reports: {
     title: 'Reportes',
-    eyebrow: 'ANÁLISIS',
     description: 'Entiende qué ocurrió y abre los movimientos que explican cada cifra.',
   },
   notifications: {
     title: 'Notificaciones',
-    eyebrow: 'TRABAJO PENDIENTE',
     description: 'Revisa propuestas antes de convertirlas en movimientos.',
   },
   admin: {
     title: 'Administración',
-    eyebrow: 'ORGANIZACIÓN',
     description: 'Miembros, capacidades y trazabilidad de la organización.',
   },
   settings: {
     title: 'Preferencias',
-    eyebrow: 'TU EXPERIENCIA',
     description: 'Temas, tipografía, idioma y preferencias personales.',
   },
 };
@@ -102,7 +97,6 @@ const SIN_DATO = '—';
     <article class="workspace-page">
       <header class="page-head">
         <div>
-          <span>{{ meta().eyebrow }}</span>
           <h1>{{ meta().title }}</h1>
           <p>{{ meta().description }}</p>
         </div>
@@ -694,17 +688,19 @@ const SIN_DATO = '—';
       ><section class="notice-list">
         @for (n of store.data().notifications; track n.id) {
           <article [class.unread]="!n.read">
-            <span>◎</span>
-            <div>
+            <span class="notice-state" [attr.aria-label]="n.read ? 'Leída' : 'Sin leer'"></span>
+            <div class="notice-body">
               <h2>{{ n.title }}</h2>
               <p>{{ n.detail }}</p>
             </div>
             @if (n.id === 'notice-purchase') {
-              <button (click)="reviewNotification(n.id)">Revisar</button>
+              <button class="primary" (click)="reviewNotification(n.id)">Revisar</button>
             } @else if (can(P.notificaciones.editar)) {
-              <button (click)="mark(n.id)">Marcar leída</button>
+              <button class="quiet" (click)="mark(n.id)">Marcar leída</button>
             }
           </article>
+        } @empty {
+          <p class="empty-note">No hay nada pendiente.</p>
         }
       </section></ng-template
     >
@@ -1323,8 +1319,7 @@ const SIN_DATO = '—';
       .agenda,
       .scenario > *,
       .chart,
-      .settings-grid article,
-      .notice-list article {
+      .settings-grid article {
         background: var(--surface);
         border: 1px solid var(--line);
         border-radius: 14px;
@@ -2074,36 +2069,70 @@ const SIN_DATO = '—';
           linear-gradient(170deg, transparent 45%, var(--accent) 46%, var(--accent) 48%, transparent 49%),
           repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 50px);
       }
+      /*
+       * Un libro con renglones, no tres tarjetas iguales. Antes cada aviso era su propia
+       * caja redondeada con el mismo borde y el mismo radio que todo lo demas: sin
+       * jerarquia, leido y sin leer casi identicos, y la accion principal con el mismo
+       * peso que la secundaria. Ahora hay una sola hoja, los avisos se separan con una
+       * linea fina, y lo que distingue a uno sin leer es lo unico que se resalta.
+       */
       .notice-list {
         display: grid;
-        gap: 10px;
         overflow: auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
       }
       .notice-list article {
         display: flex;
         align-items: center;
-        gap: 15px;
-        padding: 17px;
+        gap: 14px;
+        padding: 16px 18px;
+        border-bottom: 1px solid var(--line);
       }
-      .notice-list article.unread {
-        border-left: 4px solid var(--accent);
+      .notice-list article:last-child {
+        border-bottom: 0;
+      }
+      /* El punto de estado: lleno y en acento si esta sin leer, hueco si ya se vio. */
+      .notice-state {
+        flex: none;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        border: 1.5px solid var(--control-line);
+      }
+      .notice-list article.unread .notice-state {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .notice-body {
+        min-width: 0;
       }
       .notice-list h2 {
         font-size: 0.9rem;
         margin: 0;
+        font-weight: 550;
+        color: var(--muted);
+      }
+      /* Sin leer pesa mas: es la diferencia que importa en esta lista. */
+      .notice-list article.unread h2 {
+        font-weight: 700;
+        color: var(--text);
       }
       .notice-list p {
         font-size: 0.75rem;
         color: var(--muted);
-        margin: 5px 0;
+        margin: 4px 0 0;
+        overflow-wrap: anywhere;
       }
+      /*
+       * Solo posicion y tamano. El color lo pone la variante: fijar aqui fondo y color
+       * era lo que dejaba a «primary» y «quiet» pintados igual.
+       */
       .notice-list button {
+        flex: none;
         margin-left: auto;
-        border: 1px solid var(--line);
-        background: var(--surface);
-        color: var(--text);
-        border-radius: 8px;
-        padding: 9px;
+        padding: 9px 14px;
       }
       .settings-grid {
         display: grid;

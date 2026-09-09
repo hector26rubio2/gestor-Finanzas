@@ -9,7 +9,6 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
     <section class="story">
       <b>◈ Finanzas</b>
       <div>
-        <span>ESTUDIO FINANCIERO PERSONAL</span>
         <h1>Tu dinero, explicado con claridad.</h1>
         <p>Organiza, comprende y proyecta tus finanzas desde un solo lugar.</p>
         <div class="mini-chart"><i></i><i></i><i></i><i></i><i></i><i></i></div>
