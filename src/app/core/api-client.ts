@@ -439,6 +439,17 @@ export interface ApiAdminOverride {
   affects: readonly string[];
 }
 
+/** Una persona dentro de la organizacion activa. */
+export interface ApiOrganizationMember {
+  membershipId: string;
+  userId: string;
+  displayName: string;
+  email: string;
+  status: string;
+  roles: readonly string[];
+  createdAt: string;
+}
+
 export interface ApiCapabilityDescriptor {
   key: string;
   module: string;
@@ -727,6 +738,20 @@ export class FinanceApiClient {
       body: { organizationId, capability, isAllowed },
     });
   }
+  /** Personas de la organizacion activa, invitadas incluidas. */
+  organizationMembers() {
+    return this.get<readonly ApiOrganizationMember[]>(API_ROUTES.organizationMembers);
+  }
+
+  /** Suma a alguien por correo, con los roles con los que entrara. */
+  inviteOrganizationMember(request: { email: string; displayName?: string; roleIds: readonly string[] }) {
+    return this.transport.request<ApiOrganizationMember>({
+      method: 'POST',
+      path: API_ROUTES.organizationMembers,
+      body: request,
+    });
+  }
+
   adminRoles() {
     return this.get<readonly ApiAdminRole[]>(API_ROUTES.adminRoles);
   }
@@ -867,6 +892,7 @@ export const MOVEMENT_REPOSITORY = new InjectionToken<MovementRepository>('MOVEM
 /** Stable v1 paths published by the backend; transport remains opt-in. */
 export const API_ROUTES = {
   csrf: '/api/v1/auth/csrf',
+  organizationMembers: '/api/v1/organization/members',
   logout: '/api/v1/auth/logout',
   session: '/api/v1/session',
   accounts: '/api/v1/accounts',
