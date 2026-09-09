@@ -5,6 +5,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient } from '../core/api-client';
 import { parseMoney, sumBy } from '../core/money';
 import { P } from '../core/permissions';
+import { sincronizarConLaUrl } from '../core/url-state';
 import { CAPABILITIES, DemoStore } from '../core/store';
 import { IconComponent } from '../ui/icon';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
@@ -430,7 +431,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       .filter-panel header span,
       .widget header span,
       .recent header span {
-        font-size: 0.62rem;
+        font-size: 0.72rem;
         letter-spacing: 0.12em;
         color: var(--accent);
         font-weight: 750;
@@ -585,7 +586,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         display: flex;
         justify-content: flex-end;
         gap: 16px;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         color: var(--muted);
       }
       .legend span {
@@ -656,7 +657,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         flex: 1;
         min-width: 0;
         text-align: center;
-        font-size: 0.6rem;
+        font-size: 0.72rem;
         white-space: nowrap;
         overflow: hidden;
       }
@@ -682,7 +683,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       .axis-title {
         position: absolute;
         color: var(--muted);
-        font-size: 0.65rem;
+        font-size: 0.72rem;
       }
       .scatter .axis-title.x {
         right: 0;
@@ -764,7 +765,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       }
       .stacked small {
         height: 20px;
-        font-size: 0.55rem;
+        font-size: 0.72rem;
         color: var(--muted);
         overflow: hidden;
       }
@@ -787,7 +788,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         display: grid;
       }
       .heatmap span {
-        font-size: 0.65rem;
+        font-size: 0.72rem;
       }
       .heatmap b {
         font-size: 0.75rem;
@@ -813,7 +814,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       .trend small {
         text-align: center;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
         overflow: hidden;
       }
       .local {
@@ -950,7 +951,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
       }
       .detail > span {
         color: var(--accent);
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         letter-spacing: 0.12em;
       }
       .detail h2 {
@@ -1076,6 +1077,19 @@ export class DashboardComponent {
   readonly accountType = signal('all');
   readonly globalCategory = signal('all');
   readonly localCategory = signal('all');
+
+  /**
+   * Los filtros viven en la URL: una vista del dashboard se puede compartir y sobrevive
+   * a una recarga. `localCategory` queda fuera a propósito — es la exploración de un
+   * widget, no el contexto de la pantalla, y se promueve con «aplicar a todo».
+   */
+  private readonly urlDelDashboard = [
+    sincronizarConLaUrl('escala', this.scale, 'month', (v) => ['day', 'week', 'month', 'year'].includes(v)),
+    sincronizarConLaUrl('fecha', this.anchor, '2026-08-31', (v) => /^\d{4}-\d{2}-\d{2}$/.test(v)),
+    sincronizarConLaUrl('cuenta', this.accountId, 'all'),
+    sincronizarConLaUrl('tipo', this.accountType, 'all', (v) => ['all', 'credit', 'savings', 'cash'].includes(v)),
+    sincronizarConLaUrl('categoria', this.globalCategory, 'all'),
+  ];
   readonly hiddenIds = signal<string[]>([]);
   readonly widgetCreatorOpen = signal(false);
   newWidgetTitle = '';

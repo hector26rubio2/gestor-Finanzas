@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
 import { toCsv, downloadCsv } from '../core/csv';
 import { P } from '../core/permissions';
+import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import {
@@ -241,6 +242,7 @@ const SIN_DATO = '—';
       </section>
       <section class="table-zone">
         <demo-table
+          urlKey="pagina"
           [columns]="movementColumns"
           [rows]="movementRows()"
           [pageSize]="store.remoteMovementSize()"
@@ -1027,7 +1029,7 @@ const SIN_DATO = '—';
       }
       .page-head span,
       .scenario span {
-        font-size: 0.65rem;
+        font-size: 0.72rem;
         color: var(--accent);
         font-weight: 750;
         letter-spacing: 0.1em;
@@ -1110,7 +1112,7 @@ const SIN_DATO = '—';
         flex-direction: column;
         gap: 5px;
         color: var(--muted);
-        font-size: 0.67rem;
+        font-size: 0.72rem;
       }
       .filters input,
       .filters select,
@@ -1162,7 +1164,6 @@ const SIN_DATO = '—';
         flex-wrap: wrap;
         gap: 12px;
         min-height: 142px;
-        transition: min-height 0.2s;
       }
       .card-strip {
         display: flex;
@@ -1224,10 +1225,10 @@ const SIN_DATO = '—';
         );
         display: grid;
         gap: 10px;
-        box-shadow: 0 10px 20px #001b1520;
+        box-shadow: 0 10px 20px color-mix(in srgb, var(--text) 14%, transparent);
       }
       .bank-card span {
-        font-size: 0.62rem;
+        font-size: 0.72rem;
         letter-spacing: 0.08em;
       }
       .bank-card b {
@@ -1277,7 +1278,7 @@ const SIN_DATO = '—';
         display: grid;
         gap: 5px;
         color: var(--muted);
-        font-size: 0.68rem;
+        font-size: 0.72rem;
       }
       .account-tools input,
       .account-tools select {
@@ -1386,7 +1387,7 @@ const SIN_DATO = '—';
       .audit-list article em {
         color: var(--accent);
         font-style: normal;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
       }
       .audit-list article em.rejected {
@@ -1429,7 +1430,7 @@ const SIN_DATO = '—';
       }
       .calendar-title span {
         color: var(--muted);
-        font-size: 0.58rem;
+        font-size: 0.72rem;
         letter-spacing: 0.12em;
       }
       .calendar-title strong {
@@ -1487,7 +1488,7 @@ const SIN_DATO = '—';
         display: grid;
         gap: 3px;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
       }
       .calendar-jump select,
       .calendar-jump input,
@@ -1509,7 +1510,7 @@ const SIN_DATO = '—';
       }
       .names b {
         text-align: center;
-        font-size: 0.66rem;
+        font-size: 0.72rem;
         color: var(--muted);
       }
       .grid {
@@ -1583,7 +1584,7 @@ const SIN_DATO = '—';
       .grid button span,
       .grid button em {
         display: block;
-        font-size: 0.62rem;
+        font-size: 0.72rem;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -1747,7 +1748,7 @@ const SIN_DATO = '—';
         align-items: center;
         flex-wrap: wrap;
         gap: 13px;
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         color: var(--muted);
       }
       .chart-legend span::before {
@@ -1801,20 +1802,20 @@ const SIN_DATO = '—';
         align-items: end;
         padding: 2px 9px 4px 0;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
       }
       .x-labels {
         grid-column: 2;
         display: flex;
         justify-content: space-between;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
       }
       .planner-disclaimer,
       .chart-unit {
         margin: 0;
         color: var(--muted);
-        font-size: 0.66rem;
+        font-size: 0.72rem;
       }
       .scenario {
         display: grid;
@@ -1934,7 +1935,7 @@ const SIN_DATO = '—';
       }
       .paired-bars b {
         color: var(--muted);
-        font-size: 0.65rem;
+        font-size: 0.72rem;
       }
       .pair {
         display: flex;
@@ -1959,7 +1960,7 @@ const SIN_DATO = '—';
         top: -22px;
         transform: translateX(-50%);
         color: var(--muted);
-        font-size: 0.56rem;
+        font-size: 0.72rem;
         font-style: normal;
         white-space: nowrap;
       }
@@ -1981,7 +1982,7 @@ const SIN_DATO = '—';
         grid-template-columns: 9px 1fr auto;
         align-items: center;
         gap: 7px;
-        font-size: 0.68rem;
+        font-size: 0.72rem;
       }
       .category-report li i {
         width: 8px;
@@ -1989,7 +1990,7 @@ const SIN_DATO = '—';
         border-radius: 50%;
       }
       .category-report li b {
-        font-size: 0.64rem;
+        font-size: 0.72rem;
         white-space: nowrap;
       }
       .report-line {
@@ -2005,7 +2006,7 @@ const SIN_DATO = '—';
         align-items: end;
         padding: 3px 10px 7px 0;
         color: var(--muted);
-        font-size: 0.6rem;
+        font-size: 0.72rem;
         letter-spacing: normal;
       }
       .report-line .axis-y em {
@@ -2027,7 +2028,7 @@ const SIN_DATO = '—';
         justify-content: space-between;
         gap: 4px;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
       }
       .report-line .axis-x span {
         display: grid;
@@ -2036,7 +2037,7 @@ const SIN_DATO = '—';
       }
       .report-line .axis-x small {
         color: var(--text);
-        font-size: 0.56rem;
+        font-size: 0.72rem;
       }
       .bars {
         height: 180px;
@@ -2065,7 +2066,7 @@ const SIN_DATO = '—';
         place-items: center;
         background:
           radial-gradient(circle, var(--surface) 0 46%, transparent 47%),
-          conic-gradient(var(--accent) 0 35%, var(--danger) 35% 58%, #d3a34a 58% 78%, var(--line) 78%);
+          conic-gradient(var(--accent) 0 35%, var(--danger) 35% 58%, var(--warning) 58% 78%, var(--line) 78%);
       }
       .trend {
         height: 220px;
@@ -2612,11 +2613,17 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly meta = computed(() => labels[this.page()] ?? labels['movements']);
   readonly compactCards = signal(false);
   readonly movementAccountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
+  private readonly urlDeMovimientos = sincronizarConLaUrl('instrumento', this.movementAccountType, 'all', (v) =>
+    ['all', 'savings', 'credit', 'cash'].includes(v),
+  );
   readonly movementCategory = signal('all');
   readonly movementOperation = signal('all');
   readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
+  private readonly urlDeCuentas = sincronizarConLaUrl('tipo', this.accountType, 'all', (v) =>
+    ['all', 'savings', 'credit', 'cash'].includes(v),
+  );
   readonly filteredAccounts = computed(() => {
     const query = this.accountQuery().trim().toLocaleLowerCase('es');
     const type = this.accountType();
@@ -2654,6 +2661,9 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: 'year', label: 'Año' },
   ] as const;
   readonly calendarView = signal<'day' | 'week' | 'month' | 'year'>('month');
+  private readonly urlDelCalendario = sincronizarConLaUrl('vista', this.calendarView, 'month', (v) =>
+    ['day', 'week', 'month', 'year'].includes(v),
+  );
   readonly calendarReturnDate = signal<string | null>(null);
   readonly cardPaymentMode = signal(false);
   readonly cardPaymentAmount = signal(500000);
@@ -2709,6 +2719,9 @@ export class WorkspaceComponent implements AfterViewInit {
     this.planningTabs.filter((tab) => this.can(this.planningPermissions[tab])),
   );
   readonly planningTab = signal<(typeof this.planningTabs)[number]>('Deudas');
+  private readonly urlDePlanificacion = sincronizarConLaUrl('objetivo', this.planningTab, 'Deudas', (v) =>
+    (this.planningTabs as readonly string[]).includes(v),
+  );
   private readonly ajustarPlanificacion = effect(() => {
     const visibles = this.visiblePlanningTabs();
     if (visibles.length && !visibles.includes(this.planningTab())) this.planningTab.set(visibles[0]);
@@ -2980,6 +2993,9 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-05', label: 'Mayo 2026' },
   ];
   readonly reportPeriod = signal('6');
+  private readonly urlDeReportes = sincronizarConLaUrl('meses', this.reportPeriod, '6', (v) =>
+    ['3', '6', '12'].includes(v),
+  );
   readonly reportMovements = computed(() => {
     const periods = [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
       .sort()

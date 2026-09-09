@@ -135,7 +135,12 @@ import { MovementFormComponent } from './forms';
         flex-direction: column;
         padding: 18px 12px;
         z-index: 20;
-        transition: width 0.2s;
+        /*
+         * Excepcion consciente: contraer el carril cambia el ancho del documento y el
+         * contenido tiene que reacomodarse, asi que no hay equivalente en transform.
+         * Es un solo elemento y una accion ocasional; se iguala a la duracion del resto.
+         */
+        transition: width 0.16s ease-out;
       }
       .brand {
         display: flex;
@@ -180,7 +185,7 @@ import { MovementFormComponent } from './forms';
         border-radius: 9px;
         background: var(--accent-soft);
         color: var(--accent);
-        font-size: 0.7rem;
+        font-size: 0.72rem;
         font-weight: 700;
       }
       .collapsed .aside-label {
@@ -210,7 +215,7 @@ import { MovementFormComponent } from './forms';
       nav small {
         display: block;
         color: var(--muted);
-        font-size: 0.62rem;
+        font-size: 0.72rem;
         font-weight: 700;
         letter-spacing: 0.08em;
         padding: 14px 10px 7px;
@@ -228,6 +233,17 @@ import { MovementFormComponent } from './forms';
         font-size: 0.82rem;
         font-weight: 550;
       }
+      @media (hover: hover) and (pointer: fine) {
+        nav a:hover {
+          background: var(--accent-soft);
+        }
+        nav a:hover .nav-icon,
+        .profile-trigger:hover,
+        .profile-menu a:hover,
+        .profile-menu button:hover {
+          color: inherit;
+        }
+      }
       nav a:hover,
       nav a.active {
         background: var(--accent-soft);
@@ -238,7 +254,7 @@ import { MovementFormComponent } from './forms';
         background: var(--accent);
         color: var(--accent-contrast);
         font-style: normal;
-        font-size: 0.6rem;
+        font-size: 0.72rem;
         border-radius: 20px;
         padding: 2px 5px;
         margin-left: auto;
@@ -315,7 +331,7 @@ import { MovementFormComponent } from './forms';
       }
       .profile-copy small {
         color: var(--muted);
-        font-size: 0.64rem;
+        font-size: 0.72rem;
         margin-top: 3px;
       }
       .profile-more {

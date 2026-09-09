@@ -4,6 +4,7 @@ import {
   Component,
   ElementRef,
   EventEmitter,
+  inject,
   OnDestroy,
   Output,
   ViewChild,
@@ -11,6 +12,8 @@ import {
   input,
   signal,
 } from '@angular/core';
+import { Router } from '@angular/router';
+import { sincronizarPaginaConLaUrl } from '../core/url-state';
 import { IconComponent } from './icon';
 
 export interface TableColumn {
@@ -96,9 +99,14 @@ export interface TableColumn {
           <demo-icon name="previous" /></button
         ><label class="page-jump"
           >Página
-          <select aria-label="Ir a página" [value]="currentPage()" (change)="setPageFromEvent($event)">
+          <!--
+            La seleccion va en la opcion, no en el select: [value] sobre el select se
+            aplica antes de que las opciones existan, y al llegar desde un enlace con
+            ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
+          -->
+          <select aria-label="Ir a página" (change)="setPageFromEvent($event)">
             @for (number of pageOptions(); track number) {
-              <option [value]="number">{{ number + 1 }}</option>
+              <option [value]="number" [selected]="number === currentPage()">{{ number + 1 }}</option>
             }
           </select>
           de {{ pageCount() }} </label
@@ -286,7 +294,7 @@ export interface TableColumn {
         td::before {
           content: attr(data-label);
           color: var(--muted);
-          font-size: 0.7rem;
+          font-size: 0.72rem;
           font-weight: 650;
         }
         td.empty {
@@ -335,6 +343,13 @@ export class DataTableComponent {
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
   readonly page = signal(0);
+
+  /**
+   * Clave del parámetro donde se guarda la página. Opcional a propósito: la tabla es un
+   * componente genérico y tiene que poder montarse fuera de una ruta —en una prueba, por
+   * ejemplo—, así que sin clave o sin enrutador simplemente no sincroniza.
+   */
+  readonly urlKey = input<string | null>(null);
   private readonly selectedSize = signal<number | null>(null);
   readonly size = computed(() => Math.max(1, this.selectedSize() ?? this.pageSize()));
   readonly totalCount = computed(() => this.totalRows() ?? this.rows().length);
@@ -348,6 +363,14 @@ export class DataTableComponent {
     this.totalRows() === null ? this.rows().slice(this.currentPage() * this.size(), this.end()) : this.rows(),
   );
   readonly pageOptions = computed(() => Array.from({ length: this.pageCount() }, (_, index) => index));
+
+  constructor() {
+    // Fuera de una ruta la tabla sigue funcionando igual, sin tocar la URL. La clave se
+    // pasa como funcion: es un input de señal y aun no tiene valor en el constructor.
+    if (inject(Router, { optional: true })) {
+      sincronizarPaginaConLaUrl(() => this.urlKey(), this.page);
+    }
+  }
   setSize(event: Event): void {
     const size = Number((event.target as HTMLSelectElement).value);
     this.selectedSize.set(size);
@@ -565,7 +588,7 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
         overflow-wrap: anywhere;
       }
       .hint {
-        font-size: 0.68rem;
+        font-size: 0.72rem;
         color: var(--muted);
         white-space: nowrap;
         overflow: hidden;
