@@ -1,18 +1,19 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
-import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from './core/api-client';
 import { P } from './core/permissions';
+import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, navigation } from './core/store';
 import { MovementFormComponent } from './forms';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MovementFormComponent],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MovementFormComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (!store.user()) {
+    @if (!store.user() || enLogin()) {
       <router-outlet />
     } @else {
       <a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
@@ -20,18 +21,8 @@ import { MovementFormComponent } from './forms';
         <aside [class.mobile-open]="mobileOpen()">
           <div class="brand-row">
             <a routerLink="/dashboard" class="brand" aria-label="Finanzas, ir al inicio"
-              ><span>◈</span><b class="aside-label">Finanzas</b></a
+              ><demo-icon name="dashboard" class="brand-mark" /><b class="aside-label">Finanzas</b></a
             >
-            <button
-              class="collapse-trigger"
-              type="button"
-              (click)="collapsed.update((v) => !v)"
-              [attr.aria-label]="collapsed() ? 'Expandir menú' : 'Colapsar menú'"
-              [attr.aria-expanded]="!collapsed()"
-              aria-controls="primary-navigation"
-            >
-              {{ collapsed() ? '›' : '‹' }}
-            </button>
           </div>
           <div class="profile" [class.open]="profileOpen()">
             <button
@@ -45,7 +36,7 @@ import { MovementFormComponent } from './forms';
                 ><strong>{{ store.user()?.name }}</strong
                 ><small>Espacio personal</small></span
               >
-              <span class="profile-more aside-label" aria-hidden="true">•••</span>
+              <demo-icon name="more" class="profile-more aside-label" />
             </button>
             @if (profileOpen()) {
               <div class="profile-menu">
@@ -70,8 +61,7 @@ import { MovementFormComponent } from './forms';
                   routerLinkActive="active"
                   [attr.aria-label]="item.label"
                   (click)="mobileOpen.set(false)"
-                  ><span class="nav-icon">{{ item.icon }}</span
-                  ><span class="aside-label">{{ item.label }}</span>
+                  ><demo-icon class="nav-icon" [name]="item.icon" /><span class="aside-label">{{ item.label }}</span>
                   @if (item.path === 'notifications' && store.unread()) {
                     <i>{{ store.unread() }}</i>
                   }
@@ -86,24 +76,25 @@ import { MovementFormComponent } from './forms';
         <section class="stage">
           <header class="topbar">
             <button
-              class="mobile-menu"
-              [attr.aria-expanded]="mobileOpen()"
+              class="menu-toggle"
+              type="button"
+              [attr.aria-expanded]="menuAbierto()"
               aria-controls="primary-navigation"
-              aria-label="Abrir menú"
-              (click)="mobileOpen.set(true)"
+              [attr.aria-label]="menuAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+              (click)="alternarMenu()"
             >
-              ☰</button
-            ><span class="org">♜ Personal</span>
+              <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
+            ><span class="org"><demo-icon name="organization" /> Personal</span>
             <div class="top-actions">
-              <button aria-label="Buscar movimientos" (click)="openSearch()">⌕</button
+              <button aria-label="Buscar movimientos" (click)="openSearch()"><demo-icon name="search" /></button
               ><a routerLink="/notifications" class="bell" aria-label="Notificaciones"
-                >♢
+                ><demo-icon name="notifications" />
                 @if (store.unread()) {
                   <i>{{ store.unread() }}</i>
                 }
               </a>
               @if (caps.allows(P.movimientos.crear)) {
-                <button class="primary" (click)="store.open()">＋ Nuevo movimiento</button>
+                <button class="primary" (click)="store.open()"><demo-icon name="plus" /> Nuevo movimiento</button>
               }
             </div>
           </header>
@@ -162,24 +153,6 @@ import { MovementFormComponent } from './forms';
         min-height: 40px;
         margin: 0 2px 12px;
       }
-      .collapse-trigger {
-        margin-left: auto;
-        width: 30px;
-        height: 30px;
-        display: grid;
-        place-items: center;
-        border: 1px solid var(--line);
-        border-radius: 9px;
-        background: var(--surface);
-        color: var(--muted);
-        padding: 0;
-        font-size: 1.15rem;
-      }
-      .collapse-trigger:hover {
-        color: var(--accent);
-        border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
-        background: var(--accent-soft);
-      }
       .brand span {
         color: var(--accent);
         font-size: 1.5rem;
@@ -221,9 +194,6 @@ import { MovementFormComponent } from './forms';
         flex-direction: column;
         gap: 6px;
         margin-bottom: 10px;
-      }
-      .collapsed .collapse-trigger {
-        margin-left: 0;
       }
       .collapsed nav a {
         justify-content: center;
@@ -274,9 +244,41 @@ import { MovementFormComponent } from './forms';
         margin-left: auto;
       }
       .nav-icon {
-        font-size: 1rem;
-        min-width: 19px;
-        text-align: center;
+        --icon-size: 19px;
+        color: var(--muted);
+      }
+      nav a[aria-current='page'] .nav-icon,
+      nav a:hover .nav-icon {
+        color: inherit;
+      }
+      .brand-mark {
+        --icon-size: 22px;
+        color: var(--accent);
+      }
+      .org demo-icon,
+      .menu-toggle demo-icon,
+      .top-actions demo-icon {
+        --icon-size: 18px;
+      }
+      .org {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .top-actions .primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .menu-toggle,
+      .top-actions button,
+      .bell {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .profile-more {
+        --icon-size: 16px;
       }
       .profile {
         position: relative;
@@ -400,7 +402,7 @@ import { MovementFormComponent } from './forms';
       }
       .top-actions button,
       .bell,
-      .mobile-menu {
+      .menu-toggle {
         border: 1px solid var(--line);
         background: var(--surface);
         color: var(--text);
@@ -408,6 +410,19 @@ import { MovementFormComponent } from './forms';
         padding: 8px 11px;
         border-radius: 9px;
         text-decoration: none;
+      }
+      /*
+       * El mínimo táctil de 44px vive en styles.css, pero como regla sobre \`button\` la
+       * vence cualquier selector de componente por especificidad. Se repite aquí con el
+       * mismo alcance para que no se pierda en el dedo del usuario.
+       */
+      @media (pointer: coarse) {
+        .menu-toggle,
+        .top-actions button,
+        .top-actions .primary,
+        .bell {
+          min-height: 44px;
+        }
       }
       .top-actions .primary {
         background: var(--accent);
@@ -423,8 +438,8 @@ import { MovementFormComponent } from './forms';
         right: -5px;
         top: -6px;
       }
-      .mobile-menu {
-        display: none;
+      .menu-toggle {
+        margin-right: 10px;
       }
       main {
         min-width: 0;
@@ -478,10 +493,7 @@ import { MovementFormComponent } from './forms';
           background: #001c1788;
           z-index: 19;
         }
-        .mobile-menu {
-          display: block;
-          margin-right: 10px;
-        }
+
         .topbar {
           padding: 0 14px;
         }
@@ -510,6 +522,62 @@ export class AppComponent {
   private router = inject(Router);
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
+
+  /**
+   * El menú se abre y se cierra con un solo control, el de la barra superior.
+   *
+   * Antes eran dos botones separados con dos significados: el «☰» solo abría —cerrar
+   * exigía tocar el velo— y dentro del panel había otro que colapsaba. Ahora hay uno, y
+   * el ancho decide qué es «abrir»: en pantalla estrecha el panel se superpone, en ancha
+   * se contrae a su carril de iconos.
+   */
+  /**
+   * `matchMedia` puede no existir: no basta con comprobar que hay `window`. Falta en
+   * renderizado de servidor, en algunos entornos de prueba y en webviews viejas. Sin
+   * esta comprobación el armazón entero reventaba al construirse.
+   */
+  private readonly consultaEstrecha =
+    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 780px)')
+      : null;
+  private readonly estrecha = signal(this.consultaEstrecha?.matches ?? false);
+  readonly menuAbierto = computed(() => (this.estrecha() ? this.mobileOpen() : !this.collapsed()));
+
+  constructor() {
+    this.router.events.subscribe((evento) => {
+      if (evento instanceof NavigationEnd)
+        this.enLogin.set(evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '').endsWith('/login'));
+    });
+    this.consultaEstrecha?.addEventListener('change', (evento) => {
+      this.estrecha.set(evento.matches);
+      // Al pasar a pantalla ancha el panel vuelve a su sitio: dejar abierta la
+      // superposición mostraría el velo sobre un menú que ya no lo necesita.
+      if (!evento.matches) this.mobileOpen.set(false);
+    });
+  }
+
+  alternarMenu(): void {
+    if (this.estrecha()) this.mobileOpen.update((v) => !v);
+    else this.collapsed.update((v) => !v);
+  }
+
+  /**
+   * Si la ruta activa es la de entrada. El armazón se decidía solo con `store.user()`, y
+   * eso pintaba el login dentro del layout: al recargar contra la API la sesión tarda,
+   * el guard te manda a `/login` mientras no hay usuario, y cuando la sesión resuelve el
+   * armazón aparece alrededor de una pantalla de entrada que ya no hace falta.
+   */
+  readonly enLogin = signal(false);
+
+  /**
+   * A dónde ir tras entrar. No a `/dashboard` a ciegas: quien no tenga `dashboard.ver`
+   * sería devuelto por el guard a esa misma ruta. Se va a la primera que sí tenga.
+   */
+  private readonly primeraRutaPermitida = computed(() => this.allowed()[0]?.path ?? 'dashboard');
+
+  private readonly salirDeLaEntrada = effect(() => {
+    if (this.store.user() && this.enLogin()) void this.router.navigateByUrl('/' + this.primeraRutaPermitida());
+  });
   readonly profileOpen = signal(false);
   readonly allowed = computed(() => navigation.filter((n) => this.caps.allows(n.capability)));
   readonly groups = computed(() => [...new Set(this.allowed().map((n) => n.group))]);
