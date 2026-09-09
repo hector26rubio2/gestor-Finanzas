@@ -26,6 +26,22 @@ export class RemoteBootstrap {
   private readonly router = inject(Router);
   private sessionSignature: string | null = null;
 
+  /**
+   * Canal en vivo abierto, si lo hay. Se guarda para poder cerrarlo: al cerrar sesion
+   * seguia conectado y reintentando contra un endpoint que ya devolvia 401.
+   */
+  private canal: EventSource | null = null;
+
+  /**
+   * Si la sesion se cerro a proposito.
+   *
+   * El sondeo y el canal seguian vivos despues de cerrar sesion, y ninguno sabia que la
+   * persona se habia ido: bastaba con que la siguiente lectura de la sesion devolviera
+   * algo —una cookie que todavia no habia caducado, una peticion en vuelo— para volver a
+   * entrar solo. Cerrar sesion tiene que ganarle a cualquier ciclo en marcha.
+   */
+  private cerradaAProposito = false;
+
   async start(): Promise<void> {
     this.store.restoreDemoSession();
     await this.initialize();
@@ -40,6 +56,7 @@ export class RemoteBootstrap {
 
   async initialize(): Promise<void> {
     if (this.store.runtime.mode !== 'api') return;
+    this.cerradaAProposito = false;
     this.store.remoteState.set('loading');
     try {
       const session = await firstValueFrom(this.api.session());
@@ -117,6 +134,8 @@ export class RemoteBootstrap {
       this.store.featureFlagsLoaded.set(true);
       this.store.categories.set(result.categories);
       this.store.remoteState.set('ready');
+      // Tras volver a entrar, el canal se reabre: al cerrar sesion se cerro a proposito.
+      this.escucharCambiosDeAcceso();
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) {
         this.store.remoteError.set('');
@@ -144,13 +163,17 @@ export class RemoteBootstrap {
    */
   private escucharCambiosDeAcceso(): void {
     if (this.store.runtime.mode !== 'api' || typeof EventSource === 'undefined') return;
+    if (this.canal) return;
     try {
-      const fuente = new EventSource(`${this.store.runtime.apiBaseUrl}/api/v1/events`, {
+      this.canal = new EventSource(`${this.store.runtime.apiBaseUrl}/api/v1/events`, {
         withCredentials: true,
       });
-      fuente.addEventListener('permisos', () => void this.initialize());
+      this.canal.addEventListener('permisos', () => {
+        if (!this.cerradaAProposito) void this.initialize();
+      });
     } catch {
       // Si el canal no se puede abrir, queda el sondeo.
+      this.canal = null;
     }
   }
 
@@ -167,6 +190,12 @@ export class RemoteBootstrap {
    * caduca por su cuenta.
    */
   async cerrarSesion(): Promise<void> {
+    // Antes que nada: corta los ciclos que podrian volver a entrar mientras se cierra.
+    this.cerradaAProposito = true;
+    this.sessionSignature = null;
+    this.canal?.close();
+    this.canal = null;
+
     if (this.store.runtime.mode === 'api') {
       try {
         await firstValueFrom(this.api.logout());
@@ -174,6 +203,7 @@ export class RemoteBootstrap {
         /* la sesion local se cierra igual; el servidor la caducara */
       }
     }
+    this.store.remoteState.set('anonymous');
     this.store.forgetDemoSession();
     this.store.user.set(null);
     this.store.form.set(null);
@@ -182,6 +212,7 @@ export class RemoteBootstrap {
   }
 
   async pollSession(): Promise<void> {
+    if (this.cerradaAProposito) return;
     if (this.store.runtime.mode !== 'api' || this.store.remoteState() === 'loading') return;
     try {
       const session = await firstValueFrom(this.api.session());

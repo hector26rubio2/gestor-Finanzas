@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
   ApiAdminFeatureFlag,
+  ApiAdminOverride,
   ApiAdminRole,
   ApiAdminUser,
   ApiAuditEvent,
@@ -367,6 +368,29 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                     [checked]="userHasRole(user, role.id)"
                     (change)="toggleUserRole(user, role.id)"
                 /></label>
+              }
+            </section>
+          }
+          @if (anulacionesDe(user).length) {
+            <section class="excepciones">
+              <h3>Excepciones directas</h3>
+              <p class="hint">
+                Mandan sobre los roles. Mientras estén puestas, cambiar el rol no altera lo que esta persona ve.
+              </p>
+              @for (anulacion of anulacionesDe(user); track anulacion.code) {
+                <div class="excepcion">
+                  <span>
+                    <b>{{ anulacion.isAllowed ? 'Forzado a sí' : 'Forzado a no' }} · {{ anulacion.code }}</b>
+                    <small>
+                      @if (anulacion.affects.length > 1) {
+                        Alcanza a {{ anulacion.affects.length }} acciones
+                      } @else {
+                        Una acción
+                      }
+                    </small>
+                  </span>
+                  <button class="quiet" (click)="quitarExcepcion(user, anulacion)">Quitar excepción</button>
+                </div>
               }
             </section>
           }
@@ -1041,6 +1065,35 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       .cap-group h4 {
         margin: 14px 0 5px;
       }
+      /*
+       * Las excepciones se ven antes que los permisos y con su propio color: son la
+       * razon por la que editar un rol puede no cambiar nada, y estaban invisibles.
+       */
+      .excepciones {
+        border: 1px solid color-mix(in srgb, var(--warning) 45%, var(--line));
+        background: color-mix(in srgb, var(--warning) 8%, transparent);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 18px;
+      }
+      .excepciones h3 {
+        margin: 0 0 4px;
+      }
+      .excepcion {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 10px 0;
+        border-top: 1px solid color-mix(in srgb, var(--warning) 30%, var(--line));
+      }
+      .excepcion span {
+        display: grid;
+        min-width: 0;
+      }
+      .excepcion small {
+        color: var(--muted);
+      }
       .cap-group-head {
         display: flex;
         align-items: baseline;
@@ -1406,6 +1459,26 @@ export class AdminComponent implements OnInit {
   recursosDe(role: ApiAdminRole): readonly string[] {
     return [...new Set((role.permissions ?? []).map((codigo) => codigo.split('.')[0]))].sort();
   }
+  anulacionesDe(u: ApiAdminUser): readonly ApiAdminOverride[] {
+    return u.memberships?.flatMap((m) => m.overrides ?? []) ?? [];
+  }
+
+  /**
+   * Devuelve un permiso a lo que digan los roles.
+   *
+   * Sin esto, una excepción puesta con el vocabulario viejo —una sola, con el nombre de
+   * una capacidad— retiraba de golpe sus veintiséis acciones y no había forma de
+   * deshacerla desde la consola: se editaba el rol, se recargaba, y seguía sin aparecer.
+   */
+  quitarExcepcion(u: ApiAdminUser, anulacion: ApiAdminOverride) {
+    const organizationId = this.userOrganizationId(u);
+    if (!organizationId) return;
+    firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, anulacion.code, null))
+      .then(() => this.refrescarAccesos())
+      .then(() => this.recargarUsuarios())
+      .catch(() => this.store.toast.set('No fue posible quitar la excepción.'));
+  }
+
   /** Permisos vigentes de la persona, tal como los resolvio el servidor. */
   private permisosDe(u: ApiAdminUser): readonly string[] {
     return u.memberships?.flatMap((m) => m.effectivePermissions ?? []) ?? [];

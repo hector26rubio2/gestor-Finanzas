@@ -389,6 +389,8 @@ export interface ApiAdminUser {
     effectiveCapabilities: readonly string[];
     /** Lo que la persona puede hacer ahora, accion por accion. */
     effectivePermissions?: readonly string[];
+    /** Excepciones directas: mandan sobre lo que digan los roles. */
+    overrides?: readonly ApiAdminOverride[];
     roles: readonly ApiAdminRole[];
   }[];
 }
@@ -429,6 +431,13 @@ export const ApiPermissionLevel: Readonly<Record<number, string>> = {
   2: 'avanzado',
   3: 'premium',
 };
+
+/** Una excepcion directa sobre una persona. */
+export interface ApiAdminOverride {
+  code: string;
+  isAllowed: boolean;
+  affects: readonly string[];
+}
 
 export interface ApiCapabilityDescriptor {
   key: string;
