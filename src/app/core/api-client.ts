@@ -387,6 +387,8 @@ export interface ApiAdminUser {
     organizationName: string;
     status: string;
     effectiveCapabilities: readonly string[];
+    /** Lo que la persona puede hacer ahora, accion por accion. */
+    effectivePermissions?: readonly string[];
     roles: readonly ApiAdminRole[];
   }[];
 }

@@ -195,13 +195,19 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                   }
                 </header>
                 <p>{{ role.description || 'Sin descripción.' }}</p>
+                <!--
+                  Los recursos que toca el rol y cuantas acciones concede. Antes mostraba
+                  nombres de capacidades, que es el vocabulario que la aplicacion ya no
+                  usa: la ficha decia una cosa y el editor del mismo rol, otra.
+                -->
                 <div class="chips">
-                  @for (cap of role.capabilities.slice(0, 4); track cap) {
-                    <span>{{ capabilityLabel(cap) }}</span>
+                  @for (recurso of recursosDe(role).slice(0, 4); track recurso) {
+                    <span>{{ recurso }}</span>
                   }
-                  @if (role.capabilities.length > 4) {
-                    <span>+{{ role.capabilities.length - 4 }}</span>
+                  @if (recursosDe(role).length > 4) {
+                    <span>+{{ recursosDe(role).length - 4 }}</span>
                   }
+                  <span class="chip-cuenta">{{ role.permissions.length }} acciones</span>
                 </div>
               </article>
             }
@@ -364,20 +370,30 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
               }
             </section>
           }
-          <h3>Capacidades efectivas</h3>
-          <p class="hint">Los cambios directos prevalecen sobre los roles asignados.</p>
-          @for (group of capabilityGroups(); track group.name) {
+          <h3>Permisos efectivos</h3>
+          <p class="hint">
+            Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre
+            lo que digan sus roles.
+          </p>
+          @for (group of permissionGroups(); track group.name) {
             <section class="cap-group">
-              <h4>{{ group.name }}</h4>
-              @for (cap of group.items; track cap.key) {
+              <header class="cap-group-head">
+                <h4>{{ group.name }}</h4>
+                <div class="cap-bulk">
+                  <span>{{ concedidosEn(user, group.items) }} de {{ group.items.length }}</span>
+                </div>
+              </header>
+              @for (permiso of group.items; track permiso.code) {
                 <label
                   ><span
-                    ><b>{{ cap.description }}</b
-                    ><small>{{ cap.key }}</small></span
+                    ><b>{{ permiso.description }}</b>
+                    <small
+                      ><em class="cap-action">{{ accionDe(permiso) }}</em> · {{ permiso.code }}</small
+                    ></span
                   ><input
                     type="checkbox"
-                    [checked]="hasCapability(user, cap.key)"
-                    (change)="toggleUserCapability(user, cap.key)"
+                    [checked]="tienePermiso(user, permiso.code)"
+                    (change)="toggleUserCapability(user, permiso.code)"
                 /></label>
               }
             </section>
@@ -1222,15 +1238,6 @@ export class AdminComponent implements OnInit {
 
   /** La consola era todo o nada: quien entraba veía y podía las seis pestañas. */
   readonly tabs = computed(() => this.allTabs.filter((item) => this.caps.allows(item.capability)));
-  readonly capabilityGroups = computed(() => {
-    const groups = new Map<string, ApiCapabilityDescriptor[]>();
-    for (const descriptor of this.capabilityCatalog()) {
-      const items = groups.get(descriptor.module) ?? [];
-      items.push(descriptor);
-      groups.set(descriptor.module, items);
-    }
-    return [...groups.entries()].map(([module, items]) => ({ name: module, items }));
-  });
   readonly capabilityCount = computed(() => this.capabilityCatalog().length);
 
   /** Catálogo granular, agrupado por recurso: es como se lee y como se concede. */
@@ -1395,11 +1402,20 @@ export class AdminComponent implements OnInit {
   actor(id: string | null) {
     return this.users().find((x) => x.id === id)?.displayName ?? 'Sistema';
   }
-  capabilityLabel(key: string) {
-    return this.capabilityCatalog().find((x) => x.key === key)?.description ?? key;
+  /** Recursos que toca un rol, para resumirlo sin repetir los ciento doce codigos. */
+  recursosDe(role: ApiAdminRole): readonly string[] {
+    return [...new Set((role.permissions ?? []).map((codigo) => codigo.split('.')[0]))].sort();
   }
-  hasCapability(u: ApiAdminUser, key: string) {
-    return u.capabilities.includes(key);
+  /** Permisos vigentes de la persona, tal como los resolvio el servidor. */
+  private permisosDe(u: ApiAdminUser): readonly string[] {
+    return u.memberships?.flatMap((m) => m.effectivePermissions ?? []) ?? [];
+  }
+  tienePermiso(u: ApiAdminUser, code: string): boolean {
+    return this.permisosDe(u).includes(code);
+  }
+  concedidosEn(u: ApiAdminUser, items: readonly ApiPermissionDescriptor[]): number {
+    const concedidos = this.permisosDe(u);
+    return items.filter((permiso) => concedidos.includes(permiso.code)).length;
   }
   errorLabel(s: ApiClientError['status']) {
     return s === 'new' ? 'Nuevo' : s === 'investigating' ? 'En análisis' : 'Resuelto';
@@ -1451,16 +1467,56 @@ export class AdminComponent implements OnInit {
       this.store.toast.set('No fue posible asignar el rol.');
     }
   }
-  toggleUserCapability(u: ApiAdminUser, key: string) {
-    const capabilities = u.capabilities.includes(key)
-      ? u.capabilities.filter((x) => x !== key)
-      : [...u.capabilities, key];
-    this.patchUser({ ...u, capabilities });
+  /**
+   * Concede o retira un permiso concreto a una persona, como excepción directa.
+   *
+   * Recibe un código del catálogo, el mismo que edita el rol. Antes recibía el nombre de
+   * una de las catorce capacidades, así que la ficha de un usuario y el editor de su rol
+   * hablaban idiomas distintos y mostraban cosas que no cuadraban.
+   */
+  toggleUserCapability(u: ApiAdminUser, code: string) {
+    const concedido = this.tienePermiso(u, code);
     const organizationId = this.userOrganizationId(u);
-    if (organizationId)
-      firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, key, capabilities.includes(key)))
-        .then(() => this.refrescarAccesos())
-        .catch(() => this.store.toast.set('No fue posible aplicar el cambio de permiso.'));
+    if (!organizationId) return;
+
+    // Se pinta el cambio antes de confirmarlo y se corrige al releer la sesion.
+    this.patchUser({
+      ...u,
+      memberships: u.memberships?.map((m) =>
+        m.organizationId === organizationId
+          ? {
+              ...m,
+              effectivePermissions: concedido
+                ? (m.effectivePermissions ?? []).filter((x) => x !== code)
+                : [...(m.effectivePermissions ?? []), code],
+            }
+          : m,
+      ),
+    });
+
+    firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, code, !concedido))
+      .then(() => this.refrescarAccesos())
+      .then(() => this.recargarUsuarios())
+      .catch(() => this.store.toast.set('No fue posible aplicar el cambio de permiso.'));
+  }
+
+  /** Vuelve a pedir la lista para que lo mostrado sea lo que resolvio el servidor. */
+  private async recargarUsuarios(): Promise<void> {
+    if (!this.caps.allows(P.administracion.usuarios.listar)) return;
+    try {
+      const pagina = await firstValueFrom(this.api.adminUsers());
+      this.users.set(
+        pagina.items.map((user) => ({
+          ...user,
+          roles: user.roles ?? user.memberships?.flatMap((m) => m.roles.map((role) => role.name)) ?? [],
+          capabilities: user.capabilities ?? user.memberships?.flatMap((m) => m.effectiveCapabilities) ?? [],
+        })),
+      );
+      const abierto = this.selectedUser();
+      if (abierto) this.selectedUser.set(this.users().find((x) => x.id === abierto.id) ?? null);
+    } catch {
+      /* se queda lo pintado; el proximo refresco lo corrige */
+    }
   }
   private patchUser(u: ApiAdminUser) {
     this.users.update((xs) => xs.map((x) => (x.id === u.id ? u : x)));
