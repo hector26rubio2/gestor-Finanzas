@@ -1,8 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { firstValueFrom } from 'rxjs';
-import { FinanceApiClient } from './core/api-client';
 import { P } from './core/permissions';
+import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, navigation } from './core/store';
 import { MovementFormComponent } from './forms';
@@ -13,7 +12,14 @@ import { MovementFormComponent } from './forms';
   imports: [RouterOutlet, RouterLink, RouterLinkActive, MovementFormComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (!store.user() || enLogin()) {
+    @if (cargandoSesion()) {
+      <div class="cargando" role="status" aria-live="polite">
+        <demo-icon name="dashboard" class="cargando-marca" />
+        <b>Finanzas</b>
+        <p>Cargando tu informacion…</p>
+        <span class="cargando-barra"><i></i></span>
+      </div>
+    } @else if (!store.user() || enLogin()) {
       <router-outlet />
     } @else {
       <a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
@@ -130,6 +136,61 @@ import { MovementFormComponent } from './forms';
       }
       .app {
         animation: entrada-del-armazon 0.26s ease-out both;
+      }
+      .cargando {
+        min-height: 100dvh;
+        display: grid;
+        align-content: center;
+        justify-items: center;
+        gap: 10px;
+        background: var(--bg);
+        color: var(--text);
+        padding: 24px;
+      }
+      .cargando-marca {
+        --icon-size: 34px;
+        color: var(--accent);
+      }
+      .cargando b {
+        font: 700 1.3rem/1.1 var(--display);
+        letter-spacing: -0.02em;
+      }
+      .cargando p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.86rem;
+      }
+      /* Una linea que se traza: indeterminada, porque no sabemos cuanto falta. */
+      .cargando-barra {
+        margin-top: 8px;
+        width: min(220px, 60vw);
+        height: 2px;
+        border-radius: 2px;
+        background: var(--line);
+        overflow: hidden;
+      }
+      .cargando-barra i {
+        display: block;
+        width: 40%;
+        height: 100%;
+        border-radius: 2px;
+        background: var(--accent);
+        animation: recorrido-de-carga 1.1s ease-in-out infinite;
+      }
+      @keyframes recorrido-de-carga {
+        from {
+          transform: translateX(-100%);
+        }
+        to {
+          transform: translateX(350%);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .cargando-barra i {
+          animation: none;
+          width: 100%;
+          opacity: 0.55;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
         .app {
@@ -553,8 +614,8 @@ export class AppComponent {
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
   readonly P = P;
-  private readonly api = inject(FinanceApiClient);
   private router = inject(Router);
+  private readonly arranque = inject(RemoteBootstrap);
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
 
@@ -605,6 +666,20 @@ export class AppComponent {
   readonly enLogin = signal(false);
 
   /**
+   * Mientras el servidor resuelve la sesion y trae los datos.
+   *
+   * Al volver de Google la aplicacion aterrizaba sin usuario todavia, el guard la mandaba
+   * a la pantalla de acceso, y se pintaba entera —con su panel de portada y sus
+   * selectores— solo para desaparecer un instante despues. Con una instancia fria del
+   * servidor eso son segundos de una pantalla que no corresponde, y luego un salto al
+   * dashboard.
+   *
+   * `remoteState` pasa a «ready» cuando ya estan cargados movimientos, cuentas, personas,
+   * preferencias y banderas, asi que esta ventana cubre justo lo que hay que esperar.
+   */
+  readonly cargandoSesion = computed(() => this.store.runtime.mode === 'api' && this.store.remoteState() === 'loading');
+
+  /**
    * A dónde ir tras entrar. No a `/dashboard` a ciegas: quien no tenga `dashboard.ver`
    * sería devuelto por el guard a esa misma ruta. Se va a la primera que sí tenga.
    */
@@ -636,20 +711,7 @@ export class AppComponent {
     this.profileOpen.set(false);
   }
   async logout(): Promise<void> {
-    // Antes solo limpiaba senales locales y dejaba viva la sesion del servidor:
-    // quien cerraba sesion desde el menu de perfil seguia autenticado.
-    if (this.store.runtime.mode === 'api') {
-      try {
-        await firstValueFrom(this.api.logout());
-      } catch {
-        /* la sesion local se cierra igual; el servidor la caducara */
-      }
-    }
-    this.store.forgetDemoSession();
-    this.store.user.set(null);
-    this.store.form.set(null);
-    this.store.inspector.set(null);
     this.profileOpen.set(false);
-    await this.router.navigateByUrl('/login');
+    await this.arranque.cerrarSesion();
   }
 }

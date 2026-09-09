@@ -15,6 +15,7 @@ import {
   FinanceApiClient,
 } from '../core/api-client';
 import { P } from '../core/permissions';
+import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../core/store';
 
 type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
@@ -1173,7 +1174,24 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 export class AdminComponent implements OnInit {
   readonly store = inject(DemoStore);
   private api = inject(FinanceApiClient);
+  private readonly arranque = inject(RemoteBootstrap);
   readonly caps = inject(CAPABILITIES);
+
+  /**
+   * Vuelve a leer la sesion en cuanto se toca algo que cambia accesos.
+   *
+   * El sondeo normal corre cada minuto y al volver el foco a la ventana. Quien acaba de
+   * quitar un permiso desde esta consola no hace ninguna de las dos cosas: se queda
+   * mirando la misma pestana, y durante hasta un minuto seguia viendo la entrada de menu
+   * que acababa de retirar. El servidor ya rechazaba la peticion —la revalidacion de la
+   * cookie recalcula los permisos en cada llamada—, pero la pantalla mentia.
+   *
+   * Solo importa si el cambio afecta a quien lo hace; si no, no cambia nada y no molesta.
+   */
+  private async refrescarAccesos(): Promise<void> {
+    if (this.store.runtime.mode !== 'api') return;
+    await this.arranque.pollSession();
+  }
   readonly P = P;
   readonly tab = signal<Tab>('summary');
   readonly users = signal<ApiAdminUser[]>([]);
@@ -1422,6 +1440,7 @@ export class AdminComponent implements OnInit {
     const roleIds = this.userHasRole(user, roleId) ? current.filter((x) => x !== roleId) : [...current, roleId];
     try {
       await firstValueFrom(this.api.assignAdminUserRoles(user.id, organizationId, roleIds));
+      await this.refrescarAccesos();
       const roles = this.roles().filter((r) => roleIds.includes(r.id));
       this.patchUser({
         ...user,
@@ -1439,9 +1458,9 @@ export class AdminComponent implements OnInit {
     this.patchUser({ ...u, capabilities });
     const organizationId = this.userOrganizationId(u);
     if (organizationId)
-      firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, key, capabilities.includes(key))).catch(() =>
-        this.store.toast.set('No fue posible aplicar el cambio de permiso.'),
-      );
+      firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, key, capabilities.includes(key)))
+        .then(() => this.refrescarAccesos())
+        .catch(() => this.store.toast.set('No fue posible aplicar el cambio de permiso.'));
   }
   private patchUser(u: ApiAdminUser) {
     this.users.update((xs) => xs.map((x) => (x.id === u.id ? u : x)));
@@ -1500,6 +1519,7 @@ export class AdminComponent implements OnInit {
       );
       this.roles.update((xs) => (r.id ? xs.map((x) => (x.id === saved.id ? saved : x)) : [...xs, saved]));
       this.roleDraft.set(null);
+      await this.refrescarAccesos();
     } catch (error) {
       // El servidor dice qué código sobra; callarlo dejaba un «no fue posible» sin pista.
       const motivo = error instanceof Error ? error.message : '';
