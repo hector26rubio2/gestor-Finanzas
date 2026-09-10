@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { applyTheme, DemoStore, Preferences } from '../core/store';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
+import { IconComponent } from '../ui/icon';
 @Component({
   standalone: true,
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<main class="login">
     <section class="story">
-      <b>◈ Finanzas</b>
+      <b><demo-icon name="dashboard" /> Finanzas</b>
       <div>
         <h1>Tu dinero, explicado con claridad.</h1>
         <p>Organiza, comprende y proyecta tus finanzas desde un solo lugar.</p>
@@ -16,7 +18,7 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
     </section>
     <section class="access">
       <div class="login-card">
-        <span class="mark">◈</span>
+        <demo-icon name="dashboard" class="mark" />
         <h2>Bienvenido</h2>
         @if (store.runtime.mode === 'demo') {
           <p>Selecciona el espacio con el que deseas continuar.</p>

@@ -30,62 +30,79 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         </button>
       }
     </header>
-    <section class="filter-panel" aria-labelledby="filters-title">
-      <header>
-        <div>
-          <h2 id="filters-title">Vista general</h2>
-        </div>
-        <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">Limpiar filtros</button>
-      </header>
-      <div class="filters">
-        <fieldset>
-          <legend>Periodo</legend>
-          @for (item of scales; track item.value) {
-            <button
-              type="button"
-              [class.active]="scale() === item.value"
-              [attr.aria-pressed]="scale() === item.value"
-              (click)="scale.set(item.value)"
-            >
-              {{ item.label }}
-            </button>
-          }
-        </fieldset>
-        <div class="period-nav" aria-label="Navegar periodo">
-          <span>Periodo activo</span>
+    @if (!caps.allows(P.dashboard.listar)) {
+      <!--
+        Un permiso «ver» sin «listar» deja la pantalla sin cifras, sin widgets y sin
+        tabla. Antes se pintaba igual el panel de filtros entero —periodo, cuenta,
+        categoria, «limpiar filtros»— filtrando algo que no existia, y nada decia por
+        que no habia nada. Una pantalla vacia sin explicacion se lee como averiada.
+      -->
+      <section class="sin-acceso" role="status">
+        <h2>Tu acceso no incluye el contenido de esta pantalla</h2>
+        <p>
+          Puedes entrar al panel, pero no recibir sus datos. Si necesitas ver las cifras, pídele a quien administra tu
+          espacio el permiso <code>dashboard.listar</code>.
+        </p>
+      </section>
+    }
+    @if (caps.allows(P.dashboard.listar)) {
+      <section class="filter-panel" aria-labelledby="filters-title">
+        <header>
           <div>
-            <button type="button" aria-label="Periodo anterior" (click)="shiftPeriod(-1)">‹</button
-            ><b>{{ periodShortLabel() }}</b
-            ><button type="button" aria-label="Periodo siguiente" (click)="shiftPeriod(1)">›</button>
+            <h2 id="filters-title">Vista general</h2>
           </div>
+          <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">Limpiar filtros</button>
+        </header>
+        <div class="filters">
+          <fieldset>
+            <legend>Periodo</legend>
+            @for (item of scales; track item.value) {
+              <button
+                type="button"
+                [class.active]="scale() === item.value"
+                [attr.aria-pressed]="scale() === item.value"
+                (click)="scale.set(item.value)"
+              >
+                {{ item.label }}
+              </button>
+            }
+          </fieldset>
+          <div class="period-nav" aria-label="Navegar periodo">
+            <span>Periodo activo</span>
+            <div>
+              <button type="button" aria-label="Periodo anterior" (click)="shiftPeriod(-1)">‹</button
+              ><b>{{ periodShortLabel() }}</b
+              ><button type="button" aria-label="Periodo siguiente" (click)="shiftPeriod(1)">›</button>
+            </div>
+          </div>
+          <label
+            >Cuenta<select [ngModel]="accountId()" (ngModelChange)="accountId.set($event)">
+              <option value="all">Todas las cuentas</option>
+              @for (account of accountOptions(); track account.id) {
+                <option [value]="account.id">{{ account.name }}</option>
+              }
+            </select></label
+          >
+          <label
+            >Tipo de cuenta o tarjeta<select [ngModel]="accountType()" (ngModelChange)="changeAccountType($event)">
+              <option value="all">Todos los tipos</option>
+              <option value="credit">Tarjetas de crédito</option>
+              <option value="savings">Cuentas de ahorro</option>
+              <option value="cash">Efectivo</option>
+            </select></label
+          >
+          <label
+            >Categoría global<select [ngModel]="globalCategory()" (ngModelChange)="globalCategory.set($event)">
+              <option value="all">Todas las categorías</option>
+              @for (category of allCategories(); track category) {
+                <option [value]="category">{{ category }}</option>
+              }
+            </select></label
+          >
         </div>
-        <label
-          >Cuenta<select [ngModel]="accountId()" (ngModelChange)="accountId.set($event)">
-            <option value="all">Todas las cuentas</option>
-            @for (account of accountOptions(); track account.id) {
-              <option [value]="account.id">{{ account.name }}</option>
-            }
-          </select></label
-        >
-        <label
-          >Tipo de cuenta o tarjeta<select [ngModel]="accountType()" (ngModelChange)="changeAccountType($event)">
-            <option value="all">Todos los tipos</option>
-            <option value="credit">Tarjetas de crédito</option>
-            <option value="savings">Cuentas de ahorro</option>
-            <option value="cash">Efectivo</option>
-          </select></label
-        >
-        <label
-          >Categoría global<select [ngModel]="globalCategory()" (ngModelChange)="globalCategory.set($event)">
-            <option value="all">Todas las categorías</option>
-            @for (category of allCategories(); track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select></label
-        >
-      </div>
-      <p class="summary" role="status">{{ periodLabel() }} · {{ movements().length }} movimientos</p>
-    </section>
+        <p class="summary" role="status">{{ periodLabel() }} · {{ movements().length }} movimientos</p>
+      </section>
+    }
     @if (algunKpi()) {
       <section class="kpis" aria-label="Indicadores filtrados">
         @if (caps.allows(P.dashboard.kpi.balance)) {
@@ -337,7 +354,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         }
         @if (caps.allows(P.dashboard.widget.deshabilitar)) {
           @for (widget of hidden(); track widget.id) {
-            <button type="button" (click)="show(widget.id)">＋ {{ widget.title }}</button>
+            <button type="button" (click)="show(widget.id)"><demo-icon name="plus" /> {{ widget.title }}</button>
           } @empty {
             <span>Todos visibles</span>
           }
@@ -414,6 +431,29 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         min-width: 0;
         margin: auto;
         overflow-x: clip;
+      }
+      .sin-acceso {
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        background: var(--surface);
+        padding: 28px;
+        display: grid;
+        gap: 8px;
+        justify-items: start;
+      }
+      .sin-acceso h2 {
+        margin: 0;
+        font-size: 1.05rem;
+      }
+      .sin-acceso p {
+        margin: 0;
+        color: var(--muted);
+        max-width: 60ch;
+      }
+      .sin-acceso code {
+        background: var(--accent-soft);
+        border-radius: 5px;
+        padding: 1px 6px;
       }
       .hero,
       .filter-panel > header,
