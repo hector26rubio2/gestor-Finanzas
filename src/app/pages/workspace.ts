@@ -3596,7 +3596,9 @@ export class WorkspaceComponent implements AfterViewInit {
     void this.loadMovementPage(1);
   }
   async loadMovementPage(page: number): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return;
+    // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
+    // fallo al cargar la pagina, que no es lo que pasa.
+    if (this.store.runtime.mode !== 'api' || !this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
     try {
       const period = this.store.period();
@@ -3626,20 +3628,37 @@ export class WorkspaceComponent implements AfterViewInit {
     this.store.remoteMovementSize.set(size);
     void this.loadMovementPage(1);
   }
+  /**
+   * Dos peticiones distintas, con dos permisos distintos y sin dependencia entre ellas.
+   *
+   * Iban en un `Promise.all` sin comprobar nada, asi que a quien tuviera el calendario y
+   * no las recurrencias le fallaba la de recurrencias con un 403, se rechazaba la
+   * promesa entera y se perdian tambien las proyecciones, que si podia ver. El aviso
+   * decia «no se pudo cargar el calendario proyectado» y el permiso concedido parecia no
+   * servir. Cada una se pide si su permiso esta concedido, y si una falla la otra queda.
+   */
   async loadCalendarProjection() {
     if (this.store.runtime.mode !== 'api') return;
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
-    try {
-      const [projected, recurrences] = await Promise.all([
-        firstValueFrom(this.api.projectedCalendar(start, end)),
-        firstValueFrom(this.api.recurrences()),
-      ]);
-      this.projectedOccurrences.set(projected);
-      this.recurrences.set(recurrences);
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar el calendario proyectado.');
+    const fallos: string[] = [];
+
+    if (this.can(P.calendario.ver)) {
+      try {
+        this.projectedOccurrences.set(await firstValueFrom(this.api.projectedCalendar(start, end)));
+      } catch {
+        fallos.push('las proyecciones');
+      }
     }
+    if (this.can(P.calendario.recurrencias.listar)) {
+      try {
+        this.recurrences.set(await firstValueFrom(this.api.recurrences()));
+      } catch {
+        fallos.push('las recurrencias');
+      }
+    }
+
+    if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
   }
   async materialize(item: ApiProjectedOccurrence) {
     if (this.store.runtime.mode !== 'api') return this.store.log('Ocurrencia confirmada y registrada');

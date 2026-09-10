@@ -18,7 +18,6 @@ const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'organizacion.banderas.editar': 'Igual que la anterior.',
   'personas.compras.listar': 'El endpoint existe y ninguna vista lo consume.',
   'personas.liquidaciones.listar': 'El endpoint existe y ninguna vista lo consume.',
-  'calendario.recurrencias.listar': 'Las recurrencias llegan con el calendario.',
   'cuentas.editar': 'No hay interfaz de edición de cuenta.',
   'cuentas.categorias.editar': 'No hay interfaz de edición de categoría.',
   'cuentas.tarjetas.editar': 'No hay interfaz de edición de tarjeta.',
