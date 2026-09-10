@@ -8,7 +8,6 @@ import {
   ApiAdminRole,
   ApiAdminUser,
   ApiAuditEvent,
-  ApiCapabilityDescriptor,
   ApiPermissionAction,
   ApiPermissionDescriptor,
   ApiPermissionLevel,
@@ -56,7 +55,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
             </article>
             <article>
               <span>Roles configurados</span><strong>{{ roles().length }}</strong
-              ><small>{{ capabilityCount() }} capacidades disponibles</small>
+              ><small>{{ permissionCount() }} permisos concedibles</small>
             </article>
             <article>
               <span>Funciones activas</span><strong>{{ enabledFlags() }}</strong
@@ -1286,7 +1285,6 @@ export class AdminComponent implements OnInit {
   readonly errors = signal<ApiClientError[]>([]);
   readonly audit = signal<ApiAuditEvent[]>([]);
   readonly adminFlags = signal<readonly ApiAdminFeatureFlag[]>([]);
-  readonly capabilityCatalog = signal<readonly ApiCapabilityDescriptor[]>([]);
   readonly selectedUser = signal<ApiAdminUser | null>(null);
   readonly roleDraft = signal<ApiAdminRole | null>(null);
   readonly selectedError = signal<ApiClientError | null>(null);
@@ -1309,7 +1307,14 @@ export class AdminComponent implements OnInit {
 
   /** La consola era todo o nada: quien entraba veía y podía las seis pestañas. */
   readonly tabs = computed(() => this.allTabs.filter((item) => this.caps.allows(item.capability)));
-  readonly capabilityCount = computed(() => this.capabilityCatalog().length);
+  /**
+   * Lo que se concede son permisos, y es lo que hay que contar.
+   *
+   * Decia «capacidades disponibles» y contaba las catorce de la mascara, que ya no es lo
+   * que un rol guarda. Un numero que no corresponde con lo que se ve al abrir el editor
+   * hace dudar de todo lo demas.
+   */
+  readonly permissionCount = computed(() => this.permissionCatalog().length);
 
   /** Catálogo granular, agrupado por recurso: es como se lee y como se concede. */
   readonly permissionCatalog = signal<readonly ApiPermissionDescriptor[]>([]);
@@ -1334,7 +1339,7 @@ export class AdminComponent implements OnInit {
     return items.filter((permiso) => concedidos.includes(permiso.code)).length;
   }
 
-  /** Marca o desmarca un recurso entero: con noventa y cinco casillas hace falta. */
+  /** Marca o desmarca un recurso entero: con un centenar de casillas hace falta. */
   marcarGrupo(items: readonly ApiPermissionDescriptor[], marcar: boolean) {
     this.roleDraft.update((rol) => {
       if (!rol) return rol;
@@ -1414,7 +1419,7 @@ export class AdminComponent implements OnInit {
     try {
       // Solo se pide lo que el permiso abre: así una sesión sin una pestaña no
       // provoca un 403 en el arranque de la consola.
-      const [u, r, a, e, f, c, p] = await Promise.all([
+      const [u, r, a, e, f, p] = await Promise.all([
         this.caps.allows(P.administracion.usuarios.listar)
           ? firstValueFrom(this.api.adminUsers())
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
@@ -1427,9 +1432,6 @@ export class AdminComponent implements OnInit {
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.banderas.listar)
           ? firstValueFrom(this.api.adminFeatureFlags())
-          : Promise.resolve([]),
-        this.caps.allows(P.administracion.capacidades.listar)
-          ? firstValueFrom(this.api.superAdminCapabilities())
           : Promise.resolve([]),
         this.caps.allows(P.administracion.capacidades.listar)
           ? firstValueFrom(this.api.superAdminPermissions())
@@ -1445,7 +1447,6 @@ export class AdminComponent implements OnInit {
       this.roles.set(r);
       this.audit.set([...a.items]);
       this.adminFlags.set(f);
-      this.capabilityCatalog.set(c);
       this.permissionCatalog.set(p);
       this.errors.set(
         e.items.map((error) => ({
@@ -1631,18 +1632,6 @@ export class AdminComponent implements OnInit {
       permissions: [...(r.permissions ?? [])],
       organizationId: r.organizationId ?? '',
     });
-  }
-  toggleRoleCapability(key: string) {
-    this.roleDraft.update((r) =>
-      r
-        ? {
-            ...r,
-            capabilities: r.capabilities.includes(key)
-              ? r.capabilities.filter((x) => x !== key)
-              : [...r.capabilities, key],
-          }
-        : r,
-    );
   }
   async saveRole() {
     const r = this.roleDraft();
