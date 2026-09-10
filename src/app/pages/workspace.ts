@@ -988,15 +988,17 @@ const SIN_DATO = '—';
             <small>Estimación basada en movimientos registrados; el extracto bancario puede variar.</small>
           </section>
         }
-        <h3>Historial</h3>
-        <ol>
-          @for (h of store.history(); track $index) {
-            <li>
-              <b>{{ h.action }}</b
-              ><span>{{ h.date }}</span>
-            </li>
-          }
-        </ol>
+        @if (can(P.cuentas.historial.ver)) {
+          <h3>Historial</h3>
+          <ol>
+            @for (h of store.history(); track $index) {
+              <li>
+                <b>{{ h.action }}</b
+                ><span>{{ h.date }}</span>
+              </li>
+            }
+          </ol>
+        }
         <footer>
           @if (store.inspector()?.type === 'movement') {
             @if (can(P.movimientos.editar)) {

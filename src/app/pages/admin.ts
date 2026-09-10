@@ -241,6 +241,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                     ><input
                       type="checkbox"
                       [checked]="flag.isEnabled"
+                      [disabled]="!caps.allows(P.administracion.banderas.editar)"
                       (change)="toggleFlag(flag)" /><span></span></label
                   ><button class="icon-btn" (click)="selectFlag.set(flag.key)">→</button>
                 </article>
@@ -353,14 +354,20 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
           <button class="icon-btn" (click)="selectedUser.set(null)">×</button>
         </header>
         <div class="drawer-body">
-          <label class="active-row"
-            ><span><b>Acceso a la plataforma</b><small>Bloquea nuevas sesiones y acciones</small></span
-            ><span class="switch"
-              ><input
-                type="checkbox"
-                [checked]="user.isActive"
-                (change)="setUserActive(user, !user.isActive)" /><span></span></span
-          ></label>
+          <!--
+            Solo si se puede. Antes el interruptor aparecia siempre: quien no tenia el
+            permiso lo veia, lo pulsaba, y el servidor lo rechazaba. La casilla enganaba.
+          -->
+          @if (caps.allows(P.administracion.usuarios.deshabilitar)) {
+            <label class="active-row"
+              ><span><b>Acceso a la plataforma</b><small>Bloquea nuevas sesiones y acciones</small></span
+              ><span class="switch"
+                ><input
+                  type="checkbox"
+                  [checked]="user.isActive"
+                  (change)="setUserActive(user, !user.isActive)" /><span></span></span
+            ></label>
+          }
           @if (rolesFor(user).length) {
             <h3>Roles asignados</h3>
             <p class="hint">Los roles suman capacidades a la membresía de la organización.</p>
@@ -523,7 +530,11 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
             </div>
           </dl>
           <label
-            >Estado<select [ngModel]="error.status" (ngModelChange)="setErrorStatus(error, $event)">
+            >Estado<select
+              [ngModel]="error.status"
+              [disabled]="!caps.allows(P.administracion.errores.editar)"
+              (ngModelChange)="setErrorStatus(error, $event)"
+            >
               <option value="new">Nuevo</option>
               <option value="investigating">En análisis</option>
               <option value="resolved">Resuelto</option>
