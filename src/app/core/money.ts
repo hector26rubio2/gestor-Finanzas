@@ -102,6 +102,26 @@ export function sumBy<T>(items: Iterable<T>, selector: (item: T) => number, curr
 }
 
 /**
+ * Rendimiento porcentual de una inversión, o `null` si no se puede calcular.
+ *
+ * Dividir por el coste sin mirarlo daba dos cifras que se enseñaban tal cual: con la
+ * cartera vacía la pantalla ponía «NaN %», y con una inversión de coste cero —una
+ * herencia, una acción entregada— «Infinity %». Un porcentaje que no existe no se
+ * inventa: quien lea la pantalla no tiene forma de saber que ese número no significa
+ * nada.
+ */
+export function returnRate(value: number, cost: number): number | null {
+  if (!Number.isFinite(value) || !Number.isFinite(cost) || cost === 0) return null;
+  return (value / cost - 1) * 100;
+}
+
+/** El mismo rendimiento, ya escrito para la pantalla. */
+export function formatReturnRate(value: number, cost: number): string {
+  const tasa = returnRate(value, cost);
+  return tasa === null ? '—' : `${tasa.toFixed(1)} %`;
+}
+
+/**
  * Formato con código de moneda explícito: en Colombia `$` a secas es ambiguo, y
  * esta aplicación maneja COP, USD y EUR en la misma pantalla.
  */
