@@ -30,7 +30,7 @@ import {
 } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { DemoAuditEvent } from '../core/demo-data';
-import { parseMoney } from '../core/money';
+import { formatReturnRate, parseMoney } from '../core/money';
 import { signOf } from '../core/movement-kinds';
 
 /*
@@ -3435,7 +3435,7 @@ export class WorkspaceComponent implements AfterViewInit {
       risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
       cost: this.store.money(i.cost),
       value: this.store.money(i.value),
-      return: ((i.value / i.cost - 1) * 100).toFixed(1) + ' %',
+      return: formatReturnRate(i.value, i.cost),
     })),
   );
   readonly peopleOwed = computed(() => this.store.data().people.reduce((s, p) => s + p.owed, 0));
@@ -3449,9 +3449,11 @@ export class WorkspaceComponent implements AfterViewInit {
     return { name: person?.name ?? 'Sin datos', days: person?.averagePaymentDays ?? 0 };
   });
   readonly investmentReturn = computed(() => {
-    const d = this.store.data().investments,
-      c = d.reduce((s, i) => s + i.cost, 0);
-    return ((d.reduce((s, i) => s + i.value, 0) / c - 1) * 100).toFixed(1) + ' %';
+    const cartera = this.store.data().investments;
+    return formatReturnRate(
+      cartera.reduce((total, i) => total + i.value, 0),
+      cartera.reduce((total, i) => total + i.cost, 0),
+    );
   });
   ngAfterViewInit(): void {
     void this.cargarMiembros();
@@ -3805,7 +3807,7 @@ export class WorkspaceComponent implements AfterViewInit {
         ['Tipo', i.type],
         ['Costo', this.store.money(i.cost)],
         ['Valor', this.store.money(i.value)],
-        ['Variación', ((i.value / i.cost - 1) * 100).toFixed(1) + ' %'],
+        ['Variación', formatReturnRate(i.value, i.cost)],
       ];
     return [
       ['Fecha', this.store.inspector()?.id ?? this.selectedCalendarDate()],
