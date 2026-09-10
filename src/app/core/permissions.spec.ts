@@ -61,7 +61,7 @@ describe('permisos granulares', () => {
   it('allows compara contra los permisos que trae la sesión', () => {
     const store = TestBed.inject(DemoStore);
     const caps = TestBed.inject(CAPABILITIES);
-    store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver, P.movimientos.listar] });
+    store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver] });
 
     expect(caps.allows(P.movimientos.ver)).toBe(true);
     // Ver la vista ya no concede escribir en ella: es el punto de toda la matriz.

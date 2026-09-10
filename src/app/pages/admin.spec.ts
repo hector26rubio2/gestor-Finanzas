@@ -18,7 +18,7 @@ import { AdminComponent } from './admin';
 describe('AdminComponent y el guardado de un rol', () => {
   const catalogo = [
     { code: P.movimientos.ver, resource: 'movimientos', action: 1, level: 1, description: 'Entrar' },
-    { code: P.movimientos.listar, resource: 'movimientos', action: 2, level: 1, description: 'Listar' },
+    { code: P.movimientos.crear, resource: 'movimientos', action: 3, level: 2, description: 'Registrar' },
   ];
 
   /** Espía de `saveAdminRole` que conserva el cuerpo enviado, que es lo que se afirma. */
@@ -54,15 +54,15 @@ describe('AdminComponent y el guardado de un rol', () => {
       description: null,
       organizationId: 'o1',
       capabilities: [],
-      // Tal como venía del servidor: códigos buenos y cadenas de pantalla.
-      permissions: [P.movimientos.ver, 'dashboard', 'movement.create', P.movimientos.listar],
+      // Tal como venía del servidor: códigos buenos y códigos ya retirados.
+      permissions: [P.movimientos.ver, 'dashboard', 'movement.create', 'movimientos.listar', P.movimientos.crear],
       isSystem: false,
     });
 
     await componente.saveRole();
 
     const enviado = saveAdminRole.mock.calls[0][1] as { permissions: readonly string[] };
-    expect(enviado.permissions).toEqual([P.movimientos.ver, P.movimientos.listar]);
+    expect(enviado.permissions).toEqual([P.movimientos.ver, P.movimientos.crear]);
   });
 
   it('sin catálogo cargado manda lo que había, en vez de vaciar el rol', async () => {

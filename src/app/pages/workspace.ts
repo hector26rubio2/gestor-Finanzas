@@ -135,12 +135,8 @@ const SIN_DATO = '—';
           }
         </div>
       </header>
-      <!--
-        Un permiso «ver» sin «listar» dejaba cualquiera de estas pantallas pintada y
-        vacia, sin decir por que. Se comprueba una vez aqui y no siete veces dentro.
-      -->
-      @if (permisoDeDatosQueFalta(); as permiso) {
-        <demo-sin-acceso [permiso]="permiso" />
+      @if (sinNingunBloque()) {
+        <demo-sin-acceso />
       } @else {
         @switch (page()) {
           @case ('movements') {
@@ -2799,25 +2795,38 @@ export class WorkspaceComponent implements AfterViewInit {
   }
 
   /**
-   * El permiso de datos que le falta a la vista activa, o null si lo tiene.
+   * Vistas cuyo contenido son bloques sueltos, cada uno con su permiso.
    *
-   * `ver` abre la pantalla y `listar` entrega el contenido. Con el primero y sin el
-   * segundo la vista se pintaba entera y vacia, y nadie podia saber si era un fallo o
-   * una falta de permiso. Notificaciones y preferencias no entran: su contenido es de
-   * cada persona y no depende de un permiso aparte.
+   * Las demas se sostienen solas: llegar a Movimientos exige `movimientos.ver`, y ese
+   * codigo ya trae la tabla. Estas dos no tienen nada equivalente —Reportes es un
+   * conjunto de bloques y Planificacion un conjunto de simuladores—, asi que sin ninguno
+   * concedido quedan en blanco.
+   *
+   * Antes hacia falta ademas un `X.listar` en las siete, y concederlo se olvidaba: la
+   * entrada aparecia en el menu lateral y dentro no habia nada, sin decir por que.
    */
-  readonly permisoDeDatosQueFalta = computed(() => {
-    const requeridos: Record<string, string> = {
-      movements: P.movimientos.listar,
-      accounts: P.cuentas.listar,
-      calendar: P.calendario.listar,
-      people: P.personas.listar,
-      portfolio: P.patrimonio.listar,
-      planning: P.planificacion.listar,
-      reports: P.reportes.listar,
-    };
-    const necesario = requeridos[this.page()];
-    return necesario && !this.can(necesario) ? necesario : null;
+  private readonly bloquesPorVista: Readonly<Record<string, readonly string[]>> = {
+    reports: [
+      P.reportes.comparativo.ver,
+      P.reportes.categorias.ver,
+      P.reportes.tendencia.ver,
+      P.reportes.deuda.ver,
+      P.reportes.patrimonio.ver,
+      P.reportes.hallazgos.ver,
+      P.reportes.exportar,
+    ],
+    planning: [
+      P.planificacion.deudas.ver,
+      P.planificacion.compras.ver,
+      P.planificacion.vacaciones.ver,
+      P.planificacion.inversiones.ver,
+    ],
+  };
+
+  /** La vista activa no tiene ni uno de sus bloques concedido. */
+  readonly sinNingunBloque = computed(() => {
+    const bloques = this.bloquesPorVista[this.page()];
+    return !!bloques && !bloques.some((codigo) => this.can(codigo));
   });
 
   can(permiso: string): boolean {

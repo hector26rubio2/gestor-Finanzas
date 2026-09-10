@@ -1,24 +1,23 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 /**
- * Lo que se enseña cuando alguien puede entrar a una pantalla pero no recibir sus datos.
+ * Lo que se enseña cuando se puede entrar a una pantalla y no se ha concedido ni uno de
+ * sus bloques.
  *
- * `ver` abre la vista y `listar` entrega el contenido: son permisos distintos a
- * proposito. Pero con el primero y sin el segundo, la pantalla se pintaba entera y vacia
- * —titulo, filtros, «limpiar filtros»— sin una sola cifra y sin decir por que. Una
- * pantalla vacia sin explicacion se lee como averiada, y quien la ve reporta un fallo
- * que no existe en vez de pedir el permiso que le falta.
+ * Reportes y Planificación no tienen un listado propio: son un conjunto de bloques, cada
+ * uno con su permiso. Sin ninguno la pantalla se pintaba entera y vacía —título, cabecera
+ * y nada más—, y una pantalla vacía sin explicación se lee como averiada: quien la ve
+ * reporta un fallo que no existe en vez de pedir lo que le falta.
  */
 @Component({
   selector: 'demo-sin-acceso',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<section class="sin-acceso" role="status">
-    <h2>Tu acceso no incluye el contenido de esta pantalla</h2>
+    <h2>Tu acceso a esta pantalla no incluye ninguno de sus bloques</h2>
     <p>
-      Puedes entrar, pero no recibir sus datos. Si necesitas verlos, pídele a quien administra tu espacio el permiso
-      <code>{{ permiso() }}</code
-      >.
+      Puedes entrar, pero no se te ha concedido ninguna de las piezas que la componen. Pídele a quien administra tu
+      espacio las que necesites.
     </p>
   </section>`,
   styles: [
@@ -41,15 +40,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         color: var(--muted);
         max-width: 60ch;
       }
-      code {
-        background: var(--accent-soft);
-        border-radius: 5px;
-        padding: 1px 6px;
-      }
     `,
   ],
 })
-export class SinAccesoComponent {
-  /** El permiso que hace falta, dicho tal cual para poder pedirlo por su nombre. */
-  readonly permiso = input.required<string>();
-}
+export class SinAccesoComponent {}

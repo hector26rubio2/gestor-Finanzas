@@ -14,16 +14,10 @@ import { P } from './permissions';
 const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'sesion.ver': 'La sesión misma. No hay control que ocultar.',
   'sesion.monedas.listar': 'Catálogo de monedas: alimenta selectores, no se decide aquí.',
-  'movimientos.clases.listar': 'Tabla de clases del ledger; sin ella los signos se degradan solos.',
   'organizacion.auditoria.listar': 'La auditoría por organización no tiene pantalla propia.',
-  'organizacion.banderas.listar': 'Banderas por organización: solo existe la de superadministración.',
   'organizacion.banderas.editar': 'Igual que la anterior.',
   'personas.compras.listar': 'El endpoint existe y ninguna vista lo consume.',
   'personas.liquidaciones.listar': 'El endpoint existe y ninguna vista lo consume.',
-  'cuentas.tarjetas.listar': 'Las tarjetas llegan junto a las cuentas; no hay petición que cortar.',
-  'cuentas.categorias.listar': 'Las categorías alimentan selectores en toda la aplicación.',
-  'notificaciones.listar': 'La bandeja es de cada persona y llega con la sesión.',
-  'preferencias.listar': 'Las preferencias llegan con la sesión.',
   'calendario.recurrencias.listar': 'Las recurrencias llegan con el calendario.',
   'cuentas.editar': 'No hay interfaz de edición de cuenta.',
   'cuentas.categorias.editar': 'No hay interfaz de edición de categoría.',
@@ -69,8 +63,8 @@ describe('cada permiso sirve para algo', () => {
     .join('\n');
   const comprobados = new Set(comprobables.match(/P\.[A-Za-zÁÉÍÓÚáéíóúñÑ]+(?:\.[A-Za-z]+)*/g) ?? []);
 
-  it('el catálogo del cliente tiene los 112 códigos', () => {
-    expect(declarados).toHaveLength(112);
+  it('el catálogo del cliente tiene los 102 códigos', () => {
+    expect(declarados).toHaveLength(102);
   });
 
   it('ninguno se puede marcar sin que nada lo mire', () => {

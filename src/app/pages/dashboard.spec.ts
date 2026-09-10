@@ -46,7 +46,8 @@ describe('DashboardComponent y las cifras del servidor', () => {
       ],
     });
     const store = TestBed.inject(DemoStore);
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.listar] });
+    // Con alguna pieza concedida: sin ninguna no hay nada que pintar y no se pide nada.
+    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.tabla.ver] });
     return TestBed.createComponent(DashboardComponent);
   }
 

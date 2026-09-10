@@ -39,7 +39,7 @@ describe('AppComponent y la pantalla de entrada', () => {
   it('no envuelve el login con el armazón, aunque ya haya usuario', async () => {
     const fixture = montar();
     const store = TestBed.inject(DemoStore);
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.listar] });
+    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/login');
     fixture.detectChanges();
@@ -53,7 +53,7 @@ describe('AppComponent y la pantalla de entrada', () => {
   it('fuera del login el armazón vuelve', async () => {
     const fixture = montar();
     const store = TestBed.inject(DemoStore);
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.listar] });
+    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
     fixture.detectChanges();

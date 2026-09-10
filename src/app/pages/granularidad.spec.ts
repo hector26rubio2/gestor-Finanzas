@@ -48,7 +48,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
   beforeEach(() => TestBed.resetTestingModule());
 
   it('con solo el permiso de orden se puede mover pero no cambiar el tipo ni ocultar', () => {
-    preparar([P.dashboard.ver, P.dashboard.listar, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
+    preparar([P.dashboard.ver, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
 
     expect(componente.puedePersonalizar()).toBe(true);
@@ -67,7 +67,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
   });
 
   it('el panel de diseño no se dibuja vacío para quien solo reorganiza', () => {
-    preparar([P.dashboard.ver, P.dashboard.listar, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
+    preparar([P.dashboard.ver, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.componentInstance.customizing.set(true);
     fixture.detectChanges();
@@ -77,13 +77,13 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
   });
 
   it('sin ninguna de las cuatro acciones el botón de personalizar no se ofrece', () => {
-    preparar([P.dashboard.ver, P.dashboard.listar]);
+    preparar([P.dashboard.ver]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
     expect(componente.puedePersonalizar()).toBe(false);
   });
 
   it('cada KPI de cabecera responde a su propio permiso', () => {
-    preparar([P.dashboard.ver, P.dashboard.listar, P.dashboard.kpi.gastos]);
+    preparar([P.dashboard.ver, P.dashboard.kpi.gastos]);
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
 
@@ -96,7 +96,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
   });
 
   it('crear un widget requiere su permiso, aunque se pueda reorganizar', () => {
-    preparar([P.dashboard.ver, P.dashboard.listar, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
+    preparar([P.dashboard.ver, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
     const cuantos = componente.widgets().length;
 

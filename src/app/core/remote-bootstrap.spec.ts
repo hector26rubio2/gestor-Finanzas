@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, FinanceApiClient } from './api-client';
+import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
 import { DemoStore } from './store';
@@ -18,15 +19,24 @@ describe('RemoteBootstrap', () => {
       isActive: true,
       createdAt: '',
     },
-    capabilities: [2048, 4096, 8192],
+    // La mascara numerica llega vacia, como en un rol granular: lo que decide que se pide
+    // son los permisos, que es lo mismo que exige cada endpoint.
+    capabilities: [],
     organizations: [],
     expiresAt: '',
-    permissions: ['dashboard', 'movements', 'accounts', 'calendar'],
+    permissions: [
+      P.dashboard.ver,
+      P.movimientos.ver,
+      P.cuentas.ver,
+      P.cuentas.tarjetas.listar,
+      P.cuentas.categorias.listar,
+      P.calendario.ver,
+    ] as string[],
   };
 
   beforeEach(() => TestBed.resetTestingModule());
 
-  it('loads only endpoints allowed by the effective capabilities', async () => {
+  it('pide solo lo que cada permiso concedido autoriza', async () => {
     const api = {
       session: vi.fn(() => of(session)),
       accounts: vi.fn(() => of([])),
@@ -73,11 +83,43 @@ describe('RemoteBootstrap', () => {
     expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
   });
 
+  it('con «ver movimientos» y nada más, los movimientos se piden', async () => {
+    // El fallo tal como se reportó: quitar todos los permisos, dejar solo ese, y la
+    // pantalla salía vacía. El menú y la ruta ya miraban el permiso; esta petición no,
+    // miraba la máscara numérica, que un rol granular deja vacía.
+    const api = {
+      session: vi.fn(() => of({ ...session, permissions: [P.movimientos.ver] })),
+      accounts: vi.fn(() => of([])),
+      cards: vi.fn(() => of([])),
+      categories: vi.fn(() => of([])),
+      people: vi.fn(() => of([])),
+      debts: vi.fn(() => of([])),
+      investments: vi.fn(() => of([])),
+      movements: vi.fn(() => of(emptyPage)),
+      preferences: vi.fn(() => of(null)),
+      featureFlags: vi.fn(() => of([])),
+      notifications: vi.fn(() => of([])),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    await TestBed.inject(RemoteBootstrap).initialize();
+
+    expect(api.movements).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
+    // Y solo eso: un permiso concede su pantalla, no las de al lado.
+    expect(api.accounts).not.toHaveBeenCalled();
+    expect(api.people).not.toHaveBeenCalled();
+    expect(api.investments).not.toHaveBeenCalled();
+  });
+
   it('reloads everything when the session permissions change', async () => {
     const upgraded = {
       ...session,
-      capabilities: [...session.capabilities, 2],
-      permissions: [...session.permissions, 'movement.create'],
+      permissions: [...session.permissions, P.movimientos.crear],
     };
     let current = session;
     const api = {
@@ -112,7 +154,10 @@ describe('RemoteBootstrap', () => {
   });
 
   it('keeps money exact, derives the family from the published table and never invents a field', async () => {
-    const ledgerSession = { ...session, capabilities: [1, 32, 2048, 4096, 8192], permissions: ['dashboard'] };
+    const ledgerSession = {
+      ...session,
+      permissions: [...session.permissions, P.movimientos.clases.listar, P.patrimonio.ver, P.personas.deudas.listar],
+    };
     const money = (amount: string, currency = 'COP') => ({ amount, currency });
     const converted = (base: string, original: string, currency: string, rate: string) => ({
       base: money(base),

@@ -191,22 +191,15 @@ export interface ApiSession {
   permissions?: readonly string[];
 }
 
-export const ApiCapability = {
-  viewLedger: 1,
-  recordMovements: 2,
-  manageAccounts: 4,
-  manageCards: 8,
-  managePeople: 16,
-  manageInvestments: 32,
-  manageRecurrences: 64,
-  issueSettlements: 128,
-  exportData: 256,
-  manageMembers: 512,
-  manageOrganization: 1024,
-  viewDashboard: 2048,
-  viewMovements: 4096,
-  viewAccounts: 8192,
-} as const;
+/*
+ * La máscara numérica de capacidades ya no se reproduce aquí.
+ *
+ * `session.capabilities` sigue llegando por compatibilidad, pero un rol granular la deja
+ * vacía, así que decidir con ella era decidir con un dato que ya no se escribe. Era la
+ * única cosa del cliente que no preguntaba por `session.permissions`, y por eso divergía:
+ * el menú abría una pantalla cuyos datos nadie llegaba a pedir. Lo que se consulta es el
+ * permiso, que es el mismo código que exige el endpoint.
+ */
 
 /** Espejo de `AccountKindDto`. Los valores numéricos son parte del contrato. */
 export const ApiAccountKind = { cash: 1, checking: 2, savings: 3, wallet: 4, other: 99 } as const;

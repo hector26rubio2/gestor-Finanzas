@@ -6,8 +6,12 @@
  * les pone nombre para que las plantillas no repitan cadenas literales.
  *
  * Convención: `recurso.subrecurso.accion`, en minúsculas y sin tildes.
- * `ver` es acceder a la pantalla; `listar` es recibir los datos de dentro. Son permisos
- * distintos a propósito: antes entrar a una vista entregaba también su contenido entero.
+ *
+ * `X.ver` es la funcionalidad entera: pone el recurso en el menú lateral, abre su ruta y
+ * entrega su listado. Los demás códigos son las acciones de dentro, y cada uno responde
+ * solo por su parte, sin depender de ningún otro: marcar un KPI del dashboard muestra ese
+ * KPI. Hubo una época en que además hacía falta un `X.listar`, y no marcarlo dejaba la
+ * pantalla en blanco: la entrada aparecía en el menú y dentro no había nada.
  *
  * Documentado en `docs/PERMISOS-MATRIZ.md` del repositorio del backend.
  */
@@ -18,7 +22,6 @@ export const P = {
   },
   dashboard: {
     ver: 'dashboard.ver',
-    listar: 'dashboard.listar',
     tabla: { ver: 'dashboard.tabla.ver' },
     detalle: { ver: 'dashboard.detalle.ver' },
     kpi: {
@@ -44,7 +47,6 @@ export const P = {
   },
   movimientos: {
     ver: 'movimientos.ver',
-    listar: 'movimientos.listar',
     crear: 'movimientos.crear',
     editar: 'movimientos.editar',
     deshabilitar: 'movimientos.deshabilitar',
@@ -58,7 +60,6 @@ export const P = {
   },
   cuentas: {
     ver: 'cuentas.ver',
-    listar: 'cuentas.listar',
     crear: 'cuentas.crear',
     editar: 'cuentas.editar',
     deshabilitar: 'cuentas.deshabilitar',
@@ -79,7 +80,6 @@ export const P = {
   },
   calendario: {
     ver: 'calendario.ver',
-    listar: 'calendario.listar',
     recurrencias: {
       listar: 'calendario.recurrencias.listar',
       crear: 'calendario.recurrencias.crear',
@@ -88,7 +88,6 @@ export const P = {
   },
   personas: {
     ver: 'personas.ver',
-    listar: 'personas.listar',
     crear: 'personas.crear',
     editar: 'personas.editar',
     deudas: { listar: 'personas.deudas.listar', crear: 'personas.deudas.crear' },
@@ -99,12 +98,10 @@ export const P = {
   },
   patrimonio: {
     ver: 'patrimonio.ver',
-    listar: 'patrimonio.listar',
     inversiones: { crear: 'patrimonio.inversiones.crear', editar: 'patrimonio.inversiones.editar' },
   },
   planificacion: {
     ver: 'planificacion.ver',
-    listar: 'planificacion.listar',
     deudas: { ver: 'planificacion.deudas.ver' },
     compras: { ver: 'planificacion.compras.ver' },
     vacaciones: { ver: 'planificacion.vacaciones.ver' },
@@ -112,7 +109,6 @@ export const P = {
   },
   reportes: {
     ver: 'reportes.ver',
-    listar: 'reportes.listar',
     exportar: 'reportes.exportar',
     comparativo: { ver: 'reportes.comparativo.ver' },
     categorias: { ver: 'reportes.categorias.ver' },
@@ -123,12 +119,10 @@ export const P = {
   },
   notificaciones: {
     ver: 'notificaciones.ver',
-    listar: 'notificaciones.listar',
     editar: 'notificaciones.editar',
   },
   preferencias: {
     ver: 'preferencias.ver',
-    listar: 'preferencias.listar',
     editar: 'preferencias.editar',
     tema: { editar: 'preferencias.tema.editar' },
     datos: { eliminar: 'preferencias.datos.eliminar' },

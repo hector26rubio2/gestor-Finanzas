@@ -4,7 +4,6 @@ import { Account, DemoData, Movement } from './demo-data';
 import {
   ApiAccount,
   ApiAccountKind,
-  ApiCapability,
   ApiCard,
   ApiDebtPosition,
   ApiInvestment,
@@ -16,6 +15,7 @@ import {
 } from './api-client';
 import { parseAmount, parseMoney, parseRate } from './money';
 import { MovementKindCatalog, signOf } from './movement-kinds';
+import { P } from './permissions';
 import { Router } from '@angular/router';
 import { DemoStore } from './store';
 
@@ -73,23 +73,32 @@ export class RemoteBootstrap {
       }
 
       this.sessionSignature = this.signature(session);
-      const capabilities = new Set(session.capabilities);
-      const canViewLedger = capabilities.has(ApiCapability.viewLedger);
-      const canViewAccounts = canViewLedger || capabilities.has(ApiCapability.viewAccounts);
+
+      // Cada petición se hace si su permiso está concedido, y el permiso es el mismo
+      // código que exige el endpoint.
+      //
+      // Esto se decidía con la máscara numérica de capacidades, que es la que trae la
+      // sesión por compatibilidad y que un rol granular deja vacía. El efecto era el
+      // fallo que se reportó: conceder «ver movimientos» y nada más ponía la entrada en
+      // el menú, abría la ruta —las dos cosas miran el permiso— y luego no pedía los
+      // movimientos, porque preguntaba por un bit que nadie había marcado. La pantalla
+      // salía vacía y el permiso parecía no servir. Dos vocabularios para la misma
+      // decisión acaban divergiendo siempre; aquí queda uno.
+      const permisos = new Set(session.permissions ?? []);
+      const puede = (codigo: string) => permisos.has(codigo);
+      const sinMovimientos = { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false };
       const result = await firstValueFrom(
         forkJoin({
-          movementKinds: canViewLedger ? this.api.movementKinds() : of([]),
-          accounts: canViewAccounts ? this.api.accounts() : of([]),
-          cards: canViewAccounts ? this.api.cards() : of([]),
-          categories: canViewAccounts ? this.api.categories() : of([]),
-          people: capabilities.has(ApiCapability.managePeople) ? this.api.people() : of([]),
-          debts: canViewLedger ? this.api.debts() : of([]),
-          investments: capabilities.has(ApiCapability.manageInvestments) ? this.api.investments() : of([]),
-          movements: capabilities.has(ApiCapability.viewMovements)
-            ? this.api.movements({ page: 1, pageSize: 25 })
-            : of({ items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false }),
-          preferences: canViewLedger ? this.api.preferences() : of(null),
-          featureFlags: canViewLedger ? this.api.featureFlags() : of([]),
+          movementKinds: puede(P.movimientos.clases.listar) ? this.api.movementKinds() : of([]),
+          accounts: puede(P.cuentas.ver) ? this.api.accounts() : of([]),
+          cards: puede(P.cuentas.tarjetas.listar) ? this.api.cards() : of([]),
+          categories: puede(P.cuentas.categorias.listar) ? this.api.categories() : of([]),
+          people: puede(P.personas.ver) ? this.api.people() : of([]),
+          debts: puede(P.personas.deudas.listar) ? this.api.debts() : of([]),
+          investments: puede(P.patrimonio.ver) ? this.api.investments() : of([]),
+          movements: puede(P.movimientos.ver) ? this.api.movements({ page: 1, pageSize: 25 }) : of(sinMovimientos),
+          preferences: puede(P.preferencias.ver) ? this.api.preferences() : of(null),
+          featureFlags: puede(P.organizacion.banderas.listar) ? this.api.featureFlags() : of([]),
           notifications: this.api.notifications(),
         }),
       );
