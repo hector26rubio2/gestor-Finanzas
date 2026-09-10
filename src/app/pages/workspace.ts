@@ -945,14 +945,26 @@ const SIN_DATO = '—';
             <div>
               <span
                 >Compras del ciclo <b>{{ store.money(cardStatementPurchases()) }}</b></span
-              ><span
+              >
+              <span
                 >Cuotas del próximo mes <b>{{ store.money(nextInstallments()) }}</b></span
-              ><span
-                >Interés estimado <b>{{ store.money(cardEstimatedInterest()) }}</b></span
-              ><span
+              >
+              <!--
+                Solo si la tarjeta declara su tasa. Antes salia siempre, calculado con un
+                porcentaje fijo que no era el de ninguna tarjeta.
+              -->
+              @if (cardEstimatedInterest(); as interes) {
+                <span
+                  >Interés estimado <b>{{ store.money(interes) }}</b></span
+                >
+              }
+              <span
                 >Fecha límite <b>Día {{ selectedAccount()?.dueDay }}</b></span
               >
             </div>
+            @if (cardEstimatedInterest() === null) {
+              <small>Esta tarjeta no tiene tasa registrada, así que el total no incluye intereses.</small>
+            }
             <small>Estimación basada en movimientos registrados; el extracto bancario puede variar.</small>
           </section>
         }
@@ -2899,8 +2911,25 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly nextInstallments = computed(() =>
     this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1), 0),
   );
-  readonly cardEstimatedInterest = computed(() => Math.round(this.cardDebt() * 0.023));
-  readonly cardStatementTotal = computed(() => Math.round(this.nextInstallments() + this.cardEstimatedInterest()));
+  /**
+   * Interes del proximo corte, con la tasa que declara la tarjeta.
+   *
+   * Antes aplicaba un 0.023 mensual fijo —un 27.6 % anual— a cualquier tarjeta, sin
+   * mirar la suya: las de los datos demo declaran 10.2 % y 7.8 %, y la pantalla enseñaba
+   * un numero que no salia de ninguna parte bajo el rotulo «Interes estimado». Inventar
+   * una cifra en una pantalla de dinero es peor que no darla, porque quien la lee decide
+   * con ella.
+   *
+   * Sin tasa declarada devuelve null y la linea no se pinta.
+   */
+  readonly cardEstimatedInterest = computed(() => {
+    const anual = this.selectedAccount()?.annualRate;
+    if (anual === undefined || anual === null || !Number.isFinite(anual)) return null;
+    return Math.round(this.cardDebt() * (anual / 100 / 12));
+  });
+  readonly cardStatementTotal = computed(() =>
+    Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
+  );
   readonly planningTabs = ['Deudas', 'Compra', 'Vacaciones', 'Inversión'] as const;
 
   /** Cada simulación se libera por separado: se puede planificar deudas y no vacaciones. */

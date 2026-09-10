@@ -257,6 +257,8 @@ export interface ApiCard {
   currency: string;
   creditLimit: ApiMoney;
   cycle: { statementDay: number; paymentDueDay: number };
+  /** Condiciones financieras. La tasa de compras decide el interes del proximo corte. */
+  terms?: { purchaseApr?: { value?: string | number | null } | null } | null;
   issuer: string | null;
   lastFour: string | null;
   isActive: boolean;

@@ -270,6 +270,9 @@ export class RemoteBootstrap {
         lastFour: card.lastFour ?? undefined,
         cutDay: card.cycle.statementDay,
         dueDay: card.cycle.paymentDueDay,
+        // La tasa de compras la publica el servidor; la pantalla del extracto la usaba
+        // inventada. Ausente si no viene: mejor no dar la cifra que darla falsa.
+        annualRate: tasaAnual(card.terms?.purchaseApr?.value),
       })),
     ];
     const debtByPerson = new Map(debts.map((debt) => [debt.counterparty.id, debt]));
@@ -337,4 +340,16 @@ export class RemoteBootstrap {
       exchangeRate: parseRate(source.amount.rate),
     };
   }
+}
+
+/**
+ * Tasa anual publicada por la API, o ausente.
+ *
+ * No se usa `parseRate` porque devuelve 0 cuando no hay valor, y 0 % es una tasa
+ * legitima: confundir «no se» con «cero» es como se acaba enseñando una cifra inventada.
+ */
+function tasaAnual(valor: string | number | null | undefined): number | undefined {
+  if (valor === null || valor === undefined) return undefined;
+  const numero = typeof valor === 'number' ? valor : Number(valor.trim());
+  return Number.isFinite(numero) ? numero : undefined;
 }
