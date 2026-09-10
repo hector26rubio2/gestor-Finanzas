@@ -20,7 +20,9 @@ import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import {
+  ApiAdminRole,
   ApiAuditEvent,
+  ApiOrganizationMember,
   ApiMovement,
   ApiProjectedOccurrence,
   ApiRecurrence,
@@ -836,6 +838,64 @@ const SIN_DATO = '—';
             </select></label
           >
         </article>
+        @if (can(P.organizacion.miembros.listar)) {
+          <article class="wide">
+            <h2>Personas de tu espacio</h2>
+            <p>
+              Quien entre con el correo que invites comparte esta organización y ve la misma información. No se envía
+              ningún correo: la persona queda pendiente y entra la primera vez que inicia sesión con esa dirección.
+            </p>
+            @if (miembros().length) {
+              <ul class="member-list">
+                @for (miembro of miembros(); track miembro.membershipId) {
+                  <li>
+                    <span>
+                      <b>{{ miembro.displayName }}</b>
+                      <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || 'sin rol' }}</small>
+                    </span>
+                    <em [class.pendiente]="miembro.status === 'Invited'">
+                      {{ miembro.status === 'Invited' ? 'Pendiente de entrar' : 'Activa' }}
+                    </em>
+                  </li>
+                }
+              </ul>
+            } @else {
+              <p class="empty-note">Todavía no hay nadie más en tu espacio.</p>
+            }
+            @if (can(P.organizacion.miembros.crear)) {
+              <form class="invitar" (submit)="invitar($event)">
+                <label
+                  >Correo<input
+                    name="email"
+                    type="email"
+                    inputmode="email"
+                    autocomplete="email"
+                    [(ngModel)]="correoInvitado"
+                    placeholder="persona@correo.com"
+                    required
+                /></label>
+                <label
+                  >Nombre<input
+                    name="nombre"
+                    [(ngModel)]="nombreInvitado"
+                    autocomplete="name"
+                    placeholder="Cómo la ves"
+                /></label>
+                <label
+                  >Rol<select name="rol" [(ngModel)]="rolInvitado">
+                    @for (rol of rolesDisponibles(); track rol.id) {
+                      <option [value]="rol.id">{{ rol.name }}</option>
+                    }
+                  </select></label
+                >
+                <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">Invitar</button>
+              </form>
+              @if (errorDeInvitacion()) {
+                <p class="api-error" role="alert">{{ errorDeInvitacion() }}</p>
+              }
+            }
+          </article>
+        }
         <article>
           <h2>Datos locales</h2>
           <p>Doce meses, cientos de movimientos y relaciones reproducibles.</p>
@@ -2135,6 +2195,59 @@ const SIN_DATO = '—';
         margin-left: auto;
         padding: 9px 14px;
       }
+      .member-list {
+        list-style: none;
+        margin: 12px 0;
+        padding: 0;
+        display: grid;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+      }
+      .member-list li {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 12px 14px;
+        border-bottom: 1px solid var(--line);
+      }
+      .member-list li:last-child {
+        border-bottom: 0;
+      }
+      .member-list span {
+        display: grid;
+        min-width: 0;
+      }
+      .member-list small {
+        color: var(--muted);
+        overflow-wrap: anywhere;
+      }
+      .member-list em {
+        font-style: normal;
+        font-size: 0.72rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+      /* Pendiente se distingue: es el estado que pide una accion de la otra persona. */
+      .member-list em.pendiente {
+        color: var(--warning);
+        font-weight: 650;
+      }
+      .invitar {
+        display: grid;
+        grid-template-columns: 1.4fr 1.2fr 1fr auto;
+        gap: 10px;
+        align-items: end;
+      }
+      .invitar label {
+        display: grid;
+        gap: 5px;
+      }
+      @media (max-width: 700px) {
+        .invitar {
+          grid-template-columns: 1fr;
+        }
+      }
       .settings-grid {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2600,6 +2713,57 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
   readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
   /** Comprobacion puntual desde plantilla. */
+  readonly miembros = signal<readonly ApiOrganizationMember[]>([]);
+  readonly rolesDisponibles = signal<readonly ApiAdminRole[]>([]);
+  readonly errorDeInvitacion = signal('');
+  correoInvitado = '';
+  nombreInvitado = '';
+  rolInvitado = '';
+
+  /**
+   * Suma a alguien al espacio.
+   *
+   * No se manda correo: la invitacion deja la membresia pendiente y la persona entra la
+   * primera vez que inicia sesion con esa direccion. Montar envio de correo es otro
+   * problema —servidor, dominio verificado, rebotes— y fingirlo seria peor que no tenerlo.
+   */
+  async invitar(evento: Event): Promise<void> {
+    evento.preventDefault();
+    this.errorDeInvitacion.set('');
+    const email = this.correoInvitado.trim();
+    if (!email || !this.rolInvitado) return;
+    try {
+      const miembro = await firstValueFrom(
+        this.api.inviteOrganizationMember({
+          email,
+          displayName: this.nombreInvitado.trim() || undefined,
+          roleIds: [this.rolInvitado],
+        }),
+      );
+      this.miembros.update((xs) => [...xs, miembro]);
+      this.correoInvitado = '';
+      this.nombreInvitado = '';
+      this.store.toast.set(`${miembro.email} entrará la próxima vez que inicie sesión.`);
+    } catch (error) {
+      this.errorDeInvitacion.set(error instanceof Error ? error.message : 'No fue posible invitar.');
+    }
+  }
+
+  private async cargarMiembros(): Promise<void> {
+    if (this.store.runtime.mode !== 'api' || !this.can(P.organizacion.miembros.listar)) return;
+    try {
+      const [gente, roles] = await Promise.all([
+        firstValueFrom(this.api.organizationMembers()),
+        this.can(P.administracion.roles.listar) ? firstValueFrom(this.api.adminRoles()) : Promise.resolve([]),
+      ]);
+      this.miembros.set(gente);
+      this.rolesDisponibles.set(roles);
+      if (!this.rolInvitado && roles.length) this.rolInvitado = roles[0].id;
+    } catch {
+      /* sin lista: la seccion queda vacia y el resto de Preferencias sigue */
+    }
+  }
+
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
@@ -3261,6 +3425,7 @@ export class WorkspaceComponent implements AfterViewInit {
     return ((d.reduce((s, i) => s + i.value, 0) / c - 1) * 100).toFixed(1) + ' %';
   });
   ngAfterViewInit(): void {
+    void this.cargarMiembros();
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
       queueMicrotask(() => this.searchInput?.nativeElement.focus());
     if (this.page() === 'calendar') void this.loadCalendarProjection();
