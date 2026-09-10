@@ -35,6 +35,11 @@ export interface Account {
   cutDay?: number;
   dueDay?: number;
   exchangeRate?: number;
+  /**
+   * Tasa anual de compras de una tarjeta, en porcentaje. Ausente cuando no se conoce:
+   * no se sustituye por una constante, que es lo que hacia la pantalla del extracto.
+   */
+  annualRate?: number;
 }
 
 export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
