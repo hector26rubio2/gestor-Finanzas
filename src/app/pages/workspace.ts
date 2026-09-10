@@ -14,6 +14,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
 import { toCsv, downloadCsv } from '../core/csv';
+import { IconComponent } from '../ui/icon';
+import { SinAccesoComponent } from '../ui/sin-acceso';
 import { P } from '../core/permissions';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { sincronizarConLaUrl } from '../core/url-state';
@@ -94,6 +96,8 @@ const SIN_DATO = '—';
     OverlayComponent,
     AccountFormComponent,
     ManagementFormComponent,
+    SinAccesoComponent,
+    IconComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -105,55 +109,67 @@ const SIN_DATO = '—';
         </div>
         <div class="head-actions">
           @if (page() === 'accounts' && can(P.cuentas.crear)) {
-            <button (click)="store.form.set({ kind: 'account' })">＋ Nueva cuenta</button>
+            <button (click)="store.form.set({ kind: 'account' })"><demo-icon name="plus" /> Nueva cuenta</button>
           }
           @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
-            <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">＋ Nueva categoría</button>
+            <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">
+              <demo-icon name="plus" /> Nueva categoría
+            </button>
           }
           @if (page() === 'people' && can(P.personas.crear)) {
-            <button (click)="store.form.set({ kind: 'person' })">＋ Persona</button>
+            <button (click)="store.form.set({ kind: 'person' })"><demo-icon name="plus" /> Persona</button>
           }
           @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
-            <button (click)="store.form.set({ kind: 'investment' })">＋ Inversión</button>
+            <button (click)="store.form.set({ kind: 'investment' })"><demo-icon name="plus" /> Inversión</button>
           }
           @if (page() === 'reports' && can(P.reportes.exportar)) {
-            <button (click)="exportReport()">⇩ Exportar CSV</button>
+            <button (click)="exportReport()"><demo-icon name="download" /> Exportar CSV</button>
           }
           @if (page() === 'movements' && can(P.movimientos.exportar)) {
-            <button class="secondary-action" (click)="exportMovements()">⇩ Exportar CSV</button>
+            <button class="secondary-action" (click)="exportMovements()">
+              <demo-icon name="download" /> Exportar CSV
+            </button>
           }
           @if (page() === 'notifications' && can(P.notificaciones.editar)) {
             <button (click)="readAll()">Marcar como leídas</button>
           }
         </div>
       </header>
-      @switch (page()) {
-        @case ('movements') {
-          <ng-container *ngTemplateOutlet="movements"></ng-container>
-        }
-        @case ('accounts') {
-          <ng-container *ngTemplateOutlet="accounts"></ng-container>
-        }
-        @case ('calendar') {
-          <ng-container *ngTemplateOutlet="calendar"></ng-container>
-        }
-        @case ('people') {
-          <ng-container *ngTemplateOutlet="people"></ng-container>
-        }
-        @case ('portfolio') {
-          <ng-container *ngTemplateOutlet="portfolio"></ng-container>
-        }
-        @case ('planning') {
-          <ng-container *ngTemplateOutlet="planning"></ng-container>
-        }
-        @case ('reports') {
-          <ng-container *ngTemplateOutlet="reports"></ng-container>
-        }
-        @case ('notifications') {
-          <ng-container *ngTemplateOutlet="notifications"></ng-container>
-        }
-        @case ('settings') {
-          <ng-container *ngTemplateOutlet="settings"></ng-container>
+      <!--
+        Un permiso «ver» sin «listar» dejaba cualquiera de estas pantallas pintada y
+        vacia, sin decir por que. Se comprueba una vez aqui y no siete veces dentro.
+      -->
+      @if (permisoDeDatosQueFalta(); as permiso) {
+        <demo-sin-acceso [permiso]="permiso" />
+      } @else {
+        @switch (page()) {
+          @case ('movements') {
+            <ng-container *ngTemplateOutlet="movements"></ng-container>
+          }
+          @case ('accounts') {
+            <ng-container *ngTemplateOutlet="accounts"></ng-container>
+          }
+          @case ('calendar') {
+            <ng-container *ngTemplateOutlet="calendar"></ng-container>
+          }
+          @case ('people') {
+            <ng-container *ngTemplateOutlet="people"></ng-container>
+          }
+          @case ('portfolio') {
+            <ng-container *ngTemplateOutlet="portfolio"></ng-container>
+          }
+          @case ('planning') {
+            <ng-container *ngTemplateOutlet="planning"></ng-container>
+          }
+          @case ('reports') {
+            <ng-container *ngTemplateOutlet="reports"></ng-container>
+          }
+          @case ('notifications') {
+            <ng-container *ngTemplateOutlet="notifications"></ng-container>
+          }
+          @case ('settings') {
+            <ng-container *ngTemplateOutlet="settings"></ng-container>
+          }
         }
       }
     </article>
@@ -262,8 +278,8 @@ const SIN_DATO = '—';
         <label
           ><span>Buscar cuenta</span>
           <div class="search-control">
-            <span aria-hidden="true">⌕</span
-            ><input
+            <demo-icon name="search" />
+            <input
               type="search"
               placeholder="Nombre o terminación"
               [ngModel]="accountQuery()"
@@ -562,7 +578,9 @@ const SIN_DATO = '—';
         >
         <p>Todos los indicadores conservan trazabilidad al libro central.</p>
         @if (can(P.reportes.exportar)) {
-          <button type="button" class="export-action" (click)="exportReport()">⇩ Exportar CSV</button>
+          <button type="button" class="export-action" (click)="exportReport()">
+            <demo-icon name="download" /> Exportar CSV
+          </button>
         }
       </section>
       <section class="kpis mini report-kpis">
@@ -798,7 +816,9 @@ const SIN_DATO = '—';
             <p role="note">Tu acceso permite elegir presets, pero no personalizarlos.</p>
           }
           <section class="theme-preview" aria-label="Vista previa del tema">
-            <div class="preview-nav"><b>◈ Finanzas</b><span>Dashboard</span><span>Movimientos</span></div>
+            <div class="preview-nav">
+              <b><demo-icon name="dashboard" /> Finanzas</b><span>Dashboard</span><span>Movimientos</span>
+            </div>
             <div class="preview-body">
               <small>VISTA PREVIA</small>
               <h3>{{ store.preferences().name }}</h3>
@@ -2775,6 +2795,28 @@ export class WorkspaceComponent implements AfterViewInit {
       /* sin lista: la seccion queda vacia y el resto de Preferencias sigue */
     }
   }
+
+  /**
+   * El permiso de datos que le falta a la vista activa, o null si lo tiene.
+   *
+   * `ver` abre la pantalla y `listar` entrega el contenido. Con el primero y sin el
+   * segundo la vista se pintaba entera y vacia, y nadie podia saber si era un fallo o
+   * una falta de permiso. Notificaciones y preferencias no entran: su contenido es de
+   * cada persona y no depende de un permiso aparte.
+   */
+  readonly permisoDeDatosQueFalta = computed(() => {
+    const requeridos: Record<string, string> = {
+      movements: P.movimientos.listar,
+      accounts: P.cuentas.listar,
+      calendar: P.calendario.listar,
+      people: P.personas.listar,
+      portfolio: P.patrimonio.listar,
+      planning: P.planificacion.listar,
+      reports: P.reportes.listar,
+    };
+    const necesario = requeridos[this.page()];
+    return necesario && !this.can(necesario) ? necesario : null;
+  });
 
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);

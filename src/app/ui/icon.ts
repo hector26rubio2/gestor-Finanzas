@@ -39,6 +39,9 @@ const TRAZOS: Readonly<Record<string, string>> = {
   chevronDown: 'M6 9.5l6 6 6-6',
   chevronUp: 'M6 14.5l6-6 6 6',
   edit: 'M4 20h4L19 9a2.1 2.1 0 0 0-3-3L5 17z',
+  flag: 'M6 21V4h12l-2.5 4L18 12H6',
+  list: 'M4 6h16M4 12h16M4 18h10',
+  shield: 'M12 3l8 3v6c0 5.2-3.6 8.4-8 9.6C7.6 20.4 4 17.2 4 12V6z',
 
   // Paginación
   first: 'M13 6l-6 6 6 6M19 6l-6 6 6 6',

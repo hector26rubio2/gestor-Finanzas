@@ -16,6 +16,7 @@ import {
   FinanceApiClient,
 } from '../core/api-client';
 import { P } from '../core/permissions';
+import { IconComponent } from '../ui/icon';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../core/store';
 
@@ -24,7 +25,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="admin-page">
@@ -41,8 +42,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       <nav class="tabs" aria-label="Secciones de administración">
         @for (item of tabs(); track item.id) {
           <button [class.active]="tab() === item.id" (click)="tab.set(item.id)">
-            <span>{{ item.icon }}</span
-            >{{ item.label }}
+            <demo-icon [name]="item.icon" />{{ item.label }}
           </button>
         }
       </nav>
@@ -116,7 +116,10 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 <h2>Usuarios</h2>
                 <p>Acceso efectivo por persona, sin depender de nombres de rol.</p>
               </div>
-              <label class="search">⌕<input [(ngModel)]="userSearch" placeholder="Buscar nombre o correo" /></label
+              <label class="search"
+                ><demo-icon name="search" /><input
+                  [(ngModel)]="userSearch"
+                  placeholder="Buscar nombre o correo" /></label
               ><select [(ngModel)]="userStatus">
                 <option value="all">Todos los estados</option>
                 <option value="active">Activos</option>
@@ -179,18 +182,18 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
               <p>Los roles agrupan permisos; las excepciones se aplican por usuario.</p>
             </div>
             @if (caps.allows(P.administracion.roles.crear)) {
-              <button class="primary" (click)="newRole()">＋ Crear rol</button>
+              <button class="primary" (click)="newRole()"><demo-icon name="plus" /> Crear rol</button>
             }
           </section>
           <section class="role-grid">
             @for (role of roles(); track role.id) {
               <article class="role-card">
                 <header>
-                  <span class="role-icon">◇</span
-                  ><span
-                    ><h3>{{ role.name }}</h3>
-                    <small>{{ memberCount(role.id) }} miembros</small></span
-                  >
+                  <demo-icon name="shield" class="role-icon" />
+                  <span>
+                    <h3>{{ role.name }}</h3>
+                    <small>{{ memberCount(role.id) }} miembros</small>
+                  </span>
                   @if (caps.allows(P.administracion.roles.editar)) {
                     <button class="icon-btn" (click)="editRole(role)">✎</button>
                   }
@@ -221,12 +224,14 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 <h2>Feature Flags</h2>
                 <p>Entrega gradual por audiencia sin volver a desplegar.</p>
               </div>
-              <label class="search">⌕<input [(ngModel)]="flagSearch" placeholder="Buscar funcionalidad" /></label>
+              <label class="search"
+                ><demo-icon name="search" /><input [(ngModel)]="flagSearch" placeholder="Buscar funcionalidad"
+              /></label>
             </div>
             <div class="flag-list">
               @for (flag of filteredFlags(); track flag.key + (flag.organizationId ?? '') + (flag.userId ?? '')) {
                 <article>
-                  <div class="flag-mark">⚑</div>
+                  <div class="flag-mark"><demo-icon name="flag" /></div>
                   <div>
                     <b>{{ flag.key }}</b
                     ><small>{{ flag.audience }}</small>
@@ -251,7 +256,9 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 <p>Registro inmutable de acciones humanas y automáticas.</p>
               </div>
               <label class="search"
-                >⌕<input [(ngModel)]="auditSearch" placeholder="Buscar acción, entidad o traza" /></label
+                ><demo-icon name="search" /><input
+                  [(ngModel)]="auditSearch"
+                  placeholder="Buscar acción, entidad o traza" /></label
               ><select [(ngModel)]="auditAction">
                 <option value="all">Todas las acciones</option>
                 <option value="create">Creación</option>
@@ -1281,11 +1288,11 @@ export class AdminComponent implements OnInit {
   auditAction = 'all';
   errorStatus = 'all';
   private readonly allTabs = [
-    { id: 'summary' as Tab, label: 'Resumen', icon: '◈', capability: P.administracion.ver },
-    { id: 'users' as Tab, label: 'Usuarios', icon: '♧', capability: P.administracion.usuarios.listar },
-    { id: 'roles' as Tab, label: 'Roles y capacidades', icon: '◇', capability: P.administracion.roles.listar },
-    { id: 'flags' as Tab, label: 'Feature Flags', icon: '⚑', capability: P.administracion.banderas.listar },
-    { id: 'audit' as Tab, label: 'Auditoría', icon: '▤', capability: P.administracion.auditoria.listar },
+    { id: 'summary' as Tab, label: 'Resumen', icon: 'dashboard', capability: P.administracion.ver },
+    { id: 'users' as Tab, label: 'Usuarios', icon: 'people', capability: P.administracion.usuarios.listar },
+    { id: 'roles' as Tab, label: 'Roles y capacidades', icon: 'shield', capability: P.administracion.roles.listar },
+    { id: 'flags' as Tab, label: 'Feature Flags', icon: 'flag', capability: P.administracion.banderas.listar },
+    { id: 'audit' as Tab, label: 'Auditoría', icon: 'list', capability: P.administracion.auditoria.listar },
     { id: 'errors' as Tab, label: 'Errores', icon: '!', capability: P.administracion.errores.listar },
   ];
 

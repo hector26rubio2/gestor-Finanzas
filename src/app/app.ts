@@ -56,7 +56,7 @@ import { MovementFormComponent } from './forms';
             }
           </div>
           <div class="workspace aside-label" aria-label="Espacio activo: Personal">
-            <span>Personal</span><span aria-hidden="true">⌄</span>
+            <span>Personal</span><demo-icon name="chevronDown" class="workspace-caret" />
           </div>
           <nav id="primary-navigation" aria-label="Navegación principal">
             @for (group of groups(); track group) {

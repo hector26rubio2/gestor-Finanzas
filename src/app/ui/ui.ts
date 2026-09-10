@@ -124,7 +124,7 @@ export interface TableColumn {
           [disabled]="currentPage() + 1 >= pageCount()"
           (click)="setPage(pageCount() - 1)"
         >
-          ⇥
+          <demo-icon name="last" />
         </button>
       </div>
     </footer>
@@ -606,8 +606,9 @@ export class KpiComponent {
 @Component({
   selector: 'demo-empty',
   standalone: true,
+  imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div aria-hidden="true" class="symbol">◇</div>
+  template: `<demo-icon name="dashboard" class="symbol" />
     <h3>{{ title() }}</h3>
     <p>{{ detail() }}</p>
     <ng-content />`,
