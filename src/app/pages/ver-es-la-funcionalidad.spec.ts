@@ -89,6 +89,16 @@ describe('«ver» es la funcionalidad entera', () => {
     expect(fixture.componentInstance.algunKpi()).toBe(false);
   });
 
+  it('con «ver dashboard» y una sola gráfica se ve esa gráfica y ninguna más', () => {
+    preparar([P.dashboard.ver, P.dashboard.widget.categorias]);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+
+    const titulos = fixture.componentInstance.widgets().map((w) => w.title);
+    expect(titulos).toEqual(['Gastos por categoría']);
+    expect((fixture.nativeElement as HTMLElement).querySelector('.sin-acceso')).toBeNull();
+  });
+
   it('sin ninguna pieza del panel se explica, en vez de dejarlo en blanco', () => {
     // El único caso en que la explicación es la respuesta correcta.
     preparar([P.dashboard.ver]);
