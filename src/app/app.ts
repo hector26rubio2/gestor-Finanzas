@@ -7,6 +7,19 @@ import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, navigation } from './core/store';
 import { MovementFormComponent } from './forms';
 
+/**
+ * Kinds de `store.form()` que abren su propio formulario (cuenta, categoría, persona,
+ * inversión, recurrencia) y no deben mostrar además el formulario de movimiento.
+ *
+ * Antes esta condición solo excluía 'account': crear una categoría, persona, inversión
+ * o recurrencia abría a la vez su formulario correcto (en workspace.ts) y este
+ * formulario de movimiento por encima, tapándolo. El campo `kind` es el mismo string
+ * que workspace.ts usa para decidir su propio formulario (`['category', 'person',
+ * 'investment', 'recurrence']`); se repite aquí en vez de importarlo para no acoplar
+ * el armazón a esa página.
+ */
+const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'person', 'investment', 'recurrence'];
+
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -114,7 +127,7 @@ import { MovementFormComponent } from './forms';
           <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
         </section>
       </div>
-      @if (store.form() && store.form()?.kind !== 'account') {
+      @if (abreFormularioDeMovimiento()) {
         <demo-movement-form />
       }
       @if (store.toast()) {
@@ -707,6 +720,17 @@ export class AppComponent {
     if (this.store.user() && this.enLogin()) void this.router.navigateByUrl('/' + this.primeraRutaPermitida());
   });
   readonly profileOpen = signal(false);
+  /**
+   * Si lo que hay abierto es un movimiento.
+   *
+   * La plantilla no ve las constantes del modulo -Angular resuelve los nombres contra la
+   * instancia del componente-, asi que la decision vive aqui; de paso la condicion deja
+   * de leer la señal tres veces en la misma linea.
+   */
+  readonly abreFormularioDeMovimiento = computed(() => {
+    const formulario = this.store.form();
+    return !!formulario && !FORM_KINDS_SIN_MOVIMIENTO.includes(formulario.kind ?? '');
+  });
   readonly allowed = computed(() => navigation.filter((n) => this.caps.allows(n.capability)));
   readonly groups = computed(() => [...new Set(this.allowed().map((n) => n.group))]);
   items(group: string) {
