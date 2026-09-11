@@ -10,6 +10,8 @@ import { CAPABILITIES, DemoStore } from '../core/store';
 import { IconComponent } from '../ui/icon';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import { UiOption, UiSelectComponent } from '../ui/select';
+import { ChartComponent, ChartOption } from '../ui/chart';
+import { ChartThemeService } from '../ui/chart-theme';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
 type WidgetType = 'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap';
@@ -20,6 +22,7 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
   imports: [
     FormsModule,
     RouterLink,
+    ChartComponent,
     KpiComponent,
     DataTableComponent,
     OverlayComponent,
@@ -157,44 +160,23 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
           </header>
           @switch (widget.type) {
             @case ('flow') {
-              <div class="legend">
-                <span><i class="inc"></i>Ingresos</span><span><i class="exp"></i>Gastos</span>
-              </div>
-              <div class="line-visual" aria-label="Evolución de ingresos y gastos por intervalo">
-                @if (timeline().length) {
-                  <svg viewBox="0 0 1000 240" preserveAspectRatio="none" role="img">
-                    <defs>
-                      <linearGradient id="incomeArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="var(--accent)" stop-opacity=".28" />
-                        <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                      </linearGradient>
-                      <linearGradient id="expenseArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="var(--danger)" stop-opacity=".2" />
-                        <stop offset="1" stop-color="var(--danger)" stop-opacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path class="area income-area" [attr.d]="areaPath('income')" />
-                    <path class="area expense-area" [attr.d]="areaPath('expense')" />
-                    <polyline
-                      class="income-line"
-                      vector-effect="non-scaling-stroke"
-                      [attr.points]="linePoints('income')"
-                    />
-                    <polyline
-                      class="expense-line"
-                      vector-effect="non-scaling-stroke"
-                      [attr.points]="linePoints('expense')"
-                    />
-                  </svg>
-                  <div class="line-labels">
-                    @for (point of timeline(); track point.key) {
-                      <small>{{ point.label }}</small>
-                    }
-                  </div>
-                } @else {
-                  <p class="empty">No hay datos para estos filtros.</p>
-                }
-              </div>
+              @if (timeline().length) {
+                <demo-chart
+                  [option]="flujoOption()"
+                  [height]="290"
+                  [ariaLabel]="
+                    'Ingresos y gastos por intervalo. Ingresos ' +
+                    store.money(income()) +
+                    ', gastos ' +
+                    store.money(expense()) +
+                    ', en ' +
+                    timeline().length +
+                    ' intervalos.'
+                  "
+                />
+              } @else {
+                <p class="empty">No hay datos para estos filtros.</p>
+              }
             }
             @case ('categories') {
               <div class="local">
@@ -244,83 +226,62 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
               </div>
             }
             @case ('trend') {
-              <div class="line-visual single" aria-label="Tendencia de gasto">
-                @if (timeline().length) {
-                  <svg viewBox="0 0 1000 240" preserveAspectRatio="none" role="img">
-                    <defs>
-                      <linearGradient id="trendArea" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0" stop-color="var(--accent)" stop-opacity=".3" />
-                        <stop offset="1" stop-color="var(--accent)" stop-opacity="0" />
-                      </linearGradient>
-                    </defs>
-                    <path class="area trend-area" [attr.d]="areaPath('expense')" />
-                    <polyline class="income-line" [attr.points]="linePoints('expense')" />
-                  </svg>
-                  <div class="line-labels">
-                    @for (point of timeline(); track point.key) {
-                      <small>{{ point.label }}</small>
-                    }
-                  </div>
-                } @else {
-                  <p class="empty">No hay datos para mostrar.</p>
-                }
-              </div>
+              @if (timeline().length) {
+                <demo-chart
+                  [option]="tendenciaOption()"
+                  [height]="260"
+                  [ariaLabel]="
+                    'Tendencia de gasto del periodo, con su promedio marcado. Total ' + store.money(expense())
+                  "
+                />
+              } @else {
+                <p class="empty">No hay datos para mostrar.</p>
+              }
             }
             @case ('scatter') {
-              <div class="scatter" role="img" aria-label="Relación entre importe y día del periodo">
-                <span class="axis-title y">Importe</span><span class="axis-title x">Día del periodo</span>
-                @for (point of scatterPoints(); track point.id) {
-                  <i
-                    [style.left.%]="point.x"
-                    [style.bottom.%]="point.y"
-                    [style.width.px]="point.size"
-                    [style.height.px]="point.size"
-                    [title]="point.label"
-                  ></i>
-                }
-              </div>
+              @if (movements().length) {
+                <demo-chart
+                  [option]="dispersionOption()"
+                  [height]="280"
+                  ariaLabel="Relación entre la fecha del movimiento y su importe; el tamaño del punto acompaña al importe y el color distingue ingreso de gasto."
+                />
+              } @else {
+                <p class="empty">No hay movimientos para estos filtros.</p>
+              }
             }
             @case ('donut') {
-              <div class="donut-layout">
-                <div class="donut-chart" [style.background]="donutGradient()">
-                  <span
-                    ><b>{{ store.money(expense()) }}</b
-                    ><small>Gasto total</small></span
-                  >
-                </div>
-                <div class="donut-legend">
-                  @for (category of categoryDistribution().slice(0, 6); track category.name) {
-                    <button (click)="localCategory.set(category.name)">
-                      <i [style.background]="category.color"></i><span>{{ category.name }}</span
-                      ><b>{{ category.percent }}%</b>
-                    </button>
-                  }
-                </div>
-              </div>
+              @if (categoryDistribution().length) {
+                <demo-chart
+                  [option]="anilloOption()"
+                  [height]="290"
+                  (pick)="localCategory.set($event)"
+                  [ariaLabel]="'Reparto del gasto por categoría. Total ' + store.money(expense())"
+                />
+              } @else {
+                <p class="empty">No hay gasto para repartir.</p>
+              }
             }
             @case ('stacked') {
-              <div class="stacked" aria-label="Composición de ingresos y gastos por periodo">
-                @for (point of timeline(); track point.key) {
-                  <div [title]="point.label">
-                    <span class="stack-income" [style.flex-grow]="point.income || 1"></span
-                    ><span class="stack-expense" [style.flex-grow]="point.expense || 1"></span
-                    ><small>{{ point.label }}</small>
-                  </div>
-                }
-              </div>
+              @if (timeline().length) {
+                <demo-chart
+                  [option]="apiladoOption()"
+                  [height]="270"
+                  ariaLabel="Composición de ingresos y gastos por intervalo, apilados."
+                />
+              } @else {
+                <p class="empty">No hay datos para estos filtros.</p>
+              }
             }
             @case ('heatmap') {
-              <div class="heatmap" aria-label="Intensidad diaria de movimientos">
-                @for (point of timeline(); track point.key) {
-                  <button
-                    [style.--intensity]="(point.incomeP + point.expenseP) / 200"
-                    [title]="point.label + ': ' + store.money(point.income + point.expense)"
-                  >
-                    <span>{{ point.label }}</span
-                    ><b>{{ store.money(point.income + point.expense) }}</b>
-                  </button>
-                }
-              </div>
+              @if (timeline().length) {
+                <demo-chart
+                  [option]="intensidadOption()"
+                  [height]="200"
+                  ariaLabel="Intensidad de movimiento por intervalo: cuanto más oscuro, más dinero se movió ese día."
+                />
+              } @else {
+                <p class="empty">No hay datos para estos filtros.</p>
+              }
             }
           }
         </article>
@@ -1076,6 +1037,7 @@ export class DashboardComponent {
   private readonly api = inject(FinanceApiClient);
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
+  private readonly temaGrafica = inject(ChartThemeService);
   readonly customizing = signal(false);
 
   /**
@@ -1429,29 +1391,6 @@ export class DashboardComponent {
       .filter((a) => a.amount > 0)
       .sort((a, b) => b.amount - a.amount),
   );
-  readonly scatterPoints = computed(() =>
-    this.movements()
-      .filter((m) => m.amount !== 0)
-      .slice(0, 80)
-      .map((m, index, items) => ({
-        id: m.id,
-        x: items.length === 1 ? 50 : 4 + (index / (items.length - 1)) * 92,
-        y: 8 + Math.min(84, (Math.abs(m.amount) / Math.max(1, ...items.map((x) => Math.abs(x.amount)))) * 84),
-        size: 8 + Math.min(12, (Math.abs(m.amount) / Math.max(1, ...items.map((x) => Math.abs(x.amount)))) * 12),
-        label: `${m.date} · ${m.description} · ${this.store.money(m.amount)}`,
-      })),
-  );
-  readonly donutGradient = computed(() => {
-    let offset = 0;
-    const slices = this.categoryDistribution()
-      .slice(0, 6)
-      .map((item) => {
-        const start = offset;
-        offset += item.percent;
-        return `${item.color} ${start}% ${offset}%`;
-      });
-    return `conic-gradient(${slices.join(',') || 'var(--line) 0 100%'})`;
-  });
   readonly hasFilters = computed(
     () =>
       this.scale() !== 'month' ||
@@ -1544,22 +1483,348 @@ export class DashboardComponent {
     this.widgetCreatorOpen.set(false);
     this.store.log(`Widget agregado: ${title}`);
   }
-  linePoints(kind: 'income' | 'expense') {
-    const values = this.timeline();
-    if (!values.length) return '';
-    return values
-      .map((point, index) => {
-        const x = values.length === 1 ? 500 : (index / (values.length - 1)) * 1000;
-        const y = 220 - point[`${kind}P`] * 1.9;
-        return `${x.toFixed(1)},${Math.max(18, y).toFixed(1)}`;
-      })
-      .join(' ');
+  /**
+   * Opciones comunes de eje para las graficas de intervalo del tablero.
+   *
+   * El eje de valores se rotula en miles o millones: las cifras en pesos colombianos
+   * llegan a siete digitos y repetidas en cada marca tapaban la grafica.
+   */
+  private ejes(palette: ReturnType<ChartThemeService['palette']>, etiquetas: readonly string[]) {
+    return {
+      grid: { top: 28, right: 18, bottom: 34, left: 62 },
+      xAxis: {
+        type: 'category' as const,
+        data: [...etiquetas],
+        boundaryGap: false,
+        axisLine: { lineStyle: { color: palette.line } },
+        axisTick: { show: false },
+        axisLabel: { color: palette.muted, hideOverlap: true },
+      },
+      yAxis: {
+        type: 'value' as const,
+        splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
+        axisLabel: { color: palette.muted, formatter: (valor: number) => this.cifraCorta(valor) },
+      },
+    };
   }
-  areaPath(kind: 'income' | 'expense') {
-    const points = this.linePoints(kind);
-    if (!points) return '';
-    return `M ${points.replaceAll(' ', ' L ')} L 1000 230 L 0 230 Z`;
+
+  /** 1.650.000 se lee peor que 1,7 M cuando se repite en cada marca del eje. */
+  private cifraCorta(valor: number) {
+    const absoluto = Math.abs(valor);
+    if (absoluto >= 1_000_000) return `${(valor / 1_000_000).toFixed(absoluto >= 10_000_000 ? 0 : 1)} M`;
+    if (absoluto >= 1_000) return `${Math.round(valor / 1_000)} k`;
+    return String(valor);
   }
+
+  private degradado(color: string) {
+    return {
+      type: 'linear' as const,
+      x: 0,
+      y: 0,
+      x2: 0,
+      y2: 1,
+      colorStops: [
+        { offset: 0, color: this.conAlfa(color, 0.28) },
+        { offset: 1, color: this.conAlfa(color, 0) },
+      ],
+    };
+  }
+
+  /** El tema entrega los colores como los escribio su autor: hex, rgb() o color-mix(). */
+  private conAlfa(color: string, alfa: number) {
+    const limpio = color.trim();
+    if (/^#[0-9a-f]{6}$/i.test(limpio)) {
+      const n = parseInt(limpio.slice(1), 16);
+      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`;
+    }
+    if (limpio.startsWith('rgb'))
+      return limpio.replace(/^rgba?\(([^)]+)\)$/, (_, dentro: string) => {
+        const partes = dentro.split(/[,/]/).map((x) => x.trim());
+        return `rgba(${partes[0]}, ${partes[1]}, ${partes[2]}, ${alfa})`;
+      });
+    return `color-mix(in srgb, ${limpio} ${Math.round(alfa * 100)}%, transparent)`;
+  }
+
+  /** Ingresos y gastos del periodo, con lupa cuando los intervalos no caben holgados. */
+  readonly flujoOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const puntos = this.timeline();
+    const serie = (nombre: string, valores: number[], color: string) => ({
+      name: nombre,
+      type: 'line' as const,
+      smooth: 0.24,
+      showSymbol: false,
+      symbol: 'circle',
+      symbolSize: 7,
+      lineStyle: { width: 2.4, color },
+      itemStyle: { color },
+      areaStyle: { color: this.degradado(color) },
+      emphasis: { focus: 'series' as const, showSymbol: true },
+      data: valores,
+    });
+    return {
+      ...this.ejes(
+        palette,
+        puntos.map((p) => p.label),
+      ),
+      legend: { data: ['Ingresos', 'Gastos'], top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+      tooltip: {
+        trigger: 'axis' as const,
+        axisPointer: { type: 'line' as const, lineStyle: { color: palette.line } },
+        valueFormatter: (valor: unknown) => this.store.money(Number(valor)),
+      },
+      dataZoom:
+        puntos.length > 14
+          ? [
+              { type: 'inside' as const, start: 0, end: 100 },
+              {
+                type: 'slider' as const,
+                height: 16,
+                bottom: 4,
+                borderColor: palette.line,
+                backgroundColor: 'transparent',
+                fillerColor: this.conAlfa(palette.accent, 0.14),
+                dataBackground: {
+                  lineStyle: { color: palette.line },
+                  areaStyle: { color: this.conAlfa(palette.accent, 0.1) },
+                },
+                selectedDataBackground: {
+                  lineStyle: { color: palette.accent },
+                  areaStyle: { color: this.conAlfa(palette.accent, 0.18) },
+                },
+                handleStyle: { color: palette.surface, borderColor: palette.accent },
+                moveHandleStyle: { color: this.conAlfa(palette.accent, 0.4) },
+                textStyle: { color: palette.muted },
+              },
+            ]
+          : undefined,
+      series: [
+        serie(
+          'Ingresos',
+          puntos.map((p) => p.income),
+          palette.accent,
+        ),
+        serie(
+          'Gastos',
+          puntos.map((p) => p.expense),
+          palette.danger,
+        ),
+      ],
+    };
+  });
+
+  /** Gasto del periodo con su promedio: una linea sola no dice si el dia fue caro. */
+  readonly tendenciaOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const puntos = this.timeline();
+    const gastos = puntos.map((p) => p.expense);
+    const promedio = gastos.length ? gastos.reduce((s, v) => s + v, 0) / gastos.length : 0;
+    return {
+      ...this.ejes(
+        palette,
+        puntos.map((p) => p.label),
+      ),
+      tooltip: { trigger: 'axis' as const, valueFormatter: (valor: unknown) => this.store.money(Number(valor)) },
+      series: [
+        {
+          name: 'Gastos',
+          type: 'line' as const,
+          smooth: 0.24,
+          showSymbol: false,
+          lineStyle: { width: 2.4, color: palette.accent },
+          itemStyle: { color: palette.accent },
+          areaStyle: { color: this.degradado(palette.accent) },
+          data: gastos,
+          markLine: {
+            silent: true,
+            symbol: 'none',
+            label: {
+              formatter: 'Promedio ' + this.cifraCorta(promedio),
+              color: palette.muted,
+              position: 'insideEndTop' as const,
+            },
+            lineStyle: { color: palette.muted, type: 'dashed' as const },
+            data: [{ yAxis: promedio }],
+          },
+        },
+      ],
+    };
+  });
+
+  /** Cada movimiento en su fecha y su importe; el color separa lo que entra de lo que sale. */
+  readonly dispersionOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const puntos = this.movements().filter((m) => m.amount !== 0);
+    const mayor = Math.max(1, ...puntos.map((m) => Math.abs(m.amount)));
+    const serie = (nombre: string, color: string, entra: boolean) => ({
+      name: nombre,
+      type: 'scatter' as const,
+      symbolSize: (valor: number[]) => 8 + (Math.abs(valor[1]) / mayor) * 16,
+      itemStyle: { color, opacity: 0.75 },
+      data: puntos
+        .filter((m) => m.amount > 0 === entra)
+        .map((m) => ({ value: [m.date, Math.abs(m.amount)], name: m.description })),
+    });
+    return {
+      grid: { top: 28, right: 18, bottom: 40, left: 62 },
+      legend: { top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+      xAxis: {
+        type: 'time' as const,
+        axisLine: { lineStyle: { color: palette.line } },
+        axisLabel: { color: palette.muted, hideOverlap: true },
+        splitLine: { show: false },
+      },
+      yAxis: {
+        type: 'value' as const,
+        name: 'Importe',
+        nameTextStyle: { color: palette.muted },
+        splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
+        axisLabel: { color: palette.muted, formatter: (valor: number) => this.cifraCorta(valor) },
+      },
+      tooltip: {
+        trigger: 'item' as const,
+        formatter: (parametro: { name?: string; value: [string, number] }) =>
+          (parametro.name ?? '') +
+          '<br/><b>' +
+          this.store.money(parametro.value[1]) +
+          '</b><br/><small>' +
+          parametro.value[0] +
+          '</small>',
+      },
+      series: [serie('Ingresos', palette.accent, true), serie('Gastos', palette.danger, false)],
+    };
+  });
+
+  /** Reparto del gasto por categoria; pulsar una porcion filtra el tablero por ella. */
+  readonly anilloOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const reparto = this.categoryDistribution().slice(0, 6);
+    return {
+      tooltip: {
+        trigger: 'item' as const,
+        formatter: (parametro: { name: string; value: number; percent: number }) =>
+          parametro.name + '<br/><b>' + this.store.money(parametro.value) + '</b> · ' + parametro.percent + '%',
+      },
+      legend: {
+        orient: 'vertical' as const,
+        right: 0,
+        top: 'middle',
+        textStyle: { color: palette.muted },
+        icon: 'circle',
+      },
+      series: [
+        {
+          type: 'pie' as const,
+          radius: ['58%', '82%'],
+          center: ['34%', '50%'],
+          avoidLabelOverlap: true,
+          itemStyle: { borderColor: palette.surface, borderWidth: 2, borderRadius: 6 },
+          label: {
+            show: true,
+            position: 'center' as const,
+            formatter: () => '{valor|' + this.store.money(this.expense()) + '}\n{pie|Gasto total}',
+            rich: {
+              valor: { color: palette.text, fontSize: 18, fontWeight: 700 },
+              pie: { color: palette.muted, fontSize: 12, padding: [6, 0, 0, 0] },
+            },
+          },
+          emphasis: { label: { show: true }, scaleSize: 6 },
+          data: reparto.map((categoria) => ({ name: categoria.name, value: categoria.value })),
+        },
+      ],
+    };
+  });
+
+  /** Lo que entro y lo que salio en cada intervalo, uno sobre otro. */
+  readonly apiladoOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const puntos = this.timeline();
+    const barra = (nombre: string, valores: number[], color: string, arriba: boolean) => ({
+      name: nombre,
+      type: 'bar' as const,
+      stack: 'total',
+      barMaxWidth: 26,
+      itemStyle: { color, borderRadius: arriba ? ([5, 5, 0, 0] as [number, number, number, number]) : 0 },
+      emphasis: { focus: 'series' as const },
+      data: valores,
+    });
+    return {
+      ...this.ejes(
+        palette,
+        puntos.map((p) => p.label),
+      ),
+      legend: { data: ['Ingresos', 'Gastos'], top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+      tooltip: {
+        trigger: 'axis' as const,
+        axisPointer: { type: 'shadow' as const },
+        valueFormatter: (valor: unknown) => this.store.money(Number(valor)),
+      },
+      series: [
+        barra(
+          'Gastos',
+          puntos.map((p) => p.expense),
+          palette.danger,
+          false,
+        ),
+        barra(
+          'Ingresos',
+          puntos.map((p) => p.income),
+          palette.accent,
+          true,
+        ),
+      ],
+    };
+  });
+
+  /** Cuanto dinero se movio cada intervalo, sin distinguir sentido. */
+  readonly intensidadOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const puntos = this.timeline();
+    const totales = puntos.map((p) => p.income + p.expense);
+    return {
+      grid: { top: 10, right: 18, bottom: 58, left: 18, containLabel: true },
+      xAxis: {
+        type: 'category' as const,
+        data: puntos.map((p) => p.label),
+        axisLine: { lineStyle: { color: palette.line } },
+        axisTick: { show: false },
+        axisLabel: { color: palette.muted, hideOverlap: true },
+      },
+      yAxis: {
+        type: 'category' as const,
+        data: ['Movido'],
+        axisLine: { show: false },
+        axisTick: { show: false },
+        axisLabel: { color: palette.muted },
+      },
+      visualMap: {
+        min: 0,
+        max: Math.max(1, ...totales),
+        calculable: true,
+        orient: 'horizontal' as const,
+        left: 'center',
+        bottom: 0,
+        itemHeight: 120,
+        textStyle: { color: palette.muted },
+        formatter: (valor: number) => this.cifraCorta(valor),
+        inRange: { color: [this.conAlfa(palette.accent, 0.12), palette.accent] },
+      },
+      tooltip: {
+        position: 'top' as const,
+        formatter: (parametro: { value: [number, number, number] }) =>
+          (puntos[parametro.value[0]]?.label ?? '') + '<br/><b>' + this.store.money(parametro.value[2]) + '</b>',
+      },
+      series: [
+        {
+          type: 'heatmap' as const,
+          data: totales.map((valor, indice) => [indice, 0, valor]),
+          itemStyle: { borderColor: palette.surface, borderWidth: 2, borderRadius: 4 },
+          emphasis: { itemStyle: { borderColor: palette.text } },
+        },
+      ],
+    };
+  });
+
   shiftPeriod(direction: number) {
     const date = new Date(`${this.anchor()}T12:00:00`);
     if (this.scale() === 'year') date.setFullYear(date.getFullYear() + direction);
