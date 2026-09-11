@@ -58,6 +58,10 @@ async function ensureServer() {
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
     shell: true,
+    // Fuera de Windows el hijo es un `sh` que a su vez lanza el servidor. Sin grupo
+    // propio se mata al intermediario y el servidor sigue vivo, y con el sigue vivo este
+    // proceso: por eso un fallo al arrancar se quedaba colgado en vez de acabar.
+    detached: process.platform !== 'win32',
   });
   let output = '';
   server.stdout.on('data', (chunk) => (output += chunk));
@@ -76,7 +80,11 @@ function stopServer() {
   if (process.platform === 'win32') {
     spawnSync('taskkill', ['/pid', String(server.pid), '/t', '/f'], { windowsHide: true, stdio: 'ignore' });
   } else {
-    server.kill('SIGTERM');
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {
+      server.kill('SIGTERM');
+    }
   }
 }
 

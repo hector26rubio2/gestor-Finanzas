@@ -86,6 +86,7 @@ async function ensureServer() {
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
     shell: true,
+    detached: process.platform !== 'win32',
   });
   let salida = '';
   server.stdout.on('data', (chunk) => (salida += chunk));
@@ -103,7 +104,12 @@ function stopServer() {
   if (!server?.pid) return;
   if (process.platform === 'win32')
     spawnSync('taskkill', ['/pid', String(server.pid), '/t', '/f'], { windowsHide: true, stdio: 'ignore' });
-  else server.kill('SIGTERM');
+  else
+    try {
+      process.kill(-server.pid, 'SIGTERM');
+    } catch {
+      server.kill('SIGTERM');
+    }
 }
 
 function browserExecutable() {
