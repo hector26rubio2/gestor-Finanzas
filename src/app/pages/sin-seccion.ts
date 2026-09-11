@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
+import { DemoStore } from '../core/store';
 
 /**
  * Lo que se enseña cuando la sesión no tiene ninguna sección abierta.
@@ -13,14 +15,21 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
 @Component({
   selector: 'demo-sin-seccion',
   standalone: true,
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<section class="sin-seccion" role="status">
-    <h1>Tu acceso no abre ninguna sección</h1>
-    <p>
-      La sesión se inició bien, pero ninguna de las pantallas está habilitada para ti: o no tienes su permiso, o la
-      funcionalidad está apagada en este espacio. Pídele a quien administra el espacio lo que necesites.
-    </p>
-    <button type="button" (click)="reintentar()">Volver a comprobar mi acceso</button>
+    @if (haySesion()) {
+      <h1>Tu acceso no abre ninguna sección</h1>
+      <p>
+        La sesión se inició bien, pero ninguna de las pantallas está habilitada para ti: o no tienes su permiso, o la
+        funcionalidad está apagada en este espacio. Pídele a quien administra el espacio lo que necesites.
+      </p>
+      <button type="button" (click)="reintentar()">Volver a comprobar mi acceso</button>
+    } @else {
+      <h1>Aquí no hay nada que ver sin haber entrado</h1>
+      <p>Esta pantalla explica por qué una sesión puede quedarse sin secciones. Para eso hace falta iniciar sesión.</p>
+      <a routerLink="/login">Ir a la pantalla de acceso</a>
+    }
   </section>`,
   styles: [
     `
@@ -53,6 +62,13 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
 })
 export class SinSeccionComponent {
   private readonly arranque = inject(RemoteBootstrap);
+  private readonly store = inject(DemoStore);
+
+  /**
+   * A esta ruta se llega tecleandola, y sin sesion el texto daba por hecho lo contrario:
+   * hablaba de permisos y de banderas a quien todavia no habia entrado.
+   */
+  readonly haySesion = computed(() => !!this.store.user());
 
   /** Quien administra puede conceder el acceso mientras esta pantalla está abierta. */
   reintentar(): void {

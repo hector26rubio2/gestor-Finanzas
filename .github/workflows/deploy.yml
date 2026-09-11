@@ -32,6 +32,10 @@ jobs:
         run: pnpm format:check
       - name: Pruebas
         run: pnpm test
+      - name: Pruebas de interfaz
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+        run: pnpm test:ui
       - name: Escribir config de API desde la variable del repositorio
         if: ${{ vars.API_BASE_URL != '' }}
         env:

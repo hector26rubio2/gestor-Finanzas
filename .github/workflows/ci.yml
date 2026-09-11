@@ -29,3 +29,18 @@ jobs:
         run: pnpm test
       - name: Compilar
         run: pnpm build
+      # La suite de interfaz recorre las once rutas en cinco anchos, ejercita los
+      # controles y falla si algo se desborda o si la consola escupe un error. Llevaba
+      # meses rota y fuera de aqui, y por eso las regresiones visuales se descubrian en
+      # produccion, a mano y por capturas de pantalla.
+      - name: Pruebas de interfaz
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+        run: pnpm test:ui
+      - name: Guardar capturas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-interfaz
+          path: artifacts/
+          retention-days: 7

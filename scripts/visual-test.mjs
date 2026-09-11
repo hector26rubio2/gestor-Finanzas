@@ -38,7 +38,7 @@ function assert(condition, message) {
 
 async function isReady() {
   try {
-    const response = await fetch(`${baseUrl}/#/login`);
+    const response = await fetch(`${baseUrl}/login`);
     return response.ok;
   } catch {
     return false;
@@ -84,6 +84,12 @@ function browserExecutable() {
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
+    // Las maquinas de integracion continua traen Chrome instalado; `playwright-core` no
+    // descarga navegadores, asi que se usa el del sistema en vez de añadir una dependencia
+    // que baje uno en cada ejecucion.
+    '/usr/bin/google-chrome',
+    '/usr/bin/chromium-browser',
+    '/usr/bin/chromium',
   ].filter(Boolean);
   for (const candidate of candidates) {
     const result = spawnSync(candidate, ['--version'], { windowsHide: true, encoding: 'utf8' });
@@ -92,12 +98,54 @@ function browserExecutable() {
   return undefined;
 }
 
+/**
+ * Abre una ruta.
+ *
+ * Antes escribia `location.hash`, de cuando el router usaba almohadilla. Al pasar a
+ * rutas normales, eso dejo de navegar: la URL se quedaba donde estaba, la espera
+ * caducaba a los treinta segundos y la suite entera fallaba sin decir nada util. Desde
+ * entonces nadie volvio a ejecutarla, y por ahi se colaron los fallos de interfaz que
+ * acabaron reportandose a mano.
+ */
 async function waitForRoute(page, route) {
-  await page.evaluate((nextRoute) => {
-    location.hash = `#/${nextRoute}`;
-  }, route);
-  await page.waitForURL(new RegExp(`#/${route}(?:$|[?])`));
-  await page.locator('.workspace-page, .dashboard').first().waitFor({ state: 'visible' });
+  await page.goto(`${baseUrl}/${route}`, { waitUntil: 'domcontentloaded' });
+  await page.waitForURL(new RegExp(`/${route}(?:$|[?])`));
+  try {
+    await page
+      .locator('.workspace-page, .dashboard, .admin-page, demo-sin-seccion')
+      .first()
+      .waitFor({ state: 'visible' });
+  } catch {
+    // Un tiempo agotado a secas no dice nada: cuenta donde acabo y que habia en pantalla,
+    // que es la diferencia entre arreglarlo y volver a ignorar esta suite.
+    const donde = page.url();
+    const texto = (
+      await page
+        .locator('body')
+        .innerText()
+        .catch(() => '')
+    )
+      .slice(0, 240)
+      .replace(/\s+/g, ' ');
+    throw new Error(`La ruta ${route} no llego a pintarse. URL: ${donde}. En pantalla: ${texto}`);
+  }
+}
+
+/**
+ * Elige una opcion en uno de los desplegables propios.
+ *
+ * `selectOption` solo entiende un `<select>` nativo, y desde la modernizacion de los
+ * controles estos son un boton con su lista: la llamada fallaba por no encontrar el
+ * elemento, no por que la aplicacion estuviera rota.
+ */
+async function chooseOption(page, ariaLabel, optionLabel) {
+  const control = page.locator('demo-select').filter({ has: page.locator(`button[aria-label="${ariaLabel}"]`) });
+  await control.locator('button.trigger').click();
+  await control
+    .locator('.menu button', { hasText: new RegExp(`^\\s*${optionLabel}\\s*$`) })
+    .first()
+    .click();
+  await control.locator('.menu').waitFor({ state: 'detached' });
 }
 
 async function horizontalOverflow(page, label) {
@@ -113,9 +161,8 @@ async function horizontalOverflow(page, label) {
 async function exerciseInteractions(page) {
   await waitForRoute(page, 'accounts');
   const cards = page.locator('.cards');
-  const pageSize = page.getByLabel('Filas por página');
   for (const size of ['5', '10', '25']) {
-    await pageSize.selectOption(size);
+    await chooseOption(page, 'Filas por página', size);
     const renderedRows = await page.locator('demo-table tbody tr').count();
     assert(renderedRows === Number(size), `The table did not render ${size} rows (rendered ${renderedRows})`);
   }
@@ -149,7 +196,7 @@ async function exerciseInteractions(page) {
   assert(await modalTrigger.evaluate((node) => node === document.activeElement), 'Modal did not restore trigger focus');
 
   await waitForRoute(page, 'settings');
-  await page.getByRole('button', { name: 'Esmeralda noche' }).click();
+  await page.getByRole('button', { name: 'Noche esmeralda' }).click();
   assert((await page.locator('html').getAttribute('data-theme')) === 'dark', 'Dark theme was not applied');
 }
 
@@ -171,12 +218,12 @@ async function testViewport(browser, viewport) {
   page.on('pageerror', (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    await page.goto(`${baseUrl}/#/login`, { waitUntil: 'networkidle' });
+    await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
     const viewportLabel = viewport.label ?? `${viewport.width}px`;
     const loginOverflow = await horizontalOverflow(page, `${viewportLabel} login`);
     if (loginOverflow) failures.push(loginOverflow);
     await page.getByRole('button', { name: 'Continuar como Valentina' }).click();
-    await page.waitForURL(/#\/dashboard/);
+    await page.waitForURL(/\/dashboard/);
 
     if (viewport.width === 1440) await exerciseInteractions(page);
 
@@ -207,6 +254,12 @@ async function main() {
     await mkdir(join(artifacts, viewport.label ?? String(viewport.width)), { recursive: true });
   await ensureServer();
   const executablePath = browserExecutable();
+  // `playwright-core` no descarga navegadores: sin uno del sistema arrancaria buscando
+  // un binario que no existe y el fallo hablaria de rutas internas en vez de decir esto.
+  assert(
+    executablePath,
+    'No se encontro Chrome ni Edge. Instale uno, o apunte PLAYWRIGHT_CHROMIUM_EXECUTABLE al ejecutable.',
+  );
   const browser = await chromium.launch({ executablePath, headless: true });
   try {
     const failures = [];
