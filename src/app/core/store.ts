@@ -257,6 +257,12 @@ export class DemoStore {
   async persistPreferences() {
     if (this.runtime.mode !== 'api') return;
     const value = this.preferences();
+    // La paleta propia solo viaja si esta sesión puede definirla. Antes se enviaba
+    // siempre, incluso al elegir un preset o cambiar el idioma, y la API rechaza con
+    // 403 cualquier tema personalizado de quien no gobierna la organización: el efecto
+    // era que un permiso de edición corriente no podía guardar nada. Un nulo aquí no
+    // borra la paleta guardada; la API conserva la que ya tenía.
+    const puedeTemaPropio = !!this.user()?.capabilities.includes(P.preferencias.tema.editar);
     await firstValueFrom(
       this.injector.get(FinanceApiClient).updatePreferences({
         language: value.locale,
@@ -264,16 +270,18 @@ export class DemoStore {
         font: value.font,
         density: value.density,
         baseCurrency: 'COP',
-        customThemeJson: JSON.stringify({
-          name: value.name,
-          accent: value.accent,
-          primary: value.primary,
-          secondary: value.secondary,
-          text: value.text,
-          surface: value.surface,
-          border: value.border,
-          radius: value.radius,
-        }),
+        customThemeJson: puedeTemaPropio
+          ? JSON.stringify({
+              name: value.name,
+              accent: value.accent,
+              primary: value.primary,
+              secondary: value.secondary,
+              text: value.text,
+              surface: value.surface,
+              border: value.border,
+              radius: value.radius,
+            })
+          : null,
       }),
     );
   }
