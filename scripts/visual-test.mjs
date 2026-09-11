@@ -51,7 +51,9 @@ async function ensureServer() {
     return;
   }
   console.log(`Starting Angular server at ${baseUrl}`);
-  server = spawn('pnpm.cmd', ['start'], {
+  // `pnpm.cmd` solo existe en Windows; en las maquinas de integracion continua el
+  // servidor moria al instante con «pnpm.cmd: not found».
+  server = spawn(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['start'], {
     cwd: webRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
