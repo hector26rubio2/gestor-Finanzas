@@ -36,6 +36,12 @@ jobs:
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
         run: pnpm test:ui
+      # Un permiso por seccion basta para entrar y ver algo: el modelo acordado, fijado
+      # aqui para que ningun permiso fino vuelva a cerrar la puerta.
+      - name: Permisos por seccion
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+        run: pnpm test:permisos
       - name: Escribir config de API desde la variable del repositorio
         if: ${{ vars.API_BASE_URL != '' }}
         env:
