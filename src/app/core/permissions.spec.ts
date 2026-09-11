@@ -89,7 +89,9 @@ describe('banderas de funcionalidad', () => {
     expect(features.enabled('movements')).toBe(false);
 
     store.featureFlagsLoaded.set(true);
-    expect(features.enabled('movements')).toBe(true);
+    expect(features.enabled('movements')).toBe(false);
+    // El plano de control no se puede apagar desde sí mismo.
+    expect(features.enabled('admin')).toBe(true);
     store.featureFlags.set({ movements: false });
     expect(features.enabled('movements')).toBe(false);
   });

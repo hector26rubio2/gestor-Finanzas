@@ -98,7 +98,10 @@ export class RemoteBootstrap {
           investments: puede(P.patrimonio.ver) ? this.api.investments() : of([]),
           movements: puede(P.movimientos.ver) ? this.api.movements({ page: 1, pageSize: 25 }) : of(sinMovimientos),
           preferences: puede(P.preferencias.ver) ? this.api.preferences() : of(null),
-          featureFlags: puede(P.organizacion.banderas.listar) ? this.api.featureFlags() : of([]),
+          // Los valores efectivos no son una pantalla administrativa: toda sesión los
+          // necesita para decidir qué rutas puede ofrecer. La API solo devuelve el
+          // resultado para esta persona; editar el catálogo sigue protegido aparte.
+          featureFlags: this.api.featureFlags(),
           notifications: this.api.notifications(),
         }),
       );

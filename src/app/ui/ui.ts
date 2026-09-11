@@ -13,8 +13,10 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../core/url-state';
 import { IconComponent } from './icon';
+import { UiOption, UiSelectComponent } from './select';
 
 export interface TableColumn {
   key: string;
@@ -24,7 +26,7 @@ export interface TableColumn {
 @Component({
   selector: 'demo-table',
   standalone: true,
-  imports: [IconComponent],
+  imports: [FormsModule, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -79,12 +81,13 @@ export interface TableColumn {
       <span [id]="rangeId" aria-live="polite">{{ start() }}–{{ end() }} de {{ totalCount() }}</span>
       <label
         >Filas
-        <select aria-label="Filas por página" [value]="size()" (change)="setSize($event)">
-          <option value="5">5</option>
-          <option value="10">10</option>
-          <option value="25">25</option>
-        </select></label
-      >
+        <demo-select
+          class="compact-select"
+          ariaLabel="Filas por página"
+          [options]="sizeOptions"
+          [ngModel]="size().toString()"
+          (ngModelChange)="setSizeValue($event)"
+      /></label>
       <div class="pages">
         <button type="button" aria-label="Primera página" [disabled]="currentPage() === 0" (click)="setPage(0)">
           <demo-icon name="first" />
@@ -104,11 +107,13 @@ export interface TableColumn {
             aplica antes de que las opciones existan, y al llegar desde un enlace con
             ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
           -->
-          <select aria-label="Ir a página" (change)="setPageFromEvent($event)">
-            @for (number of pageOptions(); track number) {
-              <option [value]="number" [selected]="number === currentPage()">{{ number + 1 }}</option>
-            }
-          </select>
+          <demo-select
+            class="compact-select"
+            ariaLabel="Ir a página"
+            [options]="pageSelectOptions()"
+            [ngModel]="currentPage().toString()"
+            (ngModelChange)="setPageValue($event)"
+          />
           de {{ pageCount() }} </label
         ><button
           type="button"
@@ -230,6 +235,9 @@ export interface TableColumn {
         border-radius: 7px;
         min-height: 32px;
         padding: 4px 9px;
+      }
+      .compact-select {
+        width: 74px;
       }
       .pages button:disabled {
         opacity: 0.35;
@@ -363,6 +371,14 @@ export class DataTableComponent {
     this.totalRows() === null ? this.rows().slice(this.currentPage() * this.size(), this.end()) : this.rows(),
   );
   readonly pageOptions = computed(() => Array.from({ length: this.pageCount() }, (_, index) => index));
+  readonly sizeOptions: readonly UiOption[] = [
+    { value: '5', label: '5' },
+    { value: '10', label: '10' },
+    { value: '25', label: '25' },
+  ];
+  readonly pageSelectOptions = computed<readonly UiOption[]>(() =>
+    this.pageOptions().map((number) => ({ value: number.toString(), label: (number + 1).toString() })),
+  );
 
   constructor() {
     // Fuera de una ruta la tabla sigue funcionando igual, sin tocar la URL. La clave se
@@ -378,6 +394,13 @@ export class DataTableComponent {
     this.pageSizeChange.emit(size);
     if (this.totalRows() !== null) this.pageChange.emit(1);
   }
+  setSizeValue(value: string): void {
+    const size = Number(value);
+    this.selectedSize.set(size);
+    this.page.set(0);
+    this.pageSizeChange.emit(size);
+    if (this.totalRows() !== null) this.pageChange.emit(1);
+  }
   setPage(zeroBasedPage: number): void {
     const next = Math.max(0, Math.min(zeroBasedPage, this.pageCount() - 1));
     if (this.totalRows() === null) this.page.set(next);
@@ -385,6 +408,9 @@ export class DataTableComponent {
   }
   setPageFromEvent(event: Event): void {
     this.setPage(Number((event.target as HTMLSelectElement).value));
+  }
+  setPageValue(value: string): void {
+    this.setPage(Number(value));
   }
   display(value: unknown): string {
     return value == null ? '—' : String(value);

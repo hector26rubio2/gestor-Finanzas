@@ -29,12 +29,13 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
   factory: () => {
     const store = inject(DemoStore);
     return {
-      // Una clave ausente habilita: no toda ruta tiene bandera, y exigir una por cada
-      // una cerraria la aplicacion entera. Lo que no puede pasar es abrir cuando el
-      // catalogo nunca llego: ahi el silencio significa "no lo se", no "adelante".
+      // Una ruta funcional en modo API debe aparecer expresamente en el catálogo. La
+      // única excepción es el plano de control: el superadmin necesita conservar la
+      // vía para revertir una bandera mal configurada.
       enabled: (key) => {
         if (store.runtime.mode === 'api' && !store.featureFlagsLoaded()) return false;
-        return store.featureFlags()[key] ?? true;
+        if (key === 'admin') return true;
+        return store.runtime.mode === 'api' ? store.featureFlags()[key] === true : (store.featureFlags()[key] ?? true);
       },
     };
   },

@@ -15,6 +15,8 @@ const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'sesion.ver': 'La sesión misma. No hay control que ocultar.',
   'sesion.monedas.listar': 'Catálogo de monedas: alimenta selectores, no se decide aquí.',
   'organizacion.auditoria.listar': 'La auditoría por organización no tiene pantalla propia.',
+  'organizacion.banderas.listar':
+    'Los valores efectivos se cargan para toda sesión; este permiso solo conserva compatibilidad del contrato.',
   'organizacion.banderas.editar': 'Igual que la anterior.',
   'personas.compras.listar': 'El endpoint existe y ninguna vista lo consume.',
   'personas.liquidaciones.listar': 'El endpoint existe y ninguna vista lo consume.',
