@@ -125,6 +125,8 @@ export class RemoteBootstrap {
       this.store.remoteMovementSize.set(result.movements.size);
       this.store.remoteMovementTotal.set(result.movements.total);
       this.store.user.set(this.toViewUser(session));
+      this.store.organization.set({ id: session.organization.id, name: session.organization.name });
+      this.store.organizations.set((session.organizations ?? []).map((x) => ({ id: x.id, name: x.name })));
       if (result.preferences) {
         let custom: { accent?: string; radius?: number } = {};
         try {
