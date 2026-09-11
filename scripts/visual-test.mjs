@@ -168,6 +168,33 @@ async function horizontalOverflow(page, label) {
     : `${label}: document has horizontal overflow (${metrics.scrollWidth}px > ${metrics.clientWidth}px)`;
 }
 
+/**
+ * Espera a que el foco vuelva a donde se pidio.
+ *
+ * Devolver el foco ocurre despues de que el panel se oculte, asi que comprobarlo en el
+ * instante siguiente es una carrera: en una maquina lenta el navegador todavia no lo ha
+ * movido. Se espera a la condicion, y si no llega, falla igual pero por lo que es.
+ */
+async function devuelveElFoco(locator, mensaje) {
+  try {
+    await locator.evaluate(
+      (node) =>
+        new Promise((listo, falla) => {
+          if (node === document.activeElement) return listo(true);
+          const tope = Date.now() + 2000;
+          const mirar = () => {
+            if (node === document.activeElement) return listo(true);
+            if (Date.now() > tope) return falla(new Error('sin foco'));
+            requestAnimationFrame(mirar);
+          };
+          mirar();
+        }),
+    );
+  } catch {
+    assert(false, mensaje);
+  }
+}
+
 async function exerciseInteractions(page) {
   await waitForRoute(page, 'accounts');
   const cards = page.locator('.cards');
@@ -190,10 +217,7 @@ async function exerciseInteractions(page) {
   );
   await page.getByLabel('Cerrar panel').click();
   await inspector.waitFor({ state: 'hidden' });
-  assert(
-    await cardTrigger.evaluate((node) => node === document.activeElement),
-    'Inspector did not restore trigger focus',
-  );
+  await devuelveElFoco(cardTrigger, 'Inspector did not restore trigger focus');
 
   const modalTrigger = page.getByRole('button', { name: 'Nuevo movimiento' });
   await modalTrigger.focus();
@@ -203,7 +227,7 @@ async function exerciseInteractions(page) {
   assert(await modal.evaluate((node) => node.contains(document.activeElement)), 'Focus did not move into modal');
   await page.keyboard.press('Escape');
   await modal.waitFor({ state: 'hidden' });
-  assert(await modalTrigger.evaluate((node) => node === document.activeElement), 'Modal did not restore trigger focus');
+  await devuelveElFoco(modalTrigger, 'Modal did not restore trigger focus');
 
   await waitForRoute(page, 'settings');
   await page.getByRole('button', { name: 'Noche esmeralda' }).click();
