@@ -27,9 +27,17 @@ import { MovementFormComponent } from './forms';
       <div class="app" [class.collapsed]="collapsed()">
         <aside [class.mobile-open]="mobileOpen()">
           <div class="brand-row">
-            <a routerLink="/dashboard" class="brand" aria-label="Finanzas, ir al inicio"
-              ><demo-icon name="dashboard" class="brand-mark" /><b class="aside-label">Finanzas</b></a
+            <button
+              type="button"
+              class="brand-toggle"
+              [attr.aria-expanded]="menuAbierto()"
+              aria-controls="primary-navigation"
+              [attr.aria-label]="menuAbierto() ? 'Contraer menú' : 'Desplegar menú'"
+              (click)="alternarMenu()"
             >
+              <demo-icon name="dashboard" class="brand-mark" />
+            </button>
+            <a routerLink="/dashboard" class="brand aside-label" aria-label="Finanzas, ir al inicio"><b>Finanzas</b></a>
           </div>
           <div class="profile" [class.open]="profileOpen()">
             <button
@@ -41,7 +49,7 @@ import { MovementFormComponent } from './forms';
               <span class="avatar">{{ userInitials() }}</span>
               <span class="profile-copy aside-label"
                 ><strong>{{ store.user()?.name }}</strong
-                ><small>Espacio personal</small></span
+                ><small>{{ espacioActivo() }}</small></span
               >
               <demo-icon name="more" class="profile-more aside-label" />
             </button>
@@ -56,9 +64,11 @@ import { MovementFormComponent } from './forms';
               </div>
             }
           </div>
-          <div class="workspace aside-label" aria-label="Espacio activo: Personal">
-            <span>{{ i18n.t('shell.personal') }}</span
-            ><demo-icon name="chevronDown" class="workspace-caret" />
+          <div class="workspace aside-label" [attr.aria-label]="'Espacio activo: ' + espacioActivo()">
+            <span>{{ espacioActivo() }}</span>
+            @if (store.organizations().length > 1) {
+              <small class="workspace-count">{{ store.organizations().length }}</small>
+            }
           </div>
           <nav id="primary-navigation" aria-label="Navegación principal">
             @for (group of groups(); track group) {
@@ -94,7 +104,7 @@ import { MovementFormComponent } from './forms';
               (click)="alternarMenu()"
             >
               <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
-            ><span class="org"><demo-icon name="organization" /> Personal</span>
+            ><span class="org"><demo-icon name="organization" /> {{ espacioActivo() }}</span>
             <div class="top-actions">
               <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
                 <demo-icon name="search" /></button
@@ -238,6 +248,36 @@ import { MovementFormComponent } from './forms';
         text-decoration: none;
         padding: 4px 6px;
         min-width: 0;
+      }
+      /*
+       * La marca es el control de colapso: es lo unico que sigue a la vista cuando el
+       * panel se contrae, asi que contraer y desplegar ocurren en el mismo sitio en vez
+       * de repartirse entre el panel y la barra de arriba.
+       */
+      .brand-toggle {
+        display: grid;
+        place-items: center;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--accent);
+        padding: 4px;
+        border-radius: 11px;
+        cursor: pointer;
+      }
+      .brand-toggle:hover {
+        border-color: var(--line);
+        background: var(--accent-soft);
+      }
+      .brand-toggle:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      .workspace-count {
+        border-radius: 999px;
+        padding: 1px 7px;
+        background: var(--accent-soft);
+        color: var(--accent);
+        font-weight: 700;
       }
       .brand-row {
         display: flex;
@@ -542,6 +582,12 @@ import { MovementFormComponent } from './forms';
         top: -6px;
       }
       .menu-toggle {
+        /*
+         * Solo en pantalla estrecha, donde el panel se superpone y su marca no esta a la
+         * vista. En pantalla ancha contraer y desplegar viven en la marca del panel, que
+         * es lo que queda visible al contraerse.
+         */
+        display: none;
         margin-right: 10px;
         width: 38px;
         padding: 0;
@@ -580,6 +626,10 @@ import { MovementFormComponent } from './forms';
         display: none;
       }
       @media (max-width: 780px) {
+        .menu-toggle {
+          display: grid;
+          place-items: center;
+        }
         .app,
         .app.collapsed {
           display: block;
@@ -634,6 +684,8 @@ export class AppComponent {
   private readonly arranque = inject(RemoteBootstrap);
   readonly i18n = inject(I18nService);
   private readonly cargarIdioma = effect(() => void this.i18n.load(this.store.preferences().locale));
+  /** Nombre del espacio activo; la sesion lo trae y antes estaba escrito a mano. */
+  readonly espacioActivo = computed(() => this.store.organization()?.name ?? this.i18n.t('shell.personal'));
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
 

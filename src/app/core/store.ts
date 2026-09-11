@@ -119,6 +119,17 @@ export class DemoStore {
     this.runtime.mode === 'demo' ? 'demo' : 'loading',
   );
   readonly remoteError = signal('');
+  /**
+   * Espacio activo y espacios a los que pertenece la sesion.
+   *
+   * El armazon escribia «Personal» a mano en tres sitios -barra lateral, barra superior
+   * y ficha de perfil- mientras la sesion traia el nombre real de la organizacion, asi
+   * que cualquier espacio que no se llamara asi aparecia con el nombre de otro.
+   */
+  readonly organization = signal<{ id: string; name: string } | null>(
+    this.runtime.mode === 'demo' ? { id: 'demo', name: 'Espacio personal' } : null,
+  );
+  readonly organizations = signal<readonly { id: string; name: string }[]>([]);
   readonly remoteMovementPage = signal(1);
   readonly remoteMovementSize = signal(25);
   readonly remoteMovementTotal = signal(0);
