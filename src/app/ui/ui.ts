@@ -17,6 +17,8 @@ import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../core/url-state';
 import { IconComponent } from './icon';
 import { UiOption, UiSelectComponent } from './select';
+import { ChartComponent } from './chart';
+import { ChartThemeService } from './chart-theme';
 
 export interface TableColumn {
   key: string;
@@ -581,9 +583,35 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
 @Component({
   selector: 'demo-kpi',
   standalone: true,
+  imports: [ChartComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<span class="label">{{ label() }}</span
-    ><strong>{{ value() }}</strong>
+  template: `<span class="label">{{ label() }}</span>
+    <div class="cifra">
+      <strong>{{ value() }}</strong>
+      @if (delta() !== null) {
+        <span class="delta" [class.sube]="mejora()" [class.baja]="empeora()" [attr.title]="deltaTitulo()">
+          {{ flecha() }} {{ deltaTexto() }}
+        </span>
+      }
+    </div>
+    @if (series().length > 1) {
+      <!--
+        En diferido y al entrar en pantalla: la tarjeta de indicador la usa el armazon,
+        que va en el paquete inicial, y arrastrar ECharts hasta ahi lo pasaba de 1.00 MB
+        -el presupuesto- a 1.12 MB. Asi la biblioteca sigue viviendo en su propio trozo y
+        la chispa aparece cuando hay algo que mirar.
+      -->
+      @defer (on viewport) {
+        <demo-chart
+          class="chispa"
+          [option]="chispaOption()"
+          [height]="38"
+          [ariaLabel]="label() + ': evolución del periodo'"
+        />
+      } @placeholder {
+        <span class="chispa-hueco"></span>
+      }
+    }
     @if (hint()) {
       <span class="hint">{{ hint() }}</span>
     }`,
@@ -606,6 +634,41 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
         font-size: 0.78rem;
         color: var(--muted);
       }
+      .cifra {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 10px;
+        min-width: 0;
+      }
+      /*
+       * La variacion se lee como texto ademas de como color: el verde y el rojo solos
+       * dejan fuera a quien no los distingue, y el signo ya va en la flecha.
+       */
+      .delta {
+        flex: none;
+        font-size: 0.7rem;
+        font-weight: 700;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .delta.sube {
+        color: var(--accent);
+      }
+      .delta.baja {
+        color: var(--danger);
+        background: color-mix(in srgb, var(--danger) 12%, transparent);
+      }
+      .chispa {
+        margin-top: 2px;
+      }
+      .chispa-hueco {
+        display: block;
+        height: 38px;
+      }
       strong {
         font-size: clamp(1.12rem, 1.55vw, 1.55rem);
         font-weight: 650;
@@ -627,6 +690,80 @@ export class KpiComponent {
   readonly label = input('');
   readonly value = input('');
   readonly hint = input('');
+  /** Serie del periodo para la minigrafica; con menos de dos puntos no se dibuja. */
+  readonly series = input<readonly number[]>([]);
+  /** Variacion en tanto por ciento frente al intervalo anterior; `null` la oculta. */
+  readonly delta = input<number | null>(null);
+  /**
+   * Si subir es una buena noticia. En ingresos si; en gastos, no. Sin esto la tarjeta
+   * pintaria de verde un mes en el que se gasto un tercio mas.
+   */
+  readonly subirEsBueno = input(true);
+
+  private readonly tema = inject(ChartThemeService);
+
+  readonly mejora = computed(() => {
+    const valor = this.delta();
+    return valor !== null && valor !== 0 && valor > 0 === this.subirEsBueno();
+  });
+  readonly empeora = computed(() => {
+    const valor = this.delta();
+    return valor !== null && valor !== 0 && !(valor > 0 === this.subirEsBueno());
+  });
+  /**
+   * La flecha dice hacia donde se movio la cifra; el color, si eso es buena noticia.
+   *
+   * Mezclar las dos cosas en la flecha hacia ilegible la tarjeta de gastos: un gasto que
+   * bajaba se pintaba con flecha hacia arriba «porque mejora», y junto al numero en
+   * valor absoluto se leia exactamente como lo contrario de lo que habia pasado.
+   */
+  readonly flecha = computed(() => {
+    const valor = this.delta();
+    if (valor === null || valor === 0) return '▬';
+    return valor > 0 ? '▲' : '▼';
+  });
+  readonly deltaTitulo = computed(() => {
+    const valor = this.delta();
+    if (valor === null) return '';
+    const sentido = valor > 0 ? 'mas' : 'menos';
+    return `${this.deltaTexto()} ${sentido} que el intervalo anterior`;
+  });
+  readonly deltaTexto = computed(() => {
+    const valor = this.delta();
+    if (valor === null) return '';
+    return `${Math.abs(valor).toFixed(Math.abs(valor) >= 10 ? 0 : 1)}%`;
+  });
+
+  readonly chispaOption = computed(() => {
+    const palette = this.tema.palette();
+    const color = this.empeora() ? palette.danger : palette.accent;
+    const valores = [...this.series()];
+    return {
+      grid: { top: 4, right: 2, bottom: 2, left: 2 },
+      xAxis: {
+        type: 'category' as const,
+        show: true,
+        boundaryGap: false,
+        axisLabel: { show: false },
+        axisLine: { show: false },
+        axisTick: { show: false },
+        data: valores.map((_, i) => i),
+      },
+      yAxis: { type: 'value' as const, show: false, min: Math.min(...valores), max: Math.max(...valores, 1) },
+      tooltip: { show: false },
+      series: [
+        {
+          type: 'line' as const,
+          data: valores,
+          smooth: 0.3,
+          showSymbol: false,
+          lineStyle: { width: 1.8, color },
+          areaStyle: { color: `color-mix(in srgb, ${color} 16%, transparent)` },
+          silent: true,
+        },
+      ],
+    };
+  });
 }
 
 @Component({

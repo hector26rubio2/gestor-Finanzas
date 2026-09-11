@@ -113,13 +113,32 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
     @if (algunKpi()) {
       <section class="kpis" aria-label="Indicadores filtrados">
         @if (caps.allows(P.dashboard.kpi.balance)) {
-          <demo-kpi label="Balance del periodo" [value]="store.money(net())" [hint]="periodLabel()" />
+          <demo-kpi
+            label="Balance del periodo"
+            [value]="store.money(net())"
+            [hint]="periodLabel()"
+            [series]="serieNeta()"
+            [delta]="variacion(serieNeta())"
+          />
         }
         @if (caps.allows(P.dashboard.kpi.ingresos)) {
-          <demo-kpi label="Ingresos" [value]="store.money(income())" hint="Según filtros activos" />
+          <demo-kpi
+            label="Ingresos"
+            [value]="store.money(income())"
+            hint="Según filtros activos"
+            [series]="serieIngresos()"
+            [delta]="variacion(serieIngresos())"
+          />
         }
         @if (caps.allows(P.dashboard.kpi.gastos)) {
-          <demo-kpi label="Gastos" [value]="store.money(expense())" hint="Según filtros activos" />
+          <demo-kpi
+            label="Gastos"
+            [value]="store.money(expense())"
+            hint="Según filtros activos"
+            [series]="serieGastos()"
+            [delta]="variacion(serieGastos())"
+            [subirEsBueno]="false"
+          />
         }
         @if (caps.allows(P.dashboard.kpi.recuento)) {
           <demo-kpi label="Movimientos" [value]="movements().length.toLocaleString()" hint="Registros visibles" />
@@ -1391,6 +1410,24 @@ export class DashboardComponent {
       .filter((a) => a.amount > 0)
       .sort((a, b) => b.amount - a.amount),
   );
+  readonly serieIngresos = computed(() => this.timeline().map((p) => p.income));
+  readonly serieGastos = computed(() => this.timeline().map((p) => p.expense));
+  readonly serieNeta = computed(() => this.timeline().map((p) => p.income - p.expense));
+
+  /**
+   * Variacion del ultimo intervalo frente al anterior, en tanto por ciento.
+   *
+   * Con menos de dos intervalos, o si el anterior fue cero, no hay comparacion honesta
+   * que hacer y la tarjeta no ensena ninguna: un «+100 %» sobre cero no informa de nada.
+   */
+  variacion(serie: readonly number[]): number | null {
+    if (serie.length < 2) return null;
+    const ultimo = serie[serie.length - 1];
+    const anterior = serie[serie.length - 2];
+    if (!anterior) return null;
+    return ((ultimo - anterior) / Math.abs(anterior)) * 100;
+  }
+
   readonly hasFilters = computed(
     () =>
       this.scale() !== 'month' ||
