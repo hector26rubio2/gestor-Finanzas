@@ -33,12 +33,16 @@ jobs:
       - name: Pruebas
         run: pnpm test
       - name: Pruebas de interfaz
+        # Un cuelgue no puede costar una hora de maquina: si no termina en quince
+        # minutos, es que algo espera a lo que no va a llegar.
+        timeout-minutes: 15
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
         run: pnpm test:ui
       # Un permiso por seccion basta para entrar y ver algo: el modelo acordado, fijado
       # aqui para que ningun permiso fino vuelva a cerrar la puerta.
       - name: Permisos por seccion
+        timeout-minutes: 10
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
         run: pnpm test:permisos

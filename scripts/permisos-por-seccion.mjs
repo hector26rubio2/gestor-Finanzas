@@ -188,7 +188,11 @@ async function main() {
   await ensureServer();
   const executablePath = browserExecutable();
   assert.ok(executablePath, 'No se encontro Chrome ni Edge. Apunte PLAYWRIGHT_CHROMIUM_EXECUTABLE al ejecutable.');
-  const browser = await chromium.launch({ executablePath, headless: true });
+  const browser = await chromium.launch({
+    executablePath,
+    headless: true,
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  });
   const fallos = [];
   try {
     for (const [ruta, permiso] of secciones) {

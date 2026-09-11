@@ -220,7 +220,11 @@ async function testViewport(browser, viewport) {
   page.on('pageerror', (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    await page.goto(`${baseUrl}/login`, { waitUntil: 'networkidle' });
+    // `networkidle` espera a que la red calle dos segundos, y con el servidor de
+    // desarrollo detras eso puede no ocurrir nunca: su canal de recarga mantiene la
+    // conexion viva. En una maquina lenta la suite se quedaba colgada ahi sin fallar.
+    await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded' });
+    await page.getByRole('button', { name: 'Continuar como Valentina' }).waitFor({ state: 'visible' });
     const viewportLabel = viewport.label ?? `${viewport.width}px`;
     const loginOverflow = await horizontalOverflow(page, `${viewportLabel} login`);
     if (loginOverflow) failures.push(loginOverflow);
@@ -262,7 +266,13 @@ async function main() {
     executablePath,
     'No se encontro Chrome ni Edge. Instale uno, o apunte PLAYWRIGHT_CHROMIUM_EXECUTABLE al ejecutable.',
   );
-  const browser = await chromium.launch({ executablePath, headless: true });
+  const browser = await chromium.launch({
+    executablePath,
+    headless: true,
+    // El navegador del sistema en una maquina de integracion continua no siempre puede
+    // levantar su cajon de arena; sin esto se queda esperando en vez de arrancar.
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  });
   try {
     const failures = [];
     for (const viewport of viewports) {
