@@ -9,6 +9,7 @@ import { sincronizarConLaUrl } from '../core/url-state';
 import { CAPABILITIES, DemoStore } from '../core/store';
 import { IconComponent } from '../ui/icon';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
+import { UiOption, UiSelectComponent } from '../ui/select';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
 type WidgetType = 'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap';
@@ -16,7 +17,15 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
 
 @Component({
   standalone: true,
-  imports: [FormsModule, RouterLink, KpiComponent, DataTableComponent, OverlayComponent, IconComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    KpiComponent,
+    DataTableComponent,
+    OverlayComponent,
+    IconComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<article class="dashboard">
     <header class="hero">
@@ -74,29 +83,26 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
             </div>
           </div>
           <label
-            >Cuenta<select [ngModel]="accountId()" (ngModelChange)="accountId.set($event)">
-              <option value="all">Todas las cuentas</option>
-              @for (account of accountOptions(); track account.id) {
-                <option [value]="account.id">{{ account.name }}</option>
-              }
-            </select></label
-          >
+            >Cuenta<demo-select
+              [ngModel]="accountId()"
+              (ngModelChange)="accountId.set($event)"
+              [options]="accountSelectOptions()"
+              ariaLabel="Filtrar por cuenta"
+          /></label>
           <label
-            >Tipo de cuenta o tarjeta<select [ngModel]="accountType()" (ngModelChange)="changeAccountType($event)">
-              <option value="all">Todos los tipos</option>
-              <option value="credit">Tarjetas de crédito</option>
-              <option value="savings">Cuentas de ahorro</option>
-              <option value="cash">Efectivo</option>
-            </select></label
-          >
+            >Tipo de cuenta o tarjeta<demo-select
+              [ngModel]="accountType()"
+              (ngModelChange)="changeAccountType($event)"
+              [options]="accountTypeOptions"
+              ariaLabel="Filtrar por tipo de cuenta"
+          /></label>
           <label
-            >Categoría global<select [ngModel]="globalCategory()" (ngModelChange)="globalCategory.set($event)">
-              <option value="all">Todas las categorías</option>
-              @for (category of allCategories(); track category) {
-                <option [value]="category">{{ category }}</option>
-              }
-            </select></label
-          >
+            >Categoría global<demo-select
+              [ngModel]="globalCategory()"
+              (ngModelChange)="globalCategory.set($event)"
+              [options]="categorySelectOptions()"
+              ariaLabel="Filtrar por categoría"
+          /></label>
         </div>
         <p class="summary" role="status">{{ periodLabel() }} · {{ movements().length }} movimientos</p>
       </section>
@@ -136,20 +142,12 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
                   </button>
                 }
                 @if (caps.allows(P.dashboard.widget.tipo.editar)) {
-                  <select
+                  <demo-select
                     aria-label="Tipo de visualización"
                     [ngModel]="widget.type"
+                    [options]="widgetTypeOptions"
                     (ngModelChange)="changeType(widget.id, $event)"
-                  >
-                    <option value="flow">Líneas comparativas</option>
-                    <option value="trend">Área de tendencia</option>
-                    <option value="categories">Barras horizontales</option>
-                    <option value="accounts">Tabla resumida</option>
-                    <option value="scatter">Dispersión</option>
-                    <option value="donut">Composición radial</option>
-                    <option value="stacked">Área apilada</option>
-                    <option value="heatmap">Mapa de intensidad</option>
-                  </select>
+                  />
                 }
                 @if (caps.allows(P.dashboard.widget.deshabilitar)) {
                   <button class="quiet" type="button" (click)="hide(widget.id)">Ocultar</button>
@@ -201,12 +199,11 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
             @case ('categories') {
               <div class="local">
                 <label
-                  >Explorar categoría<select [ngModel]="localCategory()" (ngModelChange)="localCategory.set($event)">
-                    <option value="all">Todas</option>
-                    @for (category of localOptions(); track category) {
-                      <option [value]="category">{{ category }}</option>
-                    }
-                  </select></label
+                  >Explorar categoría<demo-select
+                    [ngModel]="localCategory()"
+                    (ngModelChange)="localCategory.set($event)"
+                    [options]="localCategoryOptions()"
+                    ariaLabel="Explorar categoría" /></label
                 ><button
                   type="button"
                   (click)="promoteCategory()"
@@ -364,23 +361,19 @@ type Widget = { id: string; title: string; kicker: string; type: WidgetType; wid
         <form class="widget-builder" (submit)="createWidget($event)">
           <label>Nombre<input name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" /></label>
           <label
-            >Visualización<select name="widgetMetric" [(ngModel)]="newWidgetMetric">
-              <option value="flow">Líneas comparativas</option>
-              <option value="trend">Área de tendencia</option>
-              <option value="categories">Barras horizontales</option>
-              <option value="accounts">Tabla resumida</option>
-              <option value="scatter">Dispersión</option>
-              <option value="donut">Composición radial</option>
-              <option value="stacked">Área apilada</option>
-              <option value="heatmap">Mapa de intensidad</option>
-            </select></label
-          >
+            >Visualización<demo-select
+              name="widgetMetric"
+              [(ngModel)]="newWidgetMetric"
+              [options]="widgetTypeOptions"
+              ariaLabel="Visualización del widget"
+          /></label>
           <label
-            >Distribución<select name="widgetWidth" [(ngModel)]="newWidgetWide">
-              <option [ngValue]="true">Ancho completo</option>
-              <option [ngValue]="false">Media pantalla</option>
-            </select></label
-          >
+            >Distribución<demo-select
+              name="widgetWidth"
+              [(ngModel)]="newWidgetWidth"
+              [options]="widgetWidthOptions"
+              ariaLabel="Ancho del widget"
+          /></label>
           <p>El widget respetará el periodo y los filtros enlazados del dashboard.</p>
           <div>
             <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">Cancelar</button
@@ -1155,7 +1148,27 @@ export class DashboardComponent {
   readonly widgetCreatorOpen = signal(false);
   newWidgetTitle = '';
   newWidgetMetric: WidgetType = 'trend';
-  newWidgetWide = true;
+  newWidgetWidth = 'wide';
+  readonly accountTypeOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todos los tipos' },
+    { value: 'credit', label: 'Tarjetas de crédito' },
+    { value: 'savings', label: 'Cuentas de ahorro' },
+    { value: 'cash', label: 'Efectivo' },
+  ];
+  readonly widgetTypeOptions: readonly UiOption[] = [
+    { value: 'flow', label: 'Líneas comparativas' },
+    { value: 'trend', label: 'Área de tendencia' },
+    { value: 'categories', label: 'Barras horizontales' },
+    { value: 'accounts', label: 'Tabla resumida' },
+    { value: 'scatter', label: 'Dispersión' },
+    { value: 'donut', label: 'Composición radial' },
+    { value: 'stacked', label: 'Área apilada' },
+    { value: 'heatmap', label: 'Mapa de intensidad' },
+  ];
+  readonly widgetWidthOptions: readonly UiOption[] = [
+    { value: 'wide', label: 'Ancho completo' },
+    { value: 'half', label: 'Media pantalla' },
+  ];
   readonly scales: { value: Scale; label: string }[] = [
     { value: 'day', label: 'Día' },
     { value: 'week', label: 'Semana' },
@@ -1223,6 +1236,18 @@ export class DashboardComponent {
   readonly accountOptions = computed(() =>
     this.store.data().accounts.filter((a) => this.accountType() === 'all' || a.type === this.accountType()),
   );
+  readonly accountSelectOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: 'Todas las cuentas' },
+    ...this.accountOptions().map((account) => ({ value: account.id, label: account.name })),
+  ]);
+  readonly categorySelectOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: 'Todas las categorías' },
+    ...this.allCategories().map((category) => ({ value: category, label: category })),
+  ]);
+  readonly localCategoryOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: 'Todas' },
+    ...this.localOptions().map((category) => ({ value: category, label: category })),
+  ]);
   readonly range = computed(() => {
     const a = new Date(`${this.anchor()}T12:00:00`);
     let start: Date, end: Date;
@@ -1512,7 +1537,7 @@ export class DashboardComponent {
         title,
         kicker: 'ANÁLISIS PERSONAL',
         type: this.newWidgetMetric,
-        wide: this.newWidgetWide,
+        wide: this.newWidgetWidth === 'wide',
       },
     ]);
     this.newWidgetTitle = '';

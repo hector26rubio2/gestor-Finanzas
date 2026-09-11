@@ -78,7 +78,7 @@ describe('RemoteBootstrap', () => {
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
     expect(api.preferences).not.toHaveBeenCalled();
-    expect(api.featureFlags).not.toHaveBeenCalled();
+    expect(api.featureFlags).toHaveBeenCalledOnce();
     expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
     expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
   });

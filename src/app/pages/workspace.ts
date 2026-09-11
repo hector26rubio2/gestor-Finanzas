@@ -21,6 +21,7 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
+import { UiOption, UiSelectComponent } from '../ui/select';
 import {
   ApiAdminRole,
   ApiAuditEvent,
@@ -98,6 +99,7 @@ const SIN_DATO = '—';
     ManagementFormComponent,
     SinAccesoComponent,
     IconComponent,
+    UiSelectComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -191,46 +193,36 @@ const SIN_DATO = '—';
             [ngModel]="store.query()"
             (ngModelChange)="store.query.set($event); loadMovementPage(1)" /></label
         ><label
-          >Periodo<select [ngModel]="store.period()" (ngModelChange)="store.period.set($event); loadMovementPage(1)">
-            <option value="all">Últimos 12 meses</option>
-            @for (m of months; track m.value) {
-              <option [value]="m.value">{{ m.label }}</option>
-            }
-          </select></label
+          >Periodo<demo-select
+            [ngModel]="store.period()"
+            (ngModelChange)="store.period.set($event); loadMovementPage(1)"
+            [options]="periodOptions"
+            ariaLabel="Periodo" /></label
         ><label
-          >Cuenta<select
+          >Cuenta<demo-select
             [ngModel]="store.accountFilter()"
-            (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
-          >
-            <option value="all">Todas las cuentas</option>
-            @for (a of store.data().accounts; track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select></label
+            [options]="movementAccountOptions()"
+            ariaLabel="Cuenta"
+            (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)" /></label
         ><label
-          >Tipo de cuenta<select [ngModel]="movementAccountType()" (ngModelChange)="movementAccountType.set($event)">
-            <option value="all">Todos</option>
-            <option value="savings">Ahorros</option>
-            <option value="credit">Crédito</option>
-            <option value="cash">Efectivo</option>
-          </select></label
+          >Tipo de cuenta<demo-select
+            [ngModel]="movementAccountType()"
+            (ngModelChange)="movementAccountType.set($event)"
+            [options]="accountTypeOptions"
+            ariaLabel="Tipo de cuenta" /></label
         ><label
-          >Categoría<select [ngModel]="movementCategory()" (ngModelChange)="movementCategory.set($event)">
-            <option value="all">Todas</option>
-            @for (category of movementCategories(); track category) {
-              <option [value]="category">{{ category }}</option>
-            }
-          </select></label
+          >Categoría<demo-select
+            [ngModel]="movementCategory()"
+            (ngModelChange)="movementCategory.set($event)"
+            [options]="movementCategoryOptions()"
+            ariaLabel="Categoría" /></label
         ><label
-          >Operación<select [ngModel]="movementOperation()" (ngModelChange)="movementOperation.set($event)">
-            <option value="all">Todas</option>
-            <option value="income">Ingresos</option>
-            <option value="expense">Gastos / compras</option>
-            <option value="transfer">Transferencias</option>
-            <option value="loan">Préstamos y créditos</option>
-            <option value="recurring">Recurrentes</option>
-          </select></label
-        >
+          >Operación<demo-select
+            [ngModel]="movementOperation()"
+            (ngModelChange)="movementOperation.set($event)"
+            [options]="movementOperationOptions"
+            ariaLabel="Operación"
+        /></label>
         @if (hasActiveFilters()) {
           <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
         }
@@ -284,13 +276,12 @@ const SIN_DATO = '—';
         ></label>
         <label
           ><span>Tipo de cuenta</span
-          ><select [ngModel]="accountType()" (ngModelChange)="setAccountType($event)">
-            <option value="all">Todas</option>
-            <option value="savings">Ahorros</option>
-            <option value="credit">Crédito</option>
-            <option value="cash">Efectivo</option>
-          </select></label
-        >
+          ><demo-select
+            [ngModel]="accountType()"
+            (ngModelChange)="setAccountType($event)"
+            [options]="accountTypeOptions"
+            ariaLabel="Tipo de cuenta"
+        /></label>
         <span>{{ filteredAccounts().length }} resultados</span>
       </section>
       <section class="cards" [class.compact]="compactCards()">
@@ -566,12 +557,12 @@ const SIN_DATO = '—';
     <ng-template #reports
       ><section class="report-toolbar" aria-label="Filtros de reportes">
         <label
-          >Periodo<select [ngModel]="reportPeriod()" (ngModelChange)="reportPeriod.set($event)">
-            <option value="3">3 meses</option>
-            <option value="6">6 meses</option>
-            <option value="12">12 meses</option>
-          </select></label
-        >
+          >Periodo<demo-select
+            [ngModel]="reportPeriod()"
+            (ngModelChange)="reportPeriod.set($event)"
+            [options]="reportPeriodOptions"
+            ariaLabel="Periodo del reporte"
+        /></label>
         <p>Todos los indicadores conservan trazabilidad al libro central.</p>
         @if (can(P.reportes.exportar)) {
           <button type="button" class="export-action" (click)="exportReport()">
@@ -787,15 +778,13 @@ const SIN_DATO = '—';
                 (ngModelChange)="setThemeValue('border', $event)"
             /></label>
             <label
-              >Densidad<select
+              >Densidad<demo-select
                 [disabled]="!canCustomize()"
                 [ngModel]="store.preferences().density"
+                [options]="densityOptions"
+                ariaLabel="Densidad"
                 (ngModelChange)="setDensity($event)"
-              >
-                <option value="comfortable">Cómoda</option>
-                <option value="compact">Compacta</option>
-              </select></label
-            >
+            /></label>
             <label
               >Redondeado
               <input
@@ -833,25 +822,21 @@ const SIN_DATO = '—';
         <article>
           <h2>Tipografía e idioma</h2>
           <label
-            >Tipografía<select
+            >Tipografía<demo-select
+              [options]="fontOptions"
               [ngModel]="store.preferences().font"
               [disabled]="!can(P.preferencias.editar)"
               (ngModelChange)="setFont($event)"
-            >
-              @for (font of fonts; track font.value) {
-                <option [value]="font.value">{{ font.label }}</option>
-              }
-            </select></label
-          ><label
-            >Idioma<select
+              ariaLabel="Tipografía"
+          /></label>
+          <label
+            >Idioma<demo-select
+              [options]="languageOptions"
               [ngModel]="store.preferences().locale"
               [disabled]="!can(P.preferencias.editar)"
               (ngModelChange)="setLocale($event)"
-            >
-              <option value="es-CO">Español (Colombia)</option>
-              <option value="pt-BR">Português (Brasil)</option>
-              <option value="fr-FR">Français</option>
-            </select></label
+              ariaLabel="Idioma"
+          /></label>
           >
         </article>
         @if (can(P.organizacion.miembros.listar)) {
@@ -898,12 +883,12 @@ const SIN_DATO = '—';
                     placeholder="Cómo la ves"
                 /></label>
                 <label
-                  >Rol<select name="rol" [(ngModel)]="rolInvitado">
-                    @for (rol of rolesDisponibles(); track rol.id) {
-                      <option [value]="rol.id">{{ rol.name }}</option>
-                    }
-                  </select></label
-                >
+                  >Rol<demo-select
+                    name="rol"
+                    [(ngModel)]="rolInvitado"
+                    [options]="roleOptions()"
+                    ariaLabel="Rol de la invitación"
+                /></label>
                 <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">Invitar</button>
               </form>
               @if (errorDeInvitacion()) {
@@ -2745,6 +2730,9 @@ export class WorkspaceComponent implements AfterViewInit {
   /** Comprobacion puntual desde plantilla. */
   readonly miembros = signal<readonly ApiOrganizationMember[]>([]);
   readonly rolesDisponibles = signal<readonly ApiAdminRole[]>([]);
+  readonly roleOptions = computed<readonly UiOption[]>(() =>
+    this.rolesDisponibles().map((role) => ({ value: role.id, label: role.name })),
+  );
   readonly errorDeInvitacion = signal('');
   correoInvitado = '';
   nombreInvitado = '';
@@ -2879,6 +2867,35 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly movementCategory = signal('all');
   readonly movementOperation = signal('all');
   readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
+  readonly periodOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Últimos 12 meses' },
+    { value: '2026-08', label: 'Agosto 2026' },
+    { value: '2026-07', label: 'Julio 2026' },
+    { value: '2026-06', label: 'Junio 2026' },
+    { value: '2026-05', label: 'Mayo 2026' },
+  ];
+  readonly movementAccountOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: 'Todas las cuentas' },
+    ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
+  ]);
+  readonly accountTypeOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todas' },
+    { value: 'savings', label: 'Ahorros' },
+    { value: 'credit', label: 'Crédito' },
+    { value: 'cash', label: 'Efectivo' },
+  ];
+  readonly movementCategoryOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: 'Todas' },
+    ...this.movementCategories().map((category) => ({ value: category, label: category })),
+  ]);
+  readonly movementOperationOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todas' },
+    { value: 'income', label: 'Ingresos' },
+    { value: 'expense', label: 'Gastos / compras' },
+    { value: 'transfer', label: 'Transferencias' },
+    { value: 'loan', label: 'Préstamos y créditos' },
+    { value: 'recurring', label: 'Recurrentes' },
+  ];
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
   private readonly urlDeCuentas = sincronizarConLaUrl('tipo', this.accountType, 'all', (v) =>
@@ -3270,6 +3287,11 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-05', label: 'Mayo 2026' },
   ];
   readonly reportPeriod = signal('6');
+  readonly reportPeriodOptions: readonly UiOption[] = [
+    { value: '3', label: '3 meses' },
+    { value: '6', label: '6 meses' },
+    { value: '12', label: '12 meses' },
+  ];
   private readonly urlDeReportes = sincronizarConLaUrl('meses', this.reportPeriod, '6', (v) =>
     ['3', '6', '12'].includes(v),
   );
@@ -3354,11 +3376,11 @@ export class WorkspaceComponent implements AfterViewInit {
   });
   readonly themes = [
     { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
-    { id: 'light', label: 'Verona claro', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
-    { id: 'dark', label: 'Esmeralda noche', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
-    { id: 'ocean', label: 'Océano', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
-    { id: 'sand', label: 'Arena', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
-    { id: 'berry', label: 'Mora', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },
+    { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
+    { id: 'dark', label: 'Noche esmeralda', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
+    { id: 'ocean', label: 'Azul profundo', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
+    { id: 'sand', label: 'Marfil cálido', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
+    { id: 'berry', label: 'Ciruela', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },
   ] as const;
   readonly fonts = [
     { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
@@ -3371,6 +3393,17 @@ export class WorkspaceComponent implements AfterViewInit {
     { label: 'Palatino', value: "'Palatino Linotype', serif" },
     { label: 'Courier', value: "'Courier New', monospace" },
     { label: 'System UI', value: 'system-ui, sans-serif' },
+  ];
+  readonly fontOptions: readonly UiOption[] = this.fonts.map((font) => ({ value: font.value, label: font.label }));
+  readonly languageOptions: readonly UiOption[] = [
+    { value: 'es-CO', label: 'Español (Colombia)' },
+    { value: 'en-US', label: 'English (United States)' },
+    { value: 'pt-BR', label: 'Português (Brasil)' },
+    { value: 'fr-FR', label: 'Français' },
+  ];
+  readonly densityOptions: readonly UiOption[] = [
+    { value: 'comfortable', label: 'Cómoda' },
+    { value: 'compact', label: 'Compacta' },
   ];
   // Fecha, concepto e importe son las tres columnas que nunca se ocultan en una
   // tabla financiera. El importe estaba al final de nueve y quedaba fuera de

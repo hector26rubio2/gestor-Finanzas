@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { P } from './core/permissions';
+import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, navigation } from './core/store';
@@ -50,13 +51,14 @@ import { MovementFormComponent } from './forms';
                   <strong>{{ store.user()?.name }}</strong
                   ><small>{{ store.user()?.email }}</small>
                 </div>
-                <a routerLink="/settings" (click)="profileOpen.set(false)">Perfil y preferencias</a>
-                <button type="button" (click)="logout()">Cerrar sesión</button>
+                <a routerLink="/settings" (click)="profileOpen.set(false)">{{ i18n.t('shell.profile') }}</a>
+                <button type="button" (click)="logout()">{{ i18n.t('shell.logout') }}</button>
               </div>
             }
           </div>
           <div class="workspace aside-label" aria-label="Espacio activo: Personal">
-            <span>Personal</span><demo-icon name="chevronDown" class="workspace-caret" />
+            <span>{{ i18n.t('shell.personal') }}</span
+            ><demo-icon name="chevronDown" class="workspace-caret" />
           </div>
           <nav id="primary-navigation" aria-label="Navegación principal">
             @for (group of groups(); track group) {
@@ -65,9 +67,11 @@ import { MovementFormComponent } from './forms';
                 <a
                   [routerLink]="'/' + item.path"
                   routerLinkActive="active"
-                  [attr.aria-label]="item.label"
+                  [attr.aria-label]="i18n.t('nav.' + item.path)"
                   (click)="mobileOpen.set(false)"
-                  ><demo-icon class="nav-icon" [name]="item.icon" /><span class="aside-label">{{ item.label }}</span>
+                  ><demo-icon class="nav-icon" [name]="item.icon" /><span class="aside-label">{{
+                    i18n.t('nav.' + item.path)
+                  }}</span>
                   @if (item.path === 'notifications' && store.unread()) {
                     <i>{{ store.unread() }}</i>
                   }
@@ -92,7 +96,8 @@ import { MovementFormComponent } from './forms';
               <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
             ><span class="org"><demo-icon name="organization" /> Personal</span>
             <div class="top-actions">
-              <button aria-label="Buscar movimientos" (click)="openSearch()"><demo-icon name="search" /></button
+              <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
+                <demo-icon name="search" /></button
               ><a routerLink="/notifications" class="bell" aria-label="Notificaciones"
                 ><demo-icon name="notifications" />
                 @if (store.unread()) {
@@ -100,7 +105,9 @@ import { MovementFormComponent } from './forms';
                 }
               </a>
               @if (caps.allows(P.movimientos.crear)) {
-                <button class="primary" (click)="store.open()"><demo-icon name="plus" /> Nuevo movimiento</button>
+                <button class="primary" (click)="store.open()">
+                  <demo-icon name="plus" /> {{ i18n.t('shell.newMovement') }}
+                </button>
               }
             </div>
           </header>
@@ -500,7 +507,7 @@ import { MovementFormComponent } from './forms';
       .bell,
       .menu-toggle {
         border: 1px solid var(--line);
-        background: var(--surface);
+        background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 58%, var(--surface)));
         color: var(--text);
         min-height: 36px;
         padding: 8px 11px;
@@ -536,6 +543,15 @@ import { MovementFormComponent } from './forms';
       }
       .menu-toggle {
         margin-right: 10px;
+        width: 38px;
+        padding: 0;
+        border-radius: 11px;
+        color: var(--accent);
+        box-shadow: 0 4px 14px color-mix(in srgb, var(--text) 8%, transparent);
+      }
+      .menu-toggle:hover {
+        border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
+        background: var(--accent-soft);
       }
       main {
         min-width: 0;
@@ -616,6 +632,8 @@ export class AppComponent {
   readonly P = P;
   private router = inject(Router);
   private readonly arranque = inject(RemoteBootstrap);
+  readonly i18n = inject(I18nService);
+  private readonly cargarIdioma = effect(() => void this.i18n.load(this.store.preferences().locale));
   readonly collapsed = signal(false);
   readonly mobileOpen = signal(false);
 

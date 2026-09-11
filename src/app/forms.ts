@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { P } from './core/permissions';
 import { CAPABILITIES, CapabilitiesProvider, DemoStore } from './core/store';
 import { OverlayComponent } from './ui/ui';
+import { UiOption, UiSelectComponent } from './ui/select';
 
 type FormField = {
   key: string;
@@ -137,7 +138,7 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
 @Component({
   selector: 'demo-movement-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent],
+  imports: [FormsModule, OverlayComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: ` <demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
     ><form (ngSubmit)="submit()">
@@ -159,12 +160,12 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
             <label [class.full]="field.key === 'description'"
               >{{ field.label }}
               @if (field.type === 'select') {
-                <select [name]="field.key" [(ngModel)]="model[field.key]" [required]="!!field.required">
-                  <option value="">Selecciona</option>
-                  @for (o of field.options; track o.value) {
-                    <option [value]="o.value">{{ o.label }}</option>
-                  }
-                </select>
+                <demo-select
+                  [name]="field.key"
+                  [(ngModel)]="model[field.key]"
+                  [options]="selectOptions(field)"
+                  [ariaLabel]="field.label"
+                />
               } @else {
                 <input
                   [type]="field.type"
@@ -312,6 +313,9 @@ export class MovementFormComponent {
   );
   model: Record<string, any> = {};
   readonly fields = computed(() => movementFields(this.store.form()?.kind ?? 'expense', this.store, this.capabilities));
+  selectOptions(field: FormField): readonly UiOption[] {
+    return [{ value: '', label: 'Selecciona' }, ...(field.options ?? [])];
+  }
   readonly title = computed(() =>
     this.store.form()?.notificationId
       ? 'Revisar compra detectada'
@@ -398,22 +402,19 @@ export class MovementFormComponent {
 @Component({
   selector: 'demo-account-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent],
+  imports: [FormsModule, OverlayComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<demo-overlay title="Nueva cuenta" mode="modal" (closed)="closed()"
     ><form (ngSubmit)="save()">
       <label
-        >Tipo<select name="type" [(ngModel)]="type">
-          @for (option of accountTypes(); track option.value) {
-            <option [value]="option.value">{{ option.label }}</option>
-          }
-        </select></label
+        >Tipo<demo-select name="type" [(ngModel)]="type" [options]="accountTypes()" ariaLabel="Tipo de cuenta" /></label
       ><label>Nombre<input name="name" [(ngModel)]="name" required /></label
       ><label
-        >Moneda<select name="currency" [(ngModel)]="currency">
-          <option value="COP">COP</option>
-          <option value="USD">USD</option>
-        </select></label
+        >Moneda<demo-select
+          name="currency"
+          [(ngModel)]="currency"
+          [options]="currencyOptions"
+          ariaLabel="Moneda" /></label
       ><label>Saldo inicial<input name="opening" [(ngModel)]="opening" type="number" /></label>
       @if (currency === 'USD') {
         <label>TRM de referencia<input name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" /></label>
@@ -426,19 +427,19 @@ export class MovementFormComponent {
           >Tasa E.A. (%)<input name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01"
         /></label>
         <label
-          >Orden del abono<select name="paymentOrder" [(ngModel)]="paymentOrder">
-            <option value="oldest">Compras más antiguas</option>
-            <option value="highest-rate">Mayor tasa primero</option>
-            <option value="smallest">Menor saldo primero</option>
-          </select></label
-        >
+          >Orden del abono<demo-select
+            name="paymentOrder"
+            [(ngModel)]="paymentOrder"
+            [options]="paymentOrderOptions"
+            ariaLabel="Orden del abono"
+        /></label>
         <label
-          >Aplicar primero a<select name="paymentPriority" [(ngModel)]="paymentPriority">
-            <option value="fees-interest-capital">Comisiones, intereses y capital</option>
-            <option value="interest-capital">Intereses y capital</option>
-            <option value="capital">Capital</option>
-          </select></label
-        >
+          >Aplicar primero a<demo-select
+            name="paymentPriority"
+            [(ngModel)]="paymentPriority"
+            [options]="paymentPriorityOptions"
+            ariaLabel="Prioridad del abono"
+        /></label>
         <label>Abono mínimo<input name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" /></label>
       }
       <p>Un saldo inicial distinto de cero crea un movimiento de apertura.</p>
@@ -521,6 +522,20 @@ export class AccountFormComponent {
   );
   type: 'savings' | 'cash' | 'credit' = 'savings';
   currency = 'COP';
+  readonly currencyOptions: readonly UiOption[] = [
+    { value: 'COP', label: 'COP · Peso colombiano' },
+    { value: 'USD', label: 'USD · Dólar estadounidense' },
+  ];
+  readonly paymentOrderOptions: readonly UiOption[] = [
+    { value: 'oldest', label: 'Compras más antiguas' },
+    { value: 'highest-rate', label: 'Mayor tasa primero' },
+    { value: 'smallest', label: 'Menor saldo primero' },
+  ];
+  readonly paymentPriorityOptions: readonly UiOption[] = [
+    { value: 'fees-interest-capital', label: 'Comisiones, intereses y capital' },
+    { value: 'interest-capital', label: 'Intereses y capital' },
+    { value: 'capital', label: 'Capital' },
+  ];
   exchangeRate = 4168.35;
   opening = 0;
   limit = 5000000;
@@ -564,7 +579,7 @@ export class AccountFormComponent {
 @Component({
   selector: 'demo-management-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent],
+  imports: [FormsModule, OverlayComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
     <form class="management-form" (ngSubmit)="save()">
@@ -576,46 +591,42 @@ export class AccountFormComponent {
       @if (kind() === 'person') {
         <label>Correo<input name="email" type="email" [(ngModel)]="email" /></label>
         <label
-          >Relación<select name="relationship" [(ngModel)]="relationship">
-            <option>Familia</option>
-            <option>Amistad</option>
-            <option>Trabajo</option>
-            <option>Cliente</option>
-            <option>Proveedor</option>
-            <option>Otro</option>
-          </select></label
-        >
+          >Relación<demo-select
+            name="relationship"
+            [(ngModel)]="relationship"
+            [options]="relationshipOptions"
+            ariaLabel="Relación con la persona"
+        /></label>
       }
       @if (kind() === 'investment') {
         <label
-          >Instrumento<select name="instrument" [(ngModel)]="instrument">
-            <option>CDT</option>
-            <option>Fondo</option>
-            <option>Acción</option>
-            <option>Criptoactivo</option>
-          </select></label
+          >Instrumento<demo-select
+            name="instrument"
+            [(ngModel)]="instrument"
+            [options]="instrumentOptions"
+            ariaLabel="Instrumento de inversión" /></label
         ><label
-          >Moneda<select name="currency" [(ngModel)]="currency">
-            <option>COP</option>
-            <option>USD</option>
-          </select></label
-        >
+          >Moneda<demo-select
+            name="currency"
+            [(ngModel)]="currency"
+            [options]="currencyOptions"
+            ariaLabel="Moneda de la inversión"
+        /></label>
       }
       @if (kind() === 'recurrence') {
         <label>Importe<input name="amount" type="number" min="1" [(ngModel)]="amount" required /></label
         ><label
-          >Cuenta<select name="account" [(ngModel)]="accountId" required>
-            <option value="">Selecciona</option>
-            @for (a of store.data().accounts; track a.id) {
-              <option [value]="a.id">{{ a.name }}</option>
-            }
-          </select></label
+          >Cuenta<demo-select
+            name="account"
+            [(ngModel)]="accountId"
+            [options]="accountOptions()"
+            ariaLabel="Cuenta de la recurrencia" /></label
         ><label
-          >Frecuencia<select name="frequency" [(ngModel)]="frequency">
-            <option [ngValue]="2">Semanal</option>
-            <option [ngValue]="3">Mensual</option>
-            <option [ngValue]="4">Anual</option>
-          </select></label
+          >Frecuencia<demo-select
+            name="frequency"
+            [(ngModel)]="frequency"
+            [options]="frequencyOptions"
+            ariaLabel="Frecuencia" /></label
         ><label>Inicio<input name="start" type="date" [(ngModel)]="start" required /></label>
       }
       @if (error()) {
@@ -695,11 +706,36 @@ export class ManagementFormComponent {
   icon = '●';
   email = '';
   relationship: import('./core/demo-data').Person['relationship'] = 'Otro';
+  readonly relationshipOptions: readonly UiOption[] = [
+    'Familia',
+    'Amistad',
+    'Trabajo',
+    'Cliente',
+    'Proveedor',
+    'Otro',
+  ].map((label) => ({ value: label, label }));
+  readonly instrumentOptions: readonly UiOption[] = ['CDT', 'Fondo', 'Acción', 'Criptoactivo'].map((label) => ({
+    value: label,
+    label,
+  }));
+  readonly currencyOptions: readonly UiOption[] = [
+    { value: 'COP', label: 'COP · Peso colombiano' },
+    { value: 'USD', label: 'USD · Dólar estadounidense' },
+  ];
+  readonly frequencyOptions: readonly UiOption[] = [
+    { value: '2', label: 'Semanal' },
+    { value: '3', label: 'Mensual' },
+    { value: '4', label: 'Anual' },
+  ];
+  readonly accountOptions = computed<readonly UiOption[]>(() => [
+    { value: '', label: 'Selecciona' },
+    ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
+  ]);
   instrument = 'CDT';
   currency = 'COP';
   amount = 0;
   accountId = '';
-  frequency = 3;
+  frequency = '3';
   start = new Date().toISOString().slice(0, 10);
   async save() {
     try {

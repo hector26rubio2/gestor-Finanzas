@@ -141,7 +141,7 @@ button {
   padding: 6px 11px;
   border: 1px solid var(--control-line);
   border-radius: 9px;
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 54%, var(--surface)));
   color: var(--text);
   font-weight: 600;
   line-height: 1.2;
@@ -151,6 +151,9 @@ button {
     color 0.16s ease,
     box-shadow 0.16s ease,
     transform 0.16s ease;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
+    inset 0 1px color-mix(in srgb, white 20%, transparent);
 }
 /*
  * El hover solo donde hay un puntero fino. En una pantalla tactil el navegador deja el
@@ -185,10 +188,11 @@ button:disabled {
  * escala de grises y para quien no distingue colores.
  */
 .primary {
-  background: var(--accent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white), var(--accent));
   border-color: var(--accent);
   color: var(--accent-contrast);
   font-weight: 650;
+  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 
 .quiet {
@@ -226,7 +230,7 @@ textarea {
   min-height: 36px;
   border: 1px solid var(--control-line);
   border-radius: 9px;
-  background: var(--surface);
+  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 48%, var(--surface)));
   color: var(--text);
   padding: 7px 10px;
   line-height: 1.25;
@@ -234,6 +238,9 @@ textarea {
     border-color 0.16s ease,
     box-shadow 0.16s ease,
     background-color 0.16s ease;
+  box-shadow:
+    0 1px 2px color-mix(in srgb, var(--text) 5%, transparent),
+    inset 0 1px color-mix(in srgb, white 18%, transparent);
 }
 select {
   appearance: none;
@@ -271,6 +278,42 @@ textarea:focus-visible {
   outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
   outline-offset: 1px;
   border-color: var(--accent);
+}
+
+/* Casilla propia: conserva el input semántico y el teclado, sin el aspecto nativo que
+   cambia entre Chrome, Electron y cada sistema operativo. */
+input[type='checkbox']:not(.switch input) {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+  border: 1px solid var(--control-line);
+  border-radius: 5px;
+  background: var(--surface);
+  display: grid;
+  place-content: center;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+input[type='checkbox']:not(.switch input)::before {
+  content: '';
+  width: 9px;
+  height: 5px;
+  border-left: 2px solid var(--accent-contrast);
+  border-bottom: 2px solid var(--accent-contrast);
+  transform: rotate(-45deg) scale(0);
+  transition: transform 0.12s ease;
+  margin-top: -2px;
+}
+input[type='checkbox']:not(.switch input):checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+input[type='checkbox']:not(.switch input):checked::before {
+  transform: rotate(-45deg) scale(1);
 }
 @media (prefers-reduced-motion: reduce) {
   *,

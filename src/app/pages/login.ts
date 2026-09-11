@@ -1,25 +1,28 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { applyTheme, DemoStore, Preferences } from '../core/store';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { IconComponent } from '../ui/icon';
+import { UiOption, UiSelectComponent } from '../ui/select';
+import { I18nService } from '../core/i18n';
 @Component({
   standalone: true,
-  imports: [IconComponent],
+  imports: [FormsModule, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `<main class="login">
     <section class="story">
       <b><demo-icon name="dashboard" /> Finanzas</b>
       <div>
-        <h1>Tu dinero, explicado con claridad.</h1>
-        <p>Organiza, comprende y proyecta tus finanzas desde un solo lugar.</p>
+        <h1>{{ i18n.t('login.title') }}</h1>
+        <p>{{ i18n.t('login.subtitle') }}</p>
         <div class="mini-chart"><i></i><i></i><i></i><i></i><i></i><i></i></div>
       </div>
     </section>
     <section class="access">
       <div class="login-card">
         <demo-icon name="dashboard" class="mark" />
-        <h2>Bienvenido</h2>
+        <h2>{{ i18n.t('login.welcome') }}</h2>
         @if (store.runtime.mode === 'demo') {
           <p>Selecciona el espacio con el que deseas continuar.</p>
           <button class="google" (click)="login(0)"><b>G</b> Continuar como Valentina</button
@@ -28,28 +31,27 @@ import { IconComponent } from '../ui/icon';
           <p role="status">Conectando con la API…</p>
         } @else if (store.remoteState() === 'anonymous') {
           <p>Inicia sesión con Google para continuar.</p>
-          <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> Iniciar sesión con Google</a>
+          <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> {{ i18n.t('login.google') }}</a>
         } @else {
           <p class="api-error" role="alert">{{ store.remoteError() }}</p>
-          <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> Iniciar sesión con Google</a>
-          <button (click)="retry()">Reintentar conexión</button>
+          <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> {{ i18n.t('login.google') }}</a>
+          <button (click)="retry()">{{ i18n.t('login.retry') }}</button>
         }
         <hr />
         <label
-          >Idioma<select [value]="store.preferences().locale" (change)="locale($event)">
-            <option value="es-CO">Español (Colombia)</option>
-            <option value="pt-BR">Português (Brasil)</option>
-            <option value="fr-FR">Français</option>
-          </select></label
+          >{{ i18n.t('login.language')
+          }}<demo-select
+            [options]="languages"
+            [(ngModel)]="selectedLocale"
+            (ngModelChange)="locale($event)"
+            ariaLabel="Idioma" /></label
         ><label
-          >Tema<select (change)="theme($event)">
-            <option value="system">Igual que el sistema</option>
-            <option value="light">Verona claro</option>
-            <option value="dark">Esmeralda noche</option>
-            <option value="ocean">Océano</option>
-            <option value="sand">Arena</option>
-            <option value="berry">Mora</option>
-          </select></label
+          >{{ i18n.t('login.theme')
+          }}<demo-select
+            [options]="themes"
+            [(ngModel)]="selectedTheme"
+            (ngModelChange)="theme($event)"
+            ariaLabel="Tema" /></label
         ><small>Acceso local · Información protegida en este dispositivo</small>
       </div>
     </section>
@@ -220,18 +222,34 @@ export class LoginComponent {
   readonly store = inject(DemoStore);
   private router = inject(Router);
   private remote = inject(RemoteBootstrap);
+  readonly i18n = inject(I18nService);
+  selectedLocale = this.store.preferences().locale;
+  selectedTheme = this.store.preferences().theme;
+  readonly languages: readonly UiOption[] = [
+    { value: 'es-CO', label: 'Español (Colombia)' },
+    { value: 'en-US', label: 'English (United States)' },
+    { value: 'pt-BR', label: 'Português (Brasil)' },
+    { value: 'fr-FR', label: 'Français' },
+  ];
+  readonly themes: readonly UiOption[] = [
+    { value: 'system', label: 'Automático', description: 'Sigue la configuración del dispositivo' },
+    { value: 'light', label: 'Luz editorial' },
+    { value: 'dark', label: 'Noche esmeralda' },
+    { value: 'ocean', label: 'Azul profundo' },
+    { value: 'sand', label: 'Marfil cálido' },
+    { value: 'berry', label: 'Ciruela' },
+  ];
   login(index: number) {
     this.store.user.set(this.store.users[index]);
     this.store.rememberDemoSession(index);
     void this.router.navigateByUrl('/dashboard');
   }
-  theme(event: Event) {
-    const theme = (event.target as HTMLSelectElement).value as Preferences['theme'];
+  theme(value: string) {
+    const theme = value as Preferences['theme'];
     this.store.preferences.update((p) => ({ ...p, theme }));
     applyTheme(theme);
   }
-  locale(event: Event) {
-    const locale = (event.target as HTMLSelectElement).value;
+  locale(locale: string) {
     this.store.preferences.update((preferences) => ({ ...preferences, locale }));
     document.documentElement.lang = locale.slice(0, 2);
   }

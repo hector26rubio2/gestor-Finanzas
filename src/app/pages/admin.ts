@@ -16,6 +16,7 @@ import {
 } from '../core/api-client';
 import { P } from '../core/permissions';
 import { IconComponent } from '../ui/icon';
+import { UiOption, UiSelectComponent } from '../ui/select';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../core/store';
 
@@ -24,7 +25,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent],
+  imports: [CommonModule, FormsModule, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="admin-page">
@@ -119,11 +120,11 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 ><demo-icon name="search" /><input
                   [(ngModel)]="userSearch"
                   placeholder="Buscar nombre o correo" /></label
-              ><select [(ngModel)]="userStatus">
-                <option value="all">Todos los estados</option>
-                <option value="active">Activos</option>
-                <option value="inactive">Desactivados</option>
-              </select>
+              ><demo-select
+                [(ngModel)]="userStatus"
+                [options]="userStatusOptions"
+                ariaLabel="Filtrar usuarios por estado"
+              />
             </div>
             <div class="table-wrap">
               <table>
@@ -259,12 +260,11 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 ><demo-icon name="search" /><input
                   [(ngModel)]="auditSearch"
                   placeholder="Buscar acción, entidad o traza" /></label
-              ><select [(ngModel)]="auditAction">
-                <option value="all">Todas las acciones</option>
-                <option value="create">Creación</option>
-                <option value="update">Cambios</option>
-                <option value="access">Accesos</option>
-              </select>
+              ><demo-select
+                [(ngModel)]="auditAction"
+                [options]="auditActionOptions"
+                ariaLabel="Filtrar auditoría por acción"
+              />
             </div>
             <div class="table-wrap">
               <table>
@@ -310,12 +310,11 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                 <h2>Errores de aplicación</h2>
                 <p>Fallos agrupados y saneados desde web, escritorio y API.</p>
               </div>
-              <select [(ngModel)]="errorStatus">
-                <option value="all">Todos los estados</option>
-                <option value="new">Nuevos</option>
-                <option value="investigating">En análisis</option>
-                <option value="resolved">Resueltos</option>
-              </select>
+              <demo-select
+                [(ngModel)]="errorStatus"
+                [options]="errorStatusOptions"
+                ariaLabel="Filtrar errores por estado"
+              />
             </div>
             <div class="error-list">
               @for (error of filteredErrors(); track error.id) {
@@ -407,21 +406,49 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
               }
             </section>
           }
+          @if (caps.allows(P.administracion.banderas.editar)) {
+            <details class="cap-group feature-user-list" open>
+              <summary>
+                <span class="summary-icon"><demo-icon name="menu" /></span>
+                <span><b>Funcionalidades</b><small>Módulos visibles en el menú lateral</small></span>
+                <span class="summary-count">{{ enabledFeaturesFor(user) }}/{{ platformFlags().length }}</span>
+                <demo-icon name="chevronDown" class="summary-chevron" />
+              </summary>
+              <p class="hint section-hint">
+                “Ver” muestra el módulo en la navegación. Las acciones internas se administran en la sección siguiente.
+              </p>
+              @for (flag of platformFlags(); track flag.key) {
+                <label
+                  ><span
+                    ><b>{{ featureLabel(flag.key) }}</b
+                    ><small>{{ flag.key }}</small></span
+                  ><span class="switch"
+                    ><input
+                      type="checkbox"
+                      [checked]="featureEnabledFor(user, flag.key)"
+                      (change)="toggleUserFeature(user, flag.key)" /><span></span></span
+                ></label>
+              }
+            </details>
+          }
           <h3>Permisos efectivos</h3>
           <p class="hint">
             Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre
             lo que digan sus roles.
           </p>
           @for (group of permissionGroups(); track group.name) {
-            <section class="cap-group">
-              <header class="cap-group-head">
-                <h4>{{ group.name }}</h4>
-                <div class="cap-bulk">
-                  <span>{{ concedidosEn(user, group.items) }} de {{ group.items.length }}</span>
-                </div>
-              </header>
+            <details class="cap-group">
+              <summary>
+                <span class="summary-icon"><demo-icon name="menu" /></span>
+                <span
+                  ><b>{{ resourceLabel(group.name) }}</b
+                  ><small>{{ group.name }}</small></span
+                >
+                <span class="summary-count">{{ concedidosEn(user, group.items) }}/{{ group.items.length }}</span>
+                <demo-icon name="chevronDown" class="summary-chevron" />
+              </summary>
               @for (permiso of group.items; track permiso.code) {
-                <label
+                <label [class.module-visibility]="permiso.code.endsWith('.ver')"
                   ><span
                     ><b>{{ permiso.description }}</b>
                     <small
@@ -433,7 +460,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                     (change)="toggleUserCapability(user, permiso.code)"
                 /></label>
               }
-            </section>
+            </details>
           }
         </div>
       </aside>
@@ -453,25 +480,31 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
           ><label>Descripción<textarea [(ngModel)]="role.description"></textarea></label>
           @if (!role.id) {
             <label
-              >Organización<select [(ngModel)]="role.organizationId">
-                @for (org of organizations(); track org.id) {
-                  <option [value]="org.id">{{ org.name }}</option>
-                }
-              </select></label
-            >
+              >Organización<demo-select
+                [(ngModel)]="role.organizationId"
+                [options]="organizationOptions()"
+                ariaLabel="Organización del rol"
+            /></label>
           }
           @for (group of permissionGroups(); track group.name) {
-            <section class="cap-group">
-              <header class="cap-group-head">
-                <h4>{{ group.name }}</h4>
+            <details class="cap-group">
+              <summary>
+                <span class="summary-icon"><demo-icon name="menu" /></span>
+                <span
+                  ><b>{{ resourceLabel(group.name) }}</b
+                  ><small>{{ group.name }}</small></span
+                >
                 <div class="cap-bulk">
                   <span>{{ marcadosEn(group.items) }} de {{ group.items.length }}</span>
-                  <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">Todo</button>
-                  <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">Nada</button>
                 </div>
-              </header>
+                <demo-icon name="chevronDown" class="summary-chevron" />
+              </summary>
+              <div class="cap-actions">
+                <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">Seleccionar todo</button>
+                <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">Limpiar</button>
+              </div>
               @for (permiso of group.items; track permiso.code) {
-                <label
+                <label [class.module-visibility]="permiso.code.endsWith('.ver')"
                   ><span
                     ><b>{{ permiso.description }}</b>
                     <small
@@ -484,7 +517,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
                     (change)="togglePermiso(permiso.code)"
                 /></label>
               }
-            </section>
+            </details>
           }
         </div>
         <footer>
@@ -529,16 +562,13 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
             </div>
           </dl>
           <label
-            >Estado<select
+            >Estado<demo-select
               [ngModel]="error.status"
               [disabled]="!caps.allows(P.administracion.errores.editar)"
+              [options]="errorStateOptions"
+              ariaLabel="Estado del error"
               (ngModelChange)="setErrorStatus(error, $event)"
-            >
-              <option value="new">Nuevo</option>
-              <option value="investigating">En análisis</option>
-              <option value="resolved">Resuelto</option>
-            </select></label
-          >
+          /></label>
           <p class="privacy">El reporte excluye cuerpos financieros, tokens y datos personales.</p>
         </div>
       </aside>
@@ -1032,6 +1062,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         box-shadow: -20px 0 60px #0003;
         display: flex;
         flex-direction: column;
+        overflow: hidden;
       }
       .drawer > header {
         display: flex;
@@ -1046,6 +1077,19 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       .drawer-body {
         padding: 20px;
         overflow: auto;
+        min-height: 0;
+        flex: 1;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+        scrollbar-color: color-mix(in srgb, var(--accent) 38%, var(--line)) transparent;
+      }
+      .drawer-body::-webkit-scrollbar {
+        width: 8px;
+      }
+      .drawer-body::-webkit-scrollbar-thumb {
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--accent) 38%, var(--line));
+        border: 2px solid var(--surface);
       }
       .drawer > footer {
         padding: 14px 20px;
@@ -1076,11 +1120,67 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         color: var(--muted);
       }
       .cap-group {
-        border-top: 1px solid var(--line);
-        margin-top: 16px;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        margin-top: 10px;
+        overflow: clip;
+        background: color-mix(in srgb, var(--panel) 74%, var(--surface));
       }
-      .cap-group h4 {
-        margin: 14px 0 5px;
+      .cap-group summary {
+        list-style: none;
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 10px;
+        min-height: 52px;
+        padding: 9px 12px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .cap-group summary::-webkit-details-marker {
+        display: none;
+      }
+      .cap-group summary:hover {
+        background: var(--accent-soft);
+      }
+      .cap-group summary > span:nth-child(2) {
+        display: grid;
+        min-width: 0;
+      }
+      .cap-group summary small {
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .summary-icon {
+        width: 30px;
+        height: 30px;
+        border-radius: 9px;
+        display: grid;
+        place-items: center;
+        color: var(--accent);
+        background: var(--accent-soft);
+      }
+      .summary-icon demo-icon {
+        --icon-size: 16px;
+      }
+      .summary-count {
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        padding: 3px 8px;
+        color: var(--muted);
+        font-size: 11px;
+        font-variant-numeric: tabular-nums;
+      }
+      .summary-chevron {
+        --icon-size: 15px;
+        color: var(--muted);
+        transition: transform 0.16s ease;
+      }
+      details[open] > summary .summary-chevron {
+        transform: rotate(180deg);
+      }
+      details[open] > summary {
+        border-bottom: 1px solid var(--line);
       }
       /*
        * Las excepciones se ven antes que los permisos y con su propio color: son la
@@ -1111,16 +1211,6 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
       .excepcion small {
         color: var(--muted);
       }
-      .cap-group-head {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 12px;
-        position: sticky;
-        top: 0;
-        background: var(--panel);
-        z-index: 1;
-      }
       .cap-bulk {
         display: flex;
         align-items: center;
@@ -1138,12 +1228,36 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
         color: var(--accent);
       }
       .cap-group label {
-        padding: 9px 2px;
+        padding: 10px 12px;
+        border-bottom: 1px solid color-mix(in srgb, var(--line) 72%, transparent);
+      }
+      .cap-group label:last-child {
+        border-bottom: 0;
+      }
+      .cap-group label:hover {
+        background: color-mix(in srgb, var(--accent-soft) 55%, transparent);
+      }
+      .cap-group label.module-visibility {
+        background: color-mix(in srgb, var(--accent-soft) 72%, var(--surface));
+        box-shadow: inset 3px 0 var(--accent);
       }
       .cap-group input[type='checkbox'] {
         width: 17px;
         height: 17px;
         accent-color: var(--accent);
+      }
+      .cap-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 6px;
+        padding: 7px 10px;
+        border-bottom: 1px solid var(--line);
+      }
+      .section-hint {
+        margin: 0;
+        padding: 10px 12px;
+        border-bottom: 1px solid var(--line);
+        font-size: 12px;
       }
       .role-form > label {
         display: grid;
@@ -1296,6 +1410,24 @@ export class AdminComponent implements OnInit {
   auditSearch = '';
   auditAction = 'all';
   errorStatus = 'all';
+  readonly userStatusOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todos los estados' },
+    { value: 'active', label: 'Activos' },
+    { value: 'inactive', label: 'Desactivados' },
+  ];
+  readonly auditActionOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todas las acciones' },
+    { value: 'create', label: 'Creación' },
+    { value: 'update', label: 'Cambios' },
+    { value: 'access', label: 'Accesos' },
+  ];
+  readonly errorStatusOptions: readonly UiOption[] = [
+    { value: 'all', label: 'Todos los estados' },
+    { value: 'new', label: 'Nuevos' },
+    { value: 'investigating', label: 'En análisis' },
+    { value: 'resolved', label: 'Resueltos' },
+  ];
+  readonly errorStateOptions = this.errorStatusOptions.filter((option) => option.value !== 'all');
   private readonly allTabs = [
     { id: 'summary' as Tab, label: 'Resumen', icon: 'dashboard', capability: P.administracion.ver },
     { id: 'users' as Tab, label: 'Usuarios', icon: 'people', capability: P.administracion.usuarios.listar },
@@ -1378,6 +1510,9 @@ export class AdminComponent implements OnInit {
       for (const membership of user.memberships ?? []) map.set(membership.organizationId, membership.organizationName);
     return [...map.entries()].map(([id, name]) => ({ id, name }));
   });
+  readonly organizationOptions = computed<readonly UiOption[]>(() =>
+    this.organizations().map((organization) => ({ value: organization.id, label: organization.name })),
+  );
   readonly activeUsers = computed(() => this.users().filter((x) => x.isActive).length);
   readonly enabledFlags = computed(() => this.flagRows().filter((x) => x.isEnabled).length);
   readonly openErrors = computed(() => this.errors().filter((x) => x.status !== 'resolved').length);
@@ -1392,6 +1527,12 @@ export class AdminComponent implements OnInit {
       audience: flag.userId ? 'Usuario' : flag.organizationId ? 'Organización' : 'Global',
     })),
   );
+  /** Una fila por función de plataforma, usando el valor global como base. */
+  readonly platformFlags = computed(() => {
+    const rows = new Map<string, ApiAdminFeatureFlag>();
+    for (const flag of this.adminFlags()) if (!flag.organizationId && !flag.userId) rows.set(flag.key, flag);
+    return [...rows.values()].sort((a, b) => a.key.localeCompare(b.key));
+  });
   readonly filteredUsers = computed(() =>
     this.users().filter(
       (u) =>
@@ -1678,6 +1819,79 @@ export class AdminComponent implements OnInit {
         isEnabled,
       }),
     ).catch(() => this.store.toast.set('No fue posible actualizar el flag.'));
+  }
+
+  featureLabel(key: string): string {
+    const labels: Record<string, string> = {
+      dashboard: 'Dashboard',
+      movements: 'Movimientos',
+      calendar: 'Calendario',
+      accounts: 'Cuentas y tarjetas',
+      people: 'Personas y deudas',
+      portfolio: 'Patrimonio',
+      planning: 'Planificación',
+      reports: 'Reportes',
+      notifications: 'Notificaciones',
+      settings: 'Preferencias',
+    };
+    return labels[key] ?? key;
+  }
+
+  enabledFeaturesFor(user: ApiAdminUser): number {
+    return this.platformFlags().filter((flag) => this.featureEnabledFor(user, flag.key)).length;
+  }
+
+  resourceLabel(resource: string): string {
+    const labels: Record<string, string> = {
+      dashboard: 'Dashboard',
+      movimientos: 'Movimientos',
+      calendario: 'Calendario',
+      cuentas: 'Cuentas y tarjetas',
+      personas: 'Personas y deudas',
+      patrimonio: 'Patrimonio',
+      planificacion: 'Planificación',
+      reportes: 'Reportes',
+      notificaciones: 'Notificaciones',
+      preferencias: 'Preferencias',
+      organizacion: 'Organización',
+      administracion: 'Administración global',
+      sesion: 'Sesión',
+    };
+    return labels[resource] ?? resource;
+  }
+
+  featureEnabledFor(user: ApiAdminUser, key: string): boolean {
+    const organizationId = this.userOrganizationId(user);
+    const candidates = this.adminFlags().filter((flag) => flag.key === key);
+    return (
+      candidates.find((flag) => flag.userId === user.id && flag.organizationId === organizationId)?.isEnabled ??
+      candidates.find((flag) => !flag.userId && flag.organizationId === organizationId)?.isEnabled ??
+      candidates.find((flag) => !flag.userId && !flag.organizationId)?.isEnabled ??
+      false
+    );
+  }
+
+  async toggleUserFeature(user: ApiAdminUser, key: string) {
+    const organizationId = this.userOrganizationId(user);
+    if (!organizationId) return;
+    const isEnabled = !this.featureEnabledFor(user, key);
+    try {
+      const saved = await firstValueFrom(
+        this.api.updateAdminFeatureFlag(key, { organizationId, userId: user.id, isEnabled }),
+      );
+      this.adminFlags.update((flags) => [
+        ...flags.filter(
+          (flag) => !(flag.key === key && flag.organizationId === organizationId && flag.userId === user.id),
+        ),
+        saved,
+      ]);
+      await this.refrescarAccesos();
+      this.store.toast.set(
+        `${this.featureLabel(key)} ${isEnabled ? 'habilitado' : 'deshabilitado'} para ${user.displayName}.`,
+      );
+    } catch {
+      this.store.toast.set('No fue posible cambiar la función para este usuario.');
+    }
   }
   setErrorStatus(e: ApiClientError, status: ApiClientError['status']) {
     const next = { ...e, status };
