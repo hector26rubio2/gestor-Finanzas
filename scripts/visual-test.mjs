@@ -191,7 +191,17 @@ async function devuelveElFoco(locator, mensaje) {
         }),
     );
   } catch {
-    assert(false, mensaje);
+    // Contar donde acabo el foco: sin eso, «no volvio» no distingue entre que la
+    // aplicacion no lo devuelva y que lo devuelva a otro sitio.
+    const donde = await locator
+      .evaluate(() => {
+        const activo = document.activeElement;
+        if (!activo) return 'ninguno';
+        const etiqueta = activo.getAttribute('aria-label') ?? (activo.textContent ?? '').trim().slice(0, 30);
+        return `${activo.tagName.toLowerCase()}${activo.className ? '.' + String(activo.className).split(' ')[0] : ''} "${etiqueta}"`;
+      })
+      .catch(() => 'no medible');
+    assert(false, `${mensaje} (el foco quedo en ${donde})`);
   }
 }
 
