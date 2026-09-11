@@ -779,7 +779,7 @@ const SIN_DATO = '—';
             /></label>
             <label
               >Densidad<demo-select
-                [disabled]="!canCustomize()"
+                [disabled]="!can(P.preferencias.editar)"
                 [ngModel]="store.preferences().density"
                 [options]="densityOptions"
                 ariaLabel="Densidad"
