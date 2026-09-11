@@ -1,3 +1,10 @@
+/*
+ * `--panel` es el tono con el que los controles se levantan de su fondo: el degradado de
+ * botones, campos y desplegables va de `--surface` a una mezcla con este. Se usaba en
+ * cinco sitios sin estar definido en ninguno, y una variable ausente invalida el
+ * `color-mix` entero, asi que el degradado se caia y los controles salian planos. Cada
+ * tema define el suyo; sin el, el aspecto no era el que describia la hoja de estilos.
+ */
 :root {
   color-scheme: light;
   --bg: #f5f8f6;
@@ -11,6 +18,7 @@
   --accent-soft: #e4f3ee;
   --accent-contrast: #fff;
   --danger: #c0392f;
+  --panel: #eaf1ee;
   --warning: #b7791f;
   --success: #098268;
   --shadow: 0 20px 55px #233d3520;
@@ -31,6 +39,7 @@
   --accent-soft: #103c39;
   --accent-contrast: #031b18;
   --danger: #ff7169;
+  --panel: #0f323b;
   --warning: #e0a94a;
   --success: #51d3a9;
   --shadow: 0 22px 62px #0008;
@@ -48,6 +57,7 @@
   --accent-soft: #123c52;
   --accent-contrast: #03202d;
   --danger: #fb7185;
+  --panel: #16374f;
   --warning: #e0a94a;
   --success: #5eead4;
   --shadow: 0 22px 62px #0007;
@@ -65,6 +75,7 @@
   --accent-soft: #f2dfcf;
   --accent-contrast: #fff;
   --danger: #ba3d47;
+  --panel: #f7efe4;
   --warning: #a97b2e;
   --success: #39745c;
 }
@@ -81,6 +92,7 @@
   --accent-soft: #4a2352;
   --accent-contrast: #2a0d2f;
   --danger: #fb7185;
+  --panel: #382043;
   --warning: #e0a94a;
   --success: #6ee7b7;
 }
