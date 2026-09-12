@@ -143,6 +143,28 @@
   gap: 18px;
 }
 
+/*
+ * `.chart-legend` es compartida con Reportes, pero cada componente standalone solo carga
+ * su propio styleUrl: sin esta copia, la leyenda perdía su distribución en fila y su
+ * punto de color.
+ */
+.chart-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.chart-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: var(--accent);
+}
 .chart-legend .current-key::before {
   background: var(--danger);
 }
@@ -247,4 +269,9 @@
   .tabs button {
     flex: 0 0 auto;
   }
+}
+
+.empty-note {
+  color: var(--muted);
+  font-size: 0.85rem;
 }

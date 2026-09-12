@@ -372,7 +372,7 @@ export class DashboardComponent {
       )
         totals.set(m.category, (totals.get(m.category) ?? 0) - m.amount);
     const total = [...totals.values()].reduce((s, v) => s + v, 0),
-      colors = ['#07836b', '#dc554e', '#d3a34a', '#4e83b5', '#8055a8', '#64748b'];
+      colors = ['#4f46e5', '#e11d48', '#d97706', '#0ea5e9', '#0d9488', '#64748b'];
     return [...totals]
       .sort((a, b) => b[1] - a[1])
       .map(([name, value], i) => ({

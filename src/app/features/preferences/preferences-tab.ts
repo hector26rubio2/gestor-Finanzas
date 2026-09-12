@@ -39,9 +39,9 @@ export class PreferencesTabComponent implements OnInit {
   rolInvitado = '';
 
   readonly themes = [
-    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
-    { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
-    { id: 'dark', label: 'Noche esmeralda', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
+    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#191d33 50%)' },
+    { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#4f46e5 50%)' },
+    { id: 'dark', label: 'Noche índigo', preview: 'linear-gradient(135deg,#14172a 50%,#818cf8 50%)' },
     { id: 'ocean', label: 'Azul profundo', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
     { id: 'sand', label: 'Marfil cálido', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
     { id: 'berry', label: 'Ciruela', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },

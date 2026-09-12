@@ -47,28 +47,28 @@ export class ChartThemeService {
   private medir(): ChartPalette {
     if (typeof document === 'undefined' || typeof getComputedStyle !== 'function')
       return {
-        accent: '#07836b',
-        danger: '#c8443c',
-        warn: '#b7791f',
-        text: '#0f1f1c',
-        muted: '#5a6a65',
-        line: '#dce6e2',
+        accent: '#4f46e5',
+        danger: '#e11d48',
+        warn: '#d97706',
+        text: '#1e2130',
+        muted: '#64748b',
+        line: '#e4e7ec',
         surface: '#ffffff',
-        categorical: ['#07836b', '#2f7fa6', '#b7791f', '#8a5cd6', '#c8443c', '#2aa39a', '#6b7280'],
+        categorical: ['#4f46e5', '#0ea5e9', '#d97706', '#7c3aed', '#e11d48', '#0d9488', '#64748b'],
       };
     const estilo = getComputedStyle(document.documentElement);
-    const accent = leer(estilo, '--accent', '#07836b');
-    const danger = leer(estilo, '--danger', '#c8443c');
-    const warn = leer(estilo, '--warning', '#b7791f');
+    const accent = leer(estilo, '--accent', '#4f46e5');
+    const danger = leer(estilo, '--danger', '#e11d48');
+    const warn = leer(estilo, '--warning', '#d97706');
     return {
       accent,
       danger,
       warn,
-      text: leer(estilo, '--text', '#0f1f1c'),
-      muted: leer(estilo, '--muted', '#5a6a65'),
-      line: leer(estilo, '--line', '#dce6e2'),
+      text: leer(estilo, '--text', '#1e2130'),
+      muted: leer(estilo, '--muted', '#64748b'),
+      line: leer(estilo, '--line', '#e4e7ec'),
       surface: leer(estilo, '--surface', '#ffffff'),
-      categorical: [accent, '#2f7fa6', warn, '#8a5cd6', danger, '#2aa39a', '#6b7280'],
+      categorical: [accent, '#0ea5e9', warn, '#7c3aed', danger, '#0d9488', '#64748b'],
     };
   }
 }

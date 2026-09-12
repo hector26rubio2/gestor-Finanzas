@@ -347,7 +347,7 @@ export class ManagementFormComponent {
       })[this.kind()] ?? 'Nuevo registro',
   );
   name = '';
-  color = '#087f68';
+  color = '#4f46e5';
   icon = '●';
   email = '';
   relationship: import('./core/demo-data').Person['relationship'] = 'Otro';

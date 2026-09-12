@@ -9,9 +9,7 @@
   flex-direction: column;
   justify-content: space-between;
   padding: 52px clamp(30px, 7vw, 110px);
-  background:
-    radial-gradient(circle at 20% 70%, var(--accent-soft), transparent 38%),
-    linear-gradient(145deg, var(--nav), var(--bg));
+  background: var(--nav);
   border-right: 1px solid var(--line);
 }
 .story b {

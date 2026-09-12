@@ -4,6 +4,47 @@
   border-radius: var(--radius);
 }
 
+/*
+ * `.kpis`/`.chart-legend` son compartidas con otras pestañas (Cuentas, Planificación...),
+ * pero cada componente standalone solo carga su propio styleUrl: sin esta copia, la
+ * cuadrícula de KPI se apilaba en una sola columna y la leyenda perdía su punto de color.
+ */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.kpis.mini demo-kpi {
+  padding: 16px 18px;
+}
+@media (max-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.chart-legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 13px;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.chart-legend span::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  margin-right: 6px;
+  background: var(--accent);
+}
+
 .report-toolbar label {
   display: grid;
   gap: 3px;

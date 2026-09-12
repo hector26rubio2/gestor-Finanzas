@@ -1,3 +1,36 @@
+/*
+ * `.kpis`/`.table-zone` son compartidas con otras pestañas (Cuentas, Reportes...), pero
+ * cada componente standalone solo carga su propio styleUrl: sin esta copia, la cuadrícula
+ * de KPI se apilaba en una sola columna en vez de repartirse en filas.
+ */
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+.kpis.mini demo-kpi {
+  padding: 16px 18px;
+}
+.table-zone {
+  flex: 1;
+  min-height: 230px;
+  display: flex;
+}
+@media (max-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+  .table-zone {
+    height: auto;
+    flex: none;
+  }
+}
+
 .filters .quiet-reset {
   align-self: end;
   min-height: 40px;

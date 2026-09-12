@@ -29,7 +29,7 @@ export class LoginComponent {
   readonly themes: readonly UiOption[] = [
     { value: 'system', label: 'Automático', description: 'Sigue la configuración del dispositivo' },
     { value: 'light', label: 'Luz editorial' },
-    { value: 'dark', label: 'Noche esmeralda' },
+    { value: 'dark', label: 'Noche índigo' },
     { value: 'ocean', label: 'Azul profundo' },
     { value: 'sand', label: 'Marfil cálido' },
     { value: 'berry', label: 'Ciruela' },

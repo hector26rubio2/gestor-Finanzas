@@ -60,17 +60,17 @@ export const PREFERENCES = new InjectionToken('Preferences', {
   factory: () =>
     signal<Preferences>({
       theme: 'system',
-      accent: '#087f68',
-      font: 'Inter, system-ui, sans-serif',
+      accent: '#4f46e5',
+      font: 'Public Sans, system-ui, sans-serif',
       locale: 'es-CO',
       density: 'comfortable',
-      radius: 14,
-      name: 'Mi tema esmeralda',
-      primary: '#087f68',
-      secondary: '#d3a34a',
-      text: '#122522',
+      radius: 16,
+      name: 'Mi tema indigo',
+      primary: '#4f46e5',
+      secondary: '#d97706',
+      text: '#1e2130',
       surface: '#ffffff',
-      border: '#dce6e2',
+      border: '#e4e7ec',
     }),
 });
 

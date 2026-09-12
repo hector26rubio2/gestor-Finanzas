@@ -72,3 +72,8 @@
   margin-left: auto;
   padding: 9px 14px;
 }
+
+.empty-note {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
