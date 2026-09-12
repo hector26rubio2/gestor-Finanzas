@@ -13,6 +13,7 @@ import { PeopleTabComponent } from '../features/people/people-tab';
 import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
 import { PlanningTabComponent } from '../features/planning/planning-tab';
 import { NotificationsTabComponent } from '../features/notifications/notifications-tab';
+import { CalendarTabComponent } from '../features/calendar/calendar-tab';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -26,15 +27,7 @@ import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
 import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
 import { UiOption, UiSelectComponent } from '../ui/select';
-import {
-  ApiAdminRole,
-  ApiAuditEvent,
-  ApiOrganizationMember,
-  ApiMovement,
-  ApiProjectedOccurrence,
-  ApiRecurrence,
-  FinanceApiClient,
-} from '../core/api-client';
+import { ApiAdminRole, ApiAuditEvent, ApiOrganizationMember, ApiMovement, FinanceApiClient } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { DemoAuditEvent } from '../core/demo-data';
 import { formatReturnRate, parseMoney } from '../core/money';
@@ -109,6 +102,7 @@ const SIN_DATO = '—';
     PortfolioTabComponent,
     PlanningTabComponent,
     NotificationsTabComponent,
+    CalendarTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -219,7 +213,6 @@ export class WorkspaceComponent implements AfterViewInit {
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   private movementRequest = 0;
-  readonly projectedOccurrences = signal<readonly ApiProjectedOccurrence[]>([]);
   readonly auditEvents = signal<readonly ApiAuditEvent[]>([]);
   readonly auditActor = signal('all');
   readonly auditModule = signal('all');
@@ -247,7 +240,6 @@ export class WorkspaceComponent implements AfterViewInit {
         (this.auditModule() === 'all' || event.module === this.auditModule()),
     ),
   );
-  readonly recurrences = signal<readonly ApiRecurrence[]>([]);
   readonly featureFlagRows = computed(() =>
     Object.entries(this.store.featureFlags()).map(([key, enabled]) => ({ key, enabled })),
   );
@@ -325,17 +317,6 @@ export class WorkspaceComponent implements AfterViewInit {
       (row) => this.selectedAccountFilter() === 'all' || row['raw']?.accountId === this.selectedAccountFilter(),
     ),
   );
-  readonly calendarViews = [
-    { value: 'day', label: 'Día' },
-    { value: 'week', label: 'Semana' },
-    { value: 'month', label: 'Mes' },
-    { value: 'year', label: 'Año' },
-  ] as const;
-  readonly calendarView = signal<'day' | 'week' | 'month' | 'year'>('month');
-  private readonly urlDelCalendario = sincronizarConLaUrl('vista', this.calendarView, 'month', (v) =>
-    ['day', 'week', 'month', 'year'].includes(v),
-  );
-  readonly calendarReturnDate = signal<string | null>(null);
   readonly cardPaymentMode = signal(false);
   readonly cardPaymentAmount = signal(500000);
   readonly cardPurchases = computed(() => {
@@ -395,56 +376,6 @@ export class WorkspaceComponent implements AfterViewInit {
     Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
   );
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
-  readonly week = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
-  readonly calendarYear = signal(2026);
-  readonly calendarMonth = signal(7);
-  readonly selectedCalendarDate = signal('2026-08-18');
-  readonly calendarMonths = Array.from({ length: 12 }, (_, value) => ({
-    value,
-    label: new Intl.DateTimeFormat('es-CO', { month: 'long' }).format(new Date(Date.UTC(2026, value, 1))),
-  }));
-  readonly calendarDays = computed(() => {
-    const year = this.calendarYear();
-    const month = this.calendarMonth();
-    const first = new Date(Date.UTC(year, month, 1));
-    const offset = (first.getUTCDay() + 6) % 7;
-    return Array.from({ length: 42 }, (_, index) => {
-      const date = new Date(Date.UTC(year, month, index - offset + 1));
-      const iso = date.toISOString().slice(0, 10);
-      return {
-        iso,
-        day: date.getUTCDate(),
-        current: date.getUTCMonth() === month,
-        label: new Intl.DateTimeFormat('es-CO', { dateStyle: 'full', timeZone: 'UTC' }).format(date),
-      };
-    });
-  });
-  readonly visibleCalendarDays = computed(() => {
-    const view = this.calendarView();
-    const days = this.calendarDays();
-    if (view === 'month') return days;
-    const selected = this.selectedCalendarDate();
-    const selectedIndex = Math.max(
-      0,
-      days.findIndex((day) => day.iso === selected),
-    );
-    if (view === 'day') return days.slice(selectedIndex, selectedIndex + 1);
-    const weekStart = Math.floor(selectedIndex / 7) * 7;
-    return days.slice(weekStart, weekStart + 7);
-  });
-  readonly calendarTitle = computed(() => {
-    const date = new Date(`${this.selectedCalendarDate()}T00:00:00Z`);
-    const view = this.calendarView();
-    if (view === 'year') return String(this.calendarYear());
-    if (view === 'day') return new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
-    if (view === 'week') {
-      const days = this.visibleCalendarDays();
-      return days.length
-        ? `${days[0].day}–${days.at(-1)?.day} de ${this.calendarMonths[this.calendarMonth()].label}`
-        : '';
-    }
-    return `${this.calendarMonths[this.calendarMonth()].label} ${this.calendarYear()}`;
-  });
   readonly months = [
     { value: '2026-08', label: 'Agosto 2026' },
     { value: '2026-07', label: 'Julio 2026' },
@@ -562,7 +493,6 @@ export class WorkspaceComponent implements AfterViewInit {
     void this.cargarMiembros();
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
       queueMicrotask(() => this.searchInput?.nativeElement.focus());
-    if (this.page() === 'calendar') void this.loadCalendarProjection();
   }
   /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
   readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
@@ -661,53 +591,6 @@ export class WorkspaceComponent implements AfterViewInit {
     this.store.remoteMovementSize.set(size);
     void this.loadMovementPage(1);
   }
-  /**
-   * Dos peticiones distintas, con dos permisos distintos y sin dependencia entre ellas.
-   *
-   * Iban en un `Promise.all` sin comprobar nada, asi que a quien tuviera el calendario y
-   * no las recurrencias le fallaba la de recurrencias con un 403, se rechazaba la
-   * promesa entera y se perdian tambien las proyecciones, que si podia ver. El aviso
-   * decia «no se pudo cargar el calendario proyectado» y el permiso concedido parecia no
-   * servir. Cada una se pide si su permiso esta concedido, y si una falla la otra queda.
-   */
-  async loadCalendarProjection() {
-    if (this.store.runtime.mode !== 'api') return;
-    const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
-    const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
-    const fallos: string[] = [];
-
-    if (this.can(P.calendario.ver)) {
-      try {
-        this.projectedOccurrences.set(await firstValueFrom(this.api.projectedCalendar(start, end)));
-      } catch {
-        fallos.push('las proyecciones');
-      }
-    }
-    if (this.can(P.calendario.recurrencias.listar)) {
-      try {
-        this.recurrences.set(await firstValueFrom(this.api.recurrences()));
-      } catch {
-        fallos.push('las recurrencias');
-      }
-    }
-
-    if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
-  }
-  async materialize(item: ApiProjectedOccurrence) {
-    if (this.store.runtime.mode !== 'api') return this.store.log('Ocurrencia confirmada y registrada');
-    try {
-      await firstValueFrom(
-        this.api.materializeRecurrence(item.recurrence.id, {
-          occurrence: item.occurrence,
-          idempotencyKey: crypto.randomUUID(),
-        }),
-      );
-      this.store.toast.set('Ocurrencia confirmada y registrada en el libro.');
-      await Promise.all([this.loadCalendarProjection(), this.loadMovementPage(1)]);
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo confirmar la ocurrencia.');
-    }
-  }
   private toRemoteMovement(source: ApiMovement): import('../core/demo-data').Movement {
     // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
     // duplicada la expresión de signo y la lista de clases escrita a mano.
@@ -728,10 +611,6 @@ export class WorkspaceComponent implements AfterViewInit {
   inspectMovement(row: Record<string, unknown>) {
     this.store.inspect('movement', String(row['id']));
   }
-  dayMoves(date: string | number) {
-    const iso = typeof date === 'number' ? `2026-08-${String(date).padStart(2, '0')}` : date;
-    return this.store.data().movements.filter((movement) => movement.date === iso);
-  }
   setAccountQuery(value: string) {
     this.accountQuery.set(value);
     this.accountPage.set(0);
@@ -740,60 +619,17 @@ export class WorkspaceComponent implements AfterViewInit {
     this.accountType.set(value);
     this.accountPage.set(0);
   }
-  setCalendarView(view: 'day' | 'week' | 'month' | 'year') {
-    this.calendarView.set(view);
-  }
-  shiftCalendar(direction: -1 | 1) {
-    const selected = new Date(`${this.selectedCalendarDate()}T00:00:00Z`);
-    const view = this.calendarView();
-    if (view === 'day') selected.setUTCDate(selected.getUTCDate() + direction);
-    else if (view === 'week') selected.setUTCDate(selected.getUTCDate() + direction * 7);
-    else if (view === 'month') selected.setUTCMonth(selected.getUTCMonth() + direction);
-    else selected.setUTCFullYear(selected.getUTCFullYear() + direction);
-    this.calendarYear.set(selected.getUTCFullYear());
-    this.calendarMonth.set(selected.getUTCMonth());
-    this.selectedCalendarDate.set(selected.toISOString().slice(0, 10));
-    void this.loadCalendarProjection();
-  }
-  goCalendarToday() {
-    const now = new Date();
-    this.calendarYear.set(now.getFullYear());
-    this.calendarMonth.set(now.getMonth());
-    this.selectedCalendarDate.set(
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
-    );
-    void this.loadCalendarProjection();
-  }
-  openCalendarMonth(month: number) {
-    this.calendarMonth.set(month);
-    this.selectedCalendarDate.set(`${this.calendarYear()}-${String(month + 1).padStart(2, '0')}-01`);
-    this.calendarView.set('month');
-    void this.loadCalendarProjection();
-  }
-  monthMovementCount(month: number) {
-    const prefix = `${this.calendarYear()}-${String(month + 1).padStart(2, '0')}`;
-    return this.store.data().movements.filter((movement) => movement.date.startsWith(prefix)).length;
-  }
-  selectCalendarDay(iso: string) {
-    this.selectedCalendarDate.set(iso);
-    this.calendarReturnDate.set(null);
-    const movements = this.dayMoves(iso);
-    if (movements.length === 1) {
-      this.calendarReturnDate.set(iso);
-      this.store.inspect('movement', movements[0].id);
-    } else this.store.inspect('day', iso);
-  }
   selectAccount(id: string, type: string) {
     this.selectedAccountFilter.set(id);
     this.cardPaymentMode.set(false);
     this.store.inspect(type === 'credit' ? 'card' : 'account', id);
   }
   openDayMovement(id: string) {
-    this.calendarReturnDate.set(this.store.inspector()?.id ?? this.selectedCalendarDate());
+    this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());
     this.store.inspect('movement', id);
   }
   returnToCalendarDay() {
-    const date = this.calendarReturnDate();
+    const date = this.store.calendarReturnDate();
     if (date) this.store.inspect('day', date);
   }
   async confirmCardPayment() {
@@ -852,7 +688,8 @@ export class WorkspaceComponent implements AfterViewInit {
           ? this.store.money(p.owed - p.owing)
           : i
             ? this.store.money(i.value)
-            : this.dayMoves(this.store.inspector()?.id ?? this.selectedCalendarDate()).length + ' operaciones';
+            : this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length +
+              ' operaciones';
   });
   readonly inspectorSubtitle = computed(
     () =>
@@ -915,8 +752,11 @@ export class WorkspaceComponent implements AfterViewInit {
         ['Variación', formatReturnRate(i.value, i.cost)],
       ];
     return [
-      ['Fecha', this.store.inspector()?.id ?? this.selectedCalendarDate()],
-      ['Operaciones', String(this.dayMoves(this.store.inspector()?.id ?? this.selectedCalendarDate()).length)],
+      ['Fecha', this.store.inspector()?.id ?? this.store.selectedCalendarDate()],
+      [
+        'Operaciones',
+        String(this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length),
+      ],
     ];
   });
   editSelected() {

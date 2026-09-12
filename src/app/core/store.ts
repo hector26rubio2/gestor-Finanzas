@@ -161,6 +161,10 @@ export class DemoStore {
     exchangeRate?: number;
   } | null>(null);
   readonly inspector = signal<{ type: string; id: string; previous?: { type: string; id: string } } | null>(null);
+  /** Dia de vuelta cuando el inspector de un movimiento se abrio desde una agenda diaria. */
+  readonly calendarReturnDate = signal<string | null>(null);
+  /** Dia seleccionado en el calendario. El inspector de dia lo usa de resguardo. */
+  readonly selectedCalendarDate = signal('2026-08-18');
   readonly movements = computed(() =>
     this.data()
       .movements.filter(
@@ -213,6 +217,11 @@ export class DemoStore {
   }
   balance(account: Account) {
     return accountBalance(account, this.data().movements);
+  }
+  /** Movimientos de un dia. Lo usan el calendario y el inspector de dia. */
+  dayMoves(date: string | number) {
+    const iso = typeof date === 'number' ? `2026-08-${String(date).padStart(2, '0')}` : date;
+    return this.data().movements.filter((movement) => movement.date === iso);
   }
   open(kind = 'expense', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
     this.form.set({ kind, accountId, targetId, movement, notificationId });

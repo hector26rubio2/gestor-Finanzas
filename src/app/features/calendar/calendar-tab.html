@@ -1,0 +1,69 @@
+<section class="calendar-layout">
+  <div class="month">
+    <header class="calendar-toolbar">
+      <button type="button" class="icon-button" aria-label="Periodo anterior" (click)="shiftCalendar(-1)">‹</button>
+      <div class="calendar-title">
+        <span>PERIODO</span><strong>{{ calendarTitle() }}</strong>
+      </div>
+      <div class="period-tabs" role="group" aria-label="Escala de calendario">
+        @for (view of calendarViews; track view.value) {
+          <button type="button" [class.active]="calendarView() === view.value" (click)="setCalendarView(view.value)">
+            {{ view.label }}
+          </button>
+        }
+      </div>
+      <button type="button" class="today-button" (click)="goCalendarToday()">Hoy</button>
+      <button type="button" class="icon-button" aria-label="Periodo siguiente" (click)="shiftCalendar(1)">›</button>
+    </header>
+    @if (calendarView() === 'year') {
+      <div class="year-grid" aria-label="Meses del año">
+        @for (month of calendarMonths; track month.value) {
+          <button type="button" (click)="openCalendarMonth(month.value)">
+            <span>{{ month.label }}</span
+            ><b>{{ monthMovementCount(month.value) }}</b
+            ><small>operaciones</small>
+          </button>
+        }
+      </div>
+    } @else {
+      <div class="week names">
+        @for (d of week; track d) {
+          <b>{{ d }}</b>
+        }
+      </div>
+      <div class="week grid" [class.week-view]="calendarView() === 'week'" [class.day-view]="calendarView() === 'day'">
+        @for (day of visibleCalendarDays(); track day.iso) {
+          <button
+            [attr.aria-pressed]="day.iso === store.selectedCalendarDate()"
+            [attr.aria-label]="day.label + ', ' + store.dayMoves(day.iso).length + ' movimientos'"
+            [class.selected]="day.iso === store.selectedCalendarDate()"
+            [class.outside]="!day.current"
+            (click)="selectCalendarDay(day.iso)"
+          >
+            <b>{{ day.day }}</b>
+            @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
+              <span [class.income]="m.amount > 0">{{ m.description }}</span>
+            }
+            @if (store.dayMoves(day.iso).length > (calendarView() === 'day' ? 8 : 2)) {
+              <em>+{{ store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2) }} más</em>
+            }
+          </button>
+        }
+      </div>
+    }
+  </div>
+  <aside class="agenda">
+    <h3>Próximos compromisos</h3>
+    @for (item of projectedOccurrences(); track item.recurrence.id + item.occurrence) {
+      <button class="projected" [disabled]="!can(P.calendario.proyecciones.crear)" (click)="materialize(item)">
+        <span>{{ item.recurrence.name }} · proyectado</span
+        ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
+      </button>
+    }
+    @for (m of store.data().movements.slice(0, 7); track m.id) {
+      <button (click)="store.inspect('movement', m.id)">
+        <span>{{ m.description }}</span><b>{{ store.money(m.amount) }}</b>
+      </button>
+    }
+  </aside>
+</section>
