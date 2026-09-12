@@ -1,0 +1,17 @@
+<dialog
+  #dialog
+  [class.inspector]="mode() === 'inspector'"
+  [class.wide]="wide()"
+  [attr.aria-labelledby]="titleId"
+  (cancel)="onCancel($event)"
+  (pointerdown)="rememberPointerOrigin($event)"
+  (click)="backdrop($event)"
+>
+  <section class="panel">
+    <header>
+      <h2 [id]="titleId">{{ title() }}</h2>
+      <button #closeButton type="button" aria-label="Cerrar panel" (click)="requestClose()">✕</button>
+    </header>
+    <div class="content"><ng-content /></div>
+  </section>
+</dialog>

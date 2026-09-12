@@ -1,0 +1,197 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--surface);
+  color: var(--text);
+}
+.viewport {
+  min-height: 0;
+  flex: 1;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  text-align: left;
+  font-size: 0.875rem;
+}
+th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+}
+th,
+td {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+tbody tr.selectable {
+  cursor: pointer;
+}
+tbody tr.selectable:hover,
+tbody tr.selectable:focus-within {
+  background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+}
+.row-link {
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  padding: 0;
+  cursor: pointer;
+  font-weight: 600;
+}
+.empty {
+  text-align: center;
+  padding: 48px 16px;
+  color: var(--muted);
+  white-space: normal;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+footer {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 12px 16px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  flex-shrink: 0;
+}
+label,
+.pages {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+select,
+.pages button {
+  font: inherit;
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  min-height: 32px;
+  padding: 4px 9px;
+}
+.compact-select {
+  width: 74px;
+}
+.pages button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+button:focus-visible,
+select:focus-visible,
+.viewport:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+@media (max-width: 520px) {
+  /*
+         * Sin recorte: las tarjetas son más altas que el hueco y las cortaba el host.
+         * El ancho sí se sujeta —min-width: 0 sobre un hijo flexible— o la tabla impone
+         * su ancho natural y aparece scroll horizontal en toda la página.
+         */
+  :host {
+    overflow: visible;
+    min-width: 0;
+    max-width: 100%;
+  }
+  .viewport {
+    overflow: visible;
+    padding: 10px;
+  }
+  table,
+  tbody,
+  tr,
+  td {
+    display: block;
+    width: 100%;
+  }
+  thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  tbody {
+    display: grid;
+    gap: 10px;
+  }
+  tbody tr {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 8px 12px;
+  }
+  td {
+    display: grid;
+    grid-template-columns: minmax(92px, 0.65fr) 1fr;
+    gap: 12px;
+    padding: 8px 0;
+    white-space: normal;
+    border-bottom: 1px dashed var(--line);
+    overflow-wrap: anywhere;
+  }
+  td:last-child {
+    border-bottom: 0;
+  }
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 650;
+  }
+  td.empty {
+    display: block;
+  }
+  /*
+         * El pie tenía tres grupos en fila con salto de línea libre, y a 375px acababa en
+         * tres renglones descuadrados de 99px. En rejilla cada cosa cae en su sitio: el
+         * rango arriba, y debajo las filas por página junto a los controles.
+         */
+  footer {
+    display: grid;
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 12px;
+    padding: 14px 12px;
+    position: sticky;
+    bottom: 0;
+    background: var(--surface);
+  }
+  .pages {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+  .pages button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}

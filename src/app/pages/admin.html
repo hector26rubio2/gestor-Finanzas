@@ -1,0 +1,511 @@
+<main class="admin-page">
+  <header class="page-head">
+    <div>
+      <h1>Administración</h1>
+      <p>Gobierna accesos, despliegues y trazabilidad desde un solo lugar.</p>
+    </div>
+    <div class="health">
+      <i></i><span><b>Servicios operativos</b><small>Última verificación ahora</small></span>
+    </div>
+  </header>
+
+  <nav class="tabs" aria-label="Secciones de administración">
+    @for (item of tabs(); track item.id) {
+    <button [class.active]="tab() === item.id" (click)="tab.set(item.id)">
+      <demo-icon [name]="item.icon" />{{ item.label }}
+    </button>
+    }
+  </nav>
+
+  @switch (tab()) { @case ('summary') {
+  <section class="kpis">
+    <article>
+      <span>Usuarios activos</span><strong>{{ activeUsers() }}</strong
+      ><small>de {{ users().length }} registrados</small>
+    </article>
+    <article>
+      <span>Roles configurados</span><strong>{{ roles().length }}</strong
+      ><small>{{ permissionCount() }} permisos concedibles</small>
+    </article>
+    <article>
+      <span>Funciones activas</span><strong>{{ enabledFlags() }}</strong
+      ><small>de {{ flagRows().length }} en despliegue</small>
+    </article>
+    <article class="warn">
+      <span>Errores abiertos</span><strong>{{ openErrors() }}</strong
+      ><small>{{ errorOccurrences() }} ocurrencias agrupadas</small>
+    </article>
+  </section>
+  <section class="summary-grid">
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Actividad reciente</h2>
+          <p>Acciones relevantes en todas las áreas</p>
+        </div>
+        <button (click)="tab.set('audit')">Ver auditoría</button>
+      </div>
+      <div class="timeline">
+        @for (event of auditRows().slice(0, 5); track event.id) {
+        <div>
+          <i></i
+          ><span
+            ><b>{{ event.action }}</b
+            ><small>{{ event.entityType }} · {{ event.createdAt | date: 'dd MMM, HH:mm' }}</small></span
+          ><code>{{ event.traceId.slice(0, 8) }}</code>
+        </div>
+        }
+      </div>
+    </article>
+    <article class="panel">
+      <div class="panel-head">
+        <div>
+          <h2>Control de acceso</h2>
+          <p>Distribución de usuarios</p>
+        </div>
+        <button (click)="tab.set('users')">Gestionar</button>
+      </div>
+      <div class="access-bars">
+        @for (role of roles(); track role.id) {
+        <div>
+          <span><b>{{ role.name }}</b><small>{{ memberCount(role.id) }} miembros</small></span
+          ><progress [value]="memberCount(role.id)" [max]="users().length || 1"></progress>
+        </div>
+        }
+      </div>
+    </article>
+  </section>
+  } @case ('users') {
+  <section class="panel table-panel">
+    <div class="toolbar">
+      <div>
+        <h2>Usuarios</h2>
+        <p>Acceso efectivo por persona, sin depender de nombres de rol.</p>
+      </div>
+      <label class="search"
+        ><demo-icon name="search" /><input [(ngModel)]="userSearch" placeholder="Buscar nombre o correo" /></label
+      ><demo-select [(ngModel)]="userStatus" [options]="userStatusOptions" ariaLabel="Filtrar usuarios por estado" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th>Roles</th>
+            <th>Capacidades</th>
+            <th>Último acceso</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of filteredUsers(); track user.id) {
+          <tr>
+            <td>
+              <div class="person">
+                <span>{{ initials(user.displayName) }}</span>
+                <div><b>{{ user.displayName }}</b><small>{{ user.email }}</small></div>
+              </div>
+            </td>
+            <td>
+              <span class="status" [class.off]="!user.isActive">{{ user.isActive ? 'Activo' : 'Desactivado' }}</span>
+            </td>
+            <td>{{ user.roles.join(', ') || 'Acceso directo' }}</td>
+            <td><b>{{ user.capabilities.length }}</b> asignadas</td>
+            <td>{{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : 'Sin acceso' }}</td>
+            <td>
+              @if (caps.allows(P.administracion.usuarios.editar)) {
+              <button class="icon-btn" aria-label="Administrar usuario" (click)="openUser(user)">→</button>
+              }
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <footer class="pager"><span>{{ filteredUsers().length }} usuarios</span><span>Página 1 de 1</span></footer>
+  </section>
+  } @case ('roles') {
+  <section class="cards-head">
+    <div>
+      <h2>Roles y capacidades</h2>
+      <p>Los roles agrupan permisos; las excepciones se aplican por usuario.</p>
+    </div>
+    @if (caps.allows(P.administracion.roles.crear)) {
+    <button class="primary" (click)="newRole()"><demo-icon name="plus" /> Crear rol</button>
+    }
+  </section>
+  <section class="role-grid">
+    @for (role of roles(); track role.id) {
+    <article class="role-card">
+      <header>
+        <demo-icon name="shield" class="role-icon" />
+        <span>
+          <h3>{{ role.name }}</h3>
+          <small>{{ memberCount(role.id) }} miembros</small>
+        </span>
+        @if (caps.allows(P.administracion.roles.editar)) {
+        <button class="icon-btn" (click)="editRole(role)">✎</button>
+        }
+      </header>
+      <p>{{ role.description || 'Sin descripción.' }}</p>
+      <!--
+                  Los recursos que toca el rol y cuantas acciones concede. Antes mostraba
+                  nombres de capacidades, que es el vocabulario que la aplicacion ya no
+                  usa: la ficha decia una cosa y el editor del mismo rol, otra.
+                -->
+      <div class="chips">
+        @for (recurso of recursosDe(role).slice(0, 4); track recurso) {
+        <span>{{ recurso }}</span>
+        } @if (recursosDe(role).length > 4) {
+        <span>+{{ recursosDe(role).length - 4 }}</span>
+        }
+        <span class="chip-cuenta">{{ role.permissions.length }} acciones</span>
+      </div>
+    </article>
+    }
+  </section>
+  } @case ('flags') {
+  <section class="panel">
+    <div class="toolbar">
+      <div>
+        <h2>Feature Flags</h2>
+        <p>Entrega gradual por audiencia sin volver a desplegar.</p>
+      </div>
+      <label class="search"
+        ><demo-icon name="search" /><input [(ngModel)]="flagSearch" placeholder="Buscar funcionalidad"
+      /></label>
+    </div>
+    <div class="flag-list">
+      @for (flag of filteredFlags(); track flag.key + (flag.organizationId ?? '') + (flag.userId ?? '')) {
+      <article>
+        <div class="flag-mark"><demo-icon name="flag" /></div>
+        <div><b>{{ flag.key }}</b><small>{{ flag.audience }}</small></div>
+        <span class="rollout">{{ flag.updatedAt | date: 'dd MMM, HH:mm' }}</span
+        ><label class="switch"
+          ><input
+            type="checkbox"
+            [checked]="flag.isEnabled"
+            [disabled]="!caps.allows(P.administracion.banderas.editar)"
+            (change)="toggleFlag(flag)" /><span></span></label
+        ><button class="icon-btn" (click)="selectFlag.set(flag.key)">→</button>
+      </article>
+      }
+    </div>
+  </section>
+  } @case ('audit') {
+  <section class="panel table-panel">
+    <div class="toolbar">
+      <div>
+        <h2>Auditoría</h2>
+        <p>Registro inmutable de acciones humanas y automáticas.</p>
+      </div>
+      <label class="search"
+        ><demo-icon name="search" /><input
+          [(ngModel)]="auditSearch"
+          placeholder="Buscar acción, entidad o traza" /></label
+      ><demo-select [(ngModel)]="auditAction" [options]="auditActionOptions" ariaLabel="Filtrar auditoría por acción" />
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Actor</th>
+            <th>Acción</th>
+            <th>Entidad</th>
+            <th>Trace ID</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (e of filteredAudit(); track e.id) {
+          <tr>
+            <td>{{ e.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
+            <td>{{ actor(e.userId) }}</td>
+            <td>
+              <b>{{ e.action }}</b>
+            </td>
+            <td>{{ e.entityType }}<small class="block">{{ e.entityId || '—' }}</small></td>
+            <td>
+              <code>{{ e.traceId.slice(0, 12) }}</code>
+            </td>
+            <td><button class="icon-btn" (click)="selectedAudit.set(e)">→</button></td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <footer class="pager"><span>{{ filteredAudit().length }} eventos visibles</span><span>Página 1 de 1</span></footer>
+  </section>
+  } @case ('errors') {
+  <section class="panel table-panel">
+    <div class="toolbar">
+      <div>
+        <h2>Errores de aplicación</h2>
+        <p>Fallos agrupados y saneados desde web, escritorio y API.</p>
+      </div>
+      <demo-select [(ngModel)]="errorStatus" [options]="errorStatusOptions" ariaLabel="Filtrar errores por estado" />
+    </div>
+    <div class="error-list">
+      @for (error of filteredErrors(); track error.id) {
+      <article (click)="selectedError.set(error)" tabindex="0">
+        <span class="source">{{ error.source }}</span>
+        <div>
+          <b>{{ error.message }}</b
+          ><small
+            >{{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} · {{ error.affectedUsers }}
+            usuarios</small
+          >
+        </div>
+        <strong>{{ error.occurrences }}×</strong
+        ><span class="error-state" [attr.data-state]="error.status">{{ errorLabel(error.status) }}</span
+        ><button class="icon-btn">→</button>
+      </article>
+      }
+    </div>
+  </section>
+  } }
+</main>
+
+@if (selectedUser(); as user) {
+<button class="drawer-scrim" (click)="selectedUser.set(null)" aria-label="Cerrar"></button>
+<aside class="drawer">
+  <header>
+    <div class="person">
+      <span>{{ initials(user.displayName) }}</span>
+      <div>
+        <h2>{{ user.displayName }}</h2>
+        <small>{{ user.email }}</small>
+      </div>
+    </div>
+    <button class="icon-btn" (click)="selectedUser.set(null)">×</button>
+  </header>
+  <div class="drawer-body">
+    <!--
+            Solo si se puede. Antes el interruptor aparecia siempre: quien no tenia el
+            permiso lo veia, lo pulsaba, y el servidor lo rechazaba. La casilla enganaba.
+          -->
+    @if (caps.allows(P.administracion.usuarios.deshabilitar)) {
+    <label class="active-row"
+      ><span><b>Acceso a la plataforma</b><small>Bloquea nuevas sesiones y acciones</small></span
+      ><span class="switch"
+        ><input
+          type="checkbox"
+          [checked]="user.isActive"
+          (change)="setUserActive(user, !user.isActive)" /><span></span></span
+    ></label>
+    } @if (rolesFor(user).length) {
+    <h3>Roles asignados</h3>
+    <p class="hint">Los roles suman capacidades a la membresía de la organización.</p>
+    <section class="cap-group">
+      @for (role of rolesFor(user); track role.id) {
+      <label
+        ><span><b>{{ role.name }}</b><small>{{ role.description || organizationName(user, role) }}</small></span
+        ><input type="checkbox" [checked]="userHasRole(user, role.id)" (change)="toggleUserRole(user, role.id)"
+      /></label>
+      }
+    </section>
+    } @if (anulacionesDe(user).length) {
+    <section class="excepciones">
+      <h3>Excepciones directas</h3>
+      <p class="hint">
+        Mandan sobre los roles. Mientras estén puestas, cambiar el rol no altera lo que esta persona ve.
+      </p>
+      @for (anulacion of anulacionesDe(user); track anulacion.code) {
+      <div class="excepcion">
+        <span>
+          <b>{{ anulacion.isAllowed ? 'Forzado a sí' : 'Forzado a no' }} · {{ anulacion.code }}</b>
+          <small>
+            @if (anulacion.affects.length > 1) { Alcanza a {{ anulacion.affects.length }} acciones } @else { Una acción
+            }
+          </small>
+        </span>
+        <button class="quiet" (click)="quitarExcepcion(user, anulacion)">Quitar excepción</button>
+      </div>
+      }
+    </section>
+    } @if (caps.allows(P.administracion.banderas.editar)) {
+    <details class="cap-group feature-user-list" open>
+      <summary>
+        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span><b>Funcionalidades</b><small>Módulos visibles en el menú lateral</small></span>
+        <span class="summary-count">{{ enabledFeaturesFor(user) }}/{{ platformFlags().length }}</span>
+        <demo-icon name="chevronDown" class="summary-chevron" />
+      </summary>
+      <p class="hint section-hint">
+        “Ver” muestra el módulo en la navegación. Las acciones internas se administran en la sección siguiente.
+      </p>
+      @for (flag of platformFlags(); track flag.key) {
+      <label
+        ><span><b>{{ featureLabel(flag.key) }}</b><small>{{ flag.key }}</small></span
+        ><span class="switch"
+          ><input
+            type="checkbox"
+            [checked]="featureEnabledFor(user, flag.key)"
+            (change)="toggleUserFeature(user, flag.key)" /><span></span></span
+      ></label>
+      }
+    </details>
+    }
+    <h3>Permisos efectivos</h3>
+    <p class="hint">
+      Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre lo que
+      digan sus roles.
+    </p>
+    @for (group of permissionGroups(); track group.name) {
+    <details class="cap-group">
+      <summary>
+        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
+        <span class="summary-count">{{ concedidosEn(user, group.items) }}/{{ group.items.length }}</span>
+        <demo-icon name="chevronDown" class="summary-chevron" />
+      </summary>
+      @for (permiso of group.items; track permiso.code) {
+      <label [class.module-visibility]="permiso.code.endsWith('.ver')"
+        ><span
+          ><b>{{ permiso.description }}</b>
+          <small><em class="cap-action">{{ accionDe(permiso) }}</em> · {{ permiso.code }}</small></span
+        ><input
+          type="checkbox"
+          [checked]="tienePermiso(user, permiso.code)"
+          (change)="toggleUserCapability(user, permiso.code)"
+      /></label>
+      }
+    </details>
+    }
+  </div>
+</aside>
+} @if (roleDraft(); as role) {
+<button class="drawer-scrim" (click)="roleDraft.set(null)" aria-label="Cerrar"></button>
+<aside class="drawer">
+  <header>
+    <div>
+      <h2>{{ role.id ? 'Editar rol' : 'Crear rol' }}</h2>
+      <small>Define un conjunto reutilizable de capacidades.</small>
+    </div>
+    <button class="icon-btn" (click)="roleDraft.set(null)">×</button>
+  </header>
+  <div class="drawer-body role-form">
+    <label>Nombre<input [(ngModel)]="role.name" /></label
+    ><label>Descripción<textarea [(ngModel)]="role.description"></textarea></label>
+    @if (!role.id) {
+    <label
+      >Organización<demo-select
+        [(ngModel)]="role.organizationId"
+        [options]="organizationOptions()"
+        ariaLabel="Organización del rol"
+    /></label>
+    } @for (group of permissionGroups(); track group.name) {
+    <details class="cap-group">
+      <summary>
+        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
+        <div class="cap-bulk">
+          <span>{{ marcadosEn(group.items) }} de {{ group.items.length }}</span>
+        </div>
+        <demo-icon name="chevronDown" class="summary-chevron" />
+      </summary>
+      <div class="cap-actions">
+        <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">Seleccionar todo</button>
+        <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">Limpiar</button>
+      </div>
+      @for (permiso of group.items; track permiso.code) {
+      <label [class.module-visibility]="permiso.code.endsWith('.ver')"
+        ><span
+          ><b>{{ permiso.description }}</b>
+          <small
+            ><em class="cap-action">{{ accionDe(permiso) }}</em> · {{ permiso.code }} · {{ nivelDe(permiso) }}</small
+          ></span
+        ><input
+          type="checkbox"
+          [checked]="role.permissions.includes(permiso.code)"
+          (change)="togglePermiso(permiso.code)"
+      /></label>
+      }
+    </details>
+    }
+  </div>
+  <footer>
+    <button (click)="roleDraft.set(null)">Cancelar</button
+    ><button class="primary" (click)="saveRole()">Guardar rol</button>
+  </footer>
+</aside>
+} @if (selectedError(); as error) {
+<button class="drawer-scrim" (click)="selectedError.set(null)"></button>
+<aside class="drawer">
+  <header>
+    <div>
+      <span class="eyebrow">{{ error.fingerprint }}</span>
+      <h2>Detalle del error</h2>
+    </div>
+    <button class="icon-btn" (click)="selectedError.set(null)">×</button>
+  </header>
+  <div class="drawer-body">
+    <div class="error-hero"><b>{{ error.message }}</b><small>{{ error.source }} · {{ error.version }}</small></div>
+    <dl>
+      <div>
+        <dt>Ocurrencias</dt>
+        <dd>{{ error.occurrences }}</dd>
+      </div>
+      <div>
+        <dt>Usuarios afectados</dt>
+        <dd>{{ error.affectedUsers }}</dd>
+      </div>
+      <div>
+        <dt>Última vez</dt>
+        <dd>{{ error.lastSeenAt | date: 'medium' }}</dd>
+      </div>
+      <div>
+        <dt>Trace ID</dt>
+        <dd>
+          <code>{{ error.traceId || 'No disponible' }}</code>
+        </dd>
+      </div>
+    </dl>
+    <label
+      >Estado<demo-select
+        [ngModel]="error.status"
+        [disabled]="!caps.allows(P.administracion.errores.editar)"
+        [options]="errorStateOptions"
+        ariaLabel="Estado del error"
+        (ngModelChange)="setErrorStatus(error, $event)"
+    /></label>
+    <p class="privacy">El reporte excluye cuerpos financieros, tokens y datos personales.</p>
+  </div>
+</aside>
+} @if (selectedAudit(); as event) {
+<button class="drawer-scrim" (click)="selectedAudit.set(null)"></button>
+<aside class="drawer">
+  <header>
+    <div>
+      <h2>{{ event.action }}</h2>
+    </div>
+    <button class="icon-btn" (click)="selectedAudit.set(null)">×</button>
+  </header>
+  <div class="drawer-body">
+    <dl>
+      <div>
+        <dt>Fecha</dt>
+        <dd>{{ event.createdAt | date: 'medium' }}</dd>
+      </div>
+      <div>
+        <dt>Actor</dt>
+        <dd>{{ actor(event.userId) }}</dd>
+      </div>
+      <div>
+        <dt>Entidad</dt>
+        <dd>{{ event.entityType }} / {{ event.entityId || '—' }}</dd>
+      </div>
+      <div>
+        <dt>Trace ID</dt>
+        <dd>
+          <code>{{ event.traceId }}</code>
+        </dd>
+      </div>
+    </dl>
+    <h3>Cambios registrados</h3>
+    <pre>{{ event.changesJson || 'Sin cambios de campos asociados.' }}</pre>
+  </div>
+</aside>
+}

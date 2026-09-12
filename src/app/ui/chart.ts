@@ -56,18 +56,8 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
   selector: 'demo-chart',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<div class="lienzo" role="img" [attr.aria-label]="ariaLabel()"></div>`,
-  styles: [
-    `
-      :host {
-        display: block;
-        width: 100%;
-      }
-      .lienzo {
-        width: 100%;
-      }
-    `,
-  ],
+  templateUrl: './chart.html',
+  styleUrl: './chart.css',
 })
 export class ChartComponent implements OnDestroy {
   readonly option = input.required<ChartOption>();

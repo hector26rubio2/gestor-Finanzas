@@ -1,0 +1,102 @@
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.types {
+  display: flex;
+  gap: 8px;
+  overflow: auto;
+  padding-bottom: 3px;
+}
+.types button {
+  white-space: nowrap;
+}
+.selected {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+  border-color: var(--accent) !important;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.full {
+  grid-column: 1/-1;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+input,
+select,
+button {
+  min-height: 41px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 11px;
+  font: inherit;
+}
+footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+.simulation {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+}
+.simulation > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.simulation small {
+  color: var(--muted);
+}
+table {
+  width: 100%;
+  font-size: 0.78rem;
+  margin-top: 12px;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: right;
+  padding: 9px;
+  border-top: 1px solid var(--line);
+}
+th:first-child,
+td:first-child {
+  text-align: left;
+}
+.error {
+  color: var(--danger);
+  margin: 0;
+}
+@media (max-width: 560px) {
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .full {
+    grid-column: auto;
+  }
+  .simulation {
+    overflow: auto;
+  }
+}

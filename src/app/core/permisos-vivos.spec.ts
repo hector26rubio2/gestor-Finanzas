@@ -48,7 +48,7 @@ function aplanar(nodo: unknown, prefijo = 'P'): [string, string][] {
  */
 type GlobDeVite = (patron: string, opciones: { query: string; import: string; eager: true }) => Record<string, string>;
 
-const modulos = (import.meta as unknown as { glob: GlobDeVite }).glob('/src/app/**/*.ts', {
+const modulos = (import.meta as unknown as { glob: GlobDeVite }).glob('/src/app/**/*.{ts,html}', {
   query: '?raw',
   import: 'default',
   eager: true,

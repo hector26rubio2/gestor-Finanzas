@@ -1,0 +1,100 @@
+<div
+  class="viewport"
+  data-testid="table-scroll"
+  tabindex="0"
+  role="region"
+  [attr.aria-label]="tableLabel() + ', desplazamiento interno'"
+>
+  <table>
+    <caption class="sr-only">
+      {{ tableLabel() }}
+    </caption>
+    <thead>
+      <tr>
+        @for (column of columns(); track column.key) {
+        <th scope="col">{{ column.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of visibleRows(); track row) {
+      <tr [class.selectable]="selectable()" (click)="selectable() && rowSelected.emit(row)">
+        @for (column of columns(); track column.key; let first = $first) {
+        <td [attr.data-label]="column.label">
+          @if (first && selectable()) {
+          <button
+            type="button"
+            class="row-link"
+            (click)="$event.stopPropagation(); rowSelected.emit(row)"
+            [attr.aria-label]="'Ver detalle: ' + display(row[column.key])"
+          >
+            {{ display(row[column.key]) }}
+          </button>
+          } @else { {{ display(row[column.key]) }} }
+        </td>
+        }
+      </tr>
+      } @empty {
+      <tr>
+        <td [attr.colspan]="columns().length || 1" class="empty">No hay registros para estos filtros.</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<footer>
+  <span [id]="rangeId" aria-live="polite">{{ start() }}–{{ end() }} de {{ totalCount() }}</span>
+  <label
+    >Filas
+    <demo-select
+      class="compact-select"
+      ariaLabel="Filas por página"
+      [options]="sizeOptions"
+      [ngModel]="size().toString()"
+      (ngModelChange)="setSizeValue($event)"
+  /></label>
+  <div class="pages">
+    <button type="button" aria-label="Primera página" [disabled]="currentPage() === 0" (click)="setPage(0)">
+      <demo-icon name="first" />
+    </button>
+    <button
+      type="button"
+      aria-label="Página anterior"
+      [attr.aria-describedby]="rangeId"
+      [disabled]="currentPage() === 0"
+      (click)="setPage(currentPage() - 1)"
+    >
+      <demo-icon name="previous" /></button
+    ><label class="page-jump"
+      >Página
+      <!--
+            La seleccion va en la opcion, no en el select: [value] sobre el select se
+            aplica antes de que las opciones existan, y al llegar desde un enlace con
+            ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
+          -->
+      <demo-select
+        class="compact-select"
+        ariaLabel="Ir a página"
+        [options]="pageSelectOptions()"
+        [ngModel]="currentPage().toString()"
+        (ngModelChange)="setPageValue($event)"
+      />
+      de {{ pageCount() }} </label
+    ><button
+      type="button"
+      aria-label="Página siguiente"
+      [attr.aria-describedby]="rangeId"
+      [disabled]="currentPage() + 1 >= pageCount()"
+      (click)="setPage(currentPage() + 1)"
+    >
+      <demo-icon name="next" /></button
+    ><button
+      type="button"
+      aria-label="Última página"
+      [disabled]="currentPage() + 1 >= pageCount()"
+      (click)="setPage(pageCount() - 1)"
+    >
+      <demo-icon name="last" />
+    </button>
+  </div>
+</footer>

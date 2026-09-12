@@ -1,0 +1,45 @@
+<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
+  ><form (ngSubmit)="submit()">
+    <div class="types" role="group" aria-label="Tipo de movimiento">
+      @for (t of types(); track t.value) {
+      <button
+        type="button"
+        [attr.aria-pressed]="model.kind === t.value"
+        [class.selected]="model.kind === t.value"
+        (click)="setKind(t.value)"
+      >
+        {{ t.label }}
+      </button>
+      }
+    </div>
+    <div class="form-grid">
+      @for (field of fields(); track field.key) { @if (fieldVisible(field.key)) {
+      <label [class.full]="field.key === 'description'"
+        >{{ field.label }} @if (field.type === 'select') {
+        <demo-select
+          [name]="field.key"
+          [(ngModel)]="model[field.key]"
+          [options]="selectOptions(field)"
+          [ariaLabel]="field.label"
+        />
+        } @else {
+        <input
+          [type]="field.type"
+          [name]="field.key"
+          [(ngModel)]="model[field.key]"
+          [required]="!!field.required"
+          [min]="field.type === 'number' ? 1 : null"
+        />
+        }
+      </label>
+      } }
+    </div>
+    @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+    }
+    <footer>
+      <button type="button" (click)="store.form.set(null)">Cancelar</button
+      ><button class="primary" type="submit">Guardar movimiento</button>
+    </footer>
+  </form></demo-overlay
+>

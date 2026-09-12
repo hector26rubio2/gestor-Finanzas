@@ -1,0 +1,50 @@
+form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+input,
+select,
+button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 11px;
+}
+p,
+footer {
+  grid-column: 1/-1;
+}
+p {
+  background: var(--accent-soft);
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+}
+footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+@media (max-width: 500px) {
+  form {
+    grid-template-columns: 1fr;
+  }
+  p,
+  footer {
+    grid-column: auto;
+  }
+}

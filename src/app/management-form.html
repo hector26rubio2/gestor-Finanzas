@@ -1,0 +1,53 @@
+<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
+  <form class="management-form" (ngSubmit)="save()">
+    <label>Nombre<input name="name" [(ngModel)]="name" required /></label>
+    @if (kind() === 'category') {
+    <label>Color<input name="color" type="color" [(ngModel)]="color" /></label
+    ><label>Icono<input name="icon" [(ngModel)]="icon" required /></label>
+    } @if (kind() === 'person') {
+    <label>Correo<input name="email" type="email" [(ngModel)]="email" /></label>
+    <label
+      >Relación<demo-select
+        name="relationship"
+        [(ngModel)]="relationship"
+        [options]="relationshipOptions"
+        ariaLabel="Relación con la persona"
+    /></label>
+    } @if (kind() === 'investment') {
+    <label
+      >Instrumento<demo-select
+        name="instrument"
+        [(ngModel)]="instrument"
+        [options]="instrumentOptions"
+        ariaLabel="Instrumento de inversión" /></label
+    ><label
+      >Moneda<demo-select
+        name="currency"
+        [(ngModel)]="currency"
+        [options]="currencyOptions"
+        ariaLabel="Moneda de la inversión"
+    /></label>
+    } @if (kind() === 'recurrence') {
+    <label>Importe<input name="amount" type="number" min="1" [(ngModel)]="amount" required /></label
+    ><label
+      >Cuenta<demo-select
+        name="account"
+        [(ngModel)]="accountId"
+        [options]="accountOptions()"
+        ariaLabel="Cuenta de la recurrencia" /></label
+    ><label
+      >Frecuencia<demo-select
+        name="frequency"
+        [(ngModel)]="frequency"
+        [options]="frequencyOptions"
+        ariaLabel="Frecuencia" /></label
+    ><label>Inicio<input name="start" type="date" [(ngModel)]="start" required /></label>
+    } @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+    }
+    <footer>
+      <button type="button" (click)="store.form.set(null)">Cancelar</button
+      ><button class="primary" type="submit">Guardar</button>
+    </footer>
+  </form>
+</demo-overlay>

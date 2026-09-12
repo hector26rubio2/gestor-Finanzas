@@ -63,28 +63,8 @@ export type IconName = keyof typeof TRAZOS;
   selector: 'demo-icon',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-    <path [attr.d]="trazo()" />
-  </svg>`,
-  styles: [
-    `
-      :host {
-        display: inline-flex;
-        flex: none;
-        width: var(--icon-size, 1.15em);
-        height: var(--icon-size, 1.15em);
-      }
-      svg {
-        width: 100%;
-        height: 100%;
-        fill: none;
-        stroke: currentColor;
-        stroke-width: var(--icon-stroke, 1.7);
-        stroke-linecap: round;
-        stroke-linejoin: round;
-      }
-    `,
-  ],
+  templateUrl: './icon.html',
+  styleUrl: './icon.css',
 })
 export class IconComponent {
   readonly name = input.required<string>();

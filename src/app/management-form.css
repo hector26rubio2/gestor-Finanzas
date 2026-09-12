@@ -1,0 +1,44 @@
+.management-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.management-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+.management-form input,
+.management-form select,
+.management-form button {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  padding: 8px 11px;
+}
+.management-form footer,
+.management-form .error {
+  grid-column: 1/-1;
+}
+.management-form footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+.primary {
+  background: var(--accent) !important;
+  color: var(--accent-contrast) !important;
+}
+@media (max-width: 500px) {
+  .management-form {
+    grid-template-columns: 1fr;
+  }
+  .management-form footer,
+  .management-form .error {
+    grid-column: auto;
+  }
+}

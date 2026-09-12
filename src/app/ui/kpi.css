@@ -1,0 +1,66 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  min-height: 92px;
+  padding: 13px 15px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  color: var(--text);
+}
+.label {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.cifra {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+/*
+       * La variacion se lee como texto ademas de como color: el verde y el rojo solos
+       * dejan fuera a quien no los distingue, y el signo ya va en la flecha.
+       */
+.delta {
+  flex: none;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.delta.sube {
+  color: var(--accent);
+}
+.delta.baja {
+  color: var(--danger);
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+}
+.chispa {
+  margin-top: 2px;
+}
+.chispa-hueco {
+  display: block;
+  height: 38px;
+}
+strong {
+  font-size: clamp(1.12rem, 1.55vw, 1.55rem);
+  font-weight: 650;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+.hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

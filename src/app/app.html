@@ -1,0 +1,115 @@
+@if (cargandoSesion()) {
+<div class="cargando" role="status" aria-live="polite">
+  <demo-icon name="dashboard" class="cargando-marca" />
+  <b>Finanzas</b>
+  <p>Cargando tu informacion…</p>
+  <span class="cargando-barra"><i></i></span>
+</div>
+} @else if (!store.user() || enLogin()) {
+<router-outlet />
+} @else {
+<a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
+<div class="app" [class.collapsed]="collapsed()">
+  <aside [class.mobile-open]="mobileOpen()">
+    <div class="brand-row">
+      <button
+        type="button"
+        class="brand-toggle"
+        [attr.aria-expanded]="menuAbierto()"
+        aria-controls="primary-navigation"
+        [attr.aria-label]="menuAbierto() ? 'Contraer menú' : 'Desplegar menú'"
+        (click)="alternarMenu()"
+      >
+        <demo-icon name="dashboard" class="brand-mark" />
+      </button>
+      <a routerLink="/dashboard" class="brand aside-label" aria-label="Finanzas, ir al inicio"><b>Finanzas</b></a>
+    </div>
+    <div class="profile" [class.open]="profileOpen()">
+      <button
+        class="profile-trigger"
+        type="button"
+        (click)="profileOpen.update((v) => !v)"
+        [attr.aria-expanded]="profileOpen()"
+      >
+        <span class="avatar">{{ userInitials() }}</span>
+        <span class="profile-copy aside-label"
+          ><strong>{{ store.user()?.name }}</strong><small>{{ espacioActivo() }}</small></span
+        >
+        <demo-icon name="more" class="profile-more aside-label" />
+      </button>
+      @if (profileOpen()) {
+      <div class="profile-menu">
+        <div class="profile-menu-head">
+          <strong>{{ store.user()?.name }}</strong><small>{{ store.user()?.email }}</small>
+        </div>
+        <a routerLink="/settings" (click)="profileOpen.set(false)">{{ i18n.t('shell.profile') }}</a>
+        <button type="button" (click)="logout()">{{ i18n.t('shell.logout') }}</button>
+      </div>
+      }
+    </div>
+    <div class="workspace aside-label" [attr.aria-label]="'Espacio activo: ' + espacioActivo()">
+      <span>{{ espacioActivo() }}</span>
+      @if (store.organizations().length > 1) {
+      <small class="workspace-count">{{ store.organizations().length }}</small>
+      }
+    </div>
+    <nav id="primary-navigation" aria-label="Navegación principal">
+      @for (group of groups(); track group) {
+      <small class="aside-label">{{ group }}</small>
+      @for (item of items(group); track item.path) {
+      <a
+        [routerLink]="'/' + item.path"
+        routerLinkActive="active"
+        [attr.aria-label]="i18n.t('nav.' + item.path)"
+        (click)="mobileOpen.set(false)"
+        ><demo-icon class="nav-icon" [name]="item.icon" /><span class="aside-label"
+          >{{ i18n.t('nav.' + item.path) }}</span
+        >
+        @if (item.path === 'notifications' && store.unread()) {
+        <i>{{ store.unread() }}</i>
+        }
+      </a>
+      } }
+    </nav>
+  </aside>
+  @if (mobileOpen()) {
+  <button class="scrim" aria-label="Cerrar menú" (click)="mobileOpen.set(false)"></button>
+  }
+  <section class="stage">
+    <header class="topbar">
+      <button
+        class="menu-toggle"
+        type="button"
+        [attr.aria-expanded]="menuAbierto()"
+        aria-controls="primary-navigation"
+        [attr.aria-label]="menuAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+        (click)="alternarMenu()"
+      >
+        <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
+      ><span class="org"><demo-icon name="organization" /> {{ espacioActivo() }}</span>
+      <div class="top-actions">
+        <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
+          <demo-icon name="search" /></button
+        ><a routerLink="/notifications" class="bell" aria-label="Notificaciones"
+          ><demo-icon name="notifications" />
+          @if (store.unread()) {
+          <i>{{ store.unread() }}</i>
+          }
+        </a>
+        @if (caps.allows(P.movimientos.crear)) {
+        <button class="primary" (click)="store.open()">
+          <demo-icon name="plus" /> {{ i18n.t('shell.newMovement') }}
+        </button>
+        }
+      </div>
+    </header>
+    <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
+  </section>
+</div>
+@if (abreFormularioDeMovimiento()) {
+<demo-movement-form />
+} @if (store.toast()) {
+<div class="toast" role="status">
+  {{ store.toast() }}<button aria-label="Cerrar aviso" (click)="store.toast.set('')">×</button>
+</div>
+} }

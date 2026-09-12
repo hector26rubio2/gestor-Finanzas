@@ -1,937 +1,271 @@
-import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
-import { inject, Injectable, InjectionToken } from '@angular/core';
-import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
-import { ApiMovementKindSpec } from './movement-kinds';
-import { RUNTIME_CONFIG } from './runtime';
+import { inject, Injectable } from '@angular/core';
+import { AccountsApi } from './api/accounts.api';
+import { AdministrationApi } from './api/administration.api';
+import { CardsApi } from './api/cards.api';
+import { CategoriesApi } from './api/categories.api';
+import { InvestmentsApi } from './api/investments.api';
+import { LedgerApi } from './api/ledger.api';
+import { NotificationsApi } from './api/notifications.api';
+import { ObligationsApi } from './api/obligations.api';
+import { PeopleApi } from './api/people.api';
+import { PreferencesApi } from './api/preferences.api';
+import { PurchasesApi } from './api/purchases.api';
+import { RecurrencesApi } from './api/recurrences.api';
+import { ReportingApi } from './api/reporting.api';
+import { SessionApi } from './api/session.api';
+import { SettlementsApi } from './api/settlements.api';
+import { ApiClientError } from './api/administration.api';
+import { ApiPreference } from './api/preferences.api';
+import { MovementQuery } from './api/shared-api-types';
+
+// Transporte HTTP: puertos y adaptador CSRF, movidos a core/http/.
+export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from './http/api-http-client';
+export type { ApiRequest, ApiTransport, ApiProblem } from './http/api-http-client';
+
+// Tabla de rutas y tipos compartidos, movidos a core/api/.
+export { API_ROUTES } from './api/api-routes';
+export { MOVEMENT_REPOSITORY } from './api/shared-api-types';
+export type {
+  ApiPage,
+  MovementQuery,
+  ApiMoney,
+  ApiMovementSummary,
+  ApiLinkRef,
+  ApiConvertedMoney,
+  MovementRepository,
+} from './api/shared-api-types';
+
+// DTOs y clientes por recurso: uno por feature, igual que en el backend.
+export { SessionApi } from './api/session.api';
+export type { ApiUser, ApiOrganization, ApiSession } from './api/session.api';
+export { AccountsApi, ApiAccountKind } from './api/accounts.api';
+export type { ApiAccount, ApiAccountOpening } from './api/accounts.api';
+export { LedgerApi } from './api/ledger.api';
+export type { ApiMovement, ApiOperation } from './api/ledger.api';
+export { CardsApi } from './api/cards.api';
+export type { ApiCard } from './api/cards.api';
+export { CategoriesApi } from './api/categories.api';
+export type { ApiCategory } from './api/categories.api';
+export { PeopleApi } from './api/people.api';
+export type { ApiCounterparty, ApiDebtPosition } from './api/people.api';
+export { ObligationsApi } from './api/obligations.api';
+export { InvestmentsApi } from './api/investments.api';
+export type { ApiInvestment } from './api/investments.api';
+export { ReportingApi } from './api/reporting.api';
+export type { ApiPeriodPoint, ApiCategoryTotal, ApiDashboard } from './api/reporting.api';
+export { PreferencesApi } from './api/preferences.api';
+export type { ApiPreference, ApiFeatureFlag } from './api/preferences.api';
+export { NotificationsApi } from './api/notifications.api';
+export type { ApiNotification } from './api/notifications.api';
+export { AdministrationApi, ApiPermissionAction, ApiPermissionLevel } from './api/administration.api';
+export type {
+  ApiAuditEvent,
+  ApiAdminUser,
+  ApiAdminRole,
+  ApiPermissionDescriptor,
+  ApiAdminOverride,
+  ApiOrganizationMember,
+  ApiCapabilityDescriptor,
+  ApiAdminFeatureFlag,
+  ApiClientError,
+} from './api/administration.api';
+export { RecurrencesApi } from './api/recurrences.api';
+export type { ApiRecurrence, ApiProjectedOccurrence, ApiMaterialization } from './api/recurrences.api';
+export { PurchasesApi } from './api/purchases.api';
+export { SettlementsApi } from './api/settlements.api';
 
 /**
- * Transport boundary for the future API. Feature code depends on repositories,
- * never on HttpClient or endpoint strings. The demo remains the active provider.
+ * Fachada de compatibilidad: conserva los ~50 métodos que las páginas ya usan
+ * mientras esas páginas siguen sin dividirse en `features/`. Cada método
+ * delega en el cliente de su feature — la lógica real vive allí, no aquí.
  */
-export interface ApiRequest<TBody = unknown> {
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
-  path: string;
-  body?: TBody;
-  params?: Readonly<Record<string, string | number | boolean | undefined>>;
-}
-
-export interface ApiTransport {
-  request<TResponse, TBody = unknown>(request: ApiRequest<TBody>): Observable<TResponse>;
-}
-
-export const API_TRANSPORT = new InjectionToken<ApiTransport>('API_TRANSPORT');
-
-export interface ApiProblem {
-  type?: string;
-  title?: string;
-  status?: number;
-  detail?: string;
-  code?: string;
-}
-
-export class ApiRequestError extends Error {
-  constructor(
-    readonly status: number,
-    readonly problem: ApiProblem,
-  ) {
-    super(problem.detail || problem.title || `La API respondió ${status}.`);
-  }
-}
-
-/**
- * Transporte HTTP con token CSRF cacheado.
- *
- * Antes se pedía un token nuevo antes de cada escritura y el servidor rotaba la
- * cookie en cada llamada: dos escrituras concurrentes se anulaban entre sí
- * (A obtiene T1, B obtiene T2 y sobreescribe la cookie, A envía T1 → 403), y
- * toda mutación pagaba una ida y vuelta extra. Ahora el token se pide una vez,
- * se comparte entre peticiones en vuelo y sólo se renueva cuando el servidor lo
- * rechaza con `security.csrf_invalid`.
- */
-@Injectable()
-export class HttpApiTransport implements ApiTransport {
-  private readonly http = inject(HttpClient);
-  private readonly config = inject(RUNTIME_CONFIG);
-  private csrfToken: string | null = null;
-  private csrfInFlight: Observable<string> | null = null;
-
-  request<TResponse, TBody = unknown>(request: ApiRequest<TBody>): Observable<TResponse> {
-    let params = new HttpParams();
-    for (const [key, value] of Object.entries(request.params ?? {})) {
-      if (value !== undefined) params = params.set(key, String(value));
-    }
-    if (this.config.mode !== 'api' || !this.config.apiBaseUrl)
-      return throwError(() => new Error('El transporte HTTP no está activo en modo demo.'));
-
-    const unsafe = request.method !== 'GET';
-    const send = (csrfToken?: string) => {
-      let headers = new HttpHeaders({ Accept: 'application/json' });
-      if (csrfToken) headers = headers.set('X-CSRF-Token', csrfToken);
-      return this.http.request<TResponse>(request.method, `${this.config.apiBaseUrl}${request.path}`, {
-        body: request.body,
-        params,
-        headers,
-        context: new HttpContext(),
-        withCredentials: true,
-      });
-    };
-
-    const response$ = unsafe
-      ? this.csrf().pipe(
-          switchMap((token) =>
-            send(token).pipe(
-              catchError((error: HttpErrorResponse) =>
-                this.isStaleCsrf(error)
-                  ? this.csrf(true).pipe(switchMap((renewed) => send(renewed)))
-                  : throwError(() => error),
-              ),
-            ),
-          ),
-        )
-      : send();
-
-    return response$.pipe(
-      catchError((error: HttpErrorResponse) =>
-        throwError(() => new ApiRequestError(error.status, (error.error ?? {}) as ApiProblem)),
-      ),
-    );
-  }
-
-  /** Descarta el token en memoria. La sesión nueva traerá el suyo. */
-  forgetCsrfToken(): void {
-    this.csrfToken = null;
-    this.csrfInFlight = null;
-  }
-
-  private csrf(renew = false): Observable<string> {
-    if (renew) this.forgetCsrfToken();
-    if (this.csrfToken) return of(this.csrfToken);
-    if (this.csrfInFlight) return this.csrfInFlight;
-
-    this.csrfInFlight = this.http
-      .get<{ token: string }>(`${this.config.apiBaseUrl}${API_ROUTES.csrf}`, { withCredentials: true })
-      .pipe(
-        switchMap(({ token }) => {
-          this.csrfToken = token;
-          this.csrfInFlight = null;
-          return of(token);
-        }),
-        catchError((error) => {
-          this.csrfInFlight = null;
-          return throwError(() => error);
-        }),
-        shareReplay({ bufferSize: 1, refCount: true }),
-      );
-    return this.csrfInFlight;
-  }
-
-  private isStaleCsrf(error: HttpErrorResponse): boolean {
-    return error.status === 403 && (error.error as ApiProblem | null)?.code === 'security.csrf_invalid';
-  }
-}
-
-export interface ApiPage<T> {
-  items: readonly T[];
-  page: number;
-  size: number;
-  total: number;
-  totalPages: number;
-  hasNext: boolean;
-}
-
-export interface MovementQuery {
-  page: number;
-  pageSize: number;
-  period?: string;
-  accountId?: string;
-  search?: string;
-}
-
-/** API-facing money never uses JavaScript floating point. */
-export interface ApiMoney {
-  amount: string;
-  currency: string;
-}
-
-export interface ApiMovementSummary {
-  id: string;
-  occurredOn: string;
-  description: string;
-  accountId: string;
-  kind: string;
-  flow: string;
-  effect: string;
-  money: ApiMoney;
-  status: string;
-}
-
-export interface ApiUser {
-  id: string;
-  displayName: string;
-  email: string;
-  isActive: boolean;
-}
-
-export interface ApiOrganization {
-  id: string;
-  name: string;
-  slug: string;
-  baseCurrency: string;
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface ApiSession {
-  user: ApiUser;
-  organization: ApiOrganization;
-  capabilities: readonly number[];
-  organizations: readonly ApiOrganization[];
-  expiresAt: string;
-  isSuperAdmin?: boolean;
-  permissions?: readonly string[];
-}
-
-/*
- * La máscara numérica de capacidades ya no se reproduce aquí.
- *
- * `session.capabilities` sigue llegando por compatibilidad, pero un rol granular la deja
- * vacía, así que decidir con ella era decidir con un dato que ya no se escribe. Era la
- * única cosa del cliente que no preguntaba por `session.permissions`, y por eso divergía:
- * el menú abría una pantalla cuyos datos nadie llegaba a pedir. Lo que se consulta es el
- * permiso, que es el mismo código que exige el endpoint.
- */
-
-/** Espejo de `AccountKindDto`. Los valores numéricos son parte del contrato. */
-export const ApiAccountKind = { cash: 1, checking: 2, savings: 3, wallet: 4, other: 99 } as const;
-
-export interface ApiAccount {
-  id: string;
-  name: string;
-  kind: number;
-  currency: string;
-  institution: string | null;
-  lastFour: string | null;
-  isDefault: boolean;
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface ApiLinkRef {
-  id: string;
-  name: string;
-}
-
-export interface ApiConvertedMoney {
-  original: ApiMoney;
-  base: ApiMoney;
-  rate: string;
-  rateAsOf: string;
-}
-
-export interface ApiMovement {
-  id: string;
-  date: string;
-  kind: number;
-  effect: number;
-  flow: number;
-  amount: ApiConvertedMoney;
-  links: Readonly<Record<string, string | null>>;
-  linkNames: Readonly<Record<string, ApiLinkRef | null>>;
-  origin: number;
-  description: string | null;
-  createdAt: string;
-  reversalOf: string | null;
-  reversedBy: string | null;
-}
-
-export interface ApiCard {
-  id: string;
-  name: string;
-  currency: string;
-  creditLimit: ApiMoney;
-  cycle: { statementDay: number; paymentDueDay: number };
-  /** Condiciones financieras. La tasa de compras decide el interes del proximo corte. */
-  terms?: { purchaseApr?: { value?: string | number | null } | null } | null;
-  issuer: string | null;
-  lastFour: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface ApiCounterparty {
-  id: string;
-  displayName: string;
-  alias: string | null;
-  email: string | null;
-  phone: string | null;
-  notes: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
-
-export interface ApiDebtPosition {
-  counterparty: ApiLinkRef;
-  ownDebt: ApiMoney;
-  receivable: ApiMoney;
-  asOf: string;
-}
-
-export interface ApiInvestment {
-  id: string;
-  name: string;
-  instrumentType: string;
-  currency: string;
-  costBasis: ApiMoney;
-  marketValue: ApiMoney | null;
-  isActive: boolean;
-}
-
-export interface ApiPeriodPoint {
-  date: string;
-  income: ApiMoney;
-  expense: ApiMoney;
-  net: ApiMoney;
-}
-
-export interface ApiCategoryTotal {
-  category: ApiLinkRef;
-  type: number;
-  total: ApiMoney;
-  movementCount: number;
-}
-
-export interface ApiDashboard {
-  period: { income: ApiMoney; expense: ApiMoney; net: ApiMoney; period: { start: string; end: string } };
-  accounts: readonly { account: ApiLinkRef; balance: ApiMoney; asOf: string }[];
-  cards: readonly unknown[];
-  topCategories: readonly ApiCategoryTotal[];
-  /** Un punto por día del periodo. El cliente agrupa; no suma importes. */
-  series: readonly ApiPeriodPoint[];
-  asOf: string;
-}
-
-export interface ApiOperation {
-  id: string;
-  kind: number;
-  date: string;
-  description: string | null;
-  createdAt: string;
-  legs: readonly ApiMovement[];
-}
-export interface ApiAccountOpening {
-  account: ApiAccount;
-  openingMovement: ApiMovement;
-}
-export interface ApiPreference {
-  userId: string;
-  language: string;
-  theme: string;
-  font: string;
-  density: string;
-  baseCurrency: string;
-  customThemeJson: string | null;
-  updatedAt: string;
-}
-export interface ApiFeatureFlag {
-  key: string;
-  isEnabled: boolean;
-  audienceJson: string | null;
-  updatedAt: string;
-}
-export interface ApiCategory {
-  id: string;
-  name: string;
-  type: number;
-  color: string;
-  icon: string;
-  parent: string | null;
-  isActive: boolean;
-  createdAt: string;
-}
-export interface ApiNotification {
-  id: string;
-  kind: string;
-  title: string;
-  payloadJson: string;
-  readAt: string | null;
-  createdAt: string;
-}
-export interface ApiAuditEvent {
-  id: string;
-  userId: string | null;
-  action: string;
-  entityType: string;
-  entityId: string | null;
-  traceId: string;
-  changesJson: string | null;
-  createdAt: string;
-}
-export interface ApiAdminUser {
-  id: string;
-  displayName: string;
-  email: string;
-  isActive: boolean;
-  lastSeenAt: string | null;
-  roles: readonly string[];
-  capabilities: readonly string[];
-  isSuperAdmin?: boolean;
-  createdAt?: string;
-  memberships?: readonly {
-    id: string;
-    organizationId: string;
-    organizationName: string;
-    status: string;
-    effectiveCapabilities: readonly string[];
-    /** Lo que la persona puede hacer ahora, accion por accion. */
-    effectivePermissions?: readonly string[];
-    /** Excepciones directas: mandan sobre lo que digan los roles. */
-    overrides?: readonly ApiAdminOverride[];
-    roles: readonly ApiAdminRole[];
-  }[];
-}
-export interface ApiAdminRole {
-  id: string;
-  name: string;
-  description: string | null;
-  organizationId?: string;
-  /** Capacidades íntegramente concedidas. Derivada del servidor, solo lectura. */
-  capabilities: readonly string[];
-  /** Permisos concedidos, uno por acción. Es lo que se edita. */
-  permissions: readonly string[];
-  isSystem: boolean;
-}
-/** Un permiso del catálogo: código, dónde vive y qué concede. */
-export interface ApiPermissionDescriptor {
-  code: string;
-  resource: string;
-  action: number;
-  level: number;
-  description: string;
-}
-
-/** Espejo de `PermissionActionDto`. */
-export const ApiPermissionAction: Readonly<Record<number, string>> = {
-  1: 'Ver',
-  2: 'Listar',
-  3: 'Crear',
-  4: 'Editar',
-  5: 'Eliminar',
-  6: 'Deshabilitar',
-  7: 'Exportar',
-};
-
-/** Espejo de `PermissionLevelDto`. */
-export const ApiPermissionLevel: Readonly<Record<number, string>> = {
-  1: 'básico',
-  2: 'avanzado',
-  3: 'premium',
-};
-
-/** Una excepcion directa sobre una persona. */
-export interface ApiAdminOverride {
-  code: string;
-  isAllowed: boolean;
-  affects: readonly string[];
-}
-
-/** Una persona dentro de la organizacion activa. */
-export interface ApiOrganizationMember {
-  membershipId: string;
-  userId: string;
-  displayName: string;
-  email: string;
-  status: string;
-  roles: readonly string[];
-  createdAt: string;
-}
-
-export interface ApiCapabilityDescriptor {
-  key: string;
-  module: string;
-  description: string;
-}
-export interface ApiAdminFeatureFlag {
-  key: string;
-  organizationId: string | null;
-  userId: string | null;
-  isEnabled: boolean;
-  updatedAt: string;
-}
-export interface ApiClientError {
-  id: string;
-  fingerprint: string;
-  message: string;
-  source: 'web' | 'desktop' | 'api';
-  status: 'new' | 'investigating' | 'resolved';
-  occurrences: number;
-  affectedUsers: number;
-  version: string;
-  lastSeenAt: string;
-  traceId: string | null;
-  organizationId?: string | null;
-  userId?: string | null;
-  contextJson?: string | null;
-  resolution?: string | null;
-  createdAt?: string;
-  resolvedAt?: string | null;
-}
-export interface ApiRecurrence {
-  id: string;
-  name: string;
-  kind: number;
-  movementTemplate: number | null;
-  amount: ApiMoney;
-  target: Readonly<Record<string, string | null>>;
-  sourceAccount: string | null;
-  destinationAccount: string | null;
-  schedule: {
-    frequency: number;
-    interval: number;
-    start: string;
-    end: string | null;
-    dayOfMonth: number | null;
-    dayOfWeek: number | null;
-  };
-  isActive: boolean;
-  nextOccurrence: string | null;
-  materializedOccurrences: readonly string[];
-  createdAt: string;
-}
-export interface ApiProjectedOccurrence {
-  recurrence: ApiLinkRef;
-  occurrence: string;
-  amount: ApiMoney;
-  kind: number;
-}
-export interface ApiMaterialization {
-  occurrence: string;
-  operation: string | null;
-  movements: readonly string[];
-}
-
 @Injectable({ providedIn: 'root' })
 export class FinanceApiClient {
-  private readonly transport = inject(API_TRANSPORT);
+  private readonly sessionApi = inject(SessionApi);
+  private readonly accountsApi = inject(AccountsApi);
+  private readonly ledgerApi = inject(LedgerApi);
+  private readonly cardsApi = inject(CardsApi);
+  private readonly categoriesApi = inject(CategoriesApi);
+  private readonly peopleApi = inject(PeopleApi);
+  private readonly obligationsApi = inject(ObligationsApi);
+  private readonly investmentsApi = inject(InvestmentsApi);
+  private readonly reportingApi = inject(ReportingApi);
+  private readonly preferencesApi = inject(PreferencesApi);
+  private readonly notificationsApi = inject(NotificationsApi);
+  private readonly administrationApi = inject(AdministrationApi);
+  private readonly recurrencesApi = inject(RecurrencesApi);
+  private readonly purchasesApi = inject(PurchasesApi);
+  private readonly settlementsApi = inject(SettlementsApi);
+
   session() {
-    return this.get<ApiSession>(API_ROUTES.session);
+    return this.sessionApi.session();
   }
-  /** Tabla de invariantes por clase de movimiento: viaja como dato, no se reescribe aquí. */
   movementKinds() {
-    return this.get<readonly ApiMovementKindSpec[]>(API_ROUTES.movementKinds);
+    return this.ledgerApi.movementKinds();
   }
   csrf() {
-    return this.get<{ token: string }>(API_ROUTES.csrf);
+    return this.sessionApi.csrf();
   }
   logout() {
-    return this.transport.request<void>({ method: 'POST', path: API_ROUTES.logout });
+    return this.sessionApi.logout();
   }
-  createAccount(request: {
-    name: string;
-    kind: number;
-    currency: string;
-    institution?: string | null;
-    lastFour?: string | null;
-    isDefault?: boolean;
-  }) {
-    return this.transport.request<ApiAccount, typeof request>({
-      method: 'POST',
-      path: API_ROUTES.accounts,
-      body: request,
-    });
+  createAccount(...args: Parameters<AccountsApi['createAccount']>) {
+    return this.accountsApi.createAccount(...args);
   }
-  createAccountWithOpening(request: {
-    account: {
-      name: string;
-      kind: number;
-      currency: string;
-      institution?: string | null;
-      lastFour?: string | null;
-      isDefault?: boolean;
-    };
-    openingBalance: ApiMoney;
-    date: string;
-    rate?: string | null;
-    rateAsOf?: string | null;
-    idempotencyKey?: string | null;
-  }) {
-    return this.transport.request<ApiAccountOpening>({
-      method: 'POST',
-      path: API_ROUTES.accountsWithOpening,
-      body: request,
-    });
+  createAccountWithOpening(...args: Parameters<AccountsApi['createAccountWithOpening']>) {
+    return this.accountsApi.createAccountWithOpening(...args);
   }
   accounts() {
-    return this.get<readonly ApiAccount[]>(API_ROUTES.accounts);
+    return this.accountsApi.accounts();
   }
   cards() {
-    return this.get<readonly ApiCard[]>(API_ROUTES.cards);
+    return this.cardsApi.cards();
   }
-  createCard(request: {
-    name: string;
-    currency: string;
-    creditLimit: ApiMoney;
-    cycle: { statementDay: number; paymentDueDay: number };
-    terms: unknown;
-    issuer?: string | null;
-    lastFour?: string | null;
-  }) {
-    return this.transport.request<ApiCard>({ method: 'POST', path: API_ROUTES.cards, body: request });
+  createCard(...args: Parameters<CardsApi['createCard']>) {
+    return this.cardsApi.createCard(...args);
   }
   cardStatus(id: string, asOf?: string) {
-    return this.transport.request<unknown>({ method: 'GET', path: API_ROUTES.cardStatus(id), params: { asOf } });
+    return this.cardsApi.cardStatus(id, asOf);
   }
   categories() {
-    return this.get<readonly ApiCategory[]>(API_ROUTES.categories);
+    return this.categoriesApi.categories();
   }
-  createCategory(request: { name: string; type: number; color: string; icon: string; parent?: string | null }) {
-    return this.transport.request<ApiCategory>({ method: 'POST', path: API_ROUTES.categories, body: request });
+  createCategory(...args: Parameters<CategoriesApi['createCategory']>) {
+    return this.categoriesApi.createCategory(...args);
   }
   people() {
-    return this.get<readonly ApiCounterparty[]>(API_ROUTES.people);
+    return this.peopleApi.people();
   }
-  createPerson(request: {
-    displayName: string;
-    alias?: string | null;
-    email?: string | null;
-    phone?: string | null;
-    notes?: string | null;
-  }) {
-    return this.transport.request<ApiCounterparty>({ method: 'POST', path: API_ROUTES.people, body: request });
+  createPerson(...args: Parameters<PeopleApi['createPerson']>) {
+    return this.peopleApi.createPerson(...args);
   }
   debts() {
-    return this.get<readonly ApiDebtPosition[]>(API_ROUTES.debts);
+    return this.peopleApi.debts();
   }
   obligations() {
-    return this.get<readonly unknown[]>(API_ROUTES.obligations);
+    return this.obligationsApi.obligations();
   }
   investments(asOf?: string) {
-    return this.transport.request<readonly ApiInvestment[]>({
-      method: 'GET',
-      path: API_ROUTES.investments,
-      params: { asOf },
-    });
+    return this.investmentsApi.investments(asOf);
   }
-  createInvestment(request: {
-    name: string;
-    instrumentType: string;
-    currency: string;
-    risk: number;
-    symbol?: string | null;
-    institution?: string | null;
-  }) {
-    return this.transport.request<ApiInvestment>({ method: 'POST', path: API_ROUTES.investments, body: request });
+  createInvestment(...args: Parameters<InvestmentsApi['createInvestment']>) {
+    return this.investmentsApi.createInvestment(...args);
   }
   dashboard(from?: string, to?: string) {
-    return this.transport.request<ApiDashboard>({ method: 'GET', path: API_ROUTES.dashboard, params: { from, to } });
+    return this.reportingApi.dashboard(from, to);
   }
   movements(query: MovementQuery) {
-    const range = query.period ? monthRange(query.period) : undefined;
-    return this.transport.request<ApiPage<ApiMovement>, unknown>({
-      method: 'POST',
-      path: API_ROUTES.movementSearch,
-      body: {
-        filter: {
-          text: query.search || undefined,
-          accounts: query.accountId ? [query.accountId] : undefined,
-          range,
-        },
-        page: { page: query.page, size: query.pageSize },
-        sortBy: 0,
-        direction: 1,
-      },
-    });
+    return this.ledgerApi.movements(query);
   }
   movement(id: string) {
-    return this.get<ApiMovement>(API_ROUTES.movement(id));
+    return this.ledgerApi.movement(id);
   }
   createMovement(request: unknown) {
-    return this.transport.request<ApiMovement>({ method: 'POST', path: API_ROUTES.movements, body: request });
+    return this.ledgerApi.createMovement(request);
   }
-  reclassifyMovement(id: string, request: { category: string | null; description: string | null }) {
-    return this.transport.request<ApiMovement>({
-      method: 'PUT',
-      path: API_ROUTES.movementClassification(id),
-      body: request,
-    });
+  reclassifyMovement(...args: Parameters<LedgerApi['reclassifyMovement']>) {
+    return this.ledgerApi.reclassifyMovement(...args);
   }
-  reverseMovement(id: string, request: { date: string; reason?: string | null }) {
-    return this.transport.request<ApiMovement>({
-      method: 'POST',
-      path: API_ROUTES.movementReversal(id),
-      body: request,
-    });
+  reverseMovement(...args: Parameters<LedgerApi['reverseMovement']>) {
+    return this.ledgerApi.reverseMovement(...args);
   }
-  updateAccount(
-    id: string,
-    request: {
-      name: string;
-      institution?: string | null;
-      lastFour?: string | null;
-      isDefault: boolean;
-      isActive: boolean;
-    },
-  ) {
-    return this.transport.request<ApiAccount>({ method: 'PUT', path: API_ROUTES.account(id), body: request });
+  updateAccount(...args: Parameters<AccountsApi['updateAccount']>) {
+    return this.accountsApi.updateAccount(...args);
   }
   createTransfer(request: unknown) {
-    return this.transport.request<ApiOperation>({ method: 'POST', path: API_ROUTES.transfers, body: request });
+    return this.ledgerApi.createTransfer(request);
   }
   createCardPayment(request: unknown) {
-    return this.transport.request<ApiOperation>({ method: 'POST', path: API_ROUTES.cardPayments, body: request });
+    return this.ledgerApi.createCardPayment(request);
   }
   preferences() {
-    return this.get<ApiPreference>(API_ROUTES.preferences);
+    return this.preferencesApi.preferences();
   }
   updatePreferences(request: Omit<ApiPreference, 'userId' | 'updatedAt'>) {
-    return this.transport.request<ApiPreference>({ method: 'PUT', path: API_ROUTES.preferences, body: request });
+    return this.preferencesApi.updatePreferences(request);
   }
   featureFlags() {
-    return this.get<readonly ApiFeatureFlag[]>(API_ROUTES.featureFlags);
+    return this.preferencesApi.featureFlags();
   }
-  updateFeatureFlag(key: string, request: { isEnabled: boolean; audienceJson?: string | null }) {
-    return this.transport.request<ApiFeatureFlag>({
-      method: 'PUT',
-      path: API_ROUTES.adminFeatureFlag(key),
-      body: request,
-    });
+  updateFeatureFlag(...args: Parameters<AdministrationApi['updateFeatureFlag']>) {
+    return this.administrationApi.updateFeatureFlag(...args);
   }
   notifications(unreadOnly = false) {
-    return this.transport.request<readonly ApiNotification[]>({
-      method: 'GET',
-      path: API_ROUTES.notifications,
-      params: { unreadOnly },
-    });
+    return this.notificationsApi.notifications(unreadOnly);
   }
   markNotificationRead(id: string, isRead = true) {
-    return this.transport.request<ApiNotification>({
-      method: 'PUT',
-      path: API_ROUTES.notificationRead(id),
-      body: { isRead },
-    });
+    return this.notificationsApi.markNotificationRead(id, isRead);
   }
   audit(page = 1, size = 50) {
-    return this.transport.request<ApiPage<ApiAuditEvent>>({
-      method: 'GET',
-      path: API_ROUTES.audit,
-      params: { page, size },
-    });
+    return this.administrationApi.audit(page, size);
   }
   adminUsers(page = 1, size = 25, search = '') {
-    return this.transport.request<ApiPage<ApiAdminUser>>({
-      method: 'GET',
-      path: API_ROUTES.adminUsers,
-      params: { page, size, search },
-    });
+    return this.administrationApi.adminUsers(page, size, search);
   }
   setAdminUserActive(id: string, isActive: boolean) {
-    return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminUserActive(id), body: { isActive } });
+    return this.administrationApi.setAdminUserActive(id, isActive);
   }
-  setAdminUserCapability(id: string, organizationId: string, capability: string, isAllowed: boolean | null) {
-    return this.transport.request<void>({
-      method: 'PUT',
-      path: API_ROUTES.adminUserCapability(id),
-      body: { organizationId, capability, isAllowed },
-    });
+  setAdminUserCapability(...args: Parameters<AdministrationApi['setAdminUserCapability']>) {
+    return this.administrationApi.setAdminUserCapability(...args);
   }
-  /** Personas de la organizacion activa, invitadas incluidas. */
   organizationMembers() {
-    return this.get<readonly ApiOrganizationMember[]>(API_ROUTES.organizationMembers);
+    return this.administrationApi.organizationMembers();
   }
-
-  /** Suma a alguien por correo, con los roles con los que entrara. */
-  inviteOrganizationMember(request: { email: string; displayName?: string; roleIds: readonly string[] }) {
-    return this.transport.request<ApiOrganizationMember>({
-      method: 'POST',
-      path: API_ROUTES.organizationMembers,
-      body: request,
-    });
+  inviteOrganizationMember(...args: Parameters<AdministrationApi['inviteOrganizationMember']>) {
+    return this.administrationApi.inviteOrganizationMember(...args);
   }
-
   adminRoles() {
-    return this.get<readonly ApiAdminRole[]>(API_ROUTES.adminRoles);
+    return this.administrationApi.adminRoles();
   }
-  /** Catálogo completo: una fila por acción, que es lo que pinta el editor de roles. */
   superAdminPermissions() {
-    return this.get<readonly ApiPermissionDescriptor[]>(API_ROUTES.superAdminPermissions);
+    return this.administrationApi.superAdminPermissions();
   }
   superAdminCapabilities() {
-    return this.get<readonly ApiCapabilityDescriptor[]>(API_ROUTES.superAdminCapabilities);
+    return this.administrationApi.superAdminCapabilities();
   }
-  assignAdminUserRoles(id: string, organizationId: string, roleIds: readonly string[]) {
-    return this.transport.request<void>({
-      method: 'PUT',
-      path: API_ROUTES.adminUserRoles(id),
-      body: { organizationId, roleIds },
-    });
+  assignAdminUserRoles(...args: Parameters<AdministrationApi['assignAdminUserRoles']>) {
+    return this.administrationApi.assignAdminUserRoles(...args);
   }
   adminFeatureFlags() {
-    return this.get<readonly ApiAdminFeatureFlag[]>(API_ROUTES.superAdminFeatureFlags);
+    return this.administrationApi.adminFeatureFlags();
   }
-  updateAdminFeatureFlag(
-    key: string,
-    request: { organizationId?: string | null; userId?: string | null; isEnabled: boolean },
-  ) {
-    return this.transport.request<ApiAdminFeatureFlag>({
-      method: 'PUT',
-      path: API_ROUTES.superAdminFeatureFlag(key),
-      body: request,
-    });
+  updateAdminFeatureFlag(...args: Parameters<AdministrationApi['updateAdminFeatureFlag']>) {
+    return this.administrationApi.updateAdminFeatureFlag(...args);
   }
   superAdminAudit(page = 1, size = 50) {
-    return this.transport.request<ApiPage<ApiAuditEvent>>({
-      method: 'GET',
-      path: API_ROUTES.superAdminAudit,
-      params: { page, size },
-    });
+    return this.administrationApi.superAdminAudit(page, size);
   }
-  saveAdminRole(
-    id: string | null,
-    request: {
-      organizationId?: string;
-      name: string;
-      description: string;
-      capabilities: readonly string[];
-      permissions?: readonly string[];
-    },
-  ) {
-    return this.transport.request<ApiAdminRole>({
-      method: id ? 'PUT' : 'POST',
-      path: id ? API_ROUTES.adminRole(id) : API_ROUTES.adminRoles,
-      body: request,
-    });
+  saveAdminRole(...args: Parameters<AdministrationApi['saveAdminRole']>) {
+    return this.administrationApi.saveAdminRole(...args);
   }
   adminErrors(page = 1, size = 25, status = '') {
-    return this.transport.request<ApiPage<ApiClientError>>({
-      method: 'GET',
-      path: API_ROUTES.adminErrors,
-      params: { page, size, status },
-    });
+    return this.administrationApi.adminErrors(page, size, status);
   }
   updateAdminError(id: string, status: ApiClientError['status'], resolution?: string) {
-    return this.transport.request<ApiClientError>({
-      method: 'PUT',
-      path: API_ROUTES.adminError(id),
-      body: { status, resolution },
-    });
+    return this.administrationApi.updateAdminError(id, status, resolution);
   }
   recurrences() {
-    return this.get<readonly ApiRecurrence[]>(API_ROUTES.recurrences);
+    return this.recurrencesApi.recurrences();
   }
   createRecurrence(request: unknown) {
-    return this.transport.request<ApiRecurrence>({ method: 'POST', path: API_ROUTES.recurrences, body: request });
+    return this.recurrencesApi.createRecurrence(request);
   }
   projectedCalendar(from: string, to: string) {
-    return this.transport.request<readonly ApiProjectedOccurrence[]>({
-      method: 'GET',
-      path: API_ROUTES.projectedCalendar,
-      params: { from, to },
-    });
+    return this.recurrencesApi.projectedCalendar(from, to);
   }
-  materializeRecurrence(
-    id: string,
-    request: { occurrence: string; amount?: ApiMoney | null; idempotencyKey?: string | null },
-  ) {
-    return this.transport.request<ApiMaterialization>({
-      method: 'POST',
-      path: API_ROUTES.recurrenceMaterializations(id),
-      body: request,
-    });
+  materializeRecurrence(...args: Parameters<RecurrencesApi['materializeRecurrence']>) {
+    return this.recurrencesApi.materializeRecurrence(...args);
   }
   sharedPurchases() {
-    return this.get<readonly unknown[]>(API_ROUTES.sharedPurchases);
+    return this.purchasesApi.sharedPurchases();
   }
-  createSharedPurchase(request: {
-    purchaseMovement: string;
-    shares: readonly {
-      counterparty: string;
-      basis: number;
-      percent?: { rate: string } | null;
-      fixedAmount?: ApiMoney | null;
-    }[];
-    description?: string | null;
-  }) {
-    return this.transport.request<unknown>({ method: 'POST', path: API_ROUTES.sharedPurchases, body: request });
+  createSharedPurchase(request: Parameters<PurchasesApi['createSharedPurchase']>[0]) {
+    return this.purchasesApi.createSharedPurchase(request);
   }
   settlements() {
-    return this.get<readonly unknown[]>(API_ROUTES.settlements);
+    return this.settlementsApi.settlements();
   }
-  issueSettlement(request: {
-    counterparty: string;
-    period: { start: string; end: string };
-    cutOff: string;
-    currency: string;
-  }) {
-    return this.transport.request<unknown>({ method: 'POST', path: API_ROUTES.settlements, body: request });
-  }
-  private get<T>(path: string): Observable<T> {
-    return this.transport.request<T>({ method: 'GET', path });
+  issueSettlement(request: Parameters<SettlementsApi['issueSettlement']>[0]) {
+    return this.settlementsApi.issueSettlement(request);
   }
 }
-
-function monthRange(period: string): { start: string; end: string } {
-  const match = /^(\d{4})-(\d{2})$/.exec(period);
-  if (!match) throw new Error('El periodo debe usar el formato AAAA-MM.');
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  if (month < 1 || month > 12) throw new Error('El mes solicitado no es válido.');
-  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  return { start: `${period}-01`, end: `${period}-${String(lastDay).padStart(2, '0')}` };
-}
-
-export interface MovementRepository {
-  list(query: MovementQuery): Observable<ApiPage<ApiMovementSummary>>;
-}
-
-export const MOVEMENT_REPOSITORY = new InjectionToken<MovementRepository>('MOVEMENT_REPOSITORY');
-
-/** Stable v1 paths published by the backend; transport remains opt-in. */
-export const API_ROUTES = {
-  csrf: '/api/v1/auth/csrf',
-  organizationMembers: '/api/v1/organization/members',
-  logout: '/api/v1/auth/logout',
-  session: '/api/v1/session',
-  accounts: '/api/v1/accounts',
-  accountsWithOpening: '/api/v1/accounts/with-opening',
-  cards: '/api/v1/cards',
-  categories: '/api/v1/categories',
-  people: '/api/v1/people',
-  debts: '/api/v1/people/debt-positions',
-  obligations: '/api/v1/obligations',
-  investments: '/api/v1/investments',
-  movementKinds: '/api/v1/movement-kinds',
-  movementSearch: '/api/v1/movements/search',
-  movements: '/api/v1/movements',
-  transfers: '/api/v1/operations/transfers',
-  cardPayments: '/api/v1/operations/card-payments',
-  preferences: '/api/v1/preferences',
-  featureFlags: '/api/v1/feature-flags',
-  notifications: '/api/v1/notifications',
-  audit: '/api/v1/admin/audit',
-  adminUsers: '/api/v1/superadmin/users',
-  adminRoles: '/api/v1/superadmin/roles',
-  adminErrors: '/api/v1/superadmin/errors',
-  superAdminCapabilities: '/api/v1/superadmin/capabilities',
-  superAdminPermissions: '/api/v1/superadmin/permissions',
-  superAdminFeatureFlags: '/api/v1/superadmin/feature-flags',
-  superAdminAudit: '/api/v1/superadmin/audit',
-  recurrences: '/api/v1/recurrences',
-  projectedCalendar: '/api/v1/calendar/projected',
-  sharedPurchases: '/api/v1/shared-purchases',
-  settlements: '/api/v1/settlements',
-  cardStatus: (id: string) => `/api/v1/cards/${encodeURIComponent(id)}/status`,
-  notificationRead: (id: string) => `/api/v1/notifications/${encodeURIComponent(id)}/read`,
-  recurrenceMaterializations: (id: string) => `/api/v1/recurrences/${encodeURIComponent(id)}/materializations`,
-  adminFeatureFlag: (key: string) => `/api/v1/admin/feature-flags/${encodeURIComponent(key)}`,
-  adminUserActive: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/active`,
-  adminUserCapability: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/capability-override`,
-  adminUserRoles: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/roles`,
-  adminRole: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}`,
-  adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,
-  superAdminFeatureFlag: (key: string) => `/api/v1/superadmin/feature-flags/${encodeURIComponent(key)}`,
-  movement: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}`,
-  movementClassification: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/classification`,
-  movementReversal: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/reversal`,
-  account: (id: string) => `/api/v1/accounts/${encodeURIComponent(id)}`,
-  dashboard: '/api/v1/dashboard',
-  openApi: '/openapi/v1.json',
-} as const;

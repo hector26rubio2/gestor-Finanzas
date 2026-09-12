@@ -1,0 +1,23 @@
+<span class="label">{{ label() }}</span>
+<div class="cifra">
+  <strong>{{ value() }}</strong>
+  @if (delta() !== null) {
+  <span class="delta" [class.sube]="mejora()" [class.baja]="empeora()" [attr.title]="deltaTitulo()">
+    {{ flecha() }} {{ deltaTexto() }}
+  </span>
+  }
+</div>
+@if (series().length > 1) {
+<!--
+        En diferido y al entrar en pantalla: la tarjeta de indicador la usa el armazon,
+        que va en el paquete inicial, y arrastrar ECharts hasta ahi lo pasaba de 1.00 MB
+        -el presupuesto- a 1.12 MB. Asi la biblioteca sigue viviendo en su propio trozo y
+        la chispa aparece cuando hay algo que mirar.
+      -->
+@defer (on viewport) {
+<demo-chart class="chispa" [option]="chispaOption()" [height]="38" [ariaLabel]="label() + ': evolución del periodo'" />
+} @placeholder {
+<span class="chispa-hueco"></span>
+} } @if (hint()) {
+<span class="hint">{{ hint() }}</span>
+}

@@ -1,0 +1,45 @@
+<demo-overlay title="Nueva cuenta" mode="modal" (closed)="closed()"
+  ><form (ngSubmit)="save()">
+    <label
+      >Tipo<demo-select name="type" [(ngModel)]="type" [options]="accountTypes()" ariaLabel="Tipo de cuenta" /></label
+    ><label>Nombre<input name="name" [(ngModel)]="name" required /></label
+    ><label
+      >Moneda<demo-select
+        name="currency"
+        [(ngModel)]="currency"
+        [options]="currencyOptions"
+        ariaLabel="Moneda" /></label
+    ><label>Saldo inicial<input name="opening" [(ngModel)]="opening" type="number" /></label>
+    @if (currency === 'USD') {
+    <label>TRM de referencia<input name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" /></label>
+    } @if (type === 'credit') {
+    <label>Cupo<input name="limit" [(ngModel)]="limit" type="number" min="1" required /></label>
+    <label>Día de corte<input name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required /></label>
+    <label>Día de pago<input name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required /></label>
+    <label>Tasa E.A. (%)<input name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01" /></label>
+    <label
+      >Orden del abono<demo-select
+        name="paymentOrder"
+        [(ngModel)]="paymentOrder"
+        [options]="paymentOrderOptions"
+        ariaLabel="Orden del abono"
+    /></label>
+    <label
+      >Aplicar primero a<demo-select
+        name="paymentPriority"
+        [(ngModel)]="paymentPriority"
+        [options]="paymentPriorityOptions"
+        ariaLabel="Prioridad del abono"
+    /></label>
+    <label>Abono mínimo<input name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" /></label>
+    }
+    <p>Un saldo inicial distinto de cero crea un movimiento de apertura.</p>
+    @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+    }
+    <footer>
+      <button type="button" (click)="closed()">Cancelar</button
+      ><button class="primary" type="submit">Crear cuenta</button>
+    </footer>
+  </form></demo-overlay
+>
