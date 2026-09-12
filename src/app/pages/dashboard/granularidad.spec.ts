@@ -2,11 +2,11 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../core/api-client';
-import { P } from '../core/permissions';
-import { RUNTIME_CONFIG } from '../core/runtime';
-import { DemoStore } from '../core/store';
-import { AccountFormComponent, MovementFormComponent } from '../forms';
+import { FinanceApiClient } from '../../core/api-client';
+import { P } from '../../core/permissions';
+import { RUNTIME_CONFIG } from '../../core/runtime';
+import { DemoStore } from '../../core/store';
+import { AccountFormComponent, MovementFormComponent } from '../../forms';
 import { DashboardComponent } from './dashboard';
 
 /**
@@ -103,6 +103,71 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     componente.newWidgetTitle = 'Mi análisis';
     componente.createWidget(new Event('submit'));
     expect(componente.widgets()).toHaveLength(cuantos);
+  });
+
+  /*
+   * El motor genérico (dimensión/métrica/meta) y los indicadores de la franja de arriba
+   * son controles nuevos sobre el mismo widget; comparten el permiso de siempre
+   * (`widget.tipo.editar` para reconfigurar, `widget.crear`/`widget.deshabilitar` para
+   * crear o quitar), pero nunca se habían probado por separado.
+   */
+  it('sin widget.tipo.editar no cambian ni la dimensión, ni la métrica, ni la meta', () => {
+    preparar([P.dashboard.ver, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
+    const componente = TestBed.createComponent(DashboardComponent).componentInstance;
+    const compromisos = componente.widgets().find((w) => w.id === 'commitments')!;
+    const { dimension, measure } = compromisos;
+
+    componente.changeDimension(compromisos.id, 'category');
+    componente.changeMeasure(compromisos.id, 'income');
+    componente.changeGoal(compromisos.id, 'goalTarget', '999');
+
+    const actual = componente.widgets().find((w) => w.id === 'commitments')!;
+    expect(actual.dimension).toBe(dimension);
+    expect(actual.measure).toBe(measure);
+    expect(actual.goalTarget).toBeUndefined();
+  });
+
+  it('con widget.tipo.editar sí cambian', () => {
+    preparar([P.dashboard.ver, P.dashboard.widget.tipo.editar, ...VER_WIDGETS]);
+    const componente = TestBed.createComponent(DashboardComponent).componentInstance;
+    componente.changeDimension('commitments', 'category');
+    expect(componente.widgets().find((w) => w.id === 'commitments')!.dimension).toBe('category');
+  });
+
+  it('crear un indicador de la franja de arriba requiere su permiso', () => {
+    preparar([P.dashboard.ver, P.dashboard.kpi.gastos]);
+    const componente = TestBed.createComponent(DashboardComponent).componentInstance;
+    const cuantos = componente.customKpis().length;
+
+    componente.newKpiLabel = 'Mi indicador';
+    componente.createKpi(new Event('submit'));
+    expect(componente.customKpis()).toHaveLength(cuantos);
+  });
+
+  it('quitar un indicador de la franja de arriba requiere su permiso', () => {
+    preparar([P.dashboard.ver, P.dashboard.widget.propios]);
+    const componente = TestBed.createComponent(DashboardComponent).componentInstance;
+    const cuantos = componente.customKpis().length;
+
+    componente.removeKpi(componente.customKpis()[0].id);
+    expect(componente.customKpis()).toHaveLength(cuantos);
+  });
+
+  it('widget.propios enseña la galería y los indicadores creados a mano, no los que tienen su propio permiso', () => {
+    preparar([P.dashboard.ver, P.dashboard.widget.propios]);
+    const fixture = TestBed.createComponent(DashboardComponent);
+    fixture.detectChanges();
+    const componente = fixture.componentInstance;
+
+    const titulos = componente.widgets().map((w) => w.title);
+    expect(titulos).toContain('Ingresos en el tiempo');
+    expect(titulos).not.toContain('Flujo de caja');
+
+    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis demo-kpi')].map(
+      (n: Element) => n.textContent?.trim() ?? '',
+    );
+    expect(etiquetasKpi.some((t) => t.includes('Promedio por movimiento'))).toBe(true);
+    expect(etiquetasKpi.some((t) => t.includes('Gastos'))).toBe(false);
   });
 });
 

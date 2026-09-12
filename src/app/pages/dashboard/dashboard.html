@@ -47,10 +47,59 @@
       </fieldset>
       <div class="period-nav" aria-label="Navegar periodo">
         <span>Periodo activo</span>
-        <div>
+        <div class="period-picker" [class.open]="periodPickerOpen()">
           <button type="button" aria-label="Periodo anterior" (click)="shiftPeriod(-1)">‹</button
-          ><b>{{ periodShortLabel() }}</b
-          ><button type="button" aria-label="Periodo siguiente" (click)="shiftPeriod(1)">›</button>
+          ><button
+            type="button"
+            class="period-label"
+            [attr.aria-expanded]="periodPickerOpen()"
+            aria-haspopup="true"
+            (click)="periodPickerOpen.update(v => !v)"
+          >
+            {{ periodShortLabel() }}
+          </button>
+          <button type="button" aria-label="Periodo siguiente" (click)="shiftPeriod(1)">›</button>
+          @if (periodPickerOpen()) {
+          <div class="period-picker-menu">
+            <label
+              >Año<input
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [ngModel]="anchorYear()"
+                (ngModelChange)="setYear($event)"
+                aria-label="Año"
+            /></label>
+            @if (scale() === 'month' || scale() === 'week' || scale() === 'day') {
+            <label
+              >Mes<demo-select
+                [ngModel]="anchorMonth()"
+                (ngModelChange)="setMonth($event)"
+                [options]="monthOptions"
+                ariaLabel="Mes"
+            /></label>
+            } @if (scale() === 'week') {
+            <label
+              >Semana<demo-select
+                [ngModel]="anchorWeekOfMonth()"
+                (ngModelChange)="setWeekOfMonth($event)"
+                [options]="weekOfMonthOptions()"
+                ariaLabel="Semana del mes"
+            /></label>
+            } @if (scale() === 'day') {
+            <label
+              >Día<input
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [ngModel]="anchorDay()"
+                (ngModelChange)="setDay($event)"
+                aria-label="Día"
+            /></label>
+            }
+            <button type="button" class="quiet" (click)="periodPickerOpen.set(false)">Cerrar</button>
+          </div>
+          }
         </div>
       </div>
       <label
@@ -116,18 +165,60 @@
       [value]="movements().length.toLocaleString()"
       hint="Registros visibles"
     />
+    } @if (caps.allows(P.dashboard.widget.propios)) { @for (kpi of customKpis(); track kpi.id) {
+    <div class="custom-kpi">
+      <demo-kpi
+        [label]="kpi.label"
+        [icon]="kpiIcon(kpi.formula)"
+        [tone]="kpiTone(kpi.formula)"
+        [value]="kpiFormatValue(kpi.formula, kpiValue(kpi.formula))"
+        [hint]="kpiHintFor(kpi.formula)"
+        [series]="kpiSeriesFor(kpi.formula)"
+        [delta]="kpiTrend(kpi.formula)"
+        [subirEsBueno]="kpiSubirEsBueno(kpi.formula)"
+      />
+      @if (customizing() && caps.allows(P.dashboard.widget.deshabilitar)) {
+      <button type="button" class="quiet custom-kpi-remove" aria-label="Quitar indicador" (click)="removeKpi(kpi.id)">
+        <demo-icon name="close" />
+      </button>
+      }
+    </div>
+    } } @if (customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length) {
+    <button type="button" class="add-kpi" (click)="openKpiCreator()"><demo-icon name="plus" /> Crear indicador</button>
     }
   </section>
   }
   <section class="grid">
     @for (widget of widgets(); track widget.id) {
-    <article class="widget" [class.wide]="widget.wide">
+    <article class="widget" [class.wide]="widget.wide && widget.type !== 'indicator'">
       <header>
         <div>
           <span>{{ widget.kicker }}</span>
           <h2>{{ widget.title }}</h2>
         </div>
-        @if (customizing()) {
+        <!--
+          El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
+          fila entera solo para un select, y empujaba la lista hacia abajo. Junto al título
+          no le hace falta esa fila propia.
+        -->
+        @if (widget.type === 'categories' && !customizing()) {
+        <div class="local">
+          <demo-select
+            [ngModel]="localCategory()"
+            (ngModelChange)="localCategory.set($event)"
+            [options]="localCategoryOptions()"
+            ariaLabel="Explorar categoría"
+          />
+          <button
+            type="button"
+            class="quiet"
+            (click)="promoteCategory()"
+            [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
+          >
+            Aplicar a todo
+          </button>
+        </div>
+        } @if (customizing()) {
         <div class="widget-actions">
           @if (caps.allows(P.dashboard.widget.orden.editar)) {
           <button class="quiet" type="button" aria-label="Mover arriba" (click)="move(widget.id, -1)">
@@ -143,7 +234,52 @@
             [options]="widgetTypeOptions"
             (ngModelChange)="changeType(widget.id, $event)"
           />
-          } @if (caps.allows(P.dashboard.widget.deshabilitar)) {
+          @if (isGeneric(widget.type)) {
+          <demo-select
+            aria-label="Dimensión"
+            [ngModel]="widget.dimension ?? 'category'"
+            [options]="dimensionOptions"
+            (ngModelChange)="changeDimension(widget.id, $event)"
+          />
+          <demo-select
+            aria-label="Métrica"
+            [ngModel]="widget.measure ?? 'expense'"
+            [options]="measureOptions"
+            (ngModelChange)="changeMeasure(widget.id, $event)"
+          />
+          } @if (needsDimension2(widget.type)) {
+          <demo-select
+            aria-label="Serie"
+            [ngModel]="widget.dimension2 ?? 'kind'"
+            [options]="dimensionOptions"
+            (ngModelChange)="changeDimension2(widget.id, $event)"
+          />
+          } @if (needsGoal(widget.type)) {
+          <input
+            class="goal-input"
+            type="number"
+            aria-label="Mínimo"
+            placeholder="Mín."
+            [ngModel]="widget.goalMin ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalMin', $event)"
+          />
+          <input
+            class="goal-input"
+            type="number"
+            aria-label="Meta"
+            placeholder="Meta"
+            [ngModel]="widget.goalTarget ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalTarget', $event)"
+          />
+          <input
+            class="goal-input"
+            type="number"
+            aria-label="Máximo"
+            placeholder="Máx."
+            [ngModel]="widget.goalMax ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalMax', $event)"
+          />
+          } } @if (caps.allows(P.dashboard.widget.deshabilitar)) {
           <button class="quiet" type="button" (click)="hide(widget.id)">Ocultar</button>
           }
         </div>
@@ -152,7 +288,7 @@
       @switch (widget.type) { @case ('flow') { @if (timeline().length) {
       <demo-chart
         [option]="flujoOption()"
-        [height]="290"
+        [height]="320"
         [ariaLabel]="
                     'Ingresos y gastos por intervalo. Ingresos ' +
                     store.money(income()) +
@@ -166,21 +302,6 @@
       } @else {
       <p class="empty">No hay datos para estos filtros.</p>
       } } @case ('categories') {
-      <div class="local">
-        <label
-          >Explorar categoría<demo-select
-            [ngModel]="localCategory()"
-            (ngModelChange)="localCategory.set($event)"
-            [options]="localCategoryOptions()"
-            ariaLabel="Explorar categoría" /></label
-        ><button
-          type="button"
-          (click)="promoteCategory()"
-          [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
-        >
-          Aplicar a todo
-        </button>
-      </div>
       <div class="category-list" aria-label="Distribución de gastos por categoría">
         @for (category of categoryDistribution(); track category.name) {
         <button
@@ -210,7 +331,7 @@
       } @case ('trend') { @if (timeline().length) {
       <demo-chart
         [option]="tendenciaOption()"
-        [height]="260"
+        [height]="300"
         [ariaLabel]="
                     'Tendencia de gasto del periodo, con su promedio marcado. Total ' + store.money(expense())
                   "
@@ -220,7 +341,7 @@
       } } @case ('scatter') { @if (movements().length) {
       <demo-chart
         [option]="dispersionOption()"
-        [height]="280"
+        [height]="340"
         ariaLabel="Relación entre la fecha del movimiento y su importe; el tamaño del punto acompaña al importe y el color distingue ingreso de gasto."
       />
       } @else {
@@ -228,7 +349,7 @@
       } } @case ('donut') { @if (categoryDistribution().length) {
       <demo-chart
         [option]="anilloOption()"
-        [height]="290"
+        [height]="340"
         (pick)="localCategory.set($event)"
         [ariaLabel]="'Reparto del gasto por categoría. Total ' + store.money(expense())"
       />
@@ -237,7 +358,7 @@
       } } @case ('stacked') { @if (timeline().length) {
       <demo-chart
         [option]="apiladoOption()"
-        [height]="270"
+        [height]="300"
         ariaLabel="Composición de ingresos y gastos por intervalo, apilados."
       />
       } @else {
@@ -245,7 +366,7 @@
       } } @case ('gauge') { @if (income() > 0) {
       <demo-chart
         [option]="medidorOption()"
-        [height]="250"
+        [height]="340"
         [ariaLabel]="
               'Tasa de ahorro del periodo: ' +
               tasaDeAhorro() +
@@ -261,9 +382,104 @@
       } } @case ('heatmap') { @if (timeline().length) {
       <demo-chart
         [option]="intensidadOption()"
-        [height]="200"
+        [height]="230"
         ariaLabel="Intensidad de movimiento por intervalo: cuanto más oscuro, más dinero se movió ese día."
       />
+      } @else {
+      <p class="empty">No hay datos para estos filtros.</p>
+      } } @case ('histogram') { @if (movements().length) {
+      <demo-chart
+        [option]="histogramaOption()"
+        [height]="300"
+        ariaLabel="Histograma de importes: cuántos movimientos caen en cada rango de importe."
+      />
+      } @else {
+      <p class="empty">No hay datos para estos filtros.</p>
+      } } @case ('card') {
+      <div class="widget-card">
+        <strong>{{ formatMeasure(cardValue(widget), widget) }}</strong>
+        <small>{{ measureLabel(widget) }}</small>
+        @if (kpiTrend(widget.measure ?? 'expense'); as tendencia) {
+        <small class="card-trend" [class.up]="tendencia >= 0" [class.down]="tendencia < 0">
+          {{ tendencia >= 0 ? '▲' : '▼' }} {{ tendenciaAbs(tendencia) }}% vs. periodo anterior
+        </small>
+        }
+      </div>
+      } @case ('table') {
+      <demo-table [columns]="tableColumns" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
+      } @case ('indicator') { @if (movements().length) {
+      <div class="indicator-layout">
+        <demo-chart [option]="widgetOption(widget)" [height]="300" [ariaLabel]="widget.title" />
+        <dl class="indicator-info">
+          <div>
+            <dt>Actual</dt>
+            <dd>{{ formatMeasure(cardValue(widget), widget) }}</dd>
+          </div>
+          <div>
+            <dt>Meta</dt>
+            <dd>{{ formatMeasure(widget.goalTarget ?? 0, widget) }}</dd>
+          </div>
+          <div>
+            <dt>Rango</dt>
+            <dd>{{ formatMeasure(widget.goalMin ?? 0, widget) }} – {{ formatMeasure(widget.goalMax ?? 0, widget) }}</dd>
+          </div>
+          <div>
+            <span
+              class="status-pill"
+              [style.color]="indicatorStatus(widget).color"
+              [style.border-color]="indicatorStatus(widget).color"
+            >
+              {{ indicatorStatus(widget).label }}
+            </span>
+          </div>
+        </dl>
+      </div>
+      } @else {
+      <p class="empty">No hay datos para estos filtros.</p>
+      } } @case ('colorScale') {
+      <div class="color-scale">
+        <div class="color-scale-value">
+          <strong>{{ formatMeasure(cardValue(widget), widget) }}</strong>
+          <small>{{ measureLabel(widget) }}</small>
+        </div>
+        <div class="color-scale-track">
+          <i class="color-scale-pointer" [style.left.%]="colorScalePercent(widget)"></i>
+          <i class="color-scale-meta" [style.left.%]="colorScaleMetaPercent(widget)"></i>
+        </div>
+        <div class="color-scale-ends">
+          <span>{{ formatMeasure(widget.goalMin ?? 0, widget) }}</span>
+          <span>Meta {{ formatMeasure(widget.goalTarget ?? 0, widget) }}</span>
+          <span>{{ formatMeasure(widget.goalMax ?? 0, widget) }}</span>
+        </div>
+        <span
+          class="status-pill"
+          [style.color]="indicatorStatus(widget).color"
+          [style.border-color]="indicatorStatus(widget).color"
+        >
+          {{ indicatorStatus(widget).label }}
+        </span>
+      </div>
+      } @case ('statusBars') {
+      <div class="status-bars">
+        @for (fila of statusBarsRows(widget); track fila.label) {
+        <div class="status-bar-row">
+          <div class="status-bar-head"><span>{{ fila.label }}</span><b>{{ formatMeasure(fila.value, widget) }}</b></div>
+          <div class="status-bar-track">
+            <i [class]="'status-bar-fill ' + fila.tone" [style.width.%]="fila.percent"></i>
+          </div>
+        </div>
+        } @empty {
+        <p class="empty">No hay datos para estos filtros.</p>
+        }
+      </div>
+      } @default { @if (movements().length) {
+      <div class="chart-fill">
+        <demo-chart
+          [option]="widgetOption(widget)"
+          [height]="widget.type === 'matrix' ? 260 : 320"
+          [ariaLabel]="widget.title"
+        />
+      </div>
       } @else {
       <p class="empty">No hay datos para estos filtros.</p>
       } } }
@@ -277,7 +493,7 @@
         <h2>Movimientos del periodo</h2>
       </div>
       @if (caps.allows(P.movimientos.ver)) {
-      <a routerLink="/movements">Ver todos</a>
+      <a class="see-all" routerLink="/movements">Ver todos<demo-icon name="next" /></a>
       }
     </header>
     <demo-table [columns]="columns" [rows]="rows()" (rowSelected)="inspect($event)" />
@@ -289,7 +505,11 @@
     <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">
       <demo-icon name="plus" /> Crear widget
     </button>
-    } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
+    @if (availableKpiFormulaOptions().length) {
+    <button class="create-widget" type="button" (click)="openKpiCreator()">
+      <demo-icon name="plus" /> Crear indicador
+    </button>
+    } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
     <button type="button" (click)="show(widget.id)"><demo-icon name="plus" /> {{ widget.title }}</button>
     } @empty {
     <span>Todos visibles</span>
@@ -313,10 +533,56 @@
           [options]="widgetWidthOptions"
           ariaLabel="Ancho del widget"
       /></label>
+      @if (isGeneric(newWidgetMetric)) {
+      <label
+        >Dimensión (eje)<demo-select
+          name="widgetDimension"
+          [(ngModel)]="newWidgetDimension"
+          [options]="dimensionOptions"
+          ariaLabel="Dimensión del widget"
+      /></label>
+      <label
+        >Métrica (valor)<demo-select
+          name="widgetMeasure"
+          [(ngModel)]="newWidgetMeasure"
+          [options]="measureOptions"
+          ariaLabel="Métrica del widget"
+      /></label>
+      } @if (needsDimension2(newWidgetMetric)) {
+      <label
+        >Serie<demo-select
+          name="widgetDimension2"
+          [(ngModel)]="newWidgetDimension2"
+          [options]="dimensionOptions"
+          ariaLabel="Segunda dimensión del widget"
+      /></label>
+      } @if (needsGoal(newWidgetMetric)) {
+      <label>Mínimo<input name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" /></label>
+      <label>Meta<input name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" /></label>
+      <label>Máximo<input name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" /></label>
+      }
       <p>El widget respetará el periodo y los filtros enlazados del dashboard.</p>
       <div>
         <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">Cancelar</button
         ><button type="submit">Agregar widget</button>
+      </div>
+    </form>
+  </demo-overlay>
+  } @if (kpiCreatorOpen()) {
+  <demo-overlay title="Crear indicador" mode="modal" (closed)="kpiCreatorOpen.set(false)">
+    <form class="widget-builder" (submit)="createKpi($event)">
+      <label>Nombre<input name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" /></label>
+      <label
+        >Métrica<demo-select
+          name="kpiMeasure"
+          [(ngModel)]="newKpiFormula"
+          [options]="availableKpiFormulaOptions()"
+          ariaLabel="Métrica del indicador"
+      /></label>
+      <p>El indicador se suma a la franja de arriba y respeta el periodo y los filtros del dashboard.</p>
+      <div>
+        <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">Cancelar</button
+        ><button type="submit">Agregar indicador</button>
       </div>
     </form>
   </demo-overlay>

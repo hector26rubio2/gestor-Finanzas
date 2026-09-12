@@ -361,6 +361,7 @@ input[type='checkbox']:not(.switch input):checked::before {
     --accent-soft: #262a4d;
     --accent-contrast: #14162b;
     --danger: #fb7185;
+    --panel: #1c2040;
     --warning: #e0a94a;
     --success: #51d3a9;
     --shadow: 0 22px 62px #0008;

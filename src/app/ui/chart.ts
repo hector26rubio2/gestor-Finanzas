@@ -10,7 +10,16 @@ import {
   output,
 } from '@angular/core';
 import * as echarts from 'echarts/core';
-import { BarChart, GaugeChart, HeatmapChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
+import {
+  BarChart,
+  FunnelChart,
+  GaugeChart,
+  HeatmapChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  TreemapChart,
+} from 'echarts/charts';
 import {
   DataZoomComponent,
   GridComponent,
@@ -24,11 +33,13 @@ import { ChartThemeService } from './chart-theme';
 
 echarts.use([
   BarChart,
+  FunnelChart,
   GaugeChart,
   HeatmapChart,
   LineChart,
   PieChart,
   ScatterChart,
+  TreemapChart,
   DataZoomComponent,
   GridComponent,
   LegendComponent,
