@@ -1,0 +1,12 @@
+<section class="kpis mini">
+  @if (can(P.personas.deudas.listar)) {
+  <demo-kpi label="Me deben" [value]="store.money(peopleOwed())" hint="Cuentas por cobrar" />
+  } @if (can(P.personas.obligaciones.listar)) {
+  <demo-kpi label="Les debo" [value]="store.money(peopleOwing())" hint="Obligaciones propias" />
+  }
+  <demo-kpi label="Personas" [value]="store.data().people.length.toString()" hint="Con relaciones activas" />
+  <demo-kpi label="Mayor retraso" [value]="slowestPayer().name" [hint]="slowestPayer().days + ' días promedio'" />
+</section>
+<section class="table-zone">
+  <demo-table [columns]="peopleColumns" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
+</section>

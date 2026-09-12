@@ -1,0 +1,123 @@
+<section class="report-toolbar" aria-label="Filtros de reportes">
+  <label
+    >Periodo<demo-select
+      [ngModel]="reportPeriod()"
+      (ngModelChange)="reportPeriod.set($event)"
+      [options]="reportPeriodOptions"
+      ariaLabel="Periodo del reporte"
+  /></label>
+  <p>Todos los indicadores conservan trazabilidad al libro central.</p>
+  @if (can(P.reportes.exportar)) {
+  <button type="button" class="export-action" (click)="exportReport()">
+    <demo-icon name="download" /> Exportar CSV
+  </button>
+  }
+</section>
+<section class="kpis mini report-kpis">
+  <demo-kpi label="Flujo neto" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
+  <demo-kpi label="Tasa de ahorro" [value]="reportSavingsRate()" hint="Sobre ingresos del periodo" />
+  <demo-kpi label="Gasto promedio" [value]="store.money(reportAverageExpense())" hint="Promedio mensual" />
+  <demo-kpi label="Mayor categoría" [value]="topCategory().name" [hint]="store.money(topCategory().value)" />
+</section>
+<section class="report-grid">
+  @if (can(P.reportes.comparativo.ver)) {
+  <div class="chart">
+    <h2>Ingresos frente a gastos</h2>
+    <p class="chart-description">Comparación mensual; verde representa ingresos y coral representa gastos.</p>
+    <div class="chart-legend"><span class="income-key">Ingresos</span><span class="expense-key">Gastos</span></div>
+    <div class="paired-bars" role="img" aria-label="Ingresos y gastos mensuales en pesos colombianos">
+      @for (v of reportSeries(); track v.month) {
+      <div>
+        <span class="pair"
+          ><i [style.height.%]="v.incomePercent"><em>{{ compactMoney(v.income) }}</em></i
+          ><i [style.height.%]="v.expensePercent"><em>{{ compactMoney(v.expense) }}</em></i></span
+        ><b>{{ v.month }}</b>
+      </div>
+      }
+    </div>
+    <small class="chart-unit">Importes en COP · cada barra representa un mes</small>
+  </div>
+  } @if (can(P.reportes.categorias.ver)) {
+  <div class="chart">
+    <h2>Gastos por categoría</h2>
+    <p class="chart-description">Participación de las categorías con mayor gasto.</p>
+    <div class="category-report">
+      <div class="donut">
+        <b>{{ store.money(reportExpenses()) }}</b>
+      </div>
+      <ul>
+        @for (category of reportCategories(); track category.name) {
+        <li>
+          <i [style.background]="category.color"></i><span>{{ category.name }}</span
+          ><b>{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
+        </li>
+        }
+      </ul>
+    </div>
+  </div>
+  } @if (can(P.reportes.tendencia.ver)) {
+  <div class="chart full">
+    <h2>Tendencia mensual</h2>
+    <p class="chart-description">Evolución del flujo neto del periodo seleccionado.</p>
+    <div class="report-line" role="img" aria-label="Flujo neto mensual en pesos colombianos">
+      <span class="axis-y"
+        ><b>{{ compactMoney(reportNetRange()) }}</b><em>$0</em><b>-{{ compactMoney(reportNetRange()) }}</b></span
+      ><svg viewBox="0 0 600 160" preserveAspectRatio="none">
+        <line class="zero" x1="0" y1="80" x2="600" y2="80" />
+        <polyline [attr.points]="reportNetPoints()" />
+      </svg>
+      <div class="axis-x">
+        @for (v of reportSeries(); track v.month) {
+        <span>{{ v.month }}<small>{{ compactMoney(v.net) }}</small></span>
+        }
+      </div>
+    </div>
+    <small class="chart-unit">Flujo neto = ingresos − gastos · importes en COP</small>
+  </div>
+  } @if (can(P.reportes.deuda.ver)) {
+  <div class="chart">
+    <h2>Salud de deuda</h2>
+    <dl class="report-facts">
+      <div>
+        <dt>Utilización de cupo</dt>
+        <dd>34 %</dd>
+      </div>
+      <div>
+        <dt>Próximo vencimiento</dt>
+        <dd>5 sep</dd>
+      </div>
+      <div>
+        <dt>Intereses estimados</dt>
+        <dd>{{ store.money(184000) }}</dd>
+      </div>
+    </dl>
+  </div>
+  } @if (can(P.reportes.patrimonio.ver)) {
+  <div class="chart">
+    <h2>Patrimonio</h2>
+    <dl class="report-facts">
+      <div>
+        <dt>Activos líquidos</dt>
+        <dd>{{ store.money(store.available()) }}</dd>
+      </div>
+      <div>
+        <dt>Inversiones</dt>
+        <dd>{{ store.money(investmentValue()) }}</dd>
+      </div>
+      <div>
+        <dt>Deuda</dt>
+        <dd>{{ store.money(store.debt()) }}</dd>
+      </div>
+    </dl>
+  </div>
+  } @if (can(P.reportes.hallazgos.ver)) {
+  <div class="chart full">
+    <h2>Hallazgos del periodo</h2>
+    <ul class="insights">
+      <li>Los gastos variables representan el 41 % del total.</li>
+      <li>La categoría Hogar aumentó frente al periodo anterior.</li>
+      <li>Hay 3 cargos pendientes de clasificación.</li>
+    </ul>
+  </div>
+  }
+</section>

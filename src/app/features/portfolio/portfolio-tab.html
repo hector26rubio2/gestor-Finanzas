@@ -1,0 +1,17 @@
+<section class="kpis mini">
+  <demo-kpi
+    label="Patrimonio disponible"
+    [value]="store.money(store.available() - store.debt())"
+    hint="Valor de mercado estimado"
+  />
+  <demo-kpi label="Inversiones" [value]="store.money(investmentValue())" hint="Valoración ilustrativa" />
+  <demo-kpi label="Rendimiento" [value]="investmentReturn()" hint="No es una garantía" />
+  <demo-kpi label="Ganancia no realizada" [value]="store.money(investmentGain())" hint="Valor actual menos costo" />
+</section>
+<section class="table-zone">
+  <demo-table
+    [columns]="investmentColumns"
+    [rows]="investmentRows()"
+    (rowSelected)="store.inspect('investment', $event['id'])"
+  />
+</section>

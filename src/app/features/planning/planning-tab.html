@@ -1,0 +1,80 @@
+<nav class="tabs" role="tablist" aria-label="Tipo de simulación">
+  @for (tab of visiblePlanningTabs(); track tab) {
+  <button
+    type="button"
+    role="tab"
+    [attr.aria-selected]="planningTab() === tab"
+    [class.active]="planningTab() === tab"
+    (click)="planningTab.set(tab)"
+  >
+    {{ tab }}
+  </button>
+  }
+</nav>
+@if (!visiblePlanningTabs().length) {
+<p class="empty-note">Tu acceso no incluye ninguna simulación de planificación.</p>
+} @if (visiblePlanningTabs().length) {
+<section class="scenario-planner" role="tabpanel" [attr.aria-label]="'Planificación de ' + planningTab()">
+  <aside class="planner-controls">
+    <header>
+      <span>PARÁMETROS</span>
+      <h2>{{ planningCopy().parameterTitle }}</h2>
+      <p>{{ planningCopy().helper }}</p>
+    </header>
+    <label
+      >{{ planningCopy().amountLabel }}<input
+        type="range"
+        [min]="planningCopy().min"
+        [max]="planningCopy().max"
+        [step]="planningCopy().step"
+        [ngModel]="monthly()"
+        (ngModelChange)="monthly.set(+$event)"
+      /><b>{{ store.money(monthly()) }}</b><small>{{ planningCopy().rangeHint }}</small></label
+    ><label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" /></label>
+    <div class="planner-note"><b>Supuesto del cálculo</b><span>{{ planningCopy().assumption }}</span></div>
+  </aside>
+  <div class="planner-results">
+    <section class="planner-kpis" aria-label="Comparación del plan">
+      @for (metric of planningMetrics(); track metric.label) {
+      <article>
+        <span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.hint }}</small>
+      </article>
+      }
+    </section>
+    <article class="projection-card">
+      <header>
+        <div>
+          <span>PROYECCIÓN</span>
+          <h2>{{ planningCopy().chartTitle }}</h2>
+          <p>{{ planningCopy().chartDescription }}</p>
+        </div>
+        <div class="chart-legend">
+          <span class="current-key">{{ planningCopy().currentLabel }}</span
+          ><span class="proposal-key">{{ planningCopy().proposedLabel }}</span>
+        </div>
+      </header>
+      <div class="projection-plot" role="img" [attr.aria-label]="planningCopy().chartDescription">
+        <div class="y-labels">
+          <span>{{ compactMoney(planningChartMax()) }}</span><span>{{ compactMoney(planningChartMax() / 2) }}</span
+          ><span>$0</span>
+        </div>
+        <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+          <g class="grid-lines">
+            <line x1="0" y1="10" x2="600" y2="10" />
+            <line x1="0" y1="110" x2="600" y2="110" />
+            <line x1="0" y1="210" x2="600" y2="210" />
+          </g>
+          <polyline class="current-line" [attr.points]="planningCurrentPoints()" />
+          <polyline class="proposal-line" [attr.points]="planningProposedPoints()" />
+        </svg>
+        <div class="x-labels">
+          <span>Hoy</span><span>3 meses</span><span>6 meses</span><span>9 meses</span><span>12 meses</span>
+        </div>
+      </div>
+    </article>
+    <p class="planner-disclaimer">
+      Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus saldos.
+    </p>
+  </div>
+</section>
+}

@@ -5,10 +5,13 @@ import {
   ElementRef,
   ViewChild,
   computed,
-  effect,
   inject,
   signal,
 } from '@angular/core';
+import { ReportsTabComponent } from '../features/reports/reports-tab';
+import { PeopleTabComponent } from '../features/people/people-tab';
+import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
+import { PlanningTabComponent } from '../features/planning/planning-tab';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -100,6 +103,10 @@ const SIN_DATO = '—';
     SinAccesoComponent,
     IconComponent,
     UiSelectComponent,
+    ReportsTabComponent,
+    PeopleTabComponent,
+    PortfolioTabComponent,
+    PlanningTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -385,236 +392,7 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly cardStatementTotal = computed(() =>
     Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
   );
-  readonly planningTabs = ['Deudas', 'Compra', 'Vacaciones', 'Inversión'] as const;
-
-  /** Cada simulación se libera por separado: se puede planificar deudas y no vacaciones. */
-  private readonly planningPermissions: Record<(typeof this.planningTabs)[number], string> = {
-    Deudas: P.planificacion.deudas.ver,
-    Compra: P.planificacion.compras.ver,
-    Vacaciones: P.planificacion.vacaciones.ver,
-    Inversión: P.planificacion.inversiones.ver,
-  };
-  readonly visiblePlanningTabs = computed(() =>
-    this.planningTabs.filter((tab) => this.can(this.planningPermissions[tab])),
-  );
-  readonly planningTab = signal<(typeof this.planningTabs)[number]>('Deudas');
-  private readonly urlDePlanificacion = sincronizarConLaUrl('objetivo', this.planningTab, 'Deudas', (v) =>
-    (this.planningTabs as readonly string[]).includes(v),
-  );
-  private readonly ajustarPlanificacion = effect(() => {
-    const visibles = this.visiblePlanningTabs();
-    if (visibles.length && !visibles.includes(this.planningTab())) this.planningTab.set(visibles[0]);
-  });
-  readonly monthly = signal(1200000);
-  targetDate = '2027-08-31';
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
-  readonly currentMonths = computed(() => Math.max(1, Math.ceil(this.store.debt() / 650000)));
-  readonly proposedMonths = computed(() => Math.max(1, Math.ceil(this.store.debt() / Math.max(1, this.monthly()))));
-  readonly currentInterest = computed(() => Math.round(this.store.debt() * 0.018 * this.currentMonths()));
-  readonly proposedInterest = computed(() => Math.round(this.store.debt() * 0.018 * this.proposedMonths()));
-  readonly estimatedSavings = computed(() => Math.max(0, this.currentInterest() - this.proposedInterest()));
-  compactMoney(value: number): string {
-    return new Intl.NumberFormat(this.store.preferences().locale, {
-      style: 'currency',
-      currency: 'COP',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(value);
-  }
-  readonly planningCopy = computed(() => {
-    switch (this.planningTab()) {
-      case 'Compra':
-        return {
-          parameterTitle: 'Simular una compra',
-          amountLabel: 'Valor de la compra',
-          helper: 'Mide el impacto de una compra sobre tu liquidez durante los próximos doce meses.',
-          rangeHint: 'Incluye el valor total que quieres financiar o pagar.',
-          assumption: 'Distribución lineal del impacto, sin nuevas compras ni cambios de ingreso.',
-          chartTitle: 'Liquidez disponible después de la compra',
-          chartDescription: 'Saldo disponible estimado, comparando no comprar frente a realizar la compra.',
-          min: 100000,
-          max: 10000000,
-          step: 100000,
-          currentLabel: 'Sin la compra',
-          proposedLabel: 'Con la compra',
-        };
-      case 'Vacaciones':
-        return {
-          parameterTitle: 'Plan de vacaciones',
-          amountLabel: 'Aporte mensual',
-          helper: 'Comprueba cuánto acumularías separando una cantidad fija cada mes.',
-          rangeHint: 'El aporte se descuenta de la liquidez mensual disponible.',
-          assumption: 'Doce aportes iguales, sin rentabilidad y sin retiros anticipados.',
-          chartTitle: 'Ahorro acumulado para el viaje',
-          chartDescription: 'Capital reservado mes a mes, comparando el ahorro actual con el plan propuesto.',
-          min: 100000,
-          max: 5000000,
-          step: 100000,
-          currentLabel: 'Ahorro actual',
-          proposedLabel: 'Plan mensual',
-        };
-      case 'Inversión':
-        return {
-          parameterTitle: 'Simular inversión',
-          amountLabel: 'Capital a invertir',
-          helper: 'Explora un escenario de rentabilidad sin afectar el patrimonio registrado.',
-          rangeHint: 'Capital inicial aplicado una sola vez.',
-          assumption: 'Rentabilidad anual supuesta del 10 %, compuesta mensualmente; no incluye impuestos.',
-          chartTitle: 'Valor proyectado de la inversión',
-          chartDescription: 'Evolución estimada del capital sin invertir frente al escenario invertido.',
-          min: 100000,
-          max: 10000000,
-          step: 100000,
-          currentLabel: 'Capital disponible',
-          proposedLabel: 'Proyección a 12 meses',
-        };
-      default:
-        return {
-          parameterTitle: 'Plan de deuda',
-          amountLabel: 'Abono mensual',
-          helper: 'Compara el ritmo actual de pago con un abono mensual mayor.',
-          rangeHint: 'El cálculo distribuye el pago sobre el saldo total registrado.',
-          assumption: 'Tasa mensual estimada de 1,8 % y ausencia de nuevas compras.',
-          chartTitle: 'Saldo de deuda pendiente',
-          chartDescription: 'Reducción estimada del saldo durante doce meses con el pago actual y el propuesto.',
-          min: 100000,
-          max: 5000000,
-          step: 50000,
-          currentLabel: 'Ritmo actual',
-          proposedLabel: 'Con el abono propuesto',
-        };
-    }
-  });
-  readonly planningCurrent = computed(() => {
-    switch (this.planningTab()) {
-      case 'Compra':
-        return {
-          headline: this.store.money(this.store.available()),
-          detail: 'Disponible antes de realizar la compra.',
-        };
-      case 'Vacaciones':
-        return {
-          headline: this.store.money(this.store.available()),
-          detail: 'Liquidez disponible sin separar un ahorro mensual.',
-        };
-      case 'Inversión':
-        return {
-          headline: this.store.money(this.investmentValue()),
-          detail: 'Valor estimado de las inversiones registradas.',
-        };
-      default:
-        return {
-          headline: `${this.currentMonths()} meses`,
-          detail: `${this.store.money(this.currentInterest())} de intereses estimados al ritmo actual.`,
-        };
-    }
-  });
-  readonly planningProposed = computed(() => {
-    switch (this.planningTab()) {
-      case 'Compra':
-        return {
-          headline: this.store.money(this.store.available() - this.monthly()),
-          detail: 'Disponible estimado después de la compra simulada.',
-        };
-      case 'Vacaciones':
-        return {
-          headline: this.store.money(this.monthly() * 12),
-          detail: 'Ahorro acumulado en doce meses con el aporte seleccionado.',
-        };
-      case 'Inversión':
-        return {
-          headline: this.store.money(Math.round(this.monthly() * 1.1)),
-          detail: 'Proyección ilustrativa a un año con una rentabilidad supuesta del 10 %.',
-        };
-      default:
-        return {
-          headline: `${this.proposedMonths()} meses`,
-          detail: `Ahorrarías aproximadamente ${this.store.money(this.estimatedSavings())} en intereses.`,
-        };
-    }
-  });
-  readonly planningSeries = computed(() => {
-    const amount = this.monthly();
-    const available = Math.max(0, this.store.available());
-    const debt = Math.max(0, this.store.debt());
-    const investment = Math.max(0, this.investmentValue());
-    return Array.from({ length: 13 }, (_, month) => {
-      switch (this.planningTab()) {
-        case 'Compra':
-          return { current: available, proposed: Math.max(0, available - amount - month * amount * 0.01) };
-        case 'Vacaciones':
-          return { current: 0, proposed: amount * month };
-        case 'Inversión':
-          return { current: investment + amount, proposed: investment + amount * Math.pow(1.1, month / 12) };
-        default:
-          return {
-            current: Math.max(0, debt - month * 650000),
-            proposed: Math.max(0, debt - month * amount),
-          };
-      }
-    });
-  });
-  readonly planningChartMax = computed(() =>
-    Math.max(1, ...this.planningSeries().flatMap((point) => [point.current, point.proposed])),
-  );
-  readonly planningCurrentPoints = computed(() =>
-    this.chartPoints(
-      this.planningSeries().map((point) => point.current),
-      this.planningChartMax(),
-      600,
-      220,
-    ),
-  );
-  readonly planningProposedPoints = computed(() =>
-    this.chartPoints(
-      this.planningSeries().map((point) => point.proposed),
-      this.planningChartMax(),
-      600,
-      220,
-    ),
-  );
-  readonly planningMetrics = computed(() => {
-    const current = this.planningCurrent();
-    const proposed = this.planningProposed();
-    switch (this.planningTab()) {
-      case 'Compra':
-        return [
-          { label: 'Disponible actual', value: current.headline, hint: 'Antes de comprar' },
-          { label: 'Disponible estimado', value: proposed.headline, hint: 'Después de comprar' },
-          { label: 'Impacto inmediato', value: this.store.money(this.monthly()), hint: 'Valor simulado' },
-        ];
-      case 'Vacaciones':
-        return [
-          { label: 'Aporte mensual', value: this.store.money(this.monthly()), hint: 'Durante 12 meses' },
-          { label: 'Meta acumulada', value: proposed.headline, hint: 'Sin rendimientos' },
-          {
-            label: 'Esfuerzo sobre liquidez',
-            value: `${Math.round((this.monthly() / Math.max(1, this.store.available())) * 100)} %`,
-            hint: 'Del disponible actual',
-          },
-        ];
-      case 'Inversión':
-        return [
-          { label: 'Capital inicial', value: this.store.money(this.monthly()), hint: 'Aporte simulado' },
-          { label: 'Valor a 12 meses', value: proposed.headline, hint: 'Rentabilidad supuesta: 10 %' },
-          {
-            label: 'Ganancia estimada',
-            value: this.store.money(Math.round(this.monthly() * 0.1)),
-            hint: 'Antes de impuestos',
-          },
-        ];
-      default:
-        return [
-          { label: 'Plazo actual', value: current.headline, hint: 'Pagando $650 mil/mes' },
-          { label: 'Nuevo plazo', value: proposed.headline, hint: `Pagando ${this.compactMoney(this.monthly())}/mes` },
-          {
-            label: 'Intereses evitados',
-            value: this.store.money(this.estimatedSavings()),
-            hint: 'Estimación acumulada',
-          },
-        ];
-    }
-  });
   readonly week = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
   readonly calendarYear = signal(2026);
   readonly calendarMonth = signal(7);
@@ -671,94 +449,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-06', label: 'Junio 2026' },
     { value: '2026-05', label: 'Mayo 2026' },
   ];
-  readonly reportPeriod = signal('6');
-  readonly reportPeriodOptions: readonly UiOption[] = [
-    { value: '3', label: '3 meses' },
-    { value: '6', label: '6 meses' },
-    { value: '12', label: '12 meses' },
-  ];
-  private readonly urlDeReportes = sincronizarConLaUrl('meses', this.reportPeriod, '6', (v) =>
-    ['3', '6', '12'].includes(v),
-  );
-  readonly reportMovements = computed(() => {
-    const periods = [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
-      .sort()
-      .slice(-Number(this.reportPeriod()));
-    return this.store.data().movements.filter((movement) => periods.includes(movement.date.slice(0, 7)));
-  });
-  readonly reportIncome = computed(() =>
-    this.reportMovements()
-      .filter((movement) => movement.amount > 0)
-      .reduce((sum, movement) => sum + movement.amount, 0),
-  );
-  readonly reportExpenses = computed(
-    () =>
-      -this.reportMovements()
-        .filter((movement) => movement.amount < 0)
-        .reduce((sum, movement) => sum + movement.amount, 0),
-  );
-  readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
-  readonly reportSavingsRate = computed(() =>
-    this.reportIncome() ? `${Math.round((this.reportNet() / this.reportIncome()) * 100)} %` : '0 %',
-  );
-  readonly reportAverageExpense = computed(() => this.reportExpenses() / Number(this.reportPeriod()));
-  readonly reportSeries = computed(() => {
-    const grouped = new Map<string, { income: number; expense: number }>();
-    for (const movement of this.reportMovements()) {
-      const month = movement.date.slice(0, 7);
-      const values = grouped.get(month) ?? { income: 0, expense: 0 };
-      if (movement.amount >= 0) values.income += movement.amount;
-      else values.expense -= movement.amount;
-      grouped.set(month, values);
-    }
-    const maximum = Math.max(1, ...[...grouped.values()].flatMap((value) => [value.income, value.expense]));
-    return [...grouped.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([month, values]) => ({
-        month: new Intl.DateTimeFormat('es-CO', { month: 'short', timeZone: 'UTC' })
-          .format(new Date(`${month}-01T00:00:00Z`))
-          .replace('.', ''),
-        income: values.income,
-        expense: values.expense,
-        net: values.income - values.expense,
-        incomePercent: Math.round((values.income / maximum) * 100),
-        expensePercent: Math.round((values.expense / maximum) * 100),
-      }));
-  });
-  readonly reportCategories = computed(() => {
-    const totals = new Map<string, number>();
-    for (const movement of this.reportMovements()) {
-      if (movement.amount < 0) totals.set(movement.category, (totals.get(movement.category) ?? 0) - movement.amount);
-    }
-    const palette = ['#0f766e', '#2563eb', '#e76f51', '#8b5cf6', '#d97706', '#64748b'];
-    const total = [...totals.values()].reduce((sum, value) => sum + value, 0);
-    return [...totals.entries()]
-      .sort(([, left], [, right]) => right - left)
-      .slice(0, 6)
-      .map(([name, value], index) => ({
-        name,
-        color: palette[index % palette.length],
-        percent: total ? Math.round((value / total) * 100) : 0,
-        value,
-      }));
-  });
-  readonly reportNetRange = computed(() => Math.max(1, ...this.reportSeries().map((point) => Math.abs(point.net))));
-  readonly reportNetPoints = computed(() =>
-    this.chartPoints(
-      this.reportSeries().map((point) => point.net + this.reportNetRange()),
-      this.reportNetRange() * 2,
-      600,
-      160,
-    ),
-  );
-  readonly topCategory = computed(() => {
-    const values = new Map<string, number>();
-    this.reportMovements()
-      .filter((movement) => movement.amount < 0)
-      .forEach((movement) => values.set(movement.category, (values.get(movement.category) ?? 0) - movement.amount));
-    const top = [...values.entries()].sort((a, b) => b[1] - a[1])[0];
-    return { name: top?.[0] ?? 'Sin datos', value: top?.[1] ?? 0 };
-  });
   readonly themes = [
     { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
     { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
@@ -803,23 +493,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { key: 'financing', label: 'Cuotas / préstamo' },
     { key: 'responsibility', label: 'Responsabilidad' },
     { key: 'recurrence', label: 'Recurrencia' },
-  ];
-  readonly peopleColumns = [
-    { key: 'name', label: 'Persona' },
-    { key: 'relationship', label: 'Relación' },
-    { key: 'owed', label: 'Me debe' },
-    { key: 'owing', label: 'Le debo' },
-    { key: 'balance', label: 'Saldo' },
-    { key: 'payment', label: 'Comportamiento de pago' },
-  ];
-  readonly investmentColumns = [
-    { key: 'name', label: 'Inversión' },
-    { key: 'type', label: 'Tipo' },
-    { key: 'institution', label: 'Institución' },
-    { key: 'risk', label: 'Riesgo / liquidez' },
-    { key: 'cost', label: 'Costo' },
-    { key: 'value', label: 'Valor actual' },
-    { key: 'return', label: 'Variación' },
   ];
   readonly userColumns = [
     { key: 'name', label: 'Miembro' },
@@ -883,49 +556,6 @@ export class WorkspaceComponent implements AfterViewInit {
       raw: m,
     })),
   );
-  readonly peopleRows = computed(() =>
-    this.store.data().people.map((p) => ({
-      id: p.id,
-      name: p.name,
-      relationship: p.relationship ?? SIN_DATO,
-      owed: this.store.money(p.owed),
-      owing: this.store.money(p.owing),
-      balance: this.store.money(p.owed - p.owing),
-      payment:
-        p.averagePaymentDays == null
-          ? 'Sin historial'
-          : `${p.averagePaymentDays} días prom. · ${p.latePayments ?? 0} tardíos`,
-    })),
-  );
-  readonly investmentRows = computed(() =>
-    this.store.data().investments.map((i) => ({
-      id: i.id,
-      name: i.name,
-      type: i.type,
-      institution: i.institution ?? SIN_DATO,
-      risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
-      cost: this.store.money(i.cost),
-      value: this.store.money(i.value),
-      return: formatReturnRate(i.value, i.cost),
-    })),
-  );
-  readonly peopleOwed = computed(() => this.store.data().people.reduce((s, p) => s + p.owed, 0));
-  readonly peopleOwing = computed(() => this.store.data().people.reduce((s, p) => s + p.owing, 0));
-  readonly investmentValue = computed(() => this.store.data().investments.reduce((s, i) => s + i.value, 0));
-  readonly investmentGain = computed(() => this.store.data().investments.reduce((s, i) => s + i.value - i.cost, 0));
-  readonly slowestPayer = computed(() => {
-    const person = [...this.store.data().people].sort(
-      (a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0),
-    )[0];
-    return { name: person?.name ?? 'Sin datos', days: person?.averagePaymentDays ?? 0 };
-  });
-  readonly investmentReturn = computed(() => {
-    const cartera = this.store.data().investments;
-    return formatReturnRate(
-      cartera.reduce((total, i) => total + i.value, 0),
-      cartera.reduce((total, i) => total + i.cost, 0),
-    );
-  });
   ngAfterViewInit(): void {
     void this.cargarMiembros();
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
@@ -964,27 +594,10 @@ export class WorkspaceComponent implements AfterViewInit {
       timeZone: 'UTC',
     }).format(parsed);
   }
-  /**
-   * Exporta el periodo del informe: una fila por mes con ingresos, gastos y neto, y
-   * debajo el reparto por categoria. Es lo que protege `reportes.exportar`.
-   */
+  @ViewChild('reportsTab') private reportsTabRef?: ReportsTabComponent;
+  /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
   exportReport(): void {
-    const SALTO = '\r\n';
-    if (!this.can(P.reportes.exportar)) return;
-    const meses = toCsv(this.reportSeries(), [
-      { header: 'Mes', value: (fila) => fila.month },
-      { header: 'Ingresos', value: (fila) => fila.income },
-      { header: 'Gastos', value: (fila) => fila.expense },
-      { header: 'Neto', value: (fila) => fila.net },
-    ]);
-    const categorias = toCsv(this.reportCategories(), [
-      { header: 'Categoria', value: (fila) => fila.name },
-      { header: 'Gasto', value: (fila) => fila.value },
-      { header: 'Porcentaje', value: (fila) => fila.percent },
-    ]);
-    const periodo = `Periodo;${this.reportPeriod()} meses`;
-    downloadCsv(`finanzas-reporte-${this.reportPeriod()}m.csv`, [periodo, '', meses, '', categorias].join(SALTO));
-    this.store.toast.set('Reporte exportado.');
+    this.reportsTabRef?.exportReport();
   }
 
   /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
