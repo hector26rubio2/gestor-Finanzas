@@ -17,10 +17,14 @@
       </tr>
     </thead>
     <tbody>
-      @for (row of visibleRows(); track row) {
-      <tr [class.selectable]="selectable()" (click)="selectable() && rowSelected.emit(row)">
+      @for (row of visibleRows(); track row; let rowIndex = $index) {
+      <tr
+        [class.selectable]="selectable()"
+        [class.expanded]="isRowExpanded(rowIndex)"
+        (click)="selectable() && rowSelected.emit(row)"
+      >
         @for (column of columns(); track column.key; let first = $first) {
-        <td [attr.data-label]="column.label">
+        <td [attr.data-label]="column.label" [class.detail-field]="column.essential === false">
           @if (first && selectable()) {
           <button
             type="button"
@@ -31,6 +35,16 @@
             {{ display(row[column.key]) }}
           </button>
           } @else { {{ display(row[column.key]) }} }
+        </td>
+        } @if (hasDetailColumns()) {
+        <td class="detail-toggle">
+          <button
+            type="button"
+            (click)="$event.stopPropagation(); toggleRow(rowIndex)"
+            [attr.aria-expanded]="isRowExpanded(rowIndex)"
+          >
+            {{ isRowExpanded(rowIndex) ? 'Ver menos' : 'Ver más' }}
+          </button>
         </td>
         }
       </tr>

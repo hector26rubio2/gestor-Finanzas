@@ -16,6 +16,9 @@
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
+.detail-toggle {
+  display: none;
+}
 table {
   width: 100%;
   border-collapse: separate;
@@ -169,6 +172,28 @@ select:focus-visible,
   }
   td.empty {
     display: block;
+  }
+  .detail-field {
+    display: none;
+  }
+  tr.expanded .detail-field {
+    display: grid;
+  }
+  .detail-toggle {
+    display: block;
+    padding: 8px 0 0;
+  }
+  .detail-toggle::before {
+    content: none;
+  }
+  .detail-toggle button {
+    width: 100%;
+    padding: 7px 0;
+    border: 0;
+    background: transparent;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 650;
   }
   /*
          * El pie tenía tres grupos en fila con salto de línea libre, y a 375px acababa en

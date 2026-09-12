@@ -23,6 +23,14 @@ import { ChartThemeService } from './chart-theme';
 export interface TableColumn {
   key: string;
   label: string;
+  /**
+   * `false` saca la columna de la tarjeta apilada en movil (max-width: 520px) y la manda
+   * al detalle plegable de la fila. Sin esto, una tabla de 8-9 columnas como la de
+   * Movimientos convertia cada fila en una tarjeta larguisima y una sola pagina se volvia
+   * un scroll de miles de pixeles. En escritorio no cambia nada: todas las columnas se ven
+   * igual que siempre.
+   */
+  essential?: boolean;
 }
 
 @Component({
@@ -48,6 +56,19 @@ export class DataTableComponent {
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
   readonly page = signal(0);
+  readonly hasDetailColumns = computed(() => this.columns().some((c) => c.essential === false));
+  private readonly expandedRows = signal<ReadonlySet<number>>(new Set());
+  isRowExpanded(index: number): boolean {
+    return this.expandedRows().has(index);
+  }
+  toggleRow(index: number): void {
+    this.expandedRows.update((current) => {
+      const next = new Set(current);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  }
 
   /**
    * Clave del parámetro donde se guarda la página. Opcional a propósito: la tabla es un

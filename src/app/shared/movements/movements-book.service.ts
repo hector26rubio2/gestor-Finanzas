@@ -38,16 +38,23 @@ export class MovementsBookService {
     { value: 'credit', label: 'Crédito' },
     { value: 'cash', label: 'Efectivo' },
   ];
+  /**
+   * `essential: false` manda la columna al detalle plegable de la fila en movil (ver
+   * TableColumn.essential): con 9 columnas, sin esto cada fila se volvia una tarjeta de
+   * medio celular y una pagina completa un scroll de miles de pixeles. Fecha, descripcion,
+   * importe y cuenta son lo que se necesita para reconocer un movimiento de un vistazo; el
+   * resto queda a un toque de distancia.
+   */
   readonly movementColumns = [
     { key: 'date', label: 'Fecha' },
     { key: 'description', label: 'Descripción' },
     { key: 'amount', label: 'Importe' },
     { key: 'account', label: 'Cuenta o tarjeta' },
-    { key: 'effect', label: 'Débito / crédito' },
-    { key: 'currency', label: 'Moneda / tasa' },
-    { key: 'financing', label: 'Cuotas / préstamo' },
-    { key: 'responsibility', label: 'Responsabilidad' },
-    { key: 'recurrence', label: 'Recurrencia' },
+    { key: 'effect', label: 'Débito / crédito', essential: false },
+    { key: 'currency', label: 'Moneda / tasa', essential: false },
+    { key: 'financing', label: 'Cuotas / préstamo', essential: false },
+    { key: 'responsibility', label: 'Responsabilidad', essential: false },
+    { key: 'recurrence', label: 'Recurrencia', essential: false },
   ];
   readonly filteredMovementData = computed(() =>
     this.store.movements().filter((m) => {
