@@ -46,161 +46,10 @@
   <ng-container *ngTemplateOutlet="settings"></ng-container>
   } } }
 </article>
-<ng-template #filters
-  ><button
-    type="button"
-    class="filters-toggle"
-    [attr.aria-expanded]="filtersOpen()"
-    aria-controls="panel-filtros"
-    (click)="filtersOpen.update((open) => !open)"
-  >
-    Filtros @if (activeFilterCount()) {
-    <i>{{ activeFilterCount() }}</i>
-    }
-  </button>
-  <section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
-    <label
-      >Buscar<input
-        #searchInput
-        aria-label="Buscar movimientos"
-        placeholder="Descripción, categoría o persona"
-        [ngModel]="store.query()"
-        (ngModelChange)="store.query.set($event); loadMovementPage(1)" /></label
-    ><label
-      >Periodo<demo-select
-        [ngModel]="store.period()"
-        (ngModelChange)="store.period.set($event); loadMovementPage(1)"
-        [options]="periodOptions"
-        ariaLabel="Periodo" /></label
-    ><label
-      >Cuenta<demo-select
-        [ngModel]="store.accountFilter()"
-        [options]="movementAccountOptions()"
-        ariaLabel="Cuenta"
-        (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)" /></label
-    ><label
-      >Tipo de cuenta<demo-select
-        [ngModel]="movementAccountType()"
-        (ngModelChange)="movementAccountType.set($event)"
-        [options]="accountTypeOptions"
-        ariaLabel="Tipo de cuenta" /></label
-    ><label
-      >Categoría<demo-select
-        [ngModel]="movementCategory()"
-        (ngModelChange)="movementCategory.set($event)"
-        [options]="movementCategoryOptions()"
-        ariaLabel="Categoría" /></label
-    ><label
-      >Operación<demo-select
-        [ngModel]="movementOperation()"
-        (ngModelChange)="movementOperation.set($event)"
-        [options]="movementOperationOptions"
-        ariaLabel="Operación"
-    /></label>
-    @if (hasActiveFilters()) {
-    <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
-    }
-  </section></ng-template
->
-<ng-template #movements
-  ><ng-container *ngTemplateOutlet="filters"></ng-container>
-  <section class="kpis mini">
-    <demo-kpi label="Ingresos filtrados" [value]="store.money(store.income())" hint="Conjunto seleccionado" /><demo-kpi
-      label="Gastos filtrados"
-      [value]="store.money(store.expense())"
-      hint="Conjunto seleccionado"
-    /><demo-kpi label="Registros" [value]="store.movements().length.toString()" hint="Confirmados y pendientes" />
-  </section>
-  <section class="table-zone">
-    <demo-table
-      urlKey="pagina"
-      [columns]="movementColumns"
-      [rows]="movementRows()"
-      [pageSize]="store.remoteMovementSize()"
-      [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
-      [remotePage]="store.remoteMovementPage()"
-      (pageSizeChange)="changeMovementPageSize($event)"
-      (pageChange)="loadMovementPage($event)"
-      (rowSelected)="inspectMovement($event)"
-    ></demo-table></section
-></ng-template>
-<ng-template #accounts
-  ><section class="account-kpis kpis mini">
-    <demo-kpi label="Disponible" [value]="store.money(store.available())" hint="Cuentas de efectivo" /><demo-kpi
-      label="Deuda en tarjetas"
-      [value]="store.money(store.debt())"
-      hint="Sin descontar cuentas por cobrar"
-    /><demo-kpi label="Cuentas" [value]="store.data().accounts.length.toString()" hint="Activas actualmente" />
-  </section>
-  <section class="account-tools" aria-label="Filtros de cuentas y tarjetas">
-    <label
-      ><span>Buscar cuenta</span>
-      <div class="search-control">
-        <demo-icon name="search" />
-        <input
-          type="search"
-          placeholder="Nombre o terminación"
-          [ngModel]="accountQuery()"
-          (ngModelChange)="setAccountQuery($event)"
-        /></div
-    ></label>
-    <label
-      ><span>Tipo de cuenta</span
-      ><demo-select
-        [ngModel]="accountType()"
-        (ngModelChange)="setAccountType($event)"
-        [options]="accountTypeOptions"
-        ariaLabel="Tipo de cuenta"
-    /></label>
-    <span>{{ filteredAccounts().length }} resultados</span>
-  </section>
-  <section class="cards" [class.compact]="compactCards()">
-    <div class="card-strip" tabindex="0" aria-label="Lista desplazable de cuentas">
-      @for (a of visibleAccounts(); track a.id) {
-      <button
-        class="bank-card"
-        [style.--card-color]="a.color"
-        [class.active]="selectedAccountFilter() === a.id"
-        (click)="selectAccount(a.id, a.type)"
-      >
-        <span>{{ a.type === 'credit' ? 'CRÉDITO' : a.type === 'savings' ? 'AHORROS' : 'EFECTIVO' }}</span
-        ><b>{{ a.name }}</b><em>{{ a.lastFour ? '•••• ' + a.lastFour : 'Sin terminación' }}</em
-        ><small
-          >{{ a.type === 'credit' ? 'Deuda' : 'Saldo' }} <strong>{{ store.money(displayBalance(a)) }}</strong></small
-        >
-      </button>
-      }
-    </div>
-    @if (filteredAccounts().length > accountPageSize) {
-    <nav class="card-pages" aria-label="Páginas de cuentas">
-      <button (click)="accountPage.update((p) => Math.max(0, p - 1))" [disabled]="accountPage() === 0">‹</button
-      ><span>{{ accountPage() + 1 }} / {{ accountPageCount() }}</span
-      ><button
-        (click)="accountPage.update((p) => Math.min(accountPageCount() - 1, p + 1))"
-        [disabled]="accountPage() >= accountPageCount() - 1"
-      >
-        ›
-      </button>
-    </nav>
-    }
-    <button class="compact-toggle" (click)="compactCards.update((v) => !v)">
-      {{ compactCards() ? 'Expandir tarjetas' : 'Compactar tarjetas' }}
-    </button>
-  </section>
-  <section class="table-zone">
-    <demo-table
-      [columns]="movementColumns"
-      [rows]="accountMovementRows()"
-      [pageSize]="store.remoteMovementSize()"
-      [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
-      [remotePage]="store.remoteMovementPage()"
-      (pageSizeChange)="compactCards.set($event > 5); changeMovementPageSize($event)"
-      (pageChange)="loadMovementPage($event)"
-      (rowSelected)="inspectMovement($event)"
-    /></section
-></ng-template>
+<ng-template #movements><app-movements-tab #movementsTab /></ng-template>
+<ng-template #accounts><app-accounts-tab /></ng-template>
 <ng-template #calendar
-  ><app-calendar-tab (movementsChanged)="loadMovementPage(1)"
+  ><app-calendar-tab (movementsChanged)="movementsBook.loadMovementPage(1)"
 /></ng-template>
 <ng-template #people><app-people-tab /></ng-template>
 <ng-template #portfolio><app-portfolio-tab /></ng-template>
@@ -398,8 +247,8 @@
 <demo-overlay
   [title]="inspectorTitle()"
   mode="inspector"
-  [wide]="cardPaymentMode()"
-  (closed)="store.inspector.set(null); cardPaymentMode.set(false)"
+  [wide]="store.cardPaymentMode()"
+  (closed)="store.inspector.set(null); store.cardPaymentMode.set(false)"
   ><ng-container *ngTemplateOutlet="inspector"></ng-container
 ></demo-overlay>
 } @if (store.form()?.kind === 'account') {
@@ -419,7 +268,7 @@
       </div>
       }
     </dl>
-    @if (store.inspector()?.type === 'card' && !cardPaymentMode()) {
+    @if (store.inspector()?.type === 'card' && !store.cardPaymentMode()) {
     <section class="statement">
       <header>
         <div>
@@ -462,8 +311,8 @@
       <button class="danger-action" (click)="reverseSelected()">Reversar</button>
       } } @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
       <button class="action" (click)="issueSelectedSettlement()">Generar liquidación</button>
-      } @if (store.inspector()?.type === 'card' && !cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-      <button class="action" (click)="cardPaymentMode.set(true)">Registrar abono</button>
+      } @if (store.inspector()?.type === 'card' && !store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
+      <button class="action" (click)="store.cardPaymentMode.set(true)">Registrar abono</button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
       <button class="danger-action" (click)="deactivateSelectedAccount()">Desactivar cuenta</button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
@@ -488,14 +337,14 @@
     </section>
     } @if (store.inspector()?.type === 'movement' && store.calendarReturnDate()) {
     <button class="back-link" (click)="returnToCalendarDay()">← Volver a movimientos del día</button>
-    } @if (store.inspector()?.type === 'card' && cardPaymentMode() && can(P.movimientos.pagos.crear)) {
+    } @if (store.inspector()?.type === 'card' && store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
     <section class="card-payment">
       <header>
         <div>
           <span>SIMULACIÓN DE ABONO</span>
           <h3>¿Cómo se aplicará el pago?</h3>
         </div>
-        <button (click)="cardPaymentMode.set(false)">Volver</button>
+        <button (click)="store.cardPaymentMode.set(false)">Volver</button>
       </header>
       <label
         >Valor del abono<input

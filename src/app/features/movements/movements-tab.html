@@ -1,0 +1,78 @@
+<button
+  type="button"
+  class="filters-toggle"
+  [attr.aria-expanded]="filtersOpen()"
+  aria-controls="panel-filtros"
+  (click)="filtersOpen.update((open) => !open)"
+>
+  Filtros
+  @if (activeFilterCount()) {
+    <i>{{ activeFilterCount() }}</i>
+  }
+</button>
+<section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
+  <label
+    >Buscar<input
+      #searchInput
+      aria-label="Buscar movimientos"
+      placeholder="Descripción, categoría o persona"
+      [ngModel]="store.query()"
+      (ngModelChange)="store.query.set($event); loadMovementPage(1)"
+  /></label>
+  <label
+    >Periodo<demo-select
+      [ngModel]="store.period()"
+      (ngModelChange)="store.period.set($event); loadMovementPage(1)"
+      [options]="periodOptions"
+      ariaLabel="Periodo"
+  /></label>
+  <label
+    >Cuenta<demo-select
+      [ngModel]="store.accountFilter()"
+      [options]="movementAccountOptions()"
+      ariaLabel="Cuenta"
+      (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
+  /></label>
+  <label
+    >Tipo de cuenta<demo-select
+      [ngModel]="book.movementAccountType()"
+      (ngModelChange)="book.movementAccountType.set($event)"
+      [options]="book.accountTypeOptions"
+      ariaLabel="Tipo de cuenta"
+  /></label>
+  <label
+    >Categoría<demo-select
+      [ngModel]="book.movementCategory()"
+      (ngModelChange)="book.movementCategory.set($event)"
+      [options]="movementCategoryOptions()"
+      ariaLabel="Categoría"
+  /></label>
+  <label
+    >Operación<demo-select
+      [ngModel]="book.movementOperation()"
+      (ngModelChange)="book.movementOperation.set($event)"
+      [options]="movementOperationOptions"
+      ariaLabel="Operación"
+  /></label>
+  @if (hasActiveFilters()) {
+    <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
+  }
+</section>
+<section class="kpis mini">
+  <demo-kpi label="Ingresos filtrados" [value]="store.money(store.income())" hint="Conjunto seleccionado" />
+  <demo-kpi label="Gastos filtrados" [value]="store.money(store.expense())" hint="Conjunto seleccionado" />
+  <demo-kpi label="Registros" [value]="store.movements().length.toString()" hint="Confirmados y pendientes" />
+</section>
+<section class="table-zone">
+  <demo-table
+    urlKey="pagina"
+    [columns]="book.movementColumns"
+    [rows]="book.movementRows()"
+    [pageSize]="store.remoteMovementSize()"
+    [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
+    [remotePage]="store.remoteMovementPage()"
+    (pageSizeChange)="changeMovementPageSize($event)"
+    (pageChange)="loadMovementPage($event)"
+    (rowSelected)="book.inspectMovement($event)"
+  ></demo-table>
+</section>

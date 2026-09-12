@@ -1,0 +1,79 @@
+<section class="account-kpis kpis mini">
+  <demo-kpi label="Disponible" [value]="store.money(store.available())" hint="Cuentas de efectivo" />
+  <demo-kpi
+    label="Deuda en tarjetas"
+    [value]="store.money(store.debt())"
+    hint="Sin descontar cuentas por cobrar"
+  />
+  <demo-kpi label="Cuentas" [value]="store.data().accounts.length.toString()" hint="Activas actualmente" />
+</section>
+<section class="account-tools" aria-label="Filtros de cuentas y tarjetas">
+  <label
+    ><span>Buscar cuenta</span>
+    <div class="search-control">
+      <demo-icon name="search" />
+      <input
+        type="search"
+        placeholder="Nombre o terminación"
+        [ngModel]="accountQuery()"
+        (ngModelChange)="setAccountQuery($event)"
+      />
+    </div>
+  </label>
+  <label
+    ><span>Tipo de cuenta</span
+    ><demo-select
+      [ngModel]="accountType()"
+      (ngModelChange)="setAccountType($event)"
+      [options]="book.accountTypeOptions"
+      ariaLabel="Tipo de cuenta"
+  /></label>
+  <span>{{ filteredAccounts().length }} resultados</span>
+</section>
+<section class="cards" [class.compact]="compactCards()">
+  <div class="card-strip" tabindex="0" aria-label="Lista desplazable de cuentas">
+    @for (a of visibleAccounts(); track a.id) {
+      <button
+        class="bank-card"
+        [style.--card-color]="a.color"
+        [class.active]="selectedAccountFilter() === a.id"
+        (click)="selectAccount(a.id, a.type)"
+      >
+        <span>{{ a.type === 'credit' ? 'CRÉDITO' : a.type === 'savings' ? 'AHORROS' : 'EFECTIVO' }}</span
+        ><b>{{ a.name }}</b
+        ><em>{{ a.lastFour ? '•••• ' + a.lastFour : 'Sin terminación' }}</em
+        ><small
+          >{{ a.type === 'credit' ? 'Deuda' : 'Saldo' }}
+          <strong>{{ store.money(displayBalance(a)) }}</strong></small
+        >
+      </button>
+    }
+  </div>
+  @if (filteredAccounts().length > accountPageSize) {
+    <nav class="card-pages" aria-label="Páginas de cuentas">
+      <button (click)="accountPage.update((p) => Math.max(0, p - 1))" [disabled]="accountPage() === 0">‹</button
+      ><span>{{ accountPage() + 1 }} / {{ accountPageCount() }}</span
+      ><button
+        (click)="accountPage.update((p) => Math.min(accountPageCount() - 1, p + 1))"
+        [disabled]="accountPage() >= accountPageCount() - 1"
+      >
+        ›
+      </button>
+    </nav>
+  }
+  <button class="compact-toggle" (click)="compactCards.update((v) => !v)">
+    {{ compactCards() ? 'Expandir tarjetas' : 'Compactar tarjetas' }}
+  </button>
+</section>
+<section class="table-zone">
+  <demo-table
+    [columns]="book.movementColumns"
+    [rows]="accountMovementRows()"
+    [pageSize]="store.remoteMovementSize()"
+    [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
+    [remotePage]="store.remoteMovementPage()"
+    (pageSizeChange)="compactCards.set($event > 5); book.changeMovementPageSize($event)"
+    (pageChange)="book.loadMovementPage($event)"
+    (rowSelected)="book.inspectMovement($event)"
+  />
+</section>

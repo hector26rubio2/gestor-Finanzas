@@ -165,6 +165,8 @@ export class DemoStore {
   readonly calendarReturnDate = signal<string | null>(null);
   /** Dia seleccionado en el calendario. El inspector de dia lo usa de resguardo. */
   readonly selectedCalendarDate = signal('2026-08-18');
+  /** El inspector de una tarjeta muestra el extracto o la simulacion de un abono. */
+  readonly cardPaymentMode = signal(false);
   readonly movements = computed(() =>
     this.data()
       .movements.filter(

@@ -2,7 +2,6 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   ViewChild,
   computed,
   inject,
@@ -14,24 +13,24 @@ import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
 import { PlanningTabComponent } from '../features/planning/planning-tab';
 import { NotificationsTabComponent } from '../features/notifications/notifications-tab';
 import { CalendarTabComponent } from '../features/calendar/calendar-tab';
+import { MovementsTabComponent } from '../features/movements/movements-tab';
+import { AccountsTabComponent } from '../features/accounts/accounts-tab';
+import { MovementsBookService } from '../shared/movements/movements-book.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
-import { toCsv, downloadCsv } from '../core/csv';
 import { IconComponent } from '../ui/icon';
 import { SinAccesoComponent } from '../ui/sin-acceso';
 import { P } from '../core/permissions';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { sincronizarConLaUrl } from '../core/url-state';
 import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
-import { DataTableComponent, KpiComponent, OverlayComponent } from '../ui/ui';
+import { OverlayComponent } from '../ui/ui';
 import { UiOption, UiSelectComponent } from '../ui/select';
-import { ApiAdminRole, ApiAuditEvent, ApiOrganizationMember, ApiMovement, FinanceApiClient } from '../core/api-client';
+import { ApiAdminRole, ApiAuditEvent, ApiOrganizationMember, FinanceApiClient } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { DemoAuditEvent } from '../core/demo-data';
-import { formatReturnRate, parseMoney } from '../core/money';
-import { signOf } from '../core/movement-kinds';
+import { formatReturnRate } from '../core/money';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
@@ -89,8 +88,6 @@ const SIN_DATO = '—';
   imports: [
     CommonModule,
     FormsModule,
-    DataTableComponent,
-    KpiComponent,
     OverlayComponent,
     AccountFormComponent,
     ManagementFormComponent,
@@ -103,6 +100,8 @@ const SIN_DATO = '—';
     PlanningTabComponent,
     NotificationsTabComponent,
     CalendarTabComponent,
+    MovementsTabComponent,
+    AccountsTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -111,6 +110,7 @@ const SIN_DATO = '—';
 export class WorkspaceComponent implements AfterViewInit {
   readonly Math = Math;
   readonly store = inject(DemoStore);
+  readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   readonly P = P;
   /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
@@ -245,79 +245,6 @@ export class WorkspaceComponent implements AfterViewInit {
   );
   readonly page = computed(() => this.route.snapshot.url[0]?.path ?? 'movements');
   readonly meta = computed(() => labels[this.page()] ?? labels['movements']);
-  readonly compactCards = signal(false);
-  readonly movementAccountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
-  private readonly urlDeMovimientos = sincronizarConLaUrl('instrumento', this.movementAccountType, 'all', (v) =>
-    ['all', 'savings', 'credit', 'cash'].includes(v),
-  );
-  readonly movementCategory = signal('all');
-  readonly movementOperation = signal('all');
-  readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
-  readonly periodOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Últimos 12 meses' },
-    { value: '2026-08', label: 'Agosto 2026' },
-    { value: '2026-07', label: 'Julio 2026' },
-    { value: '2026-06', label: 'Junio 2026' },
-    { value: '2026-05', label: 'Mayo 2026' },
-  ];
-  readonly movementAccountOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas las cuentas' },
-    ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
-  ]);
-  readonly accountTypeOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todas' },
-    { value: 'savings', label: 'Ahorros' },
-    { value: 'credit', label: 'Crédito' },
-    { value: 'cash', label: 'Efectivo' },
-  ];
-  readonly movementCategoryOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas' },
-    ...this.movementCategories().map((category) => ({ value: category, label: category })),
-  ]);
-  readonly movementOperationOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todas' },
-    { value: 'income', label: 'Ingresos' },
-    { value: 'expense', label: 'Gastos / compras' },
-    { value: 'transfer', label: 'Transferencias' },
-    { value: 'loan', label: 'Préstamos y créditos' },
-    { value: 'recurring', label: 'Recurrentes' },
-  ];
-  readonly accountQuery = signal('');
-  readonly accountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
-  private readonly urlDeCuentas = sincronizarConLaUrl('tipo', this.accountType, 'all', (v) =>
-    ['all', 'savings', 'credit', 'cash'].includes(v),
-  );
-  readonly filteredAccounts = computed(() => {
-    const query = this.accountQuery().trim().toLocaleLowerCase('es');
-    const type = this.accountType();
-    return this.store
-      .data()
-      .accounts.filter(
-        (account) =>
-          (type === 'all' || account.type === type) &&
-          (!query ||
-            account.name.toLocaleLowerCase('es').includes(query) ||
-            (account.lastFour ?? '').toLocaleLowerCase('es').includes(query)),
-      );
-  });
-  readonly accountPage = signal(0);
-  readonly accountPageSize = 6;
-  readonly accountPageCount = computed(() =>
-    Math.max(1, Math.ceil(this.filteredAccounts().length / this.accountPageSize)),
-  );
-  readonly visibleAccounts = computed(() =>
-    this.filteredAccounts().slice(
-      this.accountPage() * this.accountPageSize,
-      (this.accountPage() + 1) * this.accountPageSize,
-    ),
-  );
-  readonly selectedAccountFilter = signal('all');
-  readonly accountMovementRows = computed(() =>
-    this.movementRows().filter(
-      (row) => this.selectedAccountFilter() === 'all' || row['raw']?.accountId === this.selectedAccountFilter(),
-    ),
-  );
-  readonly cardPaymentMode = signal(false);
   readonly cardPaymentAmount = signal(500000);
   readonly cardPurchases = computed(() => {
     const id = this.selectedAccount()?.id;
@@ -375,7 +302,6 @@ export class WorkspaceComponent implements AfterViewInit {
   readonly cardStatementTotal = computed(() =>
     Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
   );
-  @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
   readonly months = [
     { value: '2026-08', label: 'Agosto 2026' },
     { value: '2026-07', label: 'Julio 2026' },
@@ -413,20 +339,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: 'comfortable', label: 'Cómoda' },
     { value: 'compact', label: 'Compacta' },
   ];
-  // Fecha, concepto e importe son las tres columnas que nunca se ocultan en una
-  // tabla financiera. El importe estaba al final de nueve y quedaba fuera de
-  // pantalla; el resto pasa detras porque se puede desplazar sin perder el dato.
-  readonly movementColumns = [
-    { key: 'date', label: 'Fecha' },
-    { key: 'description', label: 'Descripción' },
-    { key: 'amount', label: 'Importe' },
-    { key: 'account', label: 'Cuenta o tarjeta' },
-    { key: 'effect', label: 'Débito / crédito' },
-    { key: 'currency', label: 'Moneda / tasa' },
-    { key: 'financing', label: 'Cuotas / préstamo' },
-    { key: 'responsibility', label: 'Responsabilidad' },
-    { key: 'recurrence', label: 'Recurrencia' },
-  ];
   readonly userColumns = [
     { key: 'name', label: 'Miembro' },
     { key: 'email', label: 'Correo' },
@@ -441,189 +353,21 @@ export class WorkspaceComponent implements AfterViewInit {
     status: 'Activo',
     access: u.capabilities.length + ' capacidades',
   }));
-  readonly filteredMovementData = computed(() =>
-    this.store.movements().filter((m) => {
-      const account = this.store.account(m.accountId);
-      const accountType = this.movementAccountType();
-      const category = this.movementCategory();
-      const operation = this.movementOperation();
-      return (
-        (accountType === 'all' || account?.type === accountType) &&
-        (category === 'all' || m.category === category) &&
-        (operation === 'all' ||
-          operation === m.kind ||
-          (operation === 'loan' && !!m.loanRole) ||
-          (operation === 'recurring' && !!m.recurring))
-      );
-    }),
-  );
-  readonly movementRows = computed(() =>
-    this.filteredMovementData().map((m) => ({
-      id: m.id,
-      date: this.formatDate(m.date),
-      description: m.description,
-      account: this.store.account(m.accountId)?.name,
-      effect: m.status === 'pending' ? 'Pendiente' : m.amount < 0 ? 'Débito' : 'Crédito',
-      financing: m.installmentTotal
-        ? `Cuota ${m.installmentCurrent}/${m.installmentTotal}`
-        : m.loanRole === 'lent'
-          ? 'Préstamo otorgado'
-          : m.loanRole === 'borrowed'
-            ? 'Préstamo recibido'
-            : m.loanRole === 'repayment'
-              ? 'Pago de préstamo'
-              : 'Una cuota',
-      responsibility: m.person ? `Prestado · ${m.person}` : 'Propio',
-      recurrence: m.recurring
-        ? m.recurrence === 'weekly'
-          ? 'Semanal'
-          : m.recurrence === 'yearly'
-            ? 'Anual'
-            : 'Mensual'
-        : 'No recurrente',
-      currency:
-        m.originalCurrency === 'USD'
-          ? `USD ${m.originalAmount?.toLocaleString('en-US')} · TRM ${m.exchangeRate?.toLocaleString('es-CO')}`
-          : (this.store.account(m.accountId)?.currency ?? 'COP'),
-      amount: this.store.money(m.amount),
-      raw: m,
-    })),
-  );
   ngAfterViewInit(): void {
     void this.cargarMiembros();
-    if (this.route.snapshot.queryParamMap.get('focus') === 'search')
-      queueMicrotask(() => this.searchInput?.nativeElement.focus());
-  }
-  /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
-  readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
-  readonly activeFilterCount = computed(
-    () =>
-      [
-        this.store.query() !== '',
-        this.store.period() !== 'all',
-        this.store.accountFilter() !== 'all',
-        this.movementAccountType() !== 'all',
-        this.movementCategory() !== 'all',
-        this.movementOperation() !== 'all',
-      ].filter(Boolean).length,
-  );
-  /** El boton de restablecer solo aparece cuando hay algo que restablecer. */
-  readonly hasActiveFilters = computed(
-    () =>
-      this.store.query() !== '' ||
-      this.store.period() !== 'all' ||
-      this.store.accountFilter() !== 'all' ||
-      this.movementAccountType() !== 'all' ||
-      this.movementCategory() !== 'all' ||
-      this.movementOperation() !== 'all',
-  );
-  /** Una sola forma de escribir una fecha en toda la aplicacion, con el idioma de las preferencias. */
-  formatDate(value: string): string {
-    const parsed = new Date(`${value}T00:00:00Z`);
-    if (Number.isNaN(parsed.getTime())) return value;
-    return new Intl.DateTimeFormat(this.store.preferences().locale, {
-      dateStyle: 'medium',
-      timeZone: 'UTC',
-    }).format(parsed);
   }
   @ViewChild('reportsTab') private reportsTabRef?: ReportsTabComponent;
   /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
   exportReport(): void {
     this.reportsTabRef?.exportReport();
   }
-
-  /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
+  @ViewChild('movementsTab') private movementsTabRef?: MovementsTabComponent;
+  /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
   exportMovements(): void {
-    if (!this.can(P.movimientos.exportar)) return;
-    const filas = this.movementRows();
-    downloadCsv(
-      `finanzas-movimientos-${new Date().toISOString().slice(0, 10)}.csv`,
-      toCsv(
-        filas,
-        this.movementColumns.map((columna) => ({
-          header: columna.label,
-          value: (fila: Record<string, unknown>) => fila[columna.key],
-        })),
-      ),
-    );
-    this.store.toast.set(`${filas.length} movimientos exportados.`);
+    this.movementsTabRef?.exportMovements();
   }
 
-  clearFilters() {
-    this.store.query.set('');
-    this.store.period.set('all');
-    this.store.accountFilter.set('all');
-    this.movementAccountType.set('all');
-    this.movementCategory.set('all');
-    this.movementOperation.set('all');
-    void this.loadMovementPage(1);
-  }
-  async loadMovementPage(page: number): Promise<void> {
-    // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
-    // fallo al cargar la pagina, que no es lo que pasa.
-    if (this.store.runtime.mode !== 'api' || !this.can(P.movimientos.ver)) return;
-    const request = ++this.movementRequest;
-    try {
-      const period = this.store.period();
-      const result = await firstValueFrom(
-        this.api.movements({
-          page,
-          pageSize: this.store.remoteMovementSize(),
-          search: this.store.query() || undefined,
-          accountId: this.store.accountFilter() === 'all' ? undefined : this.store.accountFilter(),
-          period: period === 'all' ? undefined : period,
-        }),
-      );
-      if (request !== this.movementRequest) return;
-      this.store.data.update((data) => ({
-        ...data,
-        movements: result.items.map((item) => this.toRemoteMovement(item)),
-      }));
-      this.store.remoteMovementPage.set(result.page);
-      this.store.remoteMovementSize.set(result.size);
-      this.store.remoteMovementTotal.set(result.total);
-    } catch (error) {
-      if (request !== this.movementRequest) return;
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la página solicitada.');
-    }
-  }
-  changeMovementPageSize(size: number) {
-    this.store.remoteMovementSize.set(size);
-    void this.loadMovementPage(1);
-  }
-  private toRemoteMovement(source: ApiMovement): import('../core/demo-data').Movement {
-    // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
-    // duplicada la expresión de signo y la lista de clases escrita a mano.
-    return {
-      id: source.id,
-      date: source.date,
-      description: source.description ?? 'Sin descripción',
-      accountId: source.links['account'] ?? source.links['card'] ?? '',
-      category: source.linkNames['category']?.name ?? 'Sin categoría',
-      kind: this.store.kindCatalog().family(source.kind, source.effect, source.flow),
-      amount: parseMoney(source.amount.base) * signOf(source.flow, source.effect),
-      status: 'confirmed',
-      person: source.linkNames['counterparty']?.name,
-      ownership: source.links['counterparty'] ? 'loaned' : 'own',
-      recurring: Boolean(source.links['recurrence']),
-    };
-  }
-  inspectMovement(row: Record<string, unknown>) {
-    this.store.inspect('movement', String(row['id']));
-  }
-  setAccountQuery(value: string) {
-    this.accountQuery.set(value);
-    this.accountPage.set(0);
-  }
-  setAccountType(value: 'all' | 'savings' | 'credit' | 'cash') {
-    this.accountType.set(value);
-    this.accountPage.set(0);
-  }
-  selectAccount(id: string, type: string) {
-    this.selectedAccountFilter.set(id);
-    this.cardPaymentMode.set(false);
-    this.store.inspect(type === 'credit' ? 'card' : 'account', id);
-  }
+
   openDayMovement(id: string) {
     this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());
     this.store.inspect('movement', id);
@@ -646,11 +390,7 @@ export class WorkspaceComponent implements AfterViewInit {
       category: 'Pago de tarjeta',
     });
     this.store.inspect('card', card.id);
-    this.cardPaymentMode.set(false);
-  }
-  displayBalance(account: import('../core/demo-data').Account): number {
-    const value = this.store.balance(account);
-    return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
+    this.store.cardPaymentMode.set(false);
   }
   readonly selectedMovement = computed(() =>
     this.store.data().movements.find((m) => m.id === this.store.inspector()?.id),
@@ -784,7 +524,7 @@ export class WorkspaceComponent implements AfterViewInit {
       );
       this.store.inspector.set(null);
       this.store.toast.set('Movimiento reversado; el original permanece en el historial.');
-      await this.loadMovementPage(this.store.remoteMovementPage());
+      await this.movementsBook.loadMovementPage(this.store.remoteMovementPage());
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo reversar el movimiento.');
     }
