@@ -11,7 +11,7 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
   imports: [FormsModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './planning-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './planning-tab.css',
 })
 export class PlanningTabComponent {
   readonly store = inject(DemoStore);

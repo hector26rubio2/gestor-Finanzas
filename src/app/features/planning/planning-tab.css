@@ -1,0 +1,250 @@
+.tabs {
+  display: flex;
+  gap: 5px;
+  border-bottom: 1px solid var(--line);
+}
+
+.tabs button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 10px 14px;
+}
+
+.tabs .active {
+  color: var(--accent);
+  border-bottom: 2px solid var(--accent);
+}
+
+.scenario-planner {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: 14px;
+  flex: 1;
+  min-height: 0;
+}
+
+.planner-controls,
+.projection-card,
+.planner-kpis article {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.planner-controls {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.planner-controls header h2,
+.projection-card h2 {
+  margin: 4px 0 6px;
+  font-size: 1.05rem;
+}
+
+.planner-controls header p,
+.projection-card header p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.planner-controls label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.planner-controls label b {
+  font-size: 1.25rem;
+  color: var(--text);
+}
+
+.planner-controls label small {
+  line-height: 1.4;
+}
+
+.planner-controls input[type='date'] {
+  min-height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  padding: 6px 10px;
+  color: var(--text);
+  background: var(--surface);
+}
+
+.planner-controls input[type='range'] {
+  accent-color: var(--accent);
+}
+
+.planner-note {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--accent-soft);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
+.planner-note span {
+  color: var(--muted);
+  letter-spacing: normal;
+  font-weight: 400;
+}
+
+.planner-results {
+  min-width: 0;
+  display: grid;
+  grid-template-rows: auto minmax(320px, 1fr) auto;
+  gap: 12px;
+}
+
+.planner-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.planner-kpis article {
+  padding: 14px;
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.planner-kpis strong {
+  font-size: 1.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.planner-kpis small {
+  color: var(--muted);
+}
+
+.projection-card {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.projection-card > header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.chart-legend .current-key::before {
+  background: var(--danger);
+}
+
+.projection-plot {
+  flex: 1;
+  min-height: 220px;
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) 24px;
+  margin-top: 15px;
+}
+
+.projection-plot svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.projection-plot polyline {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.projection-plot .current-line {
+  stroke: var(--danger);
+  stroke-dasharray: 7 5;
+}
+
+.grid-lines line {
+  stroke: var(--line);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.y-labels {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: end;
+  padding: 2px 9px 4px 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.x-labels {
+  grid-column: 2;
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.planner-disclaimer {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+@media (max-width: 1100px) {
+  .scenario-planner {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-controls {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr;
+    align-items: start;
+  }
+
+  .planner-note {
+    grid-column: 1/-1;
+  }
+}
+
+@media (max-width: 700px) {
+  .planner-controls {
+    display: flex;
+  }
+
+  .planner-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .projection-card > header {
+    display: grid;
+  }
+
+  .projection-plot {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .tabs {
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .tabs button {
+    flex: 0 0 auto;
+  }
+}

@@ -24,7 +24,7 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
   imports: [CommonModule, FormsModule, DataTableComponent, KpiComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movements-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './movements-tab.css',
 })
 export class MovementsTabComponent implements AfterViewInit {
   readonly store = inject(DemoStore);

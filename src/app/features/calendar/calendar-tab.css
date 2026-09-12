@@ -1,0 +1,307 @@
+.agenda {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.agenda::-webkit-scrollbar {
+  display: none;
+}
+
+.calendar-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 14px;
+  min-height: 0;
+  flex: 1;
+}
+
+.month,
+.agenda {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.agenda .projected {
+  border-left: 3px dashed var(--accent);
+}
+
+.month {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.month header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+}
+
+.month header h2 {
+  font-size: 1rem;
+}
+
+.month header button {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 7px 11px;
+}
+
+.calendar-toolbar {
+  gap: 9px;
+}
+
+.calendar-title {
+  display: grid;
+  min-width: 170px;
+}
+
+.calendar-title span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+}
+
+.calendar-title strong {
+  text-transform: capitalize;
+  font-family: var(--display);
+  font-size: 1rem;
+}
+
+.calendar-toolbar .icon-button {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 50%;
+}
+
+/*
+       * El mínimo táctil de 44px vive en styles.css, pero como regla sobre \`button\` la
+       * vence cualquier selector de componente por especificidad. Se repite aquí con el
+       * mismo alcance para que no se pierda en el dedo del usuario.
+       */
+@media (pointer: coarse) {
+  .calendar-toolbar .icon-button {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.calendar-toolbar .today-button {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 32%, var(--line));
+}
+
+.period-tabs {
+  display: flex;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--canvas);
+}
+
+.period-tabs button {
+  padding: 5px 10px !important;
+  border: 0 !important;
+}
+
+.period-tabs button.active {
+  background: var(--accent) !important;
+  color: var(--accent-contrast);
+}
+
+.week {
+  display: grid;
+  /*
+   * Un fr a secas no baja de su contenido: cada celda se planta en su ancho
+   * minimo y las siete juntas empujan el documento a lo ancho. Con minmax(0, 1fr)
+   * la semana cabe en el hueco que tenga, que es lo que hace falta entre 700 y
+   * 1100 px, donde el mes convive con la agenda al lado.
+   */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.names {
+  padding: 8px 0;
+  border-block: 1px solid var(--line);
+}
+
+.names b {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.grid {
+  flex: 1;
+  grid-auto-rows: 1fr;
+  min-height: 0;
+}
+
+.grid.week-view {
+  grid-auto-rows: 1fr;
+}
+
+.grid.day-view {
+  grid-template-columns: 1fr;
+}
+
+.grid.day-view button {
+  padding: 18px;
+}
+
+.grid.day-view button span {
+  padding: 7px 9px;
+  border-radius: 7px;
+  background: color-mix(in srgb, var(--danger) 8%, transparent);
+}
+
+.year-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 14px;
+  flex: 1;
+}
+
+.year-grid button {
+  display: grid;
+  place-content: center;
+  gap: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--canvas);
+  color: var(--text);
+  text-transform: capitalize;
+}
+
+.year-grid button:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  transform: translateY(-1px);
+}
+
+.year-grid button b {
+  font-size: 1.25rem;
+  color: var(--accent);
+}
+
+.year-grid button small {
+  color: var(--muted);
+}
+
+.grid button {
+  min-height: 74px;
+  background: var(--surface);
+  color: var(--text);
+  border: 0;
+  border-right: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 7px;
+  text-align: left;
+  overflow: hidden;
+}
+
+.grid button.selected {
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+
+.grid button.outside {
+  opacity: 0.48;
+}
+
+.grid button b {
+  display: block;
+}
+
+.grid button span,
+.grid button em {
+  display: block;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--danger);
+  margin-top: 5px;
+}
+
+.grid button span.income {
+  color: var(--success);
+}
+
+.grid button em {
+  color: var(--accent);
+  font-style: normal;
+}
+
+.agenda {
+  padding: 18px;
+  overflow: auto;
+}
+
+.agenda h3 {
+  margin-top: 0;
+}
+
+.agenda button {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+  color: var(--text);
+  display: flex;
+  justify-content: space-between;
+  text-align: left;
+  padding: 12px 0;
+  font-size: 0.72rem;
+}
+
+.agenda button b {
+  color: var(--danger);
+}
+
+@media (max-width: 1100px) {
+  .calendar-layout {
+    grid-template-columns: minmax(0, 1fr) 260px;
+  }
+}
+
+@media (max-width: 700px) {
+  .calendar-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .calendar-title {
+    order: -1;
+    width: 100%;
+  }
+
+  .period-tabs {
+    order: 3;
+    width: 100%;
+  }
+
+  .period-tabs button {
+    flex: 1;
+  }
+
+  .year-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .calendar-layout {
+    display: block;
+  }
+
+  .month {
+    height: 560px;
+  }
+
+  .agenda {
+    margin-top: 14px;
+  }
+}

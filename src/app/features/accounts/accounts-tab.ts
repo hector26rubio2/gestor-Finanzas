@@ -13,7 +13,7 @@ import type { Account } from '../../core/demo-data';
   imports: [FormsModule, DataTableComponent, KpiComponent, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './accounts-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './accounts-tab.css',
 })
 export class AccountsTabComponent {
   readonly Math = Math;
@@ -51,7 +51,9 @@ export class AccountsTabComponent {
   readonly accountMovementRows = computed(() =>
     this.book
       .movementRows()
-      .filter((row) => this.selectedAccountFilter() === 'all' || row['raw']?.accountId === this.selectedAccountFilter()),
+      .filter(
+        (row) => this.selectedAccountFilter() === 'all' || row['raw']?.accountId === this.selectedAccountFilter(),
+      ),
   );
 
   setAccountQuery(value: string): void {

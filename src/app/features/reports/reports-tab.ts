@@ -15,7 +15,7 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
   imports: [FormsModule, IconComponent, KpiComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './reports-tab.css',
 })
 export class ReportsTabComponent {
   readonly store = inject(DemoStore);

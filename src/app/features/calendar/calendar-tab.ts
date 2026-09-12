@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, computed, signal, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Output,
+  inject,
+  computed,
+  signal,
+  OnInit,
+} from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
@@ -10,7 +19,7 @@ import { sincronizarConLaUrl } from '../../core/url-state';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendar-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './calendar-tab.css',
 })
 export class CalendarTabComponent implements OnInit {
   readonly store = inject(DemoStore);

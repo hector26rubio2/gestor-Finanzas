@@ -1,0 +1,74 @@
+/*
+       * Un libro con renglones, no tres tarjetas iguales. Antes cada aviso era su propia
+       * caja redondeada con el mismo borde y el mismo radio que todo lo demas: sin
+       * jerarquia, leido y sin leer casi identicos, y la accion principal con el mismo
+       * peso que la secundaria. Ahora hay una sola hoja, los avisos se separan con una
+       * linea fina, y lo que distingue a uno sin leer es lo unico que se resalta.
+       */
+.notice-list {
+  display: grid;
+  overflow: auto;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.notice-list article {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+
+.notice-list article:last-child {
+  border-bottom: 0;
+}
+
+/* El punto de estado: lleno y en acento si esta sin leer, hueco si ya se vio. */
+.notice-state {
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1.5px solid var(--control-line);
+}
+
+.notice-list article.unread .notice-state {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.notice-body {
+  min-width: 0;
+}
+
+.notice-list h2 {
+  font-size: 0.9rem;
+  margin: 0;
+  font-weight: 550;
+  color: var(--muted);
+}
+
+/* Sin leer pesa mas: es la diferencia que importa en esta lista. */
+.notice-list article.unread h2 {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.notice-list p {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin: 4px 0 0;
+  overflow-wrap: anywhere;
+}
+
+/*
+       * Solo posicion y tamano. El color lo pone la variante: fijar aqui fondo y color
+       * era lo que dejaba a «primary» y «quiet» pintados igual.
+       */
+.notice-list button {
+  flex: none;
+  margin-left: auto;
+  padding: 9px 14px;
+}

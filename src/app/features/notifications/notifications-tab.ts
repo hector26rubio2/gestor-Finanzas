@@ -9,7 +9,7 @@ import { CAPABILITIES, DemoStore } from '../../core/store';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notifications-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './notifications-tab.css',
 })
 export class NotificationsTabComponent {
   readonly store = inject(DemoStore);

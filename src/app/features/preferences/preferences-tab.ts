@@ -14,7 +14,7 @@ import { applyTheme, CAPABILITIES, DemoStore } from '../../core/store';
   imports: [FormsModule, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './preferences-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: './preferences-tab.css',
 })
 export class PreferencesTabComponent implements OnInit {
   readonly store = inject(DemoStore);
