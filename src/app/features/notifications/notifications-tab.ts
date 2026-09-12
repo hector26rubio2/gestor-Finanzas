@@ -1,0 +1,53 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { FinanceApiClient } from '../../core/api-client';
+import { P } from '../../core/permissions';
+import { CAPABILITIES, DemoStore } from '../../core/store';
+
+@Component({
+  selector: 'app-notifications-tab',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './notifications-tab.html',
+  styleUrl: '../../pages/workspace.css',
+})
+export class NotificationsTabComponent {
+  readonly store = inject(DemoStore);
+  private readonly capabilities = inject(CAPABILITIES);
+  private api = inject(FinanceApiClient);
+  readonly P = P;
+  can(permiso: string): boolean {
+    return this.capabilities.allows(permiso);
+  }
+
+  async readAll(): Promise<void> {
+    if (this.store.runtime.mode === 'api') {
+      try {
+        const unread = this.store.data().notifications.filter((item) => !item.read);
+        await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
+      } catch (error) {
+        this.store.toast.set(error instanceof Error ? error.message : 'No se pudieron actualizar las notificaciones.');
+        return;
+      }
+    }
+    this.store.data.update((d) => ({ ...d, notifications: d.notifications.map((n) => ({ ...n, read: true })) }));
+  }
+  async mark(id: string): Promise<void> {
+    if (this.store.runtime.mode === 'api') {
+      try {
+        await firstValueFrom(this.api.markNotificationRead(id));
+      } catch (error) {
+        this.store.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la notificación.');
+        return;
+      }
+    }
+    this.store.data.update((d) => ({
+      ...d,
+      notifications: d.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
+    }));
+  }
+  reviewNotification(id: string): void {
+    const pending = this.store.data().movements.find((movement) => movement.status === 'pending');
+    this.store.open('expense', pending?.accountId ?? 'credit-indigo', pending, id);
+  }
+}

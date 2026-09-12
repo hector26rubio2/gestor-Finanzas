@@ -12,6 +12,7 @@ import { ReportsTabComponent } from '../features/reports/reports-tab';
 import { PeopleTabComponent } from '../features/people/people-tab';
 import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
 import { PlanningTabComponent } from '../features/planning/planning-tab';
+import { NotificationsTabComponent } from '../features/notifications/notifications-tab';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -107,6 +108,7 @@ const SIN_DATO = '—';
     PeopleTabComponent,
     PortfolioTabComponent,
     PlanningTabComponent,
+    NotificationsTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -1010,35 +1012,10 @@ export class WorkspaceComponent implements AfterViewInit {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo desactivar la cuenta.');
     }
   }
-  async readAll() {
-    if (this.store.runtime.mode === 'api') {
-      try {
-        const unread = this.store.data().notifications.filter((item) => !item.read);
-        await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
-      } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : 'No se pudieron actualizar las notificaciones.');
-        return;
-      }
-    }
-    this.store.data.update((d) => ({ ...d, notifications: d.notifications.map((n) => ({ ...n, read: true })) }));
-  }
-  async mark(id: string) {
-    if (this.store.runtime.mode === 'api') {
-      try {
-        await firstValueFrom(this.api.markNotificationRead(id));
-      } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la notificación.');
-        return;
-      }
-    }
-    this.store.data.update((d) => ({
-      ...d,
-      notifications: d.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    }));
-  }
-  reviewNotification(id: string) {
-    const pending = this.store.data().movements.find((movement) => movement.status === 'pending');
-    this.store.open('expense', pending?.accountId ?? 'credit-indigo', pending, id);
+  @ViewChild('notificationsTab') private notificationsTabRef?: NotificationsTabComponent;
+  /** El boton vive en la cabecera compartida; la logica real es de la pestaña. */
+  readAll(): void {
+    void this.notificationsTabRef?.readAll();
   }
   setTheme(theme: (typeof this.themes)[number]['id']) {
     this.store.preferences.update((p) => ({ ...p, theme }));
