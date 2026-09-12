@@ -1,18 +1,10 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Output,
-  inject,
-  computed,
-  signal,
-  OnInit,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { sincronizarConLaUrl } from '../../core/url-state';
+import { MovementsBookService } from '../../shared/movements/movements-book.service';
 
 @Component({
   selector: 'app-calendar-tab',
@@ -25,12 +17,11 @@ export class CalendarTabComponent implements OnInit {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
+  private readonly movementsBook = inject(MovementsBookService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
-  /** Algo cambio en el libro (se confirmo una ocurrencia): quien orquesta decide como refrescarlo. */
-  @Output() readonly movementsChanged = new EventEmitter<void>();
 
   readonly projectedOccurrences = signal<readonly ApiProjectedOccurrence[]>([]);
   readonly recurrences = signal<readonly ApiRecurrence[]>([]);
@@ -141,7 +132,7 @@ export class CalendarTabComponent implements OnInit {
       );
       this.store.toast.set('Ocurrencia confirmada y registrada en el libro.');
       await this.loadCalendarProjection();
-      this.movementsChanged.emit();
+      void this.movementsBook.loadMovementPage(1);
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo confirmar la ocurrencia.');
     }

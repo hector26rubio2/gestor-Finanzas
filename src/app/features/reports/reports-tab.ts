@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toCsv, downloadCsv } from '../../core/csv';
 import { IconComponent } from '../../ui/icon';
@@ -8,6 +8,7 @@ import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
+import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-reports-tab',
@@ -17,12 +18,21 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
   templateUrl: './reports-tab.html',
   styleUrl: './reports-tab.css',
 })
-export class ReportsTabComponent {
+export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
+  private readonly headerActions = inject(HeaderActionsService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
+  }
+
+  /** El boton de exportar de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
+  ngOnInit(): void {
+    this.headerActions.exportReport.set(() => this.exportReport());
+  }
+  ngOnDestroy(): void {
+    this.headerActions.exportReport.set(null);
   }
 
   readonly reportPeriod = signal('6');

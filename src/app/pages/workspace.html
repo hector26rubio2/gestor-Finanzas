@@ -26,37 +26,10 @@
   </header>
   @if (sinNingunBloque()) {
   <demo-sin-acceso />
-  } @else { @switch (page()) { @case ('movements') {
-  <ng-container *ngTemplateOutlet="movements"></ng-container>
-  } @case ('accounts') {
-  <ng-container *ngTemplateOutlet="accounts"></ng-container>
-  } @case ('calendar') {
-  <ng-container *ngTemplateOutlet="calendar"></ng-container>
-  } @case ('people') {
-  <ng-container *ngTemplateOutlet="people"></ng-container>
-  } @case ('portfolio') {
-  <ng-container *ngTemplateOutlet="portfolio"></ng-container>
-  } @case ('planning') {
-  <ng-container *ngTemplateOutlet="planning"></ng-container>
-  } @case ('reports') {
-  <ng-container *ngTemplateOutlet="reports"></ng-container>
-  } @case ('notifications') {
-  <ng-container *ngTemplateOutlet="notifications"></ng-container>
-  } @case ('settings') {
-  <ng-container *ngTemplateOutlet="settings"></ng-container>
-  } } }
+  } @else {
+  <router-outlet />
+  }
 </article>
-<ng-template #movements><app-movements-tab #movementsTab /></ng-template>
-<ng-template #accounts><app-accounts-tab /></ng-template>
-<ng-template #calendar
-  ><app-calendar-tab (movementsChanged)="movementsBook.loadMovementPage(1)"
-/></ng-template>
-<ng-template #people><app-people-tab /></ng-template>
-<ng-template #portfolio><app-portfolio-tab /></ng-template>
-<ng-template #planning><app-planning-tab /></ng-template>
-<ng-template #reports><app-reports-tab #reportsTab /></ng-template>
-<ng-template #notifications><app-notifications-tab #notificationsTab /></ng-template>
-<ng-template #settings><app-preferences-tab /></ng-template>
 @if (store.inspector(); as selected) {
 <demo-overlay
   [title]="inspectorTitle()"

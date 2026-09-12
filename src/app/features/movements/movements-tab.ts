@@ -3,6 +3,8 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  OnDestroy,
+  OnInit,
   ViewChild,
   computed,
   inject,
@@ -17,6 +19,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
+import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-movements-tab',
@@ -26,16 +29,25 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
   templateUrl: './movements-tab.html',
   styleUrl: './movements-tab.css',
 })
-export class MovementsTabComponent implements AfterViewInit {
+export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly store = inject(DemoStore);
   readonly book = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly route = inject(ActivatedRoute);
+  private readonly headerActions = inject(HeaderActionsService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
   @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
+
+  /** El boton de exportar de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
+  ngOnInit(): void {
+    this.headerActions.exportMovements.set(() => this.exportMovements());
+  }
+  ngOnDestroy(): void {
+    this.headerActions.exportMovements.set(null);
+  }
 
   readonly periodOptions: readonly UiOption[] = [
     { value: 'all', label: 'Últimos 12 meses' },

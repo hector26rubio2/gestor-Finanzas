@@ -1,16 +1,8 @@
-import { ChangeDetectionStrategy, Component, ViewChild, computed, inject, signal } from '@angular/core';
-import { ReportsTabComponent } from '../features/reports/reports-tab';
-import { PeopleTabComponent } from '../features/people/people-tab';
-import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
-import { PlanningTabComponent } from '../features/planning/planning-tab';
-import { NotificationsTabComponent } from '../features/notifications/notifications-tab';
-import { CalendarTabComponent } from '../features/calendar/calendar-tab';
-import { MovementsTabComponent } from '../features/movements/movements-tab';
-import { AccountsTabComponent } from '../features/accounts/accounts-tab';
-import { PreferencesTabComponent } from '../features/preferences/preferences-tab';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MovementsBookService } from '../shared/movements/movements-book.service';
+import { HeaderActionsService } from '../shared/header-actions.service';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
 import { IconComponent } from '../ui/icon';
@@ -79,20 +71,12 @@ const SIN_DATO = '—';
   imports: [
     CommonModule,
     FormsModule,
+    RouterOutlet,
     OverlayComponent,
     AccountFormComponent,
     ManagementFormComponent,
     SinAccesoComponent,
     IconComponent,
-    ReportsTabComponent,
-    PeopleTabComponent,
-    PortfolioTabComponent,
-    PlanningTabComponent,
-    NotificationsTabComponent,
-    CalendarTabComponent,
-    MovementsTabComponent,
-    AccountsTabComponent,
-    PreferencesTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -210,17 +194,14 @@ export class WorkspaceComponent {
     { value: '2026-06', label: 'Junio 2026' },
     { value: '2026-05', label: 'Mayo 2026' },
   ];
-  @ViewChild('reportsTab') private reportsTabRef?: ReportsTabComponent;
-  /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
+  private readonly headerActions = inject(HeaderActionsService);
+  /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   exportReport(): void {
-    this.reportsTabRef?.exportReport();
+    this.headerActions.exportReport()?.();
   }
-  @ViewChild('movementsTab') private movementsTabRef?: MovementsTabComponent;
-  /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
   exportMovements(): void {
-    this.movementsTabRef?.exportMovements();
+    this.headerActions.exportMovements()?.();
   }
-
 
   openDayMovement(id: string) {
     this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());
@@ -446,9 +427,8 @@ export class WorkspaceComponent {
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo desactivar la cuenta.');
     }
   }
-  @ViewChild('notificationsTab') private notificationsTabRef?: NotificationsTabComponent;
-  /** El boton vive en la cabecera compartida; la logica real es de la pestaña. */
+  /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   readAll(): void {
-    void this.notificationsTabRef?.readAll();
+    this.headerActions.readAll()?.();
   }
 }

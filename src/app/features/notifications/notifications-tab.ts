@@ -1,8 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-notifications-tab',
@@ -11,13 +12,22 @@ import { CAPABILITIES, DemoStore } from '../../core/store';
   templateUrl: './notifications-tab.html',
   styleUrl: './notifications-tab.css',
 })
-export class NotificationsTabComponent {
+export class NotificationsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
+  private readonly headerActions = inject(HeaderActionsService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
+  }
+
+  /** El boton de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
+  ngOnInit(): void {
+    this.headerActions.readAll.set(() => void this.readAll());
+  }
+  ngOnDestroy(): void {
+    this.headerActions.readAll.set(null);
   }
 
   async readAll(): Promise<void> {
