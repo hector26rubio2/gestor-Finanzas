@@ -14,10 +14,16 @@
   }
 </section>
 <section class="kpis mini report-kpis">
-  <demo-kpi label="Flujo neto" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
-  <demo-kpi label="Tasa de ahorro" [value]="reportSavingsRate()" hint="Sobre ingresos del periodo" />
-  <demo-kpi label="Gasto promedio" [value]="store.money(reportAverageExpense())" hint="Promedio mensual" />
-  <demo-kpi label="Mayor categoría" [value]="topCategory().name" [hint]="store.money(topCategory().value)" />
+  <demo-kpi label="Flujo neto" icon="trendUp" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
+  <demo-kpi label="Tasa de ahorro" icon="percent" [value]="reportSavingsRate()" hint="Sobre ingresos del periodo" />
+  <demo-kpi
+    label="Gasto promedio"
+    icon="trendDown"
+    tone="danger"
+    [value]="store.money(reportAverageExpense())"
+    hint="Promedio mensual"
+  />
+  <demo-kpi label="Mayor categoría" icon="tag" [value]="topCategory().name" [hint]="store.money(topCategory().value)" />
 </section>
 <section class="report-grid">
   @if (can(P.reportes.comparativo.ver)) {

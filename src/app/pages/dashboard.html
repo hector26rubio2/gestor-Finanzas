@@ -82,6 +82,7 @@
     @if (caps.allows(P.dashboard.kpi.balance)) {
     <demo-kpi
       label="Balance del periodo"
+      icon="trendUp"
       [value]="store.money(net())"
       [hint]="periodLabel()"
       [series]="serieNeta()"
@@ -90,6 +91,8 @@
     } @if (caps.allows(P.dashboard.kpi.ingresos)) {
     <demo-kpi
       label="Ingresos"
+      icon="trendUp"
+      tone="success"
       [value]="store.money(income())"
       hint="Según filtros activos"
       [series]="serieIngresos()"
@@ -98,6 +101,8 @@
     } @if (caps.allows(P.dashboard.kpi.gastos)) {
     <demo-kpi
       label="Gastos"
+      icon="trendDown"
+      tone="danger"
       [value]="store.money(expense())"
       hint="Según filtros activos"
       [series]="serieGastos()"
@@ -105,7 +110,12 @@
       [subirEsBueno]="false"
     />
     } @if (caps.allows(P.dashboard.kpi.recuento)) {
-    <demo-kpi label="Movimientos" [value]="movements().length.toLocaleString()" hint="Registros visibles" />
+    <demo-kpi
+      label="Movimientos"
+      icon="movements"
+      [value]="movements().length.toLocaleString()"
+      hint="Registros visibles"
+    />
     }
   </section>
   }

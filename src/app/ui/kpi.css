@@ -11,16 +11,36 @@
   border-radius: var(--radius);
   color: var(--text);
 }
+.kpi-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.icon-chip {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 10px;
+  display: grid;
+  place-items: center;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+.icon-chip.success {
+  background: color-mix(in srgb, var(--success) 16%, var(--surface));
+  color: var(--success);
+}
+.icon-chip.danger {
+  background: color-mix(in srgb, var(--danger) 14%, var(--surface));
+  color: var(--danger);
+}
+.icon-chip demo-icon {
+  width: 18px;
+  height: 18px;
+}
 .label {
   font-size: 0.78rem;
   color: var(--muted);
-}
-.cifra {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
 }
 /*
        * La variacion se lee como texto ademas de como color: el verde y el rojo solos
@@ -28,6 +48,7 @@
        */
 .delta {
   flex: none;
+  margin-left: auto;
   font-size: 0.7rem;
   font-weight: 700;
   padding: 2px 7px;
@@ -43,8 +64,15 @@
   color: var(--danger);
   background: color-mix(in srgb, var(--danger) 12%, transparent);
 }
+.kpi-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
 .chispa {
-  margin-top: 2px;
+  flex: none;
 }
 .chispa-hueco {
   display: block;

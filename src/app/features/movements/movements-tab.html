@@ -5,9 +5,8 @@
   aria-controls="panel-filtros"
   (click)="filtersOpen.update((open) => !open)"
 >
-  Filtros
-  @if (activeFilterCount()) {
-    <i>{{ activeFilterCount() }}</i>
+  Filtros @if (activeFilterCount()) {
+  <i>{{ activeFilterCount() }}</i>
   }
 </button>
 <section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
@@ -55,13 +54,30 @@
       ariaLabel="Operación"
   /></label>
   @if (hasActiveFilters()) {
-    <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
+  <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
   }
 </section>
 <section class="kpis mini">
-  <demo-kpi label="Ingresos filtrados" [value]="store.money(store.income())" hint="Conjunto seleccionado" />
-  <demo-kpi label="Gastos filtrados" [value]="store.money(store.expense())" hint="Conjunto seleccionado" />
-  <demo-kpi label="Registros" [value]="store.movements().length.toString()" hint="Confirmados y pendientes" />
+  <demo-kpi
+    label="Ingresos filtrados"
+    icon="trendUp"
+    tone="success"
+    [value]="store.money(store.income())"
+    hint="Conjunto seleccionado"
+  />
+  <demo-kpi
+    label="Gastos filtrados"
+    icon="trendDown"
+    tone="danger"
+    [value]="store.money(store.expense())"
+    hint="Conjunto seleccionado"
+  />
+  <demo-kpi
+    label="Registros"
+    icon="movements"
+    [value]="store.movements().length.toString()"
+    hint="Confirmados y pendientes"
+  />
 </section>
 <section class="table-zone">
   <demo-table

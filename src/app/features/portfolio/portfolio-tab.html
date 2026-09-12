@@ -1,12 +1,24 @@
 <section class="kpis mini">
   <demo-kpi
     label="Patrimonio disponible"
+    icon="wallet"
     [value]="store.money(store.available() - store.debt())"
     hint="Valor de mercado estimado"
   />
-  <demo-kpi label="Inversiones" [value]="store.money(investmentValue())" hint="Valoración ilustrativa" />
-  <demo-kpi label="Rendimiento" [value]="investmentReturn()" hint="No es una garantía" />
-  <demo-kpi label="Ganancia no realizada" [value]="store.money(investmentGain())" hint="Valor actual menos costo" />
+  <demo-kpi
+    label="Inversiones"
+    icon="portfolio"
+    [value]="store.money(investmentValue())"
+    hint="Valoración ilustrativa"
+  />
+  <demo-kpi label="Rendimiento" icon="trendUp" tone="success" [value]="investmentReturn()" hint="No es una garantía" />
+  <demo-kpi
+    label="Ganancia no realizada"
+    icon="trendUp"
+    tone="success"
+    [value]="store.money(investmentGain())"
+    hint="Valor actual menos costo"
+  />
 </section>
 <section class="table-zone">
   <demo-table

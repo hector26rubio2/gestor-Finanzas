@@ -15,7 +15,7 @@ import {
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../core/url-state';
-import { IconComponent } from './icon';
+import { IconComponent, IconName } from './icon';
 import { UiOption, UiSelectComponent } from './select';
 import { ChartComponent } from './chart';
 import { ChartThemeService } from './chart-theme';
@@ -185,7 +185,7 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
 @Component({
   selector: 'demo-kpi',
   standalone: true,
-  imports: [ChartComponent],
+  imports: [ChartComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi.html',
   styleUrl: './kpi.css',
@@ -194,6 +194,10 @@ export class KpiComponent {
   readonly label = input('');
   readonly value = input('');
   readonly hint = input('');
+  /** Icono del chip. Sin nombre, la tarjeta no dibuja chip: no todas lo necesitan. */
+  readonly icon = input<IconName | ''>('');
+  /** Color del chip. «accent» por defecto; «success»/«danger» para ingresos y gastos. */
+  readonly tone = input<'accent' | 'success' | 'danger'>('accent');
   /** Serie del periodo para la minigrafica; con menos de dos puntos no se dibuja. */
   readonly series = input<readonly number[]>([]);
   /** Variacion en tanto por ciento frente al intervalo anterior; `null` la oculta. */
