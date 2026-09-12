@@ -1,45 +1,45 @@
 /*
- * `--panel` es el tono con el que los controles se levantan de su fondo: el degradado de
- * botones, campos y desplegables va de `--surface` a una mezcla con este. Se usaba en
- * cinco sitios sin estar definido en ninguno, y una variable ausente invalida el
- * `color-mix` entero, asi que el degradado se caia y los controles salian planos. Cada
- * tema define el suyo; sin el, el aspecto no era el que describia la hoja de estilos.
+ * Paleta moderna y minimalista (indigo + Sora/Public Sans), pedida para reemplazar el
+ * verde azulado y los degradados anteriores en toda la aplicacion. `--panel` es el tono
+ * intermedio entre `--bg` y `--surface` que usan las tarjetas y campos con relieve sutil;
+ * cada tema define el suyo para que un `color-mix` con esta variable nunca quede sin
+ * definir.
  */
 :root {
   color-scheme: light;
-  --bg: #f5f8f6;
-  --nav: #f9fbfa;
+  --bg: #f7f8fb;
+  --nav: #ffffff;
   --surface: #fff;
-  --text: #122522;
-  --muted: #5a6a65;
-  --line: #dce6e2;
-  --control-line: #7d8f8a;
-  --accent: #07836b;
-  --accent-soft: #e4f3ee;
+  --text: #1e2130;
+  --muted: #64748b;
+  --line: #e4e7ec;
+  --control-line: #d0d5dd;
+  --accent: #4f46e5;
+  --accent-soft: #eef2ff;
   --accent-contrast: #fff;
-  --danger: #c0392f;
-  --panel: #eaf1ee;
-  --warning: #b7791f;
-  --success: #098268;
-  --shadow: 0 20px 55px #233d3520;
-  --font: 'DM Sans', system-ui, sans-serif;
-  --display: 'Manrope', system-ui, sans-serif;
-  --radius: 14px;
+  --danger: #e11d48;
+  --panel: #f1f2f6;
+  --warning: #d97706;
+  --success: #059669;
+  --shadow: 0 20px 55px #1e293b1f;
+  --font: 'Public Sans', system-ui, sans-serif;
+  --display: 'Sora', system-ui, sans-serif;
+  --radius: 16px;
 }
 :root[data-theme='dark'] {
   color-scheme: dark;
-  --bg: #061a20;
-  --nav: #082128;
-  --surface: #0b2830;
-  --text: #edf8f5;
-  --muted: #9eb5b0;
-  --line: #1d4147;
-  --control-line: #57858b;
-  --accent: #29b98f;
-  --accent-soft: #103c39;
-  --accent-contrast: #031b18;
-  --danger: #ff7169;
-  --panel: #0f323b;
+  --bg: #0f1222;
+  --nav: #14172a;
+  --surface: #191d33;
+  --text: #eef0fa;
+  --muted: #9ea3bd;
+  --line: #2b2f4a;
+  --control-line: #565c82;
+  --accent: #818cf8;
+  --accent-soft: #262a4d;
+  --accent-contrast: #14162b;
+  --danger: #fb7185;
+  --panel: #1c2040;
   --warning: #e0a94a;
   --success: #51d3a9;
   --shadow: 0 22px 62px #0008;
@@ -152,8 +152,8 @@ button {
   min-height: 34px;
   padding: 6px 11px;
   border: 1px solid var(--control-line);
-  border-radius: 9px;
-  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 54%, var(--surface)));
+  border-radius: 10px;
+  background: var(--surface);
   color: var(--text);
   font-weight: 600;
   line-height: 1.2;
@@ -163,9 +163,6 @@ button {
     color 0.16s ease,
     box-shadow 0.16s ease,
     transform 0.16s ease;
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
-    inset 0 1px color-mix(in srgb, white 20%, transparent);
 }
 /*
  * El hover solo donde hay un puntero fino. En una pantalla tactil el navegador deja el
@@ -200,11 +197,11 @@ button:disabled {
  * escala de grises y para quien no distingue colores.
  */
 .primary {
-  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, white), var(--accent));
+  background: var(--accent);
   border-color: var(--accent);
   color: var(--accent-contrast);
   font-weight: 650;
-  box-shadow: 0 5px 14px color-mix(in srgb, var(--accent) 22%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 25%, transparent);
 }
 
 .quiet {
@@ -241,8 +238,8 @@ textarea {
   width: 100%;
   min-height: 36px;
   border: 1px solid var(--control-line);
-  border-radius: 9px;
-  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 48%, var(--surface)));
+  border-radius: 10px;
+  background: var(--surface);
   color: var(--text);
   padding: 7px 10px;
   line-height: 1.25;
@@ -250,9 +247,6 @@ textarea {
     border-color 0.16s ease,
     box-shadow 0.16s ease,
     background-color 0.16s ease;
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--text) 5%, transparent),
-    inset 0 1px color-mix(in srgb, white 18%, transparent);
 }
 select {
   appearance: none;
@@ -356,17 +350,17 @@ input[type='checkbox']:not(.switch input):checked::before {
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
     color-scheme: dark;
-    --bg: #061a20;
-    --nav: #082128;
-    --surface: #0b2830;
-    --text: #edf8f5;
-    --muted: #9eb5b0;
-    --line: #1d4147;
-    --control-line: #57858b;
-    --accent: #29b98f;
-    --accent-soft: #103c39;
-    --accent-contrast: #031b18;
-    --danger: #ff7169;
+    --bg: #0f1222;
+    --nav: #14172a;
+    --surface: #191d33;
+    --text: #eef0fa;
+    --muted: #9ea3bd;
+    --line: #2b2f4a;
+    --control-line: #565c82;
+    --accent: #818cf8;
+    --accent-soft: #262a4d;
+    --accent-contrast: #14162b;
+    --danger: #fb7185;
     --warning: #e0a94a;
     --success: #51d3a9;
     --shadow: 0 22px 62px #0008;

@@ -28,11 +28,11 @@
   color: var(--accent);
 }
 h1 {
-  font-family: Georgia, serif;
+  font-family: var(--display);
   font-size: clamp(2.6rem, 5vw, 5.5rem);
   line-height: 1;
   margin: 18px 0;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.03em;
 }
 p {
   color: var(--muted);
