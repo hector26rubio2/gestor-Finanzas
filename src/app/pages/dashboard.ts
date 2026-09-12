@@ -14,7 +14,7 @@ import { ChartComponent, ChartOption } from '../ui/chart';
 import { ChartThemeService } from '../ui/chart-theme';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
-type WidgetType = 'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap';
+type WidgetType = 'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap' | 'gauge';
 type Widget = { id: string; title: string; kicker: string; type: WidgetType; wide: boolean; capability?: string };
 
 @Component({
@@ -127,6 +127,7 @@ export class DashboardComponent {
     { value: 'donut', label: 'Composición radial' },
     { value: 'stacked', label: 'Área apilada' },
     { value: 'heatmap', label: 'Mapa de intensidad' },
+    { value: 'gauge', label: 'Medidor de meta' },
   ];
   readonly widgetWidthOptions: readonly UiOption[] = [
     { value: 'wide', label: 'Ancho completo' },
@@ -791,6 +792,71 @@ export class DashboardComponent {
           palette.accent,
           true,
         ),
+      ],
+    };
+  });
+
+  /**
+   * Que parte de lo que entro se quedo.
+   *
+   * Se acota a cero y a cien: un periodo con mas gasto que ingreso daria negativo y la
+   * aguja se saldria de la esfera, y el exceso no es informacion que un medidor pueda
+   * mostrar. La cifra del centro sigue siendo el balance de verdad.
+   */
+  readonly tasaDeAhorro = computed(() => {
+    const entra = this.income();
+    if (entra <= 0) return 0;
+    return Math.max(0, Math.min(100, Math.round((this.net() / entra) * 100)));
+  });
+
+  /** Tasa de ahorro del periodo, con los tres tramos marcados en la esfera. */
+  readonly medidorOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const tasa = this.tasaDeAhorro();
+    return {
+      series: [
+        {
+          type: 'gauge' as const,
+          startAngle: 200,
+          endAngle: -20,
+          min: 0,
+          max: 100,
+          radius: '96%',
+          center: ['50%', '64%'],
+          progress: { show: false },
+          // Los tramos son los de siempre en finanzas personales: por debajo del diez por
+          // ciento no se esta guardando, hasta el veinte se va justo, y de ahi arriba el
+          // periodo cierra con holgura.
+          axisLine: {
+            lineStyle: {
+              width: 16,
+              color: [
+                [0.1, this.conAlfa(palette.danger, 0.75)],
+                [0.2, this.conAlfa(palette.warn, 0.75)],
+                [1, this.conAlfa(palette.accent, 0.75)],
+              ],
+            },
+          },
+          pointer: { width: 5, length: '62%', itemStyle: { color: palette.text } },
+          anchor: {
+            show: true,
+            size: 14,
+            itemStyle: { color: palette.surface, borderColor: palette.text, borderWidth: 2 },
+          },
+          axisTick: { distance: -18, length: 5, lineStyle: { color: palette.surface, width: 1 } },
+          splitLine: { distance: -18, length: 10, lineStyle: { color: palette.surface, width: 2 } },
+          axisLabel: { distance: 22, color: palette.muted, fontSize: 10, formatter: (valor: number) => `${valor}%` },
+          detail: {
+            valueAnimation: true,
+            offsetCenter: [0, '38%'],
+            color: palette.text,
+            fontSize: 26,
+            fontWeight: 700,
+            formatter: (valor: number) => `${valor}%`,
+          },
+          title: { offsetCenter: [0, '70%'], color: palette.muted, fontSize: 12 },
+          data: [{ value: tasa, name: 'de lo que entro se queda' }],
+        },
       ],
     };
   });

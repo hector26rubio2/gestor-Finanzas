@@ -489,7 +489,13 @@
 }
 .week {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  /*
+   * Un fr a secas no baja de su contenido: cada celda se planta en su ancho
+   * minimo y las siete juntas empujan el documento a lo ancho. Con minmax(0, 1fr)
+   * la semana cabe en el hueco que tenga, que es lo que hace falta entre 700 y
+   * 1100 px, donde el mes convive con la agenda al lado.
+   */
+  grid-template-columns: repeat(7, minmax(0, 1fr));
 }
 .names {
   padding: 8px 0;
@@ -1485,7 +1491,7 @@ ol span {
     grid-template-columns: repeat(2, 1fr);
   }
   .calendar-layout {
-    grid-template-columns: 1fr 260px;
+    grid-template-columns: minmax(0, 1fr) 260px;
   }
   .scenario {
     grid-template-columns: 1fr 1fr;

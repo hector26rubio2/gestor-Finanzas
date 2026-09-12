@@ -133,14 +133,28 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
   private previousFocus: HTMLElement | null = null;
   private pointerStartedOnBackdrop = false;
   private emittedClose = false;
+  /**
+   * Se recuerda quien tenia el foco al construirse, no al pintarse.
+   *
+   * Entre una cosa y otra cabe el desmontaje de otro panel, y al desmontarse ese devuelve
+   * el foco a su propio disparador: el panel nuevo acababa recordando un boton que no era
+   * el suyo y, al cerrarse, mandaba el foco a la otra punta de la pantalla. Solo se nota
+   * al abrir un panel justo despues de cerrar otro, que es donde lo cazo la suite.
+   */
+  private readonly abridor = typeof document === 'undefined' ? null : (document.activeElement as HTMLElement | null);
+
   ngAfterViewInit(): void {
-    this.previousFocus = document.activeElement as HTMLElement;
+    this.previousFocus = this.abridor;
     this.dialog.nativeElement.showModal();
     this.closeButton.nativeElement.focus();
   }
   ngOnDestroy(): void {
     if (this.dialog.nativeElement.open) this.dialog.nativeElement.close();
-    if (this.previousFocus?.isConnected) this.previousFocus.focus();
+    // Solo se devuelve el foco si nadie se lo ha llevado ya a otro sitio con sentido:
+    // robarselo a la pantalla que acaba de recibirlo es peor que no devolverlo.
+    const activo = document.activeElement;
+    const nadieLoTiene = !activo || activo === document.body || this.dialog.nativeElement.contains(activo);
+    if (nadieLoTiene && this.previousFocus?.isConnected) this.previousFocus.focus();
   }
   requestClose(): void {
     if (this.dialog.nativeElement.open) this.dialog.nativeElement.close();

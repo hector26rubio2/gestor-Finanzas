@@ -1,5 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
+import { DemoStore } from '../core/store';
 
 /**
  * Lo que se enseña cuando la sesión no tiene ninguna sección abierta.
@@ -13,12 +15,20 @@ import { RemoteBootstrap } from '../core/remote-bootstrap';
 @Component({
   selector: 'demo-sin-seccion',
   standalone: true,
+  imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sin-seccion.html',
   styleUrl: './sin-seccion.css',
 })
 export class SinSeccionComponent {
   private readonly arranque = inject(RemoteBootstrap);
+  private readonly store = inject(DemoStore);
+
+  /**
+   * A esta ruta se llega tecleandola, y sin sesion el texto daba por hecho lo contrario:
+   * hablaba de permisos y de banderas a quien todavia no habia entrado.
+   */
+  readonly haySesion = computed(() => !!this.store.user());
 
   /** Quien administra puede conceder el acceso mientras esta pantalla está abierta. */
   reintentar(): void {

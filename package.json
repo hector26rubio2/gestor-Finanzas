@@ -12,7 +12,8 @@
     "test": "ng test --watch=false",
     "lint": "eslint src --config eslint.config.cjs",
     "format:check": "prettier --check src",
-    "test:ui": "node scripts/visual-test.mjs"
+    "test:ui": "node scripts/visual-test.mjs",
+    "test:permisos": "node scripts/permisos-por-seccion.mjs"
   },
   "dependencies": {
     "echarts": "^6.1.0",

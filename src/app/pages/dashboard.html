@@ -232,7 +232,27 @@
       />
       } @else {
       <p class="empty">No hay datos para estos filtros.</p>
-      } } @case ('heatmap') { @if (timeline().length) {
+      } }
+      @case ('gauge') {
+        @if (income() > 0) {
+          <demo-chart
+            [option]="medidorOption()"
+            [height]="250"
+            [ariaLabel]="
+              'Tasa de ahorro del periodo: ' +
+              tasaDeAhorro() +
+              ' por ciento. Se guardan ' +
+              store.money(net()) +
+              ' de ' +
+              store.money(income()) +
+              ' que entraron.'
+            "
+          />
+        } @else {
+          <p class="empty">Sin ingresos en el periodo no hay tasa de ahorro que medir.</p>
+        }
+      }
+      @case ('heatmap') { @if (timeline().length) {
       <demo-chart
         [option]="intensidadOption()"
         [height]="200"

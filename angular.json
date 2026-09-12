@@ -18,20 +18,18 @@
                 "input": "public"
               }
             ],
-            "styles": [
-              "src/styles.css"
-            ],
-            "outputPath": "dist",
-            "budgets": [
-              {
-                "type": "initial",
-                "maximumWarning": "700kB",
-                "maximumError": "1MB"
-              }
-            ]
+            "styles": ["src/styles.css"],
+            "outputPath": "dist"
           },
           "configurations": {
             "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "700kB",
+                  "maximumError": "1MB"
+                }
+              ],
               "outputHashing": "all",
               "sourceMap": false,
               "extractLicenses": true,
