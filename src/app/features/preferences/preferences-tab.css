@@ -18,7 +18,7 @@
 .settings-grid article {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .member-list {

@@ -19,7 +19,7 @@
 .agenda {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .agenda .projected {

@@ -119,14 +119,14 @@
 .scenario > * {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .admin-flags,
 .audit-list {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   padding: 14px;
   display: grid;
   gap: 10px;

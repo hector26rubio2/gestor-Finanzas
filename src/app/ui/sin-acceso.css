@@ -1,6 +1,6 @@
 .sin-acceso {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: var(--surface);
   padding: 28px;
   display: grid;

@@ -10,7 +10,7 @@
 }
 .sin-acceso {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: var(--surface);
   padding: 28px;
   display: grid;
@@ -68,16 +68,16 @@ select {
   background: var(--surface);
   border: 1px solid var(--line);
   color: var(--text);
-  border-radius: 9px;
-  padding: 9px;
+  border-radius: 10px;
+  padding: 9px 12px;
 }
 .filter-panel,
 .widget,
 .recent {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 18px;
+  border-radius: var(--radius);
+  padding: 22px 24px;
 }
 .filter-panel {
   box-shadow: var(--shadow);
@@ -164,7 +164,7 @@ button:disabled {
 .kpis {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
+  gap: 16px;
 }
 .kpis demo-kpi {
   min-width: 0;
@@ -181,10 +181,16 @@ button:disabled {
   padding: 6px;
   max-width: 132px;
 }
+/*
+ * `align-items: start` en vez del stretch por defecto: dos widgets vecinos casi nunca
+ * tienen la misma cantidad de contenido, y estirar el mas corto a la altura del otro
+ * dejaba un hueco vacio al fondo de la tarjeta que no comunicaba nada.
+ */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  align-items: start;
+  gap: 18px;
   min-width: 0;
 }
 .widget {
@@ -440,7 +446,7 @@ button:disabled {
 .category-list,
 .account-list {
   display: grid;
-  gap: 7px;
+  gap: 4px;
 }
 .category-list button {
   display: grid;
@@ -456,12 +462,21 @@ button:disabled {
 .category-list small {
   text-align: right;
 }
+/*
+ * La barra pertenece a la fila de encima, no a la de abajo: con el mismo espaciado en
+ * ambos lados no se distinguia de cual categoria era. El margen inferior separa un grupo
+ * del siguiente sin tocar el espaciado corto hacia su propia fila.
+ */
 .category-list em {
   grid-column: 1/-1;
   background: var(--line);
   height: 5px;
   border-radius: 8px;
   overflow: hidden;
+  margin-bottom: 10px;
+}
+.category-list em:last-child {
+  margin-bottom: 0;
 }
 .category-list em i {
   display: block;
