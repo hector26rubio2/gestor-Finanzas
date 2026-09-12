@@ -17,7 +17,12 @@
     }
   </nav>
 
-  @switch (tab()) { @case ('summary') {
+  @switch (tab()) { @case ('summary') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer usuarios, roles, banderas y errores reales. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="kpis">
     <article>
       <span>Usuarios activos</span><strong>{{ activeUsers() }}</strong
@@ -75,7 +80,12 @@
       </div>
     </article>
   </section>
-  } @case ('users') {
+  } } @case ('users') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer usuarios reales. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
@@ -125,7 +135,12 @@
     </div>
     <footer class="pager"><span>{{ filteredUsers().length }} usuarios</span><span>Página 1 de 1</span></footer>
   </section>
-  } @case ('roles') {
+  } } @case ('roles') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer roles reales. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="cards-head">
     <div>
       <h2>Roles y capacidades</h2>
@@ -165,7 +180,12 @@
     </article>
     }
   </section>
-  } @case ('flags') {
+  } } @case ('flags') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer banderas reales. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="panel">
     <div class="toolbar">
       <div>
@@ -193,7 +213,12 @@
       }
     </div>
   </section>
-  } @case ('audit') {
+  } } @case ('audit') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer el registro de auditoría real. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
@@ -238,7 +263,12 @@
     </div>
     <footer class="pager"><span>{{ filteredAudit().length }} eventos visibles</span><span>Página 1 de 1</span></footer>
   </section>
-  } @case ('errors') {
+  } } @case ('errors') { @if (sinDatosDeAdministracion()) {
+  <demo-empty
+    title="Administración no disponible en esta demo"
+    detail="Esta consola necesita una sesión conectada a la API para traer errores reales. Cambia a modo API para ver datos aquí."
+  />
+  } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
@@ -265,7 +295,7 @@
       }
     </div>
   </section>
-  } }
+  } } }
 </main>
 
 @if (selectedUser(); as user) {

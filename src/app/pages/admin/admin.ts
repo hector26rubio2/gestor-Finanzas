@@ -13,19 +13,20 @@ import {
   ApiPermissionLevel,
   ApiClientError,
   FinanceApiClient,
-} from '../core/api-client';
-import { P } from '../core/permissions';
-import { IconComponent } from '../ui/icon';
-import { UiOption, UiSelectComponent } from '../ui/select';
-import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../core/store';
+} from '../../core/api-client';
+import { P } from '../../core/permissions';
+import { IconComponent } from '../../ui/icon';
+import { UiOption, UiSelectComponent } from '../../ui/select';
+import { RemoteBootstrap } from '../../core/remote-bootstrap';
+import { CAPABILITIES, DemoStore } from '../../core/store';
+import { EmptyStateComponent } from '../../ui/ui';
 
 type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, UiSelectComponent],
+  imports: [CommonModule, FormsModule, IconComponent, UiSelectComponent, EmptyStateComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
   styleUrl: './admin.css',
@@ -52,6 +53,13 @@ export class AdminComponent implements OnInit {
     await this.arranque.pollSession();
   }
   readonly P = P;
+  /**
+   * `ngOnInit` solo pide datos en modo `api` (ver mas abajo): en modo demo los signals de
+   * usuarios/roles/banderas/errores se quedan en su valor inicial vacio y las tarjetas de
+   * resumen mostraban "0" en todo, indistinguible de una consola realmente rota. Con esta
+   * bandera el resumen explica la ausencia de datos en vez de mentir con ceros.
+   */
+  readonly sinDatosDeAdministracion = computed(() => this.store.runtime.mode !== 'api');
   readonly tab = signal<Tab>('summary');
   readonly users = signal<ApiAdminUser[]>([]);
   readonly roles = signal<readonly ApiAdminRole[]>([]);
