@@ -1,12 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ViewChild,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, ViewChild, computed, inject, signal } from '@angular/core';
 import { ReportsTabComponent } from '../features/reports/reports-tab';
 import { PeopleTabComponent } from '../features/people/people-tab';
 import { PortfolioTabComponent } from '../features/portfolio/portfolio-tab';
@@ -15,21 +7,20 @@ import { NotificationsTabComponent } from '../features/notifications/notificatio
 import { CalendarTabComponent } from '../features/calendar/calendar-tab';
 import { MovementsTabComponent } from '../features/movements/movements-tab';
 import { AccountsTabComponent } from '../features/accounts/accounts-tab';
+import { PreferencesTabComponent } from '../features/preferences/preferences-tab';
 import { MovementsBookService } from '../shared/movements/movements-book.service';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent, ManagementFormComponent } from '../forms';
 import { IconComponent } from '../ui/icon';
 import { SinAccesoComponent } from '../ui/sin-acceso';
 import { P } from '../core/permissions';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { applyTheme, CAPABILITIES, DemoStore } from '../core/store';
+import { CAPABILITIES, DemoStore } from '../core/store';
 import { OverlayComponent } from '../ui/ui';
-import { UiOption, UiSelectComponent } from '../ui/select';
-import { ApiAdminRole, ApiAuditEvent, ApiOrganizationMember, FinanceApiClient } from '../core/api-client';
+import { FinanceApiClient } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
-import { DemoAuditEvent } from '../core/demo-data';
 import { formatReturnRate } from '../core/money';
 
 /*
@@ -93,7 +84,6 @@ const SIN_DATO = '—';
     ManagementFormComponent,
     SinAccesoComponent,
     IconComponent,
-    UiSelectComponent,
     ReportsTabComponent,
     PeopleTabComponent,
     PortfolioTabComponent,
@@ -102,74 +92,18 @@ const SIN_DATO = '—';
     CalendarTabComponent,
     MovementsTabComponent,
     AccountsTabComponent,
+    PreferencesTabComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
   styleUrl: './workspace.css',
 })
-export class WorkspaceComponent implements AfterViewInit {
+export class WorkspaceComponent {
   readonly Math = Math;
   readonly store = inject(DemoStore);
   readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   readonly P = P;
-  /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
-  readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
-  /** Comprobacion puntual desde plantilla. */
-  readonly miembros = signal<readonly ApiOrganizationMember[]>([]);
-  readonly rolesDisponibles = signal<readonly ApiAdminRole[]>([]);
-  readonly roleOptions = computed<readonly UiOption[]>(() =>
-    this.rolesDisponibles().map((role) => ({ value: role.id, label: role.name })),
-  );
-  readonly errorDeInvitacion = signal('');
-  correoInvitado = '';
-  nombreInvitado = '';
-  rolInvitado = '';
-
-  /**
-   * Suma a alguien al espacio.
-   *
-   * No se manda correo: la invitacion deja la membresia pendiente y la persona entra la
-   * primera vez que inicia sesion con esa direccion. Montar envio de correo es otro
-   * problema —servidor, dominio verificado, rebotes— y fingirlo seria peor que no tenerlo.
-   */
-  async invitar(evento: Event): Promise<void> {
-    evento.preventDefault();
-    this.errorDeInvitacion.set('');
-    const email = this.correoInvitado.trim();
-    if (!email || !this.rolInvitado) return;
-    try {
-      const miembro = await firstValueFrom(
-        this.api.inviteOrganizationMember({
-          email,
-          displayName: this.nombreInvitado.trim() || undefined,
-          roleIds: [this.rolInvitado],
-        }),
-      );
-      this.miembros.update((xs) => [...xs, miembro]);
-      this.correoInvitado = '';
-      this.nombreInvitado = '';
-      this.store.toast.set(`${miembro.email} entrará la próxima vez que inicie sesión.`);
-    } catch (error) {
-      this.errorDeInvitacion.set(error instanceof Error ? error.message : 'No fue posible invitar.');
-    }
-  }
-
-  private async cargarMiembros(): Promise<void> {
-    if (this.store.runtime.mode !== 'api' || !this.can(P.organizacion.miembros.listar)) return;
-    try {
-      const [gente, roles] = await Promise.all([
-        firstValueFrom(this.api.organizationMembers()),
-        this.can(P.administracion.roles.listar) ? firstValueFrom(this.api.adminRoles()) : Promise.resolve([]),
-      ]);
-      this.miembros.set(gente);
-      this.rolesDisponibles.set(roles);
-      if (!this.rolInvitado && roles.length) this.rolInvitado = roles[0].id;
-    } catch {
-      /* sin lista: la seccion queda vacia y el resto de Preferencias sigue */
-    }
-  }
-
   /**
    * Vistas cuyo contenido son bloques sueltos, cada uno con su permiso.
    *
@@ -209,40 +143,8 @@ export class WorkspaceComponent implements AfterViewInit {
     return this.capabilities.allows(permiso);
   }
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
-  private movementRequest = 0;
-  readonly auditEvents = signal<readonly ApiAuditEvent[]>([]);
-  readonly auditActor = signal('all');
-  readonly auditModule = signal('all');
-  readonly demoAuditEvents = computed<readonly DemoAuditEvent[]>(() => this.store.data().auditEvents);
-  readonly normalizedAuditEvents = computed<readonly DemoAuditEvent[]>(() =>
-    this.store.runtime.mode === 'demo'
-      ? this.demoAuditEvents()
-      : this.auditEvents().map((event) => ({
-          id: event.id,
-          createdAt: event.createdAt,
-          actor: 'Usuario autenticado',
-          action: event.action,
-          module: event.entityType,
-          entityType: event.entityType,
-          entityId: event.entityId ?? '',
-          result: 'Exitoso',
-        })),
-  );
-  readonly auditActors = computed(() => [...new Set(this.normalizedAuditEvents().map((event) => event.actor))]);
-  readonly auditModules = computed(() => [...new Set(this.normalizedAuditEvents().map((event) => event.module))]);
-  readonly visibleAuditEvents = computed(() =>
-    this.normalizedAuditEvents().filter(
-      (event) =>
-        (this.auditActor() === 'all' || event.actor === this.auditActor()) &&
-        (this.auditModule() === 'all' || event.module === this.auditModule()),
-    ),
-  );
-  readonly featureFlagRows = computed(() =>
-    Object.entries(this.store.featureFlags()).map(([key, enabled]) => ({ key, enabled })),
-  );
   readonly page = computed(() => this.route.snapshot.url[0]?.path ?? 'movements');
   readonly meta = computed(() => labels[this.page()] ?? labels['movements']);
   readonly cardPaymentAmount = signal(500000);
@@ -308,54 +210,6 @@ export class WorkspaceComponent implements AfterViewInit {
     { value: '2026-06', label: 'Junio 2026' },
     { value: '2026-05', label: 'Mayo 2026' },
   ];
-  readonly themes = [
-    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#0b2830 50%)' },
-    { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#087f68 50%)' },
-    { id: 'dark', label: 'Noche esmeralda', preview: 'linear-gradient(135deg,#082128 50%,#29b98f 50%)' },
-    { id: 'ocean', label: 'Azul profundo', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
-    { id: 'sand', label: 'Marfil cálido', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
-    { id: 'berry', label: 'Ciruela', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },
-  ] as const;
-  readonly fonts = [
-    { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
-    { label: 'DM Sans', value: "'DM Sans', system-ui, sans-serif" },
-    { label: 'Manrope', value: 'Manrope, system-ui, sans-serif' },
-    { label: 'Arial', value: 'Arial, sans-serif' },
-    { label: 'Verdana', value: 'Verdana, sans-serif' },
-    { label: 'Trebuchet', value: "'Trebuchet MS', sans-serif" },
-    { label: 'Georgia', value: 'Georgia, serif' },
-    { label: 'Palatino', value: "'Palatino Linotype', serif" },
-    { label: 'Courier', value: "'Courier New', monospace" },
-    { label: 'System UI', value: 'system-ui, sans-serif' },
-  ];
-  readonly fontOptions: readonly UiOption[] = this.fonts.map((font) => ({ value: font.value, label: font.label }));
-  readonly languageOptions: readonly UiOption[] = [
-    { value: 'es-CO', label: 'Español (Colombia)' },
-    { value: 'en-US', label: 'English (United States)' },
-    { value: 'pt-BR', label: 'Português (Brasil)' },
-    { value: 'fr-FR', label: 'Français' },
-  ];
-  readonly densityOptions: readonly UiOption[] = [
-    { value: 'comfortable', label: 'Cómoda' },
-    { value: 'compact', label: 'Compacta' },
-  ];
-  readonly userColumns = [
-    { key: 'name', label: 'Miembro' },
-    { key: 'email', label: 'Correo' },
-    { key: 'role', label: 'Perfil' },
-    { key: 'status', label: 'Estado' },
-    { key: 'access', label: 'Capacidades' },
-  ];
-  readonly userRows = this.store.users.map((u) => ({
-    name: u.name,
-    email: u.email,
-    role: u.id === 'demo-owner' ? 'Administradora' : 'Revisor',
-    status: 'Activo',
-    access: u.capabilities.length + ' capacidades',
-  }));
-  ngAfterViewInit(): void {
-    void this.cargarMiembros();
-  }
   @ViewChild('reportsTab') private reportsTabRef?: ReportsTabComponent;
   /** El boton de exportar vive en la cabecera compartida; la logica real es de la pestaña. */
   exportReport(): void {
@@ -596,74 +450,5 @@ export class WorkspaceComponent implements AfterViewInit {
   /** El boton vive en la cabecera compartida; la logica real es de la pestaña. */
   readAll(): void {
     void this.notificationsTabRef?.readAll();
-  }
-  setTheme(theme: (typeof this.themes)[number]['id']) {
-    this.store.preferences.update((p) => ({ ...p, theme }));
-    applyTheme(theme);
-    this.persistPreferences();
-  }
-  setFont(font: string) {
-    this.store.preferences.update((p) => ({ ...p, font }));
-    document.documentElement.style.setProperty('--font', font);
-    this.persistPreferences();
-  }
-  setLocale(locale: string) {
-    this.store.preferences.update((value) => ({ ...value, locale }));
-    this.store.log('Formato regional actualizado');
-    this.persistPreferences();
-  }
-  setAccent(accent: string) {
-    this.store.preferences.update((value) => ({ ...value, accent }));
-    document.documentElement.style.setProperty('--accent', accent);
-    this.persistPreferences();
-  }
-  setThemeValue(key: 'name' | 'primary' | 'secondary' | 'text' | 'surface' | 'border', value: string) {
-    this.store.preferences.update((preferences) => ({ ...preferences, [key]: value }));
-    const cssKey = (
-      {
-        primary: '--accent',
-        secondary: '--secondary',
-        text: '--text',
-        surface: '--surface',
-        border: '--line',
-      } as Record<string, string>
-    )[key];
-    if (cssKey) document.documentElement.style.setProperty(cssKey, value);
-  }
-  saveCustomTheme() {
-    this.persistPreferences();
-    this.store.log(`Tema “${this.store.preferences().name}” guardado`);
-  }
-  setDensity(density: 'comfortable' | 'compact') {
-    this.store.preferences.update((value) => ({ ...value, density }));
-    document.documentElement.dataset['density'] = density;
-    this.persistPreferences();
-  }
-  setRadius(radius: number | string) {
-    const value = Number(radius);
-    this.store.preferences.update((preferences) => ({ ...preferences, radius: value }));
-    document.documentElement.style.setProperty('--radius', `${value}px`);
-    this.persistPreferences();
-  }
-  chartPoints(values: readonly number[], maximum: number, width: number, height: number): string {
-    const safeMaximum = Math.max(1, maximum);
-    const drawableHeight = height - 20;
-    return values
-      .map((value, index) => {
-        const x = values.length < 2 ? width / 2 : (index / (values.length - 1)) * width;
-        const y = 10 + drawableHeight - (Math.max(0, value) / safeMaximum) * drawableHeight;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .join(' ');
-  }
-  private persistPreferences() {
-    void this.store
-      .persistPreferences()
-      .catch((error) =>
-        this.store.toast.set(error instanceof Error ? error.message : 'No fue posible guardar las preferencias.'),
-      );
-  }
-  async logout(): Promise<void> {
-    await this.arranque.cerrarSesion();
   }
 }
