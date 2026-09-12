@@ -114,7 +114,13 @@ export class DemoStore {
   private injector = inject(Injector);
   readonly data = signal(this.provider.load());
   readonly users = demoUsers;
-  readonly user = signal<(typeof demoUsers)[number] | null>(null);
+  /**
+   * `photoUrl` es opcional a proposito: hoy ningun usuario demo ni la sesion de la API
+   * lo traen (session.api.ts solo expone id/displayName/email), asi que queda `undefined`
+   * y el sidebar sigue mostrando iniciales. El campo existe para que, en cuanto el backend
+   * exponga la foto de la cuenta de Google, el avatar la use sin tocar mas que esa fuente.
+   */
+  readonly user = signal<((typeof demoUsers)[number] & { photoUrl?: string }) | null>(null);
   readonly remoteState = signal<'demo' | 'loading' | 'ready' | 'anonymous' | 'error'>(
     this.runtime.mode === 'demo' ? 'demo' : 'loading',
   );

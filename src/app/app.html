@@ -31,9 +31,18 @@
         (click)="profileOpen.update((v) => !v)"
         [attr.aria-expanded]="profileOpen()"
       >
+        @if (store.user()?.photoUrl) {
+        <img class="avatar" [src]="store.user()?.photoUrl" alt="" />
+        } @else {
         <span class="avatar">{{ userInitials() }}</span>
+        }
         <span class="profile-copy aside-label"
-          ><strong>{{ store.user()?.name }}</strong><small>{{ espacioActivo() }}</small></span
+          ><strong>{{ store.user()?.name }}</strong
+          ><small
+            >{{ espacioActivo() }} @if (store.organizations().length > 1) {
+            <b class="workspace-count">{{ store.organizations().length }}</b>
+            }</small
+          ></span
         >
         <demo-icon name="more" class="profile-more aside-label" />
       </button>
@@ -45,12 +54,6 @@
         <a routerLink="/settings" (click)="profileOpen.set(false)">{{ i18n.t('shell.profile') }}</a>
         <button type="button" (click)="logout()">{{ i18n.t('shell.logout') }}</button>
       </div>
-      }
-    </div>
-    <div class="workspace aside-label" [attr.aria-label]="'Espacio activo: ' + espacioActivo()">
-      <span>{{ espacioActivo() }}</span>
-      @if (store.organizations().length > 1) {
-      <small class="workspace-count">{{ store.organizations().length }}</small>
       }
     </div>
     <nav id="primary-navigation" aria-label="Navegación principal">

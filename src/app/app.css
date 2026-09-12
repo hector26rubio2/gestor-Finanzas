@@ -151,21 +151,6 @@ aside {
   color: var(--accent);
   font-size: 1.5rem;
 }
-.workspace {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--text);
-  padding: 7px 10px;
-  border-radius: 11px;
-  width: 100%;
-  margin: 5px 4px 12px;
-  justify-content: space-between;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
 .avatar {
   display: grid;
   place-items: center;
@@ -176,6 +161,7 @@ aside {
   color: var(--accent);
   font-size: 0.72rem;
   font-weight: 700;
+  object-fit: cover;
 }
 .collapsed .aside-label {
   display: none;
@@ -367,9 +353,6 @@ nav a:hover .nav-icon {
 .profile-menu button:hover {
   background: var(--accent-soft);
 }
-.collapsed .profile {
-  order: 2;
-}
 .collapsed .profile-trigger {
   justify-content: center;
   padding: 6px 0;
@@ -469,7 +452,7 @@ main {
 .toast {
   position: fixed;
   right: 24px;
-  bottom: 24px;
+  top: 24px;
   z-index: 100;
   background: var(--text);
   color: var(--bg);
