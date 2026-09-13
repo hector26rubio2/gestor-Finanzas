@@ -248,6 +248,21 @@ textarea {
     box-shadow 0.16s ease,
     background-color 0.16s ease;
 }
+/**
+ * Envoltorio de una etiqueta con su control, reutilizable entre formularios.
+ * `.field-full` la extiende a las dos columnas de un `.form-grid` de dos columnas.
+ */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.field-full {
+  grid-column: 1 / -1;
+}
 select {
   appearance: none;
   padding-right: 34px;

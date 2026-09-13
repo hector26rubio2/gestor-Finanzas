@@ -1,0 +1,7 @@
+<label class="field"
+  >{{ i18n.t('form.movement.field.category') }}<demo-select
+    name="category"
+    [(ngModel)]="model['category']"
+    [options]="categoryOptions()"
+    [ariaLabel]="i18n.t('form.movement.field.category')"
+/></label>

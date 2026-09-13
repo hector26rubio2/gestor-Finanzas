@@ -1,0 +1,32 @@
+<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
+  ><form (ngSubmit)="submit()">
+    @let vis = visibility();
+    <demo-movement-kind-selector
+      [kind]="model['kind']"
+      [options]="types()"
+      [ariaLabel]="i18n.t('form.movement.typeGroup')"
+      (kindChange)="setKind($event)"
+    />
+    <div class="form-grid">
+      <demo-movement-core-fields [model]="model" [kind]="model['kind']" [showTargetAccount]="vis.showTargetAccount" />
+      @if (vis.showCategory) {
+      <demo-movement-category-field [model]="model" [kind]="model['kind']" />
+      } @if (vis.showPerson) {
+      <demo-movement-loan-fields [model]="model" [showLoan]="vis.showLoan" />
+      } @if (vis.showRecurrence) {
+      <demo-movement-recurrence-fields [model]="model" />
+      } @if (vis.showInstallments) {
+      <demo-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
+      } @if (vis.showCurrency) {
+      <demo-movement-currency-fields [model]="model" />
+      }
+    </div>
+    @if (error()) {
+    <p class="error" role="alert">{{ error() }}</p>
+    }
+    <footer>
+      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button
+      ><button class="primary" type="submit">{{ i18n.t('form.movement.actions.save') }}</button>
+    </footer>
+  </form></demo-overlay
+>
