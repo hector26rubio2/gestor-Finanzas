@@ -8,9 +8,7 @@ import {
   ApiAdminRole,
   ApiAdminUser,
   ApiAuditEvent,
-  ApiPermissionAction,
   ApiPermissionDescriptor,
-  ApiPermissionLevel,
   ApiClientError,
   FinanceApiClient,
 } from '../../core/api-client';
@@ -20,6 +18,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { EmptyStateComponent } from '../../ui/ui';
+import { I18nService } from '../../core/i18n';
 
 type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 
@@ -36,6 +35,7 @@ export class AdminComponent implements OnInit {
   private api = inject(FinanceApiClient);
   private readonly arranque = inject(RemoteBootstrap);
   readonly caps = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
 
   /**
    * Vuelve a leer la sesion en cuanto se toca algo que cambia accesos.
@@ -77,35 +77,49 @@ export class AdminComponent implements OnInit {
   auditSearch = '';
   auditAction = 'all';
   errorStatus = 'all';
-  readonly userStatusOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todos los estados' },
-    { value: 'active', label: 'Activos' },
-    { value: 'inactive', label: 'Desactivados' },
-  ];
-  readonly auditActionOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todas las acciones' },
-    { value: 'create', label: 'Creación' },
-    { value: 'update', label: 'Cambios' },
-    { value: 'access', label: 'Accesos' },
-  ];
-  readonly errorStatusOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todos los estados' },
-    { value: 'new', label: 'Nuevos' },
-    { value: 'investigating', label: 'En análisis' },
-    { value: 'resolved', label: 'Resueltos' },
-  ];
-  readonly errorStateOptions = this.errorStatusOptions.filter((option) => option.value !== 'all');
+  readonly userStatusOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('admin.users.status.all') },
+    { value: 'active', label: this.i18n.t('admin.users.status.active') },
+    { value: 'inactive', label: this.i18n.t('admin.users.status.inactive') },
+  ]);
+  readonly auditActionOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('admin.audit.action.all') },
+    { value: 'create', label: this.i18n.t('admin.audit.action.create') },
+    { value: 'update', label: this.i18n.t('admin.audit.action.update') },
+    { value: 'access', label: this.i18n.t('admin.audit.action.access') },
+  ]);
+  readonly errorStatusOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('admin.errors.status.all') },
+    { value: 'new', label: this.i18n.t('admin.errors.status.new') },
+    { value: 'investigating', label: this.i18n.t('admin.errors.status.investigating') },
+    { value: 'resolved', label: this.i18n.t('admin.errors.status.resolved') },
+  ]);
+  readonly errorStateOptions = computed(() => this.errorStatusOptions().filter((option) => option.value !== 'all'));
   private readonly allTabs = [
-    { id: 'summary' as Tab, label: 'Resumen', icon: 'dashboard', capability: P.administracion.ver },
-    { id: 'users' as Tab, label: 'Usuarios', icon: 'people', capability: P.administracion.usuarios.listar },
-    { id: 'roles' as Tab, label: 'Roles y capacidades', icon: 'shield', capability: P.administracion.roles.listar },
-    { id: 'flags' as Tab, label: 'Feature Flags', icon: 'flag', capability: P.administracion.banderas.listar },
-    { id: 'audit' as Tab, label: 'Auditoría', icon: 'list', capability: P.administracion.auditoria.listar },
-    { id: 'errors' as Tab, label: 'Errores', icon: '!', capability: P.administracion.errores.listar },
+    { id: 'summary' as Tab, labelKey: 'admin.tabs.summary', icon: 'dashboard', capability: P.administracion.ver },
+    { id: 'users' as Tab, labelKey: 'admin.tabs.users', icon: 'people', capability: P.administracion.usuarios.listar },
+    {
+      id: 'roles' as Tab,
+      labelKey: 'admin.tabs.roles',
+      icon: 'shield',
+      capability: P.administracion.roles.listar,
+    },
+    {
+      id: 'flags' as Tab,
+      labelKey: 'admin.tabs.flags',
+      icon: 'flag',
+      capability: P.administracion.banderas.listar,
+    },
+    { id: 'audit' as Tab, labelKey: 'admin.tabs.audit', icon: 'list', capability: P.administracion.auditoria.listar },
+    { id: 'errors' as Tab, labelKey: 'admin.tabs.errors', icon: '!', capability: P.administracion.errores.listar },
   ];
 
   /** La consola era todo o nada: quien entraba veía y podía las seis pestañas. */
-  readonly tabs = computed(() => this.allTabs.filter((item) => this.caps.allows(item.capability)));
+  readonly tabs = computed(() =>
+    this.allTabs
+      .filter((item) => this.caps.allows(item.capability))
+      .map((item) => ({ id: item.id, icon: item.icon, label: this.i18n.t(item.labelKey) })),
+  );
   /**
    * Lo que se concede son permisos, y es lo que hay que contar.
    *
@@ -127,11 +141,22 @@ export class AdminComponent implements OnInit {
     return [...groups.entries()].map(([name, items]) => ({ name, items }));
   });
 
+  private readonly accionKeys: Readonly<Record<number, string>> = {
+    1: 'view',
+    2: 'list',
+    3: 'create',
+    4: 'edit',
+    5: 'delete',
+    6: 'disable',
+    7: 'export',
+  };
+  private readonly nivelKeys: Readonly<Record<number, string>> = { 1: 'basic', 2: 'advanced', 3: 'premium' };
   accionDe(permiso: ApiPermissionDescriptor): string {
-    return ApiPermissionAction[permiso.action] ?? 'Acción';
+    const clave = this.accionKeys[permiso.action];
+    return this.i18n.t(clave ? `admin.permissions.action.${clave}` : 'admin.permissions.action.fallback');
   }
   nivelDe(permiso: ApiPermissionDescriptor): string {
-    return ApiPermissionLevel[permiso.level] ?? 'básico';
+    return this.i18n.t(`admin.permissions.level.${this.nivelKeys[permiso.level] ?? 'basic'}`);
   }
   marcadosEn(items: readonly ApiPermissionDescriptor[]): number {
     const concedidos = this.roleDraft()?.permissions ?? [];
@@ -191,7 +216,11 @@ export class AdminComponent implements OnInit {
   readonly flagRows = computed(() =>
     this.adminFlags().map((flag) => ({
       ...flag,
-      audience: flag.userId ? 'Usuario' : flag.organizationId ? 'Organización' : 'Global',
+      audience: flag.userId
+        ? this.i18n.t('admin.flags.audience.user')
+        : flag.organizationId
+          ? this.i18n.t('admin.flags.audience.organization')
+          : this.i18n.t('admin.flags.audience.global'),
     })),
   );
   /** Una fila por función de plataforma, usando el valor global como base. */
@@ -268,7 +297,7 @@ export class AdminComponent implements OnInit {
         })),
       );
     } catch {
-      this.store.toast.set('No fue posible cargar los datos de la consola de administración.');
+      this.store.toast.set(this.i18n.t('admin.toast.loadFailed'));
     }
   }
   initials(n: string) {
@@ -280,7 +309,7 @@ export class AdminComponent implements OnInit {
       .toUpperCase();
   }
   actor(id: string | null) {
-    return this.users().find((x) => x.id === id)?.displayName ?? 'Sistema';
+    return this.users().find((x) => x.id === id)?.displayName ?? this.i18n.t('admin.audit.systemActor');
   }
   /** Recursos que toca un rol, para resumirlo sin repetir los ciento doce codigos. */
   recursosDe(role: ApiAdminRole): readonly string[] {
@@ -303,7 +332,7 @@ export class AdminComponent implements OnInit {
     firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, anulacion.code, null))
       .then(() => this.refrescarAccesos())
       .then(() => this.recargarUsuarios())
-      .catch(() => this.store.toast.set('No fue posible quitar la excepción.'));
+      .catch(() => this.store.toast.set(this.i18n.t('admin.toast.removeOverrideFailed')));
   }
 
   /** Permisos vigentes de la persona, tal como los resolvio el servidor. */
@@ -318,7 +347,11 @@ export class AdminComponent implements OnInit {
     return items.filter((permiso) => concedidos.includes(permiso.code)).length;
   }
   errorLabel(s: ApiClientError['status']) {
-    return s === 'new' ? 'Nuevo' : s === 'investigating' ? 'En análisis' : 'Resuelto';
+    return s === 'new'
+      ? this.i18n.t('admin.errors.state.new')
+      : s === 'investigating'
+        ? this.i18n.t('admin.errors.state.investigating')
+        : this.i18n.t('admin.errors.state.resolved');
   }
   memberCount(roleId: string) {
     return this.users().filter((u) => u.memberships?.some((m) => m.roles.some((r) => r.id === roleId))).length;
@@ -346,7 +379,7 @@ export class AdminComponent implements OnInit {
   setUserActive(u: ApiAdminUser, v: boolean) {
     this.patchUser({ ...u, isActive: v });
     firstValueFrom(this.api.setAdminUserActive(u.id, v)).catch(() =>
-      this.store.toast.set('No fue posible cambiar el estado del usuario.'),
+      this.store.toast.set(this.i18n.t('admin.toast.userActiveFailed')),
     );
   }
   async toggleUserRole(user: ApiAdminUser, roleId: string) {
@@ -364,7 +397,7 @@ export class AdminComponent implements OnInit {
         memberships: user.memberships?.map((m) => (m.organizationId === organizationId ? { ...m, roles } : m)),
       });
     } catch {
-      this.store.toast.set('No fue posible asignar el rol.');
+      this.store.toast.set(this.i18n.t('admin.toast.assignRoleFailed'));
     }
   }
   /**
@@ -397,7 +430,7 @@ export class AdminComponent implements OnInit {
     firstValueFrom(this.api.setAdminUserCapability(u.id, organizationId, code, !concedido))
       .then(() => this.refrescarAccesos())
       .then(() => this.recargarUsuarios())
-      .catch(() => this.store.toast.set('No fue posible aplicar el cambio de permiso.'));
+      .catch(() => this.store.toast.set(this.i18n.t('admin.toast.togglePermissionFailed')));
   }
 
   /** Vuelve a pedir la lista para que lo mostrado sea lo que resolvio el servidor. */
@@ -445,7 +478,7 @@ export class AdminComponent implements OnInit {
     const r = this.roleDraft();
     if (!r || !r.name.trim()) return;
     if (!r.organizationId) {
-      this.store.toast.set('Selecciona una organización para el rol.');
+      this.store.toast.set(this.i18n.t('admin.toast.selectOrganization'));
       return;
     }
     try {
@@ -467,7 +500,11 @@ export class AdminComponent implements OnInit {
     } catch (error) {
       // El servidor dice qué código sobra; callarlo dejaba un «no fue posible» sin pista.
       const motivo = error instanceof Error ? error.message : '';
-      this.store.toast.set(motivo ? `No fue posible guardar el rol: ${motivo}` : 'No fue posible guardar el rol.');
+      this.store.toast.set(
+        motivo
+          ? this.i18n.t('admin.toast.saveRoleFailedReason', { reason: motivo })
+          : this.i18n.t('admin.toast.saveRoleFailed'),
+      );
     }
   }
   toggleFlag(flag: { key: string; organizationId: string | null; userId: string | null; isEnabled: boolean }) {
@@ -485,46 +522,47 @@ export class AdminComponent implements OnInit {
         userId: flag.userId,
         isEnabled,
       }),
-    ).catch(() => this.store.toast.set('No fue posible actualizar el flag.'));
+    ).catch(() => this.store.toast.set(this.i18n.t('admin.toast.updateFlagFailed')));
   }
 
+  private readonly featureKeys: ReadonlySet<string> = new Set([
+    'dashboard',
+    'movements',
+    'calendar',
+    'accounts',
+    'people',
+    'portfolio',
+    'planning',
+    'reports',
+    'notifications',
+    'settings',
+  ]);
   featureLabel(key: string): string {
-    const labels: Record<string, string> = {
-      dashboard: 'Dashboard',
-      movements: 'Movimientos',
-      calendar: 'Calendario',
-      accounts: 'Cuentas y tarjetas',
-      people: 'Personas y deudas',
-      portfolio: 'Patrimonio',
-      planning: 'Planificación',
-      reports: 'Reportes',
-      notifications: 'Notificaciones',
-      settings: 'Preferencias',
-    };
-    return labels[key] ?? key;
+    // Mismas claves que el menú lateral (`nav.*`): son el mismo módulo visto desde dos pantallas.
+    return this.featureKeys.has(key) ? this.i18n.t(`nav.${key}`) : key;
   }
 
   enabledFeaturesFor(user: ApiAdminUser): number {
     return this.platformFlags().filter((flag) => this.featureEnabledFor(user, flag.key)).length;
   }
 
+  private readonly resourceKeys: ReadonlySet<string> = new Set([
+    'dashboard',
+    'movimientos',
+    'calendario',
+    'cuentas',
+    'personas',
+    'patrimonio',
+    'planificacion',
+    'reportes',
+    'notificaciones',
+    'preferencias',
+    'organizacion',
+    'administracion',
+    'sesion',
+  ]);
   resourceLabel(resource: string): string {
-    const labels: Record<string, string> = {
-      dashboard: 'Dashboard',
-      movimientos: 'Movimientos',
-      calendario: 'Calendario',
-      cuentas: 'Cuentas y tarjetas',
-      personas: 'Personas y deudas',
-      patrimonio: 'Patrimonio',
-      planificacion: 'Planificación',
-      reportes: 'Reportes',
-      notificaciones: 'Notificaciones',
-      preferencias: 'Preferencias',
-      organizacion: 'Organización',
-      administracion: 'Administración global',
-      sesion: 'Sesión',
-    };
-    return labels[resource] ?? resource;
+    return this.resourceKeys.has(resource) ? this.i18n.t(`admin.resources.${resource}`) : resource;
   }
 
   featureEnabledFor(user: ApiAdminUser, key: string): boolean {
@@ -554,10 +592,14 @@ export class AdminComponent implements OnInit {
       ]);
       await this.refrescarAccesos();
       this.store.toast.set(
-        `${this.featureLabel(key)} ${isEnabled ? 'habilitado' : 'deshabilitado'} para ${user.displayName}.`,
+        this.i18n.t('admin.toast.featureToggled', {
+          feature: this.featureLabel(key),
+          state: this.i18n.t(isEnabled ? 'admin.common.enabled' : 'admin.common.disabled'),
+          user: user.displayName,
+        }),
       );
     } catch {
-      this.store.toast.set('No fue posible cambiar la función para este usuario.');
+      this.store.toast.set(this.i18n.t('admin.toast.toggleFeatureFailed'));
     }
   }
   setErrorStatus(e: ApiClientError, status: ApiClientError['status']) {
@@ -565,7 +607,7 @@ export class AdminComponent implements OnInit {
     this.errors.update((xs) => xs.map((x) => (x.id === e.id ? next : x)));
     this.selectedError.set(next);
     firstValueFrom(this.api.updateAdminError(e.id, status)).catch(() =>
-      this.store.toast.set('No fue posible actualizar el estado del error.'),
+      this.store.toast.set(this.i18n.t('admin.toast.errorStatusFailed')),
     );
   }
 }

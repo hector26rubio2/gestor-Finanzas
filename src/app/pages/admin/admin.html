@@ -1,15 +1,15 @@
 <main class="admin-page">
   <header class="page-head">
     <div>
-      <h1>Administración</h1>
-      <p>Gobierna accesos, despliegues y trazabilidad desde un solo lugar.</p>
+      <h1>{{ i18n.t('admin.title') }}</h1>
+      <p>{{ i18n.t('admin.subtitle') }}</p>
     </div>
     <div class="health">
-      <i></i><span><b>Servicios operativos</b><small>Última verificación ahora</small></span>
+      <i></i><span><b>{{ i18n.t('admin.health.operational') }}</b><small>{{ i18n.t('admin.health.lastCheck') }}</small></span>
     </div>
   </header>
 
-  <nav class="tabs" aria-label="Secciones de administración">
+  <nav class="tabs" [attr.aria-label]="i18n.t('admin.nav.ariaLabel')">
     @for (item of tabs(); track item.id) {
     <button [class.active]="tab() === item.id" (click)="tab.set(item.id)">
       <demo-icon [name]="item.icon" />{{ item.label }}
@@ -19,36 +19,36 @@
 
   @switch (tab()) { @case ('summary') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer usuarios, roles, banderas y errores reales. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.summary.detail')"
   />
   } @else {
   <section class="kpis">
     <article>
-      <span>Usuarios activos</span><strong>{{ activeUsers() }}</strong
-      ><small>de {{ users().length }} registrados</small>
+      <span>{{ i18n.t('admin.summary.activeUsers.label') }}</span><strong>{{ activeUsers() }}</strong
+      ><small>{{ i18n.t('admin.summary.activeUsers.detail', { total: users().length }) }}</small>
     </article>
     <article>
-      <span>Roles configurados</span><strong>{{ roles().length }}</strong
-      ><small>{{ permissionCount() }} permisos concedibles</small>
+      <span>{{ i18n.t('admin.summary.roles.label') }}</span><strong>{{ roles().length }}</strong
+      ><small>{{ i18n.t('admin.summary.roles.detail', { count: permissionCount() }) }}</small>
     </article>
     <article>
-      <span>Funciones activas</span><strong>{{ enabledFlags() }}</strong
-      ><small>de {{ flagRows().length }} en despliegue</small>
+      <span>{{ i18n.t('admin.summary.flags.label') }}</span><strong>{{ enabledFlags() }}</strong
+      ><small>{{ i18n.t('admin.summary.flags.detail', { total: flagRows().length }) }}</small>
     </article>
     <article class="warn">
-      <span>Errores abiertos</span><strong>{{ openErrors() }}</strong
-      ><small>{{ errorOccurrences() }} ocurrencias agrupadas</small>
+      <span>{{ i18n.t('admin.summary.errors.label') }}</span><strong>{{ openErrors() }}</strong
+      ><small>{{ i18n.t('admin.summary.errors.detail', { count: errorOccurrences() }) }}</small>
     </article>
   </section>
   <section class="summary-grid">
     <article class="panel">
       <div class="panel-head">
         <div>
-          <h2>Actividad reciente</h2>
-          <p>Acciones relevantes en todas las áreas</p>
+          <h2>{{ i18n.t('admin.summary.recentActivity.title') }}</h2>
+          <p>{{ i18n.t('admin.summary.recentActivity.subtitle') }}</p>
         </div>
-        <button (click)="tab.set('audit')">Ver auditoría</button>
+        <button (click)="tab.set('audit')">{{ i18n.t('admin.summary.recentActivity.viewAudit') }}</button>
       </div>
       <div class="timeline">
         @for (event of auditRows().slice(0, 5); track event.id) {
@@ -65,15 +65,17 @@
     <article class="panel">
       <div class="panel-head">
         <div>
-          <h2>Control de acceso</h2>
-          <p>Distribución de usuarios</p>
+          <h2>{{ i18n.t('admin.summary.accessControl.title') }}</h2>
+          <p>{{ i18n.t('admin.summary.accessControl.subtitle') }}</p>
         </div>
-        <button (click)="tab.set('users')">Gestionar</button>
+        <button (click)="tab.set('users')">{{ i18n.t('admin.summary.accessControl.manage') }}</button>
       </div>
       <div class="access-bars">
         @for (role of roles(); track role.id) {
         <div>
-          <span><b>{{ role.name }}</b><small>{{ memberCount(role.id) }} miembros</small></span
+          <span
+            ><b>{{ role.name }}</b
+            ><small>{{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) }) }}</small></span
           ><progress [value]="memberCount(role.id)" [max]="users().length || 1"></progress>
         </div>
         }
@@ -82,29 +84,36 @@
   </section>
   } } @case ('users') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer usuarios reales. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.users.detail')"
   />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
-        <h2>Usuarios</h2>
-        <p>Acceso efectivo por persona, sin depender de nombres de rol.</p>
+        <h2>{{ i18n.t('admin.users.title') }}</h2>
+        <p>{{ i18n.t('admin.users.subtitle') }}</p>
       </div>
       <label class="search"
-        ><demo-icon name="search" /><input [(ngModel)]="userSearch" placeholder="Buscar nombre o correo" /></label
-      ><demo-select [(ngModel)]="userStatus" [options]="userStatusOptions" ariaLabel="Filtrar usuarios por estado" />
+        ><demo-icon name="search" /><input
+          [(ngModel)]="userSearch"
+          [placeholder]="i18n.t('admin.users.searchPlaceholder')"
+      /></label
+      ><demo-select
+        [(ngModel)]="userStatus"
+        [options]="userStatusOptions()"
+        [ariaLabel]="i18n.t('admin.users.statusFilterAriaLabel')"
+      />
     </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Usuario</th>
-            <th>Estado</th>
-            <th>Roles</th>
-            <th>Capacidades</th>
-            <th>Último acceso</th>
+            <th>{{ i18n.t('admin.users.column.user') }}</th>
+            <th>{{ i18n.t('admin.users.column.status') }}</th>
+            <th>{{ i18n.t('admin.users.column.roles') }}</th>
+            <th>{{ i18n.t('admin.users.column.capabilities') }}</th>
+            <th>{{ i18n.t('admin.users.column.lastAccess') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -118,14 +127,22 @@
               </div>
             </td>
             <td>
-              <span class="status" [class.off]="!user.isActive">{{ user.isActive ? 'Activo' : 'Desactivado' }}</span>
+              <span class="status" [class.off]="!user.isActive">{{
+                user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive')
+              }}</span>
             </td>
-            <td>{{ user.roles.join(', ') || 'Acceso directo' }}</td>
-            <td><b>{{ user.capabilities.length }}</b> asignadas</td>
-            <td>{{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : 'Sin acceso' }}</td>
+            <td>{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
+            <td><b>{{ user.capabilities.length }}</b> {{ i18n.t('admin.users.assignedSuffix') }}</td>
+            <td>
+              {{
+                user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess')
+              }}
+            </td>
             <td>
               @if (caps.allows(P.administracion.usuarios.editar)) {
-              <button class="icon-btn" aria-label="Administrar usuario" (click)="openUser(user)">→</button>
+              <button class="icon-btn" [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')" (click)="openUser(user)">
+                →
+              </button>
               }
             </td>
           </tr>
@@ -133,21 +150,24 @@
         </tbody>
       </table>
     </div>
-    <footer class="pager"><span>{{ filteredUsers().length }} usuarios</span><span>Página 1 de 1</span></footer>
+    <footer class="pager">
+      <span>{{ i18n.t('admin.users.countLabel', { count: filteredUsers().length }) }}</span
+      ><span>{{ i18n.t('admin.pager.singlePage') }}</span>
+    </footer>
   </section>
   } } @case ('roles') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer roles reales. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.roles.detail')"
   />
   } @else {
   <section class="cards-head">
     <div>
-      <h2>Roles y capacidades</h2>
-      <p>Los roles agrupan permisos; las excepciones se aplican por usuario.</p>
+      <h2>{{ i18n.t('admin.roles.title') }}</h2>
+      <p>{{ i18n.t('admin.roles.subtitle') }}</p>
     </div>
     @if (caps.allows(P.administracion.roles.crear)) {
-    <button class="primary" (click)="newRole()"><demo-icon name="plus" /> Crear rol</button>
+    <button class="primary" (click)="newRole()"><demo-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}</button>
     }
   </section>
   <section class="role-grid">
@@ -157,13 +177,13 @@
         <demo-icon name="shield" class="role-icon" />
         <span>
           <h3>{{ role.name }}</h3>
-          <small>{{ memberCount(role.id) }} miembros</small>
+          <small>{{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) }) }}</small>
         </span>
         @if (caps.allows(P.administracion.roles.editar)) {
         <button class="icon-btn" (click)="editRole(role)">✎</button>
         }
       </header>
-      <p>{{ role.description || 'Sin descripción.' }}</p>
+      <p>{{ role.description || i18n.t('admin.roles.noDescription') }}</p>
       <!--
                   Los recursos que toca el rol y cuantas acciones concede. Antes mostraba
                   nombres de capacidades, que es el vocabulario que la aplicacion ya no
@@ -173,27 +193,29 @@
         @for (recurso of recursosDe(role).slice(0, 4); track recurso) {
         <span>{{ recurso }}</span>
         } @if (recursosDe(role).length > 4) {
-        <span>+{{ recursosDe(role).length - 4 }}</span>
+        <span>{{ i18n.t('admin.roles.moreChip', { count: recursosDe(role).length - 4 }) }}</span>
         }
-        <span class="chip-cuenta">{{ role.permissions.length }} acciones</span>
+        <span class="chip-cuenta">{{ i18n.t('admin.roles.actionsCount', { count: role.permissions.length }) }}</span>
       </div>
     </article>
     }
   </section>
   } } @case ('flags') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer banderas reales. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.flags.detail')"
   />
   } @else {
   <section class="panel">
     <div class="toolbar">
       <div>
-        <h2>Feature Flags</h2>
-        <p>Entrega gradual por audiencia sin volver a desplegar.</p>
+        <h2>{{ i18n.t('admin.flags.title') }}</h2>
+        <p>{{ i18n.t('admin.flags.subtitle') }}</p>
       </div>
       <label class="search"
-        ><demo-icon name="search" /><input [(ngModel)]="flagSearch" placeholder="Buscar funcionalidad"
+        ><demo-icon name="search" /><input
+          [(ngModel)]="flagSearch"
+          [placeholder]="i18n.t('admin.flags.searchPlaceholder')"
       /></label>
     </div>
     <div class="flag-list">
@@ -215,31 +237,35 @@
   </section>
   } } @case ('audit') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer el registro de auditoría real. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.audit.detail')"
   />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
-        <h2>Auditoría</h2>
-        <p>Registro inmutable de acciones humanas y automáticas.</p>
+        <h2>{{ i18n.t('admin.audit.title') }}</h2>
+        <p>{{ i18n.t('admin.audit.subtitle') }}</p>
       </div>
       <label class="search"
         ><demo-icon name="search" /><input
           [(ngModel)]="auditSearch"
-          placeholder="Buscar acción, entidad o traza" /></label
-      ><demo-select [(ngModel)]="auditAction" [options]="auditActionOptions" ariaLabel="Filtrar auditoría por acción" />
+          [placeholder]="i18n.t('admin.audit.searchPlaceholder')" /></label
+      ><demo-select
+        [(ngModel)]="auditAction"
+        [options]="auditActionOptions()"
+        [ariaLabel]="i18n.t('admin.audit.actionFilterAriaLabel')"
+      />
     </div>
     <div class="table-wrap">
       <table>
         <thead>
           <tr>
-            <th>Fecha</th>
-            <th>Actor</th>
-            <th>Acción</th>
-            <th>Entidad</th>
-            <th>Trace ID</th>
+            <th>{{ i18n.t('admin.audit.column.date') }}</th>
+            <th>{{ i18n.t('admin.audit.column.actor') }}</th>
+            <th>{{ i18n.t('admin.audit.column.action') }}</th>
+            <th>{{ i18n.t('admin.audit.column.entity') }}</th>
+            <th>{{ i18n.t('admin.common.traceId') }}</th>
             <th></th>
           </tr>
         </thead>
@@ -261,21 +287,28 @@
         </tbody>
       </table>
     </div>
-    <footer class="pager"><span>{{ filteredAudit().length }} eventos visibles</span><span>Página 1 de 1</span></footer>
+    <footer class="pager">
+      <span>{{ i18n.t('admin.audit.countLabel', { count: filteredAudit().length }) }}</span
+      ><span>{{ i18n.t('admin.pager.singlePage') }}</span>
+    </footer>
   </section>
   } } @case ('errors') { @if (sinDatosDeAdministracion()) {
   <demo-empty
-    title="Administración no disponible en esta demo"
-    detail="Esta consola necesita una sesión conectada a la API para traer errores reales. Cambia a modo API para ver datos aquí."
+    [title]="i18n.t('admin.emptyState.title')"
+    [detail]="i18n.t('admin.emptyState.errors.detail')"
   />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
       <div>
-        <h2>Errores de aplicación</h2>
-        <p>Fallos agrupados y saneados desde web, escritorio y API.</p>
+        <h2>{{ i18n.t('admin.errors.title') }}</h2>
+        <p>{{ i18n.t('admin.errors.subtitle') }}</p>
       </div>
-      <demo-select [(ngModel)]="errorStatus" [options]="errorStatusOptions" ariaLabel="Filtrar errores por estado" />
+      <demo-select
+        [(ngModel)]="errorStatus"
+        [options]="errorStatusOptions()"
+        [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
+      />
     </div>
     <div class="error-list">
       @for (error of filteredErrors(); track error.id) {
@@ -284,8 +317,8 @@
         <div>
           <b>{{ error.message }}</b
           ><small
-            >{{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} · {{ error.affectedUsers }}
-            usuarios</small
+            >{{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} ·
+            {{ i18n.t('admin.errors.affectedUsersLabel', { count: error.affectedUsers }) }}</small
           >
         </div>
         <strong>{{ error.occurrences }}×</strong
@@ -299,7 +332,7 @@
 </main>
 
 @if (selectedUser(); as user) {
-<button class="drawer-scrim" (click)="selectedUser.set(null)" aria-label="Cerrar"></button>
+<button class="drawer-scrim" (click)="selectedUser.set(null)" [attr.aria-label]="i18n.t('admin.common.close')"></button>
 <aside class="drawer">
   <header>
     <div class="person">
@@ -318,7 +351,9 @@
           -->
     @if (caps.allows(P.administracion.usuarios.deshabilitar)) {
     <label class="active-row"
-      ><span><b>Acceso a la plataforma</b><small>Bloquea nuevas sesiones y acciones</small></span
+      ><span
+        ><b>{{ i18n.t('admin.users.drawer.accessTitle') }}</b
+        ><small>{{ i18n.t('admin.users.drawer.accessDetail') }}</small></span
       ><span class="switch"
         ><input
           type="checkbox"
@@ -326,8 +361,8 @@
           (change)="setUserActive(user, !user.isActive)" /><span></span></span
     ></label>
     } @if (rolesFor(user).length) {
-    <h3>Roles asignados</h3>
-    <p class="hint">Los roles suman capacidades a la membresía de la organización.</p>
+    <h3>{{ i18n.t('admin.users.drawer.rolesTitle') }}</h3>
+    <p class="hint">{{ i18n.t('admin.users.drawer.rolesHint') }}</p>
     <section class="cap-group">
       @for (role of rolesFor(user); track role.id) {
       <label
@@ -338,20 +373,30 @@
     </section>
     } @if (anulacionesDe(user).length) {
     <section class="excepciones">
-      <h3>Excepciones directas</h3>
+      <h3>{{ i18n.t('admin.users.drawer.overridesTitle') }}</h3>
       <p class="hint">
-        Mandan sobre los roles. Mientras estén puestas, cambiar el rol no altera lo que esta persona ve.
+        {{ i18n.t('admin.users.drawer.overridesHint') }}
       </p>
       @for (anulacion of anulacionesDe(user); track anulacion.code) {
       <div class="excepcion">
         <span>
-          <b>{{ anulacion.isAllowed ? 'Forzado a sí' : 'Forzado a no' }} · {{ anulacion.code }}</b>
+          <b
+            >{{
+              anulacion.isAllowed
+                ? i18n.t('admin.users.drawer.overrideForcedYes')
+                : i18n.t('admin.users.drawer.overrideForcedNo')
+            }}
+            · {{ anulacion.code }}</b
+          >
           <small>
-            @if (anulacion.affects.length > 1) { Alcanza a {{ anulacion.affects.length }} acciones } @else { Una acción
-            }
+            @if (anulacion.affects.length > 1) {
+            {{ i18n.t('admin.users.drawer.overrideAffectsMany', { count: anulacion.affects.length }) }}
+            } @else { {{ i18n.t('admin.users.drawer.overrideAffectsOne') }} }
           </small>
         </span>
-        <button class="quiet" (click)="quitarExcepcion(user, anulacion)">Quitar excepción</button>
+        <button class="quiet" (click)="quitarExcepcion(user, anulacion)">
+          {{ i18n.t('admin.users.drawer.removeOverride') }}
+        </button>
       </div>
       }
     </section>
@@ -359,12 +404,15 @@
     <details class="cap-group feature-user-list" open>
       <summary>
         <span class="summary-icon"><demo-icon name="menu" /></span>
-        <span><b>Funcionalidades</b><small>Módulos visibles en el menú lateral</small></span>
+        <span
+          ><b>{{ i18n.t('admin.users.drawer.featuresTitle') }}</b
+          ><small>{{ i18n.t('admin.users.drawer.featuresDetail') }}</small></span
+        >
         <span class="summary-count">{{ enabledFeaturesFor(user) }}/{{ platformFlags().length }}</span>
         <demo-icon name="chevronDown" class="summary-chevron" />
       </summary>
       <p class="hint section-hint">
-        “Ver” muestra el módulo en la navegación. Las acciones internas se administran en la sección siguiente.
+        {{ i18n.t('admin.users.drawer.featuresHint') }}
       </p>
       @for (flag of platformFlags(); track flag.key) {
       <label
@@ -378,10 +426,9 @@
       }
     </details>
     }
-    <h3>Permisos efectivos</h3>
+    <h3>{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
     <p class="hint">
-      Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre lo que
-      digan sus roles.
+      {{ i18n.t('admin.users.drawer.permissionsHint') }}
     </p>
     @for (group of permissionGroups(); track group.name) {
     <details class="cap-group">
@@ -407,24 +454,26 @@
   </div>
 </aside>
 } @if (roleDraft(); as role) {
-<button class="drawer-scrim" (click)="roleDraft.set(null)" aria-label="Cerrar"></button>
+<button class="drawer-scrim" (click)="roleDraft.set(null)" [attr.aria-label]="i18n.t('admin.common.close')"></button>
 <aside class="drawer">
   <header>
     <div>
-      <h2>{{ role.id ? 'Editar rol' : 'Crear rol' }}</h2>
-      <small>Define un conjunto reutilizable de capacidades.</small>
+      <h2>{{ role.id ? i18n.t('admin.roles.drawer.editTitle') : i18n.t('admin.roles.actions.create') }}</h2>
+      <small>{{ i18n.t('admin.roles.drawer.subtitle') }}</small>
     </div>
     <button class="icon-btn" (click)="roleDraft.set(null)">×</button>
   </header>
   <div class="drawer-body role-form">
-    <label>Nombre<input [(ngModel)]="role.name" /></label
-    ><label>Descripción<textarea [(ngModel)]="role.description"></textarea></label>
+    <label>{{ i18n.t('admin.roles.drawer.nameLabel') }}<input [(ngModel)]="role.name" /></label
+    ><label
+      >{{ i18n.t('admin.roles.drawer.descriptionLabel') }}<textarea [(ngModel)]="role.description"></textarea
+    ></label>
     @if (!role.id) {
     <label
-      >Organización<demo-select
+      >{{ i18n.t('admin.roles.drawer.organizationLabel') }}<demo-select
         [(ngModel)]="role.organizationId"
         [options]="organizationOptions()"
-        ariaLabel="Organización del rol"
+        [ariaLabel]="i18n.t('admin.roles.drawer.organizationAriaLabel')"
     /></label>
     } @for (group of permissionGroups(); track group.name) {
     <details class="cap-group">
@@ -432,13 +481,17 @@
         <span class="summary-icon"><demo-icon name="menu" /></span>
         <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
         <div class="cap-bulk">
-          <span>{{ marcadosEn(group.items) }} de {{ group.items.length }}</span>
+          <span>{{ i18n.t('admin.roles.drawer.checkedOfTotal', { checked: marcadosEn(group.items), total: group.items.length }) }}</span>
         </div>
         <demo-icon name="chevronDown" class="summary-chevron" />
       </summary>
       <div class="cap-actions">
-        <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">Seleccionar todo</button>
-        <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">Limpiar</button>
+        <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">
+          {{ i18n.t('admin.roles.drawer.selectAll') }}
+        </button>
+        <button type="button" class="quiet" (click)="marcarGrupo(group.items, false)">
+          {{ i18n.t('admin.roles.drawer.clear') }}
+        </button>
       </div>
       @for (permiso of group.items; track permiso.code) {
       <label [class.module-visibility]="permiso.code.endsWith('.ver')"
@@ -457,8 +510,8 @@
     }
   </div>
   <footer>
-    <button (click)="roleDraft.set(null)">Cancelar</button
-    ><button class="primary" (click)="saveRole()">Guardar rol</button>
+    <button (click)="roleDraft.set(null)">{{ i18n.t('admin.common.cancel') }}</button
+    ><button class="primary" (click)="saveRole()">{{ i18n.t('admin.roles.drawer.save') }}</button>
   </footer>
 </aside>
 } @if (selectedError(); as error) {
@@ -467,7 +520,7 @@
   <header>
     <div>
       <span class="eyebrow">{{ error.fingerprint }}</span>
-      <h2>Detalle del error</h2>
+      <h2>{{ i18n.t('admin.errors.drawer.title') }}</h2>
     </div>
     <button class="icon-btn" (click)="selectedError.set(null)">×</button>
   </header>
@@ -475,33 +528,33 @@
     <div class="error-hero"><b>{{ error.message }}</b><small>{{ error.source }} · {{ error.version }}</small></div>
     <dl>
       <div>
-        <dt>Ocurrencias</dt>
+        <dt>{{ i18n.t('admin.errors.drawer.occurrences') }}</dt>
         <dd>{{ error.occurrences }}</dd>
       </div>
       <div>
-        <dt>Usuarios afectados</dt>
+        <dt>{{ i18n.t('admin.errors.drawer.affectedUsers') }}</dt>
         <dd>{{ error.affectedUsers }}</dd>
       </div>
       <div>
-        <dt>Última vez</dt>
+        <dt>{{ i18n.t('admin.errors.drawer.lastSeen') }}</dt>
         <dd>{{ error.lastSeenAt | date: 'medium' }}</dd>
       </div>
       <div>
-        <dt>Trace ID</dt>
+        <dt>{{ i18n.t('admin.common.traceId') }}</dt>
         <dd>
-          <code>{{ error.traceId || 'No disponible' }}</code>
+          <code>{{ error.traceId || i18n.t('admin.errors.drawer.traceIdMissing') }}</code>
         </dd>
       </div>
     </dl>
     <label
-      >Estado<demo-select
+      >{{ i18n.t('admin.errors.drawer.statusLabel') }}<demo-select
         [ngModel]="error.status"
         [disabled]="!caps.allows(P.administracion.errores.editar)"
-        [options]="errorStateOptions"
-        ariaLabel="Estado del error"
+        [options]="errorStateOptions()"
+        [ariaLabel]="i18n.t('admin.errors.drawer.statusAriaLabel')"
         (ngModelChange)="setErrorStatus(error, $event)"
     /></label>
-    <p class="privacy">El reporte excluye cuerpos financieros, tokens y datos personales.</p>
+    <p class="privacy">{{ i18n.t('admin.errors.drawer.privacyNote') }}</p>
   </div>
 </aside>
 } @if (selectedAudit(); as event) {
@@ -516,26 +569,26 @@
   <div class="drawer-body">
     <dl>
       <div>
-        <dt>Fecha</dt>
+        <dt>{{ i18n.t('admin.audit.column.date') }}</dt>
         <dd>{{ event.createdAt | date: 'medium' }}</dd>
       </div>
       <div>
-        <dt>Actor</dt>
+        <dt>{{ i18n.t('admin.audit.column.actor') }}</dt>
         <dd>{{ actor(event.userId) }}</dd>
       </div>
       <div>
-        <dt>Entidad</dt>
+        <dt>{{ i18n.t('admin.audit.column.entity') }}</dt>
         <dd>{{ event.entityType }} / {{ event.entityId || '—' }}</dd>
       </div>
       <div>
-        <dt>Trace ID</dt>
+        <dt>{{ i18n.t('admin.common.traceId') }}</dt>
         <dd>
           <code>{{ event.traceId }}</code>
         </dd>
       </div>
     </dl>
-    <h3>Cambios registrados</h3>
-    <pre>{{ event.changesJson || 'Sin cambios de campos asociados.' }}</pre>
+    <h3>{{ i18n.t('admin.audit.drawer.changesTitle') }}</h3>
+    <pre>{{ event.changesJson || i18n.t('admin.audit.drawer.noChanges') }}</pre>
   </div>
 </aside>
 }
