@@ -7,6 +7,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { applyTheme, CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 
 @Component({
   selector: 'app-preferences-tab',
@@ -21,6 +22,7 @@ export class PreferencesTabComponent implements OnInit {
   private readonly capabilities = inject(CAPABILITIES);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
+  readonly i18n = inject(I18nService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
@@ -38,14 +40,17 @@ export class PreferencesTabComponent implements OnInit {
   nombreInvitado = '';
   rolInvitado = '';
 
-  readonly themes = [
-    { id: 'system', label: 'Igual que el sistema', preview: 'linear-gradient(135deg,#fff 50%,#191d33 50%)' },
-    { id: 'light', label: 'Luz editorial', preview: 'linear-gradient(135deg,#fff 50%,#4f46e5 50%)' },
-    { id: 'dark', label: 'Noche índigo', preview: 'linear-gradient(135deg,#14172a 50%,#818cf8 50%)' },
-    { id: 'ocean', label: 'Azul profundo', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
-    { id: 'sand', label: 'Marfil cálido', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
-    { id: 'berry', label: 'Ciruela', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },
+  private readonly themeDefs = [
+    { id: 'system', key: 'preferences.theme.system', preview: 'linear-gradient(135deg,#fff 50%,#191d33 50%)' },
+    { id: 'light', key: 'preferences.theme.light', preview: 'linear-gradient(135deg,#fff 50%,#4f46e5 50%)' },
+    { id: 'dark', key: 'preferences.theme.dark', preview: 'linear-gradient(135deg,#14172a 50%,#818cf8 50%)' },
+    { id: 'ocean', key: 'preferences.theme.ocean', preview: 'linear-gradient(135deg,#0a2033 50%,#38bdf8 50%)' },
+    { id: 'sand', key: 'preferences.theme.sand', preview: 'linear-gradient(135deg,#fffaf2 50%,#a24f2a 50%)' },
+    { id: 'berry', key: 'preferences.theme.berry', preview: 'linear-gradient(135deg,#301a37 50%,#f0abfc 50%)' },
   ] as const;
+  readonly themes = computed(() =>
+    this.themeDefs.map((theme) => ({ id: theme.id, label: this.i18n.t(theme.key), preview: theme.preview })),
+  );
   readonly fonts = [
     { label: 'Inter', value: 'Inter, system-ui, sans-serif' },
     { label: 'DM Sans', value: "'DM Sans', system-ui, sans-serif" },
@@ -65,10 +70,10 @@ export class PreferencesTabComponent implements OnInit {
     { value: 'pt-BR', label: 'Português (Brasil)' },
     { value: 'fr-FR', label: 'Français' },
   ];
-  readonly densityOptions: readonly UiOption[] = [
-    { value: 'comfortable', label: 'Cómoda' },
-    { value: 'compact', label: 'Compacta' },
-  ];
+  readonly densityOptions = computed<readonly UiOption[]>(() => [
+    { value: 'comfortable', label: this.i18n.t('preferences.density.comfortable') },
+    { value: 'compact', label: this.i18n.t('preferences.density.compact') },
+  ]);
 
   ngOnInit(): void {
     void this.cargarMiembros();
@@ -97,9 +102,11 @@ export class PreferencesTabComponent implements OnInit {
       this.miembros.update((xs) => [...xs, miembro]);
       this.correoInvitado = '';
       this.nombreInvitado = '';
-      this.store.toast.set(`${miembro.email} entrará la próxima vez que inicie sesión.`);
+      this.store.toast.set(this.i18n.t('preferences.invite.successToast', { email: miembro.email }));
     } catch (error) {
-      this.errorDeInvitacion.set(error instanceof Error ? error.message : 'No fue posible invitar.');
+      this.errorDeInvitacion.set(
+        error instanceof Error ? error.message : this.i18n.t('preferences.invite.error'),
+      );
     }
   }
 
@@ -118,7 +125,7 @@ export class PreferencesTabComponent implements OnInit {
     }
   }
 
-  setTheme(theme: (typeof this.themes)[number]['id']): void {
+  setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
     this.store.preferences.update((p) => ({ ...p, theme }));
     applyTheme(theme);
     this.persistPreferences();
@@ -128,9 +135,12 @@ export class PreferencesTabComponent implements OnInit {
     document.documentElement.style.setProperty('--font', font);
     this.persistPreferences();
   }
-  setLocale(locale: string): void {
+  async setLocale(locale: string): Promise<void> {
     this.store.preferences.update((value) => ({ ...value, locale }));
-    this.store.log('Formato regional actualizado');
+    // Espera el catálogo del idioma nuevo: pedirlo antes de que cargue mostraba el
+    // aviso de "cambiado" todavía en el idioma anterior.
+    await this.i18n.load(locale);
+    this.store.log(this.i18n.t('preferences.localeUpdatedLog'));
     this.persistPreferences();
   }
   setAccent(accent: string): void {
@@ -153,7 +163,7 @@ export class PreferencesTabComponent implements OnInit {
   }
   saveCustomTheme(): void {
     this.persistPreferences();
-    this.store.log(`Tema “${this.store.preferences().name}” guardado`);
+    this.store.log(this.i18n.t('preferences.themeSavedLog', { name: this.store.preferences().name }));
   }
   setDensity(density: 'comfortable' | 'compact'): void {
     this.store.preferences.update((value) => ({ ...value, density }));
@@ -170,7 +180,7 @@ export class PreferencesTabComponent implements OnInit {
     void this.store
       .persistPreferences()
       .catch((error) =>
-        this.store.toast.set(error instanceof Error ? error.message : 'No fue posible guardar las preferencias.'),
+        this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),
       );
   }
   async logout(): Promise<void> {

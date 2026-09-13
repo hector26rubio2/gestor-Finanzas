@@ -1,37 +1,55 @@
-<section class="report-toolbar" aria-label="Filtros de reportes">
+<section class="report-toolbar" [attr.aria-label]="i18n.t('reports.filtersAriaLabel')">
   <label
-    >Periodo<demo-select
+    >{{ i18n.t('reports.periodLabel') }}<demo-select
       [ngModel]="reportPeriod()"
       (ngModelChange)="reportPeriod.set($event)"
-      [options]="reportPeriodOptions"
-      ariaLabel="Periodo del reporte"
+      [options]="reportPeriodOptions()"
+      [ariaLabel]="i18n.t('reports.periodSelectAriaLabel')"
   /></label>
-  <p>Todos los indicadores conservan trazabilidad al libro central.</p>
+  <p>{{ i18n.t('reports.traceabilityNote') }}</p>
   @if (can(P.reportes.exportar)) {
   <button type="button" class="export-action" (click)="exportReport()">
-    <demo-icon name="download" /> Exportar CSV
+    <demo-icon name="download" /> {{ i18n.t('reports.exportButton') }}
   </button>
   }
 </section>
 <section class="kpis mini report-kpis">
-  <demo-kpi label="Flujo neto" icon="trendUp" [value]="store.money(reportNet())" hint="Ingresos menos gastos" />
-  <demo-kpi label="Tasa de ahorro" icon="percent" [value]="reportSavingsRate()" hint="Sobre ingresos del periodo" />
   <demo-kpi
-    label="Gasto promedio"
+    [label]="i18n.t('reports.kpi.net.label')"
+    icon="trendUp"
+    [value]="store.money(reportNet())"
+    [hint]="i18n.t('reports.kpi.net.hint')"
+  />
+  <demo-kpi
+    [label]="i18n.t('reports.kpi.savingsRate.label')"
+    icon="percent"
+    [value]="reportSavingsRate()"
+    [hint]="i18n.t('reports.kpi.savingsRate.hint')"
+  />
+  <demo-kpi
+    [label]="i18n.t('reports.kpi.averageExpense.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(reportAverageExpense())"
-    hint="Promedio mensual"
+    [hint]="i18n.t('reports.kpi.averageExpense.hint')"
   />
-  <demo-kpi label="Mayor categoría" icon="tag" [value]="topCategory().name" [hint]="store.money(topCategory().value)" />
+  <demo-kpi
+    [label]="i18n.t('reports.kpi.topCategory.label')"
+    icon="tag"
+    [value]="topCategory().name"
+    [hint]="store.money(topCategory().value)"
+  />
 </section>
 <section class="report-grid">
   @if (can(P.reportes.comparativo.ver)) {
   <div class="chart">
-    <h2>Ingresos frente a gastos</h2>
-    <p class="chart-description">Comparación mensual; verde representa ingresos y coral representa gastos.</p>
-    <div class="chart-legend"><span class="income-key">Ingresos</span><span class="expense-key">Gastos</span></div>
-    <div class="paired-bars" role="img" aria-label="Ingresos y gastos mensuales en pesos colombianos">
+    <h2>{{ i18n.t('reports.incomeExpense.title') }}</h2>
+    <p class="chart-description">{{ i18n.t('reports.incomeExpense.description') }}</p>
+    <div class="chart-legend">
+      <span class="income-key">{{ i18n.t('reports.legend.income') }}</span
+      ><span class="expense-key">{{ i18n.t('reports.legend.expense') }}</span>
+    </div>
+    <div class="paired-bars" role="img" [attr.aria-label]="i18n.t('reports.incomeExpense.ariaLabel')">
       @for (v of reportSeries(); track v.month) {
       <div>
         <span class="pair"
@@ -41,12 +59,12 @@
       </div>
       }
     </div>
-    <small class="chart-unit">Importes en COP · cada barra representa un mes</small>
+    <small class="chart-unit">{{ i18n.t('reports.incomeExpense.unitNote') }}</small>
   </div>
   } @if (can(P.reportes.categorias.ver)) {
   <div class="chart">
-    <h2>Gastos por categoría</h2>
-    <p class="chart-description">Participación de las categorías con mayor gasto.</p>
+    <h2>{{ i18n.t('reports.categories.title') }}</h2>
+    <p class="chart-description">{{ i18n.t('reports.categories.description') }}</p>
     <div class="category-report">
       <div class="donut">
         <b>{{ store.money(reportExpenses()) }}</b>
@@ -63,9 +81,9 @@
   </div>
   } @if (can(P.reportes.tendencia.ver)) {
   <div class="chart full">
-    <h2>Tendencia mensual</h2>
-    <p class="chart-description">Evolución del flujo neto del periodo seleccionado.</p>
-    <div class="report-line" role="img" aria-label="Flujo neto mensual en pesos colombianos">
+    <h2>{{ i18n.t('reports.trend.title') }}</h2>
+    <p class="chart-description">{{ i18n.t('reports.trend.description') }}</p>
+    <div class="report-line" role="img" [attr.aria-label]="i18n.t('reports.trend.ariaLabel')">
       <span class="axis-y"
         ><b>{{ compactMoney(reportNetRange()) }}</b><em>$0</em><b>-{{ compactMoney(reportNetRange()) }}</b></span
       ><svg viewBox="0 0 600 160" preserveAspectRatio="none">
@@ -78,51 +96,51 @@
         }
       </div>
     </div>
-    <small class="chart-unit">Flujo neto = ingresos − gastos · importes en COP</small>
+    <small class="chart-unit">{{ i18n.t('reports.trend.unitNote') }}</small>
   </div>
   } @if (can(P.reportes.deuda.ver)) {
   <div class="chart">
-    <h2>Salud de deuda</h2>
+    <h2>{{ i18n.t('reports.debtHealth.title') }}</h2>
     <dl class="report-facts">
       <div>
-        <dt>Utilización de cupo</dt>
+        <dt>{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
         <dd>34 %</dd>
       </div>
       <div>
-        <dt>Próximo vencimiento</dt>
+        <dt>{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
         <dd>5 sep</dd>
       </div>
       <div>
-        <dt>Intereses estimados</dt>
+        <dt>{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
         <dd>{{ store.money(184000) }}</dd>
       </div>
     </dl>
   </div>
   } @if (can(P.reportes.patrimonio.ver)) {
   <div class="chart">
-    <h2>Patrimonio</h2>
+    <h2>{{ i18n.t('reports.netWorth.title') }}</h2>
     <dl class="report-facts">
       <div>
-        <dt>Activos líquidos</dt>
+        <dt>{{ i18n.t('reports.netWorth.liquidAssets.label') }}</dt>
         <dd>{{ store.money(store.available()) }}</dd>
       </div>
       <div>
-        <dt>Inversiones</dt>
+        <dt>{{ i18n.t('reports.netWorth.investments.label') }}</dt>
         <dd>{{ store.money(investmentValue()) }}</dd>
       </div>
       <div>
-        <dt>Deuda</dt>
+        <dt>{{ i18n.t('reports.netWorth.debt.label') }}</dt>
         <dd>{{ store.money(store.debt()) }}</dd>
       </div>
     </dl>
   </div>
   } @if (can(P.reportes.hallazgos.ver)) {
   <div class="chart full">
-    <h2>Hallazgos del periodo</h2>
+    <h2>{{ i18n.t('reports.insights.title') }}</h2>
     <ul class="insights">
-      <li>Los gastos variables representan el 41 % del total.</li>
-      <li>La categoría Hogar aumentó frente al periodo anterior.</li>
-      <li>Hay 3 cargos pendientes de clasificación.</li>
+      <li>{{ i18n.t('reports.insights.item1') }}</li>
+      <li>{{ i18n.t('reports.insights.item2') }}</li>
+      <li>{{ i18n.t('reports.insights.item3') }}</li>
     </ul>
   </div>
   }

@@ -1,15 +1,15 @@
 <section class="settings-grid">
   <article class="wide">
-    <h2>Apariencia</h2>
-    <p>Crea una identidad personal, comprueba su contraste en la vista previa y guárdala para este usuario.</p>
+    <h2>{{ i18n.t('preferences.appearance.title') }}</h2>
+    <p>{{ i18n.t('preferences.appearance.description') }}</p>
     <label
-      >Nombre del tema<input
+      >{{ i18n.t('preferences.themeName.label') }}<input
         [disabled]="!canCustomize()"
         [ngModel]="store.preferences().name"
         (ngModelChange)="setThemeValue('name', $event)"
     /></label>
     <div class="theme-picks">
-      @for (theme of themes; track theme.id) {
+      @for (theme of themes(); track theme.id) {
         <button
           [attr.aria-pressed]="store.preferences().theme === theme.id"
           [disabled]="!can(P.preferencias.editar)"
@@ -21,57 +21,57 @@
     </div>
     <div class="custom-controls">
       <label
-        >Color de acento<input
+        >{{ i18n.t('preferences.accent.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().accent"
           (ngModelChange)="setAccent($event)"
       /></label>
       <label
-        >Primario<input
+        >{{ i18n.t('preferences.primary.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().primary"
           (ngModelChange)="setThemeValue('primary', $event)"
       /></label>
       <label
-        >Secundario<input
+        >{{ i18n.t('preferences.secondary.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().secondary"
           (ngModelChange)="setThemeValue('secondary', $event)"
       /></label>
       <label
-        >Texto<input
+        >{{ i18n.t('preferences.text.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().text"
           (ngModelChange)="setThemeValue('text', $event)"
       /></label>
       <label
-        >Superficie<input
+        >{{ i18n.t('preferences.surface.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().surface"
           (ngModelChange)="setThemeValue('surface', $event)"
       /></label>
       <label
-        >Bordes<input
+        >{{ i18n.t('preferences.border.label') }}<input
           type="color"
           [disabled]="!canCustomize()"
           [ngModel]="store.preferences().border"
           (ngModelChange)="setThemeValue('border', $event)"
       /></label>
       <label
-        >Densidad<demo-select
+        >{{ i18n.t('preferences.density.label') }}<demo-select
           [disabled]="!can(P.preferencias.editar)"
           [ngModel]="store.preferences().density"
-          [options]="densityOptions"
-          ariaLabel="Densidad"
+          [options]="densityOptions()"
+          [ariaLabel]="i18n.t('preferences.density.label')"
           (ngModelChange)="setDensity($event)"
       /></label>
       <label
-        >Redondeado
+        >{{ i18n.t('preferences.radius.label') }}
         <input
           type="range"
           min="4"
@@ -83,50 +83,52 @@
       >
     </div>
     @if (!canCustomize()) {
-      <p role="note">Tu acceso permite elegir presets, pero no personalizarlos.</p>
+      <p role="note">{{ i18n.t('preferences.customizeRestricted') }}</p>
     }
-    <section class="theme-preview" aria-label="Vista previa del tema">
+    <section class="theme-preview" [attr.aria-label]="i18n.t('preferences.preview.ariaLabel')">
       <div class="preview-nav">
-        <b><demo-icon name="dashboard" /> Finanzas</b><span>Dashboard</span><span>Movimientos</span>
+        <b><demo-icon name="dashboard" /> Finanzas</b><span>Dashboard</span
+        ><span>{{ i18n.t('preferences.preview.movements') }}</span>
       </div>
       <div class="preview-body">
-        <small>VISTA PREVIA</small>
+        <small>{{ i18n.t('preferences.preview.label') }}</small>
         <h3>{{ store.preferences().name }}</h3>
         <div class="preview-kpis">
-          <span><small>Balance</small><b>$12,4 M</b></span
-          ><span><small>Gastos</small><b>$3,1 M</b></span>
+          <span><small>{{ i18n.t('preferences.preview.balance') }}</small><b>$12,4 M</b></span
+          ><span><small>{{ i18n.t('preferences.preview.expenses') }}</small><b>$3,1 M</b></span>
         </div>
         <div class="preview-chart"><i></i><i></i><i></i><i></i></div>
-        <button>Acción principal</button>
+        <button>{{ i18n.t('preferences.preview.actionButton') }}</button>
       </div>
     </section>
-    <button type="button" [disabled]="!canCustomize()" (click)="saveCustomTheme()">Guardar tema personalizado</button>
+    <button type="button" [disabled]="!canCustomize()" (click)="saveCustomTheme()">
+      {{ i18n.t('preferences.saveThemeButton') }}
+    </button>
   </article>
   <article>
-    <h2>Tipografía e idioma</h2>
+    <h2>{{ i18n.t('preferences.typographyLanguage.title') }}</h2>
     <label
-      >Tipografía<demo-select
+      >{{ i18n.t('preferences.font.label') }}<demo-select
         [options]="fontOptions"
         [ngModel]="store.preferences().font"
         [disabled]="!can(P.preferencias.editar)"
         (ngModelChange)="setFont($event)"
-        ariaLabel="Tipografía"
+        [ariaLabel]="i18n.t('preferences.font.label')"
     /></label>
     <label
-      >Idioma<demo-select
+      >{{ i18n.t('preferences.language.label') }}<demo-select
         [options]="languageOptions"
         [ngModel]="store.preferences().locale"
         [disabled]="!can(P.preferencias.editar)"
         (ngModelChange)="setLocale($event)"
-        ariaLabel="Idioma"
+        [ariaLabel]="i18n.t('preferences.language.label')"
     /></label>
   </article>
   @if (can(P.organizacion.miembros.listar)) {
     <article class="wide">
-      <h2>Personas de tu espacio</h2>
+      <h2>{{ i18n.t('preferences.members.title') }}</h2>
       <p>
-        Quien entre con el correo que invites comparte esta organización y ve la misma información. No se envía
-        ningún correo: la persona queda pendiente y entra la primera vez que inicia sesión con esa dirección.
+        {{ i18n.t('preferences.members.description') }}
       </p>
       @if (miembros().length) {
         <ul class="member-list">
@@ -134,40 +136,50 @@
             <li>
               <span>
                 <b>{{ miembro.displayName }}</b>
-                <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || 'sin rol' }}</small>
+                <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small>
               </span>
               <em [class.pendiente]="miembro.status === 'Invited'">
-                {{ miembro.status === 'Invited' ? 'Pendiente de entrar' : 'Activa' }}
+                {{
+                  miembro.status === 'Invited'
+                    ? i18n.t('preferences.members.status.invited')
+                    : i18n.t('preferences.members.status.active')
+                }}
               </em>
             </li>
           }
         </ul>
       } @else {
-        <p class="empty-note">Todavía no hay nadie más en tu espacio.</p>
+        <p class="empty-note">{{ i18n.t('preferences.members.empty') }}</p>
       }
       @if (can(P.organizacion.miembros.crear)) {
         <form class="invitar" (submit)="invitar($event)">
           <label
-            >Correo<input
+            >{{ i18n.t('preferences.invite.emailLabel') }}<input
               name="email"
               type="email"
               inputmode="email"
               autocomplete="email"
               [(ngModel)]="correoInvitado"
-              placeholder="persona@correo.com"
+              [placeholder]="i18n.t('preferences.invite.emailPlaceholder')"
               required
           /></label>
           <label
-            >Nombre<input name="nombre" [(ngModel)]="nombreInvitado" autocomplete="name" placeholder="Cómo la ves"
+            >{{ i18n.t('preferences.invite.nameLabel') }}<input
+              name="nombre"
+              [(ngModel)]="nombreInvitado"
+              autocomplete="name"
+              [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
           /></label>
           <label
-            >Rol<demo-select
+            >{{ i18n.t('preferences.invite.roleLabel') }}<demo-select
               name="rol"
               [(ngModel)]="rolInvitado"
               [options]="roleOptions()"
-              ariaLabel="Rol de la invitación"
+              [ariaLabel]="i18n.t('preferences.invite.roleAriaLabel')"
           /></label>
-          <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">Invitar</button>
+          <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">
+            {{ i18n.t('preferences.invite.submitButton') }}
+          </button>
         </form>
         @if (errorDeInvitacion()) {
           <p class="api-error" role="alert">{{ errorDeInvitacion() }}</p>
@@ -176,11 +188,11 @@
     </article>
   }
   <article>
-    <h2>Datos locales</h2>
-    <p>Doce meses, cientos de movimientos y relaciones reproducibles.</p>
+    <h2>{{ i18n.t('preferences.localData.title') }}</h2>
+    <p>{{ i18n.t('preferences.localData.description') }}</p>
     <button [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
-      Restaurar información inicial
+      {{ i18n.t('preferences.localData.resetButton') }}
     </button>
-    <button (click)="logout()">Cerrar sesión</button>
+    <button (click)="logout()">{{ i18n.t('preferences.logoutButton') }}</button>
   </article>
 </section>

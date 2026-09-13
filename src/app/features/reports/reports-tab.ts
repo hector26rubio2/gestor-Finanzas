@@ -6,6 +6,7 @@ import { KpiComponent } from '../../ui/ui';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
 import { HeaderActionsService } from '../../shared/header-actions.service';
@@ -22,6 +23,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly headerActions = inject(HeaderActionsService);
+  readonly i18n = inject(I18nService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
@@ -36,11 +38,11 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   }
 
   readonly reportPeriod = signal('6');
-  readonly reportPeriodOptions: readonly UiOption[] = [
-    { value: '3', label: '3 meses' },
-    { value: '6', label: '6 meses' },
-    { value: '12', label: '12 meses' },
-  ];
+  readonly reportPeriodOptions = computed<readonly UiOption[]>(() => [
+    { value: '3', label: this.i18n.t('reports.period.3') },
+    { value: '6', label: this.i18n.t('reports.period.6') },
+    { value: '12', label: this.i18n.t('reports.period.12') },
+  ]);
   private readonly urlDeReportes = sincronizarConLaUrl('meses', this.reportPeriod, '6', (v) =>
     ['3', '6', '12'].includes(v),
   );
@@ -136,18 +138,18 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     const SALTO = '\r\n';
     if (!this.can(P.reportes.exportar)) return;
     const meses = toCsv(this.reportSeries(), [
-      { header: 'Mes', value: (fila) => fila.month },
-      { header: 'Ingresos', value: (fila) => fila.income },
-      { header: 'Gastos', value: (fila) => fila.expense },
-      { header: 'Neto', value: (fila) => fila.net },
+      { header: this.i18n.t('reports.csv.month'), value: (fila) => fila.month },
+      { header: this.i18n.t('reports.csv.income'), value: (fila) => fila.income },
+      { header: this.i18n.t('reports.csv.expense'), value: (fila) => fila.expense },
+      { header: this.i18n.t('reports.csv.net'), value: (fila) => fila.net },
     ]);
     const categorias = toCsv(this.reportCategories(), [
-      { header: 'Categoria', value: (fila) => fila.name },
-      { header: 'Gasto', value: (fila) => fila.value },
-      { header: 'Porcentaje', value: (fila) => fila.percent },
+      { header: this.i18n.t('reports.csv.category'), value: (fila) => fila.name },
+      { header: this.i18n.t('reports.csv.expense'), value: (fila) => fila.value },
+      { header: this.i18n.t('reports.csv.percentage'), value: (fila) => fila.percent },
     ]);
-    const periodo = `Periodo;${this.reportPeriod()} meses`;
+    const periodo = this.i18n.t('reports.csv.periodRow', { months: this.reportPeriod() });
     downloadCsv(`finanzas-reporte-${this.reportPeriod()}m.csv`, [periodo, '', meses, '', categorias].join(SALTO));
-    this.store.toast.set('Reporte exportado.');
+    this.store.toast.set(this.i18n.t('reports.exportToast'));
   }
 }

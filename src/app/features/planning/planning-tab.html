@@ -1,4 +1,4 @@
-<nav class="tabs" role="tablist" aria-label="Tipo de simulación">
+<nav class="tabs" role="tablist" [attr.aria-label]="i18n.t('planning.tabsAriaLabel')">
   @for (tab of visiblePlanningTabs(); track tab) {
   <button
     type="button"
@@ -7,17 +7,21 @@
     [class.active]="planningTab() === tab"
     (click)="planningTab.set(tab)"
   >
-    {{ tab }}
+    {{ tabLabel(tab) }}
   </button>
   }
 </nav>
 @if (!visiblePlanningTabs().length) {
-<p class="empty-note">Tu acceso no incluye ninguna simulación de planificación.</p>
+<p class="empty-note">{{ i18n.t('planning.noAccess') }}</p>
 } @if (visiblePlanningTabs().length) {
-<section class="scenario-planner" role="tabpanel" [attr.aria-label]="'Planificación de ' + planningTab()">
+<section
+  class="scenario-planner"
+  role="tabpanel"
+  [attr.aria-label]="i18n.t('planning.ariaLabel', { tab: tabLabel(planningTab()) })"
+>
   <aside class="planner-controls">
     <header>
-      <span>PARÁMETROS</span>
+      <span>{{ i18n.t('planning.parametersLabel') }}</span>
       <h2>{{ planningCopy().parameterTitle }}</h2>
       <p>{{ planningCopy().helper }}</p>
     </header>
@@ -30,11 +34,13 @@
         [ngModel]="monthly()"
         (ngModelChange)="monthly.set(+$event)"
       /><b>{{ store.money(monthly()) }}</b><small>{{ planningCopy().rangeHint }}</small></label
-    ><label>Fecha objetivo<input type="date" [(ngModel)]="targetDate" /></label>
-    <div class="planner-note"><b>Supuesto del cálculo</b><span>{{ planningCopy().assumption }}</span></div>
+    ><label>{{ i18n.t('planning.targetDateLabel') }}<input type="date" [(ngModel)]="targetDate" /></label>
+    <div class="planner-note">
+      <b>{{ i18n.t('planning.assumptionLabel') }}</b><span>{{ planningCopy().assumption }}</span>
+    </div>
   </aside>
   <div class="planner-results">
-    <section class="planner-kpis" aria-label="Comparación del plan">
+    <section class="planner-kpis" [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')">
       @for (metric of planningMetrics(); track metric.label) {
       <article>
         <span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.hint }}</small>
@@ -44,7 +50,7 @@
     <article class="projection-card">
       <header>
         <div>
-          <span>PROYECCIÓN</span>
+          <span>{{ i18n.t('planning.projectionLabel') }}</span>
           <h2>{{ planningCopy().chartTitle }}</h2>
           <p>{{ planningCopy().chartDescription }}</p>
         </div>
@@ -68,12 +74,14 @@
           <polyline class="proposal-line" [attr.points]="planningProposedPoints()" />
         </svg>
         <div class="x-labels">
-          <span>Hoy</span><span>3 meses</span><span>6 meses</span><span>9 meses</span><span>12 meses</span>
+          <span>{{ i18n.t('planning.xAxis.today') }}</span><span>{{ i18n.t('planning.xAxis.month3') }}</span
+          ><span>{{ i18n.t('planning.xAxis.month6') }}</span><span>{{ i18n.t('planning.xAxis.month9') }}</span
+          ><span>{{ i18n.t('planning.xAxis.month12') }}</span>
         </div>
       </div>
     </article>
     <p class="planner-disclaimer">
-      Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus saldos.
+      {{ i18n.t('planning.disclaimer') }}
     </p>
   </div>
 </section>

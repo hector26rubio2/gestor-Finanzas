@@ -1,34 +1,34 @@
 <section class="kpis mini">
   @if (can(P.personas.deudas.listar)) {
   <demo-kpi
-    label="Me deben"
+    [label]="i18n.t('people.kpi.owed.label')"
     icon="trendUp"
     tone="success"
     [value]="store.money(peopleOwed())"
-    hint="Cuentas por cobrar"
+    [hint]="i18n.t('people.kpi.owed.hint')"
   />
   } @if (can(P.personas.obligaciones.listar)) {
   <demo-kpi
-    label="Les debo"
+    [label]="i18n.t('people.kpi.owing.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(peopleOwing())"
-    hint="Obligaciones propias"
+    [hint]="i18n.t('people.kpi.owing.hint')"
   />
   }
   <demo-kpi
-    label="Personas"
+    [label]="i18n.t('people.kpi.count.label')"
     icon="people"
     [value]="store.data().people.length.toString()"
-    hint="Con relaciones activas"
+    [hint]="i18n.t('people.kpi.count.hint')"
   />
   <demo-kpi
-    label="Mayor retraso"
+    [label]="i18n.t('people.kpi.slowest.label')"
     icon="clock"
     [value]="slowestPayer().name"
-    [hint]="slowestPayer().days + ' días promedio'"
+    [hint]="i18n.t('people.kpi.slowest.hint', { days: slowestPayer().days })"
   />
 </section>
 <section class="table-zone">
-  <demo-table [columns]="peopleColumns" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
+  <demo-table [columns]="peopleColumns()" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
 </section>

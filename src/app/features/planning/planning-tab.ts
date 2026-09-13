@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from '@angular/forms';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
 
@@ -16,11 +17,23 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
 export class PlanningTabComponent {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
 
   readonly planningTabs = ['Deudas', 'Compra', 'Vacaciones', 'Inversión'] as const;
+
+  /** Etiqueta visible de cada pestaña; el identificador interno no cambia con el idioma. */
+  private readonly planningTabLabels: Record<(typeof this.planningTabs)[number], string> = {
+    Deudas: 'planning.tab.debt',
+    Compra: 'planning.tab.purchase',
+    Vacaciones: 'planning.tab.vacation',
+    Inversión: 'planning.tab.investment',
+  };
+  tabLabel(tab: (typeof this.planningTabs)[number]): string {
+    return this.i18n.t(this.planningTabLabels[tab]);
+  }
 
   /** Cada simulación se libera por separado: se puede planificar deudas y no vacaciones. */
   private readonly planningPermissions: Record<(typeof this.planningTabs)[number], string> = {
@@ -56,63 +69,63 @@ export class PlanningTabComponent {
     switch (this.planningTab()) {
       case 'Compra':
         return {
-          parameterTitle: 'Simular una compra',
-          amountLabel: 'Valor de la compra',
-          helper: 'Mide el impacto de una compra sobre tu liquidez durante los próximos doce meses.',
-          rangeHint: 'Incluye el valor total que quieres financiar o pagar.',
-          assumption: 'Distribución lineal del impacto, sin nuevas compras ni cambios de ingreso.',
-          chartTitle: 'Liquidez disponible después de la compra',
-          chartDescription: 'Saldo disponible estimado, comparando no comprar frente a realizar la compra.',
+          parameterTitle: this.i18n.t('planning.purchase.parameterTitle'),
+          amountLabel: this.i18n.t('planning.purchase.amountLabel'),
+          helper: this.i18n.t('planning.purchase.helper'),
+          rangeHint: this.i18n.t('planning.purchase.rangeHint'),
+          assumption: this.i18n.t('planning.purchase.assumption'),
+          chartTitle: this.i18n.t('planning.purchase.chartTitle'),
+          chartDescription: this.i18n.t('planning.purchase.chartDescription'),
           min: 100000,
           max: 10000000,
           step: 100000,
-          currentLabel: 'Sin la compra',
-          proposedLabel: 'Con la compra',
+          currentLabel: this.i18n.t('planning.purchase.currentLabel'),
+          proposedLabel: this.i18n.t('planning.purchase.proposedLabel'),
         };
       case 'Vacaciones':
         return {
-          parameterTitle: 'Plan de vacaciones',
-          amountLabel: 'Aporte mensual',
-          helper: 'Comprueba cuánto acumularías separando una cantidad fija cada mes.',
-          rangeHint: 'El aporte se descuenta de la liquidez mensual disponible.',
-          assumption: 'Doce aportes iguales, sin rentabilidad y sin retiros anticipados.',
-          chartTitle: 'Ahorro acumulado para el viaje',
-          chartDescription: 'Capital reservado mes a mes, comparando el ahorro actual con el plan propuesto.',
+          parameterTitle: this.i18n.t('planning.vacation.parameterTitle'),
+          amountLabel: this.i18n.t('planning.vacation.amountLabel'),
+          helper: this.i18n.t('planning.vacation.helper'),
+          rangeHint: this.i18n.t('planning.vacation.rangeHint'),
+          assumption: this.i18n.t('planning.vacation.assumption'),
+          chartTitle: this.i18n.t('planning.vacation.chartTitle'),
+          chartDescription: this.i18n.t('planning.vacation.chartDescription'),
           min: 100000,
           max: 5000000,
           step: 100000,
-          currentLabel: 'Ahorro actual',
-          proposedLabel: 'Plan mensual',
+          currentLabel: this.i18n.t('planning.vacation.currentLabel'),
+          proposedLabel: this.i18n.t('planning.vacation.proposedLabel'),
         };
       case 'Inversión':
         return {
-          parameterTitle: 'Simular inversión',
-          amountLabel: 'Capital a invertir',
-          helper: 'Explora un escenario de rentabilidad sin afectar el patrimonio registrado.',
-          rangeHint: 'Capital inicial aplicado una sola vez.',
-          assumption: 'Rentabilidad anual supuesta del 10 %, compuesta mensualmente; no incluye impuestos.',
-          chartTitle: 'Valor proyectado de la inversión',
-          chartDescription: 'Evolución estimada del capital sin invertir frente al escenario invertido.',
+          parameterTitle: this.i18n.t('planning.investment.parameterTitle'),
+          amountLabel: this.i18n.t('planning.investment.amountLabel'),
+          helper: this.i18n.t('planning.investment.helper'),
+          rangeHint: this.i18n.t('planning.investment.rangeHint'),
+          assumption: this.i18n.t('planning.investment.assumption'),
+          chartTitle: this.i18n.t('planning.investment.chartTitle'),
+          chartDescription: this.i18n.t('planning.investment.chartDescription'),
           min: 100000,
           max: 10000000,
           step: 100000,
-          currentLabel: 'Capital disponible',
-          proposedLabel: 'Proyección a 12 meses',
+          currentLabel: this.i18n.t('planning.investment.currentLabel'),
+          proposedLabel: this.i18n.t('planning.investment.proposedLabel'),
         };
       default:
         return {
-          parameterTitle: 'Plan de deuda',
-          amountLabel: 'Abono mensual',
-          helper: 'Compara el ritmo actual de pago con un abono mensual mayor.',
-          rangeHint: 'El cálculo distribuye el pago sobre el saldo total registrado.',
-          assumption: 'Tasa mensual estimada de 1,8 % y ausencia de nuevas compras.',
-          chartTitle: 'Saldo de deuda pendiente',
-          chartDescription: 'Reducción estimada del saldo durante doce meses con el pago actual y el propuesto.',
+          parameterTitle: this.i18n.t('planning.debt.parameterTitle'),
+          amountLabel: this.i18n.t('planning.debt.amountLabel'),
+          helper: this.i18n.t('planning.debt.helper'),
+          rangeHint: this.i18n.t('planning.debt.rangeHint'),
+          assumption: this.i18n.t('planning.debt.assumption'),
+          chartTitle: this.i18n.t('planning.debt.chartTitle'),
+          chartDescription: this.i18n.t('planning.debt.chartDescription'),
           min: 100000,
           max: 5000000,
           step: 50000,
-          currentLabel: 'Ritmo actual',
-          proposedLabel: 'Con el abono propuesto',
+          currentLabel: this.i18n.t('planning.debt.currentLabel'),
+          proposedLabel: this.i18n.t('planning.debt.proposedLabel'),
         };
     }
   });
@@ -121,22 +134,22 @@ export class PlanningTabComponent {
       case 'Compra':
         return {
           headline: this.store.money(this.store.available()),
-          detail: 'Disponible antes de realizar la compra.',
+          detail: this.i18n.t('planning.purchase.current.detail'),
         };
       case 'Vacaciones':
         return {
           headline: this.store.money(this.store.available()),
-          detail: 'Liquidez disponible sin separar un ahorro mensual.',
+          detail: this.i18n.t('planning.vacation.current.detail'),
         };
       case 'Inversión':
         return {
           headline: this.store.money(this.investmentValue()),
-          detail: 'Valor estimado de las inversiones registradas.',
+          detail: this.i18n.t('planning.investment.current.detail'),
         };
       default:
         return {
-          headline: `${this.currentMonths()} meses`,
-          detail: `${this.store.money(this.currentInterest())} de intereses estimados al ritmo actual.`,
+          headline: this.i18n.t('planning.debt.current.headline', { months: this.currentMonths() }),
+          detail: this.i18n.t('planning.debt.current.detail', { amount: this.store.money(this.currentInterest()) }),
         };
     }
   });
@@ -145,22 +158,24 @@ export class PlanningTabComponent {
       case 'Compra':
         return {
           headline: this.store.money(this.store.available() - this.monthly()),
-          detail: 'Disponible estimado después de la compra simulada.',
+          detail: this.i18n.t('planning.purchase.proposed.detail'),
         };
       case 'Vacaciones':
         return {
           headline: this.store.money(this.monthly() * 12),
-          detail: 'Ahorro acumulado en doce meses con el aporte seleccionado.',
+          detail: this.i18n.t('planning.vacation.proposed.detail'),
         };
       case 'Inversión':
         return {
           headline: this.store.money(Math.round(this.monthly() * 1.1)),
-          detail: 'Proyección ilustrativa a un año con una rentabilidad supuesta del 10 %.',
+          detail: this.i18n.t('planning.investment.proposed.detail'),
         };
       default:
         return {
-          headline: `${this.proposedMonths()} meses`,
-          detail: `Ahorrarías aproximadamente ${this.store.money(this.estimatedSavings())} en intereses.`,
+          headline: this.i18n.t('planning.debt.proposed.headline', { months: this.proposedMonths() }),
+          detail: this.i18n.t('planning.debt.proposed.detail', {
+            amount: this.store.money(this.estimatedSavings()),
+          }),
         };
     }
   });
@@ -210,38 +225,74 @@ export class PlanningTabComponent {
     switch (this.planningTab()) {
       case 'Compra':
         return [
-          { label: 'Disponible actual', value: current.headline, hint: 'Antes de comprar' },
-          { label: 'Disponible estimado', value: proposed.headline, hint: 'Después de comprar' },
-          { label: 'Impacto inmediato', value: this.store.money(this.monthly()), hint: 'Valor simulado' },
+          {
+            label: this.i18n.t('planning.purchase.metric.available.label'),
+            value: current.headline,
+            hint: this.i18n.t('planning.purchase.metric.available.hint'),
+          },
+          {
+            label: this.i18n.t('planning.purchase.metric.estimated.label'),
+            value: proposed.headline,
+            hint: this.i18n.t('planning.purchase.metric.estimated.hint'),
+          },
+          {
+            label: this.i18n.t('planning.purchase.metric.impact.label'),
+            value: this.store.money(this.monthly()),
+            hint: this.i18n.t('planning.purchase.metric.impact.hint'),
+          },
         ];
       case 'Vacaciones':
         return [
-          { label: 'Aporte mensual', value: this.store.money(this.monthly()), hint: 'Durante 12 meses' },
-          { label: 'Meta acumulada', value: proposed.headline, hint: 'Sin rendimientos' },
           {
-            label: 'Esfuerzo sobre liquidez',
+            label: this.i18n.t('planning.vacation.metric.contribution.label'),
+            value: this.store.money(this.monthly()),
+            hint: this.i18n.t('planning.vacation.metric.contribution.hint'),
+          },
+          {
+            label: this.i18n.t('planning.vacation.metric.goal.label'),
+            value: proposed.headline,
+            hint: this.i18n.t('planning.vacation.metric.goal.hint'),
+          },
+          {
+            label: this.i18n.t('planning.vacation.metric.effort.label'),
             value: `${Math.round((this.monthly() / Math.max(1, this.store.available())) * 100)} %`,
-            hint: 'Del disponible actual',
+            hint: this.i18n.t('planning.vacation.metric.effort.hint'),
           },
         ];
       case 'Inversión':
         return [
-          { label: 'Capital inicial', value: this.store.money(this.monthly()), hint: 'Aporte simulado' },
-          { label: 'Valor a 12 meses', value: proposed.headline, hint: 'Rentabilidad supuesta: 10 %' },
           {
-            label: 'Ganancia estimada',
+            label: this.i18n.t('planning.investment.metric.initial.label'),
+            value: this.store.money(this.monthly()),
+            hint: this.i18n.t('planning.investment.metric.initial.hint'),
+          },
+          {
+            label: this.i18n.t('planning.investment.metric.value12.label'),
+            value: proposed.headline,
+            hint: this.i18n.t('planning.investment.metric.value12.hint'),
+          },
+          {
+            label: this.i18n.t('planning.investment.metric.gain.label'),
             value: this.store.money(Math.round(this.monthly() * 0.1)),
-            hint: 'Antes de impuestos',
+            hint: this.i18n.t('planning.investment.metric.gain.hint'),
           },
         ];
       default:
         return [
-          { label: 'Plazo actual', value: current.headline, hint: 'Pagando $650 mil/mes' },
-          { label: 'Nuevo plazo', value: proposed.headline, hint: `Pagando ${this.compactMoney(this.monthly())}/mes` },
           {
-            label: 'Intereses evitados',
+            label: this.i18n.t('planning.debt.metric.currentTerm.label'),
+            value: current.headline,
+            hint: this.i18n.t('planning.debt.metric.currentTerm.hint'),
+          },
+          {
+            label: this.i18n.t('planning.debt.metric.newTerm.label'),
+            value: proposed.headline,
+            hint: this.i18n.t('planning.debt.metric.newTerm.hint', { amount: this.compactMoney(this.monthly()) }),
+          },
+          {
+            label: this.i18n.t('planning.debt.metric.savedInterest.label'),
             value: this.store.money(this.estimatedSavings()),
-            hint: 'Estimación acumulada',
+            hint: this.i18n.t('planning.debt.metric.savedInterest.hint'),
           },
         ];
     }
