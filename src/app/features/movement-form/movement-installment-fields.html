@@ -5,11 +5,12 @@
     min="1"
     [(ngModel)]="model['installmentTotal']"
 /></label>
+@if (currentEditable) {
 <label class="field"
   >{{ i18n.t('form.movement.field.installmentCurrent') }}<input
     type="number"
     name="installmentCurrent"
     min="1"
-    [disabled]="!currentEditable"
     [(ngModel)]="model['installmentCurrent']"
 /></label>
+}

@@ -7,6 +7,9 @@
       [ariaLabel]="i18n.t('form.movement.typeGroup')"
       (kindChange)="setKind($event)"
     />
+    @if (!model['kind']) {
+    <p class="hint">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
+    } @else {
     <div class="form-grid">
       <demo-movement-core-fields [model]="model" [kind]="model['kind']" [showTargetAccount]="vis.showTargetAccount" />
       @if (vis.showCategory) {
@@ -21,12 +24,14 @@
       <demo-movement-currency-fields [model]="model" />
       }
     </div>
-    @if (error()) {
+    } @if (error()) {
     <p class="error" role="alert">{{ error() }}</p>
     }
     <footer>
-      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button
-      ><button class="primary" type="submit">{{ i18n.t('form.movement.actions.save') }}</button>
+      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button>@if
+      (model['kind']) {
+      <button class="primary" type="submit">{{ i18n.t('form.movement.actions.save') }}</button>
+      }
     </footer>
   </form></demo-overlay
 >

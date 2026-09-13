@@ -191,6 +191,7 @@ export default {
   'form.field.currency': 'Currency',
   'form.field.amount': 'Amount',
   'form.movement.typeGroup': 'Transaction type',
+  'form.movement.chooseTypeHint': 'Choose expense, income, or transfer to see the fields.',
   'form.movement.type.expense': 'Expense',
   'form.movement.type.income': 'Income',
   'form.movement.type.transfer': 'Transfer',

@@ -1,3 +1,4 @@
+import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -17,6 +18,7 @@ export class LoginComponent {
   readonly store = inject(DemoStore);
   private router = inject(Router);
   private remote = inject(RemoteBootstrap);
+  private location = inject(Location);
   readonly i18n = inject(I18nService);
   selectedLocale = this.store.preferences().locale;
   selectedTheme = this.store.preferences().theme;
@@ -49,7 +51,12 @@ export class LoginComponent {
     document.documentElement.lang = locale.slice(0, 2);
   }
   googleLoginUrl(): string {
-    const returnUrl = encodeURIComponent(window.location.href);
+    // Antes se mandaba `window.location.href` -la URL de esta misma pantalla de
+    // login-, así que un callback exitoso volvía derecho al login en vez de al
+    // dashboard: el navegador solo estaba obedeciendo a dónde se le dijo que
+    // volviera. `prepareExternalUrl` respeta el base-href del build (local sirve
+    // en «/», el despliegue en «/gestor-Finanzas/»), así que no hay que adivinarlo.
+    const returnUrl = encodeURIComponent(`${window.location.origin}${this.location.prepareExternalUrl('/dashboard')}`);
     return `${this.store.runtime.apiBaseUrl}/api/v1/auth/google?returnUrl=${returnUrl}`;
   }
   retry(): void {

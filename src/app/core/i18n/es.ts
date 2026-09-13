@@ -222,6 +222,7 @@ export default {
   'form.field.currency': 'Moneda',
   'form.field.amount': 'Importe',
   'form.movement.typeGroup': 'Tipo de movimiento',
+  'form.movement.chooseTypeHint': 'Elige gasto, ingreso o transferencia para ver los campos.',
   'form.movement.type.expense': 'Gasto',
   'form.movement.type.income': 'Ingreso',
   'form.movement.type.transfer': 'Transferencia',

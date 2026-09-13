@@ -5,17 +5,36 @@ form {
 }
 .types {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow: auto;
-  padding-bottom: 3px;
+  padding: 3px;
 }
 .types button {
   white-space: nowrap;
+  flex: 1;
+  min-height: 46px;
+  padding: 0 20px;
+  font-weight: 600;
+  border-width: 1.5px;
 }
+/*
+ * `!important` porque `.selected` competía con `button:hover` del estilo global y
+ * a veces perdía — un botón "elegido" que se veía igual que uno sin elegir en
+ * cuanto el puntero pasaba por encima. El aspecto seleccionado no puede depender
+ * de dónde está el mouse.
+ */
 .selected {
   background: var(--accent) !important;
   color: var(--accent-contrast) !important;
   border-color: var(--accent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.hint {
+  margin: 0;
+  padding: 22px 4px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  text-align: center;
 }
 .form-grid {
   display: grid;
