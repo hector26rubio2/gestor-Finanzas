@@ -73,7 +73,10 @@
         <div>
           <span
             ><b>{{ role.name }}</b
-            ><small>{{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) }) }}</small></span
+            ><small
+              >{{ role.organizationName }} · {{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) })
+              }}</small
+            ></span
           ><progress [value]="memberCount(role.id)" [max]="users().length || 1"></progress>
         </div>
         }
@@ -170,7 +173,10 @@
         <demo-icon name="shield" class="role-icon" />
         <span>
           <h3>{{ role.name }}</h3>
-          <small>{{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) }) }}</small>
+          <small
+            >{{ role.organizationName }} · {{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) })
+            }}</small
+          >
         </span>
         @if (caps.allows(P.administracion.roles.editar)) {
         <button class="icon-btn" (click)="editRole(role)">✎</button>

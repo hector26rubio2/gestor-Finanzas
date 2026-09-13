@@ -44,6 +44,7 @@ export interface ApiAdminRole {
   name: string;
   description: string | null;
   organizationId?: string;
+  organizationName?: string;
   /** Capacidades íntegramente concedidas. Derivada del servidor, solo lectura. */
   capabilities: readonly string[];
   /** Permisos concedidos, uno por acción. Es lo que se edita. */
