@@ -242,8 +242,8 @@ export class WorkspaceComponent {
           : i
             ? this.store.money(i.value)
             : this.i18n.t('workspace.inspector.operationsCount', {
-              count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
-            });
+                count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
+              });
   });
   readonly inspectorSubtitle = computed(
     () =>
@@ -264,7 +264,10 @@ export class WorkspaceComponent {
         [t('workspace.inspector.facts.date'), m.date],
         [t('workspace.inspector.facts.account'), this.store.account(m.accountId)?.name ?? SIN_DATO],
         [t('workspace.inspector.facts.category'), m.category],
-        [t('workspace.inspector.facts.nature'), m.amount < 0 ? t('workspace.inspector.facts.debit') : t('workspace.inspector.facts.credit')],
+        [
+          t('workspace.inspector.facts.nature'),
+          m.amount < 0 ? t('workspace.inspector.facts.debit') : t('workspace.inspector.facts.credit'),
+        ],
         [t('workspace.inspector.facts.status'), m.status],
         [
           t('workspace.inspector.facts.responsibility'),
@@ -273,12 +276,17 @@ export class WorkspaceComponent {
         [
           t('workspace.inspector.facts.installments'),
           m.installmentTotal
-            ? t('workspace.inspector.facts.installmentsOf', { current: m.installmentCurrent ?? 1, total: m.installmentTotal })
+            ? t('workspace.inspector.facts.installmentsOf', {
+                current: m.installmentCurrent ?? 1,
+                total: m.installmentTotal,
+              })
             : t('workspace.inspector.facts.oneInstallment'),
         ],
         [
           t('workspace.inspector.facts.recurrence'),
-          m.recurring ? (m.recurrence ?? t('workspace.inspector.facts.yes')) : t('workspace.inspector.facts.notRecurring'),
+          m.recurring
+            ? (m.recurrence ?? t('workspace.inspector.facts.yes'))
+            : t('workspace.inspector.facts.notRecurring'),
         ],
         [
           t('workspace.inspector.facts.loan'),
@@ -293,7 +301,10 @@ export class WorkspaceComponent {
         [
           t('workspace.inspector.facts.originalCurrency'),
           m.originalCurrency === 'USD'
-            ? t('workspace.inspector.facts.originalCurrencyValue', { amount: m.originalAmount ?? 0, rate: m.exchangeRate ?? 0 })
+            ? t('workspace.inspector.facts.originalCurrencyValue', {
+                amount: m.originalAmount ?? 0,
+                rate: m.exchangeRate ?? 0,
+              })
             : 'COP',
         ],
       ];
@@ -307,9 +318,18 @@ export class WorkspaceComponent {
             ? (a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'))
             : t('workspace.inspector.facts.notApplicable'),
         ],
-        [t('workspace.inspector.facts.cutoff'), a.cutDay ? String(a.cutDay) : t('workspace.inspector.facts.notApplicable')],
-        [t('workspace.inspector.facts.dueDate'), a.dueDay ? String(a.dueDay) : t('workspace.inspector.facts.notApplicable')],
-        [t('workspace.inspector.facts.limit'), a.limit ? this.store.money(a.limit) : t('workspace.inspector.facts.notApplicable')],
+        [
+          t('workspace.inspector.facts.cutoff'),
+          a.cutDay ? String(a.cutDay) : t('workspace.inspector.facts.notApplicable'),
+        ],
+        [
+          t('workspace.inspector.facts.dueDate'),
+          a.dueDay ? String(a.dueDay) : t('workspace.inspector.facts.notApplicable'),
+        ],
+        [
+          t('workspace.inspector.facts.limit'),
+          a.limit ? this.store.money(a.limit) : t('workspace.inspector.facts.notApplicable'),
+        ],
       ];
     if (p)
       return [
@@ -359,14 +379,17 @@ export class WorkspaceComponent {
       this.store.toast.set(this.i18n.t('workspace.messages.movementReversed'));
       await this.movementsBook.loadMovementPage(this.store.remoteMovementPage());
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.movementReverseFailed'));
+      this.store.toast.set(
+        error instanceof Error ? error.message : this.i18n.t('workspace.messages.movementReverseFailed'),
+      );
     }
   }
   async shareSelected() {
     const movement = this.selectedMovement();
     const person = this.store.data().people.find((item) => item.name === movement?.person);
     if (!movement || !person) return;
-    if (this.store.runtime.mode === 'demo') return this.store.log(this.i18n.t('workspace.messages.sharedPurchaseLocal'));
+    if (this.store.runtime.mode === 'demo')
+      return this.store.log(this.i18n.t('workspace.messages.sharedPurchaseLocal'));
     try {
       await firstValueFrom(
         this.api.createSharedPurchase({
@@ -377,7 +400,9 @@ export class WorkspaceComponent {
       );
       this.store.toast.set(this.i18n.t('workspace.messages.sharedPurchase'));
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.sharedPurchaseFailed'));
+      this.store.toast.set(
+        error instanceof Error ? error.message : this.i18n.t('workspace.messages.sharedPurchaseFailed'),
+      );
     }
   }
   async issueSelectedSettlement() {
@@ -422,7 +447,9 @@ export class WorkspaceComponent {
       this.store.inspector.set(null);
       this.store.toast.set(this.i18n.t('workspace.messages.accountDeactivated'));
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.accountDeactivateFailed'));
+      this.store.toast.set(
+        error instanceof Error ? error.message : this.i18n.t('workspace.messages.accountDeactivateFailed'),
+      );
     }
   }
   /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */

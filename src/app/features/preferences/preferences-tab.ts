@@ -104,9 +104,7 @@ export class PreferencesTabComponent implements OnInit {
       this.nombreInvitado = '';
       this.store.toast.set(this.i18n.t('preferences.invite.successToast', { email: miembro.email }));
     } catch (error) {
-      this.errorDeInvitacion.set(
-        error instanceof Error ? error.message : this.i18n.t('preferences.invite.error'),
-      );
+      this.errorDeInvitacion.set(error instanceof Error ? error.message : this.i18n.t('preferences.invite.error'));
     }
   }
 

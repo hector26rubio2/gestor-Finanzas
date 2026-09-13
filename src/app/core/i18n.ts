@@ -30,8 +30,6 @@ export class I18nService {
   t(key: string, params?: Record<string, string | number>): string {
     const message = this.messages()[key] ?? es[key as keyof typeof es] ?? key;
     if (!params) return message;
-    return message.replace(/\{(\w+)\}/g, (match, name) =>
-      name in params ? String(params[name]) : match,
-    );
+    return message.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
   }
 }

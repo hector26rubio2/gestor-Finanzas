@@ -10,13 +10,13 @@
     /></label>
     <div class="theme-picks">
       @for (theme of themes(); track theme.id) {
-        <button
-          [attr.aria-pressed]="store.preferences().theme === theme.id"
-          [disabled]="!can(P.preferencias.editar)"
-          (click)="setTheme(theme.id)"
-        >
-          <i [style.background]="theme.preview"></i>{{ theme.label }}
-        </button>
+      <button
+        [attr.aria-pressed]="store.preferences().theme === theme.id"
+        [disabled]="!can(P.preferencias.editar)"
+        (click)="setTheme(theme.id)"
+      >
+        <i [style.background]="theme.preview"></i>{{ theme.label }}
+      </button>
       }
     </div>
     <div class="custom-controls">
@@ -83,7 +83,7 @@
       >
     </div>
     @if (!canCustomize()) {
-      <p role="note">{{ i18n.t('preferences.customizeRestricted') }}</p>
+    <p role="note">{{ i18n.t('preferences.customizeRestricted') }}</p>
     }
     <section class="theme-preview" [attr.aria-label]="i18n.t('preferences.preview.ariaLabel')">
       <div class="preview-nav">
@@ -125,67 +125,60 @@
     /></label>
   </article>
   @if (can(P.organizacion.miembros.listar)) {
-    <article class="wide">
-      <h2>{{ i18n.t('preferences.members.title') }}</h2>
-      <p>
-        {{ i18n.t('preferences.members.description') }}
-      </p>
-      @if (miembros().length) {
-        <ul class="member-list">
-          @for (miembro of miembros(); track miembro.membershipId) {
-            <li>
-              <span>
-                <b>{{ miembro.displayName }}</b>
-                <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small>
-              </span>
-              <em [class.pendiente]="miembro.status === 'Invited'">
-                {{
-                  miembro.status === 'Invited'
-                    ? i18n.t('preferences.members.status.invited')
-                    : i18n.t('preferences.members.status.active')
-                }}
-              </em>
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="empty-note">{{ i18n.t('preferences.members.empty') }}</p>
+  <article class="wide">
+    <h2>{{ i18n.t('preferences.members.title') }}</h2>
+    <p>{{ i18n.t('preferences.members.description') }}</p>
+    @if (miembros().length) {
+    <ul class="member-list">
+      @for (miembro of miembros(); track miembro.membershipId) {
+      <li>
+        <span>
+          <b>{{ miembro.displayName }}</b>
+          <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small>
+        </span>
+        <em [class.pendiente]="miembro.status === 'Invited'">
+          {{ miembro.status === 'Invited' ? i18n.t('preferences.members.status.invited') :
+          i18n.t('preferences.members.status.active') }}
+        </em>
+      </li>
       }
-      @if (can(P.organizacion.miembros.crear)) {
-        <form class="invitar" (submit)="invitar($event)">
-          <label
-            >{{ i18n.t('preferences.invite.emailLabel') }}<input
-              name="email"
-              type="email"
-              inputmode="email"
-              autocomplete="email"
-              [(ngModel)]="correoInvitado"
-              [placeholder]="i18n.t('preferences.invite.emailPlaceholder')"
-              required
-          /></label>
-          <label
-            >{{ i18n.t('preferences.invite.nameLabel') }}<input
-              name="nombre"
-              [(ngModel)]="nombreInvitado"
-              autocomplete="name"
-              [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
-          /></label>
-          <label
-            >{{ i18n.t('preferences.invite.roleLabel') }}<demo-select
-              name="rol"
-              [(ngModel)]="rolInvitado"
-              [options]="roleOptions()"
-              [ariaLabel]="i18n.t('preferences.invite.roleAriaLabel')"
-          /></label>
-          <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">
-            {{ i18n.t('preferences.invite.submitButton') }}
-          </button>
-        </form>
-        @if (errorDeInvitacion()) {
-          <p class="api-error" role="alert">{{ errorDeInvitacion() }}</p>
-        }
-      }
-    </article>
+    </ul>
+    } @else {
+    <p class="empty-note">{{ i18n.t('preferences.members.empty') }}</p>
+    } @if (can(P.organizacion.miembros.crear)) {
+    <form class="invitar" (submit)="invitar($event)">
+      <label
+        >{{ i18n.t('preferences.invite.emailLabel') }}<input
+          name="email"
+          type="email"
+          inputmode="email"
+          autocomplete="email"
+          [(ngModel)]="correoInvitado"
+          [placeholder]="i18n.t('preferences.invite.emailPlaceholder')"
+          required
+      /></label>
+      <label
+        >{{ i18n.t('preferences.invite.nameLabel') }}<input
+          name="nombre"
+          [(ngModel)]="nombreInvitado"
+          autocomplete="name"
+          [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
+      /></label>
+      <label
+        >{{ i18n.t('preferences.invite.roleLabel') }}<demo-select
+          name="rol"
+          [(ngModel)]="rolInvitado"
+          [options]="roleOptions()"
+          [ariaLabel]="i18n.t('preferences.invite.roleAriaLabel')"
+      /></label>
+      <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">
+        {{ i18n.t('preferences.invite.submitButton') }}
+      </button>
+    </form>
+    @if (errorDeInvitacion()) {
+    <p class="api-error" role="alert">{{ errorDeInvitacion() }}</p>
+    } }
+  </article>
   }
   <article>
     <h2>{{ i18n.t('preferences.localData.title') }}</h2>

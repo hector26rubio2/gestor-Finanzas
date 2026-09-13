@@ -5,7 +5,8 @@
       <p>{{ i18n.t('admin.subtitle') }}</p>
     </div>
     <div class="health">
-      <i></i><span><b>{{ i18n.t('admin.health.operational') }}</b><small>{{ i18n.t('admin.health.lastCheck') }}</small></span>
+      <i></i
+      ><span><b>{{ i18n.t('admin.health.operational') }}</b><small>{{ i18n.t('admin.health.lastCheck') }}</small></span>
     </div>
   </header>
 
@@ -18,10 +19,7 @@
   </nav>
 
   @switch (tab()) { @case ('summary') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.summary.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.summary.detail')" />
   } @else {
   <section class="kpis">
     <article>
@@ -83,10 +81,7 @@
     </article>
   </section>
   } } @case ('users') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.users.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.users.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -97,8 +92,7 @@
       <label class="search"
         ><demo-icon name="search" /><input
           [(ngModel)]="userSearch"
-          [placeholder]="i18n.t('admin.users.searchPlaceholder')"
-      /></label
+          [placeholder]="i18n.t('admin.users.searchPlaceholder')" /></label
       ><demo-select
         [(ngModel)]="userStatus"
         [options]="userStatusOptions()"
@@ -127,20 +121,20 @@
               </div>
             </td>
             <td>
-              <span class="status" [class.off]="!user.isActive">{{
-                user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive')
-              }}</span>
+              <span class="status" [class.off]="!user.isActive"
+                >{{ user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive') }}</span
+              >
             </td>
             <td>{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
             <td><b>{{ user.capabilities.length }}</b> {{ i18n.t('admin.users.assignedSuffix') }}</td>
-            <td>
-              {{
-                user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess')
-              }}
-            </td>
+            <td>{{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess') }}</td>
             <td>
               @if (caps.allows(P.administracion.usuarios.editar)) {
-              <button class="icon-btn" [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')" (click)="openUser(user)">
+              <button
+                class="icon-btn"
+                [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')"
+                (click)="openUser(user)"
+              >
                 →
               </button>
               }
@@ -156,10 +150,7 @@
     </footer>
   </section>
   } } @case ('roles') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.roles.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.roles.detail')" />
   } @else {
   <section class="cards-head">
     <div>
@@ -167,7 +158,9 @@
       <p>{{ i18n.t('admin.roles.subtitle') }}</p>
     </div>
     @if (caps.allows(P.administracion.roles.crear)) {
-    <button class="primary" (click)="newRole()"><demo-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}</button>
+    <button class="primary" (click)="newRole()">
+      <demo-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}
+    </button>
     }
   </section>
   <section class="role-grid">
@@ -201,10 +194,7 @@
     }
   </section>
   } } @case ('flags') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.flags.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.flags.detail')" />
   } @else {
   <section class="panel">
     <div class="toolbar">
@@ -236,10 +226,7 @@
     </div>
   </section>
   } } @case ('audit') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.audit.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.audit.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -293,10 +280,7 @@
     </footer>
   </section>
   } } @case ('errors') { @if (sinDatosDeAdministracion()) {
-  <demo-empty
-    [title]="i18n.t('admin.emptyState.title')"
-    [detail]="i18n.t('admin.emptyState.errors.detail')"
-  />
+  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.errors.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -317,8 +301,8 @@
         <div>
           <b>{{ error.message }}</b
           ><small
-            >{{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} ·
-            {{ i18n.t('admin.errors.affectedUsersLabel', { count: error.affectedUsers }) }}</small
+            >{{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} · {{
+            i18n.t('admin.errors.affectedUsersLabel', { count: error.affectedUsers }) }}</small
           >
         </div>
         <strong>{{ error.occurrences }}×</strong
@@ -374,24 +358,17 @@
     } @if (anulacionesDe(user).length) {
     <section class="excepciones">
       <h3>{{ i18n.t('admin.users.drawer.overridesTitle') }}</h3>
-      <p class="hint">
-        {{ i18n.t('admin.users.drawer.overridesHint') }}
-      </p>
+      <p class="hint">{{ i18n.t('admin.users.drawer.overridesHint') }}</p>
       @for (anulacion of anulacionesDe(user); track anulacion.code) {
       <div class="excepcion">
         <span>
           <b
-            >{{
-              anulacion.isAllowed
-                ? i18n.t('admin.users.drawer.overrideForcedYes')
-                : i18n.t('admin.users.drawer.overrideForcedNo')
-            }}
-            · {{ anulacion.code }}</b
+            >{{ anulacion.isAllowed ? i18n.t('admin.users.drawer.overrideForcedYes') :
+            i18n.t('admin.users.drawer.overrideForcedNo') }} · {{ anulacion.code }}</b
           >
           <small>
-            @if (anulacion.affects.length > 1) {
-            {{ i18n.t('admin.users.drawer.overrideAffectsMany', { count: anulacion.affects.length }) }}
-            } @else { {{ i18n.t('admin.users.drawer.overrideAffectsOne') }} }
+            @if (anulacion.affects.length > 1) { {{ i18n.t('admin.users.drawer.overrideAffectsMany', { count:
+            anulacion.affects.length }) }} } @else { {{ i18n.t('admin.users.drawer.overrideAffectsOne') }} }
           </small>
         </span>
         <button class="quiet" (click)="quitarExcepcion(user, anulacion)">
@@ -411,9 +388,7 @@
         <span class="summary-count">{{ enabledFeaturesFor(user) }}/{{ platformFlags().length }}</span>
         <demo-icon name="chevronDown" class="summary-chevron" />
       </summary>
-      <p class="hint section-hint">
-        {{ i18n.t('admin.users.drawer.featuresHint') }}
-      </p>
+      <p class="hint section-hint">{{ i18n.t('admin.users.drawer.featuresHint') }}</p>
       @for (flag of platformFlags(); track flag.key) {
       <label
         ><span><b>{{ featureLabel(flag.key) }}</b><small>{{ flag.key }}</small></span
@@ -427,9 +402,7 @@
     </details>
     }
     <h3>{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
-    <p class="hint">
-      {{ i18n.t('admin.users.drawer.permissionsHint') }}
-    </p>
+    <p class="hint">{{ i18n.t('admin.users.drawer.permissionsHint') }}</p>
     @for (group of permissionGroups(); track group.name) {
     <details class="cap-group">
       <summary>
@@ -466,8 +439,8 @@
   <div class="drawer-body role-form">
     <label>{{ i18n.t('admin.roles.drawer.nameLabel') }}<input [(ngModel)]="role.name" /></label
     ><label
-      >{{ i18n.t('admin.roles.drawer.descriptionLabel') }}<textarea [(ngModel)]="role.description"></textarea
-    ></label>
+      >{{ i18n.t('admin.roles.drawer.descriptionLabel') }}<textarea [(ngModel)]="role.description"></textarea>
+    </label>
     @if (!role.id) {
     <label
       >{{ i18n.t('admin.roles.drawer.organizationLabel') }}<demo-select
@@ -481,7 +454,10 @@
         <span class="summary-icon"><demo-icon name="menu" /></span>
         <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
         <div class="cap-bulk">
-          <span>{{ i18n.t('admin.roles.drawer.checkedOfTotal', { checked: marcadosEn(group.items), total: group.items.length }) }}</span>
+          <span
+            >{{ i18n.t('admin.roles.drawer.checkedOfTotal', { checked: marcadosEn(group.items), total:
+            group.items.length }) }}</span
+          >
         </div>
         <demo-icon name="chevronDown" class="summary-chevron" />
       </summary>

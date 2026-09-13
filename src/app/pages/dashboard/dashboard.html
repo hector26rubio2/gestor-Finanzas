@@ -18,9 +18,7 @@
       -->
   <section class="sin-acceso" role="status">
     <h2>{{ i18n.t('dashboard.noAccess.title') }}</h2>
-    <p>
-      {{ i18n.t('dashboard.noAccess.detail') }}
-    </p>
+    <p>{{ i18n.t('dashboard.noAccess.detail') }}</p>
   </section>
   } @else {
   <section class="filter-panel" aria-labelledby="filters-title">
@@ -28,7 +26,9 @@
       <div>
         <h2 id="filters-title">{{ i18n.t('dashboard.filters.title') }}</h2>
       </div>
-      <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">{{ i18n.t('dashboard.filters.clear') }}</button>
+      <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">
+        {{ i18n.t('dashboard.filters.clear') }}
+      </button>
     </header>
     <div class="filters">
       <fieldset>
@@ -47,7 +47,8 @@
       <div class="period-nav" [attr.aria-label]="i18n.t('dashboard.filters.period.nav')">
         <span>{{ i18n.t('dashboard.filters.period.active') }}</span>
         <div class="period-picker" [class.open]="periodPickerOpen()">
-          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.prev')" (click)="shiftPeriod(-1)">‹</button
+          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.prev')" (click)="shiftPeriod(-1)">
+            ‹</button
           ><button
             type="button"
             class="period-label"
@@ -57,7 +58,9 @@
           >
             {{ periodShortLabel() }}
           </button>
-          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.next')" (click)="shiftPeriod(1)">›</button>
+          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.next')" (click)="shiftPeriod(1)">
+            ›
+          </button>
           @if (periodPickerOpen()) {
           <div class="period-picker-menu">
             <label
@@ -96,7 +99,9 @@
                 [attr.aria-label]="i18n.t('dashboard.period.day')"
             /></label>
             }
-            <button type="button" class="quiet" (click)="periodPickerOpen.set(false)">{{ i18n.t('dashboard.filters.period.close') }}</button>
+            <button type="button" class="quiet" (click)="periodPickerOpen.set(false)">
+              {{ i18n.t('dashboard.filters.period.close') }}
+            </button>
           </div>
           }
         </div>
@@ -123,7 +128,9 @@
           [ariaLabel]="i18n.t('dashboard.filters.category.ariaLabel')"
       /></label>
     </div>
-    <p class="summary" role="status">{{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movements().length.toLocaleString() }) }}</p>
+    <p class="summary" role="status">
+      {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movements().length.toLocaleString() }) }}
+    </p>
   </section>
   } @if (algunKpi()) {
   <section class="kpis" aria-label="Indicadores filtrados">
@@ -177,13 +184,20 @@
         [subirEsBueno]="kpiSubirEsBueno(kpi.formula)"
       />
       @if (customizing() && caps.allows(P.dashboard.widget.deshabilitar)) {
-      <button type="button" class="quiet custom-kpi-remove" [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')" (click)="removeKpi(kpi.id)">
+      <button
+        type="button"
+        class="quiet custom-kpi-remove"
+        [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
+        (click)="removeKpi(kpi.id)"
+      >
         <demo-icon name="close" />
       </button>
       }
     </div>
     } } @if (customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length) {
-    <button type="button" class="add-kpi" (click)="openKpiCreator()"><demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}</button>
+    <button type="button" class="add-kpi" (click)="openKpiCreator()">
+      <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
+    </button>
     }
   </section>
   }
@@ -220,10 +234,20 @@
         } @if (customizing()) {
         <div class="widget-actions">
           @if (caps.allows(P.dashboard.widget.orden.editar)) {
-          <button class="quiet" type="button" [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')" (click)="move(widget.id, -1)">
+          <button
+            class="quiet"
+            type="button"
+            [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')"
+            (click)="move(widget.id, -1)"
+          >
             <demo-icon name="chevronUp" />
           </button>
-          <button class="quiet" type="button" [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')" (click)="move(widget.id, 1)">
+          <button
+            class="quiet"
+            type="button"
+            [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')"
+            (click)="move(widget.id, 1)"
+          >
             <demo-icon name="chevronDown" />
           </button>
           } @if (caps.allows(P.dashboard.widget.tipo.editar)) {
@@ -279,7 +303,9 @@
             (ngModelChange)="changeGoal(widget.id, 'goalMax', $event)"
           />
           } } @if (caps.allows(P.dashboard.widget.deshabilitar)) {
-          <button class="quiet" type="button" (click)="hide(widget.id)">{{ i18n.t('dashboard.widgetActions.hide') }}</button>
+          <button class="quiet" type="button" (click)="hide(widget.id)">
+            {{ i18n.t('dashboard.widgetActions.hide') }}
+          </button>
           }
         </div>
         }
@@ -513,7 +539,13 @@
   } @if (widgetCreatorOpen()) {
   <demo-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
     <form class="widget-builder" (submit)="createWidget($event)">
-      <label>{{ i18n.t('dashboard.widgetForm.name') }}<input name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetForm.name') }}<input
+          name="widgetTitle"
+          [(ngModel)]="newWidgetTitle"
+          required
+          maxlength="48"
+      /></label>
       <label
         >{{ i18n.t('dashboard.widgetForm.visualization') }}<demo-select
           name="widgetMetric"
@@ -552,13 +584,29 @@
           [ariaLabel]="i18n.t('dashboard.widgetForm.dimension2.ariaLabel')"
       /></label>
       } @if (needsGoal(newWidgetMetric)) {
-      <label>{{ i18n.t('dashboard.widgetActions.goalMin.ariaLabel') }}<input name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" /></label>
-      <label>{{ i18n.t('dashboard.widgetActions.goalTarget.ariaLabel') }}<input name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" /></label>
-      <label>{{ i18n.t('dashboard.widgetActions.goalMax.ariaLabel') }}<input name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetActions.goalMin.ariaLabel') }}<input
+          name="widgetGoalMin"
+          type="number"
+          [(ngModel)]="newWidgetGoalMin"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetActions.goalTarget.ariaLabel') }}<input
+          name="widgetGoalTarget"
+          type="number"
+          [(ngModel)]="newWidgetGoalTarget"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetActions.goalMax.ariaLabel') }}<input
+          name="widgetGoalMax"
+          type="number"
+          [(ngModel)]="newWidgetGoalMax"
+      /></label>
       }
       <p>{{ i18n.t('dashboard.widgetForm.note') }}</p>
       <div>
-        <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">{{ i18n.t('dashboard.widgetForm.cancel') }}</button
+        <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">
+          {{ i18n.t('dashboard.widgetForm.cancel') }}</button
         ><button type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
       </div>
     </form>
@@ -566,7 +614,13 @@
   } @if (kpiCreatorOpen()) {
   <demo-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
     <form class="widget-builder" (submit)="createKpi($event)">
-      <label>{{ i18n.t('dashboard.widgetForm.name') }}<input name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetForm.name') }}<input
+          name="kpiLabel"
+          [(ngModel)]="newKpiLabel"
+          required
+          maxlength="48"
+      /></label>
       <label
         >{{ i18n.t('dashboard.widgetActions.measure.ariaLabel') }}<demo-select
           name="kpiMeasure"
@@ -576,13 +630,17 @@
       /></label>
       <p>{{ i18n.t('dashboard.kpiForm.note') }}</p>
       <div>
-        <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">{{ i18n.t('dashboard.widgetForm.cancel') }}</button
+        <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">
+          {{ i18n.t('dashboard.widgetForm.cancel') }}</button
         ><button type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
       </div>
     </form>
   </demo-overlay>
   } @if (selectedMovement(); as movement) {
-  <demo-overlay [title]="i18n.t('workspace.inspector.title.movement')" mode="inspector" (closed)="store.inspector.set(null)"
+  <demo-overlay
+    [title]="i18n.t('workspace.inspector.title.movement')"
+    mode="inspector"
+    (closed)="store.inspector.set(null)"
     ><div class="detail">
       <span>{{ i18n.t('dashboard.detailModal.kicker') }}</span>
       <h2>{{ movement.description }}</h2>
@@ -602,7 +660,10 @@
         </div>
         <div>
           <dt>{{ i18n.t('workspace.inspector.facts.status') }}</dt>
-          <dd>{{ movement.status === 'confirmed' ? i18n.t('dashboard.detailModal.confirmed') : i18n.t('dashboard.detailModal.pending') }}</dd>
+          <dd>
+            {{ movement.status === 'confirmed' ? i18n.t('dashboard.detailModal.confirmed') :
+            i18n.t('dashboard.detailModal.pending') }}
+          </dd>
         </div>
       </dl>
       <a routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>

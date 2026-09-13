@@ -29,8 +29,12 @@
     /></label>
     } @if (kind() === 'recurrence') {
     <label
-      >{{ i18n.t('form.field.amount') }}<input name="amount" type="number" min="1" [(ngModel)]="amount" required
-    /></label
+      >{{ i18n.t('form.field.amount') }}<input
+        name="amount"
+        type="number"
+        min="1"
+        [(ngModel)]="amount"
+        required /></label
     ><label
       >{{ i18n.t('form.management.field.account') }}<demo-select
         name="account"
