@@ -6,19 +6,29 @@
     </div>
     <div class="head-actions">
       @if (page() === 'accounts' && can(P.cuentas.crear)) {
-      <button (click)="store.form.set({ kind: 'account' })"><demo-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}</button>
+      <button (click)="store.form.set({ kind: 'account' })">
+        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}
+      </button>
       } @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
       <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">
         <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newCategory') }}
       </button>
       } @if (page() === 'people' && can(P.personas.crear)) {
-      <button (click)="store.form.set({ kind: 'person' })"><demo-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}</button>
+      <button (click)="store.form.set({ kind: 'person' })">
+        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
+      </button>
       } @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
-      <button (click)="store.form.set({ kind: 'investment' })"><demo-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}</button>
+      <button (click)="store.form.set({ kind: 'investment' })">
+        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
+      </button>
       } @if (page() === 'reports' && can(P.reportes.exportar)) {
-      <button (click)="exportReport()"><demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}</button>
+      <button (click)="exportReport()">
+        <demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
+      </button>
       } @if (page() === 'movements' && can(P.movimientos.exportar)) {
-      <button class="secondary-action" (click)="exportMovements()"><demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}</button>
+      <button class="secondary-action" (click)="exportMovements()">
+        <demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
+      </button>
       } @if (page() === 'notifications' && can(P.notificaciones.editar)) {
       <button (click)="readAll()">{{ i18n.t('workspace.actions.markAllRead') }}</button>
       }
@@ -65,7 +75,9 @@
         <b>{{ store.money(cardStatementTotal()) }}</b>
       </header>
       <div>
-        <span>{{ i18n.t('workspace.statement.cyclePurchases') }} <b>{{ store.money(cardStatementPurchases()) }}</b></span>
+        <span
+          >{{ i18n.t('workspace.statement.cyclePurchases') }} <b>{{ store.money(cardStatementPurchases()) }}</b></span
+        >
         <span>{{ i18n.t('workspace.statement.nextInstallments') }} <b>{{ store.money(nextInstallments()) }}</b></span>
         <!--
                 Solo si la tarjeta declara su tasa. Antes salia siempre, calculado con un
@@ -74,7 +86,10 @@
         @if (cardEstimatedInterest(); as interes) {
         <span>{{ i18n.t('workspace.statement.estimatedInterest') }} <b>{{ store.money(interes) }}</b></span>
         }
-        <span>{{ i18n.t('workspace.statement.dueDate') }} <b>{{ i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay ?? '' }) }}</b></span>
+        <span
+          >{{ i18n.t('workspace.statement.dueDate') }}
+          <b>{{ i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay ?? '' }) }}</b></span
+        >
       </div>
       @if (cardEstimatedInterest() === null) {
       <small>{{ i18n.t('workspace.statement.noRateNote') }}</small>
@@ -97,11 +112,17 @@
       } @if (can(P.movimientos.deshabilitar)) {
       <button class="danger-action" (click)="reverseSelected()">{{ i18n.t('workspace.actions.reverse') }}</button>
       } } @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
-      <button class="action" (click)="issueSelectedSettlement()">{{ i18n.t('workspace.actions.issueSettlement') }}</button>
+      <button class="action" (click)="issueSelectedSettlement()">
+        {{ i18n.t('workspace.actions.issueSettlement') }}
+      </button>
       } @if (store.inspector()?.type === 'card' && !store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-      <button class="action" (click)="store.cardPaymentMode.set(true)">{{ i18n.t('workspace.actions.registerPayment') }}</button>
+      <button class="action" (click)="store.cardPaymentMode.set(true)">
+        {{ i18n.t('workspace.actions.registerPayment') }}
+      </button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
-      <button class="danger-action" (click)="deactivateSelectedAccount()">{{ i18n.t('workspace.actions.deactivateAccount') }}</button>
+      <button class="danger-action" (click)="deactivateSelectedAccount()">
+        {{ i18n.t('workspace.actions.deactivateAccount') }}
+      </button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
       store.selectedCalendarDate()).length === 0) {
       <button disabled>{{ i18n.t('workspace.actions.noMovements') }}</button>
@@ -143,7 +164,10 @@
       <div class="payment-summary">
         <span>{{ i18n.t('workspace.cardPayment.debtBefore') }} <b>{{ store.money(cardDebt()) }}</b></span
         ><span>{{ i18n.t('workspace.cardPayment.appliedAmount') }} <b>{{ store.money(appliedPayment()) }}</b></span
-        ><span>{{ i18n.t('workspace.cardPayment.estimatedBalance') }} <b>{{ store.money(Math.max(0, cardDebt() - appliedPayment())) }}</b></span>
+        ><span
+          >{{ i18n.t('workspace.cardPayment.estimatedBalance') }}
+          <b>{{ store.money(Math.max(0, cardDebt() - appliedPayment())) }}</b></span
+        >
       </div>
       <div class="payment-table">
         <table>

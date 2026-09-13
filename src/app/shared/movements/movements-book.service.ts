@@ -31,9 +31,7 @@ export class MovementsBookService {
   readonly movementAccountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
   readonly movementCategory = signal('all');
   readonly movementOperation = signal('all');
-  readonly movementCategories = computed(() =>
-    [...new Set(this.store.data().movements.map((m) => m.category))].sort(),
-  );
+  readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
   readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
     { value: 'all', label: this.i18n.t('movements.filters.accountType.all') },
     { value: 'savings', label: this.i18n.t('movements.filters.accountType.savings') },

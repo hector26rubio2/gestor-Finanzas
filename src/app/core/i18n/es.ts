@@ -439,12 +439,18 @@ export default {
   'admin.tabs.audit': 'Auditoría',
   'admin.tabs.errors': 'Errores',
   'admin.emptyState.title': 'Administración no disponible en esta demo',
-  'admin.emptyState.summary.detail': 'Esta consola necesita una sesión conectada a la API para traer usuarios, roles, banderas y errores reales. Cambia a modo API para ver datos aquí.',
-  'admin.emptyState.users.detail': 'Esta consola necesita una sesión conectada a la API para traer usuarios reales. Cambia a modo API para ver datos aquí.',
-  'admin.emptyState.roles.detail': 'Esta consola necesita una sesión conectada a la API para traer roles reales. Cambia a modo API para ver datos aquí.',
-  'admin.emptyState.flags.detail': 'Esta consola necesita una sesión conectada a la API para traer banderas reales. Cambia a modo API para ver datos aquí.',
-  'admin.emptyState.audit.detail': 'Esta consola necesita una sesión conectada a la API para traer el registro de auditoría real. Cambia a modo API para ver datos aquí.',
-  'admin.emptyState.errors.detail': 'Esta consola necesita una sesión conectada a la API para traer errores reales. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.summary.detail':
+    'Esta consola necesita una sesión conectada a la API para traer usuarios, roles, banderas y errores reales. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.users.detail':
+    'Esta consola necesita una sesión conectada a la API para traer usuarios reales. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.roles.detail':
+    'Esta consola necesita una sesión conectada a la API para traer roles reales. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.flags.detail':
+    'Esta consola necesita una sesión conectada a la API para traer banderas reales. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.audit.detail':
+    'Esta consola necesita una sesión conectada a la API para traer el registro de auditoría real. Cambia a modo API para ver datos aquí.',
+  'admin.emptyState.errors.detail':
+    'Esta consola necesita una sesión conectada a la API para traer errores reales. Cambia a modo API para ver datos aquí.',
   'admin.summary.activeUsers.label': 'Usuarios activos',
   'admin.summary.activeUsers.detail': 'de {total} registrados',
   'admin.summary.roles.label': 'Roles configurados',
@@ -537,7 +543,8 @@ export default {
   'admin.users.drawer.rolesTitle': 'Roles asignados',
   'admin.users.drawer.rolesHint': 'Los roles suman capacidades a la membresía de la organización.',
   'admin.users.drawer.overridesTitle': 'Excepciones directas',
-  'admin.users.drawer.overridesHint': 'Mandan sobre los roles. Mientras estén puestas, cambiar el rol no altera lo que esta persona ve.',
+  'admin.users.drawer.overridesHint':
+    'Mandan sobre los roles. Mientras estén puestas, cambiar el rol no altera lo que esta persona ve.',
   'admin.users.drawer.overrideForcedYes': 'Forzado a sí',
   'admin.users.drawer.overrideForcedNo': 'Forzado a no',
   'admin.users.drawer.overrideAffectsMany': 'Alcanza a {count} acciones',
@@ -545,9 +552,11 @@ export default {
   'admin.users.drawer.removeOverride': 'Quitar excepción',
   'admin.users.drawer.featuresTitle': 'Funcionalidades',
   'admin.users.drawer.featuresDetail': 'Módulos visibles en el menú lateral',
-  'admin.users.drawer.featuresHint': '“Ver” muestra el módulo en la navegación. Las acciones internas se administran en la sección siguiente.',
+  'admin.users.drawer.featuresHint':
+    '“Ver” muestra el módulo en la navegación. Las acciones internas se administran en la sección siguiente.',
   'admin.users.drawer.permissionsTitle': 'Permisos efectivos',
-  'admin.users.drawer.permissionsHint': 'Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre lo que digan sus roles.',
+  'admin.users.drawer.permissionsHint':
+    'Lo que esta persona puede hacer ahora mismo. Marcar o desmarcar aquí es una excepción directa: manda sobre lo que digan sus roles.',
   'admin.roles.drawer.editTitle': 'Editar rol',
   'admin.roles.drawer.subtitle': 'Define un conjunto reutilizable de capacidades.',
   'admin.roles.drawer.nameLabel': 'Nombre',
@@ -599,7 +608,8 @@ export default {
   'dashboard.actions.finish': 'Terminar',
   'dashboard.actions.customize': 'Personalizar',
   'dashboard.noAccess.title': 'Tu acceso al panel no incluye ninguna de sus piezas',
-  'dashboard.noAccess.detail': 'Puedes entrar, pero no se te ha concedido ningún indicador, gráfica ni la tabla del periodo. Pídele a quien administra tu espacio las piezas que necesites.',
+  'dashboard.noAccess.detail':
+    'Puedes entrar, pero no se te ha concedido ningún indicador, gráfica ni la tabla del periodo. Pídele a quien administra tu espacio las piezas que necesites.',
   'dashboard.filters.title': 'Vista general',
   'dashboard.filters.clear': 'Limpiar filtros',
   'dashboard.filters.period.legend': 'Periodo',
@@ -643,21 +653,25 @@ export default {
   'dashboard.widgetActions.goalMax.ariaLabel': 'Máximo',
   'dashboard.widgetActions.goalMax.placeholder': 'Máx.',
   'dashboard.widgetActions.hide': 'Ocultar',
-  'dashboard.widget.flow.ariaLabel': 'Ingresos y gastos por intervalo. Ingresos {income}, gastos {expense}, en {count} intervalos.',
+  'dashboard.widget.flow.ariaLabel':
+    'Ingresos y gastos por intervalo. Ingresos {income}, gastos {expense}, en {count} intervalos.',
   'dashboard.widget.empty.generic': 'No hay datos para estos filtros.',
   'dashboard.category.list.ariaLabel': 'Distribución de gastos por categoría',
   'dashboard.widget.categories.empty': 'No hay gastos en esta selección.',
   'dashboard.widget.accounts.empty': 'No hay cuentas con movimientos.',
   'dashboard.widget.trend.ariaLabel': 'Tendencia de gasto del periodo, con su promedio marcado. Total {total}',
   'dashboard.widget.trend.empty': 'No hay datos para mostrar.',
-  'dashboard.widget.scatter.ariaLabel': 'Relación entre la fecha del movimiento y su importe; el tamaño del punto acompaña al importe y el color distingue ingreso de gasto.',
+  'dashboard.widget.scatter.ariaLabel':
+    'Relación entre la fecha del movimiento y su importe; el tamaño del punto acompaña al importe y el color distingue ingreso de gasto.',
   'dashboard.widget.scatter.empty': 'No hay movimientos para estos filtros.',
   'dashboard.widget.donut.ariaLabel': 'Reparto del gasto por categoría. Total {total}',
   'dashboard.widget.donut.empty': 'No hay gasto para repartir.',
   'dashboard.widget.stacked.ariaLabel': 'Composición de ingresos y gastos por intervalo, apilados.',
-  'dashboard.widget.gauge.ariaLabel': 'Tasa de ahorro del periodo: {rate} por ciento. Se guardan {net} de {income} que entraron.',
+  'dashboard.widget.gauge.ariaLabel':
+    'Tasa de ahorro del periodo: {rate} por ciento. Se guardan {net} de {income} que entraron.',
   'dashboard.widget.gauge.empty': 'Sin ingresos en el periodo no hay tasa de ahorro que medir.',
-  'dashboard.widget.heatmap.ariaLabel': 'Intensidad de movimiento por intervalo: cuanto más oscuro, más dinero se movió ese día.',
+  'dashboard.widget.heatmap.ariaLabel':
+    'Intensidad de movimiento por intervalo: cuanto más oscuro, más dinero se movió ese día.',
   'dashboard.widget.histogram.ariaLabel': 'Histograma de importes: cuántos movimientos caen en cada rango de importe.',
   'dashboard.filters.period.weekOption': 'Semana {n} ({start}–{end})',
   'dashboard.accountType.all': 'Todos los tipos',
@@ -833,7 +847,8 @@ export default {
   'planning.xAxis.month6': '6 meses',
   'planning.xAxis.month9': '9 meses',
   'planning.xAxis.month12': '12 meses',
-  'planning.disclaimer': 'Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus saldos.',
+  'planning.disclaimer':
+    'Estimación orientativa basada en los movimientos registrados y los supuestos visibles. No modifica tus saldos.',
   'planning.tab.debt': 'Deudas',
   'planning.tab.purchase': 'Compra',
   'planning.tab.vacation': 'Vacaciones',
@@ -853,14 +868,16 @@ export default {
   'planning.vacation.rangeHint': 'El aporte se descuenta de la liquidez mensual disponible.',
   'planning.vacation.assumption': 'Doce aportes iguales, sin rentabilidad y sin retiros anticipados.',
   'planning.vacation.chartTitle': 'Ahorro acumulado para el viaje',
-  'planning.vacation.chartDescription': 'Capital reservado mes a mes, comparando el ahorro actual con el plan propuesto.',
+  'planning.vacation.chartDescription':
+    'Capital reservado mes a mes, comparando el ahorro actual con el plan propuesto.',
   'planning.vacation.currentLabel': 'Ahorro actual',
   'planning.vacation.proposedLabel': 'Plan mensual',
   'planning.investment.parameterTitle': 'Simular inversión',
   'planning.investment.amountLabel': 'Capital a invertir',
   'planning.investment.helper': 'Explora un escenario de rentabilidad sin afectar el patrimonio registrado.',
   'planning.investment.rangeHint': 'Capital inicial aplicado una sola vez.',
-  'planning.investment.assumption': 'Rentabilidad anual supuesta del 10 %, compuesta mensualmente; no incluye impuestos.',
+  'planning.investment.assumption':
+    'Rentabilidad anual supuesta del 10 %, compuesta mensualmente; no incluye impuestos.',
   'planning.investment.chartTitle': 'Valor proyectado de la inversión',
   'planning.investment.chartDescription': 'Evolución estimada del capital sin invertir frente al escenario invertido.',
   'planning.investment.currentLabel': 'Capital disponible',
@@ -871,7 +888,8 @@ export default {
   'planning.debt.rangeHint': 'El cálculo distribuye el pago sobre el saldo total registrado.',
   'planning.debt.assumption': 'Tasa mensual estimada de 1,8 % y ausencia de nuevas compras.',
   'planning.debt.chartTitle': 'Saldo de deuda pendiente',
-  'planning.debt.chartDescription': 'Reducción estimada del saldo durante doce meses con el pago actual y el propuesto.',
+  'planning.debt.chartDescription':
+    'Reducción estimada del saldo durante doce meses con el pago actual y el propuesto.',
   'planning.debt.currentLabel': 'Ritmo actual',
   'planning.debt.proposedLabel': 'Con el abono propuesto',
   'planning.purchase.current.detail': 'Disponible antes de realizar la compra.',
@@ -924,7 +942,8 @@ export default {
   'portfolio.column.value': 'Valor actual',
   'portfolio.column.return': 'Variación',
   'preferences.appearance.title': 'Apariencia',
-  'preferences.appearance.description': 'Crea una identidad personal, comprueba su contraste en la vista previa y guárdala para este usuario.',
+  'preferences.appearance.description':
+    'Crea una identidad personal, comprueba su contraste en la vista previa y guárdala para este usuario.',
   'preferences.themeName.label': 'Nombre del tema',
   'preferences.accent.label': 'Color de acento',
   'preferences.primary.label': 'Primario',
@@ -946,7 +965,8 @@ export default {
   'preferences.font.label': 'Tipografía',
   'preferences.language.label': 'Idioma',
   'preferences.members.title': 'Personas de tu espacio',
-  'preferences.members.description': 'Quien entre con el correo que invites comparte esta organización y ve la misma información. No se envía ningún correo: la persona queda pendiente y entra la primera vez que inicia sesión con esa dirección.',
+  'preferences.members.description':
+    'Quien entre con el correo que invites comparte esta organización y ve la misma información. No se envía ningún correo: la persona queda pendiente y entra la primera vez que inicia sesión con esa dirección.',
   'preferences.members.noRole': 'sin rol',
   'preferences.members.status.invited': 'Pendiente de entrar',
   'preferences.members.status.active': 'Activa',
@@ -1039,7 +1059,8 @@ export default {
   'dashboard.widgetForm.cancel': 'Cancelar',
   'dashboard.widgetForm.submit': 'Agregar widget',
   'dashboard.kpiForm.measure.ariaLabel': 'Métrica del indicador',
-  'dashboard.kpiForm.note': 'El indicador se suma a la franja de arriba y respeta el periodo y los filtros del dashboard.',
+  'dashboard.kpiForm.note':
+    'El indicador se suma a la franja de arriba y respeta el periodo y los filtros del dashboard.',
   'dashboard.kpiForm.submit': 'Agregar indicador',
   'dashboard.detailModal.kicker': 'MOVIMIENTO',
   'dashboard.detailModal.confirmed': 'Confirmado',
