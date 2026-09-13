@@ -4,6 +4,7 @@ import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient } from '../../core/api-client';
 import { accountBalance, Movement } from '../../core/demo-data';
+import { I18nService } from '../../core/i18n';
 import { parseMoney, sumBy } from '../../core/money';
 import { P } from '../../core/permissions';
 import { sincronizarConLaUrl } from '../../core/url-state';
@@ -133,6 +134,7 @@ export class DashboardComponent {
   private readonly api = inject(FinanceApiClient);
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
   private readonly temaGrafica = inject(ChartThemeService);
   readonly customizing = signal(false);
 
@@ -210,7 +212,10 @@ export class DashboardComponent {
     const semanas: UiOption[] = [];
     for (let inicio = 1, n = 1; inicio <= total; inicio += 7, n++) {
       const fin = Math.min(inicio + 6, total);
-      semanas.push({ value: String(inicio), label: `Semana ${n} (${inicio}–${fin})` });
+      semanas.push({
+        value: String(inicio),
+        label: this.i18n.t('dashboard.filters.period.weekOption', { n, start: inicio, end: fin }),
+      });
     }
     return semanas;
   });
@@ -222,20 +227,14 @@ export class DashboardComponent {
   setWeekOfMonth(value: string) {
     this.setDay(value);
   }
-  readonly monthOptions: readonly UiOption[] = [
-    'Enero',
-    'Febrero',
-    'Marzo',
-    'Abril',
-    'Mayo',
-    'Junio',
-    'Julio',
-    'Agosto',
-    'Septiembre',
-    'Octubre',
-    'Noviembre',
-    'Diciembre',
-  ].map((label, i) => ({ value: String(i), label }));
+  /** Nombres de mes según el idioma activo -mismo `Intl` que ya usa el resto del archivo para fechas. */
+  readonly monthOptions = computed<readonly UiOption[]>(() => {
+    const formateador = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long', timeZone: 'UTC' });
+    return Array.from({ length: 12 }, (_, i) => ({
+      value: String(i),
+      label: formateador.format(new Date(Date.UTC(2026, i, 1))),
+    }));
+  });
   /**
    * Solo digitos, a proposito: `<input type=number>` deja escribir "-" y "e" -notacion
    * cientifica, 1e5 es un numero valido para el navegador-, y ni un año negativo ni "2e26"
@@ -293,12 +292,12 @@ export class DashboardComponent {
   newWidgetGoalMin = 0;
   newWidgetGoalTarget = 0;
   newWidgetGoalMax = 0;
-  readonly accountTypeOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todos los tipos' },
-    { value: 'credit', label: 'Tarjetas de crédito' },
-    { value: 'savings', label: 'Cuentas de ahorro' },
-    { value: 'cash', label: 'Efectivo' },
-  ];
+  readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('dashboard.accountType.all') },
+    { value: 'credit', label: this.i18n.t('dashboard.accountType.credit.plural') },
+    { value: 'savings', label: this.i18n.t('dashboard.accountType.savings.plural') },
+    { value: 'cash', label: this.i18n.t('dashboard.accountType.cash') },
+  ]);
   /**
    * Los primeros catorce son genéricos: se combinan con dimensión + métrica (ver
    * `isGeneric`) para que un widget "sea lo que el usuario quiera medir", en vez de una
@@ -306,55 +305,55 @@ export class DashboardComponent {
    * caja, exploración de categorías con click-to-filter, dispersión fecha/importe— y no
    * aceptan dimensión ni métrica; se mantienen para no romper widgets ya creados con ellos.
    */
-  readonly widgetTypeOptions: readonly UiOption[] = [
-    { value: 'line', label: 'Línea' },
-    { value: 'area', label: 'Área' },
-    { value: 'bar', label: 'Columnas' },
-    { value: 'barH', label: 'Barras horizontales' },
-    { value: 'grouped', label: 'Columnas agrupadas' },
-    { value: 'stackedBars', label: 'Columnas apiladas' },
-    { value: 'stacked100', label: 'Barras apiladas 100%' },
-    { value: 'pie', label: 'Circular' },
-    { value: 'treemap', label: 'Mapa de árbol' },
-    { value: 'funnel', label: 'Embudo' },
-    { value: 'waterfall', label: 'Cascada' },
-    { value: 'matrix', label: 'Mapa de calor' },
-    { value: 'card', label: 'Tarjeta (KPI)' },
-    { value: 'indicator', label: 'Indicador KPI (con meta)' },
-    { value: 'colorScale', label: 'Escala de colores' },
-    { value: 'statusBars', label: 'Barras de estado' },
-    { value: 'table', label: 'Tabla' },
-    { value: 'flow', label: 'Ingresos y gastos en el tiempo (fijo)' },
-    { value: 'trend', label: 'Tendencia de gasto (fijo)' },
-    { value: 'categories', label: 'Explorador de categorías (fijo)' },
-    { value: 'accounts', label: 'Explorador de cuentas (fijo)' },
-    { value: 'scatter', label: 'Dispersión fecha/importe (fijo)' },
-    { value: 'donut', label: 'Dona de categorías (fijo)' },
-    { value: 'stacked', label: 'Ingresos/gastos apilados (fijo)' },
-    { value: 'heatmap', label: 'Intensidad diaria (fijo)' },
-    { value: 'gauge', label: 'Medidor de ahorro (fijo)' },
-    { value: 'histogram', label: 'Histograma de importes (fijo)' },
-  ];
-  readonly dimensionOptions: readonly UiOption[] = [
-    { value: 'category', label: 'Categoría' },
-    { value: 'account', label: 'Cuenta o tarjeta' },
-    { value: 'date', label: 'Fecha' },
-    { value: 'kind', label: 'Tipo de movimiento' },
-    { value: 'person', label: 'Persona' },
-    { value: 'recurring', label: 'Fijo o variable' },
-    { value: 'installments', label: 'Contado o a cuotas' },
-  ];
-  readonly measureOptions: readonly UiOption[] = [
-    { value: 'expense', label: 'Gasto' },
-    { value: 'income', label: 'Ingreso' },
-    { value: 'amount', label: 'Monto neto' },
-    { value: 'count', label: 'Cantidad de movimientos' },
-    { value: 'average', label: 'Promedio por movimiento' },
-  ];
-  readonly widgetWidthOptions: readonly UiOption[] = [
-    { value: 'wide', label: 'Ancho completo' },
-    { value: 'half', label: 'Media pantalla' },
-  ];
+  readonly widgetTypeOptions = computed<readonly UiOption[]>(() => [
+    { value: 'line', label: this.i18n.t('dashboard.widgetType.line') },
+    { value: 'area', label: this.i18n.t('dashboard.widgetType.area') },
+    { value: 'bar', label: this.i18n.t('dashboard.widgetType.bar') },
+    { value: 'barH', label: this.i18n.t('dashboard.widgetType.barH') },
+    { value: 'grouped', label: this.i18n.t('dashboard.widgetType.grouped') },
+    { value: 'stackedBars', label: this.i18n.t('dashboard.widgetType.stackedBars') },
+    { value: 'stacked100', label: this.i18n.t('dashboard.widgetType.stacked100') },
+    { value: 'pie', label: this.i18n.t('dashboard.widgetType.pie') },
+    { value: 'treemap', label: this.i18n.t('dashboard.widgetType.treemap') },
+    { value: 'funnel', label: this.i18n.t('dashboard.widgetType.funnel') },
+    { value: 'waterfall', label: this.i18n.t('dashboard.widgetType.waterfall') },
+    { value: 'matrix', label: this.i18n.t('dashboard.widgetType.matrix') },
+    { value: 'card', label: this.i18n.t('dashboard.widgetType.card') },
+    { value: 'indicator', label: this.i18n.t('dashboard.widgetType.indicator') },
+    { value: 'colorScale', label: this.i18n.t('dashboard.widgetType.colorScale') },
+    { value: 'statusBars', label: this.i18n.t('dashboard.widgetType.statusBars') },
+    { value: 'table', label: this.i18n.t('dashboard.widgetType.table') },
+    { value: 'flow', label: this.i18n.t('dashboard.widgetType.flow') },
+    { value: 'trend', label: this.i18n.t('dashboard.widgetType.trend') },
+    { value: 'categories', label: this.i18n.t('dashboard.widgetType.categories') },
+    { value: 'accounts', label: this.i18n.t('dashboard.widgetType.accounts') },
+    { value: 'scatter', label: this.i18n.t('dashboard.widgetType.scatter') },
+    { value: 'donut', label: this.i18n.t('dashboard.widgetType.donut') },
+    { value: 'stacked', label: this.i18n.t('dashboard.widgetType.stacked') },
+    { value: 'heatmap', label: this.i18n.t('dashboard.widgetType.heatmap') },
+    { value: 'gauge', label: this.i18n.t('dashboard.widgetType.gauge') },
+    { value: 'histogram', label: this.i18n.t('dashboard.widgetType.histogram') },
+  ]);
+  readonly dimensionOptions = computed<readonly UiOption[]>(() => [
+    { value: 'category', label: this.i18n.t('dashboard.dimension.category') },
+    { value: 'account', label: this.i18n.t('dashboard.dimension.account') },
+    { value: 'date', label: this.i18n.t('dashboard.dimension.date') },
+    { value: 'kind', label: this.i18n.t('dashboard.dimension.kind') },
+    { value: 'person', label: this.i18n.t('dashboard.dimension.person') },
+    { value: 'recurring', label: this.i18n.t('dashboard.dimension.recurring') },
+    { value: 'installments', label: this.i18n.t('dashboard.dimension.installments') },
+  ]);
+  readonly measureOptions = computed<readonly UiOption[]>(() => [
+    { value: 'expense', label: this.i18n.t('dashboard.measure.expense') },
+    { value: 'income', label: this.i18n.t('dashboard.measure.income') },
+    { value: 'amount', label: this.i18n.t('dashboard.measure.amount') },
+    { value: 'count', label: this.i18n.t('dashboard.measure.count') },
+    { value: 'average', label: this.i18n.t('dashboard.measure.average') },
+  ]);
+  readonly widgetWidthOptions = computed<readonly UiOption[]>(() => [
+    { value: 'wide', label: this.i18n.t('dashboard.widgetWidth.wide') },
+    { value: 'half', label: this.i18n.t('dashboard.widgetWidth.half') },
+  ]);
   isGeneric(type: WidgetType): boolean {
     return (GENERIC_TYPES as readonly WidgetType[]).includes(type);
   }
@@ -364,41 +363,41 @@ export class DashboardComponent {
   needsGoal(type: WidgetType): boolean {
     return type === 'indicator' || type === 'colorScale';
   }
-  readonly scales: { value: Scale; label: string }[] = [
-    { value: 'day', label: 'Día' },
-    { value: 'week', label: 'Semana' },
-    { value: 'month', label: 'Mes' },
-    { value: 'year', label: 'Año' },
-  ];
+  readonly scales = computed<{ value: Scale; label: string }[]>(() => [
+    { value: 'day', label: this.i18n.t('dashboard.period.day') },
+    { value: 'week', label: this.i18n.t('dashboard.period.week') },
+    { value: 'month', label: this.i18n.t('dashboard.period.month') },
+    { value: 'year', label: this.i18n.t('dashboard.period.year') },
+  ]);
   readonly all = signal<Widget[]>([
     {
       id: 'flow',
-      title: 'Flujo de caja',
-      kicker: 'INGRESOS Y GASTOS',
+      title: this.i18n.t('dashboard.widget.flow.title'),
+      kicker: this.i18n.t('dashboard.widget.flow.kicker'),
       type: 'flow',
       wide: true,
       capability: P.dashboard.widget.flujo,
     },
     {
       id: 'categories',
-      title: 'Gastos por categoría',
-      kicker: 'DISTRIBUCIÓN INTERACTIVA',
+      title: this.i18n.t('dashboard.widget.categories.title'),
+      kicker: this.i18n.t('dashboard.widget.categories.kicker'),
       type: 'categories',
       wide: false,
       capability: P.dashboard.widget.categorias,
     },
     {
       id: 'accounts',
-      title: 'Gasto por cuenta y tarjeta',
-      kicker: 'MEDIOS DE PAGO',
+      title: this.i18n.t('dashboard.widget.accounts.title'),
+      kicker: this.i18n.t('dashboard.widget.accounts.kicker'),
       type: 'accounts',
       wide: false,
       capability: P.dashboard.widget.cuentas,
     },
     {
       id: 'trend',
-      title: 'Evolución del gasto',
-      kicker: 'TENDENCIA',
+      title: this.i18n.t('dashboard.widget.trend.title'),
+      kicker: this.i18n.t('dashboard.widget.trend.kicker'),
       type: 'trend',
       wide: true,
       capability: P.dashboard.widget.tendencia,
@@ -410,8 +409,8 @@ export class DashboardComponent {
        * el motor generico cada widget trae su propia dimension/medida.
        */
       id: 'commitments',
-      title: 'Movimiento neto por cuenta',
-      kicker: 'POR CUENTA',
+      title: this.i18n.t('dashboard.widget.commitments.title'),
+      kicker: this.i18n.t('dashboard.widget.commitments.kicker'),
       type: 'bar',
       dimension: 'account',
       measure: 'amount',
@@ -421,8 +420,8 @@ export class DashboardComponent {
     {
       // Mismo caso que "commitments": tenia `type: 'categories'`, duplicando ese widget.
       id: 'health',
-      title: 'Gasto promedio por categoría',
-      kicker: 'POR CATEGORÍA',
+      title: this.i18n.t('dashboard.widget.health.title'),
+      kicker: this.i18n.t('dashboard.widget.health.kicker'),
       type: 'bar',
       dimension: 'category',
       measure: 'average',
@@ -435,12 +434,28 @@ export class DashboardComponent {
      * que abrir "Crear widget" veinte veces. Sin `capability` -heredan
      * `dashboard.widget.propios`, igual que cualquier widget que alguien cree a mano.
      */
-    { id: 'g-line', title: 'Ingresos en el tiempo', kicker: 'GALERÍA', type: 'line', dimension: 'date', measure: 'income', wide: false },
-    { id: 'g-area', title: 'Gastos en el tiempo', kicker: 'GALERÍA', type: 'area', dimension: 'date', measure: 'expense', wide: false },
+    {
+      id: 'g-line',
+      title: this.i18n.t('dashboard.widget.gallery.line.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'line',
+      dimension: 'date',
+      measure: 'income',
+      wide: false,
+    },
+    {
+      id: 'g-area',
+      title: this.i18n.t('dashboard.widget.gallery.area.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'area',
+      dimension: 'date',
+      measure: 'expense',
+      wide: false,
+    },
     {
       id: 'g-barh',
-      title: 'Movimientos por categoría',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.barH.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'barH',
       dimension: 'category',
       measure: 'count',
@@ -448,8 +463,8 @@ export class DashboardComponent {
     },
     {
       id: 'g-grouped',
-      title: 'Categoría por tipo de movimiento',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.grouped.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'grouped',
       dimension: 'category',
       dimension2: 'kind',
@@ -458,8 +473,8 @@ export class DashboardComponent {
     },
     {
       id: 'g-stacked-bars',
-      title: 'Cuentas por tipo de movimiento, apiladas',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.stackedBars.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'stackedBars',
       dimension: 'account',
       dimension2: 'kind',
@@ -468,19 +483,27 @@ export class DashboardComponent {
     },
     {
       id: 'g-stacked100',
-      title: 'Composición porcentual por categoría',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.stacked100.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'stacked100',
       dimension: 'category',
       dimension2: 'kind',
       measure: 'count',
       wide: true,
     },
-    { id: 'g-pie', title: 'Movimientos por cuenta', kicker: 'GALERÍA', type: 'pie', dimension: 'account', measure: 'count', wide: false },
+    {
+      id: 'g-pie',
+      title: this.i18n.t('dashboard.widget.gallery.pie.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'pie',
+      dimension: 'account',
+      measure: 'count',
+      wide: false,
+    },
     {
       id: 'g-treemap',
-      title: 'Mapa de árbol de gastos',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.treemap.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'treemap',
       dimension: 'category',
       measure: 'expense',
@@ -488,8 +511,8 @@ export class DashboardComponent {
     },
     {
       id: 'g-funnel',
-      title: 'Embudo de gasto por categoría',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.funnel.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'funnel',
       dimension: 'category',
       measure: 'expense',
@@ -497,29 +520,44 @@ export class DashboardComponent {
     },
     {
       id: 'g-waterfall',
-      title: 'Cascada del saldo neto',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.waterfall.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'waterfall',
       dimension: 'date',
       measure: 'amount',
       wide: true,
     },
-    { id: 'g-card', title: 'Total de ingresos', kicker: 'GALERÍA', type: 'card', measure: 'income', wide: false },
+    {
+      id: 'g-card',
+      title: this.i18n.t('dashboard.widget.gallery.card.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'card',
+      measure: 'income',
+      wide: false,
+    },
     {
       id: 'g-matrix',
-      title: 'Mapa de calor: categoría y tipo',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.matrix.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'matrix',
       dimension: 'category',
       dimension2: 'kind',
       measure: 'count',
       wide: true,
     },
-    { id: 'g-table', title: 'Tabla por persona', kicker: 'GALERÍA', type: 'table', dimension: 'person', measure: 'amount', wide: false },
+    {
+      id: 'g-table',
+      title: this.i18n.t('dashboard.widget.gallery.table.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'table',
+      dimension: 'person',
+      measure: 'amount',
+      wide: false,
+    },
     {
       id: 'g-indicator',
-      title: 'Meta de gasto del periodo',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.indicator.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'indicator',
       measure: 'expense',
       goalMin: 0,
@@ -527,16 +565,52 @@ export class DashboardComponent {
       goalMax: 5000000,
       wide: false,
     },
-    { id: 'g-scatter', title: 'Dispersión de movimientos', kicker: 'GALERÍA', type: 'scatter', wide: true },
-    { id: 'g-donut', title: 'Composición de gasto', kicker: 'GALERÍA', type: 'donut', wide: false },
-    { id: 'g-stacked', title: 'Ingresos y gastos apilados', kicker: 'GALERÍA', type: 'stacked', wide: true },
-    { id: 'g-heatmap', title: 'Intensidad diaria de movimiento', kicker: 'GALERÍA', type: 'heatmap', wide: true },
-    { id: 'g-gauge', title: 'Tasa de ahorro', kicker: 'GALERÍA', type: 'gauge', wide: false },
-    { id: 'g-histogram', title: 'Histograma de importes', kicker: 'GALERÍA', type: 'histogram', wide: false },
+    {
+      id: 'g-scatter',
+      title: this.i18n.t('dashboard.widget.gallery.scatter.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'scatter',
+      wide: true,
+    },
+    {
+      id: 'g-donut',
+      title: this.i18n.t('dashboard.widget.gallery.donut.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'donut',
+      wide: false,
+    },
+    {
+      id: 'g-stacked',
+      title: this.i18n.t('dashboard.widget.gallery.stacked.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'stacked',
+      wide: true,
+    },
+    {
+      id: 'g-heatmap',
+      title: this.i18n.t('dashboard.widget.gallery.heatmap.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'heatmap',
+      wide: true,
+    },
+    {
+      id: 'g-gauge',
+      title: this.i18n.t('dashboard.widget.gallery.gauge.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'gauge',
+      wide: false,
+    },
+    {
+      id: 'g-histogram',
+      title: this.i18n.t('dashboard.widget.gallery.histogram.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
+      type: 'histogram',
+      wide: false,
+    },
     {
       id: 'g-colorscale',
-      title: 'Escala de colores: gasto del periodo',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.colorScale.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'colorScale',
       measure: 'expense',
       goalMin: 0,
@@ -546,8 +620,8 @@ export class DashboardComponent {
     },
     {
       id: 'g-statusbars',
-      title: 'Barras de estado por categoría',
-      kicker: 'GALERÍA',
+      title: this.i18n.t('dashboard.widget.gallery.statusBars.title'),
+      kicker: this.i18n.t('dashboard.widget.gallery.kicker'),
       type: 'statusBars',
       dimension: 'category',
       measure: 'expense',
@@ -566,15 +640,15 @@ export class DashboardComponent {
     this.store.data().accounts.filter((a) => this.accountType() === 'all' || a.type === this.accountType()),
   );
   readonly accountSelectOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas las cuentas' },
+    { value: 'all', label: this.i18n.t('dashboard.filters.allAccounts') },
     ...this.accountOptions().map((account) => ({ value: account.id, label: account.name })),
   ]);
   readonly categorySelectOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas las categorías' },
+    { value: 'all', label: this.i18n.t('dashboard.filters.allCategories') },
     ...this.allCategories().map((category) => ({ value: category, label: category })),
   ]);
   readonly localCategoryOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas' },
+    { value: 'all', label: this.i18n.t('dashboard.filters.allLocal') },
     ...this.localOptions().map((category) => ({ value: category, label: category })),
   ]);
   readonly range = computed(() => {
@@ -792,40 +866,60 @@ export class DashboardComponent {
    * que existe, sin tener que abrir "Crear indicador" catorce veces.
    */
   readonly customKpis = signal<{ id: string; label: string; formula: KpiFormula }[]>([
-    { id: 'k-average', label: 'Promedio por movimiento', formula: 'average' },
-    { id: 'k-savingsRate', label: 'Tasa de ahorro (%)', formula: 'savingsRate' },
-    { id: 'k-expenseShare', label: '% del ingreso que se gasta', formula: 'expenseShare' },
-    { id: 'k-dailyExpense', label: 'Gasto promedio diario', formula: 'dailyExpense' },
-    { id: 'k-dailyIncome', label: 'Ingreso promedio diario', formula: 'dailyIncome' },
-    { id: 'k-liquidityMonths', label: 'Meses de colchón (liquidez)', formula: 'liquidityMonths' },
-    { id: 'k-expenseConcentration', label: 'Concentración del gasto', formula: 'expenseConcentration' },
-    { id: 'k-debtToIncome', label: 'Deuda de tarjetas sobre ingreso', formula: 'debtToIncome' },
-    { id: 'k-daysToDeplete', label: 'Días para agotar el disponible', formula: 'daysToDeplete' },
-    { id: 'k-avgPaymentDelay', label: 'Puntualidad de cobro (días prom.)', formula: 'avgPaymentDelay' },
-    { id: 'k-fixedExpenseShare', label: '% de gasto fijo (recurrente)', formula: 'fixedExpenseShare' },
-    { id: 'k-installmentExpenseShare', label: '% de gasto financiado a cuotas', formula: 'installmentExpenseShare' },
-    { id: 'k-creditUtilization', label: 'Utilización de cupo de tarjetas', formula: 'creditUtilization' },
-    { id: 'k-mostUsedCard', label: 'Tarjeta más usada', formula: 'mostUsedCard' },
+    { id: 'k-average', label: this.i18n.t('dashboard.measure.average'), formula: 'average' },
+    { id: 'k-savingsRate', label: this.i18n.t('dashboard.kpiFormula.savingsRate'), formula: 'savingsRate' },
+    { id: 'k-expenseShare', label: this.i18n.t('dashboard.kpiFormula.expenseShare'), formula: 'expenseShare' },
+    { id: 'k-dailyExpense', label: this.i18n.t('dashboard.kpiFormula.dailyExpense'), formula: 'dailyExpense' },
+    { id: 'k-dailyIncome', label: this.i18n.t('dashboard.kpiFormula.dailyIncome'), formula: 'dailyIncome' },
+    { id: 'k-liquidityMonths', label: this.i18n.t('dashboard.kpiFormula.liquidityMonths'), formula: 'liquidityMonths' },
+    {
+      id: 'k-expenseConcentration',
+      label: this.i18n.t('dashboard.kpiFormula.expenseConcentration'),
+      formula: 'expenseConcentration',
+    },
+    { id: 'k-debtToIncome', label: this.i18n.t('dashboard.kpiFormula.debtToIncome'), formula: 'debtToIncome' },
+    { id: 'k-daysToDeplete', label: this.i18n.t('dashboard.kpiFormula.daysToDeplete'), formula: 'daysToDeplete' },
+    {
+      id: 'k-avgPaymentDelay',
+      label: this.i18n.t('dashboard.kpiFormula.avgPaymentDelay'),
+      formula: 'avgPaymentDelay',
+    },
+    {
+      id: 'k-fixedExpenseShare',
+      label: this.i18n.t('dashboard.kpiFormula.fixedExpenseShare'),
+      formula: 'fixedExpenseShare',
+    },
+    {
+      id: 'k-installmentExpenseShare',
+      label: this.i18n.t('dashboard.kpiFormula.installmentExpenseShare'),
+      formula: 'installmentExpenseShare',
+    },
+    {
+      id: 'k-creditUtilization',
+      label: this.i18n.t('dashboard.kpiFormula.creditUtilization'),
+      formula: 'creditUtilization',
+    },
+    { id: 'k-mostUsedCard', label: this.i18n.t('dashboard.kpiFormula.mostUsedCard'), formula: 'mostUsedCard' },
   ]);
   readonly kpiCreatorOpen = signal(false);
   newKpiLabel = '';
   newKpiFormula: KpiFormula = 'income';
-  readonly kpiFormulaOptions: readonly UiOption[] = [
-    ...this.measureOptions,
-    { value: 'savingsRate', label: 'Tasa de ahorro (%)' },
-    { value: 'expenseShare', label: '% del ingreso que se gasta' },
-    { value: 'dailyExpense', label: 'Gasto promedio diario' },
-    { value: 'dailyIncome', label: 'Ingreso promedio diario' },
-    { value: 'liquidityMonths', label: 'Meses de colchón (liquidez)' },
-    { value: 'expenseConcentration', label: 'Concentración del gasto' },
-    { value: 'debtToIncome', label: 'Deuda de tarjetas sobre ingreso' },
-    { value: 'daysToDeplete', label: 'Días para agotar el disponible' },
-    { value: 'avgPaymentDelay', label: 'Puntualidad de cobro (días prom.)' },
-    { value: 'fixedExpenseShare', label: '% de gasto fijo (recurrente)' },
-    { value: 'installmentExpenseShare', label: '% de gasto financiado a cuotas' },
-    { value: 'creditUtilization', label: 'Utilización de cupo de tarjetas' },
-    { value: 'mostUsedCard', label: 'Tarjeta más usada' },
-  ];
+  readonly kpiFormulaOptions = computed<readonly UiOption[]>(() => [
+    ...this.measureOptions(),
+    { value: 'savingsRate', label: this.i18n.t('dashboard.kpiFormula.savingsRate') },
+    { value: 'expenseShare', label: this.i18n.t('dashboard.kpiFormula.expenseShare') },
+    { value: 'dailyExpense', label: this.i18n.t('dashboard.kpiFormula.dailyExpense') },
+    { value: 'dailyIncome', label: this.i18n.t('dashboard.kpiFormula.dailyIncome') },
+    { value: 'liquidityMonths', label: this.i18n.t('dashboard.kpiFormula.liquidityMonths') },
+    { value: 'expenseConcentration', label: this.i18n.t('dashboard.kpiFormula.expenseConcentration') },
+    { value: 'debtToIncome', label: this.i18n.t('dashboard.kpiFormula.debtToIncome') },
+    { value: 'daysToDeplete', label: this.i18n.t('dashboard.kpiFormula.daysToDeplete') },
+    { value: 'avgPaymentDelay', label: this.i18n.t('dashboard.kpiFormula.avgPaymentDelay') },
+    { value: 'fixedExpenseShare', label: this.i18n.t('dashboard.kpiFormula.fixedExpenseShare') },
+    { value: 'installmentExpenseShare', label: this.i18n.t('dashboard.kpiFormula.installmentExpenseShare') },
+    { value: 'creditUtilization', label: this.i18n.t('dashboard.kpiFormula.creditUtilization') },
+    { value: 'mostUsedCard', label: this.i18n.t('dashboard.kpiFormula.mostUsedCard') },
+  ]);
   /** Lo que ya ocupa un cupo en la franja -fijo o creado a mano- para no ofrecerlo dos veces. */
   readonly usedKpiFormulas = computed<Set<KpiFormula>>(() => {
     const usados = new Set<KpiFormula>(this.customKpis().map((k) => k.formula));
@@ -836,7 +930,7 @@ export class DashboardComponent {
     return usados;
   });
   readonly availableKpiFormulaOptions = computed<readonly UiOption[]>(() =>
-    this.kpiFormulaOptions.filter((o) => !this.usedKpiFormulas().has(o.value as KpiFormula)),
+    this.kpiFormulaOptions().filter((o) => !this.usedKpiFormulas().has(o.value as KpiFormula)),
   );
   private diasDelPeriodo(): number {
     const inicio = new Date(`${this.range().start}T00:00:00Z`).getTime();
@@ -882,7 +976,7 @@ export class DashboardComponent {
     }
     let mejor: { id: string; count: number } | null = null;
     for (const [id, count] of conteo) if (!mejor || count > mejor.count) mejor = { id, count };
-    return mejor ? { name: this.store.account(mejor.id)?.name ?? 'Sin tarjeta', count: mejor.count } : null;
+    return mejor ? { name: this.store.account(mejor.id)?.name ?? this.i18n.t('dashboard.kpi.noCard'), count: mejor.count } : null;
   }
   kpiValue(formula: KpiFormula): number {
     const movs = this.movements();
@@ -964,7 +1058,7 @@ export class DashboardComponent {
   }
   /** Dinero para las medidas simples; porcentaje, meses, días o el nombre de una tarjeta para las fórmulas derivadas. */
   kpiFormatValue(formula: KpiFormula, valor: number): string {
-    if (formula === 'mostUsedCard') return this.tarjetaMasUsada()?.name ?? 'Sin datos';
+    if (formula === 'mostUsedCard') return this.tarjetaMasUsada()?.name ?? this.i18n.t('dashboard.kpi.noData');
     if (
       formula === 'savingsRate' ||
       formula === 'expenseShare' ||
@@ -975,20 +1069,23 @@ export class DashboardComponent {
       formula === 'creditUtilization'
     )
       return `${valor.toFixed(0)}%`;
-    if (formula === 'liquidityMonths') return `${valor.toFixed(1)} meses`;
-    if (formula === 'daysToDeplete' || formula === 'avgPaymentDelay') return `${valor.toFixed(0)} días`;
+    if (formula === 'liquidityMonths') return this.i18n.t('dashboard.unit.months', { value: valor.toFixed(1) });
+    if (formula === 'daysToDeplete' || formula === 'avgPaymentDelay')
+      return this.i18n.t('dashboard.unit.days', { value: valor.toFixed(0) });
     return this.formatMeasure(valor, { measure: formula === 'dailyExpense' ? 'expense' : formula === 'dailyIncome' ? 'income' : formula });
   }
   /** Subtítulo del indicador "tarjeta más usada": cuántos movimientos, ya que el número grande es el nombre. */
   kpiHintFor(formula: KpiFormula): string {
     if (formula === 'mostUsedCard') {
       const top = this.tarjetaMasUsada();
-      return top ? `${top.count} movimiento${top.count === 1 ? '' : 's'} en el periodo` : 'Según filtros activos';
+      if (!top) return this.i18n.t('dashboard.kpi.defaultHint');
+      const unidad = this.i18n.t(top.count === 1 ? 'dashboard.unit.movement' : 'dashboard.unit.movements');
+      return this.i18n.t('dashboard.kpi.mostUsedCard.hint', { count: top.count, unit: unidad });
     }
-    return 'Según filtros activos';
+    return this.i18n.t('dashboard.kpi.defaultHint');
   }
   kpiLabelFor(formula: KpiFormula): string {
-    return this.kpiFormulaOptions.find((o) => o.value === formula)?.label ?? '';
+    return this.kpiFormulaOptions().find((o) => o.value === formula)?.label ?? '';
   }
   private readonly formulasDeGasto: readonly KpiFormula[] = [
     'expense',
@@ -1035,7 +1132,7 @@ export class DashboardComponent {
     this.customKpis.update((items) => [...items, { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula }]);
     this.newKpiLabel = '';
     this.kpiCreatorOpen.set(false);
-    this.store.log(`Indicador agregado: ${label}`);
+    this.store.log(this.i18n.t('dashboard.log.indicatorAdded', { label }));
   }
   removeKpi(id: string) {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
@@ -1055,13 +1152,13 @@ export class DashboardComponent {
     const s = this.store.inspector();
     return s?.type === 'movement' ? this.store.data().movements.find((m) => m.id === s.id) : undefined;
   });
-  readonly columns = [
-    { key: 'date', label: 'Fecha' },
-    { key: 'description', label: 'Descripción' },
-    { key: 'category', label: 'Categoría' },
-    { key: 'account', label: 'Cuenta' },
-    { key: 'amount', label: 'Importe' },
-  ];
+  readonly columns = computed(() => [
+    { key: 'date', label: this.i18n.t('dashboard.detail.date') },
+    { key: 'description', label: this.i18n.t('dashboard.table.description') },
+    { key: 'category', label: this.i18n.t('dashboard.detail.category') },
+    { key: 'account', label: this.i18n.t('dashboard.detail.account') },
+    { key: 'amount', label: this.i18n.t('dashboard.chart.amountAxis') },
+  ]);
   readonly rows = computed(() =>
     this.movements()
       .slice()
@@ -1082,7 +1179,7 @@ export class DashboardComponent {
   }
   promoteCategory() {
     this.globalCategory.set(this.localCategory());
-    this.store.log(`Filtro global aplicado: ${this.localCategory()}`);
+    this.store.log(this.i18n.t('dashboard.log.filterApplied', { value: this.localCategory() }));
   }
   reset() {
     this.scale.set('month');
@@ -1158,7 +1255,7 @@ export class DashboardComponent {
       {
         id: `custom-${Date.now()}`,
         title,
-        kicker: 'ANÁLISIS PERSONAL',
+        kicker: this.i18n.t('dashboard.widget.custom.kicker'),
         type: this.newWidgetMetric,
         wide: this.newWidgetWidth === 'wide' && this.newWidgetMetric !== 'indicator',
         ...(generic
@@ -1175,7 +1272,7 @@ export class DashboardComponent {
     ]);
     this.newWidgetTitle = '';
     this.widgetCreatorOpen.set(false);
-    this.store.log(`Widget agregado: ${title}`);
+    this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title }));
   }
   /**
    * Opciones comunes de eje para las graficas de intervalo del tablero.
@@ -1261,7 +1358,13 @@ export class DashboardComponent {
         palette,
         puntos.map((p) => p.label),
       ),
-      legend: { data: ['Ingresos', 'Gastos'], top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+      legend: {
+        data: [this.i18n.t('dashboard.series.income'), this.i18n.t('dashboard.series.expense')],
+        top: 0,
+        right: 0,
+        textStyle: { color: palette.muted },
+        icon: 'circle',
+      },
       tooltip: {
         trigger: 'axis' as const,
         axisPointer: { type: 'line' as const, lineStyle: { color: palette.line } },
@@ -1294,12 +1397,12 @@ export class DashboardComponent {
           : undefined,
       series: [
         serie(
-          'Ingresos',
+          this.i18n.t('dashboard.series.income'),
           puntos.map((p) => p.income),
           palette.accent,
         ),
         serie(
-          'Gastos',
+          this.i18n.t('dashboard.series.expense'),
           puntos.map((p) => p.expense),
           palette.danger,
         ),
@@ -1321,7 +1424,7 @@ export class DashboardComponent {
       tooltip: { trigger: 'axis' as const, valueFormatter: (valor: unknown) => this.store.money(Number(valor)) },
       series: [
         {
-          name: 'Gastos',
+          name: this.i18n.t('dashboard.series.expense'),
           type: 'line' as const,
           smooth: 0.24,
           showSymbol: false,
@@ -1333,7 +1436,7 @@ export class DashboardComponent {
             silent: true,
             symbol: 'none',
             label: {
-              formatter: 'Promedio ' + this.cifraCorta(promedio),
+              formatter: this.i18n.t('dashboard.chart.average', { value: this.cifraCorta(promedio) }),
               color: palette.muted,
               position: 'insideEndTop' as const,
             },
@@ -1370,7 +1473,7 @@ export class DashboardComponent {
       },
       yAxis: {
         type: 'value' as const,
-        name: 'Importe',
+        name: this.i18n.t('dashboard.chart.amountAxis'),
         nameTextStyle: { color: palette.muted },
         splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
         axisLabel: { color: palette.muted, formatter: (valor: number) => this.cifraCorta(valor) },
@@ -1385,7 +1488,10 @@ export class DashboardComponent {
           parametro.value[0] +
           '</small>',
       },
-      series: [serie('Ingresos', palette.accent, true), serie('Gastos', palette.danger, false)],
+      series: [
+        serie(this.i18n.t('dashboard.series.income'), palette.accent, true),
+        serie(this.i18n.t('dashboard.series.expense'), palette.danger, false),
+      ],
     };
   });
 
@@ -1419,7 +1525,8 @@ export class DashboardComponent {
           label: {
             show: true,
             position: 'center' as const,
-            formatter: () => '{valor|' + this.store.money(this.expense()) + '}\n{pie|Gasto total}',
+            formatter: () =>
+              '{valor|' + this.store.money(this.expense()) + '}\n{pie|' + this.i18n.t('dashboard.widget.donut.totalLabel') + '}',
             rich: {
               valor: { color: palette.text, fontSize: 24, fontWeight: 700 },
               pie: { color: palette.muted, fontSize: 13, padding: [8, 0, 0, 0] },
@@ -1450,7 +1557,13 @@ export class DashboardComponent {
         palette,
         puntos.map((p) => p.label),
       ),
-      legend: { data: ['Ingresos', 'Gastos'], top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+      legend: {
+        data: [this.i18n.t('dashboard.series.income'), this.i18n.t('dashboard.series.expense')],
+        top: 0,
+        right: 0,
+        textStyle: { color: palette.muted },
+        icon: 'circle',
+      },
       tooltip: {
         trigger: 'axis' as const,
         axisPointer: { type: 'shadow' as const },
@@ -1458,13 +1571,13 @@ export class DashboardComponent {
       },
       series: [
         barra(
-          'Gastos',
+          this.i18n.t('dashboard.series.expense'),
           puntos.map((p) => p.expense),
           palette.danger,
           false,
         ),
         barra(
-          'Ingresos',
+          this.i18n.t('dashboard.series.income'),
           puntos.map((p) => p.income),
           palette.accent,
           true,
@@ -1532,7 +1645,7 @@ export class DashboardComponent {
             formatter: (valor: number) => `${valor}%`,
           },
           title: { offsetCenter: [0, '70%'], color: palette.muted, fontSize: 12 },
-          data: [{ value: tasa, name: 'de lo que entro se queda' }],
+          data: [{ value: tasa, name: this.i18n.t('dashboard.widget.gauge.subtitle') }],
         },
       ],
     };
@@ -1554,7 +1667,7 @@ export class DashboardComponent {
       },
       yAxis: {
         type: 'category' as const,
-        data: ['Movido'],
+        data: [this.i18n.t('dashboard.widget.heatmap.axisLabel')],
         axisLine: { show: false },
         axisTick: { show: false },
         axisLabel: { color: palette.muted },
@@ -1604,7 +1717,8 @@ export class DashboardComponent {
       ...this.ejes(palette, etiquetas),
       tooltip: {
         trigger: 'axis' as const,
-        valueFormatter: (v: unknown) => `${v} movimiento${Number(v) === 1 ? '' : 's'}`,
+        valueFormatter: (v: unknown) =>
+          `${v} ${this.i18n.t(Number(v) === 1 ? 'dashboard.unit.movement' : 'dashboard.unit.movements')}`,
       },
       series: [
         {
@@ -1636,27 +1750,28 @@ export class DashboardComponent {
       dim === 'category'
         ? m.category
         : dim === 'account'
-          ? (this.store.account(m.accountId)?.name ?? 'Sin cuenta')
+          ? (this.store.account(m.accountId)?.name ?? this.i18n.t('dashboard.account.none'))
           : dim === 'kind'
             ? this.kindLabel(m.kind)
             : dim === 'recurring'
-              ? m.recurring
-                ? 'Fijo (recurrente)'
-                : 'Variable'
+              ? this.i18n.t(m.recurring ? 'dashboard.dimension.recurring.fixed' : 'dashboard.dimension.recurring.variable')
               : dim === 'installments'
-                ? (m.installmentTotal ?? 1) > 1
-                  ? 'A cuotas'
-                  : 'De contado'
-                : (m.person ?? 'Sin persona');
+                ? this.i18n.t(
+                    (m.installmentTotal ?? 1) > 1
+                      ? 'dashboard.dimension.installments.yes'
+                      : 'dashboard.dimension.installments.no',
+                  )
+                : (m.person ?? this.i18n.t('dashboard.person.none'));
     return { key: label, label };
   }
   private kindLabel(kind: Movement['kind']): string {
-    return (
-      ({ income: 'Ingreso', expense: 'Gasto', transfer: 'Transferencia', payment: 'Pago de tarjeta' } as Record<
-        string,
-        string
-      >)[kind] ?? kind
-    );
+    const etiquetas: Record<string, string> = {
+      income: this.i18n.t('dashboard.movement.kind.income'),
+      expense: this.i18n.t('dashboard.movement.kind.expense'),
+      transfer: this.i18n.t('dashboard.movement.kind.transfer'),
+      payment: this.i18n.t('dashboard.movement.kind.payment'),
+    };
+    return etiquetas[kind] ?? kind;
   }
   /**
    * `expense`/`income` se basan en el signo del importe, no en `kind`: un widget puede
@@ -1998,9 +2113,9 @@ export class DashboardComponent {
     const { min, max, meta, valor } = this.indicatorScale(widget);
     const { low, mid } = this.indicatorZones(min, max, meta);
     const valorFraccion = max > min ? Math.min(1, Math.max(0, (valor - min) / (max - min))) : 0;
-    if (valorFraccion < low) return { label: 'Crítico', color: palette.danger };
-    if (valorFraccion < mid) return { label: 'Alerta', color: palette.warn };
-    return { label: 'Bueno', color: palette.success };
+    if (valorFraccion < low) return { label: this.i18n.t('dashboard.indicator.status.critical'), color: palette.danger };
+    if (valorFraccion < mid) return { label: this.i18n.t('dashboard.indicator.status.warning'), color: palette.warn };
+    return { label: this.i18n.t('dashboard.indicator.status.good'), color: palette.success };
   }
   /**
    * Indicador con meta: valor actual, mínimo, máximo y meta, cada uno con su color -tal
@@ -2045,7 +2160,9 @@ export class DashboardComponent {
             formatter: () => this.formatMeasure(valor, widget),
           },
           title: { show: true, offsetCenter: [0, '42%'], color: palette.muted, fontSize: 11 },
-          data: [{ value: valor, name: 'Meta ' + this.formatMeasure(meta, widget) }],
+          data: [
+            { value: valor, name: this.i18n.t('dashboard.widget.indicator.metaLabel', { value: this.formatMeasure(meta, widget) }) },
+          ],
         },
         {
           ...comun,
@@ -2093,16 +2210,16 @@ export class DashboardComponent {
     return this.measureValue(this.movements(), widget.measure ?? 'expense');
   }
   measureLabel(widget: Widget): string {
-    return this.measureOptions.find((o) => o.value === (widget.measure ?? 'expense'))?.label ?? '';
+    return this.measureOptions().find((o) => o.value === (widget.measure ?? 'expense'))?.label ?? '';
   }
   /** Filas {etiqueta, valor} para un widget "tabla", ya formateadas para `demo-table`. */
   tableRows(widget: Widget): Record<string, string>[] {
     return this.aggregate(widget).map((a) => ({ label: a.label, value: this.formatMeasure(a.value, widget) }));
   }
-  readonly tableColumns = [
-    { key: 'label', label: 'Grupo' },
-    { key: 'value', label: 'Valor' },
-  ];
+  readonly tableColumns = computed(() => [
+    { key: 'label', label: this.i18n.t('dashboard.table.group') },
+    { key: 'value', label: this.i18n.t('dashboard.table.value') },
+  ]);
   shiftPeriod(direction: number) {
     const date = new Date(`${this.anchor()}T12:00:00`);
     if (this.scale() === 'year') date.setFullYear(date.getFullYear() + direction);
@@ -2115,10 +2232,13 @@ export class DashboardComponent {
     this.store.inspect('movement', String(row['id']));
   }
   typeLabel(type: string) {
+    const etiquetas: Record<string, string> = {
+      credit: this.i18n.t('dashboard.accountType.credit'),
+      savings: this.i18n.t('dashboard.accountType.savings'),
+      cash: this.i18n.t('dashboard.accountType.cash'),
+    };
     return (
-      ({ credit: 'Tarjeta de crédito', savings: 'Cuenta de ahorro', cash: 'Efectivo' } as Record<string, string>)[
-        type
-      ] ?? type
+      etiquetas[type] ?? type
     );
   }
   private iso(d: Date) {
