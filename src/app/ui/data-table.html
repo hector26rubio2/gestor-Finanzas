@@ -3,7 +3,7 @@
   data-testid="table-scroll"
   tabindex="0"
   role="region"
-  [attr.aria-label]="tableLabel() + ', desplazamiento interno'"
+  [attr.aria-label]="i18n.t('table.scrollRegion', { label: tableLabel() })"
 >
   <table>
     <caption class="sr-only">
@@ -30,7 +30,7 @@
             type="button"
             class="row-link"
             (click)="$event.stopPropagation(); rowSelected.emit(row)"
-            [attr.aria-label]="'Ver detalle: ' + display(row[column.key])"
+            [attr.aria-label]="i18n.t('table.rowDetail', { value: display(row[column.key]) })"
           >
             {{ display(row[column.key]) }}
           </button>
@@ -43,44 +43,51 @@
             (click)="$event.stopPropagation(); toggleRow(rowIndex)"
             [attr.aria-expanded]="isRowExpanded(rowIndex)"
           >
-            {{ isRowExpanded(rowIndex) ? 'Ver menos' : 'Ver más' }}
+            {{ isRowExpanded(rowIndex) ? i18n.t('table.detailToggle.hide') : i18n.t('table.detailToggle.show') }}
           </button>
         </td>
         }
       </tr>
       } @empty {
       <tr>
-        <td [attr.colspan]="columns().length || 1" class="empty">No hay registros para estos filtros.</td>
+        <td [attr.colspan]="columns().length || 1" class="empty">{{ i18n.t('table.empty') }}</td>
       </tr>
       }
     </tbody>
   </table>
 </div>
 <footer>
-  <span [id]="rangeId" aria-live="polite">{{ start() }}–{{ end() }} de {{ totalCount() }}</span>
+  <span [id]="rangeId" aria-live="polite">{{
+    i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() })
+  }}</span>
   <label
-    >Filas
+    >{{ i18n.t('table.rowsPerPage') }}
     <demo-select
       class="compact-select"
-      ariaLabel="Filas por página"
+      [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions"
       [ngModel]="size().toString()"
       (ngModelChange)="setSizeValue($event)"
   /></label>
   <div class="pages">
-    <button type="button" aria-label="Primera página" [disabled]="currentPage() === 0" (click)="setPage(0)">
+    <button
+      type="button"
+      [attr.aria-label]="i18n.t('table.page.first')"
+      [disabled]="currentPage() === 0"
+      (click)="setPage(0)"
+    >
       <demo-icon name="first" />
     </button>
     <button
       type="button"
-      aria-label="Página anterior"
+      [attr.aria-label]="i18n.t('table.page.previous')"
       [attr.aria-describedby]="rangeId"
       [disabled]="currentPage() === 0"
       (click)="setPage(currentPage() - 1)"
     >
       <demo-icon name="previous" /></button
     ><label class="page-jump"
-      >Página
+      >{{ i18n.t('table.page.label') }}
       <!--
             La seleccion va en la opcion, no en el select: [value] sobre el select se
             aplica antes de que las opciones existan, y al llegar desde un enlace con
@@ -88,15 +95,15 @@
           -->
       <demo-select
         class="compact-select"
-        ariaLabel="Ir a página"
+        [ariaLabel]="i18n.t('table.page.goTo')"
         [options]="pageSelectOptions()"
         [ngModel]="currentPage().toString()"
         (ngModelChange)="setPageValue($event)"
       />
-      de {{ pageCount() }} </label
+      {{ i18n.t('table.page.ofTotal', { total: pageCount() }) }} </label
     ><button
       type="button"
-      aria-label="Página siguiente"
+      [attr.aria-label]="i18n.t('table.page.next')"
       [attr.aria-describedby]="rangeId"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(currentPage() + 1)"
@@ -104,7 +111,7 @@
       <demo-icon name="next" /></button
     ><button
       type="button"
-      aria-label="Última página"
+      [attr.aria-label]="i18n.t('table.page.last')"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(pageCount() - 1)"
     >

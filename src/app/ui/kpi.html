@@ -26,7 +26,7 @@
     class="chispa"
     [option]="chispaOption()"
     [height]="38"
-    [ariaLabel]="label() + ': evolución del periodo'"
+    [ariaLabel]="i18n.t('kpi.sparkline.ariaLabel', { label: label() })"
   />
   } @placeholder {
   <span class="chispa-hueco"></span>

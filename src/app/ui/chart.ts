@@ -29,6 +29,7 @@ import {
   VisualMapComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { I18nService } from '../core/i18n';
 import { ChartThemeService } from './chart-theme';
 
 echarts.use([
@@ -71,9 +72,10 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
   styleUrl: './chart.css',
 })
 export class ChartComponent implements OnDestroy {
+  readonly i18n = inject(I18nService);
   readonly option = input.required<ChartOption>();
   readonly height = input(260);
-  readonly ariaLabel = input('Gráfica');
+  readonly ariaLabel = input(this.i18n.t('chart.defaultAriaLabel'));
   /** Nombre de la porción o punto pulsado, para las gráficas que filtran al tocarlas. */
   readonly pick = output<string>();
 

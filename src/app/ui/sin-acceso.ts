@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { I18nService } from '../core/i18n';
 
 /**
  * Lo que se enseña cuando se puede entrar a una pantalla y no se ha concedido ni uno de
@@ -16,4 +17,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   templateUrl: './sin-acceso.html',
   styleUrl: './sin-acceso.css',
 })
-export class SinAccesoComponent {}
+export class SinAccesoComponent {
+  readonly i18n = inject(I18nService);
+}

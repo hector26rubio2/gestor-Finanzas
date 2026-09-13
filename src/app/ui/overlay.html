@@ -10,7 +10,7 @@
   <section class="panel">
     <header>
       <h2 [id]="titleId">{{ title() }}</h2>
-      <button #closeButton type="button" aria-label="Cerrar panel" (click)="requestClose()">✕</button>
+      <button #closeButton type="button" [attr.aria-label]="i18n.t('overlay.close')" (click)="requestClose()">✕</button>
     </header>
     <div class="content"><ng-content /></div>
   </section>

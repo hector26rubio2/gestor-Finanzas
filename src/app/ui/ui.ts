@@ -15,6 +15,7 @@ import {
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../core/url-state';
+import { I18nService } from '../core/i18n';
 import { IconComponent, IconName } from './icon';
 import { UiOption, UiSelectComponent } from './select';
 import { ChartComponent } from './chart';
@@ -42,9 +43,10 @@ export interface TableColumn {
   styleUrl: './data-table.css',
 })
 export class DataTableComponent {
+  readonly i18n = inject(I18nService);
   private static nextId = 0;
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
-  readonly tableLabel = input('Registros');
+  readonly tableLabel = input(this.i18n.t('table.defaultLabel'));
   readonly columns = input<TableColumn[]>([]);
   readonly rows = input<Record<string, any>[]>([]);
   readonly pageSize = input(10);
@@ -143,9 +145,10 @@ export class DataTableComponent {
   styleUrl: './overlay.css',
 })
 export class OverlayComponent implements AfterViewInit, OnDestroy {
+  readonly i18n = inject(I18nService);
   private static nextId = 0;
   readonly titleId = `overlay-title-${OverlayComponent.nextId++}`;
-  readonly title = input('Detalle');
+  readonly title = input(this.i18n.t('overlay.defaultTitle'));
   readonly mode = input<'modal' | 'inspector'>('inspector');
   readonly wide = input(false);
   @Output() readonly closed = new EventEmitter<void>();
@@ -212,6 +215,7 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
   styleUrl: './kpi.css',
 })
 export class KpiComponent {
+  readonly i18n = inject(I18nService);
   readonly label = input('');
   readonly value = input('');
   readonly hint = input('');
@@ -254,8 +258,8 @@ export class KpiComponent {
   readonly deltaTitulo = computed(() => {
     const valor = this.delta();
     if (valor === null) return '';
-    const sentido = valor > 0 ? 'mas' : 'menos';
-    return `${this.deltaTexto()} ${sentido} que el intervalo anterior`;
+    const params = { value: this.deltaTexto() };
+    return valor > 0 ? this.i18n.t('kpi.delta.more', params) : this.i18n.t('kpi.delta.less', params);
   });
   readonly deltaTexto = computed(() => {
     const valor = this.delta();
@@ -304,8 +308,9 @@ export class KpiComponent {
   styleUrl: './empty-state.css',
 })
 export class EmptyStateComponent {
-  readonly title = input('Todavía no hay registros');
-  readonly detail = input('Agrega un movimiento para comenzar.');
+  readonly i18n = inject(I18nService);
+  readonly title = input(this.i18n.t('emptyState.defaultTitle'));
+  readonly detail = input(this.i18n.t('emptyState.defaultDetail'));
 }
 
 @Component({
@@ -315,4 +320,6 @@ export class EmptyStateComponent {
   templateUrl: './skeleton.html',
   styleUrl: './skeleton.css',
 })
-export class SkeletonComponent {}
+export class SkeletonComponent {
+  readonly i18n = inject(I18nService);
+}
