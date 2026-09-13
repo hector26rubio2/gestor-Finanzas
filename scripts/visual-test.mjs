@@ -240,7 +240,7 @@ async function exerciseInteractions(page) {
   await devuelveElFoco(modalTrigger, 'Modal did not restore trigger focus');
 
   await waitForRoute(page, 'settings');
-  await page.getByRole('button', { name: 'Noche esmeralda' }).click();
+  await page.getByRole('button', { name: 'Noche índigo' }).click();
   assert((await page.locator('html').getAttribute('data-theme')) === 'dark', 'Dark theme was not applied');
 }
 
