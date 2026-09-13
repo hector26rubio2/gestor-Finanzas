@@ -1,4 +1,18 @@
 /*
+ * `.workspace-page` (workspace.css) ya envuelve esta pestaña en un alto acotado
+ * (`height: calc(100dvh - 112px)`, flex-column) — el mismo mecanismo que ya usan
+ * las tarjetas del Dashboard, solo que ahí lo reparte una rejilla `stretch` y aquí
+ * lo reparte un flex-column de una sola columna. Sin sumarse a ese flex, esta
+ * pestaña rendía a su alto de contenido (`display: block` por defecto) y una tabla
+ * de muchas filas desbordaba el contenedor en vez de respetarlo.
+ */
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  flex: 1;
+}
+/*
  * `.kpis`/`.table-zone` son compartidas con otras pestañas (Cuentas, Reportes...), pero
  * cada componente standalone solo carga su propio styleUrl: sin esta copia, la cuadrícula
  * de KPI se apilaba en una sola columna en vez de repartirse en filas.
@@ -12,16 +26,15 @@
   padding: 16px 18px;
 }
 /*
- * Alto máximo real, no solo `flex: 1`: sin un ancestro con altura acotada -el
- * armazón usa `position: sticky`, no un layout de alto fijo-, `flex: 1` no tiene
- * nada que repartir y la tabla crecía con sus filas hasta empujar la página entera
- * a un scroll de miles de píxeles. El scroll interno de `demo-table` (su propio
- * `.viewport`) ya existía pero nunca se activaba porque nada le imponía un tope.
+ * `flex: 1; min-height: 0` ahora sí tiene un ancestro acotado del que tomar: el
+ * `:host` de arriba se suma al flex-column de `.workspace-page`. El scroll interno
+ * de `demo-table` (su propio `.viewport`) ya existía pero nunca se activaba porque
+ * nada le imponía un tope — la tabla crecía con sus filas y empujaba la página
+ * entera a un scroll de miles de píxeles en vez de scrollear ella sola.
  */
 .table-zone {
   flex: 1;
   min-height: 230px;
-  max-height: calc(100vh - 420px);
   display: flex;
 }
 @media (max-width: 1100px) {
