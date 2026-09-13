@@ -1,21 +1,21 @@
 <section class="notice-list">
   @for (n of store.data().notifications; track n.id) {
-    <article [class.unread]="!n.read">
-      <span
-        class="notice-state"
-        [attr.aria-label]="n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread')"
-      ></span>
-      <div class="notice-body">
-        <h2>{{ n.title }}</h2>
-        <p>{{ n.detail }}</p>
-      </div>
-      @if (n.id === 'notice-purchase') {
-        <button class="primary" (click)="reviewNotification(n.id)">{{ i18n.t('notifications.reviewButton') }}</button>
-      } @else if (can(P.notificaciones.editar)) {
-        <button class="quiet" (click)="mark(n.id)">{{ i18n.t('notifications.markReadButton') }}</button>
-      }
-    </article>
+  <article [class.unread]="!n.read">
+    <span
+      class="notice-state"
+      [attr.aria-label]="n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread')"
+    ></span>
+    <div class="notice-body">
+      <h2>{{ n.title }}</h2>
+      <p>{{ n.detail }}</p>
+    </div>
+    @if (n.id === 'notice-purchase') {
+    <button class="primary" (click)="reviewNotification(n.id)">{{ i18n.t('notifications.reviewButton') }}</button>
+    } @else if (can(P.notificaciones.editar)) {
+    <button class="quiet" (click)="mark(n.id)">{{ i18n.t('notifications.markReadButton') }}</button>
+    }
+  </article>
   } @empty {
-    <p class="empty-note">{{ i18n.t('notifications.empty') }}</p>
+  <p class="empty-note">{{ i18n.t('notifications.empty') }}</p>
   }
 </section>

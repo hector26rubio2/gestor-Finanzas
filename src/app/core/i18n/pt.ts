@@ -238,8 +238,10 @@ export default {
   'form.movement.error.loanForbidden': 'Seu acesso não permite registrar empréstimos.',
   'form.movement.error.creditForbidden': 'Seu acesso não permite registrar créditos.',
   'form.movement.error.creditPurchaseForbidden': 'Seu acesso não permite registrar compras a crédito.',
-  'form.movement.error.transferCreditForbidden': 'As transferências só estão disponíveis entre contas de dinheiro ou poupança. Use adiantamento ou compra para um cartão.',
-  'form.movement.error.incomeCreditForbidden': 'Uma receita não pode ser registrada diretamente em um cartão de crédito.',
+  'form.movement.error.transferCreditForbidden':
+    'As transferências só estão disponíveis entre contas de dinheiro ou poupança. Use adiantamento ou compra para um cartão.',
+  'form.movement.error.incomeCreditForbidden':
+    'Uma receita não pode ser registrada diretamente em um cartão de crédito.',
   'form.movement.error.saveFailed': 'Não foi possível salvar',
   'form.movement.actions.save': 'Salvar transação',
   'form.account.title.create': 'Nova conta',
@@ -411,10 +413,12 @@ export default {
   'workspace.messages.accountDeactivated': 'Conta desativada. Suas transações permanecem no histórico.',
   'workspace.messages.accountDeactivateFailed': 'Não foi possível desativar a conta.',
   'sinSeccion.withSession.title': 'Seu acesso não abre nenhuma seção',
-  'sinSeccion.withSession.detail': 'A sessão foi iniciada corretamente, mas nenhuma das telas está habilitada para você: ou você não tem a permissão, ou a funcionalidade está desativada neste espaço. Peça a quem administra o espaço o que precisar.',
+  'sinSeccion.withSession.detail':
+    'A sessão foi iniciada corretamente, mas nenhuma das telas está habilitada para você: ou você não tem a permissão, ou a funcionalidade está desativada neste espaço. Peça a quem administra o espaço o que precisar.',
   'sinSeccion.withSession.retry': 'Verificar meu acesso novamente',
   'sinSeccion.noSession.title': 'Não há nada para ver aqui sem ter entrado',
-  'sinSeccion.noSession.detail': 'Esta tela explica por que uma sessão pode ficar sem seções. Para isso, é preciso entrar.',
+  'sinSeccion.noSession.detail':
+    'Esta tela explica por que uma sessão pode ficar sem seções. Para isso, é preciso entrar.',
   'sinSeccion.noSession.goToLogin': 'Ir para a tela de acesso',
   'admin.title': 'Administração',
   'admin.subtitle': 'Governe acessos, lançamentos e rastreabilidade em um só lugar.',
@@ -428,12 +432,18 @@ export default {
   'admin.tabs.audit': 'Auditoria',
   'admin.tabs.errors': 'Erros',
   'admin.emptyState.title': 'Administração não disponível nesta demo',
-  'admin.emptyState.summary.detail': 'Este painel precisa de uma sessão conectada à API para trazer usuários, funções, flags e erros reais. Mude para o modo API para ver dados aqui.',
-  'admin.emptyState.users.detail': 'Este painel precisa de uma sessão conectada à API para trazer usuários reais. Mude para o modo API para ver dados aqui.',
-  'admin.emptyState.roles.detail': 'Este painel precisa de uma sessão conectada à API para trazer funções reais. Mude para o modo API para ver dados aqui.',
-  'admin.emptyState.flags.detail': 'Este painel precisa de uma sessão conectada à API para trazer flags reais. Mude para o modo API para ver dados aqui.',
-  'admin.emptyState.audit.detail': 'Este painel precisa de uma sessão conectada à API para trazer o registro real de auditoria. Mude para o modo API para ver dados aqui.',
-  'admin.emptyState.errors.detail': 'Este painel precisa de uma sessão conectada à API para trazer erros reais. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.summary.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer usuários, funções, flags e erros reais. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.users.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer usuários reais. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.roles.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer funções reais. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.flags.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer flags reais. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.audit.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer o registro real de auditoria. Mude para o modo API para ver dados aqui.',
+  'admin.emptyState.errors.detail':
+    'Este painel precisa de uma sessão conectada à API para trazer erros reais. Mude para o modo API para ver dados aqui.',
   'admin.summary.activeUsers.label': 'Usuários ativos',
   'admin.summary.activeUsers.detail': 'de {total} registrados',
   'admin.summary.roles.label': 'Funções configuradas',
@@ -526,7 +536,8 @@ export default {
   'admin.users.drawer.rolesTitle': 'Funções atribuídas',
   'admin.users.drawer.rolesHint': 'As funções somam capacidades à associação da organização.',
   'admin.users.drawer.overridesTitle': 'Exceções diretas',
-  'admin.users.drawer.overridesHint': 'Elas têm prioridade sobre as funções. Enquanto estiverem ativas, mudar a função não altera o que essa pessoa vê.',
+  'admin.users.drawer.overridesHint':
+    'Elas têm prioridade sobre as funções. Enquanto estiverem ativas, mudar a função não altera o que essa pessoa vê.',
   'admin.users.drawer.overrideForcedYes': 'Forçado para sim',
   'admin.users.drawer.overrideForcedNo': 'Forçado para não',
   'admin.users.drawer.overrideAffectsMany': 'Abrange {count} ações',
@@ -534,9 +545,11 @@ export default {
   'admin.users.drawer.removeOverride': 'Remover exceção',
   'admin.users.drawer.featuresTitle': 'Funcionalidades',
   'admin.users.drawer.featuresDetail': 'Módulos visíveis no menu lateral',
-  'admin.users.drawer.featuresHint': '“Ver” exibe o módulo na navegação. As ações internas são administradas na seção seguinte.',
+  'admin.users.drawer.featuresHint':
+    '“Ver” exibe o módulo na navegação. As ações internas são administradas na seção seguinte.',
   'admin.users.drawer.permissionsTitle': 'Permissões efetivas',
-  'admin.users.drawer.permissionsHint': 'O que essa pessoa pode fazer agora mesmo. Marcar ou desmarcar aqui é uma exceção direta: tem prioridade sobre o que dizem suas funções.',
+  'admin.users.drawer.permissionsHint':
+    'O que essa pessoa pode fazer agora mesmo. Marcar ou desmarcar aqui é uma exceção direta: tem prioridade sobre o que dizem suas funções.',
   'admin.roles.drawer.editTitle': 'Editar função',
   'admin.roles.drawer.subtitle': 'Defina um conjunto reutilizável de capacidades.',
   'admin.roles.drawer.nameLabel': 'Nome',
@@ -588,7 +601,8 @@ export default {
   'dashboard.actions.finish': 'Concluir',
   'dashboard.actions.customize': 'Personalizar',
   'dashboard.noAccess.title': 'Seu acesso ao painel não inclui nenhuma de suas peças',
-  'dashboard.noAccess.detail': 'Você pode entrar, mas não recebeu nenhum indicador, gráfico ou a tabela do período. Peça a quem administra seu espaço as peças que precisar.',
+  'dashboard.noAccess.detail':
+    'Você pode entrar, mas não recebeu nenhum indicador, gráfico ou a tabela do período. Peça a quem administra seu espaço as peças que precisar.',
   'dashboard.filters.title': 'Visão geral',
   'dashboard.filters.clear': 'Limpar filtros',
   'dashboard.filters.period.legend': 'Período',
@@ -632,21 +646,25 @@ export default {
   'dashboard.widgetActions.goalMax.ariaLabel': 'Máximo',
   'dashboard.widgetActions.goalMax.placeholder': 'Máx.',
   'dashboard.widgetActions.hide': 'Ocultar',
-  'dashboard.widget.flow.ariaLabel': 'Receitas e gastos por intervalo. Receitas {income}, gastos {expense}, em {count} intervalos.',
+  'dashboard.widget.flow.ariaLabel':
+    'Receitas e gastos por intervalo. Receitas {income}, gastos {expense}, em {count} intervalos.',
   'dashboard.widget.empty.generic': 'Não há dados para estes filtros.',
   'dashboard.category.list.ariaLabel': 'Distribuição de gastos por categoria',
   'dashboard.widget.categories.empty': 'Não há gastos nesta seleção.',
   'dashboard.widget.accounts.empty': 'Não há contas com movimentações.',
   'dashboard.widget.trend.ariaLabel': 'Tendência de gasto do período, com sua média marcada. Total {total}',
   'dashboard.widget.trend.empty': 'Não há dados para mostrar.',
-  'dashboard.widget.scatter.ariaLabel': 'Relação entre a data da transação e seu valor; o tamanho do ponto acompanha o valor e a cor distingue receita de gasto.',
+  'dashboard.widget.scatter.ariaLabel':
+    'Relação entre a data da transação e seu valor; o tamanho do ponto acompanha o valor e a cor distingue receita de gasto.',
   'dashboard.widget.scatter.empty': 'Não há movimentações para estes filtros.',
   'dashboard.widget.donut.ariaLabel': 'Divisão do gasto por categoria. Total {total}',
   'dashboard.widget.donut.empty': 'Não há gasto para dividir.',
   'dashboard.widget.stacked.ariaLabel': 'Composição de receitas e gastos por intervalo, empilhados.',
-  'dashboard.widget.gauge.ariaLabel': 'Taxa de poupança do período: {rate} por cento. Guardam-se {net} de {income} que entraram.',
+  'dashboard.widget.gauge.ariaLabel':
+    'Taxa de poupança do período: {rate} por cento. Guardam-se {net} de {income} que entraram.',
   'dashboard.widget.gauge.empty': 'Sem receitas no período, não há taxa de poupança para medir.',
-  'dashboard.widget.heatmap.ariaLabel': 'Intensidade de movimentação por intervalo: quanto mais escuro, mais dinheiro se movimentou naquele dia.',
+  'dashboard.widget.heatmap.ariaLabel':
+    'Intensidade de movimentação por intervalo: quanto mais escuro, mais dinheiro se movimentou naquele dia.',
   'dashboard.widget.histogram.ariaLabel': 'Histograma de valores: quantas movimentações caem em cada faixa de valor.',
   'dashboard.filters.period.weekOption': 'Semana {n} ({start}–{end})',
   'dashboard.accountType.all': 'Todos os tipos',
@@ -822,7 +840,8 @@ export default {
   'planning.xAxis.month6': '6 meses',
   'planning.xAxis.month9': '9 meses',
   'planning.xAxis.month12': '12 meses',
-  'planning.disclaimer': 'Estimativa orientativa baseada nas transações registradas e nas premissas visíveis. Não altera seus saldos.',
+  'planning.disclaimer':
+    'Estimativa orientativa baseada nas transações registradas e nas premissas visíveis. Não altera seus saldos.',
   'planning.tab.debt': 'Dívidas',
   'planning.tab.purchase': 'Compra',
   'planning.tab.vacation': 'Férias',
@@ -842,7 +861,8 @@ export default {
   'planning.vacation.rangeHint': 'O aporte é descontado da liquidez mensal disponível.',
   'planning.vacation.assumption': 'Doze aportes iguais, sem rentabilidade e sem retiradas antecipadas.',
   'planning.vacation.chartTitle': 'Poupança acumulada para a viagem',
-  'planning.vacation.chartDescription': 'Capital reservado mês a mês, comparando a poupança atual com o plano proposto.',
+  'planning.vacation.chartDescription':
+    'Capital reservado mês a mês, comparando a poupança atual com o plano proposto.',
   'planning.vacation.currentLabel': 'Poupança atual',
   'planning.vacation.proposedLabel': 'Plano mensal',
   'planning.investment.parameterTitle': 'Simular investimento',
@@ -913,7 +933,8 @@ export default {
   'portfolio.column.value': 'Valor atual',
   'portfolio.column.return': 'Variação',
   'preferences.appearance.title': 'Aparência',
-  'preferences.appearance.description': 'Crie uma identidade pessoal, verifique seu contraste na prévia e salve-a para este usuário.',
+  'preferences.appearance.description':
+    'Crie uma identidade pessoal, verifique seu contraste na prévia e salve-a para este usuário.',
   'preferences.themeName.label': 'Nome do tema',
   'preferences.accent.label': 'Cor de destaque',
   'preferences.primary.label': 'Primária',
@@ -935,7 +956,8 @@ export default {
   'preferences.font.label': 'Tipografia',
   'preferences.language.label': 'Idioma',
   'preferences.members.title': 'Pessoas do seu espaço',
-  'preferences.members.description': 'Quem entrar com o e-mail convidado compartilha esta organização e vê as mesmas informações. Nenhum e-mail é enviado: a pessoa fica pendente e entra na primeira vez que iniciar sessão com esse endereço.',
+  'preferences.members.description':
+    'Quem entrar com o e-mail convidado compartilha esta organização e vê as mesmas informações. Nenhum e-mail é enviado: a pessoa fica pendente e entra na primeira vez que iniciar sessão com esse endereço.',
   'preferences.members.noRole': 'sem função',
   'preferences.members.status.invited': 'Pendente de entrada',
   'preferences.members.status.active': 'Ativa',

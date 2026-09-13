@@ -52,13 +52,9 @@
       [class.active]="selectedAccountFilter() === a.id"
       (click)="selectAccount(a.id, a.type)"
     >
-      <span>{{
-        a.type === 'credit'
-          ? i18n.t('accounts.cards.type.credit')
-          : a.type === 'savings'
-            ? i18n.t('accounts.cards.type.savings')
-            : i18n.t('accounts.cards.type.cash')
-      }}</span
+      <span
+        >{{ a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ?
+        i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash') }}</span
       ><b>{{ a.name }}</b><em>{{ a.lastFour ? '•••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour') }}</em
       ><small
         >{{ a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel') }}

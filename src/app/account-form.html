@@ -5,8 +5,7 @@
         name="type"
         [(ngModel)]="type"
         [options]="accountTypes()"
-        [ariaLabel]="i18n.t('form.account.field.typeAria')"
-    /></label
+        [ariaLabel]="i18n.t('form.account.field.typeAria')" /></label
     ><label>{{ i18n.t('form.field.name') }}<input name="name" [(ngModel)]="name" required /></label
     ><label
       >{{ i18n.t('form.field.currency') }}<demo-select
@@ -15,7 +14,8 @@
         [options]="currencyOptions()"
         [ariaLabel]="i18n.t('form.field.currency')" /></label
     ><label
-      >{{ i18n.t('form.account.field.opening') }}<input name="opening" [(ngModel)]="opening" type="number" /></label>
+      >{{ i18n.t('form.account.field.opening') }}<input name="opening" [(ngModel)]="opening" type="number"
+    /></label>
     @if (currency === 'USD') {
     <label
       >{{ i18n.t('form.account.field.exchangeRate') }}<input

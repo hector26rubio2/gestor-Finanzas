@@ -57,9 +57,9 @@
   </table>
 </div>
 <footer>
-  <span [id]="rangeId" aria-live="polite">{{
-    i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() })
-  }}</span>
+  <span [id]="rangeId" aria-live="polite"
+    >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }}</span
+  >
   <label
     >{{ i18n.t('table.rowsPerPage') }}
     <demo-select

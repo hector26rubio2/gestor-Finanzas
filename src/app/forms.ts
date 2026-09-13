@@ -76,7 +76,9 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
       type: 'select',
       options: [
         { value: '', label: i18n.t('form.movement.person.own') },
-        ...store.data().people.map((p) => ({ value: p.name, label: i18n.t('form.movement.person.borrowed', { name: p.name }) })),
+        ...store
+          .data()
+          .people.map((p) => ({ value: p.name, label: i18n.t('form.movement.person.borrowed', { name: p.name }) })),
       ],
     },
     ...(kind === 'expense'
@@ -104,7 +106,11 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
                     : i18n.t('form.frequency.yearly'),
             })),
           },
-          { key: 'installmentCurrent', label: i18n.t('form.movement.field.installmentCurrent'), type: 'number' as const },
+          {
+            key: 'installmentCurrent',
+            label: i18n.t('form.movement.field.installmentCurrent'),
+            type: 'number' as const,
+          },
           { key: 'installmentTotal', label: i18n.t('form.movement.field.installmentTotal'), type: 'number' as const },
           {
             key: 'originalCurrency',

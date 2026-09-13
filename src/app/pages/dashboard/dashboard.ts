@@ -24,16 +24,7 @@ type Scale = 'day' | 'week' | 'month' | 'year';
  * "crear un widget nuevo eligiendo qué medir" en vez de una lista cerrada de graficas.
  */
 type FixedWidgetType =
-  | 'flow'
-  | 'trend'
-  | 'categories'
-  | 'accounts'
-  | 'scatter'
-  | 'donut'
-  | 'stacked'
-  | 'heatmap'
-  | 'gauge'
-  | 'histogram';
+  'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap' | 'gauge' | 'histogram';
 type GenericWidgetType =
   | 'line'
   | 'area'
@@ -200,7 +191,9 @@ export class DashboardComponent {
   readonly anchorDay = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getDate()));
   /** Días del mes/año que muestra el selector: 28-31 según el mes, sin inventar un 31 de febrero. */
   /** Días que tiene el mes del ancla; también el máximo válido para el selector de Día. */
-  readonly daysInAnchorMonth = computed(() => new Date(Number(this.anchorYear()), Number(this.anchorMonth()) + 1, 0).getDate());
+  readonly daysInAnchorMonth = computed(() =>
+    new Date(Number(this.anchorYear()), Number(this.anchorMonth()) + 1, 0).getDate(),
+  );
   /**
    * Semanas del mes en bloques fijos de 7 dias (1-7, 8-14...): no son semanas ISO -esas
    * cruzan de un mes a otro y "semana 1 de enero" dejaria de significar lo mismo para
@@ -976,7 +969,9 @@ export class DashboardComponent {
     }
     let mejor: { id: string; count: number } | null = null;
     for (const [id, count] of conteo) if (!mejor || count > mejor.count) mejor = { id, count };
-    return mejor ? { name: this.store.account(mejor.id)?.name ?? this.i18n.t('dashboard.kpi.noCard'), count: mejor.count } : null;
+    return mejor
+      ? { name: this.store.account(mejor.id)?.name ?? this.i18n.t('dashboard.kpi.noCard'), count: mejor.count }
+      : null;
   }
   kpiValue(formula: KpiFormula): number {
     const movs = this.movements();
@@ -1072,7 +1067,9 @@ export class DashboardComponent {
     if (formula === 'liquidityMonths') return this.i18n.t('dashboard.unit.months', { value: valor.toFixed(1) });
     if (formula === 'daysToDeplete' || formula === 'avgPaymentDelay')
       return this.i18n.t('dashboard.unit.days', { value: valor.toFixed(0) });
-    return this.formatMeasure(valor, { measure: formula === 'dailyExpense' ? 'expense' : formula === 'dailyIncome' ? 'income' : formula });
+    return this.formatMeasure(valor, {
+      measure: formula === 'dailyExpense' ? 'expense' : formula === 'dailyIncome' ? 'income' : formula,
+    });
   }
   /** Subtítulo del indicador "tarjeta más usada": cuántos movimientos, ya que el número grande es el nombre. */
   kpiHintFor(formula: KpiFormula): string {
@@ -1226,7 +1223,9 @@ export class DashboardComponent {
   }
   changeDimension(id: string, dimension: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
-    this.all.update((items) => items.map((item) => (item.id === id ? { ...item, dimension: dimension as Dimension } : item)));
+    this.all.update((items) =>
+      items.map((item) => (item.id === id ? { ...item, dimension: dimension as Dimension } : item)),
+    );
   }
   changeDimension2(id: string, dimension2: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
@@ -1264,7 +1263,11 @@ export class DashboardComponent {
               measure: this.newWidgetMeasure,
               ...(this.needsDimension2(this.newWidgetMetric) ? { dimension2: this.newWidgetDimension2 } : {}),
               ...(this.needsGoal(this.newWidgetMetric)
-                ? { goalMin: this.newWidgetGoalMin, goalTarget: this.newWidgetGoalTarget, goalMax: this.newWidgetGoalMax }
+                ? {
+                    goalMin: this.newWidgetGoalMin,
+                    goalTarget: this.newWidgetGoalTarget,
+                    goalMax: this.newWidgetGoalMax,
+                  }
                 : {}),
             }
           : {}),
@@ -1526,7 +1529,11 @@ export class DashboardComponent {
             show: true,
             position: 'center' as const,
             formatter: () =>
-              '{valor|' + this.store.money(this.expense()) + '}\n{pie|' + this.i18n.t('dashboard.widget.donut.totalLabel') + '}',
+              '{valor|' +
+              this.store.money(this.expense()) +
+              '}\n{pie|' +
+              this.i18n.t('dashboard.widget.donut.totalLabel') +
+              '}',
             rich: {
               valor: { color: palette.text, fontSize: 24, fontWeight: 700 },
               pie: { color: palette.muted, fontSize: 13, padding: [8, 0, 0, 0] },
@@ -1754,7 +1761,9 @@ export class DashboardComponent {
           : dim === 'kind'
             ? this.kindLabel(m.kind)
             : dim === 'recurring'
-              ? this.i18n.t(m.recurring ? 'dashboard.dimension.recurring.fixed' : 'dashboard.dimension.recurring.variable')
+              ? this.i18n.t(
+                  m.recurring ? 'dashboard.dimension.recurring.fixed' : 'dashboard.dimension.recurring.variable',
+                )
               : dim === 'installments'
                 ? this.i18n.t(
                     (m.installmentTotal ?? 1) > 1
@@ -1821,7 +1830,11 @@ export class DashboardComponent {
       entrada.filas.push(m);
       grupos.set(key, entrada);
     }
-    const filas = [...grupos].map(([key, { label, filas }]) => ({ key, label, value: this.measureValue(filas, measure) }));
+    const filas = [...grupos].map(([key, { label, filas }]) => ({
+      key,
+      label,
+      value: this.measureValue(filas, measure),
+    }));
     return dim === 'date' ? filas.sort((a, b) => a.key.localeCompare(b.key)) : filas.sort((a, b) => b.value - a.value);
   }
   /**
@@ -1937,11 +1950,17 @@ export class DashboardComponent {
         const totales = categories.map((_, i) => series.reduce((s, serie) => s + serie.data[i], 0) || 1);
         return {
           ...this.ejes(palette, categories),
-          legend: { data: series.map((s) => s.name), top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+          legend: {
+            data: series.map((s) => s.name),
+            top: 0,
+            right: 0,
+            textStyle: { color: palette.muted },
+            icon: 'circle',
+          },
           tooltip: {
             trigger: 'axis' as const,
             axisPointer: { type: 'shadow' as const },
-            valueFormatter: porcentaje ? (v: unknown) => `${(Number(v)).toFixed(0)}%` : valueFormatter,
+            valueFormatter: porcentaje ? (v: unknown) => `${Number(v).toFixed(0)}%` : valueFormatter,
           },
           series: series.map((serie, i) => ({
             name: serie.name,
@@ -1990,7 +2009,10 @@ export class DashboardComponent {
       case 'treemap': {
         const agg = this.aggregate(widget);
         return {
-          tooltip: { formatter: (p: { name: string; value: number }) => `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>` },
+          tooltip: {
+            formatter: (p: { name: string; value: number }) =>
+              `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>`,
+          },
           series: [
             {
               type: 'treemap' as const,
@@ -2009,7 +2031,10 @@ export class DashboardComponent {
       case 'funnel': {
         const agg = this.aggregate(widget).slice(0, 8);
         return {
-          tooltip: { formatter: (p: { name: string; value: number }) => `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>` },
+          tooltip: {
+            formatter: (p: { name: string; value: number }) =>
+              `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>`,
+          },
           series: [
             {
               type: 'funnel' as const,
@@ -2030,7 +2055,10 @@ export class DashboardComponent {
         const delta: { value: number; itemStyle: { color: string } }[] = [];
         for (const a of agg) {
           base.push(a.value >= 0 ? acumulado : acumulado + a.value);
-          delta.push({ value: Math.abs(a.value), itemStyle: { color: a.value >= 0 ? palette.accent : palette.danger } });
+          delta.push({
+            value: Math.abs(a.value),
+            itemStyle: { color: a.value >= 0 ? palette.accent : palette.danger },
+          });
           acumulado += a.value;
         }
         return {
@@ -2081,7 +2109,9 @@ export class DashboardComponent {
             formatter: (p: { value: [number, number, number] }) =>
               `${categories[p.value[0]]} · ${series[p.value[1]].name}<br/><b>${this.formatMeasure(p.value[2], widget)}</b>`,
           },
-          series: [{ type: 'heatmap' as const, data: celdas, itemStyle: { borderColor: palette.surface, borderWidth: 2 } }],
+          series: [
+            { type: 'heatmap' as const, data: celdas, itemStyle: { borderColor: palette.surface, borderWidth: 2 } },
+          ],
         };
       }
       case 'indicator':
@@ -2113,7 +2143,8 @@ export class DashboardComponent {
     const { min, max, meta, valor } = this.indicatorScale(widget);
     const { low, mid } = this.indicatorZones(min, max, meta);
     const valorFraccion = max > min ? Math.min(1, Math.max(0, (valor - min) / (max - min))) : 0;
-    if (valorFraccion < low) return { label: this.i18n.t('dashboard.indicator.status.critical'), color: palette.danger };
+    if (valorFraccion < low)
+      return { label: this.i18n.t('dashboard.indicator.status.critical'), color: palette.danger };
     if (valorFraccion < mid) return { label: this.i18n.t('dashboard.indicator.status.warning'), color: palette.warn };
     return { label: this.i18n.t('dashboard.indicator.status.good'), color: palette.success };
   }
@@ -2161,7 +2192,10 @@ export class DashboardComponent {
           },
           title: { show: true, offsetCenter: [0, '42%'], color: palette.muted, fontSize: 11 },
           data: [
-            { value: valor, name: this.i18n.t('dashboard.widget.indicator.metaLabel', { value: this.formatMeasure(meta, widget) }) },
+            {
+              value: valor,
+              name: this.i18n.t('dashboard.widget.indicator.metaLabel', { value: this.formatMeasure(meta, widget) }),
+            },
           ],
         },
         {
@@ -2196,7 +2230,9 @@ export class DashboardComponent {
    * "Indicador de Barra de Estado" de la referencia: verde arriba de 66%, ámbar entre 33 y
    * 66, rojo debajo.
    */
-  statusBarsRows(widget: Widget): { label: string; value: number; percent: number; tone: 'success' | 'warn' | 'danger' }[] {
+  statusBarsRows(
+    widget: Widget,
+  ): { label: string; value: number; percent: number; tone: 'success' | 'warn' | 'danger' }[] {
     const filas = this.aggregate(widget).slice(0, 6);
     const max = Math.max(1, ...filas.map((f) => Math.abs(f.value)));
     return filas.map((f) => {
@@ -2237,9 +2273,7 @@ export class DashboardComponent {
       savings: this.i18n.t('dashboard.accountType.savings'),
       cash: this.i18n.t('dashboard.accountType.cash'),
     };
-    return (
-      etiquetas[type] ?? type
-    );
+    return etiquetas[type] ?? type;
   }
   private iso(d: Date) {
     return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
