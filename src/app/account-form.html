@@ -1,45 +1,88 @@
-<demo-overlay title="Nueva cuenta" mode="modal" (closed)="closed()"
+<demo-overlay [title]="i18n.t('form.account.title.create')" mode="modal" (closed)="closed()"
   ><form (ngSubmit)="save()">
     <label
-      >Tipo<demo-select name="type" [(ngModel)]="type" [options]="accountTypes()" ariaLabel="Tipo de cuenta" /></label
-    ><label>Nombre<input name="name" [(ngModel)]="name" required /></label
+      >{{ i18n.t('form.account.field.type') }}<demo-select
+        name="type"
+        [(ngModel)]="type"
+        [options]="accountTypes()"
+        [ariaLabel]="i18n.t('form.account.field.typeAria')"
+    /></label
+    ><label>{{ i18n.t('form.field.name') }}<input name="name" [(ngModel)]="name" required /></label
     ><label
-      >Moneda<demo-select
+      >{{ i18n.t('form.field.currency') }}<demo-select
         name="currency"
         [(ngModel)]="currency"
-        [options]="currencyOptions"
-        ariaLabel="Moneda" /></label
-    ><label>Saldo inicial<input name="opening" [(ngModel)]="opening" type="number" /></label>
+        [options]="currencyOptions()"
+        [ariaLabel]="i18n.t('form.field.currency')" /></label
+    ><label
+      >{{ i18n.t('form.account.field.opening') }}<input name="opening" [(ngModel)]="opening" type="number" /></label>
     @if (currency === 'USD') {
-    <label>TRM de referencia<input name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" /></label>
-    } @if (type === 'credit') {
-    <label>Cupo<input name="limit" [(ngModel)]="limit" type="number" min="1" required /></label>
-    <label>Día de corte<input name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required /></label>
-    <label>Día de pago<input name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required /></label>
-    <label>Tasa E.A. (%)<input name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01" /></label>
     <label
-      >Orden del abono<demo-select
+      >{{ i18n.t('form.account.field.exchangeRate') }}<input
+        name="exchangeRate"
+        [(ngModel)]="exchangeRate"
+        type="number"
+        min="1"
+    /></label>
+    } @if (type === 'credit') {
+    <label
+      >{{ i18n.t('form.account.field.limit') }}<input name="limit" [(ngModel)]="limit" type="number" min="1" required
+    /></label>
+    <label
+      >{{ i18n.t('form.account.field.cutDay') }}<input
+        name="cutDay"
+        [(ngModel)]="cutDay"
+        type="number"
+        min="1"
+        max="31"
+        required
+    /></label>
+    <label
+      >{{ i18n.t('form.account.field.dueDay') }}<input
+        name="dueDay"
+        [(ngModel)]="dueDay"
+        type="number"
+        min="1"
+        max="31"
+        required
+    /></label>
+    <label
+      >{{ i18n.t('form.account.field.annualRate') }}<input
+        name="annualRate"
+        [(ngModel)]="annualRate"
+        type="number"
+        min="0"
+        step="0.01"
+    /></label>
+    <label
+      >{{ i18n.t('form.account.field.paymentOrder') }}<demo-select
         name="paymentOrder"
         [(ngModel)]="paymentOrder"
-        [options]="paymentOrderOptions"
-        ariaLabel="Orden del abono"
+        [options]="paymentOrderOptions()"
+        [ariaLabel]="i18n.t('form.account.field.paymentOrder')"
     /></label>
     <label
-      >Aplicar primero a<demo-select
+      >{{ i18n.t('form.account.field.paymentPriority') }}<demo-select
         name="paymentPriority"
         [(ngModel)]="paymentPriority"
-        [options]="paymentPriorityOptions"
-        ariaLabel="Prioridad del abono"
+        [options]="paymentPriorityOptions()"
+        [ariaLabel]="i18n.t('form.account.field.paymentPriorityAria')"
     /></label>
-    <label>Abono mínimo<input name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" /></label>
+    <label
+      >{{ i18n.t('form.account.field.minimumPayment') }}<input
+        name="minimumPayment"
+        [(ngModel)]="minimumPayment"
+        type="number"
+        min="0"
+    /></label>
     }
-    <p>Un saldo inicial distinto de cero crea un movimiento de apertura.</p>
+    <p>{{ i18n.t('form.account.hint.opening') }}</p>
     @if (error()) {
     <p class="error" role="alert">{{ error() }}</p>
     }
     <footer>
-      <button type="button" (click)="closed()">Cancelar</button
-      ><button class="primary" type="submit">Crear cuenta</button>
+      <button type="button" (click)="closed()">{{ i18n.t('form.actions.cancel') }}</button
+      ><button class="primary" type="submit">{{ i18n.t('form.account.actions.create') }}</button>
     </footer>
   </form></demo-overlay
 >

@@ -1,53 +1,57 @@
 <demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
   <form class="management-form" (ngSubmit)="save()">
-    <label>Nombre<input name="name" [(ngModel)]="name" required /></label>
+    <label>{{ i18n.t('form.field.name') }}<input name="name" [(ngModel)]="name" required /></label>
     @if (kind() === 'category') {
-    <label>Color<input name="color" type="color" [(ngModel)]="color" /></label
-    ><label>Icono<input name="icon" [(ngModel)]="icon" required /></label>
+    <label>{{ i18n.t('form.management.field.color') }}<input name="color" type="color" [(ngModel)]="color" /></label
+    ><label>{{ i18n.t('form.management.field.icon') }}<input name="icon" [(ngModel)]="icon" required /></label>
     } @if (kind() === 'person') {
-    <label>Correo<input name="email" type="email" [(ngModel)]="email" /></label>
+    <label>{{ i18n.t('form.management.field.email') }}<input name="email" type="email" [(ngModel)]="email" /></label>
     <label
-      >Relación<demo-select
+      >{{ i18n.t('form.management.field.relationship') }}<demo-select
         name="relationship"
         [(ngModel)]="relationship"
-        [options]="relationshipOptions"
-        ariaLabel="Relación con la persona"
+        [options]="relationshipOptions()"
+        [ariaLabel]="i18n.t('form.management.field.relationshipAria')"
     /></label>
     } @if (kind() === 'investment') {
     <label
-      >Instrumento<demo-select
+      >{{ i18n.t('form.management.field.instrument') }}<demo-select
         name="instrument"
         [(ngModel)]="instrument"
-        [options]="instrumentOptions"
-        ariaLabel="Instrumento de inversión" /></label
+        [options]="instrumentOptions()"
+        [ariaLabel]="i18n.t('form.management.field.instrumentAria')" /></label
     ><label
-      >Moneda<demo-select
+      >{{ i18n.t('form.field.currency') }}<demo-select
         name="currency"
         [(ngModel)]="currency"
-        [options]="currencyOptions"
-        ariaLabel="Moneda de la inversión"
+        [options]="currencyOptions()"
+        [ariaLabel]="i18n.t('form.management.field.currencyAria')"
     /></label>
     } @if (kind() === 'recurrence') {
-    <label>Importe<input name="amount" type="number" min="1" [(ngModel)]="amount" required /></label
+    <label
+      >{{ i18n.t('form.field.amount') }}<input name="amount" type="number" min="1" [(ngModel)]="amount" required
+    /></label
     ><label
-      >Cuenta<demo-select
+      >{{ i18n.t('form.management.field.account') }}<demo-select
         name="account"
         [(ngModel)]="accountId"
         [options]="accountOptions()"
-        ariaLabel="Cuenta de la recurrencia" /></label
+        [ariaLabel]="i18n.t('form.management.field.accountAria')" /></label
     ><label
-      >Frecuencia<demo-select
+      >{{ i18n.t('form.frequency.label') }}<demo-select
         name="frequency"
         [(ngModel)]="frequency"
-        [options]="frequencyOptions"
-        ariaLabel="Frecuencia" /></label
-    ><label>Inicio<input name="start" type="date" [(ngModel)]="start" required /></label>
+        [options]="frequencyOptions()"
+        [ariaLabel]="i18n.t('form.frequency.label')" /></label
+    ><label
+      >{{ i18n.t('form.management.field.start') }}<input name="start" type="date" [(ngModel)]="start" required
+    /></label>
     } @if (error()) {
     <p class="error" role="alert">{{ error() }}</p>
     }
     <footer>
-      <button type="button" (click)="store.form.set(null)">Cancelar</button
-      ><button class="primary" type="submit">Guardar</button>
+      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button
+      ><button class="primary" type="submit">{{ i18n.t('form.actions.save') }}</button>
     </footer>
   </form>
 </demo-overlay>

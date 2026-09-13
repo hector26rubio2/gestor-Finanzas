@@ -1,6 +1,6 @@
 <demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
   ><form (ngSubmit)="submit()">
-    <div class="types" role="group" aria-label="Tipo de movimiento">
+    <div class="types" role="group" [attr.aria-label]="i18n.t('form.movement.typeGroup')">
       @for (t of types(); track t.value) {
       <button
         type="button"
@@ -38,8 +38,8 @@
     <p class="error" role="alert">{{ error() }}</p>
     }
     <footer>
-      <button type="button" (click)="store.form.set(null)">Cancelar</button
-      ><button class="primary" type="submit">Guardar movimiento</button>
+      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button
+      ><button class="primary" type="submit">{{ i18n.t('form.movement.actions.save') }}</button>
     </footer>
   </form></demo-overlay
 >
