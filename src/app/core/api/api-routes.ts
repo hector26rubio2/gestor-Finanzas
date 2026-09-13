@@ -40,6 +40,7 @@ export const API_ROUTES = {
   adminUserCapability: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/capability-override`,
   adminUserRoles: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/roles`,
   adminRole: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}`,
+  adminRoleActive: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}/active`,
   adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,
   superAdminFeatureFlag: (key: string) => `/api/v1/superadmin/feature-flags/${encodeURIComponent(key)}`,
   movement: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}`,

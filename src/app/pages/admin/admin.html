@@ -27,7 +27,7 @@
       ><small>{{ i18n.t('admin.summary.activeUsers.detail', { total: users().length }) }}</small>
     </article>
     <article>
-      <span>{{ i18n.t('admin.summary.roles.label') }}</span><strong>{{ roles().length }}</strong
+      <span>{{ i18n.t('admin.summary.roles.label') }}</span><strong>{{ rolesTotal() }}</strong
       ><small>{{ i18n.t('admin.summary.roles.detail', { count: permissionCount() }) }}</small>
     </article>
     <article>
@@ -168,11 +168,15 @@
   </section>
   <section class="role-grid">
     @for (role of roles(); track role.id) {
-    <article class="role-card">
+    <article class="role-card" [class.inactive]="!role.isActive">
       <header>
         <demo-icon name="shield" class="role-icon" />
         <span>
-          <h3>{{ role.name }}</h3>
+          <h3>
+            {{ role.name }} @if (!role.isActive) {
+            <small class="badge-inactive">{{ i18n.t('admin.roles.inactiveBadge') }}</small>
+            }
+          </h3>
           <small
             >{{ role.organizationName }} · {{ i18n.t('admin.roles.memberCount', { count: memberCount(role.id) })
             }}</small
@@ -180,6 +184,23 @@
         </span>
         @if (caps.allows(P.administracion.roles.editar)) {
         <button class="icon-btn" (click)="editRole(role)">✎</button>
+        <button
+          class="icon-btn"
+          [attr.aria-label]="i18n.t(role.isActive ? 'admin.roles.deactivate' : 'admin.roles.activate')"
+          [title]="i18n.t(role.isActive ? 'admin.roles.deactivate' : 'admin.roles.activate')"
+          (click)="toggleRoleActive(role)"
+        >
+          <demo-icon [name]="role.isActive ? 'pause' : 'play'" />
+        </button>
+        } @if (caps.allows(P.administracion.roles.eliminar) && !role.isSystem) {
+        <button
+          class="icon-btn danger"
+          [attr.aria-label]="i18n.t('admin.roles.deleteAriaLabel')"
+          [title]="i18n.t('admin.roles.deleteAriaLabel')"
+          (click)="deleteRole(role)"
+        >
+          <demo-icon name="trash" />
+        </button>
         }
       </header>
       <p>{{ role.description || i18n.t('admin.roles.noDescription') }}</p>
@@ -199,7 +220,17 @@
     </article>
     }
   </section>
-  } } @case ('flags') { @if (sinDatosDeAdministracion()) {
+  @if (rolesTotalPages() > 1) {
+  <footer class="pager">
+    <button [disabled]="rolesPage() <= 1" (click)="loadRolesPage(rolesPage() - 1)">
+      {{ i18n.t('admin.roles.pager.previous') }}
+    </button>
+    <span>{{ i18n.t('admin.roles.pager.pageOfTotal', { page: rolesPage(), total: rolesTotalPages() }) }}</span>
+    <button [disabled]="rolesPage() >= rolesTotalPages()" (click)="loadRolesPage(rolesPage() + 1)">
+      {{ i18n.t('admin.roles.pager.next') }}
+    </button>
+  </footer>
+  } } } @case ('flags') { @if (sinDatosDeAdministracion()) {
   <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.flags.detail')" />
   } @else {
   <section class="panel">

@@ -50,6 +50,9 @@ const TRAZOS: Readonly<Record<string, string>> = {
   flag: 'M6 21V4h12l-2.5 4L18 12H6',
   list: 'M4 6h16M4 12h16M4 18h10',
   shield: 'M12 3l8 3v6c0 5.2-3.6 8.4-8 9.6C7.6 20.4 4 17.2 4 12V6z',
+  trash: 'M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13M10 11v6M14 11v6',
+  pause: 'M9 5v14M15 5v14',
+  play: 'M7 4l13 8-13 8z',
 
   // Paginación
   first: 'M13 6l-6 6 6 6M19 6l-6 6 6 6',

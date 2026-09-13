@@ -50,6 +50,8 @@ export interface ApiAdminRole {
   /** Permisos concedidos, uno por acción. Es lo que se edita. */
   permissions: readonly string[];
   isSystem: boolean;
+  /** En falso, nadie recibe sus permisos aunque siga asignado. */
+  isActive: boolean;
 }
 
 /** Un permiso del catálogo: código, dónde vive y qué concede. */
@@ -188,8 +190,20 @@ export class AdministrationApi {
     });
   }
 
-  adminRoles() {
-    return this.transport.request<readonly ApiAdminRole[]>({ method: 'GET', path: API_ROUTES.adminRoles });
+  adminRoles(page = 1, size = 25) {
+    return this.transport.request<ApiPage<ApiAdminRole>>({
+      method: 'GET',
+      path: API_ROUTES.adminRoles,
+      params: { page, size },
+    });
+  }
+
+  deleteAdminRole(id: string) {
+    return this.transport.request<void>({ method: 'DELETE', path: API_ROUTES.adminRole(id) });
+  }
+
+  setAdminRoleActive(id: string, isActive: boolean) {
+    return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminRoleActive(id), body: { isActive } });
   }
 
   /** Catálogo completo: una fila por acción, que es lo que pinta el editor de roles. */

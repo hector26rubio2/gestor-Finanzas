@@ -113,7 +113,9 @@ export class PreferencesTabComponent implements OnInit {
     try {
       const [gente, roles] = await Promise.all([
         firstValueFrom(this.api.organizationMembers()),
-        this.can(P.administracion.roles.listar) ? firstValueFrom(this.api.adminRoles()) : Promise.resolve([]),
+        this.can(P.administracion.roles.listar)
+          ? firstValueFrom(this.api.adminRoles(1, 100)).then((pagina) => pagina.items)
+          : Promise.resolve([]),
       ]);
       this.miembros.set(gente);
       this.rolesDisponibles.set(roles);

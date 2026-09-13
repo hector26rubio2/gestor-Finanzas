@@ -4,7 +4,7 @@ import { P } from './core/permissions';
 import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
-import { CAPABILITIES, DemoStore, navigation } from './core/store';
+import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
 import { MovementFormComponent } from './forms';
 
 /**
@@ -31,6 +31,7 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
 export class AppComponent {
   readonly store = inject(DemoStore);
   readonly caps = inject(CAPABILITIES);
+  private readonly features = inject(FEATURES);
   readonly P = P;
   private router = inject(Router);
   private readonly arranque = inject(RemoteBootstrap);
@@ -122,7 +123,9 @@ export class AppComponent {
     const formulario = this.store.form();
     return !!formulario && !FORM_KINDS_SIN_MOVIMIENTO.includes(formulario.kind ?? '');
   });
-  readonly allowed = computed(() => navigation.filter((n) => this.caps.allows(n.capability)));
+  readonly allowed = computed(() =>
+    navigation.filter((n) => this.caps.allows(n.capability) && this.features.enabled(n.path)),
+  );
   readonly groups = computed(() => [...new Set(this.allowed().map((n) => n.group))]);
   items(group: string) {
     return this.allowed().filter((i) => i.group === group);
