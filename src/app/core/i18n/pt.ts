@@ -191,6 +191,7 @@ export default {
   'form.field.currency': 'Moeda',
   'form.field.amount': 'Valor',
   'form.movement.typeGroup': 'Tipo de transação',
+  'form.movement.chooseTypeHint': 'Escolha despesa, receita ou transferência para ver os campos.',
   'form.movement.type.expense': 'Despesa',
   'form.movement.type.income': 'Receita',
   'form.movement.type.transfer': 'Transferência',

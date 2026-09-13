@@ -321,7 +321,13 @@ export class DemoStore {
     const iso = typeof date === 'number' ? `2026-08-${String(date).padStart(2, '0')}` : date;
     return this.data().movements.filter((movement) => movement.date === iso);
   }
-  open(kind = 'expense', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
+  /**
+   * Sin tipo por defecto: abrir el formulario desde "Nuevo movimiento" no debe
+   * mostrar ya los campos de gasto como si la persona los hubiera elegido. Los
+   * demás llamadores (revisar una notificación, editar un movimiento existente)
+   * siempre mandan su propio `kind`, así que no dependen de este valor.
+   */
+  open(kind = '', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
     this.form.set({ kind, accountId, targetId, movement, notificationId });
   }
   inspect(type: string, id: string) {

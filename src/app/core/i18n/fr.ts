@@ -191,6 +191,7 @@ export default {
   'form.field.currency': 'Devise',
   'form.field.amount': 'Montant',
   'form.movement.typeGroup': 'Type de transaction',
+  'form.movement.chooseTypeHint': 'Choisissez dépense, revenu ou virement pour voir les champs.',
   'form.movement.type.expense': 'Dépense',
   'form.movement.type.income': 'Revenu',
   'form.movement.type.transfer': 'Virement',
