@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
@@ -17,6 +18,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
   private readonly headerActions = inject(HeaderActionsService);
+  readonly i18n = inject(I18nService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
@@ -36,7 +38,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
         const unread = this.store.data().notifications.filter((item) => !item.read);
         await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
       } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : 'No se pudieron actualizar las notificaciones.');
+        this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.bulkUpdateError'));
         return;
       }
     }
@@ -47,7 +49,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
       try {
         await firstValueFrom(this.api.markNotificationRead(id));
       } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : 'No se pudo actualizar la notificación.');
+        this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.updateError'));
         return;
       }
     }

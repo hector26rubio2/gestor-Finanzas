@@ -13,6 +13,7 @@ export interface ChartPalette {
   accent: string;
   danger: string;
   warn: string;
+  success: string;
   text: string;
   muted: string;
   line: string;
@@ -50,6 +51,7 @@ export class ChartThemeService {
         accent: '#4f46e5',
         danger: '#e11d48',
         warn: '#d97706',
+        success: '#059669',
         text: '#1e2130',
         muted: '#64748b',
         line: '#e4e7ec',
@@ -60,10 +62,12 @@ export class ChartThemeService {
     const accent = leer(estilo, '--accent', '#4f46e5');
     const danger = leer(estilo, '--danger', '#e11d48');
     const warn = leer(estilo, '--warning', '#d97706');
+    const success = leer(estilo, '--success', '#059669');
     return {
       accent,
       danger,
       warn,
+      success,
       text: leer(estilo, '--text', '#1e2130'),
       muted: leer(estilo, '--muted', '#64748b'),
       line: leer(estilo, '--line', '#e4e7ec'),

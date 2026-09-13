@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/c
 import { DataTableComponent, KpiComponent } from '../../ui/ui';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { SIN_DATO } from '../../shared/utils/placeholders';
 
 @Component({
@@ -15,19 +16,20 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
 export class PeopleTabComponent {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
 
-  readonly peopleColumns = [
-    { key: 'name', label: 'Persona' },
-    { key: 'relationship', label: 'Relación' },
-    { key: 'owed', label: 'Me debe' },
-    { key: 'owing', label: 'Le debo' },
-    { key: 'balance', label: 'Saldo' },
-    { key: 'payment', label: 'Comportamiento de pago' },
-  ];
+  readonly peopleColumns = computed(() => [
+    { key: 'name', label: this.i18n.t('people.column.name') },
+    { key: 'relationship', label: this.i18n.t('people.column.relationship') },
+    { key: 'owed', label: this.i18n.t('people.column.owed') },
+    { key: 'owing', label: this.i18n.t('people.column.owing') },
+    { key: 'balance', label: this.i18n.t('people.column.balance') },
+    { key: 'payment', label: this.i18n.t('people.column.payment') },
+  ]);
   readonly peopleRows = computed(() =>
     this.store.data().people.map((p) => ({
       id: p.id,
@@ -38,8 +40,11 @@ export class PeopleTabComponent {
       balance: this.store.money(p.owed - p.owing),
       payment:
         p.averagePaymentDays == null
-          ? 'Sin historial'
-          : `${p.averagePaymentDays} días prom. · ${p.latePayments ?? 0} tardíos`,
+          ? this.i18n.t('people.payment.none')
+          : this.i18n.t('people.payment.summary', {
+              days: p.averagePaymentDays,
+              late: p.latePayments ?? 0,
+            }),
     })),
   );
   readonly peopleOwed = computed(() => this.store.data().people.reduce((s, p) => s + p.owed, 0));
@@ -48,6 +53,6 @@ export class PeopleTabComponent {
     const person = [...this.store.data().people].sort(
       (a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0),
     )[0];
-    return { name: person?.name ?? 'Sin datos', days: person?.averagePaymentDays ?? 0 };
+    return { name: person?.name ?? this.i18n.t('people.noData'), days: person?.averagePaymentDays ?? 0 };
   });
 }

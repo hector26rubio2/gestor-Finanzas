@@ -1,33 +1,33 @@
 <section class="calendar-layout">
   <div class="month">
     <header class="calendar-toolbar">
-      <button type="button" class="icon-button" aria-label="Periodo anterior" (click)="shiftCalendar(-1)">‹</button>
+      <button type="button" class="icon-button" [attr.aria-label]="i18n.t('calendar.nav.prevAriaLabel')" (click)="shiftCalendar(-1)">‹</button>
       <div class="calendar-title">
-        <span>PERIODO</span><strong>{{ calendarTitle() }}</strong>
+        <span>{{ i18n.t('calendar.nav.periodLabel') }}</span><strong>{{ calendarTitle() }}</strong>
       </div>
-      <div class="period-tabs" role="group" aria-label="Escala de calendario">
+      <div class="period-tabs" role="group" [attr.aria-label]="i18n.t('calendar.nav.scaleAriaLabel')">
         @for (view of calendarViews; track view.value) {
           <button type="button" [class.active]="calendarView() === view.value" (click)="setCalendarView(view.value)">
-            {{ view.label }}
+            {{ i18n.t('calendar.view.' + view.value) }}
           </button>
         }
       </div>
-      <button type="button" class="today-button" (click)="goCalendarToday()">Hoy</button>
-      <button type="button" class="icon-button" aria-label="Periodo siguiente" (click)="shiftCalendar(1)">›</button>
+      <button type="button" class="today-button" (click)="goCalendarToday()">{{ i18n.t('calendar.nav.today') }}</button>
+      <button type="button" class="icon-button" [attr.aria-label]="i18n.t('calendar.nav.nextAriaLabel')" (click)="shiftCalendar(1)">›</button>
     </header>
     @if (calendarView() === 'year') {
-      <div class="year-grid" aria-label="Meses del año">
+      <div class="year-grid" [attr.aria-label]="i18n.t('calendar.year.ariaLabel')">
         @for (month of calendarMonths; track month.value) {
           <button type="button" (click)="openCalendarMonth(month.value)">
             <span>{{ month.label }}</span
             ><b>{{ monthMovementCount(month.value) }}</b
-            ><small>operaciones</small>
+            ><small>{{ i18n.t('calendar.year.operationsLabel') }}</small>
           </button>
         }
       </div>
     } @else {
       <div class="week names">
-        @for (d of week; track d) {
+        @for (d of week(); track d) {
           <b>{{ d }}</b>
         }
       </div>
@@ -35,7 +35,7 @@
         @for (day of visibleCalendarDays(); track day.iso) {
           <button
             [attr.aria-pressed]="day.iso === store.selectedCalendarDate()"
-            [attr.aria-label]="day.label + ', ' + store.dayMoves(day.iso).length + ' movimientos'"
+            [attr.aria-label]="i18n.t('calendar.day.ariaLabel', { label: day.label, count: store.dayMoves(day.iso).length })"
             [class.selected]="day.iso === store.selectedCalendarDate()"
             [class.outside]="!day.current"
             (click)="selectCalendarDay(day.iso)"
@@ -45,7 +45,7 @@
               <span [class.income]="m.amount > 0">{{ m.description }}</span>
             }
             @if (store.dayMoves(day.iso).length > (calendarView() === 'day' ? 8 : 2)) {
-              <em>+{{ store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2) }} más</em>
+              <em>{{ i18n.t('calendar.day.more', { count: store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2) }) }}</em>
             }
           </button>
         }
@@ -53,10 +53,10 @@
     }
   </div>
   <aside class="agenda">
-    <h3>Próximos compromisos</h3>
+    <h3>{{ i18n.t('calendar.agenda.title') }}</h3>
     @for (item of projectedOccurrences(); track item.recurrence.id + item.occurrence) {
       <button class="projected" [disabled]="!can(P.calendario.proyecciones.crear)" (click)="materialize(item)">
-        <span>{{ item.recurrence.name }} · proyectado</span
+        <span>{{ i18n.t('calendar.agenda.projected', { name: item.recurrence.name }) }}</span
         ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
       </button>
     }

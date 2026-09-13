@@ -64,14 +64,14 @@ export const routes: Routes = [
         path: n.path,
         canMatch: [guard],
         data: { capability: n.capability },
-        loadComponent: () => import('./pages/dashboard').then((m) => m.DashboardComponent),
+        loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardComponent),
       };
     if (n.path === 'admin')
       return {
         path: n.path,
         canMatch: [guard],
         data: { capability: n.capability },
-        loadComponent: () => import('./pages/admin').then((m) => m.AdminComponent),
+        loadComponent: () => import('./pages/admin/admin').then((m) => m.AdminComponent),
       };
     return {
       path: n.path,

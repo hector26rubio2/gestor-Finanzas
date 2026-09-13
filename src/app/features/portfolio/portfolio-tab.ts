@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/c
 import { DataTableComponent, KpiComponent } from '../../ui/ui';
 import { DemoStore } from '../../core/store';
 import { formatReturnRate } from '../../core/money';
+import { I18nService } from '../../core/i18n';
 import { SIN_DATO } from '../../shared/utils/placeholders';
 
 @Component({
@@ -14,16 +15,17 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
 })
 export class PortfolioTabComponent {
   readonly store = inject(DemoStore);
+  readonly i18n = inject(I18nService);
 
-  readonly investmentColumns = [
-    { key: 'name', label: 'Inversión' },
-    { key: 'type', label: 'Tipo' },
-    { key: 'institution', label: 'Institución' },
-    { key: 'risk', label: 'Riesgo / liquidez' },
-    { key: 'cost', label: 'Costo' },
-    { key: 'value', label: 'Valor actual' },
-    { key: 'return', label: 'Variación' },
-  ];
+  readonly investmentColumns = computed(() => [
+    { key: 'name', label: this.i18n.t('portfolio.column.name') },
+    { key: 'type', label: this.i18n.t('portfolio.column.type') },
+    { key: 'institution', label: this.i18n.t('portfolio.column.institution') },
+    { key: 'risk', label: this.i18n.t('portfolio.column.risk') },
+    { key: 'cost', label: this.i18n.t('portfolio.column.cost') },
+    { key: 'value', label: this.i18n.t('portfolio.column.value') },
+    { key: 'return', label: this.i18n.t('portfolio.column.return') },
+  ]);
   readonly investmentRows = computed(() =>
     this.store.data().investments.map((i) => ({
       id: i.id,

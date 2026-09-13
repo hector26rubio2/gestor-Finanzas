@@ -1,0 +1,612 @@
+<article class="dashboard">
+  <header class="hero">
+    <div>
+      <h1>{{ i18n.t('dashboard.greeting', { name: store.user()?.name?.split(' ')?.[0] ?? '' }) }}</h1>
+      <p>{{ i18n.t('dashboard.subtitle') }}</p>
+    </div>
+    @if (puedePersonalizar()) {
+    <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
+      {{ customizing() ? i18n.t('dashboard.actions.finish') : i18n.t('dashboard.actions.customize') }}
+    </button>
+    }
+  </header>
+  @if (nadaQueMostrar()) {
+  <!--
+        Llegar hasta aqui sin ninguna pieza concedida es raro, pero posible: quien
+        administra puede haber dejado el acceso al panel y haber quitado los cuatro KPI,
+        los widgets y la tabla. Una pantalla vacia sin explicacion se lee como averiada.
+      -->
+  <section class="sin-acceso" role="status">
+    <h2>{{ i18n.t('dashboard.noAccess.title') }}</h2>
+    <p>
+      {{ i18n.t('dashboard.noAccess.detail') }}
+    </p>
+  </section>
+  } @else {
+  <section class="filter-panel" aria-labelledby="filters-title">
+    <header>
+      <div>
+        <h2 id="filters-title">{{ i18n.t('dashboard.filters.title') }}</h2>
+      </div>
+      <button class="quiet" type="button" (click)="reset()" [disabled]="!hasFilters()">{{ i18n.t('dashboard.filters.clear') }}</button>
+    </header>
+    <div class="filters">
+      <fieldset>
+        <legend>{{ i18n.t('dashboard.filters.period.legend') }}</legend>
+        @for (item of scales(); track item.value) {
+        <button
+          type="button"
+          [class.active]="scale() === item.value"
+          [attr.aria-pressed]="scale() === item.value"
+          (click)="scale.set(item.value)"
+        >
+          {{ item.label }}
+        </button>
+        }
+      </fieldset>
+      <div class="period-nav" [attr.aria-label]="i18n.t('dashboard.filters.period.nav')">
+        <span>{{ i18n.t('dashboard.filters.period.active') }}</span>
+        <div class="period-picker" [class.open]="periodPickerOpen()">
+          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.prev')" (click)="shiftPeriod(-1)">‹</button
+          ><button
+            type="button"
+            class="period-label"
+            [attr.aria-expanded]="periodPickerOpen()"
+            aria-haspopup="true"
+            (click)="periodPickerOpen.update(v => !v)"
+          >
+            {{ periodShortLabel() }}
+          </button>
+          <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.next')" (click)="shiftPeriod(1)">›</button>
+          @if (periodPickerOpen()) {
+          <div class="period-picker-menu">
+            <label
+              >{{ i18n.t('dashboard.period.year') }}<input
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [ngModel]="anchorYear()"
+                (ngModelChange)="setYear($event)"
+                [attr.aria-label]="i18n.t('dashboard.period.year')"
+            /></label>
+            @if (scale() === 'month' || scale() === 'week' || scale() === 'day') {
+            <label
+              >{{ i18n.t('dashboard.period.month') }}<demo-select
+                [ngModel]="anchorMonth()"
+                (ngModelChange)="setMonth($event)"
+                [options]="monthOptions()"
+                [ariaLabel]="i18n.t('dashboard.period.month')"
+            /></label>
+            } @if (scale() === 'week') {
+            <label
+              >{{ i18n.t('dashboard.period.week') }}<demo-select
+                [ngModel]="anchorWeekOfMonth()"
+                (ngModelChange)="setWeekOfMonth($event)"
+                [options]="weekOfMonthOptions()"
+                [ariaLabel]="i18n.t('dashboard.filters.period.weekOfMonth')"
+            /></label>
+            } @if (scale() === 'day') {
+            <label
+              >{{ i18n.t('dashboard.period.day') }}<input
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                [ngModel]="anchorDay()"
+                (ngModelChange)="setDay($event)"
+                [attr.aria-label]="i18n.t('dashboard.period.day')"
+            /></label>
+            }
+            <button type="button" class="quiet" (click)="periodPickerOpen.set(false)">{{ i18n.t('dashboard.filters.period.close') }}</button>
+          </div>
+          }
+        </div>
+      </div>
+      <label
+        >{{ i18n.t('dashboard.filters.account.label') }}<demo-select
+          [ngModel]="accountId()"
+          (ngModelChange)="accountId.set($event)"
+          [options]="accountSelectOptions()"
+          [ariaLabel]="i18n.t('dashboard.filters.account.ariaLabel')"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.filters.accountType.label') }}<demo-select
+          [ngModel]="accountType()"
+          (ngModelChange)="changeAccountType($event)"
+          [options]="accountTypeOptions()"
+          [ariaLabel]="i18n.t('dashboard.filters.accountType.ariaLabel')"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.filters.category.label') }}<demo-select
+          [ngModel]="globalCategory()"
+          (ngModelChange)="globalCategory.set($event)"
+          [options]="categorySelectOptions()"
+          [ariaLabel]="i18n.t('dashboard.filters.category.ariaLabel')"
+      /></label>
+    </div>
+    <p class="summary" role="status">{{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movements().length.toLocaleString() }) }}</p>
+  </section>
+  } @if (algunKpi()) {
+  <section class="kpis" aria-label="Indicadores filtrados">
+    @if (caps.allows(P.dashboard.kpi.balance)) {
+    <demo-kpi
+      [label]="i18n.t('dashboard.kpi.balance.label')"
+      icon="trendUp"
+      [value]="store.money(net())"
+      [hint]="periodLabel()"
+      [series]="serieNeta()"
+      [delta]="variacion(serieNeta())"
+    />
+    } @if (caps.allows(P.dashboard.kpi.ingresos)) {
+    <demo-kpi
+      [label]="i18n.t('dashboard.kpi.income.label')"
+      icon="trendUp"
+      tone="success"
+      [value]="store.money(income())"
+      [hint]="i18n.t('dashboard.kpi.defaultHint')"
+      [series]="serieIngresos()"
+      [delta]="variacion(serieIngresos())"
+    />
+    } @if (caps.allows(P.dashboard.kpi.gastos)) {
+    <demo-kpi
+      [label]="i18n.t('dashboard.kpi.expense.label')"
+      icon="trendDown"
+      tone="danger"
+      [value]="store.money(expense())"
+      [hint]="i18n.t('dashboard.kpi.defaultHint')"
+      [series]="serieGastos()"
+      [delta]="variacion(serieGastos())"
+      [subirEsBueno]="false"
+    />
+    } @if (caps.allows(P.dashboard.kpi.recuento)) {
+    <demo-kpi
+      [label]="i18n.t('dashboard.kpi.count.label')"
+      icon="movements"
+      [value]="movements().length.toLocaleString()"
+      [hint]="i18n.t('dashboard.kpi.count.hint')"
+    />
+    } @if (caps.allows(P.dashboard.widget.propios)) { @for (kpi of customKpis(); track kpi.id) {
+    <div class="custom-kpi">
+      <demo-kpi
+        [label]="kpi.label"
+        [icon]="kpiIcon(kpi.formula)"
+        [tone]="kpiTone(kpi.formula)"
+        [value]="kpiFormatValue(kpi.formula, kpiValue(kpi.formula))"
+        [hint]="kpiHintFor(kpi.formula)"
+        [series]="kpiSeriesFor(kpi.formula)"
+        [delta]="kpiTrend(kpi.formula)"
+        [subirEsBueno]="kpiSubirEsBueno(kpi.formula)"
+      />
+      @if (customizing() && caps.allows(P.dashboard.widget.deshabilitar)) {
+      <button type="button" class="quiet custom-kpi-remove" [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')" (click)="removeKpi(kpi.id)">
+        <demo-icon name="close" />
+      </button>
+      }
+    </div>
+    } } @if (customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length) {
+    <button type="button" class="add-kpi" (click)="openKpiCreator()"><demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}</button>
+    }
+  </section>
+  }
+  <section class="grid">
+    @for (widget of widgets(); track widget.id) {
+    <article class="widget" [class.wide]="widget.wide && widget.type !== 'indicator'">
+      <header>
+        <div>
+          <span>{{ widget.kicker }}</span>
+          <h2>{{ widget.title }}</h2>
+        </div>
+        <!--
+          El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
+          fila entera solo para un select, y empujaba la lista hacia abajo. Junto al título
+          no le hace falta esa fila propia.
+        -->
+        @if (widget.type === 'categories' && !customizing()) {
+        <div class="local">
+          <demo-select
+            [ngModel]="localCategory()"
+            (ngModelChange)="localCategory.set($event)"
+            [options]="localCategoryOptions()"
+            [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
+          />
+          <button
+            type="button"
+            class="quiet"
+            (click)="promoteCategory()"
+            [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
+          >
+            {{ i18n.t('dashboard.category.applyAll') }}
+          </button>
+        </div>
+        } @if (customizing()) {
+        <div class="widget-actions">
+          @if (caps.allows(P.dashboard.widget.orden.editar)) {
+          <button class="quiet" type="button" [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')" (click)="move(widget.id, -1)">
+            <demo-icon name="chevronUp" />
+          </button>
+          <button class="quiet" type="button" [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')" (click)="move(widget.id, 1)">
+            <demo-icon name="chevronDown" />
+          </button>
+          } @if (caps.allows(P.dashboard.widget.tipo.editar)) {
+          <demo-select
+            [ariaLabel]="i18n.t('dashboard.widgetActions.type.ariaLabel')"
+            [ngModel]="widget.type"
+            [options]="widgetTypeOptions()"
+            (ngModelChange)="changeType(widget.id, $event)"
+          />
+          @if (isGeneric(widget.type)) {
+          <demo-select
+            [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
+            [ngModel]="widget.dimension ?? 'category'"
+            [options]="dimensionOptions()"
+            (ngModelChange)="changeDimension(widget.id, $event)"
+          />
+          <demo-select
+            [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
+            [ngModel]="widget.measure ?? 'expense'"
+            [options]="measureOptions()"
+            (ngModelChange)="changeMeasure(widget.id, $event)"
+          />
+          } @if (needsDimension2(widget.type)) {
+          <demo-select
+            [ariaLabel]="i18n.t('dashboard.widgetActions.series.ariaLabel')"
+            [ngModel]="widget.dimension2 ?? 'kind'"
+            [options]="dimensionOptions()"
+            (ngModelChange)="changeDimension2(widget.id, $event)"
+          />
+          } @if (needsGoal(widget.type)) {
+          <input
+            class="goal-input"
+            type="number"
+            [attr.aria-label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')"
+            [attr.placeholder]="i18n.t('dashboard.widgetActions.goalMin.placeholder')"
+            [ngModel]="widget.goalMin ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalMin', $event)"
+          />
+          <input
+            class="goal-input"
+            type="number"
+            [attr.aria-label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')"
+            [attr.placeholder]="i18n.t('dashboard.widgetActions.goalTarget.placeholder')"
+            [ngModel]="widget.goalTarget ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalTarget', $event)"
+          />
+          <input
+            class="goal-input"
+            type="number"
+            [attr.aria-label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')"
+            [attr.placeholder]="i18n.t('dashboard.widgetActions.goalMax.placeholder')"
+            [ngModel]="widget.goalMax ?? 0"
+            (ngModelChange)="changeGoal(widget.id, 'goalMax', $event)"
+          />
+          } } @if (caps.allows(P.dashboard.widget.deshabilitar)) {
+          <button class="quiet" type="button" (click)="hide(widget.id)">{{ i18n.t('dashboard.widgetActions.hide') }}</button>
+          }
+        </div>
+        }
+      </header>
+      @switch (widget.type) { @case ('flow') { @if (timeline().length) {
+      <demo-chart
+        [option]="flujoOption()"
+        [height]="320"
+        [ariaLabel]="
+                    i18n.t('dashboard.widget.flow.ariaLabel', {
+                      income: store.money(income()),
+                      expense: store.money(expense()),
+                      count: timeline().length
+                    })
+                  "
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      } } @case ('categories') {
+      <div class="category-list" [attr.aria-label]="i18n.t('dashboard.category.list.ariaLabel')">
+        @for (category of categoryDistribution(); track category.name) {
+        <button
+          type="button"
+          (click)="localCategory.set(category.name)"
+          [class.selected]="localCategory() === category.name"
+        >
+          <span><i [style.background]="category.color"></i>{{ category.name }}</span
+          ><b>{{ store.money(category.value) }}</b><small>{{ category.percent }} %</small
+          ><em><i [style.width.%]="category.percent" [style.background]="category.color"></i></em>
+        </button>
+        } @empty {
+        <p class="empty">{{ i18n.t('dashboard.widget.categories.empty') }}</p>
+        }
+      </div>
+      } @case ('accounts') {
+      <div class="account-list">
+        @for (item of accountDistribution(); track item.id) {
+        <button type="button" (click)="accountId.set(item.id)" [class.selected]="accountId() === item.id">
+          <i [style.background]="item.color"></i><span>{{ item.name }}<small>{{ typeLabel(item.type) }}</small></span
+          ><b>{{ store.money(item.amount, item.currency) }}</b>
+        </button>
+        } @empty {
+        <p class="empty">{{ i18n.t('dashboard.widget.accounts.empty') }}</p>
+        }
+      </div>
+      } @case ('trend') { @if (timeline().length) {
+      <demo-chart
+        [option]="tendenciaOption()"
+        [height]="300"
+        [ariaLabel]="
+                    i18n.t('dashboard.widget.trend.ariaLabel', { total: store.money(expense()) })
+                  "
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
+      } } @case ('scatter') { @if (movements().length) {
+      <demo-chart
+        [option]="dispersionOption()"
+        [height]="340"
+        [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
+      } } @case ('donut') { @if (categoryDistribution().length) {
+      <demo-chart
+        [option]="anilloOption()"
+        [height]="340"
+        (pick)="localCategory.set($event)"
+        [ariaLabel]="i18n.t('dashboard.widget.donut.ariaLabel', { total: store.money(expense()) })"
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
+      } } @case ('stacked') { @if (timeline().length) {
+      <demo-chart
+        [option]="apiladoOption()"
+        [height]="300"
+        [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      } } @case ('gauge') { @if (income() > 0) {
+      <demo-chart
+        [option]="medidorOption()"
+        [height]="340"
+        [ariaLabel]="
+              i18n.t('dashboard.widget.gauge.ariaLabel', {
+                rate: tasaDeAhorro(),
+                net: store.money(net()),
+                income: store.money(income())
+              })
+            "
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
+      } } @case ('heatmap') { @if (timeline().length) {
+      <demo-chart
+        [option]="intensidadOption()"
+        [height]="230"
+        [ariaLabel]="i18n.t('dashboard.widget.heatmap.ariaLabel')"
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      } } @case ('histogram') { @if (movements().length) {
+      <demo-chart
+        [option]="histogramaOption()"
+        [height]="300"
+        [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
+      />
+      } @else {
+      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      } } @case ('card') {
+      <div class="widget-card">
+        <strong>{{ formatMeasure(cardValue(widget), widget) }}</strong>
+        <small>{{ measureLabel(widget) }}</small>
+        @if (kpiTrend(widget.measure ?? 'expense'); as tendencia) {
+        <small class="card-trend" [class.up]="tendencia >= 0" [class.down]="tendencia < 0">
+          {{ tendencia >= 0 ? '▲' : '▼' }} {{ tendenciaAbs(tendencia) }}% vs. periodo anterior
+        </small>
+        }
+      </div>
+      } @case ('table') {
+      <demo-table [columns]="tableColumns()" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
+      } @case ('indicator') { @if (movements().length) {
+      <div class="indicator-layout">
+        <demo-chart [option]="widgetOption(widget)" [height]="300" [ariaLabel]="widget.title" />
+        <dl class="indicator-info">
+          <div>
+            <dt>Actual</dt>
+            <dd>{{ formatMeasure(cardValue(widget), widget) }}</dd>
+          </div>
+          <div>
+            <dt>Meta</dt>
+            <dd>{{ formatMeasure(widget.goalTarget ?? 0, widget) }}</dd>
+          </div>
+          <div>
+            <dt>Rango</dt>
+            <dd>{{ formatMeasure(widget.goalMin ?? 0, widget) }} – {{ formatMeasure(widget.goalMax ?? 0, widget) }}</dd>
+          </div>
+          <div>
+            <span
+              class="status-pill"
+              [style.color]="indicatorStatus(widget).color"
+              [style.border-color]="indicatorStatus(widget).color"
+            >
+              {{ indicatorStatus(widget).label }}
+            </span>
+          </div>
+        </dl>
+      </div>
+      } @else {
+      <p class="empty">No hay datos para estos filtros.</p>
+      } } @case ('colorScale') {
+      <div class="color-scale">
+        <div class="color-scale-value">
+          <strong>{{ formatMeasure(cardValue(widget), widget) }}</strong>
+          <small>{{ measureLabel(widget) }}</small>
+        </div>
+        <div class="color-scale-track">
+          <i class="color-scale-pointer" [style.left.%]="colorScalePercent(widget)"></i>
+          <i class="color-scale-meta" [style.left.%]="colorScaleMetaPercent(widget)"></i>
+        </div>
+        <div class="color-scale-ends">
+          <span>{{ formatMeasure(widget.goalMin ?? 0, widget) }}</span>
+          <span>Meta {{ formatMeasure(widget.goalTarget ?? 0, widget) }}</span>
+          <span>{{ formatMeasure(widget.goalMax ?? 0, widget) }}</span>
+        </div>
+        <span
+          class="status-pill"
+          [style.color]="indicatorStatus(widget).color"
+          [style.border-color]="indicatorStatus(widget).color"
+        >
+          {{ indicatorStatus(widget).label }}
+        </span>
+      </div>
+      } @case ('statusBars') {
+      <div class="status-bars">
+        @for (fila of statusBarsRows(widget); track fila.label) {
+        <div class="status-bar-row">
+          <div class="status-bar-head"><span>{{ fila.label }}</span><b>{{ formatMeasure(fila.value, widget) }}</b></div>
+          <div class="status-bar-track">
+            <i [class]="'status-bar-fill ' + fila.tone" [style.width.%]="fila.percent"></i>
+          </div>
+        </div>
+        } @empty {
+        <p class="empty">No hay datos para estos filtros.</p>
+        }
+      </div>
+      } @default { @if (movements().length) {
+      <div class="chart-fill">
+        <demo-chart
+          [option]="widgetOption(widget)"
+          [height]="widget.type === 'matrix' ? 260 : 320"
+          [ariaLabel]="widget.title"
+        />
+      </div>
+      } @else {
+      <p class="empty">No hay datos para estos filtros.</p>
+      } } }
+    </article>
+    }
+  </section>
+  @if (caps.allows(P.dashboard.tabla.ver)) {
+  <section class="recent">
+    <header>
+      <div>
+        <h2>{{ i18n.t('dashboard.recent.title') }}</h2>
+      </div>
+      @if (caps.allows(P.movimientos.ver)) {
+      <a class="see-all" routerLink="/movements">{{ i18n.t('dashboard.recent.seeAll') }}<demo-icon name="next" /></a>
+      }
+    </header>
+    <demo-table [columns]="columns()" [rows]="rows()" (rowSelected)="inspect($event)" />
+  </section>
+  } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
+  <aside class="customize">
+    <b>{{ i18n.t('dashboard.customizePanel.title') }}</b>
+    @if (caps.allows(P.dashboard.widget.crear)) {
+    <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">
+      <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
+    </button>
+    @if (availableKpiFormulaOptions().length) {
+    <button class="create-widget" type="button" (click)="openKpiCreator()">
+      <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
+    </button>
+    } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
+    <button type="button" (click)="show(widget.id)"><demo-icon name="plus" /> {{ widget.title }}</button>
+    } @empty {
+    <span>{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
+    } }
+  </aside>
+  } @if (widgetCreatorOpen()) {
+  <demo-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
+    <form class="widget-builder" (submit)="createWidget($event)">
+      <label>{{ i18n.t('dashboard.widgetForm.name') }}<input name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetForm.visualization') }}<demo-select
+          name="widgetMetric"
+          [(ngModel)]="newWidgetMetric"
+          [options]="widgetTypeOptions()"
+          [ariaLabel]="i18n.t('dashboard.widgetForm.visualization.ariaLabel')"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetForm.distribution') }}<demo-select
+          name="widgetWidth"
+          [(ngModel)]="newWidgetWidth"
+          [options]="widgetWidthOptions()"
+          [ariaLabel]="i18n.t('dashboard.widgetForm.distribution.ariaLabel')"
+      /></label>
+      @if (isGeneric(newWidgetMetric)) {
+      <label
+        >{{ i18n.t('dashboard.widgetForm.dimensionAxis') }}<demo-select
+          name="widgetDimension"
+          [(ngModel)]="newWidgetDimension"
+          [options]="dimensionOptions()"
+          [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
+      /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetForm.measureValue') }}<demo-select
+          name="widgetMeasure"
+          [(ngModel)]="newWidgetMeasure"
+          [options]="measureOptions()"
+          [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
+      /></label>
+      } @if (needsDimension2(newWidgetMetric)) {
+      <label
+        >{{ i18n.t('dashboard.widgetActions.series.ariaLabel') }}<demo-select
+          name="widgetDimension2"
+          [(ngModel)]="newWidgetDimension2"
+          [options]="dimensionOptions()"
+          [ariaLabel]="i18n.t('dashboard.widgetForm.dimension2.ariaLabel')"
+      /></label>
+      } @if (needsGoal(newWidgetMetric)) {
+      <label>{{ i18n.t('dashboard.widgetActions.goalMin.ariaLabel') }}<input name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" /></label>
+      <label>{{ i18n.t('dashboard.widgetActions.goalTarget.ariaLabel') }}<input name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" /></label>
+      <label>{{ i18n.t('dashboard.widgetActions.goalMax.ariaLabel') }}<input name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" /></label>
+      }
+      <p>{{ i18n.t('dashboard.widgetForm.note') }}</p>
+      <div>
+        <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">{{ i18n.t('dashboard.widgetForm.cancel') }}</button
+        ><button type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
+      </div>
+    </form>
+  </demo-overlay>
+  } @if (kpiCreatorOpen()) {
+  <demo-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
+    <form class="widget-builder" (submit)="createKpi($event)">
+      <label>{{ i18n.t('dashboard.widgetForm.name') }}<input name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" /></label>
+      <label
+        >{{ i18n.t('dashboard.widgetActions.measure.ariaLabel') }}<demo-select
+          name="kpiMeasure"
+          [(ngModel)]="newKpiFormula"
+          [options]="availableKpiFormulaOptions()"
+          [ariaLabel]="i18n.t('dashboard.kpiForm.measure.ariaLabel')"
+      /></label>
+      <p>{{ i18n.t('dashboard.kpiForm.note') }}</p>
+      <div>
+        <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">{{ i18n.t('dashboard.widgetForm.cancel') }}</button
+        ><button type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
+      </div>
+    </form>
+  </demo-overlay>
+  } @if (selectedMovement(); as movement) {
+  <demo-overlay [title]="i18n.t('workspace.inspector.title.movement')" mode="inspector" (closed)="store.inspector.set(null)"
+    ><div class="detail">
+      <span>{{ i18n.t('dashboard.detailModal.kicker') }}</span>
+      <h2>{{ movement.description }}</h2>
+      <strong>{{ store.money(movement.amount) }}</strong>
+      <dl>
+        <div>
+          <dt>{{ i18n.t('dashboard.detail.date') }}</dt>
+          <dd>{{ movement.date }}</dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('dashboard.detail.category') }}</dt>
+          <dd>{{ movement.category }}</dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('dashboard.detail.account') }}</dt>
+          <dd>{{ store.account(movement.accountId)?.name }}</dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('workspace.inspector.facts.status') }}</dt>
+          <dd>{{ movement.status === 'confirmed' ? i18n.t('dashboard.detailModal.confirmed') : i18n.t('dashboard.detailModal.pending') }}</dd>
+        </div>
+      </dl>
+      <a routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
+    </div></demo-overlay
+  >
+  }
+</article>

@@ -12,11 +12,9 @@
   gap: 12px;
   padding: 7px 10px 7px 12px;
   text-align: left;
-  background: linear-gradient(180deg, var(--surface), color-mix(in srgb, var(--panel) 58%, var(--surface)));
+  background: var(--surface);
   border: 1px solid var(--control-line);
-  box-shadow:
-    0 1px 2px color-mix(in srgb, var(--text) 6%, transparent),
-    inset 0 1px #fff2;
+  border-radius: 10px;
 }
 .trigger span {
   min-width: 0;

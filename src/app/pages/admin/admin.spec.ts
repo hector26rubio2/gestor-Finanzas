@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiRequestError, FinanceApiClient } from '../core/api-client';
-import { P } from '../core/permissions';
-import { RUNTIME_CONFIG } from '../core/runtime';
-import { DemoStore } from '../core/store';
+import { ApiRequestError, FinanceApiClient } from '../../core/api-client';
+import { P } from '../../core/permissions';
+import { RUNTIME_CONFIG } from '../../core/runtime';
+import { DemoStore } from '../../core/store';
 import { AdminComponent } from './admin';
 
 /**

@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { I18nService } from './core/i18n';
 import { P } from './core/permissions';
 import { CAPABILITIES, CapabilitiesProvider, DemoStore } from './core/store';
 import { OverlayComponent } from './ui/ui';
@@ -12,20 +13,29 @@ type FormField = {
   options?: { value: string; label: string }[];
   required?: boolean;
 };
-function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvider): FormField[] {
+function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvider, i18n: I18nService): FormField[] {
+  const accountTypeLabel = (type: string) =>
+    type === 'credit'
+      ? i18n.t('form.account.type.credit')
+      : type === 'savings'
+        ? i18n.t('form.account.type.savings')
+        : i18n.t('form.account.type.cash');
   const validAccounts = store
     .data()
     .accounts.filter((a) => kind === 'expense' || a.type !== 'credit')
     .filter((a) => a.type !== 'credit' || caps.allows(P.movimientos.creditos.crear));
   const accounts = validAccounts.map((a) => ({
     value: a.id,
-    label: `${a.name} · ${a.type === 'credit' ? 'Crédito' : a.type === 'savings' ? 'Ahorros' : 'Efectivo'}`,
+    label: `${a.name} · ${accountTypeLabel(a.type)}`,
   }));
   const common: FormField[] = [
-    { key: 'date', label: 'Fecha', type: 'date', required: true },
+    { key: 'date', label: i18n.t('form.movement.field.date'), type: 'date', required: true },
     {
       key: 'accountId',
-      label: kind === 'transfer' || kind === 'payment' ? 'Cuenta de origen' : 'Cuenta o tarjeta',
+      label:
+        kind === 'transfer' || kind === 'payment'
+          ? i18n.t('form.movement.field.sourceAccount')
+          : i18n.t('form.movement.field.account'),
       type: 'select',
       options:
         kind === 'transfer' ? accounts.filter((option) => store.account(option.value)?.type !== 'credit') : accounts,
@@ -35,100 +45,107 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
   if (kind === 'transfer')
     common.push({
       key: 'targetId',
-      label: 'Cuenta destino',
+      label: i18n.t('form.movement.field.targetAccount'),
       type: 'select',
       options: accounts,
       required: true,
     });
   return [
     ...common,
-    { key: 'description', label: 'Descripción', type: 'text', required: true },
-    { key: 'amount', label: 'Importe', type: 'number', required: true },
+    { key: 'description', label: i18n.t('form.movement.field.description'), type: 'text', required: true },
+    { key: 'amount', label: i18n.t('form.field.amount'), type: 'number', required: true },
     {
       key: 'category',
-      label: 'Categoría',
+      label: i18n.t('form.movement.field.category'),
       type: 'select',
       options: [
-        'Alimentación',
-        'Vivienda',
-        'Transporte',
-        'Salario',
-        'Transferencias',
-        'Pago de tarjeta',
-        'Préstamos',
-        'Inversiones',
-        'Otros',
-      ].map((x) => ({ value: x, label: x })),
+        { value: 'Alimentación', key: 'form.movement.category.food' },
+        { value: 'Vivienda', key: 'form.movement.category.housing' },
+        { value: 'Transporte', key: 'form.movement.category.transport' },
+        { value: 'Salario', key: 'form.movement.category.salary' },
+        { value: 'Transferencias', key: 'form.movement.category.transfers' },
+        { value: 'Pago de tarjeta', key: 'form.movement.category.cardPayment' },
+        { value: 'Préstamos', key: 'form.movement.category.loans' },
+        { value: 'Inversiones', key: 'form.movement.category.investments' },
+        { value: 'Otros', key: 'form.movement.category.other' },
+      ].map((x) => ({ value: x.value, label: i18n.t(x.key) })),
     },
     {
       key: 'person',
-      label: 'Responsabilidad',
+      label: i18n.t('form.movement.field.person'),
       type: 'select',
       options: [
-        { value: '', label: 'Propia' },
-        ...store.data().people.map((p) => ({ value: p.name, label: 'Prestada · ' + p.name })),
+        { value: '', label: i18n.t('form.movement.person.own') },
+        ...store.data().people.map((p) => ({ value: p.name, label: i18n.t('form.movement.person.borrowed', { name: p.name }) })),
       ],
     },
     ...(kind === 'expense'
       ? [
           {
             key: 'recurring',
-            label: '¿Es recurrente?',
+            label: i18n.t('form.movement.field.recurring'),
             type: 'select' as const,
             options: [
-              { value: 'false', label: 'No' },
-              { value: 'true', label: 'Sí' },
+              { value: 'false', label: i18n.t('form.movement.recurring.no') },
+              { value: 'true', label: i18n.t('form.movement.recurring.yes') },
             ],
           },
           {
             key: 'recurrence',
-            label: 'Frecuencia',
+            label: i18n.t('form.frequency.label'),
             type: 'select' as const,
             options: ['weekly', 'monthly', 'yearly'].map((value) => ({
               value,
-              label: value === 'weekly' ? 'Semanal' : value === 'monthly' ? 'Mensual' : 'Anual',
+              label:
+                value === 'weekly'
+                  ? i18n.t('form.frequency.weekly')
+                  : value === 'monthly'
+                    ? i18n.t('form.frequency.monthly')
+                    : i18n.t('form.frequency.yearly'),
             })),
           },
-          { key: 'installmentCurrent', label: 'Cuota actual', type: 'number' as const },
-          { key: 'installmentTotal', label: 'Total de cuotas', type: 'number' as const },
+          { key: 'installmentCurrent', label: i18n.t('form.movement.field.installmentCurrent'), type: 'number' as const },
+          { key: 'installmentTotal', label: i18n.t('form.movement.field.installmentTotal'), type: 'number' as const },
           {
             key: 'originalCurrency',
-            label: 'Moneda de compra',
+            label: i18n.t('form.movement.field.originalCurrency'),
             type: 'select' as const,
             options: [
-              { value: 'COP', label: 'COP · Peso colombiano' },
-              { value: 'USD', label: 'USD · Dólar' },
+              { value: 'COP', label: i18n.t('form.currency.cop') },
+              { value: 'USD', label: i18n.t('form.movement.currency.usdShort') },
             ],
           },
-          { key: 'originalAmount', label: 'Importe original (USD)', type: 'number' as const },
-          { key: 'exchangeRate', label: 'TRM aplicada (COP/USD)', type: 'number' as const },
+          { key: 'originalAmount', label: i18n.t('form.movement.field.originalAmount'), type: 'number' as const },
+          { key: 'exchangeRate', label: i18n.t('form.movement.field.exchangeRate'), type: 'number' as const },
         ]
       : []),
     ...(kind === 'income' || kind === 'expense'
       ? [
           {
             key: 'loanRole',
-            label: 'Relación de préstamo',
+            label: i18n.t('form.movement.field.loanRole'),
             type: 'select' as const,
             options: [
-              { value: '', label: 'No es préstamo' },
-              ...(caps.allows(P.personas.prestamos.crear) ? [{ value: 'lent', label: 'Dinero que presté' }] : []),
-              ...(caps.allows(P.personas.deudas.crear)
-                ? [{ value: 'borrowed', label: 'Dinero que me prestaron' }]
+              { value: '', label: i18n.t('form.movement.loanRole.none') },
+              ...(caps.allows(P.personas.prestamos.crear)
+                ? [{ value: 'lent', label: i18n.t('form.movement.loanRole.lent') }]
                 : []),
-              { value: 'repayment', label: 'Pago o devolución de préstamo' },
+              ...(caps.allows(P.personas.deudas.crear)
+                ? [{ value: 'borrowed', label: i18n.t('form.movement.loanRole.borrowed') }]
+                : []),
+              { value: 'repayment', label: i18n.t('form.movement.loanRole.repayment') },
             ],
           },
           {
             key: 'loanProduct',
-            label: 'Tipo de préstamo o crédito',
+            label: i18n.t('form.movement.field.loanProduct'),
             type: 'select' as const,
             options: [
-              { value: 'personal', label: 'Préstamo personal' },
-              { value: 'mortgage', label: 'Crédito hipotecario' },
-              { value: 'vehicle', label: 'Crédito de vehículo' },
-              { value: 'education', label: 'Crédito educativo' },
-              { value: 'other', label: 'Otro' },
+              { value: 'personal', label: i18n.t('form.movement.loanProduct.personal') },
+              { value: 'mortgage', label: i18n.t('form.movement.loanProduct.mortgage') },
+              { value: 'vehicle', label: i18n.t('form.movement.loanProduct.vehicle') },
+              { value: 'education', label: i18n.t('form.movement.loanProduct.education') },
+              { value: 'other', label: i18n.t('form.movement.loanProduct.other') },
             ],
           },
         ]
@@ -146,6 +163,7 @@ function movementFields(kind: string, store: DemoStore, caps: CapabilitiesProvid
 export class MovementFormComponent {
   readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
   readonly error = signal('');
   /**
    * Cada figura del ledger se libera por separado: se puede conceder registrar gastos
@@ -154,22 +172,28 @@ export class MovementFormComponent {
    */
   readonly types = computed(() =>
     [
-      { value: 'expense', label: 'Gasto', permiso: P.movimientos.crear },
-      { value: 'income', label: 'Ingreso', permiso: P.movimientos.crear },
-      { value: 'transfer', label: 'Transferencia', permiso: P.movimientos.transferencias.crear },
+      { value: 'expense', label: this.i18n.t('form.movement.type.expense'), permiso: P.movimientos.crear },
+      { value: 'income', label: this.i18n.t('form.movement.type.income'), permiso: P.movimientos.crear },
+      {
+        value: 'transfer',
+        label: this.i18n.t('form.movement.type.transfer'),
+        permiso: P.movimientos.transferencias.crear,
+      },
     ].filter((t) => this.capabilities.allows(t.permiso)),
   );
   model: Record<string, any> = {};
-  readonly fields = computed(() => movementFields(this.store.form()?.kind ?? 'expense', this.store, this.capabilities));
+  readonly fields = computed(() =>
+    movementFields(this.store.form()?.kind ?? 'expense', this.store, this.capabilities, this.i18n),
+  );
   selectOptions(field: FormField): readonly UiOption[] {
-    return [{ value: '', label: 'Selecciona' }, ...(field.options ?? [])];
+    return [{ value: '', label: this.i18n.t('form.actions.select') }, ...(field.options ?? [])];
   }
   readonly title = computed(() =>
     this.store.form()?.notificationId
-      ? 'Revisar compra detectada'
+      ? this.i18n.t('form.movement.title.review')
       : this.store.form()?.movement
-        ? 'Editar movimiento'
-        : 'Nuevo movimiento',
+        ? this.i18n.t('form.movement.title.edit')
+        : this.i18n.t('form.movement.title.create'),
   );
   constructor() {
     const context = this.store.form()!;
@@ -224,26 +248,24 @@ export class MovementFormComponent {
             : this.model.id
               ? P.movimientos.editar
               : P.movimientos.crear;
-      if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite esta operación.');
+      if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (this.model['loanRole'] && !this.capabilities.allows(P.movimientos.prestamos.crear))
-        throw new Error('Tu acceso no permite registrar préstamos.');
+        throw new Error(this.i18n.t('form.movement.error.loanForbidden'));
       if (this.model['loanProduct'] && !this.capabilities.allows(P.movimientos.creditos.crear))
-        throw new Error('Tu acceso no permite registrar créditos.');
+        throw new Error(this.i18n.t('form.movement.error.creditForbidden'));
       const source = this.store.account(this.model['accountId']);
       // Un gasto cargado a una tarjeta se registra como compra a crédito, no como gasto
       // corriente: es otra clase de movimiento y otra concesión.
       if (source?.type === 'credit' && !this.capabilities.allows(P.movimientos.creditos.crear))
-        throw new Error('Tu acceso no permite registrar compras a crédito.');
+        throw new Error(this.i18n.t('form.movement.error.creditPurchaseForbidden'));
       const target = this.store.account(this.model['targetId']);
       if (this.model.kind === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
-        throw new Error(
-          'Las transferencias solo están disponibles entre cuentas de efectivo o ahorro. Usa avance o compra para una tarjeta.',
-        );
+        throw new Error(this.i18n.t('form.movement.error.transferCreditForbidden'));
       if (this.model.kind === 'income' && source?.type === 'credit')
-        throw new Error('Un ingreso no puede registrarse directamente en una tarjeta de crédito.');
+        throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
       await this.store.save(this.model as any);
     } catch (e) {
-      this.error.set(e instanceof Error ? e.message : 'No se pudo guardar');
+      this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }
   }
 }
@@ -257,33 +279,34 @@ export class MovementFormComponent {
 })
 export class AccountFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
+  readonly i18n = inject(I18nService);
   readonly error = signal('');
   name = 'Ahorro principal';
 
   /** Un tipo de cuenta por permiso: se puede dar el ahorro y retener la tarjeta. */
   readonly accountTypes = computed(() =>
     [
-      { value: 'savings' as const, label: 'Ahorros', permiso: P.cuentas.ahorro.crear },
-      { value: 'cash' as const, label: 'Efectivo', permiso: P.cuentas.efectivo.crear },
-      { value: 'credit' as const, label: 'Crédito', permiso: P.cuentas.tarjetas.crear },
+      { value: 'savings' as const, label: this.i18n.t('form.account.type.savings'), permiso: P.cuentas.ahorro.crear },
+      { value: 'cash' as const, label: this.i18n.t('form.account.type.cash'), permiso: P.cuentas.efectivo.crear },
+      { value: 'credit' as const, label: this.i18n.t('form.account.type.credit'), permiso: P.cuentas.tarjetas.crear },
     ].filter((option) => this.capabilities.allows(option.permiso)),
   );
   type: 'savings' | 'cash' | 'credit' = 'savings';
   currency = 'COP';
-  readonly currencyOptions: readonly UiOption[] = [
-    { value: 'COP', label: 'COP · Peso colombiano' },
-    { value: 'USD', label: 'USD · Dólar estadounidense' },
-  ];
-  readonly paymentOrderOptions: readonly UiOption[] = [
-    { value: 'oldest', label: 'Compras más antiguas' },
-    { value: 'highest-rate', label: 'Mayor tasa primero' },
-    { value: 'smallest', label: 'Menor saldo primero' },
-  ];
-  readonly paymentPriorityOptions: readonly UiOption[] = [
-    { value: 'fees-interest-capital', label: 'Comisiones, intereses y capital' },
-    { value: 'interest-capital', label: 'Intereses y capital' },
-    { value: 'capital', label: 'Capital' },
-  ];
+  readonly currencyOptions = computed<readonly UiOption[]>(() => [
+    { value: 'COP', label: this.i18n.t('form.currency.cop') },
+    { value: 'USD', label: this.i18n.t('form.currency.usd') },
+  ]);
+  readonly paymentOrderOptions = computed<readonly UiOption[]>(() => [
+    { value: 'oldest', label: this.i18n.t('form.account.paymentOrder.oldest') },
+    { value: 'highest-rate', label: this.i18n.t('form.account.paymentOrder.highestRate') },
+    { value: 'smallest', label: this.i18n.t('form.account.paymentOrder.smallest') },
+  ]);
+  readonly paymentPriorityOptions = computed<readonly UiOption[]>(() => [
+    { value: 'fees-interest-capital', label: this.i18n.t('form.account.paymentPriority.feesInterestCapital') },
+    { value: 'interest-capital', label: this.i18n.t('form.account.paymentPriority.interestCapital') },
+    { value: 'capital', label: this.i18n.t('form.account.paymentPriority.capital') },
+  ]);
   exchangeRate = 4168.35;
   opening = 0;
   limit = 5000000;
@@ -305,7 +328,7 @@ export class AccountFormComponent {
           : this.type === 'cash'
             ? P.cuentas.efectivo.crear
             : P.cuentas.ahorro.crear;
-      if (!this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite crear cuentas.');
+      if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
       await this.store.createAccount(
         this.name,
         this.type,
@@ -319,7 +342,7 @@ export class AccountFormComponent {
         },
       );
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'No fue posible crear la cuenta.');
+      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed'));
     }
   }
 }
@@ -335,45 +358,48 @@ export class AccountFormComponent {
 export class ManagementFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly store = inject(DemoStore);
+  readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
   readonly title = computed(
     () =>
       ({
-        category: 'Nueva categoría',
-        person: 'Nueva persona',
-        investment: 'Nueva inversión',
-        recurrence: 'Nueva recurrencia',
-      })[this.kind()] ?? 'Nuevo registro',
+        category: this.i18n.t('form.management.title.category'),
+        person: this.i18n.t('form.management.title.person'),
+        investment: this.i18n.t('form.management.title.investment'),
+        recurrence: this.i18n.t('form.management.title.recurrence'),
+      })[this.kind()] ?? this.i18n.t('form.management.title.default'),
   );
   name = '';
   color = '#4f46e5';
   icon = '●';
   email = '';
   relationship: import('./core/demo-data').Person['relationship'] = 'Otro';
-  readonly relationshipOptions: readonly UiOption[] = [
-    'Familia',
-    'Amistad',
-    'Trabajo',
-    'Cliente',
-    'Proveedor',
-    'Otro',
-  ].map((label) => ({ value: label, label }));
-  readonly instrumentOptions: readonly UiOption[] = ['CDT', 'Fondo', 'Acción', 'Criptoactivo'].map((label) => ({
-    value: label,
-    label,
-  }));
-  readonly currencyOptions: readonly UiOption[] = [
-    { value: 'COP', label: 'COP · Peso colombiano' },
-    { value: 'USD', label: 'USD · Dólar estadounidense' },
-  ];
-  readonly frequencyOptions: readonly UiOption[] = [
-    { value: '2', label: 'Semanal' },
-    { value: '3', label: 'Mensual' },
-    { value: '4', label: 'Anual' },
-  ];
+  readonly relationshipOptions = computed<readonly UiOption[]>(() => [
+    { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
+    { value: 'Amistad', label: this.i18n.t('form.management.relationship.friendship') },
+    { value: 'Trabajo', label: this.i18n.t('form.management.relationship.work') },
+    { value: 'Cliente', label: this.i18n.t('form.management.relationship.client') },
+    { value: 'Proveedor', label: this.i18n.t('form.management.relationship.supplier') },
+    { value: 'Otro', label: this.i18n.t('form.management.relationship.other') },
+  ]);
+  readonly instrumentOptions = computed<readonly UiOption[]>(() => [
+    { value: 'CDT', label: this.i18n.t('form.management.instrument.cdt') },
+    { value: 'Fondo', label: this.i18n.t('form.management.instrument.fund') },
+    { value: 'Acción', label: this.i18n.t('form.management.instrument.stock') },
+    { value: 'Criptoactivo', label: this.i18n.t('form.management.instrument.crypto') },
+  ]);
+  readonly currencyOptions = computed<readonly UiOption[]>(() => [
+    { value: 'COP', label: this.i18n.t('form.currency.cop') },
+    { value: 'USD', label: this.i18n.t('form.currency.usd') },
+  ]);
+  readonly frequencyOptions = computed<readonly UiOption[]>(() => [
+    { value: '2', label: this.i18n.t('form.frequency.weekly') },
+    { value: '3', label: this.i18n.t('form.frequency.monthly') },
+    { value: '4', label: this.i18n.t('form.frequency.yearly') },
+  ]);
   readonly accountOptions = computed<readonly UiOption[]>(() => [
-    { value: '', label: 'Selecciona' },
+    { value: '', label: this.i18n.t('form.actions.select') },
     ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
   ]);
   instrument = 'CDT';
@@ -392,8 +418,8 @@ export class ManagementFormComponent {
         recurrence: P.calendario.recurrencias.crear,
       };
       const permiso = permisos[this.kind()];
-      if (permiso && !this.capabilities.allows(permiso)) throw new Error('Tu acceso no permite esta operación.');
-      if (!this.name.trim()) throw new Error('El nombre es obligatorio.');
+      if (permiso && !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
+      if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category') await this.store.createCategory(this.name, this.color, this.icon);
       if (this.kind() === 'person') await this.store.createPerson(this.name, this.email, this.relationship);
       if (this.kind() === 'investment') await this.store.createInvestment(this.name, this.instrument, this.currency);
@@ -406,7 +432,7 @@ export class ManagementFormComponent {
           this.start,
         );
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : 'No fue posible guardar.');
+      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }
   }
 }

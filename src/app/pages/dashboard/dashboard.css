@@ -36,9 +36,23 @@
 .widget > header,
 .recent > header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: end;
   gap: 20px;
+}
+/*
+ * Al personalizar, la fila de tipo/dimension/metrica/meta se envuelve en dos o tres
+ * lineas y quedaba pegada a la grafica o la lista de justo debajo -se leian como una sola
+ * cosa revuelta en vez de encabezado y contenido. Un margen fijo los separa siempre,
+ * envuelva o no.
+ */
+.widget > header {
+  margin-bottom: 16px;
+  row-gap: 10px;
+}
+.recent > header {
+  margin-bottom: 14px;
 }
 .hero span,
 .filter-panel header span,
@@ -95,7 +109,6 @@ select {
   min-width: 0;
 }
 .filters label,
-.local label,
 .period-nav {
   display: grid;
   gap: 6px;
@@ -104,24 +117,63 @@ select {
   font-weight: 650;
 }
 .period-nav > div {
+  position: relative;
   display: grid;
   grid-template-columns: 34px minmax(130px, 1fr) 34px;
   align-items: center;
   margin-top: 6px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  overflow: hidden;
-  background: var(--surface);
+  background: var(--panel);
 }
 .period-nav > div button {
   border: 0;
-  border-radius: 0;
   padding: 8px;
+  background: transparent;
 }
-.period-nav b {
+.period-nav > div button:first-of-type {
+  border-radius: 10px 0 0 10px;
+}
+.period-nav > div button:last-of-type {
+  border-radius: 0 10px 10px 0;
+}
+.period-label {
   text-align: center;
   font-size: 0.76rem;
+  font-weight: 650;
   color: var(--text);
+  cursor: pointer;
+}
+.period-label:hover {
+  background: var(--accent-soft) !important;
+}
+.period-picker.open .period-label {
+  color: var(--accent);
+}
+/*
+ * `overflow: hidden` en `.period-nav > div` recorta el menú si vive dentro; se abre como
+ * hermano flotante, anclado al mismo contenedor con `position: relative`.
+ */
+.period-picker-menu {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.period-picker-menu label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
 }
 .filters select,
 .filters input,
@@ -130,22 +182,30 @@ select {
 }
 .filters fieldset {
   border: 0;
-  padding: 0;
-  margin: 0;
+  padding: 4px;
+  margin: 6px 0 0;
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 4px;
+  gap: 2px;
+  background: var(--panel);
+  border-radius: 10px;
 }
 .filters legend {
   color: var(--muted);
   font-size: 0.72rem;
   font-weight: 650;
-  margin-bottom: 6px;
 }
 .filters fieldset button {
   padding-inline: 5px;
+  border: 0;
+  background: transparent;
+  border-radius: 7px;
 }
-.filters .active {
+.filters fieldset button:hover {
+  background: var(--accent-soft);
+}
+.filters fieldset button.active,
+.filters fieldset button.active:hover {
   background: var(--accent);
   color: var(--accent-contrast);
   border-color: var(--accent);
@@ -166,13 +226,196 @@ button:disabled {
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
 }
+.custom-kpi {
+  position: relative;
+  min-width: 0;
+}
+.custom-kpi-remove {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  padding: 4px;
+  border-radius: 8px;
+}
+.add-kpi {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 108px;
+  border: 1px dashed var(--control-line);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted);
+}
+.add-kpi:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-soft);
+}
 .kpis demo-kpi {
   min-width: 0;
 }
 .widget-actions {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 5px;
+  row-gap: 8px;
+}
+/*
+ * Un medidor es redondo; estirarlo al ancho completo de un widget "wide" (~1600px) lo deja
+ * diminuto y centrado en un mar de espacio vacío, con las etiquetas del eje amontonadas
+ * porque el radio queda limitado por la altura, no por el ancho disponible. En vez de
+ * ocupar ese sobrante con aire, al lado del medidor va lo que antes vivía disperso en la
+ * fila de controles: valor actual, meta y rango, a mano en vez de tener que abrir editar.
+ */
+/*
+ * `flex-wrap: wrap`, no un ancho minimo fijo: a como diera lugar la columna de info no
+ * cedia espacio (`flex: 0 0 auto`) y el medidor no podia encoger lo suficiente en un
+ * widget angosto -la cifra "10.000.000" terminaba cortada contra el borde de la tarjeta.
+ * Envuelta, cuando no cabe al lado del medidor, la info simplemente baja a su propia fila.
+ */
+.indicator-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  align-items: center;
+  align-content: center;
+  gap: 16px 28px;
+  width: 100%;
+  flex: 1;
+}
+.indicator-layout demo-chart {
+  min-width: 0;
+  max-width: 100%;
+}
+.indicator-info {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+.indicator-info dt {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.indicator-info dd {
+  margin: 2px 0 0;
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+}
+/*
+ * Escala de colores: una barra plana en vez del medidor circular -misma idea de fondo
+ * (rango + meta + zona de color) en el formato horizontal de la referencia, para quien
+ * prefiera ese estilo al del medidor.
+ */
+.color-scale {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  padding: 6px 4px;
+  justify-items: center;
+  flex: 1;
+}
+.color-scale-value {
+  text-align: center;
+}
+.color-scale-value strong {
+  font-family: var(--display);
+  font-size: 1.9rem;
+  color: var(--text);
+}
+.color-scale-value small {
+  display: block;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+.color-scale-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--danger), var(--warning) 50%, var(--success) 100%);
+}
+.color-scale-pointer {
+  position: absolute;
+  top: -8px;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 11px solid var(--text);
+  transform: translateX(-50%);
+}
+.color-scale-meta {
+  position: absolute;
+  top: -3px;
+  left: 0;
+  width: 2px;
+  height: 20px;
+  background: var(--surface);
+  opacity: 0.8;
+  transform: translateX(-50%);
+}
+.color-scale-ends {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+/* Barras de estado: varias medidas del mismo widget, cada una con su propia barra de progreso. */
+.status-bars {
+  display: grid;
+  align-content: center;
+  gap: 16px;
+  padding: 4px;
+  flex: 1;
+}
+.status-bar-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.status-bar-head b {
+  color: var(--text);
+}
+.status-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--panel);
+  overflow: hidden;
+}
+.status-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+}
+.status-bar-fill.success {
+  background: var(--success);
+}
+.status-bar-fill.warn {
+  background: var(--warning);
+}
+.status-bar-fill.danger {
+  background: var(--danger);
+}
+.status-pill {
+  display: inline-block;
+  padding: 4px 12px;
+  border: 1.5px solid;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
 }
 .widget-actions button {
   padding: 6px 8px;
@@ -182,24 +425,94 @@ button:disabled {
   max-width: 132px;
 }
 /*
- * `align-items: start` en vez del stretch por defecto: dos widgets vecinos casi nunca
- * tienen la misma cantidad de contenido, y estirar el mas corto a la altura del otro
- * dejaba un hueco vacio al fondo de la tarjeta que no comunicaba nada.
+ * `!important` a proposito: el input global de styles.css (`input:not([type=...]) x4`)
+ * pesa (0,4,1) en especificidad -mas que cualquier combinacion razonable de clases
+ * locales- y su `width: 100%` es justo lo que aqui no se quiere en un campo de tres letras.
+ */
+.goal-input {
+  width: 64px !important;
+  padding: 6px;
+}
+/*
+ * `stretch` (el valor por defecto, escrito aqui para que quede explicito): dos widgets
+ * vecinos casi nunca tienen la misma cantidad de contenido, y con `align-items: start` el
+ * mas corto quedaba mas bajo que el otro -alturas dispares en la misma fila-. Estirado, la
+ * fila toma la altura del hermano con mas datos y el widget corto la hereda; su contenido
+ * (`.category-list`/`.account-list`) crece con `flex: 1` para llenarla, con scroll propio
+ * si de todos modos no le alcanza.
  */
 .grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
+  align-items: stretch;
   gap: 18px;
   min-width: 0;
 }
 .widget {
-  min-height: 310px;
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
   min-width: 0;
   overflow: hidden;
 }
+/*
+ * La tarjeta se estira a la altura de su hermana (`.grid` en `stretch`), pero la grafica
+ * mantiene su alto fijo -320px, dictado por lo que ese tipo necesita para verse bien, no
+ * por la tarjeta-. Sin este envoltorio, la diferencia quedaba en blanco debajo del
+ * lienzo; centrado verticalmente, esa diferencia se reparte arriba y abajo por igual.
+ */
+.chart-fill {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+}
+.widget-card {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 200px;
+  text-align: center;
+  flex: 1;
+}
+.widget-card strong {
+  font-family: var(--display);
+  font-size: clamp(2rem, 4vw, 3rem);
+  color: var(--text);
+}
+.widget-card small {
+  color: var(--muted);
+  font-size: 0.8rem;
+}
+.card-trend {
+  font-weight: 650;
+}
+.card-trend.up {
+  color: var(--success, var(--accent));
+}
+.card-trend.down {
+  color: var(--danger);
+}
 .widget.wide {
   grid-column: 1/-1;
+}
+.see-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 999px;
+}
+.see-all:hover {
+  background: var(--accent-soft);
+}
+.see-all demo-icon {
+  --icon-size: 15px;
 }
 .legend {
   display: flex;
@@ -437,16 +750,33 @@ button:disabled {
   overflow: hidden;
 }
 .local {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: end;
+  display: flex;
+  align-items: center;
   gap: 8px;
-  margin: 14px 0;
 }
+.local demo-select {
+  min-width: 160px;
+}
+.local button {
+  white-space: nowrap;
+}
+/*
+ * `flex: 1` en vez de un alto fijo: la tarjeta ya se estira a la altura de su hermana con
+ * mas datos (`.grid` en `stretch`), asi que la lista solo necesita llenar lo que le toque
+ * -ocho categorias o cinco cuentas- y quedar igual de alta que la de al lado. El scroll
+ * propio sigue ahi por si la lista, aun estirada, no alcanza a mostrarse entera.
+ */
 .category-list,
 .account-list {
   display: grid;
+  align-content: start;
   gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-right: 2px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
 }
 .category-list button {
   display: grid;
@@ -665,6 +995,7 @@ button:disabled {
     grid-column: auto;
   }
   .local {
-    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
   }
 }

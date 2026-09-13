@@ -10,7 +10,16 @@ import {
   output,
 } from '@angular/core';
 import * as echarts from 'echarts/core';
-import { BarChart, GaugeChart, HeatmapChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
+import {
+  BarChart,
+  FunnelChart,
+  GaugeChart,
+  HeatmapChart,
+  LineChart,
+  PieChart,
+  ScatterChart,
+  TreemapChart,
+} from 'echarts/charts';
 import {
   DataZoomComponent,
   GridComponent,
@@ -20,15 +29,18 @@ import {
   VisualMapComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
+import { I18nService } from '../core/i18n';
 import { ChartThemeService } from './chart-theme';
 
 echarts.use([
   BarChart,
+  FunnelChart,
   GaugeChart,
   HeatmapChart,
   LineChart,
   PieChart,
   ScatterChart,
+  TreemapChart,
   DataZoomComponent,
   GridComponent,
   LegendComponent,
@@ -60,9 +72,10 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
   styleUrl: './chart.css',
 })
 export class ChartComponent implements OnDestroy {
+  readonly i18n = inject(I18nService);
   readonly option = input.required<ChartOption>();
   readonly height = input(260);
-  readonly ariaLabel = input('Gráfica');
+  readonly ariaLabel = input(this.i18n.t('chart.defaultAriaLabel'));
   /** Nombre de la porción o punto pulsado, para las gráficas que filtran al tocarlas. */
   readonly pick = output<string>();
 

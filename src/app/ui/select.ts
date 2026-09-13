@@ -9,6 +9,7 @@ import {
   signal,
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
+import { I18nService } from '../core/i18n';
 import { IconComponent } from './icon';
 
 export interface UiOption {
@@ -27,8 +28,9 @@ export interface UiOption {
   styleUrl: './select.css',
 })
 export class UiSelectComponent implements ControlValueAccessor {
+  readonly i18n = inject(I18nService);
   readonly options = input.required<readonly UiOption[]>();
-  readonly ariaLabel = input('Seleccionar opción');
+  readonly ariaLabel = input(this.i18n.t('select.defaultAriaLabel'));
   readonly disabledInput = input(false, { alias: 'disabled' });
   readonly open = signal(false);
   readonly value = signal('');
@@ -39,7 +41,7 @@ export class UiSelectComponent implements ControlValueAccessor {
   private touched: () => void = () => undefined;
 
   selectedLabel(): string {
-    return this.options().find((option) => option.value === this.value())?.label ?? 'Seleccionar';
+    return this.options().find((option) => option.value === this.value())?.label ?? this.i18n.t('select.placeholder');
   }
   choose(value: string): void {
     this.value.set(value);

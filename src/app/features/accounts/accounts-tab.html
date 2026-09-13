@@ -1,50 +1,50 @@
 <section class="account-kpis kpis mini">
   <demo-kpi
-    label="Disponible"
+    [label]="i18n.t('accounts.kpi.available.label')"
     icon="wallet"
     tone="success"
     [value]="store.money(store.available())"
-    hint="Cuentas de efectivo"
+    [hint]="i18n.t('accounts.kpi.available.hint')"
   />
   <demo-kpi
-    label="Deuda en tarjetas"
+    [label]="i18n.t('accounts.kpi.debt.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(store.debt())"
-    hint="Sin descontar cuentas por cobrar"
+    [hint]="i18n.t('accounts.kpi.debt.hint')"
   />
   <demo-kpi
-    label="Cuentas"
+    [label]="i18n.t('accounts.kpi.count.label')"
     icon="accounts"
     [value]="store.data().accounts.length.toString()"
-    hint="Activas actualmente"
+    [hint]="i18n.t('accounts.kpi.count.hint')"
   />
 </section>
-<section class="account-tools" aria-label="Filtros de cuentas y tarjetas">
+<section class="account-tools" [attr.aria-label]="i18n.t('accounts.filters.ariaLabel')">
   <label
-    ><span>Buscar cuenta</span>
+    ><span>{{ i18n.t('accounts.filters.search.label') }}</span>
     <div class="search-control">
       <demo-icon name="search" />
       <input
         type="search"
-        placeholder="Nombre o terminación"
+        [attr.placeholder]="i18n.t('accounts.filters.search.placeholder')"
         [ngModel]="accountQuery()"
         (ngModelChange)="setAccountQuery($event)"
       />
     </div>
   </label>
   <label
-    ><span>Tipo de cuenta</span
+    ><span>{{ i18n.t('accounts.filters.type.label') }}</span
     ><demo-select
       [ngModel]="accountType()"
       (ngModelChange)="setAccountType($event)"
-      [options]="book.accountTypeOptions"
-      ariaLabel="Tipo de cuenta"
+      [options]="book.accountTypeOptions()"
+      [ariaLabel]="i18n.t('accounts.filters.type.label')"
   /></label>
-  <span>{{ filteredAccounts().length }} resultados</span>
+  <span>{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span>
 </section>
 <section class="cards" [class.compact]="compactCards()">
-  <div class="card-strip" tabindex="0" aria-label="Lista desplazable de cuentas">
+  <div class="card-strip" tabindex="0" [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')">
     @for (a of visibleAccounts(); track a.id) {
     <button
       class="bank-card"
@@ -52,16 +52,23 @@
       [class.active]="selectedAccountFilter() === a.id"
       (click)="selectAccount(a.id, a.type)"
     >
-      <span>{{ a.type === 'credit' ? 'CRÉDITO' : a.type === 'savings' ? 'AHORROS' : 'EFECTIVO' }}</span
-      ><b>{{ a.name }}</b><em>{{ a.lastFour ? '•••• ' + a.lastFour : 'Sin terminación' }}</em
+      <span>{{
+        a.type === 'credit'
+          ? i18n.t('accounts.cards.type.credit')
+          : a.type === 'savings'
+            ? i18n.t('accounts.cards.type.savings')
+            : i18n.t('accounts.cards.type.cash')
+      }}</span
+      ><b>{{ a.name }}</b><em>{{ a.lastFour ? '•••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour') }}</em
       ><small
-        >{{ a.type === 'credit' ? 'Deuda' : 'Saldo' }} <strong>{{ store.money(displayBalance(a)) }}</strong></small
+        >{{ a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel') }}
+        <strong>{{ store.money(displayBalance(a)) }}</strong></small
       >
     </button>
     }
   </div>
   @if (filteredAccounts().length > accountPageSize) {
-  <nav class="card-pages" aria-label="Páginas de cuentas">
+  <nav class="card-pages" [attr.aria-label]="i18n.t('accounts.pagination.ariaLabel')">
     <button (click)="accountPage.update((p) => Math.max(0, p - 1))" [disabled]="accountPage() === 0">‹</button
     ><span>{{ accountPage() + 1 }} / {{ accountPageCount() }}</span
     ><button
@@ -73,12 +80,12 @@
   </nav>
   }
   <button class="compact-toggle" (click)="compactCards.update((v) => !v)">
-    {{ compactCards() ? 'Expandir tarjetas' : 'Compactar tarjetas' }}
+    {{ compactCards() ? i18n.t('accounts.cards.expand') : i18n.t('accounts.cards.compact') }}
   </button>
 </section>
 <section class="table-zone">
   <demo-table
-    [columns]="book.movementColumns"
+    [columns]="book.movementColumns()"
     [rows]="accountMovementRows()"
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"

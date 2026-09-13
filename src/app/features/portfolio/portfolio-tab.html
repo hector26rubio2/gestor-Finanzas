@@ -1,28 +1,34 @@
 <section class="kpis mini">
   <demo-kpi
-    label="Patrimonio disponible"
+    [label]="i18n.t('portfolio.kpi.available.label')"
     icon="wallet"
     [value]="store.money(store.available() - store.debt())"
-    hint="Valor de mercado estimado"
+    [hint]="i18n.t('portfolio.kpi.available.hint')"
   />
   <demo-kpi
-    label="Inversiones"
+    [label]="i18n.t('portfolio.kpi.investments.label')"
     icon="portfolio"
     [value]="store.money(investmentValue())"
-    hint="Valoración ilustrativa"
+    [hint]="i18n.t('portfolio.kpi.investments.hint')"
   />
-  <demo-kpi label="Rendimiento" icon="trendUp" tone="success" [value]="investmentReturn()" hint="No es una garantía" />
   <demo-kpi
-    label="Ganancia no realizada"
+    [label]="i18n.t('portfolio.kpi.return.label')"
+    icon="trendUp"
+    tone="success"
+    [value]="investmentReturn()"
+    [hint]="i18n.t('portfolio.kpi.return.hint')"
+  />
+  <demo-kpi
+    [label]="i18n.t('portfolio.kpi.gain.label')"
     icon="trendUp"
     tone="success"
     [value]="store.money(investmentGain())"
-    hint="Valor actual menos costo"
+    [hint]="i18n.t('portfolio.kpi.gain.hint')"
   />
 </section>
 <section class="table-zone">
   <demo-table
-    [columns]="investmentColumns"
+    [columns]="investmentColumns()"
     [rows]="investmentRows()"
     (rowSelected)="store.inspect('investment', $event['id'])"
   />

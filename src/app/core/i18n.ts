@@ -26,7 +26,12 @@ export class I18nService {
     document.documentElement.lang = language;
   }
 
-  t(key: string): string {
-    return this.messages()[key] ?? es[key as keyof typeof es] ?? key;
+  /** `params` sustituye marcadores `{nombre}` dentro del mensaje. */
+  t(key: string, params?: Record<string, string | number>): string {
+    const message = this.messages()[key] ?? es[key as keyof typeof es] ?? key;
+    if (!params) return message;
+    return message.replace(/\{(\w+)\}/g, (match, name) =>
+      name in params ? String(params[name]) : match,
+    );
   }
 }

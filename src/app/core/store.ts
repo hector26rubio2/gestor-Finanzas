@@ -88,23 +88,23 @@ export function applyTheme(theme: Preferences['theme']): void {
 
 /** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
 export const navigation = [
-  { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'PANORAMA', capability: P.dashboard.ver },
-  { path: 'movements', label: 'Movimientos', icon: 'movements', group: 'MI DINERO', capability: P.movimientos.ver },
-  { path: 'calendar', label: 'Calendario', icon: 'calendar', group: 'MI DINERO', capability: P.calendario.ver },
-  { path: 'accounts', label: 'Cuentas y tarjetas', icon: 'accounts', group: 'MI DINERO', capability: P.cuentas.ver },
-  { path: 'people', label: 'Personas y deudas', icon: 'people', group: 'MI DINERO', capability: P.personas.ver },
-  { path: 'portfolio', label: 'Patrimonio', icon: 'portfolio', group: 'MI DINERO', capability: P.patrimonio.ver },
-  { path: 'planning', label: 'Planificación', icon: 'planning', group: 'ANÁLISIS', capability: P.planificacion.ver },
-  { path: 'reports', label: 'Reportes', icon: 'reports', group: 'ANÁLISIS', capability: P.reportes.ver },
+  { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'overview', capability: P.dashboard.ver },
+  { path: 'movements', label: 'Movimientos', icon: 'movements', group: 'money', capability: P.movimientos.ver },
+  { path: 'calendar', label: 'Calendario', icon: 'calendar', group: 'money', capability: P.calendario.ver },
+  { path: 'accounts', label: 'Cuentas y tarjetas', icon: 'accounts', group: 'money', capability: P.cuentas.ver },
+  { path: 'people', label: 'Personas y deudas', icon: 'people', group: 'money', capability: P.personas.ver },
+  { path: 'portfolio', label: 'Patrimonio', icon: 'portfolio', group: 'money', capability: P.patrimonio.ver },
+  { path: 'planning', label: 'Planificación', icon: 'planning', group: 'analysis', capability: P.planificacion.ver },
+  { path: 'reports', label: 'Reportes', icon: 'reports', group: 'analysis', capability: P.reportes.ver },
   {
     path: 'notifications',
     label: 'Notificaciones',
     icon: 'notifications',
-    group: 'ESPACIO',
+    group: 'workspace',
     capability: P.notificaciones.ver,
   },
-  { path: 'admin', label: 'Administración', icon: 'admin', group: 'ESPACIO', capability: P.administracion.ver },
-  { path: 'settings', label: 'Preferencias', icon: 'settings', group: 'ESPACIO', capability: P.preferencias.ver },
+  { path: 'admin', label: 'Administración', icon: 'admin', group: 'workspace', capability: P.administracion.ver },
+  { path: 'settings', label: 'Preferencias', icon: 'settings', group: 'workspace', capability: P.preferencias.ver },
 ];
 
 @Injectable({ providedIn: 'root' })
@@ -114,7 +114,13 @@ export class DemoStore {
   private injector = inject(Injector);
   readonly data = signal(this.provider.load());
   readonly users = demoUsers;
-  readonly user = signal<(typeof demoUsers)[number] | null>(null);
+  /**
+   * `photoUrl` es opcional a proposito: hoy ningun usuario demo ni la sesion de la API
+   * lo traen (session.api.ts solo expone id/displayName/email), asi que queda `undefined`
+   * y el sidebar sigue mostrando iniciales. El campo existe para que, en cuanto el backend
+   * exponga la foto de la cuenta de Google, el avatar la use sin tocar mas que esa fuente.
+   */
+  readonly user = signal<((typeof demoUsers)[number] & { photoUrl?: string }) | null>(null);
   readonly remoteState = signal<'demo' | 'loading' | 'ready' | 'anonymous' | 'error'>(
     this.runtime.mode === 'demo' ? 'demo' : 'loading',
   );
@@ -126,9 +132,7 @@ export class DemoStore {
    * y ficha de perfil- mientras la sesion traia el nombre real de la organizacion, asi
    * que cualquier espacio que no se llamara asi aparecia con el nombre de otro.
    */
-  readonly organization = signal<{ id: string; name: string } | null>(
-    this.runtime.mode === 'demo' ? { id: 'demo', name: 'Espacio personal' } : null,
-  );
+  readonly organization = signal<{ id: string; name: string } | null>(null);
   readonly organizations = signal<readonly { id: string; name: string }[]>([]);
   readonly remoteMovementPage = signal(1);
   readonly remoteMovementSize = signal(25);

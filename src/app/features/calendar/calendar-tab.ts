@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 
@@ -15,6 +16,7 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
 })
 export class CalendarTabComponent implements OnInit {
   readonly store = inject(DemoStore);
+  readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
@@ -25,7 +27,15 @@ export class CalendarTabComponent implements OnInit {
 
   readonly projectedOccurrences = signal<readonly ApiProjectedOccurrence[]>([]);
   readonly recurrences = signal<readonly ApiRecurrence[]>([]);
-  readonly week = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+  readonly week = computed(() => [
+    this.i18n.t('calendar.weekday.mon'),
+    this.i18n.t('calendar.weekday.tue'),
+    this.i18n.t('calendar.weekday.wed'),
+    this.i18n.t('calendar.weekday.thu'),
+    this.i18n.t('calendar.weekday.fri'),
+    this.i18n.t('calendar.weekday.sat'),
+    this.i18n.t('calendar.weekday.sun'),
+  ]);
   readonly calendarYear = signal(2026);
   readonly calendarMonth = signal(7);
   readonly calendarViews = [

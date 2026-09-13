@@ -18,6 +18,7 @@ import { DataTableComponent, KpiComponent } from '../../ui/ui';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import { HeaderActionsService } from '../../shared/header-actions.service';
 
@@ -32,6 +33,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly store = inject(DemoStore);
   readonly book = inject(MovementsBookService);
+  readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly route = inject(ActivatedRoute);
   private readonly headerActions = inject(HeaderActionsService);
@@ -49,29 +51,29 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.headerActions.exportMovements.set(null);
   }
 
-  readonly periodOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Últimos 12 meses' },
-    { value: '2026-08', label: 'Agosto 2026' },
-    { value: '2026-07', label: 'Julio 2026' },
-    { value: '2026-06', label: 'Junio 2026' },
-    { value: '2026-05', label: 'Mayo 2026' },
-  ];
+  readonly periodOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('movements.filters.period.all') },
+    { value: '2026-08', label: this.i18n.t('movements.filters.period.aug2026') },
+    { value: '2026-07', label: this.i18n.t('movements.filters.period.jul2026') },
+    { value: '2026-06', label: this.i18n.t('movements.filters.period.jun2026') },
+    { value: '2026-05', label: this.i18n.t('movements.filters.period.may2026') },
+  ]);
   readonly movementAccountOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas las cuentas' },
+    { value: 'all', label: this.i18n.t('movements.filters.account.all') },
     ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
   ]);
   readonly movementCategoryOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: 'Todas' },
+    { value: 'all', label: this.i18n.t('movements.filters.category.all') },
     ...this.book.movementCategories().map((category) => ({ value: category, label: category })),
   ]);
-  readonly movementOperationOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todas' },
-    { value: 'income', label: 'Ingresos' },
-    { value: 'expense', label: 'Gastos / compras' },
-    { value: 'transfer', label: 'Transferencias' },
-    { value: 'loan', label: 'Préstamos y créditos' },
-    { value: 'recurring', label: 'Recurrentes' },
-  ];
+  readonly movementOperationOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('movements.filters.operation.all') },
+    { value: 'income', label: this.i18n.t('movements.filters.operation.income') },
+    { value: 'expense', label: this.i18n.t('movements.filters.operation.expense') },
+    { value: 'transfer', label: this.i18n.t('movements.filters.operation.transfer') },
+    { value: 'loan', label: this.i18n.t('movements.filters.operation.loan') },
+    { value: 'recurring', label: this.i18n.t('movements.filters.operation.recurring') },
+  ]);
   /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
   readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
   readonly activeFilterCount = computed(
@@ -124,7 +126,7 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
       `finanzas-movimientos-${new Date().toISOString().slice(0, 10)}.csv`,
       toCsv(
         filas,
-        this.book.movementColumns.map((columna) => ({
+        this.book.movementColumns().map((columna) => ({
           header: columna.label,
           value: (fila: Record<string, unknown>) => fila[columna.key],
         })),
