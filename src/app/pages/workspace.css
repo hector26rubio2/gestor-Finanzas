@@ -38,6 +38,19 @@
   font-size: 0.84rem;
 }
 
+/*
+ * Sin esto los dos botones (p. ej. "Nueva categoría" y "Exportar CSV") quedaban
+ * separados solo por el espacio en blanco entre etiquetas del HTML — un par de
+ * píxeles accidental, no una separación puesta a propósito, y en pantalla angosta
+ * se pegaban al borde en vez de bajar a su propia fila.
+ */
+.head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
 .head-actions button {
   align-self: end;
   min-height: 40px;
