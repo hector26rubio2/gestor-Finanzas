@@ -333,6 +333,23 @@ td {
   min-height: 42px;
   font-size: 0.85rem;
 }
+.role-card.inactive {
+  opacity: 0.6;
+}
+.badge-inactive {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--warning) 20%, transparent);
+  color: var(--warning);
+  font-size: 0.68rem;
+  font-weight: 600;
+  vertical-align: middle;
+}
+.icon-btn.danger {
+  color: var(--danger);
+}
 .chips {
   display: flex;
   gap: 6px;

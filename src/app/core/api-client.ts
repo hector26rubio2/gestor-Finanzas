@@ -214,8 +214,14 @@ export class FinanceApiClient {
   inviteOrganizationMember(...args: Parameters<AdministrationApi['inviteOrganizationMember']>) {
     return this.administrationApi.inviteOrganizationMember(...args);
   }
-  adminRoles() {
-    return this.administrationApi.adminRoles();
+  adminRoles(page = 1, size = 25) {
+    return this.administrationApi.adminRoles(page, size);
+  }
+  deleteAdminRole(id: string) {
+    return this.administrationApi.deleteAdminRole(id);
+  }
+  setAdminRoleActive(id: string, isActive: boolean) {
+    return this.administrationApi.setAdminRoleActive(id, isActive);
   }
   superAdminPermissions() {
     return this.administrationApi.superAdminPermissions();

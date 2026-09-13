@@ -63,6 +63,10 @@ export class AdminComponent implements OnInit {
   readonly tab = signal<Tab>('summary');
   readonly users = signal<ApiAdminUser[]>([]);
   readonly roles = signal<readonly ApiAdminRole[]>([]);
+  readonly rolesPage = signal(1);
+  readonly rolesTotal = signal(0);
+  readonly rolesSize = 12;
+  readonly rolesTotalPages = computed(() => Math.max(1, Math.ceil(this.rolesTotal() / this.rolesSize)));
   readonly errors = signal<ApiClientError[]>([]);
   readonly audit = signal<ApiAuditEvent[]>([]);
   readonly adminFlags = signal<readonly ApiAdminFeatureFlag[]>([]);
@@ -260,7 +264,9 @@ export class AdminComponent implements OnInit {
         this.caps.allows(P.administracion.usuarios.listar)
           ? firstValueFrom(this.api.adminUsers())
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
-        this.caps.allows(P.administracion.roles.listar) ? firstValueFrom(this.api.adminRoles()) : Promise.resolve([]),
+        this.caps.allows(P.administracion.roles.listar)
+          ? firstValueFrom(this.api.adminRoles(1, this.rolesSize))
+          : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.auditoria.listar)
           ? firstValueFrom(this.api.superAdminAudit(1, 50))
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
@@ -281,7 +287,9 @@ export class AdminComponent implements OnInit {
           capabilities: user.capabilities ?? user.memberships?.flatMap((m) => m.effectiveCapabilities) ?? [],
         })),
       );
-      this.roles.set(r);
+      this.roles.set(r.items);
+      this.rolesPage.set(r.page);
+      this.rolesTotal.set(r.total);
       this.audit.set([...a.items]);
       this.adminFlags.set(f);
       this.permissionCatalog.set(p);
@@ -464,6 +472,7 @@ export class AdminComponent implements OnInit {
       capabilities: [],
       permissions: [],
       isSystem: false,
+      isActive: true,
     });
   }
   editRole(r: ApiAdminRole) {
@@ -505,6 +514,51 @@ export class AdminComponent implements OnInit {
           ? this.i18n.t('admin.toast.saveRoleFailedReason', { reason: motivo })
           : this.i18n.t('admin.toast.saveRoleFailed'),
       );
+    }
+  }
+  async loadRolesPage(page: number) {
+    if (page < 1 || page > this.rolesTotalPages()) return;
+    try {
+      const pagina = await firstValueFrom(this.api.adminRoles(page, this.rolesSize));
+      this.roles.set(pagina.items);
+      this.rolesPage.set(pagina.page);
+      this.rolesTotal.set(pagina.total);
+    } catch {
+      /* se queda en la pagina actual; el proximo intento la corrige */
+    }
+  }
+  async deleteRole(r: ApiAdminRole) {
+    if (!confirm(this.i18n.t('admin.roles.confirmDelete', { name: r.name }))) return;
+    try {
+      await firstValueFrom(this.api.deleteAdminRole(r.id));
+      this.store.toast.set(this.i18n.t('admin.toast.deleteRoleSucceeded', { name: r.name }));
+      // La pagina puede quedar vacia si era la ultima fila: retrocede una si hace falta.
+      const quedan = this.roles().length - 1;
+      await this.loadRolesPage(quedan === 0 && this.rolesPage() > 1 ? this.rolesPage() - 1 : this.rolesPage());
+      await this.recargarUsuarios();
+    } catch (error) {
+      const motivo = error instanceof Error ? error.message : '';
+      this.store.toast.set(
+        motivo
+          ? this.i18n.t('admin.toast.deleteRoleFailedReason', { reason: motivo })
+          : this.i18n.t('admin.toast.deleteRoleFailed'),
+      );
+    }
+  }
+  async toggleRoleActive(r: ApiAdminRole) {
+    const isActive = !r.isActive;
+    try {
+      await firstValueFrom(this.api.setAdminRoleActive(r.id, isActive));
+      this.roles.update((xs) => xs.map((x) => (x.id === r.id ? { ...x, isActive } : x)));
+      this.store.toast.set(
+        isActive
+          ? this.i18n.t('admin.toast.activateRoleSucceeded', { name: r.name })
+          : this.i18n.t('admin.toast.deactivateRoleSucceeded', { name: r.name }),
+      );
+      await this.refrescarAccesos();
+      await this.recargarUsuarios();
+    } catch {
+      this.store.toast.set(this.i18n.t('admin.toast.toggleRoleActiveFailed'));
     }
   }
   toggleFlag(flag: { key: string; organizationId: string | null; userId: string | null; isEnabled: boolean }) {

@@ -25,7 +25,6 @@ const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'cuentas.tarjetas.editar': 'No hay interfaz de edición de tarjeta.',
   'personas.editar': 'No hay interfaz de edición de persona.',
   'patrimonio.inversiones.editar': 'No hay interfaz de valoración.',
-  'administracion.roles.eliminar': 'La consola no ofrece borrar un rol.',
   'dashboard.widget.editar': 'Concesión paraguas: la pantalla mira las cuatro acciones concretas.',
   'movimientos.detalle.ver': 'El inspector usa la fila ya cargada, no pide el detalle.',
   'cuentas.extracto.ver': 'El extracto se estima con lo que ya hay en pantalla.',
