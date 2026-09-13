@@ -2,6 +2,13 @@
   <form class="management-form" (ngSubmit)="save()">
     <label>{{ i18n.t('form.field.name') }}<input name="name" [(ngModel)]="name" required /></label>
     @if (kind() === 'category') {
+    <label
+      >{{ i18n.t('form.management.field.categoryType') }}<demo-select
+        name="categoryType"
+        [(ngModel)]="categoryType"
+        [options]="categoryTypeOptions()"
+        [ariaLabel]="i18n.t('form.management.field.categoryTypeAria')"
+    /></label>
     <label>{{ i18n.t('form.management.field.color') }}<input name="color" type="color" [(ngModel)]="color" /></label
     ><label>{{ i18n.t('form.management.field.icon') }}<input name="icon" [(ngModel)]="icon" required /></label>
     } @if (kind() === 'person') {

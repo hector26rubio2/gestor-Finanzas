@@ -6,7 +6,10 @@ import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
 import { DemoStore } from '../../core/store';
-import { AccountFormComponent, MovementFormComponent } from '../../forms';
+import { AccountFormComponent } from '../../forms';
+import { MovementFormComponent } from '../../features/movement-form/movement-form';
+import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
+import { MovementCategoryFieldComponent } from '../../features/movement-form/movement-category-field';
 import { DashboardComponent } from './dashboard';
 
 /**
@@ -192,23 +195,58 @@ describe('movimientos: cada figura del ledger por separado', () => {
 
   it('los campos de préstamo y de crédito son dos permisos distintos', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
-    abrirFormulario('expense');
-    const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
+    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
+    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.showLoan = true;
 
-    expect(componente.fieldVisible('loanRole')).toBe(true);
-    componente.model['loanRole'] = 'lent';
-    expect(componente.fieldVisible('loanProduct')).toBe(false);
+    expect(fixture.componentInstance.showLoanRole()).toBe(true);
+    fixture.componentInstance.model['loanRole'] = 'lent';
+    // Sin administracion.creditos.crear, ver el producto sigue cerrado aunque ya haya rol.
+    expect(fixture.componentInstance.showLoanProduct()).toBe(false);
   });
 
   it('prestar y deber se ofrecen por separado', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear, P.personas.prestamos.crear]);
-    abrirFormulario('expense');
-    const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
-    const relacion = componente.fields().find((campo) => campo.key === 'loanRole');
+    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
+    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.showLoan = true;
 
-    const valores = relacion?.options?.map((opcion) => opcion.value) ?? [];
+    const valores = fixture.componentInstance.loanRoleOptions().map((opcion) => opcion.value);
     expect(valores).toContain('lent');
     expect(valores).not.toContain('borrowed');
+  });
+
+  /**
+   * Regresión: `showLoanRole`/`showLoanProduct` no pueden ser `computed()`. Un
+   * `computed()` no rastrea un `@Input()` normal ni una propiedad mutable de
+   * `model` — la primera lectura quedaba en caché para siempre, así que elegir
+   * después una tarjeta de crédito nunca llegaba a ocultar el préstamo.
+   */
+  it('cambiar showLoan después de creado el componente se refleja sin recrearlo', () => {
+    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
+    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
+    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.showLoan = true;
+    expect(fixture.componentInstance.showLoanRole()).toBe(true);
+
+    // La misma instancia, como pasa al elegir una tarjeta de crédito sin cerrar el formulario.
+    fixture.componentInstance.showLoan = false;
+    expect(fixture.componentInstance.showLoanRole()).toBe(false);
+  });
+
+  it('cambiar de gasto a ingreso en el mismo componente cambia las categorías ofrecidas', () => {
+    preparar([P.movimientos.ver, P.movimientos.crear]);
+    const fixture = TestBed.createComponent(MovementCategoryFieldComponent);
+    fixture.componentInstance.model = { category: '' };
+    fixture.componentInstance.kind = 'expense';
+    const deGasto = fixture.componentInstance.categoryOptions().map((o) => o.value);
+
+    // Alternar el tipo sin recrear el componente, como hace el selector de tipo del formulario.
+    fixture.componentInstance.kind = 'income';
+    const deIngreso = fixture.componentInstance.categoryOptions().map((o) => o.value);
+
+    expect(deGasto).not.toEqual(deIngreso);
+    expect(deIngreso).toContain('Salario');
   });
 });
 

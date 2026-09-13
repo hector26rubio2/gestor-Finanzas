@@ -5,7 +5,7 @@ import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
-import { MovementFormComponent } from './forms';
+import { MovementFormComponent } from './features/movement-form/movement-form';
 
 /**
  * Kinds de `store.form()` que abren su propio formulario (cuenta, categoría, persona,

@@ -11,9 +11,17 @@
 .kpis.mini demo-kpi {
   padding: 16px 18px;
 }
+/*
+ * Alto máximo real, no solo `flex: 1`: sin un ancestro con altura acotada -el
+ * armazón usa `position: sticky`, no un layout de alto fijo-, `flex: 1` no tiene
+ * nada que repartir y la tabla crecía con sus filas hasta empujar la página entera
+ * a un scroll de miles de píxeles. El scroll interno de `demo-table` (su propio
+ * `.viewport`) ya existía pero nunca se activaba porque nada le imponía un tope.
+ */
 .table-zone {
   flex: 1;
   min-height: 230px;
+  max-height: calc(100vh - 420px);
   display: flex;
 }
 @media (max-width: 1100px) {

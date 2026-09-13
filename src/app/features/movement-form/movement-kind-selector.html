@@ -1,0 +1,12 @@
+<div class="types" role="group" [attr.aria-label]="ariaLabel">
+  @for (t of options; track t.value) {
+  <button
+    type="button"
+    [attr.aria-pressed]="kind === t.value"
+    [class.selected]="kind === t.value"
+    (click)="kindChange.emit(t.value)"
+  >
+    {{ t.label }}
+  </button>
+  }
+</div>

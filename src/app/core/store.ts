@@ -107,6 +107,98 @@ export const navigation = [
   { path: 'settings', label: 'Preferencias', icon: 'settings', group: 'workspace', capability: P.preferencias.ver },
 ];
 
+/**
+ * Semilla de categorías en modo demo.
+ *
+ * El modo demo no tiene backend que las sirva, y antes el formulario de movimiento
+ * pintaba una lista fija propia en vez de leer `store.categories()` — una categoría
+ * creada a mano no aparecía nunca al registrar un movimiento. Sin transferencias ni
+ * pago de tarjeta aquí: esas son un `kind`, no una categoría (no existe categoría
+ * neutra, la misma regla que ya aplica el backend).
+ */
+const DEMO_CATEGORIES: readonly ApiCategory[] = [
+  {
+    id: 'demo-cat-food',
+    name: 'Alimentación',
+    type: 2,
+    color: '#f97316',
+    icon: '🍽️',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-housing',
+    name: 'Vivienda',
+    type: 2,
+    color: '#0ea5e9',
+    icon: '🏠',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-transport',
+    name: 'Transporte',
+    type: 2,
+    color: '#8b5cf6',
+    icon: '🚗',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-loans',
+    name: 'Préstamos',
+    type: 2,
+    color: '#ef4444',
+    icon: '🏦',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-investing',
+    name: 'Inversiones',
+    type: 2,
+    color: '#14b8a6',
+    icon: '📈',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-other-expense',
+    name: 'Otros',
+    type: 2,
+    color: '#64748b',
+    icon: '●',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-salary',
+    name: 'Salario',
+    type: 1,
+    color: '#22c55e',
+    icon: '💼',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+  {
+    id: 'demo-cat-other-income',
+    name: 'Otros',
+    type: 1,
+    color: '#64748b',
+    icon: '●',
+    parent: null,
+    isActive: true,
+    createdAt: '2026-01-01T00:00:00Z',
+  },
+];
+
 @Injectable({ providedIn: 'root' })
 export class DemoStore {
   readonly runtime = inject(RUNTIME_CONFIG);
@@ -142,7 +234,7 @@ export class DemoStore {
   readonly featureFlagsLoaded = signal(this.runtime.mode !== 'api');
   /** Tabla de invariantes publicada por la API. Vacía en modo demo, donde los datos ya traen su familia. */
   readonly kindCatalog = signal(EMPTY_KIND_CATALOG);
-  readonly categories = signal<readonly ApiCategory[]>([]);
+  readonly categories = signal<readonly ApiCategory[]>(this.runtime.mode === 'api' ? [] : DEMO_CATEGORIES);
   readonly preferences = inject(PREFERENCES);
   readonly query = signal('');
   readonly period = signal('all');
@@ -611,12 +703,32 @@ export class DemoStore {
     this.form.set(null);
     this.log('Cuenta creada');
   }
-  async createCategory(name: string, color: string, icon: string) {
+  async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
+    // El backend distingue ingreso de gasto porque no existe categoria neutra: un
+    // traslado categorizado apareceria en los reportes ademas del gasto real. El
+    // formulario de movimiento filtra por este mismo valor, asi que una categoria sin
+    // el tipo correcto queda invisible para el tipo de movimiento al que en realidad
+    // pertenece.
+    const type = kind === 'income' ? 1 : 2;
     if (this.runtime.mode === 'api') {
       const created = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createCategory({ name, type: 2, color, icon }),
+        this.injector.get(FinanceApiClient).createCategory({ name, type, color, icon }),
       );
       this.categories.update((items) => [...items, created]);
+    } else {
+      this.categories.update((items) => [
+        ...items,
+        {
+          id: `local-${Date.now()}`,
+          name,
+          type,
+          color,
+          icon,
+          parent: null,
+          isActive: true,
+          createdAt: new Date().toISOString(),
+        },
+      ]);
     }
     this.form.set(null);
     this.log(`Categoría ${name} creada`);
