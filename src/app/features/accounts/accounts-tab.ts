@@ -4,6 +4,7 @@ import { DataTableComponent, KpiComponent } from '../../ui/ui';
 import { IconComponent } from '../../ui/icon';
 import { UiSelectComponent } from '../../ui/select';
 import { DemoStore } from '../../core/store';
+import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import type { Account } from '../../core/demo-data';
 
@@ -19,6 +20,7 @@ export class AccountsTabComponent {
   readonly Math = Math;
   readonly store = inject(DemoStore);
   readonly book = inject(MovementsBookService);
+  readonly i18n = inject(I18nService);
 
   readonly compactCards = signal(false);
   readonly accountQuery = signal('');

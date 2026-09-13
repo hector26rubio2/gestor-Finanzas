@@ -6,6 +6,7 @@ import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { parseMoney } from '../../core/money';
 import { signOf } from '../../core/movement-kinds';
+import { I18nService } from '../../core/i18n';
 
 /**
  * Movimientos ya filtrados y con formato de fila, mas su paginacion remota.
@@ -21,6 +22,7 @@ export class MovementsBookService {
   private readonly store = inject(DemoStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly api = inject(FinanceApiClient);
+  private readonly i18n = inject(I18nService);
   private can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
@@ -32,12 +34,12 @@ export class MovementsBookService {
   readonly movementCategories = computed(() =>
     [...new Set(this.store.data().movements.map((m) => m.category))].sort(),
   );
-  readonly accountTypeOptions: readonly UiOption[] = [
-    { value: 'all', label: 'Todas' },
-    { value: 'savings', label: 'Ahorros' },
-    { value: 'credit', label: 'Crédito' },
-    { value: 'cash', label: 'Efectivo' },
-  ];
+  readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
+    { value: 'all', label: this.i18n.t('movements.filters.accountType.all') },
+    { value: 'savings', label: this.i18n.t('movements.filters.accountType.savings') },
+    { value: 'credit', label: this.i18n.t('movements.filters.accountType.credit') },
+    { value: 'cash', label: this.i18n.t('movements.filters.accountType.cash') },
+  ]);
   /**
    * `essential: false` manda la columna al detalle plegable de la fila en movil (ver
    * TableColumn.essential): con 9 columnas, sin esto cada fila se volvia una tarjeta de
@@ -45,17 +47,17 @@ export class MovementsBookService {
    * importe y cuenta son lo que se necesita para reconocer un movimiento de un vistazo; el
    * resto queda a un toque de distancia.
    */
-  readonly movementColumns = [
-    { key: 'date', label: 'Fecha' },
-    { key: 'description', label: 'Descripción' },
-    { key: 'amount', label: 'Importe' },
-    { key: 'account', label: 'Cuenta o tarjeta' },
-    { key: 'effect', label: 'Débito / crédito', essential: false },
-    { key: 'currency', label: 'Moneda / tasa', essential: false },
-    { key: 'financing', label: 'Cuotas / préstamo', essential: false },
-    { key: 'responsibility', label: 'Responsabilidad', essential: false },
-    { key: 'recurrence', label: 'Recurrencia', essential: false },
-  ];
+  readonly movementColumns = computed(() => [
+    { key: 'date', label: this.i18n.t('movements.column.date') },
+    { key: 'description', label: this.i18n.t('movements.column.description') },
+    { key: 'amount', label: this.i18n.t('movements.column.amount') },
+    { key: 'account', label: this.i18n.t('movements.column.account') },
+    { key: 'effect', label: this.i18n.t('movements.column.effect'), essential: false },
+    { key: 'currency', label: this.i18n.t('movements.column.currency'), essential: false },
+    { key: 'financing', label: this.i18n.t('movements.column.financing'), essential: false },
+    { key: 'responsibility', label: this.i18n.t('movements.column.responsibility'), essential: false },
+    { key: 'recurrence', label: this.i18n.t('movements.column.recurrence'), essential: false },
+  ]);
   readonly filteredMovementData = computed(() =>
     this.store.movements().filter((m) => {
       const account = this.store.account(m.accountId);
@@ -78,27 +80,40 @@ export class MovementsBookService {
       date: this.formatDate(m.date),
       description: m.description,
       account: this.store.account(m.accountId)?.name,
-      effect: m.status === 'pending' ? 'Pendiente' : m.amount < 0 ? 'Débito' : 'Crédito',
+      effect:
+        m.status === 'pending'
+          ? this.i18n.t('movements.column.effect.pending')
+          : m.amount < 0
+            ? this.i18n.t('movements.column.effect.debit')
+            : this.i18n.t('movements.column.effect.credit'),
       financing: m.installmentTotal
-        ? `Cuota ${m.installmentCurrent}/${m.installmentTotal}`
+        ? this.i18n.t('movements.column.financing.installment', {
+            current: m.installmentCurrent ?? 0,
+            total: m.installmentTotal,
+          })
         : m.loanRole === 'lent'
-          ? 'Préstamo otorgado'
+          ? this.i18n.t('movements.column.financing.loanGiven')
           : m.loanRole === 'borrowed'
-            ? 'Préstamo recibido'
+            ? this.i18n.t('movements.column.financing.loanReceived')
             : m.loanRole === 'repayment'
-              ? 'Pago de préstamo'
-              : 'Una cuota',
-      responsibility: m.person ? `Prestado · ${m.person}` : 'Propio',
+              ? this.i18n.t('movements.column.financing.loanRepayment')
+              : this.i18n.t('movements.column.financing.singleInstallment'),
+      responsibility: m.person
+        ? this.i18n.t('movements.column.responsibility.loaned', { person: m.person })
+        : this.i18n.t('movements.column.responsibility.own'),
       recurrence: m.recurring
         ? m.recurrence === 'weekly'
-          ? 'Semanal'
+          ? this.i18n.t('movements.column.recurrence.weekly')
           : m.recurrence === 'yearly'
-            ? 'Anual'
-            : 'Mensual'
-        : 'No recurrente',
+            ? this.i18n.t('movements.column.recurrence.yearly')
+            : this.i18n.t('movements.column.recurrence.monthly')
+        : this.i18n.t('movements.column.recurrence.none'),
       currency:
         m.originalCurrency === 'USD'
-          ? `USD ${m.originalAmount?.toLocaleString('en-US')} · TRM ${m.exchangeRate?.toLocaleString('es-CO')}`
+          ? this.i18n.t('movements.column.currency.usdRate', {
+              amount: m.originalAmount?.toLocaleString('en-US') ?? '',
+              rate: m.exchangeRate?.toLocaleString('es-CO') ?? '',
+            })
           : (this.store.account(m.accountId)?.currency ?? 'COP'),
       amount: this.store.money(m.amount),
       raw: m,
@@ -152,9 +167,9 @@ export class MovementsBookService {
     return {
       id: source.id,
       date: source.date,
-      description: source.description ?? 'Sin descripción',
+      description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
       accountId: source.links['account'] ?? source.links['card'] ?? '',
-      category: source.linkNames['category']?.name ?? 'Sin categoría',
+      category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
       kind: this.store.kindCatalog().family(source.kind, source.effect, source.flow),
       amount: parseMoney(source.amount.base) * signOf(source.flow, source.effect),
       status: 'confirmed',

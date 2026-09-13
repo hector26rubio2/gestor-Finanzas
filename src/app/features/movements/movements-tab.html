@@ -5,84 +5,84 @@
   aria-controls="panel-filtros"
   (click)="filtersOpen.update((open) => !open)"
 >
-  Filtros @if (activeFilterCount()) {
+  {{ i18n.t('movements.filters.toggle') }} @if (activeFilterCount()) {
   <i>{{ activeFilterCount() }}</i>
   }
 </button>
 <section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
   <label
-    >Buscar<input
+    >{{ i18n.t('movements.filters.search.label') }}<input
       #searchInput
-      aria-label="Buscar movimientos"
-      placeholder="Descripción, categoría o persona"
+      [attr.aria-label]="i18n.t('movements.filters.search.ariaLabel')"
+      [attr.placeholder]="i18n.t('movements.filters.search.placeholder')"
       [ngModel]="store.query()"
       (ngModelChange)="store.query.set($event); loadMovementPage(1)"
   /></label>
   <label
-    >Periodo<demo-select
+    >{{ i18n.t('movements.filters.period.label') }}<demo-select
       [ngModel]="store.period()"
       (ngModelChange)="store.period.set($event); loadMovementPage(1)"
-      [options]="periodOptions"
-      ariaLabel="Periodo"
+      [options]="periodOptions()"
+      [ariaLabel]="i18n.t('movements.filters.period.label')"
   /></label>
   <label
-    >Cuenta<demo-select
+    >{{ i18n.t('movements.filters.account.label') }}<demo-select
       [ngModel]="store.accountFilter()"
       [options]="movementAccountOptions()"
-      ariaLabel="Cuenta"
+      [ariaLabel]="i18n.t('movements.filters.account.label')"
       (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
   /></label>
   <label
-    >Tipo de cuenta<demo-select
+    >{{ i18n.t('movements.filters.accountType.label') }}<demo-select
       [ngModel]="book.movementAccountType()"
       (ngModelChange)="book.movementAccountType.set($event)"
-      [options]="book.accountTypeOptions"
-      ariaLabel="Tipo de cuenta"
+      [options]="book.accountTypeOptions()"
+      [ariaLabel]="i18n.t('movements.filters.accountType.label')"
   /></label>
   <label
-    >Categoría<demo-select
+    >{{ i18n.t('movements.filters.category.label') }}<demo-select
       [ngModel]="book.movementCategory()"
       (ngModelChange)="book.movementCategory.set($event)"
       [options]="movementCategoryOptions()"
-      ariaLabel="Categoría"
+      [ariaLabel]="i18n.t('movements.filters.category.label')"
   /></label>
   <label
-    >Operación<demo-select
+    >{{ i18n.t('movements.filters.operation.label') }}<demo-select
       [ngModel]="book.movementOperation()"
       (ngModelChange)="book.movementOperation.set($event)"
-      [options]="movementOperationOptions"
-      ariaLabel="Operación"
+      [options]="movementOperationOptions()"
+      [ariaLabel]="i18n.t('movements.filters.operation.label')"
   /></label>
   @if (hasActiveFilters()) {
-  <button type="button" class="quiet-reset" (click)="clearFilters()">Restablecer filtros</button>
+  <button type="button" class="quiet-reset" (click)="clearFilters()">{{ i18n.t('movements.filters.reset') }}</button>
   }
 </section>
 <section class="kpis mini">
   <demo-kpi
-    label="Ingresos filtrados"
+    [label]="i18n.t('movements.kpi.income.label')"
     icon="trendUp"
     tone="success"
     [value]="store.money(store.income())"
-    hint="Conjunto seleccionado"
+    [hint]="i18n.t('movements.kpi.selectionHint')"
   />
   <demo-kpi
-    label="Gastos filtrados"
+    [label]="i18n.t('movements.kpi.expense.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(store.expense())"
-    hint="Conjunto seleccionado"
+    [hint]="i18n.t('movements.kpi.selectionHint')"
   />
   <demo-kpi
-    label="Registros"
+    [label]="i18n.t('movements.kpi.records.label')"
     icon="movements"
     [value]="store.movements().length.toString()"
-    hint="Confirmados y pendientes"
+    [hint]="i18n.t('movements.kpi.records.hint')"
   />
 </section>
 <section class="table-zone">
   <demo-table
     urlKey="pagina"
-    [columns]="book.movementColumns"
+    [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
