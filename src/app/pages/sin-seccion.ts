@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink } from '@angular/router';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { DemoStore } from '../core/store';
+import { I18nService } from '../core/i18n';
 
 /**
  * Lo que se enseña cuando la sesión no tiene ninguna sección abierta.
@@ -21,6 +22,7 @@ import { DemoStore } from '../core/store';
   styleUrl: './sin-seccion.css',
 })
 export class SinSeccionComponent {
+  readonly i18n = inject(I18nService);
   private readonly arranque = inject(RemoteBootstrap);
   private readonly store = inject(DemoStore);
 

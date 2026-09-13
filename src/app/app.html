@@ -2,13 +2,13 @@
 <div class="cargando" role="status" aria-live="polite">
   <demo-icon name="dashboard" class="cargando-marca" />
   <b>Finanzas</b>
-  <p>Cargando tu informacion…</p>
+  <p>{{ i18n.t('shell.loading') }}</p>
   <span class="cargando-barra"><i></i></span>
 </div>
 } @else if (!store.user() || enLogin()) {
 <router-outlet />
 } @else {
-<a class="saltar-al-contenido" href="#contenido-principal">Saltar al contenido</a>
+<a class="saltar-al-contenido" href="#contenido-principal">{{ i18n.t('shell.skipToContent') }}</a>
 <div class="app" [class.collapsed]="collapsed()">
   <aside [class.mobile-open]="mobileOpen()">
     <div class="brand-row">
@@ -17,12 +17,12 @@
         class="brand-toggle"
         [attr.aria-expanded]="menuAbierto()"
         aria-controls="primary-navigation"
-        [attr.aria-label]="menuAbierto() ? 'Contraer menú' : 'Desplegar menú'"
+        [attr.aria-label]="menuAbierto() ? i18n.t('shell.collapseMenu') : i18n.t('shell.expandMenu')"
         (click)="alternarMenu()"
       >
         <demo-icon name="dashboard" class="brand-mark" />
       </button>
-      <a routerLink="/dashboard" class="brand aside-label" aria-label="Finanzas, ir al inicio"><b>Finanzas</b></a>
+      <a routerLink="/dashboard" class="brand aside-label" [attr.aria-label]="i18n.t('shell.goHome')"><b>Finanzas</b></a>
     </div>
     <div class="profile" [class.open]="profileOpen()">
       <button
@@ -56,9 +56,9 @@
       </div>
       }
     </div>
-    <nav id="primary-navigation" aria-label="Navegación principal">
+    <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
       @for (group of groups(); track group) {
-      <small class="aside-label">{{ group }}</small>
+      <small class="aside-label">{{ i18n.t('shell.group.' + group) }}</small>
       @for (item of items(group); track item.path) {
       <a
         [routerLink]="'/' + item.path"
@@ -76,7 +76,7 @@
     </nav>
   </aside>
   @if (mobileOpen()) {
-  <button class="scrim" aria-label="Cerrar menú" (click)="mobileOpen.set(false)"></button>
+  <button class="scrim" [attr.aria-label]="i18n.t('shell.closeMenu')" (click)="mobileOpen.set(false)"></button>
   }
   <section class="stage">
     <header class="topbar">
@@ -85,7 +85,7 @@
         type="button"
         [attr.aria-expanded]="menuAbierto()"
         aria-controls="primary-navigation"
-        [attr.aria-label]="menuAbierto() ? 'Cerrar menú' : 'Abrir menú'"
+        [attr.aria-label]="menuAbierto() ? i18n.t('shell.closeMenu') : i18n.t('shell.openMenu')"
         (click)="alternarMenu()"
       >
         <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
@@ -93,7 +93,7 @@
       <div class="top-actions">
         <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
           <demo-icon name="search" /></button
-        ><a routerLink="/notifications" class="bell" aria-label="Notificaciones"
+        ><a routerLink="/notifications" class="bell" [attr.aria-label]="i18n.t('nav.notifications')"
           ><demo-icon name="notifications" />
           @if (store.unread()) {
           <i>{{ store.unread() }}</i>
@@ -113,6 +113,6 @@
 <demo-movement-form />
 } @if (store.toast()) {
 <div class="toast" role="status">
-  {{ store.toast() }}<button aria-label="Cerrar aviso" (click)="store.toast.set('')">×</button>
+  {{ store.toast() }}<button [attr.aria-label]="i18n.t('shell.dismissToast')" (click)="store.toast.set('')">×</button>
 </div>
 } }

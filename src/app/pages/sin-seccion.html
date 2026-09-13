@@ -1,14 +1,11 @@
 <section class="sin-seccion" role="status">
   @if (haySesion()) {
-  <h1>Tu acceso no abre ninguna sección</h1>
-  <p>
-    La sesión se inició bien, pero ninguna de las pantallas está habilitada para ti: o no tienes su permiso, o la
-    funcionalidad está apagada en este espacio. Pídele a quien administra el espacio lo que necesites.
-  </p>
-  <button type="button" (click)="reintentar()">Volver a comprobar mi acceso</button>
+  <h1>{{ i18n.t('sinSeccion.withSession.title') }}</h1>
+  <p>{{ i18n.t('sinSeccion.withSession.detail') }}</p>
+  <button type="button" (click)="reintentar()">{{ i18n.t('sinSeccion.withSession.retry') }}</button>
   } @else {
-  <h1>Aquí no hay nada que ver sin haber entrado</h1>
-  <p>Esta pantalla explica por qué una sesión puede quedarse sin secciones. Para eso hace falta iniciar sesión.</p>
-  <a routerLink="/login">Ir a la pantalla de acceso</a>
+  <h1>{{ i18n.t('sinSeccion.noSession.title') }}</h1>
+  <p>{{ i18n.t('sinSeccion.noSession.detail') }}</p>
+  <a routerLink="/login">{{ i18n.t('sinSeccion.noSession.goToLogin') }}</a>
   }
 </section>

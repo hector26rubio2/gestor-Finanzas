@@ -14,54 +14,25 @@ import { OverlayComponent } from '../ui/ui';
 import { FinanceApiClient } from '../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { formatReturnRate } from '../core/money';
+import { I18nService } from '../core/i18n';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
  * dice nada que el titulo no diga ya, y es el adorno mas repetido de las interfaces
  * generadas. La estructura tiene que codificar informacion, no decorarla.
  */
-const labels: Record<string, { title: string; description: string }> = {
-  movements: {
-    title: 'Movimientos',
-    description: 'Todos los efectos económicos, en un único lugar.',
-  },
-  calendar: {
-    title: 'Calendario',
-    description: 'Consulta operaciones y compromisos sin deformar el calendario.',
-  },
-  accounts: {
-    title: 'Cuentas y tarjetas',
-    description: 'Explora cuentas, tarjetas y sus movimientos relacionados.',
-  },
-  people: {
-    title: 'Personas y deudas',
-    description: 'Lo que debes y lo que te deben, sin compensaciones engañosas.',
-  },
-  portfolio: {
-    title: 'Patrimonio e inversiones',
-    description: 'Activos, pasivos y posiciones vinculadas a movimientos.',
-  },
-  planning: {
-    title: 'Planificación',
-    description: 'Compara alternativas sin modificar movimientos reales.',
-  },
-  reports: {
-    title: 'Reportes',
-    description: 'Entiende qué ocurrió y abre los movimientos que explican cada cifra.',
-  },
-  notifications: {
-    title: 'Notificaciones',
-    description: 'Revisa propuestas antes de convertirlas en movimientos.',
-  },
-  admin: {
-    title: 'Administración',
-    description: 'Miembros, capacidades y trazabilidad de la organización.',
-  },
-  settings: {
-    title: 'Preferencias',
-    description: 'Temas, tipografía, idioma y preferencias personales.',
-  },
-};
+const paginasConMeta = [
+  'movements',
+  'calendar',
+  'accounts',
+  'people',
+  'portfolio',
+  'planning',
+  'reports',
+  'notifications',
+  'admin',
+  'settings',
+] as const;
 
 /** Marca de dato ausente. Un campo que la API no publica se comunica, no se rellena. */
 const SIN_DATO = '—';
@@ -84,6 +55,7 @@ const SIN_DATO = '—';
 })
 export class WorkspaceComponent {
   readonly Math = Math;
+  readonly i18n = inject(I18nService);
   readonly store = inject(DemoStore);
   readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
@@ -130,7 +102,13 @@ export class WorkspaceComponent {
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   readonly page = computed(() => this.route.snapshot.url[0]?.path ?? 'movements');
-  readonly meta = computed(() => labels[this.page()] ?? labels['movements']);
+  readonly meta = computed(() => {
+    const page = (paginasConMeta as readonly string[]).includes(this.page()) ? this.page() : 'movements';
+    return {
+      title: this.i18n.t(`workspace.labels.${page}.title`),
+      description: this.i18n.t(`workspace.labels.${page}.description`),
+    };
+  });
   readonly cardPaymentAmount = signal(500000);
   readonly cardPurchases = computed(() => {
     const id = this.selectedAccount()?.id;
@@ -237,18 +215,18 @@ export class WorkspaceComponent {
   );
   readonly inspectorTitle = computed(() => {
     const s = this.store.inspector();
-    if (s?.type === 'movement') return 'Detalle del movimiento';
-    if (s?.type === 'card') return this.selectedAccount()?.name ?? 'Detalle de tarjeta';
+    if (s?.type === 'movement') return this.i18n.t('workspace.inspector.title.movement');
+    if (s?.type === 'card') return this.selectedAccount()?.name ?? this.i18n.t('workspace.inspector.title.card');
     if (s?.type === 'day')
-      return (
-        'Agenda del ' +
-        new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
+      return this.i18n.t('workspace.inspector.title.day', {
+        date: new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
           new Date(`${s.id}T00:00:00Z`),
-        )
-      );
-    if (s?.type === 'person') return this.selectedPerson()?.name ?? 'Persona';
-    if (s?.type === 'investment') return this.selectedInvestment()?.name ?? 'Inversión';
-    return 'Detalle de cuenta';
+        ),
+      });
+    if (s?.type === 'person') return this.selectedPerson()?.name ?? this.i18n.t('workspace.inspector.title.person');
+    if (s?.type === 'investment')
+      return this.selectedInvestment()?.name ?? this.i18n.t('workspace.inspector.title.investment');
+    return this.i18n.t('workspace.inspector.title.account');
   });
   readonly inspectorAmount = computed(() => {
     const m = this.selectedMovement(),
@@ -263,8 +241,9 @@ export class WorkspaceComponent {
           ? this.store.money(p.owed - p.owing)
           : i
             ? this.store.money(i.value)
-            : this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length +
-              ' operaciones';
+            : this.i18n.t('workspace.inspector.operationsCount', {
+              count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
+            });
   });
   readonly inspectorSubtitle = computed(
     () =>
@@ -272,64 +251,83 @@ export class WorkspaceComponent {
       this.selectedAccount()?.name ??
       this.selectedPerson()?.name ??
       this.selectedInvestment()?.type ??
-      'Información relacionada',
+      this.i18n.t('workspace.inspector.defaultSubtitle'),
   );
   readonly inspectorFacts = computed(() => {
     const m = this.selectedMovement(),
       a = this.selectedAccount(),
       p = this.selectedPerson(),
       i = this.selectedInvestment();
+    const t = (key: string, params?: Record<string, string | number>) => this.i18n.t(key, params);
     if (m)
       return [
-        ['Fecha', m.date],
-        ['Cuenta', this.store.account(m.accountId)?.name ?? '—'],
-        ['Categoría', m.category],
-        ['Naturaleza', m.amount < 0 ? 'Débito' : 'Crédito'],
-        ['Estado', m.status],
-        ['Responsabilidad', m.person ? `Prestado a/de ${m.person}` : 'Propia'],
-        ['Cuotas', m.installmentTotal ? `${m.installmentCurrent} de ${m.installmentTotal}` : 'Una cuota'],
-        ['Recurrencia', m.recurring ? (m.recurrence ?? 'Sí') : 'No recurrente'],
+        [t('workspace.inspector.facts.date'), m.date],
+        [t('workspace.inspector.facts.account'), this.store.account(m.accountId)?.name ?? SIN_DATO],
+        [t('workspace.inspector.facts.category'), m.category],
+        [t('workspace.inspector.facts.nature'), m.amount < 0 ? t('workspace.inspector.facts.debit') : t('workspace.inspector.facts.credit')],
+        [t('workspace.inspector.facts.status'), m.status],
         [
-          'Préstamo',
-          m.loanRole === 'lent'
-            ? 'Otorgado'
-            : m.loanRole === 'borrowed'
-              ? 'Recibido'
-              : m.loanRole === 'repayment'
-                ? 'Pago o devolución'
-                : 'No aplica',
+          t('workspace.inspector.facts.responsibility'),
+          m.person ? t('workspace.inspector.facts.loanedTo', { person: m.person }) : t('workspace.inspector.facts.own'),
         ],
-        ['Moneda original', m.originalCurrency === 'USD' ? `USD ${m.originalAmount} · TRM ${m.exchangeRate}` : 'COP'],
+        [
+          t('workspace.inspector.facts.installments'),
+          m.installmentTotal
+            ? t('workspace.inspector.facts.installmentsOf', { current: m.installmentCurrent ?? 1, total: m.installmentTotal })
+            : t('workspace.inspector.facts.oneInstallment'),
+        ],
+        [
+          t('workspace.inspector.facts.recurrence'),
+          m.recurring ? (m.recurrence ?? t('workspace.inspector.facts.yes')) : t('workspace.inspector.facts.notRecurring'),
+        ],
+        [
+          t('workspace.inspector.facts.loan'),
+          m.loanRole === 'lent'
+            ? t('workspace.inspector.facts.loanGiven')
+            : m.loanRole === 'borrowed'
+              ? t('workspace.inspector.facts.loanReceived')
+              : m.loanRole === 'repayment'
+                ? t('workspace.inspector.facts.loanRepayment')
+                : t('workspace.inspector.facts.notApplicable'),
+        ],
+        [
+          t('workspace.inspector.facts.originalCurrency'),
+          m.originalCurrency === 'USD'
+            ? t('workspace.inspector.facts.originalCurrencyValue', { amount: m.originalAmount ?? 0, rate: m.exchangeRate ?? 0 })
+            : 'COP',
+        ],
       ];
     if (a)
       return [
-        ['Terminación', a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
-        ['Moneda', a.currency],
+        [t('workspace.inspector.facts.lastFour'), a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
+        [t('workspace.inspector.facts.currency'), a.currency],
         [
-          'TRM de referencia',
-          a.currency === 'USD' ? (a.exchangeRate?.toLocaleString('es-CO') ?? 'Sin definir') : 'No aplica',
+          t('workspace.inspector.facts.referenceRate'),
+          a.currency === 'USD'
+            ? (a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'))
+            : t('workspace.inspector.facts.notApplicable'),
         ],
-        ['Corte', a.cutDay ? String(a.cutDay) : 'No aplica'],
-        ['Pago', a.dueDay ? String(a.dueDay) : 'No aplica'],
-        ['Límite', a.limit ? this.store.money(a.limit) : 'No aplica'],
+        [t('workspace.inspector.facts.cutoff'), a.cutDay ? String(a.cutDay) : t('workspace.inspector.facts.notApplicable')],
+        [t('workspace.inspector.facts.dueDate'), a.dueDay ? String(a.dueDay) : t('workspace.inspector.facts.notApplicable')],
+        [t('workspace.inspector.facts.limit'), a.limit ? this.store.money(a.limit) : t('workspace.inspector.facts.notApplicable')],
       ];
     if (p)
       return [
-        ['Me debe', this.store.money(p.owed)],
-        ['Le debo', this.store.money(p.owing)],
-        ['Saldo', this.store.money(p.owed - p.owing)],
+        [t('workspace.inspector.facts.owed'), this.store.money(p.owed)],
+        [t('workspace.inspector.facts.owing'), this.store.money(p.owing)],
+        [t('workspace.inspector.facts.balance'), this.store.money(p.owed - p.owing)],
       ];
     if (i)
       return [
-        ['Tipo', i.type],
-        ['Costo', this.store.money(i.cost)],
-        ['Valor', this.store.money(i.value)],
-        ['Variación', formatReturnRate(i.value, i.cost)],
+        [t('workspace.inspector.facts.type'), i.type],
+        [t('workspace.inspector.facts.cost'), this.store.money(i.cost)],
+        [t('workspace.inspector.facts.value'), this.store.money(i.value)],
+        [t('workspace.inspector.facts.variation'), formatReturnRate(i.value, i.cost)],
       ];
     return [
-      ['Fecha', this.store.inspector()?.id ?? this.store.selectedCalendarDate()],
+      [t('workspace.inspector.facts.date'), this.store.inspector()?.id ?? this.store.selectedCalendarDate()],
       [
-        'Operaciones',
+        t('workspace.inspector.facts.operations'),
         String(this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length),
       ],
     ];
@@ -347,7 +345,7 @@ export class WorkspaceComponent {
         movements: data.movements.filter((item) => item.id !== movement.id),
       }));
       this.store.inspector.set(null);
-      this.store.log('Movimiento reversado con trazabilidad');
+      this.store.log(this.i18n.t('workspace.messages.movementReversedLocal'));
       return;
     }
     try {
@@ -358,17 +356,17 @@ export class WorkspaceComponent {
         }),
       );
       this.store.inspector.set(null);
-      this.store.toast.set('Movimiento reversado; el original permanece en el historial.');
+      this.store.toast.set(this.i18n.t('workspace.messages.movementReversed'));
       await this.movementsBook.loadMovementPage(this.store.remoteMovementPage());
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo reversar el movimiento.');
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.movementReverseFailed'));
     }
   }
   async shareSelected() {
     const movement = this.selectedMovement();
     const person = this.store.data().people.find((item) => item.name === movement?.person);
     if (!movement || !person) return;
-    if (this.store.runtime.mode === 'demo') return this.store.log('Compra compartida registrada');
+    if (this.store.runtime.mode === 'demo') return this.store.log(this.i18n.t('workspace.messages.sharedPurchaseLocal'));
     try {
       await firstValueFrom(
         this.api.createSharedPurchase({
@@ -377,15 +375,15 @@ export class WorkspaceComponent {
           description: movement.description,
         }),
       );
-      this.store.toast.set('Compra compartida registrada con trazabilidad.');
+      this.store.toast.set(this.i18n.t('workspace.messages.sharedPurchase'));
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo registrar el reparto.');
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.sharedPurchaseFailed'));
     }
   }
   async issueSelectedSettlement() {
     const person = this.selectedPerson();
     if (!person) return;
-    if (this.store.runtime.mode === 'demo') return this.store.log('Liquidación generada');
+    if (this.store.runtime.mode === 'demo') return this.store.log(this.i18n.t('workspace.messages.settlementLocal'));
     const today = new Date().toISOString().slice(0, 10);
     const start = `${today.slice(0, 7)}-01`;
     try {
@@ -397,9 +395,9 @@ export class WorkspaceComponent {
           currency: 'COP',
         }),
       );
-      this.store.toast.set(`Liquidación generada para ${person.name}.`);
+      this.store.toast.set(this.i18n.t('workspace.messages.settlementIssued', { name: person.name }));
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo generar la liquidación.');
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.settlementFailed'));
     }
   }
   async deactivateSelectedAccount() {
@@ -408,7 +406,7 @@ export class WorkspaceComponent {
     if (this.store.runtime.mode === 'demo') {
       this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
       this.store.inspector.set(null);
-      this.store.log('Cuenta desactivada; el histórico se conserva');
+      this.store.log(this.i18n.t('workspace.messages.accountDeactivatedLocal'));
       return;
     }
     try {
@@ -422,9 +420,9 @@ export class WorkspaceComponent {
       );
       this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
       this.store.inspector.set(null);
-      this.store.toast.set('Cuenta desactivada. Sus movimientos permanecen en el historial.');
+      this.store.toast.set(this.i18n.t('workspace.messages.accountDeactivated'));
     } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo desactivar la cuenta.');
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.accountDeactivateFailed'));
     }
   }
   /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
