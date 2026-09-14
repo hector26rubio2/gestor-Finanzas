@@ -40,6 +40,7 @@ export default {
   'login.enterAsReviewer': 'Enter as reviewer',
   'login.connecting': 'Connecting to the API…',
   'login.signInToContinue': 'Sign in with Google to continue.',
+  'login.authError': 'We could not complete Google sign-in. Please try again.',
   'login.localAccessNote': 'Local access · Information protected on this device',
 
   // ui: shared components (kpi, table, overlay, select, no-access, skeleton, chart)
