@@ -1,0 +1,72 @@
+@if (canReorder()) {
+<button
+  class="quiet"
+  type="button"
+  [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')"
+  (click)="moveUp.emit()"
+>
+  <demo-icon name="chevronUp" />
+</button>
+<button
+  class="quiet"
+  type="button"
+  [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')"
+  (click)="moveDown.emit()"
+>
+  <demo-icon name="chevronDown" />
+</button>
+} @if (canChangeType()) {
+<demo-select
+  [ariaLabel]="i18n.t('dashboard.widgetActions.type.ariaLabel')"
+  [ngModel]="type()"
+  [options]="typeOptions()"
+  (ngModelChange)="typeChange.emit($event)"
+/>
+@if (showDimensionMeasure()) {
+<demo-select
+  [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
+  [ngModel]="dimension()"
+  [options]="dimensionOptions()"
+  (ngModelChange)="dimensionChange.emit($event)"
+/>
+<demo-select
+  [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
+  [ngModel]="measure()"
+  [options]="measureOptions()"
+  (ngModelChange)="measureChange.emit($event)"
+/>
+} @if (showSeries()) {
+<demo-select
+  [ariaLabel]="i18n.t('dashboard.widgetActions.series.ariaLabel')"
+  [ngModel]="dimension2()"
+  [options]="dimensionOptions()"
+  (ngModelChange)="dimension2Change.emit($event)"
+/>
+} @if (showGoal()) {
+<input
+  class="goal-input"
+  type="number"
+  [attr.aria-label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')"
+  [attr.placeholder]="i18n.t('dashboard.widgetActions.goalMin.placeholder')"
+  [ngModel]="goalMin()"
+  (ngModelChange)="goalChange.emit({ key: 'goalMin', value: $event })"
+/>
+<input
+  class="goal-input"
+  type="number"
+  [attr.aria-label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')"
+  [attr.placeholder]="i18n.t('dashboard.widgetActions.goalTarget.placeholder')"
+  [ngModel]="goalTarget()"
+  (ngModelChange)="goalChange.emit({ key: 'goalTarget', value: $event })"
+/>
+<input
+  class="goal-input"
+  type="number"
+  [attr.aria-label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')"
+  [attr.placeholder]="i18n.t('dashboard.widgetActions.goalMax.placeholder')"
+  [ngModel]="goalMax()"
+  (ngModelChange)="goalChange.emit({ key: 'goalMax', value: $event })"
+/>
+} } @if (canHide()) {
+<button class="quiet" type="button" (click)="hide.emit()">{{ i18n.t('dashboard.widgetActions.hide') }}</button>
+}

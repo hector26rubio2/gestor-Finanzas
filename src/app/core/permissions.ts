@@ -56,6 +56,7 @@ export const P = {
     transferencias: { crear: 'movimientos.transferencias.crear' },
     prestamos: { crear: 'movimientos.prestamos.crear' },
     creditos: { crear: 'movimientos.creditos.crear' },
+    avances: { crear: 'movimientos.avances.crear' },
     pagos: { crear: 'movimientos.pagos.crear' },
   },
   cuentas: {

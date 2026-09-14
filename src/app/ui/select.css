@@ -52,6 +52,10 @@
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
+:host(.open-up) .menu {
+  top: auto;
+  bottom: calc(100% + 6px);
+}
 .menu button {
   width: 100%;
   border: 0;

@@ -1,20 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { MovementsBookService } from '../shared/movements/movements-book.service';
-import { HeaderActionsService } from '../shared/header-actions.service';
+import { MovementsBookService } from '../../shared/movements/movements-book.service';
+import { HeaderActionsService } from '../../shared/header-actions.service';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { AccountFormComponent, ManagementFormComponent } from '../forms';
-import { IconComponent } from '../ui/icon';
-import { SinAccesoComponent } from '../ui/sin-acceso';
-import { P } from '../core/permissions';
-import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../core/store';
-import { OverlayComponent } from '../ui/ui';
-import { FinanceApiClient } from '../core/api-client';
+import { AccountFormComponent } from '../../features/account-form/account-form';
+import { ManagementFormComponent } from '../../features/management-form/management-form';
+import { IconComponent } from '../../ui/icon';
+import { SinAccesoComponent } from '../../ui/sin-acceso';
+import { P } from '../../core/permissions';
+import { RemoteBootstrap } from '../../core/remote-bootstrap';
+import { CAPABILITIES, DemoStore } from '../../core/store';
+import { DataTableComponent, OverlayComponent } from '../../ui/ui';
+import { FinanceApiClient } from '../../core/api-client';
 import { firstValueFrom } from 'rxjs';
-import { formatReturnRate } from '../core/money';
-import { I18nService } from '../core/i18n';
+import { formatReturnRate } from '../../core/money';
+import { I18nService } from '../../core/i18n';
+import { NumericInputDirective } from '../../ui/numeric-input.directive';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
@@ -48,6 +50,8 @@ const SIN_DATO = '—';
     ManagementFormComponent,
     SinAccesoComponent,
     IconComponent,
+    NumericInputDirective,
+    DataTableComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -141,6 +145,22 @@ export class WorkspaceComponent {
     });
   });
   readonly appliedPayment = computed(() => this.paymentAllocation().reduce((sum, row) => sum + row.applied, 0));
+  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `demo-table`. */
+  readonly paymentAllocationRows = computed(() =>
+    this.paymentAllocation().map((row) => ({
+      ...row,
+      before: this.store.money(row.before),
+      applied: this.store.money(row.applied),
+      after: this.store.money(row.after),
+    })),
+  );
+  readonly paymentAllocationColumns = computed(() => [
+    { key: 'description', label: this.i18n.t('workspace.cardPayment.table.purchase') },
+    { key: 'installment', label: this.i18n.t('workspace.cardPayment.table.installment') },
+    { key: 'before', label: this.i18n.t('workspace.cardPayment.table.balanceBefore') },
+    { key: 'applied', label: this.i18n.t('workspace.cardPayment.table.applied') },
+    { key: 'after', label: this.i18n.t('workspace.cardPayment.table.balanceAfter') },
+  ]);
   readonly cardStatementPurchases = computed(() =>
     this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount), 0),
   );

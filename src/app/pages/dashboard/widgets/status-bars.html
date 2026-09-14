@@ -1,0 +1,12 @@
+<div class="status-bars">
+  @for (fila of rows(); track fila.label) {
+  <div class="status-bar-row">
+    <div class="status-bar-head"><span>{{ fila.label }}</span><b>{{ fila.valueLabel }}</b></div>
+    <div class="status-bar-track">
+      <i [class]="'status-bar-fill ' + fila.tone" [style.width.%]="fila.percent"></i>
+    </div>
+  </div>
+  } @empty {
+  <p class="empty">{{ emptyText() }}</p>
+  }
+</div>

@@ -1,16 +1,8 @@
-<label class="field"
-  >{{ i18n.t('form.movement.field.installmentTotal') }}<input
-    type="number"
-    name="installmentTotal"
-    min="1"
-    [(ngModel)]="model['installmentTotal']"
-/></label>
+<demo-field [label]="i18n.t('form.movement.field.installmentTotal')">
+  <input type="number" name="installmentTotal" min="1" [(ngModel)]="model['installmentTotal']" />
+</demo-field>
 @if (currentEditable) {
-<label class="field"
-  >{{ i18n.t('form.movement.field.installmentCurrent') }}<input
-    type="number"
-    name="installmentCurrent"
-    min="1"
-    [(ngModel)]="model['installmentCurrent']"
-/></label>
+<demo-field [label]="i18n.t('form.movement.field.installmentCurrent')">
+  <input type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
+</demo-field>
 }

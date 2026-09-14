@@ -1,0 +1,9 @@
+<header>
+  <div>
+    <span>{{ kicker() }}</span>
+    <h2>{{ title() }}</h2>
+  </div>
+  <ng-content select="[headerExtra]" />
+  <ng-content select="[actions]" />
+</header>
+<ng-content />

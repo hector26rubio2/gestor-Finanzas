@@ -5,7 +5,7 @@ import { UiOption } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { parseMoney } from '../../core/money';
-import { signOf } from '../../core/movement-kinds';
+import { classifyFamily, signOf } from '../../core/movement-kinds';
 import { I18nService } from '../../core/i18n';
 
 /**
@@ -66,7 +66,9 @@ export class MovementsBookService {
         (accountType === 'all' || account?.type === accountType) &&
         (category === 'all' || m.category === category) &&
         (operation === 'all' ||
-          operation === m.kind ||
+          (operation === 'transfer' && m.movementSubtype === 'transfer') ||
+          (operation === 'advance' && m.movementSubtype === 'advance') ||
+          (operation === m.kind && !m.movementSubtype) ||
           (operation === 'loan' && !!m.loanRole) ||
           (operation === 'recurring' && !!m.recurring))
       );
@@ -162,14 +164,16 @@ export class MovementsBookService {
   private toRemoteMovement(source: ApiMovement): import('../../core/demo-data').Movement {
     // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
     // duplicada la expresión de signo y la lista de clases escrita a mano.
+    const amount = parseMoney(source.amount.base) * signOf(source.flow, source.effect);
+    const family = this.store.kindCatalog().family(source.kind, source.effect, source.flow);
     return {
       id: source.id,
       date: source.date,
       description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
       accountId: source.links['account'] ?? source.links['card'] ?? '',
       category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
-      kind: this.store.kindCatalog().family(source.kind, source.effect, source.flow),
-      amount: parseMoney(source.amount.base) * signOf(source.flow, source.effect),
+      ...classifyFamily(family, amount),
+      amount,
       status: 'confirmed',
       person: source.linkNames['counterparty']?.name,
       ownership: source.links['counterparty'] ? 'loaned' : 'own',

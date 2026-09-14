@@ -33,7 +33,6 @@
 }
 .hero,
 .filter-panel > header,
-.widget > header,
 .recent > header {
   display: flex;
   flex-wrap: wrap;
@@ -41,22 +40,11 @@
   align-items: end;
   gap: 20px;
 }
-/*
- * Al personalizar, la fila de tipo/dimension/metrica/meta se envuelve en dos o tres
- * lineas y quedaba pegada a la grafica o la lista de justo debajo -se leian como una sola
- * cosa revuelta en vez de encabezado y contenido. Un margen fijo los separa siempre,
- * envuelva o no.
- */
-.widget > header {
-  margin-bottom: 16px;
-  row-gap: 10px;
-}
 .recent > header {
   margin-bottom: 14px;
 }
 .hero span,
 .filter-panel header span,
-.widget header span,
 .recent header span {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -85,130 +73,14 @@ select {
   border-radius: 10px;
   padding: 9px 12px;
 }
-.filter-panel,
-.widget,
 .recent {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px 24px;
 }
-.filter-panel {
-  box-shadow: var(--shadow);
-}
-.filters {
-  display: grid;
-  grid-template-columns: 1.2fr repeat(4, minmax(130px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-  align-items: end;
-}
-.filters > *,
-.filters label,
-.filters fieldset {
-  min-width: 0;
-}
-.filters label,
-.period-nav {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-}
-.period-nav > div {
-  position: relative;
-  display: grid;
-  grid-template-columns: 34px minmax(130px, 1fr) 34px;
-  align-items: center;
-  margin-top: 6px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  background: var(--panel);
-}
-.period-nav > div button {
-  border: 0;
-  padding: 8px;
-  background: transparent;
-}
-.period-nav > div button:first-of-type {
-  border-radius: 10px 0 0 10px;
-}
-.period-nav > div button:last-of-type {
-  border-radius: 0 10px 10px 0;
-}
-.period-label {
-  text-align: center;
-  font-size: 0.76rem;
-  font-weight: 650;
-  color: var(--text);
-  cursor: pointer;
-}
-.period-label:hover {
-  background: var(--accent-soft) !important;
-}
-.period-picker.open .period-label {
-  color: var(--accent);
-}
-/*
- * `overflow: hidden` en `.period-nav > div` recorta el menú si vive dentro; se abre como
- * hermano flotante, anclado al mismo contenedor con `position: relative`.
- */
-.period-picker-menu {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-.period-picker-menu label {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-}
-.filters select,
-.filters input,
 .local select {
   width: 100%;
-}
-.filters fieldset {
-  border: 0;
-  padding: 4px;
-  margin: 6px 0 0;
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  background: var(--panel);
-  border-radius: 10px;
-}
-.filters legend {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 650;
-}
-.filters fieldset button {
-  padding-inline: 5px;
-  border: 0;
-  background: transparent;
-  border-radius: 7px;
-}
-.filters fieldset button:hover {
-  background: var(--accent-soft);
-}
-.filters fieldset button.active,
-.filters fieldset button.active:hover {
-  background: var(--accent);
-  color: var(--accent-contrast);
-  border-color: var(--accent);
 }
 .quiet {
   background: transparent;
@@ -216,45 +88,6 @@ select {
 button:disabled {
   opacity: 0.45;
   cursor: not-allowed;
-}
-.summary {
-  font-size: 0.72rem;
-  margin-top: 12px;
-}
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-}
-.custom-kpi {
-  position: relative;
-  min-width: 0;
-}
-.custom-kpi-remove {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  padding: 4px;
-  border-radius: 8px;
-}
-.add-kpi {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  min-height: 108px;
-  border: 1px dashed var(--control-line);
-  border-radius: var(--radius);
-  background: transparent;
-  color: var(--muted);
-}
-.add-kpi:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-  background: var(--accent-soft);
-}
-.kpis demo-kpi {
-  min-width: 0;
 }
 .widget-actions {
   display: flex;
@@ -309,106 +142,6 @@ button:disabled {
   font-size: 0.95rem;
   white-space: nowrap;
 }
-/*
- * Escala de colores: una barra plana en vez del medidor circular -misma idea de fondo
- * (rango + meta + zona de color) en el formato horizontal de la referencia, para quien
- * prefiera ese estilo al del medidor.
- */
-.color-scale {
-  display: grid;
-  align-content: center;
-  gap: 14px;
-  padding: 6px 4px;
-  justify-items: center;
-  flex: 1;
-}
-.color-scale-value {
-  text-align: center;
-}
-.color-scale-value strong {
-  font-family: var(--display);
-  font-size: 1.9rem;
-  color: var(--text);
-}
-.color-scale-value small {
-  display: block;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
-.color-scale-track {
-  position: relative;
-  width: 100%;
-  height: 14px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--danger), var(--warning) 50%, var(--success) 100%);
-}
-.color-scale-pointer {
-  position: absolute;
-  top: -8px;
-  left: 0;
-  width: 0;
-  height: 0;
-  border-left: 7px solid transparent;
-  border-right: 7px solid transparent;
-  border-top: 11px solid var(--text);
-  transform: translateX(-50%);
-}
-.color-scale-meta {
-  position: absolute;
-  top: -3px;
-  left: 0;
-  width: 2px;
-  height: 20px;
-  background: var(--surface);
-  opacity: 0.8;
-  transform: translateX(-50%);
-}
-.color-scale-ends {
-  display: flex;
-  justify-content: space-between;
-  width: 100%;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-/* Barras de estado: varias medidas del mismo widget, cada una con su propia barra de progreso. */
-.status-bars {
-  display: grid;
-  align-content: center;
-  gap: 16px;
-  padding: 4px;
-  flex: 1;
-}
-.status-bar-head {
-  display: flex;
-  justify-content: space-between;
-  gap: 10px;
-  font-size: 0.82rem;
-  margin-bottom: 6px;
-  color: var(--muted);
-}
-.status-bar-head b {
-  color: var(--text);
-}
-.status-bar-track {
-  height: 10px;
-  border-radius: 999px;
-  background: var(--panel);
-  overflow: hidden;
-}
-.status-bar-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-}
-.status-bar-fill.success {
-  background: var(--success);
-}
-.status-bar-fill.warn {
-  background: var(--warning);
-}
-.status-bar-fill.danger {
-  background: var(--danger);
-}
 .status-pill {
   display: inline-block;
   padding: 4px 12px;
@@ -416,22 +149,6 @@ button:disabled {
   border-radius: 999px;
   font-size: 0.76rem;
   font-weight: 700;
-}
-.widget-actions button {
-  padding: 6px 8px;
-}
-.widget-actions select {
-  padding: 6px;
-  max-width: 132px;
-}
-/*
- * `!important` a proposito: el input global de styles.css (`input:not([type=...]) x4`)
- * pesa (0,4,1) en especificidad -mas que cualquier combinacion razonable de clases
- * locales- y su `width: 100%` es justo lo que aqui no se quiere en un campo de tres letras.
- */
-.goal-input {
-  width: 64px !important;
-  padding: 6px;
 }
 /*
  * `stretch` (el valor por defecto, escrito aqui para que quede explicito): dos widgets
@@ -448,13 +165,6 @@ button:disabled {
   gap: 18px;
   min-width: 0;
 }
-.widget {
-  display: flex;
-  flex-direction: column;
-  min-height: 360px;
-  min-width: 0;
-  overflow: hidden;
-}
 /*
  * La tarjeta se estira a la altura de su hermana (`.grid` en `stretch`), pero la grafica
  * mantiene su alto fijo -320px, dictado por lo que ese tipo necesita para verse bien, no
@@ -467,35 +177,6 @@ button:disabled {
   justify-content: center;
   flex: 1;
   min-height: 0;
-}
-.widget-card {
-  display: grid;
-  place-items: center;
-  gap: 8px;
-  min-height: 200px;
-  text-align: center;
-  flex: 1;
-}
-.widget-card strong {
-  font-family: var(--display);
-  font-size: clamp(2rem, 4vw, 3rem);
-  color: var(--text);
-}
-.widget-card small {
-  color: var(--muted);
-  font-size: 0.8rem;
-}
-.card-trend {
-  font-weight: 650;
-}
-.card-trend.up {
-  color: var(--success, var(--accent));
-}
-.card-trend.down {
-  color: var(--danger);
-}
-.widget.wide {
-  grid-column: 1/-1;
 }
 .see-all {
   display: inline-flex;
@@ -526,8 +207,7 @@ button:disabled {
   align-items: center;
   gap: 5px;
 }
-.legend i,
-.category-list span > i {
+.legend i {
   width: 9px;
   height: 9px;
   border-radius: 3px;
@@ -760,79 +440,6 @@ button:disabled {
 .local button {
   white-space: nowrap;
 }
-/*
- * `flex: 1` en vez de un alto fijo: la tarjeta ya se estira a la altura de su hermana con
- * mas datos (`.grid` en `stretch`), asi que la lista solo necesita llenar lo que le toque
- * -ocho categorias o cinco cuentas- y quedar igual de alta que la de al lado. El scroll
- * propio sigue ahi por si la lista, aun estirada, no alcanza a mostrarse entera.
- */
-.category-list,
-.account-list {
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding-right: 2px;
-  scrollbar-width: thin;
-  scrollbar-color: var(--line) transparent;
-}
-.category-list button {
-  display: grid;
-  grid-template-columns: 1fr auto 42px;
-  gap: 8px;
-  text-align: left;
-}
-.category-list button > span {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-}
-.category-list small {
-  text-align: right;
-}
-/*
- * La barra pertenece a la fila de encima, no a la de abajo: con el mismo espaciado en
- * ambos lados no se distinguia de cual categoria era. El margen inferior separa un grupo
- * del siguiente sin tocar el espaciado corto hacia su propia fila.
- */
-.category-list em {
-  grid-column: 1/-1;
-  background: var(--line);
-  height: 5px;
-  border-radius: 8px;
-  overflow: hidden;
-  margin-bottom: 10px;
-}
-.category-list em:last-child {
-  margin-bottom: 0;
-}
-.category-list em i {
-  display: block;
-  height: 100%;
-}
-.selected {
-  border-color: var(--accent) !important;
-  background: var(--accent-soft) !important;
-}
-.account-list button {
-  display: grid;
-  grid-template-columns: 10px 1fr auto;
-  align-items: center;
-  gap: 10px;
-  text-align: left;
-}
-.account-list button > i {
-  height: 34px;
-  border-radius: 8px;
-}
-.account-list span {
-  display: grid;
-}
-.account-list small {
-  color: var(--muted);
-}
 .trend {
   height: 230px;
   display: flex;
@@ -888,12 +495,6 @@ button:disabled {
   display: grid;
   gap: 14px;
 }
-.widget-builder label {
-  display: grid;
-  gap: 6px;
-  color: var(--muted);
-  font-size: 0.78rem;
-}
 .widget-builder input,
 .widget-builder select {
   width: 100%;
@@ -944,35 +545,13 @@ button:disabled {
   color: var(--accent-contrast);
   text-decoration: none;
 }
-@media (max-width: 1200px) {
-  .filters {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-  .filters fieldset {
-    grid-column: 1/-1;
-  }
-}
-@media (max-width: 820px) {
-  .kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 @media (max-width: 700px) {
   .hero {
     align-items: start;
     flex-direction: column;
   }
-  .filters {
-    grid-template-columns: 1fr 1fr;
-  }
-  .filters fieldset {
-    grid-column: 1/-1;
-  }
   .grid {
     grid-template-columns: 1fr;
-  }
-  .widget.wide {
-    grid-column: auto;
   }
   .bars {
     overflow-x: auto;
@@ -987,13 +566,6 @@ button:disabled {
   }
 }
 @media (max-width: 470px) {
-  .filters,
-  .kpis {
-    grid-template-columns: 1fr;
-  }
-  .filters fieldset {
-    grid-column: auto;
-  }
   .local {
     flex-direction: column;
     align-items: stretch;

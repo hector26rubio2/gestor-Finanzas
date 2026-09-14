@@ -113,23 +113,26 @@ export class ChartComponent implements OnDestroy {
       // ahi, que es lo unico que una prueba de plantilla necesita comprobar.
       if (!this.hayLienzo2d()) return;
       if (!this.grafica) {
-        // En pruebas el documento no tiene diseño: sin ancho medible ECharts avisa y no
-        // pinta, asi que se le da uno de partida y el observador lo corrige al montarse.
-        this.grafica = echarts.init(lienzo, undefined, {
-          renderer: 'canvas',
-          width: lienzo.clientWidth || 640,
-          height: lienzo.clientHeight || alto,
-        });
+        // `width`/`height` en `'auto'`, nunca un numero: ECharts guarda lo que sea que se
+        // le pase aqui y un `resize()` posterior sin argumentos reusa ese valor guardado en
+        // vez de volver a medir el contenedor -pasar un numero de partida deja la grafica
+        // clavada a ese ancho para siempre, aunque la tarjeta cambie de tamaño despues (el
+        // caso real: una tarjeta "wide" que todavia no ocupaba las dos columnas del grid
+        // cuando ECharts midio por primera vez). Con `'auto'`, cada `resize()` -el
+        // del observador de aqui abajo y el de cada refresco de opcion- vuelve a leer el
+        // ancho/alto reales del contenedor.
+        this.grafica = echarts.init(lienzo, undefined, { renderer: 'canvas', width: 'auto', height: 'auto' });
         this.grafica.on('click', (evento: { name?: string }) => {
           if (evento.name) this.pick.emit(evento.name);
         });
-        // `ResizeObserver` falta en jsdom y en webviews viejas; sin el la grafica se
-        // queda con el tamaño de partida en vez de reventar al construirse.
+        // `ResizeObserver` falta en jsdom y en webviews viejas; sin el la grafica no vuelve
+        // a medir el contenedor tras el montaje inicial.
         if (typeof ResizeObserver === 'function') {
           this.observador = new ResizeObserver(() => this.grafica?.resize());
           this.observador.observe(lienzo);
         }
       }
+      this.grafica.resize();
       // `true` reemplaza: al cambiar de tipo de widget o de periodo, las series viejas no
       // deben sobrevivir mezcladas con las nuevas.
       this.grafica.setOption({ ...base, ...(option as object) }, true);

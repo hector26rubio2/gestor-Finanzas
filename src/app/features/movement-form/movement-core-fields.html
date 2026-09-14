@@ -1,29 +1,27 @@
-<label class="field"
-  >{{ i18n.t('form.movement.field.date') }}<input type="date" name="date" [(ngModel)]="model['date']" required
-/></label>
-<label class="field"
-  >{{ sourceAccountLabel() }}<demo-select
+<demo-field [label]="i18n.t('form.movement.field.date')">
+  <input type="date" name="date" [(ngModel)]="model['date']" required />
+</demo-field>
+<demo-field [label]="sourceAccountLabel()">
+  <demo-select
     name="accountId"
     [(ngModel)]="model['accountId']"
     [options]="accountOptions()"
     [ariaLabel]="sourceAccountLabel()"
-/></label>
+  />
+</demo-field>
 @if (showTargetAccount) {
-<label class="field"
-  >{{ i18n.t('form.movement.field.targetAccount') }}<demo-select
+<demo-field [label]="i18n.t('form.movement.field.targetAccount')">
+  <demo-select
     name="targetId"
     [(ngModel)]="model['targetId']"
     [options]="targetAccountOptions()"
     [ariaLabel]="i18n.t('form.movement.field.targetAccount')"
-/></label>
+  />
+</demo-field>
 }
-<label class="field field-full"
-  >{{ i18n.t('form.movement.field.description') }}<input
-    type="text"
-    name="description"
-    [(ngModel)]="model['description']"
-    required
-/></label>
-<label class="field"
-  >{{ i18n.t('form.field.amount') }}<input type="number" name="amount" min="1" [(ngModel)]="model['amount']" required
-/></label>
+<demo-field [label]="i18n.t('form.movement.field.description')" [full]="true">
+  <input type="text" name="description" [(ngModel)]="model['description']" required />
+</demo-field>
+<demo-field [label]="i18n.t('form.field.amount')">
+  <input type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
+</demo-field>

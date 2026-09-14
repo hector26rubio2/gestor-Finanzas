@@ -2,17 +2,33 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
+  /*
+   * `min-width: 0`: sin esto, un hijo flexible no encoge por debajo del ancho que le
+   * pida su contenido -aqui, la tabla entera con `white-space: nowrap` en cada celda-,
+   * y esa anchura se impone al padre en vez de quedarse contenida y recortada por
+   * `.viewport` (`overflow: auto` mas abajo). El sintoma es scroll horizontal en toda
+   * la pagina, no solo dentro de la tarjeta de la tabla.
+   */
+  min-width: 0;
   flex: 1;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  overflow: hidden;
   background: var(--surface);
   color: var(--text);
 }
+/*
+ * El recorte de esquinas redondeadas vive aqui, no en `:host`: si el host entero
+ * recorta overflow, el menu de los `demo-select` de paginacion en el `<footer>`
+ * (Filas por pagina, Ir a pagina) queda invisible en vez de flotar sobre la
+ * tabla -aparecia en el arbol de accesibilidad pero no se veia en pantalla-. Solo
+ * el area con scroll necesita el recorte (la fila resaltada al pasar el mouse no
+ * puede asomar por encima de la esquina redondeada de arriba).
+ */
 .viewport {
   min-height: 0;
   flex: 1;
   overflow: auto;
+  border-radius: var(--radius) var(--radius) 0 0;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
@@ -115,14 +131,9 @@ select:focus-visible,
   outline-offset: -2px;
 }
 @media (max-width: 520px) {
-  /*
-         * Sin recorte: las tarjetas son más altas que el hueco y las cortaba el host.
-         * El ancho sí se sujeta —min-width: 0 sobre un hijo flexible— o la tabla impone
-         * su ancho natural y aparece scroll horizontal en toda la página.
-         */
+  /* Sin recorte: las tarjetas son más altas que el hueco y las cortaba el host. */
   :host {
     overflow: visible;
-    min-width: 0;
     max-width: 100%;
   }
   .viewport {

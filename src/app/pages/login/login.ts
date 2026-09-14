@@ -2,11 +2,11 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { applyTheme, DemoStore, Preferences } from '../core/store';
-import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { IconComponent } from '../ui/icon';
-import { UiOption, UiSelectComponent } from '../ui/select';
-import { I18nService } from '../core/i18n';
+import { applyTheme, DemoStore, Preferences } from '../../core/store';
+import { RemoteBootstrap } from '../../core/remote-bootstrap';
+import { IconComponent } from '../../ui/icon';
+import { UiOption, UiSelectComponent } from '../../ui/select';
+import { I18nService } from '../../core/i18n';
 @Component({
   standalone: true,
   imports: [FormsModule, IconComponent, UiSelectComponent],

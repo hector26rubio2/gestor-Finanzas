@@ -35,6 +35,76 @@ describe('DemoStore', () => {
     expect(created.map((movement) => movement.amount).sort((a, b) => a - b)).toEqual([-250000, 250000]);
   });
 
+  it('tags a transfer as expense/income, not its own kind, so KPIs can exclude it', () => {
+    store.save({
+      kind: 'transfer',
+      date: '2026-08-31',
+      description: 'Transferencia etiquetada',
+      accountId: 'savings-main',
+      targetId: 'savings-goals',
+      amount: 300000,
+      category: 'Transferencias',
+    });
+    const [saliente, entrante] = store
+      .data()
+      .movements.filter((movement) => movement.description === 'Transferencia etiquetada')
+      .sort((a, b) => a.amount - b.amount);
+    expect(saliente).toMatchObject({ kind: 'expense', movementSubtype: 'transfer', amount: -300000 });
+    expect(entrante).toMatchObject({ kind: 'income', movementSubtype: 'transfer', amount: 300000 });
+  });
+
+  it('excludes a transfer from income and expense totals: money only moved accounts', () => {
+    const antes = { income: store.income(), expense: store.expense() };
+    store.save({
+      kind: 'transfer',
+      date: '2026-08-31',
+      description: 'Transferencia neutra',
+      accountId: 'savings-main',
+      targetId: 'savings-goals',
+      amount: 300000,
+      category: 'Transferencias',
+    });
+    expect(store.income()).toBe(antes.income);
+    expect(store.expense()).toBe(antes.expense);
+  });
+
+  it('creates a cash advance from a credit card into a cash account, tagged apart from a real expense', () => {
+    store.save({
+      kind: 'advance',
+      date: '2026-08-31',
+      description: 'Avance de prueba',
+      accountId: 'credit-emerald',
+      targetId: 'cash',
+      amount: 200000,
+      category: 'Transferencias',
+    });
+    const [saliente, entrante] = store
+      .data()
+      .movements.filter((movement) => movement.description === 'Avance de prueba')
+      .sort((a, b) => a.amount - b.amount);
+    expect(saliente).toMatchObject({
+      accountId: 'credit-emerald',
+      kind: 'expense',
+      movementSubtype: 'advance',
+      amount: -200000,
+    });
+    expect(entrante).toMatchObject({ accountId: 'cash', kind: 'income', movementSubtype: 'advance', amount: 200000 });
+  });
+
+  it('keeps the chosen loan product on the saved movement', () => {
+    store.save({
+      kind: 'expense',
+      date: '2026-08-31',
+      description: 'Cuota crédito hipotecario',
+      accountId: 'savings-main',
+      amount: 850000,
+      category: 'Préstamos',
+      loanProduct: 'mortgage',
+    });
+    const movimiento = store.data().movements.find((movement) => movement.description === 'Cuota crédito hipotecario');
+    expect(movimiento?.loanProduct).toBe('mortgage');
+  });
+
   it('preserves credit card terms entered in the shared account form', () => {
     store.createAccount('Tarjeta viajera', 'credit', 0, 'USD', 4200, { limit: 9000, cutDay: 12, dueDay: 27 });
     const account = store.data().accounts.find((item) => item.name === 'Tarjeta viajera');

@@ -2,11 +2,12 @@ import { Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { UiOption, UiSelectComponent } from '../../ui/select';
+import { FieldComponent } from '../../ui/field';
 
 @Component({
   selector: 'demo-movement-recurrence-fields',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent],
+  imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-recurrence-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

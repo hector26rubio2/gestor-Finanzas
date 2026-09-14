@@ -26,12 +26,14 @@ export interface UiOption {
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './select.html',
   styleUrl: './select.css',
+  host: { '[class.open-up]': 'openUp()' },
 })
 export class UiSelectComponent implements ControlValueAccessor {
   readonly i18n = inject(I18nService);
   readonly options = input.required<readonly UiOption[]>();
   readonly ariaLabel = input(this.i18n.t('select.defaultAriaLabel'));
   readonly disabledInput = input(false, { alias: 'disabled' });
+  readonly openUp = input(false);
   readonly open = signal(false);
   readonly value = signal('');
   private readonly cvaDisabled = signal(false);

@@ -10,6 +10,7 @@ export interface MovementKindOption {
   selector: 'demo-movement-kind-selector',
   standalone: true,
   templateUrl: './movement-kind-selector.html',
+  styleUrl: './movement-kind-selector.css',
 })
 export class MovementKindSelectorComponent {
   @Input({ required: true }) kind!: string;

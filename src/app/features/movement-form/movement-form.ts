@@ -12,6 +12,8 @@ import { MovementKindOption, MovementKindSelectorComponent } from './movement-ki
 import { MovementLoanFieldsComponent } from './movement-loan-fields';
 import { MovementRecurrenceFieldsComponent } from './movement-recurrence-fields';
 import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-visibility-builder';
+import { UiOption, UiSelectComponent } from '../../ui/select';
+import { FieldComponent } from '../../ui/field';
 
 /**
  * Formulario de movimiento, partido en un componente por grupo de campos.
@@ -41,6 +43,8 @@ import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-v
     MovementInstallmentFieldsComponent,
     MovementLoanFieldsComponent,
     MovementRecurrenceFieldsComponent,
+    UiSelectComponent,
+    FieldComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movement-form.html',
@@ -53,21 +57,50 @@ export class MovementFormComponent {
   readonly error = signal('');
 
   /**
-   * Cada figura del ledger se libera por separado: se puede conceder registrar
-   * gastos sin conceder transferir. La lista se recorta a lo concedido para que no
-   * aparezca un botón que el servidor va a rechazar con un 403.
+   * Solo dirección del dinero: gasto o ingreso. Transferencia, avance, préstamo y
+   * crédito ya no son botones propios — son opciones de `operationTypeOptions()`,
+   * que cargan según cuál de estos dos se eligió primero (ver `effectiveKind`).
    */
   readonly types = computed<readonly MovementKindOption[]>(() =>
     [
       { value: 'expense', label: this.i18n.t('form.movement.type.expense'), permiso: P.movimientos.crear },
       { value: 'income', label: this.i18n.t('form.movement.type.income'), permiso: P.movimientos.crear },
-      {
-        value: 'transfer',
-        label: this.i18n.t('form.movement.type.transfer'),
-        permiso: P.movimientos.transferencias.crear,
-      },
     ].filter((t) => this.capabilities.allows(t.permiso)),
   );
+
+  /**
+   * No es un `computed()`: depende de `model['kind']`, una propiedad mutable que no
+   * rastrearía un `computed()` (misma razón que en `movement-loan-fields.ts`).
+   *
+   * Transferencia y avance solo se ofrecen desde Gasto: la pata que se está creando
+   * aquí siempre es la que sale de `accountId` hacia `targetId`, así que encaja con
+   * "sale dinero de esta cuenta" y no con su espejo. Préstamo y crédito no mueven
+   * dinero entre dos cuentas propias, así que aplican a los dos lados.
+   */
+  operationTypeOptions(): readonly UiOption[] {
+    const kind = this.model['kind'];
+    return [
+      { value: 'normal', label: this.i18n.t('form.movement.operationType.normal') },
+      ...(kind === 'expense' && this.capabilities.allows(P.movimientos.transferencias.crear)
+        ? [{ value: 'transfer', label: this.i18n.t('form.movement.operationType.transfer') }]
+        : []),
+      ...(kind === 'expense' && this.capabilities.allows(P.movimientos.avances.crear)
+        ? [{ value: 'advance', label: this.i18n.t('form.movement.operationType.advance') }]
+        : []),
+      ...(this.capabilities.allows(P.movimientos.prestamos.crear)
+        ? [{ value: 'loan', label: this.i18n.t('form.movement.operationType.loan') }]
+        : []),
+      ...(this.capabilities.allows(P.movimientos.creditos.crear)
+        ? [{ value: 'credit', label: this.i18n.t('form.movement.operationType.credit') }]
+        : []),
+    ];
+  }
+
+  /** La operación real que se envía a guardar: gasto/ingreso normal, o transferencia/avance. */
+  effectiveKind(): string {
+    const operationType = this.model['operationType'];
+    return operationType === 'transfer' || operationType === 'advance' ? operationType : this.model['kind'];
+  }
 
   model: Record<string, any> = {};
 
@@ -99,7 +132,17 @@ export class MovementFormComponent {
       installmentCurrent: m?.installmentCurrent ?? 1,
       installmentTotal: m?.installmentTotal ?? 1,
       loanRole: m?.loanRole ?? '',
-      loanProduct: '',
+      loanProduct: m?.loanProduct ?? '',
+      operationType:
+        m?.movementSubtype === 'transfer'
+          ? 'transfer'
+          : m?.movementSubtype === 'advance'
+            ? 'advance'
+            : m?.loanRole
+              ? 'loan'
+              : m?.loanProduct
+                ? 'credit'
+                : 'normal',
       originalCurrency: m?.originalCurrency ?? 'COP',
       originalAmount: m?.originalAmount ?? 0,
       exchangeRate: m?.exchangeRate ?? 4168.35,
@@ -108,7 +151,20 @@ export class MovementFormComponent {
 
   setKind(kind: string) {
     this.model['kind'] = kind;
+    // Transferencia y avance solo existen bajo Gasto: si se cambia a Ingreso con uno
+    // de los dos elegido, ya no aplica y se vuelve al tipo normal.
+    if (kind !== 'expense' && (this.model['operationType'] === 'transfer' || this.model['operationType'] === 'advance'))
+      this.model['operationType'] = 'normal';
     this.store.form.update((v) => (v ? { ...v, kind } : v));
+  }
+
+  setOperationType(operationType: string) {
+    this.model['operationType'] = operationType;
+    // Cada tipo trae sus propios campos; limpiar los de los demas evita mandar a
+    // guardar un `loanRole`/`targetId` que ya no se ve ni se pudo revisar.
+    if (operationType !== 'loan') this.model['loanRole'] = '';
+    if (operationType !== 'credit') this.model['loanProduct'] = '';
+    if (operationType !== 'transfer' && operationType !== 'advance') this.model['targetId'] = '';
   }
 
   /**
@@ -120,7 +176,7 @@ export class MovementFormComponent {
   visibility(): MovementFieldVisibility {
     const account = this.store.account(this.model['accountId']);
     const isEditing = !!this.model['id'];
-    return new MovementVisibilityBuilder(this.model['kind'], account, isEditing).withAll().build();
+    return new MovementVisibilityBuilder(this.effectiveKind(), account, isEditing).withAll().build();
   }
 
   async submit() {
@@ -128,14 +184,17 @@ export class MovementFormComponent {
       this.error.set('');
       // Ultima linea antes de escribir. El servidor tiene la palabra final, pero
       // avisar aqui evita mandar una peticion que va a volver con 403.
+      const kind = this.effectiveKind();
       const permiso =
-        this.model['kind'] === 'transfer'
+        kind === 'transfer'
           ? P.movimientos.transferencias.crear
-          : this.model['kind'] === 'payment'
-            ? P.movimientos.pagos.crear
-            : this.model['id']
-              ? P.movimientos.editar
-              : P.movimientos.crear;
+          : kind === 'advance'
+            ? P.movimientos.avances.crear
+            : kind === 'payment'
+              ? P.movimientos.pagos.crear
+              : this.model['id']
+                ? P.movimientos.editar
+                : P.movimientos.crear;
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (this.model['loanRole'] && !this.capabilities.allows(P.movimientos.prestamos.crear))
         throw new Error(this.i18n.t('form.movement.error.loanForbidden'));
@@ -144,14 +203,18 @@ export class MovementFormComponent {
       const source = this.store.account(this.model['accountId']);
       // Un gasto cargado a una tarjeta se registra como compra a crédito, no como gasto
       // corriente: es otra clase de movimiento y otra concesión.
-      if (source?.type === 'credit' && !this.capabilities.allows(P.movimientos.creditos.crear))
+      if (kind === 'expense' && source?.type === 'credit' && !this.capabilities.allows(P.movimientos.creditos.crear))
         throw new Error(this.i18n.t('form.movement.error.creditPurchaseForbidden'));
       const target = this.store.account(this.model['targetId']);
-      if (this.model['kind'] === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
+      if (kind === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
         throw new Error(this.i18n.t('form.movement.error.transferCreditForbidden'));
-      if (this.model['kind'] === 'income' && source?.type === 'credit')
+      // Un avance sale de la tarjeta hacia efectivo o ahorro: al reves, o entre dos
+      // tarjetas, no es un avance valido.
+      if (kind === 'advance' && (source?.type !== 'credit' || target?.type === 'credit'))
+        throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
+      if (kind === 'income' && source?.type === 'credit')
         throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-      await this.store.save(this.model as any);
+      await this.store.save({ ...this.model, kind } as any);
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }

@@ -56,7 +56,7 @@ const workspaceFeatureLoader: Record<string, () => Promise<Type<unknown>>> = {
 };
 
 export const routes: Routes = [
-  { path: 'login', loadComponent: () => import('./pages/login').then((m) => m.LoginComponent) },
+  { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent) },
   { path: 'sin-acceso', loadComponent: () => import('./pages/sin-seccion').then((m) => m.SinSeccionComponent) },
   ...navigation.map((n) => {
     if (n.path === 'dashboard')
@@ -77,7 +77,7 @@ export const routes: Routes = [
       path: n.path,
       canMatch: [guard],
       data: { capability: n.capability },
-      loadComponent: () => import('./pages/workspace').then((m) => m.WorkspaceComponent),
+      loadComponent: () => import('./pages/workspace/workspace').then((m) => m.WorkspaceComponent),
       children: [{ path: '', loadComponent: workspaceFeatureLoader[n.path] }],
     };
   }),

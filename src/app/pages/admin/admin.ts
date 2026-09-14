@@ -1,5 +1,5 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { CommonModule, formatDate } from '@angular/common';
+import { ChangeDetectionStrategy, Component, LOCALE_ID, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
@@ -17,7 +17,8 @@ import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../../core/store';
-import { EmptyStateComponent } from '../../ui/ui';
+import { DataTableComponent, EmptyStateComponent } from '../../ui/ui';
+import { DemoTableCellDirective } from '../../ui/table-cell.directive';
 import { I18nService } from '../../core/i18n';
 
 type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
@@ -25,7 +26,15 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
 @Component({
   selector: 'app-admin',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent, UiSelectComponent, EmptyStateComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IconComponent,
+    UiSelectComponent,
+    EmptyStateComponent,
+    DataTableComponent,
+    DemoTableCellDirective,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
   styleUrl: './admin.css',
@@ -36,6 +45,7 @@ export class AdminComponent implements OnInit {
   private readonly arranque = inject(RemoteBootstrap);
   readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
+  private readonly locale = inject(LOCALE_ID);
 
   /**
    * Vuelve a leer la sesion en cuanto se toca algo que cambia accesos.
@@ -250,6 +260,41 @@ export class AdminComponent implements OnInit {
         (this.auditAction === 'all' || e.action.toLowerCase().includes(this.auditAction)) &&
         `${e.action} ${e.entityType} ${e.traceId}`.toLowerCase().includes(this.auditSearch.toLowerCase()),
     ),
+  );
+  /** Columnas de texto plano de la tabla de usuarios; `user`/`status`/`actions` usan una celda a medida (ver admin.html). */
+  readonly userColumns = computed(() => [
+    { key: 'user', label: this.i18n.t('admin.users.column.user') },
+    { key: 'status', label: this.i18n.t('admin.users.column.status') },
+    { key: 'rolesLabel', label: this.i18n.t('admin.users.column.roles') },
+    { key: 'capabilitiesLabel', label: this.i18n.t('admin.users.column.capabilities') },
+    { key: 'lastAccessLabel', label: this.i18n.t('admin.users.column.lastAccess') },
+    { key: 'actions', label: '' },
+  ]);
+  readonly userTableRows = computed(() =>
+    this.filteredUsers().map((user) => ({
+      ...user,
+      rolesLabel: user.roles.join(', ') || this.i18n.t('admin.users.directAccess'),
+      capabilitiesLabel: `${user.capabilities.length} ${this.i18n.t('admin.users.assignedSuffix')}`,
+      lastAccessLabel: user.lastSeenAt
+        ? formatDate(user.lastSeenAt, 'dd MMM, HH:mm', this.locale)
+        : this.i18n.t('admin.users.noAccess'),
+    })),
+  );
+  /** `entity`/`traceId`/`actions` usan una celda a medida (ver admin.html). */
+  readonly auditColumns = computed(() => [
+    { key: 'dateLabel', label: this.i18n.t('admin.audit.column.date') },
+    { key: 'actorLabel', label: this.i18n.t('admin.audit.column.actor') },
+    { key: 'action', label: this.i18n.t('admin.audit.column.action') },
+    { key: 'entity', label: this.i18n.t('admin.audit.column.entity') },
+    { key: 'traceId', label: this.i18n.t('admin.common.traceId') },
+    { key: 'actions', label: '' },
+  ]);
+  readonly auditTableRows = computed(() =>
+    this.filteredAudit().map((e) => ({
+      ...e,
+      dateLabel: formatDate(e.createdAt, 'dd/MM/yy HH:mm', this.locale),
+      actorLabel: this.actor(e.userId),
+    })),
   );
   readonly filteredErrors = computed(() =>
     this.errors().filter((e) => this.errorStatus === 'all' || e.status === this.errorStatus),

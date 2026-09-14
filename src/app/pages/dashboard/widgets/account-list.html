@@ -1,0 +1,10 @@
+<div class="account-list">
+  @for (item of items(); track item.id) {
+  <button type="button" (click)="pick.emit(item.id)" [class.selected]="selected() === item.id">
+    <i [style.background]="item.color"></i><span>{{ item.name }}<small>{{ item.typeLabel }}</small></span
+    ><b>{{ money(item.amount, item.currency) }}</b>
+  </button>
+  } @empty {
+  <p class="empty">{{ emptyText() }}</p>
+  }
+</div>

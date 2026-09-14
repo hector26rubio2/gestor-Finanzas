@@ -130,3 +130,19 @@ function familyFromEffect(effect: number | undefined, flow: number | undefined):
 
 /** Catálogo vacío: en modo demo los movimientos ya nacen con su familia. */
 export const EMPTY_KIND_CATALOG = new MovementKindCatalog([]);
+
+/**
+ * `family()` distingue 4 categorías porque así las publica el backend, pero el modelo
+ * local del movimiento (`Movement.kind`) ya no tiene un valor `'transfer'` propio: la
+ * pata que sale es un gasto y la que entra un ingreso, igual que cualquier otro —
+ * `movementSubtype` es la única marca que la distingue de una compra o un sueldo real.
+ * `'payment'` (abono de tarjeta) sí sigue siendo su propia clase, sin tocar.
+ */
+export function classifyFamily(
+  family: MovementFamily,
+  amount: number,
+): { kind: 'income' | 'expense' | 'payment'; movementSubtype?: 'transfer' } {
+  if (family === 'payment') return { kind: 'payment' };
+  if (family === 'transfer') return { kind: amount < 0 ? 'expense' : 'income', movementSubtype: 'transfer' };
+  return { kind: family };
+}

@@ -1,24 +1,27 @@
-<label class="field"
-  >{{ i18n.t('form.movement.field.person') }}<demo-select
+<demo-field [label]="i18n.t('form.movement.field.person')">
+  <demo-select
     name="person"
     [(ngModel)]="model['person']"
     [options]="personOptions()"
     [ariaLabel]="i18n.t('form.movement.field.person')"
-/></label>
+  />
+</demo-field>
 @if (showLoanRole()) {
-<label class="field"
-  >{{ i18n.t('form.movement.field.loanRole') }}<demo-select
+<demo-field [label]="i18n.t('form.movement.field.loanRole')">
+  <demo-select
     name="loanRole"
     [(ngModel)]="model['loanRole']"
     [options]="loanRoleOptions()"
     [ariaLabel]="i18n.t('form.movement.field.loanRole')"
-/></label>
+  />
+</demo-field>
 } @if (showLoanProduct()) {
-<label class="field"
-  >{{ i18n.t('form.movement.field.loanProduct') }}<demo-select
+<demo-field [label]="i18n.t('form.movement.field.loanProduct')">
+  <demo-select
     name="loanProduct"
     [(ngModel)]="model['loanProduct']"
     [options]="loanProductOptions()"
     [ariaLabel]="i18n.t('form.movement.field.loanProduct')"
-/></label>
+  />
+</demo-field>
 }

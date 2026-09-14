@@ -170,28 +170,13 @@
         >
       </div>
       <div class="payment-table">
-        <table>
-          <thead>
-            <tr>
-              <th>{{ i18n.t('workspace.cardPayment.table.purchase') }}</th>
-              <th>{{ i18n.t('workspace.cardPayment.table.installment') }}</th>
-              <th>{{ i18n.t('workspace.cardPayment.table.balanceBefore') }}</th>
-              <th>{{ i18n.t('workspace.cardPayment.table.applied') }}</th>
-              <th>{{ i18n.t('workspace.cardPayment.table.balanceAfter') }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (row of paymentAllocation(); track row.id) {
-            <tr>
-              <td>{{ row.description }}</td>
-              <td>{{ row.installment }}</td>
-              <td>{{ store.money(row.before) }}</td>
-              <td>{{ store.money(row.applied) }}</td>
-              <td>{{ store.money(row.after) }}</td>
-            </tr>
-            }
-          </tbody>
-        </table>
+        <demo-table
+          [columns]="paymentAllocationColumns()"
+          [rows]="paymentAllocationRows()"
+          [selectable]="false"
+          [showFooter]="false"
+          [ariaLabel]="i18n.t('workspace.cardPayment.title')"
+        />
       </div>
       <button class="action" (click)="confirmCardPayment()">{{ i18n.t('workspace.cardPayment.confirm') }}</button>
     </section>

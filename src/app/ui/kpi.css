@@ -11,10 +11,28 @@
   border-radius: var(--radius);
   color: var(--text);
 }
+/*
+ * Para vivir dentro de una tarjeta que ya pone su propio borde y fondo (un widget del
+ * panel, por ejemplo): sin esto, dos tarjetas casi identicas quedaban una dentro de la
+ * otra con un hueco de sobra alrededor, en vez de una sola ocupando el espacio.
+ */
+:host(.bare) {
+  min-height: 0;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  flex: 1;
+  align-items: center;
+  text-align: center;
+}
 .kpi-top {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+:host(.bare) .kpi-top,
+:host(.bare) .kpi-foot {
+  justify-content: center;
 }
 .icon-chip {
   width: 34px;

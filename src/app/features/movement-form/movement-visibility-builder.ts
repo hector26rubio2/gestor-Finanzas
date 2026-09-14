@@ -44,7 +44,7 @@ export class MovementVisibilityBuilder {
   }
 
   withTargetAccount(): this {
-    this.result = { ...this.result, showTargetAccount: this.kind === 'transfer' };
+    this.result = { ...this.result, showTargetAccount: this.kind === 'transfer' || this.kind === 'advance' };
     return this;
   }
 
