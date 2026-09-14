@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { DemoStore } from '../../core/store';
+import { DemoStore } from '../../../core/store';
 
 export interface CategoryListItem {
   name: string;

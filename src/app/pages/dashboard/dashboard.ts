@@ -16,13 +16,14 @@ import { ChartComponent, ChartOption } from '../../ui/chart';
 import { ChartThemeService } from '../../ui/chart-theme';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
 import { FieldComponent } from '../../ui/field';
-import { CategoryListComponent } from './category-list';
-import { AccountListComponent } from './account-list';
-import { ColorScaleComponent } from './color-scale';
-import { StatusBarsComponent } from './status-bars';
-import { WidgetControlsComponent } from './widget-controls';
-import { FilterPanelComponent } from './filter-panel';
-import { KpiStripComponent } from './kpi-strip';
+import { CategoryListComponent } from './widgets/category-list';
+import { AccountListComponent } from './widgets/account-list';
+import { ColorScaleComponent } from './widgets/color-scale';
+import { StatusBarsComponent } from './widgets/status-bars';
+import { WidgetControlsComponent } from './widgets/widget-controls';
+import { WidgetCardComponent } from './widgets/widget-card';
+import { FilterPanelComponent } from './filters/filter-panel';
+import { KpiStripComponent } from './kpis/kpi-strip';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
 /**
@@ -131,6 +132,7 @@ const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 's
     FieldComponent,
     NumericInputDirective,
     WidgetControlsComponent,
+    WidgetCardComponent,
     FilterPanelComponent,
     KpiStripComponent,
   ],

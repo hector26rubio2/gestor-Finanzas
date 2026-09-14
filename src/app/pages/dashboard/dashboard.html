@@ -66,66 +66,63 @@
   }
   <section class="grid">
     @for (widget of widgets(); track widget.id) {
-    <article class="widget" [class.wide]="widget.wide && widget.type !== 'indicator'">
-      <header>
-        <div>
-          <span>{{ widget.kicker }}</span>
-          <h2>{{ widget.title }}</h2>
-        </div>
-        <!--
-          El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
-          fila entera solo para un select, y empujaba la lista hacia abajo. Junto al título
-          no le hace falta esa fila propia.
-        -->
-        @if (widget.type === 'categories' && !customizing()) {
-        <div class="local">
-          <demo-select
-            [ngModel]="localCategory()"
-            (ngModelChange)="localCategory.set($event)"
-            [options]="localCategoryOptions()"
-            [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
-          />
-          <button
-            type="button"
-            class="quiet"
-            (click)="promoteCategory()"
-            [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
-          >
-            {{ i18n.t('dashboard.category.applyAll') }}
-          </button>
-        </div>
-        } @if (customizing()) {
-        <div class="widget-actions">
-          <demo-widget-controls
-            [type]="widget.type"
-            [dimension]="widget.dimension ?? 'category'"
-            [measure]="widget.measure ?? 'expense'"
-            [dimension2]="widget.dimension2 ?? 'kind'"
-            [goalMin]="widget.goalMin ?? 0"
-            [goalTarget]="widget.goalTarget ?? 0"
-            [goalMax]="widget.goalMax ?? 0"
-            [typeOptions]="widgetTypeOptions()"
-            [dimensionOptions]="dimensionOptions()"
-            [measureOptions]="measureOptions()"
-            [showDimensionMeasure]="isGeneric(widget.type)"
-            [showSeries]="needsDimension2(widget.type)"
-            [showGoal]="needsGoal(widget.type)"
-            [canReorder]="caps.allows(P.dashboard.widget.orden.editar)"
-            [canChangeType]="caps.allows(P.dashboard.widget.tipo.editar)"
-            [canHide]="caps.allows(P.dashboard.widget.deshabilitar)"
-            (moveUp)="move(widget.id, -1)"
-            (moveDown)="move(widget.id, 1)"
-            (typeChange)="changeType(widget.id, $event)"
-            (dimensionChange)="changeDimension(widget.id, $event)"
-            (measureChange)="changeMeasure(widget.id, $event)"
-            (dimension2Change)="changeDimension2(widget.id, $event)"
-            (goalChange)="changeGoal(widget.id, $event.key, $event.value)"
-            (hide)="hide(widget.id)"
-          />
-        </div>
-        }
-      </header>
-      @switch (widget.type) { @case ('flow') { @if (timeline().length) {
+    <demo-widget-card
+      [kicker]="widget.kicker"
+      [title]="widget.title"
+      [wide]="widget.wide && widget.type !== 'indicator'"
+    >
+      <!--
+        El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
+        fila entera solo para un select, y empujaba la lista hacia abajo. Junto al título
+        no le hace falta esa fila propia.
+      -->
+      @if (widget.type === 'categories' && !customizing()) {
+      <div class="local" headerExtra>
+        <demo-select
+          [ngModel]="localCategory()"
+          (ngModelChange)="localCategory.set($event)"
+          [options]="localCategoryOptions()"
+          [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
+        />
+        <button
+          type="button"
+          class="quiet"
+          (click)="promoteCategory()"
+          [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
+        >
+          {{ i18n.t('dashboard.category.applyAll') }}
+        </button>
+      </div>
+      } @if (customizing()) {
+      <div class="widget-actions" actions>
+        <demo-widget-controls
+          [type]="widget.type"
+          [dimension]="widget.dimension ?? 'category'"
+          [measure]="widget.measure ?? 'expense'"
+          [dimension2]="widget.dimension2 ?? 'kind'"
+          [goalMin]="widget.goalMin ?? 0"
+          [goalTarget]="widget.goalTarget ?? 0"
+          [goalMax]="widget.goalMax ?? 0"
+          [typeOptions]="widgetTypeOptions()"
+          [dimensionOptions]="dimensionOptions()"
+          [measureOptions]="measureOptions()"
+          [showDimensionMeasure]="isGeneric(widget.type)"
+          [showSeries]="needsDimension2(widget.type)"
+          [showGoal]="needsGoal(widget.type)"
+          [canReorder]="caps.allows(P.dashboard.widget.orden.editar)"
+          [canChangeType]="caps.allows(P.dashboard.widget.tipo.editar)"
+          [canHide]="caps.allows(P.dashboard.widget.deshabilitar)"
+          (moveUp)="move(widget.id, -1)"
+          (moveDown)="move(widget.id, 1)"
+          (typeChange)="changeType(widget.id, $event)"
+          (dimensionChange)="changeDimension(widget.id, $event)"
+          (measureChange)="changeMeasure(widget.id, $event)"
+          (dimension2Change)="changeDimension2(widget.id, $event)"
+          (goalChange)="changeGoal(widget.id, $event.key, $event.value)"
+          (hide)="hide(widget.id)"
+        />
+      </div>
+      } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
       <demo-chart
         [option]="flujoOption()"
         [height]="320"
@@ -283,7 +280,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } }
-    </article>
+    </demo-widget-card>
     }
   </section>
   @if (caps.allows(P.dashboard.tabla.ver)) {

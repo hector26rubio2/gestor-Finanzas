@@ -33,7 +33,6 @@
 }
 .hero,
 .filter-panel > header,
-.widget > header,
 .recent > header {
   display: flex;
   flex-wrap: wrap;
@@ -41,22 +40,11 @@
   align-items: end;
   gap: 20px;
 }
-/*
- * Al personalizar, la fila de tipo/dimension/metrica/meta se envuelve en dos o tres
- * lineas y quedaba pegada a la grafica o la lista de justo debajo -se leian como una sola
- * cosa revuelta en vez de encabezado y contenido. Un margen fijo los separa siempre,
- * envuelva o no.
- */
-.widget > header {
-  margin-bottom: 16px;
-  row-gap: 10px;
-}
 .recent > header {
   margin-bottom: 14px;
 }
 .hero span,
 .filter-panel header span,
-.widget header span,
 .recent header span {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -85,7 +73,6 @@ select {
   border-radius: 10px;
   padding: 9px 12px;
 }
-.widget,
 .recent {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -178,13 +165,6 @@ button:disabled {
   gap: 18px;
   min-width: 0;
 }
-.widget {
-  display: flex;
-  flex-direction: column;
-  min-height: 360px;
-  min-width: 0;
-  overflow: hidden;
-}
 /*
  * La tarjeta se estira a la altura de su hermana (`.grid` en `stretch`), pero la grafica
  * mantiene su alto fijo -320px, dictado por lo que ese tipo necesita para verse bien, no
@@ -197,9 +177,6 @@ button:disabled {
   justify-content: center;
   flex: 1;
   min-height: 0;
-}
-.widget.wide {
-  grid-column: 1/-1;
 }
 .see-all {
   display: inline-flex;
@@ -575,9 +552,6 @@ button:disabled {
   }
   .grid {
     grid-template-columns: 1fr;
-  }
-  .widget.wide {
-    grid-column: auto;
   }
   .bars {
     overflow-x: auto;

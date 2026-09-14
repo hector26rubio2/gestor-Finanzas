@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { I18nService } from '../../core/i18n';
-import { IconComponent, IconName } from '../../ui/icon';
-import { KpiComponent } from '../../ui/ui';
+import { I18nService } from '../../../core/i18n';
+import { IconComponent, IconName } from '../../../ui/icon';
+import { KpiComponent } from '../../../ui/ui';
 
 export interface KpiCardConfig {
   label: string;
