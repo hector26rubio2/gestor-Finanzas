@@ -477,30 +477,6 @@ ol span {
   color: var(--text);
 }
 
-.payment-table {
-  overflow: auto;
-  border: 1px solid var(--line);
-  border-radius: 10px;
-}
-
-.payment-table table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.payment-table th,
-.payment-table td {
-  padding: 10px;
-  border-bottom: 1px solid var(--line);
-  text-align: right;
-  white-space: nowrap;
-}
-
-.payment-table th:first-child,
-.payment-table td:first-child {
-  text-align: left;
-}
-
 .statement {
   display: grid;
   gap: 12px;

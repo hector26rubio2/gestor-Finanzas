@@ -63,8 +63,8 @@ describe('cada permiso sirve para algo', () => {
     .join('\n');
   const comprobados = new Set(comprobables.match(/P\.[A-Za-zÁÉÍÓÚáéíóúñÑ]+(?:\.[A-Za-z]+)*/g) ?? []);
 
-  it('el catálogo del cliente tiene los 102 códigos', () => {
-    expect(declarados).toHaveLength(102);
+  it('el catálogo del cliente tiene los 103 códigos', () => {
+    expect(declarados).toHaveLength(103);
   });
 
   it('ninguno se puede marcar sin que nada lo mire', () => {

@@ -11,7 +11,7 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
   imports: [DataTableComponent, KpiComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './people-tab.html',
-  styleUrl: '../../pages/workspace.css',
+  styleUrl: '../../pages/workspace/workspace.css',
 })
 export class PeopleTabComponent {
   readonly store = inject(DemoStore);

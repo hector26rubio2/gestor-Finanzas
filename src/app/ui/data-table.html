@@ -25,7 +25,9 @@
       >
         @for (column of columns(); track column.key; let first = $first) {
         <td [attr.data-label]="column.label" [class.detail-field]="column.essential === false">
-          @if (first && selectable()) {
+          @if (cellTemplate(column.key); as tpl) {
+          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row }" />
+          } @else if (first && selectable()) {
           <button
             type="button"
             class="row-link"
@@ -56,6 +58,7 @@
     </tbody>
   </table>
 </div>
+@if (showFooter()) {
 <footer>
   <span [id]="rangeId" aria-live="polite"
     >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }}</span
@@ -67,6 +70,7 @@
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions"
       [ngModel]="size().toString()"
+      [openUp]="true"
       (ngModelChange)="setSizeValue($event)"
   /></label>
   <div class="pages">
@@ -119,3 +123,4 @@
     </button>
   </div>
 </footer>
+}

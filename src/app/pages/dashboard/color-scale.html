@@ -1,0 +1,18 @@
+<div class="color-scale">
+  <div class="color-scale-value">
+    <strong>{{ value() }}</strong>
+    <small>{{ label() }}</small>
+  </div>
+  <div class="color-scale-track">
+    <i class="color-scale-pointer" [style.left.%]="pointerPercent()"></i>
+    <i class="color-scale-meta" [style.left.%]="metaPercent()"></i>
+  </div>
+  <div class="color-scale-ends">
+    <span>{{ min() }}</span>
+    <span>{{ target() }}</span>
+    <span>{{ max() }}</span>
+  </div>
+  <span class="status-pill" [style.color]="statusColor()" [style.border-color]="statusColor()">
+    {{ statusLabel() }}
+  </span>
+</div>

@@ -71,6 +71,7 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
     { value: 'income', label: this.i18n.t('movements.filters.operation.income') },
     { value: 'expense', label: this.i18n.t('movements.filters.operation.expense') },
     { value: 'transfer', label: this.i18n.t('movements.filters.operation.transfer') },
+    { value: 'advance', label: this.i18n.t('movements.filters.operation.advance') },
     { value: 'loan', label: this.i18n.t('movements.filters.operation.loan') },
     { value: 'recurring', label: this.i18n.t('movements.filters.operation.recurring') },
   ]);

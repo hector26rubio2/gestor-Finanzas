@@ -103,49 +103,32 @@
       />
     </div>
     <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>{{ i18n.t('admin.users.column.user') }}</th>
-            <th>{{ i18n.t('admin.users.column.status') }}</th>
-            <th>{{ i18n.t('admin.users.column.roles') }}</th>
-            <th>{{ i18n.t('admin.users.column.capabilities') }}</th>
-            <th>{{ i18n.t('admin.users.column.lastAccess') }}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (user of filteredUsers(); track user.id) {
-          <tr>
-            <td>
-              <div class="person">
-                <span>{{ initials(user.displayName) }}</span>
-                <div><b>{{ user.displayName }}</b><small>{{ user.email }}</small></div>
-              </div>
-            </td>
-            <td>
-              <span class="status" [class.off]="!user.isActive"
-                >{{ user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive') }}</span
-              >
-            </td>
-            <td>{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
-            <td><b>{{ user.capabilities.length }}</b> {{ i18n.t('admin.users.assignedSuffix') }}</td>
-            <td>{{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess') }}</td>
-            <td>
-              @if (caps.allows(P.administracion.usuarios.editar)) {
-              <button
-                class="icon-btn"
-                [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')"
-                (click)="openUser(user)"
-              >
-                →
-              </button>
-              }
-            </td>
-          </tr>
+      <demo-table
+        [columns]="userColumns()"
+        [rows]="userTableRows()"
+        [selectable]="false"
+        [showFooter]="false"
+        [ariaLabel]="i18n.t('admin.users.title')"
+      >
+        <ng-template demoCell="user" let-user>
+          <div class="person">
+            <span>{{ initials(user.displayName) }}</span>
+            <div><b>{{ user.displayName }}</b><small>{{ user.email }}</small></div>
+          </div>
+        </ng-template>
+        <ng-template demoCell="status" let-user>
+          <span class="status" [class.off]="!user.isActive"
+            >{{ user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive') }}</span
+          >
+        </ng-template>
+        <ng-template demoCell="actions" let-user>
+          @if (caps.allows(P.administracion.usuarios.editar)) {
+          <button class="icon-btn" [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')" (click)="openUser(user)">
+            →
+          </button>
           }
-        </tbody>
-      </table>
+        </ng-template>
+      </demo-table>
     </div>
     <footer class="pager">
       <span>{{ i18n.t('admin.users.countLabel', { count: filteredUsers().length }) }}</span
@@ -282,34 +265,26 @@
       />
     </div>
     <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>{{ i18n.t('admin.audit.column.date') }}</th>
-            <th>{{ i18n.t('admin.audit.column.actor') }}</th>
-            <th>{{ i18n.t('admin.audit.column.action') }}</th>
-            <th>{{ i18n.t('admin.audit.column.entity') }}</th>
-            <th>{{ i18n.t('admin.common.traceId') }}</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (e of filteredAudit(); track e.id) {
-          <tr>
-            <td>{{ e.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
-            <td>{{ actor(e.userId) }}</td>
-            <td>
-              <b>{{ e.action }}</b>
-            </td>
-            <td>{{ e.entityType }}<small class="block">{{ e.entityId || '—' }}</small></td>
-            <td>
-              <code>{{ e.traceId.slice(0, 12) }}</code>
-            </td>
-            <td><button class="icon-btn" (click)="selectedAudit.set(e)">→</button></td>
-          </tr>
-          }
-        </tbody>
-      </table>
+      <demo-table
+        [columns]="auditColumns()"
+        [rows]="auditTableRows()"
+        [selectable]="false"
+        [showFooter]="false"
+        [ariaLabel]="i18n.t('admin.audit.title')"
+      >
+        <ng-template demoCell="action" let-e>
+          <b>{{ e.action }}</b>
+        </ng-template>
+        <ng-template demoCell="entity" let-e>
+          {{ e.entityType }}<small class="block">{{ e.entityId || '—' }}</small>
+        </ng-template>
+        <ng-template demoCell="traceId" let-e>
+          <code>{{ e.traceId.slice(0, 12) }}</code>
+        </ng-template>
+        <ng-template demoCell="actions" let-e>
+          <button class="icon-btn" (click)="selectedAudit.set(e)">→</button>
+        </ng-template>
+      </demo-table>
     </div>
     <footer class="pager">
       <span>{{ i18n.t('admin.audit.countLabel', { count: filteredAudit().length }) }}</span

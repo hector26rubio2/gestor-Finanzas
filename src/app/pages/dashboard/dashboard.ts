@@ -14,6 +14,15 @@ import { DataTableComponent, KpiComponent, OverlayComponent } from '../../ui/ui'
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { ChartComponent, ChartOption } from '../../ui/chart';
 import { ChartThemeService } from '../../ui/chart-theme';
+import { NumericInputDirective } from '../../ui/numeric-input.directive';
+import { FieldComponent } from '../../ui/field';
+import { CategoryListComponent } from './category-list';
+import { AccountListComponent } from './account-list';
+import { ColorScaleComponent } from './color-scale';
+import { StatusBarsComponent } from './status-bars';
+import { WidgetControlsComponent } from './widget-controls';
+import { FilterPanelComponent } from './filter-panel';
+import { KpiStripComponent } from './kpi-strip';
 
 type Scale = 'day' | 'week' | 'month' | 'year';
 /**
@@ -115,6 +124,15 @@ const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 's
     OverlayComponent,
     IconComponent,
     UiSelectComponent,
+    CategoryListComponent,
+    AccountListComponent,
+    ColorScaleComponent,
+    StatusBarsComponent,
+    FieldComponent,
+    NumericInputDirective,
+    WidgetControlsComponent,
+    FilterPanelComponent,
+    KpiStripComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
@@ -151,6 +169,85 @@ export class DashboardComponent {
       this.caps.allows(P.dashboard.kpi.recuento) ||
       (this.customKpis().length > 0 && this.caps.allows(P.dashboard.widget.propios)),
   );
+  /** Los cuatro KPI fijos, ya filtrados por permiso: la franja solo itera lo concedido. */
+  readonly fixedKpiItems = computed<
+    readonly {
+      key: string;
+      label: string;
+      icon: IconName;
+      tone: 'accent' | 'success' | 'danger';
+      value: string;
+      hint: string;
+      series: readonly number[];
+      delta: number | null;
+      subirEsBueno: boolean;
+    }[]
+  >(() => {
+    const items: {
+      key: string;
+      label: string;
+      icon: IconName;
+      tone: 'accent' | 'success' | 'danger';
+      value: string;
+      hint: string;
+      series: readonly number[];
+      delta: number | null;
+      subirEsBueno: boolean;
+    }[] = [];
+    if (this.caps.allows(P.dashboard.kpi.balance)) {
+      items.push({
+        key: 'balance',
+        label: this.i18n.t('dashboard.kpi.balance.label'),
+        icon: 'trendUp',
+        tone: 'accent',
+        value: this.store.money(this.net()),
+        hint: this.periodLabel(),
+        series: this.serieNeta(),
+        delta: this.variacion(this.serieNeta()),
+        subirEsBueno: true,
+      });
+    }
+    if (this.caps.allows(P.dashboard.kpi.ingresos)) {
+      items.push({
+        key: 'ingresos',
+        label: this.i18n.t('dashboard.kpi.income.label'),
+        icon: 'trendUp',
+        tone: 'success',
+        value: this.store.money(this.income()),
+        hint: this.i18n.t('dashboard.kpi.defaultHint'),
+        series: this.serieIngresos(),
+        delta: this.variacion(this.serieIngresos()),
+        subirEsBueno: true,
+      });
+    }
+    if (this.caps.allows(P.dashboard.kpi.gastos)) {
+      items.push({
+        key: 'gastos',
+        label: this.i18n.t('dashboard.kpi.expense.label'),
+        icon: 'trendDown',
+        tone: 'danger',
+        value: this.store.money(this.expense()),
+        hint: this.i18n.t('dashboard.kpi.defaultHint'),
+        series: this.serieGastos(),
+        delta: this.variacion(this.serieGastos()),
+        subirEsBueno: false,
+      });
+    }
+    if (this.caps.allows(P.dashboard.kpi.recuento)) {
+      items.push({
+        key: 'recuento',
+        label: this.i18n.t('dashboard.kpi.count.label'),
+        icon: 'movements',
+        tone: 'accent',
+        value: this.movements().length.toLocaleString(),
+        hint: this.i18n.t('dashboard.kpi.count.hint'),
+        series: [],
+        delta: null,
+        subirEsBueno: true,
+      });
+    }
+    return items;
+  });
   /**
    * Si no hay ni una pieza concedida, el panel no tiene nada que pintar.
    *
@@ -719,7 +816,7 @@ export class DashboardComponent {
     [
       ...new Set(
         this.base()
-          .filter((m) => m.kind === 'expense')
+          .filter((m) => m.kind === 'expense' && !m.movementSubtype)
           .map((m) => m.category),
       ),
     ].sort(),
@@ -731,7 +828,7 @@ export class DashboardComponent {
     const remoto = this.remoteAplicable();
     if (remoto) return parseMoney(remoto.period.income);
     return sumBy(
-      this.movements().filter((m) => m.kind === 'income'),
+      this.movements().filter((m) => m.kind === 'income' && !m.movementSubtype),
       (m) => Math.max(0, m.amount),
     );
   });
@@ -739,7 +836,7 @@ export class DashboardComponent {
     const remoto = this.remoteAplicable();
     if (remoto) return parseMoney(remoto.period.expense);
     return sumBy(
-      this.movements().filter((m) => m.kind === 'expense'),
+      this.movements().filter((m) => m.kind === 'expense' && !m.movementSubtype),
       (m) => -Math.min(0, m.amount),
     );
   });
@@ -770,8 +867,8 @@ export class DashboardComponent {
         }))
       : this.movements().map((m) => ({
           date: m.date,
-          income: m.kind === 'income' && m.amount > 0 ? m.amount : 0,
-          expense: m.kind === 'expense' && m.amount < 0 ? -m.amount : 0,
+          income: m.kind === 'income' && !m.movementSubtype && m.amount > 0 ? m.amount : 0,
+          expense: m.kind === 'expense' && !m.movementSubtype && m.amount < 0 ? -m.amount : 0,
         }));
     const map = new Map<string, { key: string; label: string; income: number; expense: number }>();
     for (const m of puntos) {
@@ -799,6 +896,7 @@ export class DashboardComponent {
     for (const m of this.movements())
       if (
         m.kind === 'expense' &&
+        !m.movementSubtype &&
         m.amount < 0 &&
         (this.localCategory() === 'all' || m.category === this.localCategory())
       )
@@ -818,8 +916,9 @@ export class DashboardComponent {
     this.accountOptions()
       .map((a) => ({
         ...a,
+        typeLabel: this.typeLabel(a.type),
         amount: -this.movements()
-          .filter((m) => m.accountId === a.id && m.kind === 'expense' && m.amount < 0)
+          .filter((m) => m.accountId === a.id && m.kind === 'expense' && !m.movementSubtype && m.amount < 0)
           .reduce((s, m) => s + m.amount, 0),
       }))
       .filter((a) => a.amount > 0)
@@ -1135,6 +1234,21 @@ export class DashboardComponent {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
     this.customKpis.update((items) => items.filter((k) => k.id !== id));
   }
+
+  /** Los indicadores propios normalizados a la misma forma que `fixedKpiItems`. */
+  readonly customKpiItems = computed(() =>
+    this.customKpis().map((kpi) => ({
+      id: kpi.id,
+      label: kpi.label,
+      icon: this.kpiIcon(kpi.formula),
+      tone: this.kpiTone(kpi.formula),
+      value: this.kpiFormatValue(kpi.formula, this.kpiValue(kpi.formula)),
+      hint: this.kpiHintFor(kpi.formula),
+      series: this.kpiSeriesFor(kpi.formula),
+      delta: this.kpiTrend(kpi.formula),
+      subirEsBueno: this.kpiSubirEsBueno(kpi.formula),
+    })),
+  );
 
   readonly hasFilters = computed(
     () =>
@@ -1759,7 +1873,7 @@ export class DashboardComponent {
         : dim === 'account'
           ? (this.store.account(m.accountId)?.name ?? this.i18n.t('dashboard.account.none'))
           : dim === 'kind'
-            ? this.kindLabel(m.kind)
+            ? this.kindLabel(m)
             : dim === 'recurring'
               ? this.i18n.t(
                   m.recurring ? 'dashboard.dimension.recurring.fixed' : 'dashboard.dimension.recurring.variable',
@@ -1773,14 +1887,22 @@ export class DashboardComponent {
                 : (m.person ?? this.i18n.t('dashboard.person.none'));
     return { key: label, label };
   }
-  private kindLabel(kind: Movement['kind']): string {
+  /**
+   * Transferencia y avance ya no son su propia clase de movimiento (`kind` es
+   * `expense`/`income` como cualquier otro), así que hay que mirar `movementSubtype`
+   * primero o un widget partido por "tipo" mostraría un gasto de transferencia
+   * mezclado con los gastos reales, perdiendo justo la distinción que antes daba
+   * `kind === 'transfer'`.
+   */
+  private kindLabel(m: Movement): string {
+    if (m.movementSubtype === 'transfer') return this.i18n.t('dashboard.movement.kind.transfer');
+    if (m.movementSubtype === 'advance') return this.i18n.t('dashboard.movement.kind.advance');
     const etiquetas: Record<string, string> = {
       income: this.i18n.t('dashboard.movement.kind.income'),
       expense: this.i18n.t('dashboard.movement.kind.expense'),
-      transfer: this.i18n.t('dashboard.movement.kind.transfer'),
       payment: this.i18n.t('dashboard.movement.kind.payment'),
     };
-    return etiquetas[kind] ?? kind;
+    return etiquetas[m.kind] ?? m.kind;
   }
   /**
    * `expense`/`income` se basan en el signo del importe, no en `kind`: un widget puede
@@ -2232,13 +2354,13 @@ export class DashboardComponent {
    */
   statusBarsRows(
     widget: Widget,
-  ): { label: string; value: number; percent: number; tone: 'success' | 'warn' | 'danger' }[] {
+  ): { label: string; valueLabel: string; percent: number; tone: 'success' | 'warn' | 'danger' }[] {
     const filas = this.aggregate(widget).slice(0, 6);
     const max = Math.max(1, ...filas.map((f) => Math.abs(f.value)));
     return filas.map((f) => {
       const percent = Math.min(100, Math.max(0, (Math.abs(f.value) / max) * 100));
       const tone = percent >= 66 ? 'success' : percent >= 33 ? 'warn' : 'danger';
-      return { label: f.label, value: f.value, percent, tone };
+      return { label: f.label, valueLabel: this.formatMeasure(f.value, widget), percent, tone };
     });
   }
   /** Total agregado de un widget "tarjeta": toda la dimensión colapsada en un solo número. */

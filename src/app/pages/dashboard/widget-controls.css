@@ -1,0 +1,20 @@
+/*
+ * El host es `display: contents` (ver widget-controls.ts): estos botones son hijos
+ * directos del `.widget-actions` del padre a efectos de layout, pero su propio CSS
+ * no llega aqui -cada componente encapsula el suyo-, así que se repite lo mínimo que
+ * dashboard.css ya declaraba para estos mismos controles.
+ */
+.quiet {
+  background: transparent;
+}
+button {
+  padding: 6px 8px;
+}
+/*
+ * `!important` a propósito: el input global de styles.css pesa más que esta clase sola
+ * -misma razón que ya documentaba dashboard.css para esta regla.
+ */
+.goal-input {
+  width: 64px !important;
+  padding: 6px;
+}

@@ -4,12 +4,14 @@ import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
+import { NumericInputDirective } from '../../ui/numeric-input.directive';
+import { FieldComponent } from '../../ui/field';
 
 /** Fecha, cuenta origen, cuenta destino (solo transferencia), descripción e importe. */
 @Component({
   selector: 'demo-movement-core-fields',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent],
+  imports: [FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
   templateUrl: './movement-core-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
@@ -39,20 +41,31 @@ export class MovementCoreFieldsComponent {
    * cuentas de la selección anterior.
    */
 
-  /** Un gasto puede cargarse a cualquier cuenta; el resto de tipos no toca crédito. */
+  /**
+   * Un gasto puede cargarse a cualquier cuenta; un avance sale de la tarjeta. El resto
+   * de tipos no toca crédito.
+   */
   private eligibleAccounts() {
     return this.store
       .data()
-      .accounts.filter((a) => this.kind === 'expense' || a.type !== 'credit')
-      .filter((a) => a.type !== 'credit' || this.caps.allows(P.movimientos.creditos.crear));
+      .accounts.filter((a) => this.kind === 'expense' || this.kind === 'advance' || a.type !== 'credit')
+      .filter(
+        (a) =>
+          a.type !== 'credit' ||
+          this.caps.allows(this.kind === 'advance' ? P.movimientos.avances.crear : P.movimientos.creditos.crear),
+      );
   }
 
-  /** Ninguna pata de una transferencia puede ser una tarjeta de crédito. */
+  /**
+   * Ninguna pata de una transferencia puede ser una tarjeta de crédito; en un avance,
+   * la cuenta origen es siempre la tarjeta.
+   */
   accountOptions(): readonly UiOption[] {
     return [
       { value: '', label: this.i18n.t('form.actions.select') },
       ...this.eligibleAccounts()
         .filter((a) => this.kind !== 'transfer' || a.type !== 'credit')
+        .filter((a) => this.kind !== 'advance' || a.type === 'credit')
         .map((a) => ({ value: a.id, label: `${a.name} · ${this.accountTypeLabel(a.type)}` })),
     ];
   }
@@ -67,7 +80,7 @@ export class MovementCoreFieldsComponent {
   }
 
   sourceAccountLabel(): string {
-    return this.kind === 'transfer' || this.kind === 'payment'
+    return this.kind === 'transfer' || this.kind === 'payment' || this.kind === 'advance'
       ? this.i18n.t('form.movement.field.sourceAccount')
       : this.i18n.t('form.movement.field.account');
   }

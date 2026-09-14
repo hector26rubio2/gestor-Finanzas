@@ -2,6 +2,8 @@ import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { TrmApi } from '../../core/api/trm.api';
+import { NumericInputDirective } from '../../ui/numeric-input.directive';
+import { FieldComponent } from '../../ui/field';
 
 /**
  * Solo aparece cuando la cuenta elegida está denominada en dólares — la moneda ya
@@ -13,7 +15,7 @@ import { TrmApi } from '../../core/api/trm.api';
 @Component({
   selector: 'demo-movement-currency-fields',
   standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, NumericInputDirective, FieldComponent],
   templateUrl: './movement-currency-fields.html',
   styleUrl: './movement-currency-fields.css',
   host: { style: 'display: contents' },

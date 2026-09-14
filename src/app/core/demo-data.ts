@@ -6,7 +6,7 @@ export interface Movement {
   description: string;
   accountId: string;
   category: string;
-  kind: 'income' | 'expense' | 'transfer' | 'payment';
+  kind: 'income' | 'expense' | 'payment';
   amount: number;
   status: 'confirmed' | 'pending';
   person?: string;
@@ -16,6 +16,17 @@ export interface Movement {
   installmentCurrent?: number;
   installmentTotal?: number;
   loanRole?: 'lent' | 'borrowed' | 'repayment';
+  /** Solo cuando es un crédito formal del banco (no un préstamo con una persona). */
+  loanProduct?: 'personal' | 'mortgage' | 'vehicle' | 'education' | 'other';
+  /**
+   * Una transferencia o un avance de tarjeta no es su propia clase de movimiento: la
+   * pata que sale es un gasto y la que entra un ingreso, igual que cualquiera. Esta es
+   * la única marca que los distingue de una compra o un sueldo normal, y es lo que
+   * excluyen los KPI y el filtro de Operación para no contarlos como plata ganada o
+   * gastada de verdad — el dinero solo se movió entre cuentas propias (o entre la
+   * tarjeta y una cuenta propia, en el avance).
+   */
+  movementSubtype?: 'transfer' | 'advance';
   originalCurrency?: 'COP' | 'USD';
   originalAmount?: number;
   exchangeRate?: number;
@@ -393,10 +404,29 @@ export function createDemoData(): DemoData {
       'confirmed',
       { recurring: true, recurrence: 'monthly' },
     );
-    add(month, 4, 'savings-main', 'Aporte a vacaciones', 'Transferencias', 'transfer', -450000);
-    add(month, 4, 'savings-goals', 'Aporte a vacaciones', 'Transferencias', 'transfer', 450000);
-    add(month, 5, 'savings-main', 'Retiro para efectivo', 'Transferencias', 'transfer', -180000);
-    add(month, 5, 'cash', 'Retiro para efectivo', 'Transferencias', 'transfer', 180000);
+    add(month, 4, 'savings-main', 'Aporte a vacaciones', 'Transferencias', 'expense', -450000, undefined, 'confirmed', {
+      movementSubtype: 'transfer',
+    });
+    add(month, 4, 'savings-goals', 'Aporte a vacaciones', 'Transferencias', 'income', 450000, undefined, 'confirmed', {
+      movementSubtype: 'transfer',
+    });
+    add(
+      month,
+      5,
+      'savings-main',
+      'Retiro para efectivo',
+      'Transferencias',
+      'expense',
+      -180000,
+      undefined,
+      'confirmed',
+      {
+        movementSubtype: 'transfer',
+      },
+    );
+    add(month, 5, 'cash', 'Retiro para efectivo', 'Transferencias', 'income', 180000, undefined, 'confirmed', {
+      movementSubtype: 'transfer',
+    });
     for (let week = 0; week < 4; week++) {
       const day = 6 + week * 6;
       add(

@@ -16,7 +16,9 @@ describe('deterministic demonstration ledger', () => {
 
   it('balances every transfer and credit-card payment pair', () => {
     const groups = new Map<string, number>();
-    for (const m of createDemoData().movements.filter((m) => m.kind === 'transfer' || m.kind === 'payment')) {
+    for (const m of createDemoData().movements.filter(
+      (m) => m.movementSubtype === 'transfer' || m.kind === 'payment',
+    )) {
       const key = `${m.date}:${m.description}`;
       groups.set(key, (groups.get(key) ?? 0) + m.amount);
     }

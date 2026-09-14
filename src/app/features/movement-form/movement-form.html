@@ -10,10 +10,19 @@
     @if (!model['kind']) {
     <p class="hint">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
     } @else {
+    <demo-field [label]="i18n.t('form.movement.field.operationType')">
+      <demo-select
+        name="operationType"
+        [ngModel]="model['operationType']"
+        (ngModelChange)="setOperationType($event)"
+        [options]="operationTypeOptions()"
+        [ariaLabel]="i18n.t('form.movement.field.operationType')"
+      />
+    </demo-field>
     <div class="form-grid">
-      <demo-movement-core-fields [model]="model" [kind]="model['kind']" [showTargetAccount]="vis.showTargetAccount" />
+      <demo-movement-core-fields [model]="model" [kind]="effectiveKind()" [showTargetAccount]="vis.showTargetAccount" />
       @if (vis.showCategory) {
-      <demo-movement-category-field [model]="model" [kind]="model['kind']" />
+      <demo-movement-category-field [model]="model" [kind]="effectiveKind()" />
       } @if (vis.showPerson) {
       <demo-movement-loan-fields [model]="model" [showLoan]="vis.showLoan" />
       } @if (vis.showRecurrence) {

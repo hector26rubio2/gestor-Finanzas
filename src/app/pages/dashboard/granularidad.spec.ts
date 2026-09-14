@@ -6,7 +6,7 @@ import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
 import { DemoStore } from '../../core/store';
-import { AccountFormComponent } from '../../forms';
+import { AccountFormComponent } from '../../features/account-form/account-form';
 import { MovementFormComponent } from '../../features/movement-form/movement-form';
 import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
 import { MovementCategoryFieldComponent } from '../../features/movement-form/movement-category-field';
@@ -182,7 +182,10 @@ describe('movimientos: cada figura del ledger por separado', () => {
     abrirFormulario('expense');
     const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
 
+    // Solo dirección de dinero en los botones de arriba: transferencia/avance ahora
+    // son opciones del selector de Tipo, no valores propios de `types()`.
     expect(componente.types().map((t) => t.value)).toEqual(['expense', 'income']);
+    expect(componente.operationTypeOptions().map((o) => o.value)).not.toContain('transfer');
   });
 
   it('con el permiso de transferencia el tipo vuelve', () => {
@@ -190,13 +193,13 @@ describe('movimientos: cada figura del ledger por separado', () => {
     abrirFormulario('expense');
     const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
 
-    expect(componente.types().map((t) => t.value)).toContain('transfer');
+    expect(componente.operationTypeOptions().map((o) => o.value)).toContain('transfer');
   });
 
   it('los campos de préstamo y de crédito son dos permisos distintos', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
     const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan' };
     fixture.componentInstance.showLoan = true;
 
     expect(fixture.componentInstance.showLoanRole()).toBe(true);
@@ -208,7 +211,7 @@ describe('movimientos: cada figura del ledger por separado', () => {
   it('prestar y deber se ofrecen por separado', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear, P.personas.prestamos.crear]);
     const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', kind: 'expense' };
     fixture.componentInstance.showLoan = true;
 
     const valores = fixture.componentInstance.loanRoleOptions().map((opcion) => opcion.value);
@@ -225,7 +228,7 @@ describe('movimientos: cada figura del ledger por separado', () => {
   it('cambiar showLoan después de creado el componente se refleja sin recrearlo', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
     const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '' };
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan' };
     fixture.componentInstance.showLoan = true;
     expect(fixture.componentInstance.showLoanRole()).toBe(true);
 

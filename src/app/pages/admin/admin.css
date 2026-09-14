@@ -217,29 +217,6 @@ progress {
   margin: 0 -18px;
   max-height: calc(100vh - 320px);
 }
-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 850px;
-}
-th {
-  position: sticky;
-  top: 0;
-  background: var(--surface);
-  z-index: 1;
-  color: var(--muted);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  text-align: left;
-  padding: 11px 18px;
-  border-bottom: 1px solid var(--line);
-}
-td {
-  padding: 11px 18px;
-  border-bottom: 1px solid var(--line);
-  font-size: 0.86rem;
-}
 .person {
   display: flex;
   align-items: center;

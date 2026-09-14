@@ -4,6 +4,7 @@ import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
+import { FieldComponent } from '../../ui/field';
 
 /**
  * A quién pertenece el movimiento (siempre visible) y, aparte, si es un préstamo
@@ -13,7 +14,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select';
 @Component({
   selector: 'demo-movement-loan-fields',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent],
+  imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-loan-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
@@ -33,28 +34,46 @@ export class MovementLoanFieldsComponent {
       .people.map((p) => ({ value: p.name, label: this.i18n.t('form.movement.person.borrowed', { name: p.name }) })),
   ]);
 
-  // No es un `computed()`: `showLoan` es un `@Input()` normal, y `model['loanRole']`
-  // (en `showLoanProduct`) es una propiedad mutable de un objeto que se sigue siendo
-  // el mismo por referencia. Ninguna de las dos la rastrearia un `computed()` — la
-  // primera lectura quedaria en cache para siempre y ocultar el prestamo al elegir
-  // una tarjeta de credito nunca se reflejaria.
+  // No es un `computed()`: `showLoan` es un `@Input()` normal, y `model['operationType']`
+  // es una propiedad mutable de un objeto que se sigue siendo el mismo por referencia.
+  // Ninguna de las dos la rastrearia un `computed()` — la primera lectura quedaria en
+  // cache para siempre y ocultar el prestamo al elegir una tarjeta de credito, o al
+  // cambiar el selector de Tipo, nunca se reflejaria.
   showLoanRole(): boolean {
-    return this.showLoan && this.caps.allows(P.movimientos.prestamos.crear);
+    return this.showLoan && this.model['operationType'] === 'loan' && this.caps.allows(P.movimientos.prestamos.crear);
   }
 
-  readonly loanRoleOptions = computed<readonly UiOption[]>(() => [
-    { value: '', label: this.i18n.t('form.movement.loanRole.none') },
-    ...(this.caps.allows(P.personas.prestamos.crear)
-      ? [{ value: 'lent', label: this.i18n.t('form.movement.loanRole.lent') }]
-      : []),
-    ...(this.caps.allows(P.personas.deudas.crear)
-      ? [{ value: 'borrowed', label: this.i18n.t('form.movement.loanRole.borrowed') }]
-      : []),
-    { value: 'repayment', label: this.i18n.t('form.movement.loanRole.repayment') },
-  ]);
+  /**
+   * No es un `computed()`: depende de `model['kind']`, la misma propiedad mutable que
+   * ya rompe el rastreo en `showLoanRole`/`showLoanProduct` de más abajo.
+   *
+   * "Me prestaron" es un ingreso (entra dinero) y "presté" es un gasto (sale dinero) —
+   * mostrar ambos sin importar el tipo dejaba elegir "dinero que me prestaron" en un
+   * gasto con cuenta propia, que no tiene sentido: nadie te presta algo que tú mismo
+   * estás gastando. El pago o devolución sí aplica a los dos lados (pagas tu deuda, o
+   * te devuelven la tuya), así que no se filtra por tipo.
+   */
+  loanRoleOptions(): readonly UiOption[] {
+    const kind = this.model['kind'];
+    return [
+      { value: '', label: this.i18n.t('form.movement.loanRole.none') },
+      ...(kind === 'expense' && this.caps.allows(P.personas.prestamos.crear)
+        ? [{ value: 'lent', label: this.i18n.t('form.movement.loanRole.lent') }]
+        : []),
+      ...(kind === 'income' && this.caps.allows(P.personas.deudas.crear)
+        ? [{ value: 'borrowed', label: this.i18n.t('form.movement.loanRole.borrowed') }]
+        : []),
+      { value: 'repayment', label: this.i18n.t('form.movement.loanRole.repayment') },
+    ];
+  }
 
+  /**
+   * Independiente de `loanRole`: un crédito hipotecario o de libre inversión es deuda
+   * con el banco, no con una persona. Se muestra cuando el selector de Tipo está en
+   * "Crédito", no junto a "Préstamo" — son dos opciones del mismo selector.
+   */
   showLoanProduct(): boolean {
-    return this.showLoanRole() && !!this.model['loanRole'] && this.caps.allows(P.movimientos.creditos.crear);
+    return this.showLoan && this.model['operationType'] === 'credit' && this.caps.allows(P.movimientos.creditos.crear);
   }
 
   readonly loanProductOptions = computed<readonly UiOption[]>(() => [

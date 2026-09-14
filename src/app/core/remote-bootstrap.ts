@@ -14,7 +14,7 @@ import {
   FinanceApiClient,
 } from './api-client';
 import { parseAmount, parseMoney, parseRate } from './money';
-import { MovementKindCatalog, signOf } from './movement-kinds';
+import { classifyFamily, MovementKindCatalog, signOf } from './movement-kinds';
 import { P } from './permissions';
 import { Router } from '@angular/router';
 import { DemoStore } from './store';
@@ -355,14 +355,16 @@ export class RemoteBootstrap {
   private toMovement(catalog: MovementKindCatalog, source: ApiMovement): Movement {
     const accountId = source.links['account'] ?? source.links['card'] ?? '';
     const sign = signOf(source.flow, source.effect);
+    const amount = parseMoney(source.amount.base) * sign;
+    const family = catalog.family(source.kind, source.effect, source.flow);
     return {
       id: source.id,
       date: source.date,
       description: source.description ?? 'Sin descripción',
       accountId,
       category: source.linkNames['category']?.name ?? 'Sin categoría',
-      kind: catalog.family(source.kind, source.effect, source.flow),
-      amount: parseMoney(source.amount.base) * sign,
+      ...classifyFamily(family, amount),
+      amount,
       status: 'confirmed',
       person: source.linkNames['counterparty']?.name,
       ownership: source.links['counterparty'] ? 'loaned' : 'own',

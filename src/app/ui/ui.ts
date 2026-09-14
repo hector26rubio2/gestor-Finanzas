@@ -2,17 +2,20 @@ import {
   AfterViewInit,
   ChangeDetectionStrategy,
   Component,
+  ContentChildren,
   ElementRef,
   EventEmitter,
   inject,
   OnDestroy,
   Output,
+  QueryList,
   ViewChild,
   computed,
   input,
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../core/url-state';
 import { I18nService } from '../core/i18n';
@@ -20,6 +23,7 @@ import { IconComponent, IconName } from './icon';
 import { UiOption, UiSelectComponent } from './select';
 import { ChartComponent } from './chart';
 import { ChartThemeService } from './chart-theme';
+import { DemoTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {
   key: string;
@@ -37,13 +41,23 @@ export interface TableColumn {
 @Component({
   selector: 'demo-table',
   standalone: true,
-  imports: [FormsModule, IconComponent, UiSelectComponent],
+  imports: [FormsModule, CommonModule, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
   styleUrl: './data-table.css',
 })
 export class DataTableComponent {
   readonly i18n = inject(I18nService);
+  /**
+   * Plantillas a medida por columna, proyectadas como `<ng-template demoCell="...">`
+   * hijas de `<demo-table>`. Sin esto, una fila con una celda que no es texto plano
+   * (un avatar, una insignia de estado, un botón) obligaba a reescribir la tabla
+   * entera a mano en vez de usar esta — ver `table-cell.directive.ts`.
+   */
+  @ContentChildren(DemoTableCellDirective) private cellTemplates!: QueryList<DemoTableCellDirective>;
+  cellTemplate(key: string) {
+    return this.cellTemplates?.find((t) => t.column === key)?.template ?? null;
+  }
   private static nextId = 0;
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
   readonly tableLabel = input(this.i18n.t('table.defaultLabel'));
@@ -54,6 +68,8 @@ export class DataTableComponent {
   readonly totalRows = input<number | null>(null);
   readonly remotePage = input(1);
   readonly selectable = input(true);
+  /** En falso para una vista pequeña de solo lectura (un resumen, una previsualización): sin paginación que administrar. */
+  readonly showFooter = input(true);
   @Output() readonly rowSelected = new EventEmitter<Record<string, any>>();
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
@@ -95,6 +111,8 @@ export class DataTableComponent {
     { value: '5', label: '5' },
     { value: '10', label: '10' },
     { value: '25', label: '25' },
+    { value: '50', label: '50' },
+    { value: '100', label: '100' },
   ];
   readonly pageSelectOptions = computed<readonly UiOption[]>(() =>
     this.pageOptions().map((number) => ({ value: number.toString(), label: (number + 1).toString() })),
@@ -213,12 +231,15 @@ export class OverlayComponent implements AfterViewInit, OnDestroy {
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi.html',
   styleUrl: './kpi.css',
+  host: { '[class.bare]': 'bare()' },
 })
 export class KpiComponent {
   readonly i18n = inject(I18nService);
   readonly label = input('');
   readonly value = input('');
   readonly hint = input('');
+  /** Sin su propio borde/fondo/relleno, para vivir dentro de una tarjeta que ya los pone. */
+  readonly bare = input(false);
   /** Icono del chip. Sin nombre, la tarjeta no dibuja chip: no todas lo necesitan. */
   readonly icon = input<IconName | ''>('');
   /** Color del chip. «accent» por defecto; «success»/«danger» para ingresos y gastos. */

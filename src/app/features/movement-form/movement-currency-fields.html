@@ -1,18 +1,9 @@
-<label class="field"
-  >{{ i18n.t('form.movement.field.originalAmount') }}<input
-    type="number"
-    name="originalAmount"
-    min="0"
-    step="0.01"
-    [(ngModel)]="model['originalAmount']"
-/></label>
-<label class="field"
-  >{{ i18n.t('form.movement.field.exchangeRate') }}<input
-    type="number"
-    name="exchangeRate"
-    min="0"
-    [(ngModel)]="model['exchangeRate']"
-/></label>
+<demo-field [label]="i18n.t('form.movement.field.originalAmount')">
+  <input type="number" name="originalAmount" min="0" step="0.01" [(ngModel)]="model['originalAmount']" />
+</demo-field>
+<demo-field [label]="i18n.t('form.movement.field.exchangeRate')">
+  <input type="number" name="exchangeRate" min="0" [(ngModel)]="model['exchangeRate']" />
+</demo-field>
 <p class="field field-full trm-reference">
   {{ i18n.t('form.movement.field.officialTrm') }}: @if (officialTrmLoading()) { {{ i18n.t('form.movement.trm.loading')
   }} } @else if (officialTrm() !== null) {

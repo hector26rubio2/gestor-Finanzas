@@ -4,6 +4,7 @@ import { I18nService } from '../../core/i18n';
 import { DemoStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { buildCategoryOptions } from './movement-category-options.factory';
+import { FieldComponent } from '../../ui/field';
 
 /**
  * Solo se muestra en gasto e ingreso — un traslado no clasifica, es la misma regla
@@ -12,7 +13,7 @@ import { buildCategoryOptions } from './movement-category-options.factory';
 @Component({
   selector: 'demo-movement-category-field',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent],
+  imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-category-field.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

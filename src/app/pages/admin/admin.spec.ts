@@ -207,3 +207,106 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
     expect(componente.rolesPage()).toBe(2);
   });
 });
+
+/**
+ * Las tablas de usuarios y auditoría pasaron de `<table>` propia a `demo-table`
+ * genérica: estas pruebas cubren la transformación de filas (roles a texto,
+ * fecha formateada, actor resuelto) que antes vivía directo en la plantilla.
+ */
+describe('AdminComponent: filas de las tablas genéricas', () => {
+  function montar() {
+    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: FinanceApiClient, useValue: {} },
+      ],
+    });
+    return TestBed.createComponent(AdminComponent).componentInstance;
+  }
+
+  beforeEach(() => TestBed.resetTestingModule());
+
+  it('resume roles y capacidades a texto, y formatea el último acceso', () => {
+    const componente = montar();
+    componente.users.set([
+      {
+        id: 'u1',
+        displayName: 'Valentina Torres',
+        email: 'valentina@example.test',
+        isActive: true,
+        lastSeenAt: '2026-08-31T14:42:00Z',
+        roles: ['Administrador', 'Contador'],
+        capabilities: ['movimientos.ver', 'movimientos.crear'],
+      },
+    ]);
+
+    const [row] = componente.userTableRows();
+    expect(row.rolesLabel).toBe('Administrador, Contador');
+    expect(row.capabilitiesLabel).toBe('2 asignadas');
+    expect(row.lastAccessLabel).not.toBe('Sin acceso');
+  });
+
+  it('sin roles ni acceso previo, cae en los textos por defecto', () => {
+    const componente = montar();
+    componente.users.set([
+      {
+        id: 'u2',
+        displayName: 'Daniel Ríos',
+        email: 'daniel@example.test',
+        isActive: false,
+        lastSeenAt: null,
+        roles: [],
+        capabilities: [],
+      },
+    ]);
+
+    const [row] = componente.userTableRows();
+    expect(row.rolesLabel).toBe('Acceso directo');
+    expect(row.lastAccessLabel).toBe('Sin acceso');
+  });
+
+  it('resuelve el actor de auditoría por id y formatea la fecha', () => {
+    const componente = montar();
+    componente.users.set([
+      {
+        id: 'u1',
+        displayName: 'Valentina Torres',
+        email: 'valentina@example.test',
+        isActive: true,
+        lastSeenAt: null,
+        roles: [],
+        capabilities: [],
+      },
+    ]);
+    componente.audit.set([
+      {
+        id: 'a1',
+        userId: 'u1',
+        action: 'Creó movimiento',
+        entityType: 'Movimiento',
+        entityId: 'mov-1',
+        traceId: 'trace-123456789012',
+        changesJson: null,
+        createdAt: '2026-08-31T14:42:00Z',
+      },
+      {
+        id: 'a2',
+        userId: null,
+        action: 'Procesó recurrencias',
+        entityType: 'Proceso',
+        entityId: null,
+        traceId: 'trace-000000000000',
+        changesJson: null,
+        createdAt: '2026-08-31T00:00:00Z',
+      },
+    ]);
+
+    const [conActor, sinActor] = componente.auditTableRows();
+    expect(conActor.actorLabel).toBe('Valentina Torres');
+    expect(sinActor.actorLabel).toBe('Sistema');
+    expect(conActor.dateLabel).toMatch(/^\d{2}\/\d{2}\/\d{2} \d{2}:\d{2}$/);
+  });
+});

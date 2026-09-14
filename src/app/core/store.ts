@@ -252,6 +252,7 @@ export class DemoStore {
     installmentCurrent?: number;
     installmentTotal?: number;
     loanRole?: Movement['loanRole'];
+    loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
     originalAmount?: number;
     exchangeRate?: number;
@@ -277,13 +278,13 @@ export class DemoStore {
   );
   readonly income = computed(() =>
     sumBy(
-      this.movements().filter((m) => m.kind === 'income'),
+      this.movements().filter((m) => m.kind === 'income' && !m.movementSubtype),
       (m) => m.amount,
     ),
   );
   readonly expense = computed(() =>
     sumBy(
-      this.movements().filter((m) => m.kind === 'expense'),
+      this.movements().filter((m) => m.kind === 'expense' && !m.movementSubtype),
       (m) => -m.amount,
     ),
   );
@@ -426,6 +427,7 @@ export class DemoStore {
     installmentCurrent?: number;
     installmentTotal?: number;
     loanRole?: Movement['loanRole'];
+    loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
     originalAmount?: number;
     exchangeRate?: number;
@@ -433,7 +435,7 @@ export class DemoStore {
     if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('Introduce un importe positivo.');
     if (!this.account(input.accountId)) throw new Error('Selecciona una cuenta válida.');
     if (
-      (input.kind === 'payment' || input.kind === 'transfer') &&
+      (input.kind === 'payment' || input.kind === 'transfer' || input.kind === 'advance') &&
       (!input.targetId || input.targetId === input.accountId || !this.account(input.targetId))
     )
       throw new Error('Selecciona una cuenta destino diferente.');
@@ -460,41 +462,59 @@ export class DemoStore {
       }
       const account = this.account(input.accountId);
       if (!account) throw new Error('Selecciona una cuenta válida.');
-      if (input.kind === 'transfer' || input.kind === 'payment') {
+      if (input.kind === 'transfer' || input.kind === 'advance' || input.kind === 'payment') {
         const amount = { amount: String(input.amount), currency: account.currency };
         const idempotencyKey = crypto.randomUUID();
+        // El avance usa el mismo movimiento de traslado que una transferencia — solo
+        // cambia qué cuentas se dejan elegir como origen y destino, ya decidido antes
+        // de llegar aquí — así que pide el mismo endpoint.
         const operation = await firstValueFrom(
-          input.kind === 'transfer'
-            ? this.injector.get(FinanceApiClient).createTransfer({
-                date: input.date,
-                amount,
-                sourceAccount: input.accountId,
-                destinationAccount: input.targetId,
-                description: input.description,
-                idempotencyKey,
-              })
-            : this.injector.get(FinanceApiClient).createCardPayment({
+          input.kind === 'payment'
+            ? this.injector.get(FinanceApiClient).createCardPayment({
                 date: input.date,
                 amount,
                 account: input.accountId,
                 card: input.targetId,
                 description: input.description,
                 idempotencyKey,
+              })
+            : this.injector.get(FinanceApiClient).createTransfer({
+                date: input.date,
+                amount,
+                sourceAccount: input.accountId,
+                destinationAccount: input.targetId,
+                description: input.description,
+                idempotencyKey,
               }),
         );
-        const created = operation.legs.map<Movement>((leg) => ({
-          id: leg.id,
-          date: leg.date,
-          description: leg.description ?? input.description,
-          accountId: leg.links['account'] ?? leg.links['card'] ?? '',
-          category: 'Transferencias',
-          kind: input.kind as Movement['kind'],
-          amount: parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect),
-          status: 'confirmed',
-        }));
+        // Transferencia y avance no son su propia clase de movimiento: la pata que sale
+        // es un gasto y la que entra un ingreso, con `movementSubtype` como única marca
+        // de que el dinero solo se movió entre cuentas — ver el comentario en Movement.
+        const movementSubtype =
+          input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
+        const created = operation.legs.map<Movement>((leg) => {
+          const legAmount = parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect);
+          return {
+            id: leg.id,
+            date: leg.date,
+            description: leg.description ?? input.description,
+            accountId: leg.links['account'] ?? leg.links['card'] ?? '',
+            category: 'Transferencias',
+            kind: input.kind === 'payment' ? 'payment' : legAmount < 0 ? 'expense' : 'income',
+            movementSubtype,
+            amount: legAmount,
+            status: 'confirmed',
+          };
+        });
         this.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
         this.form.set(null);
-        this.log(input.kind === 'transfer' ? 'Transferencia registrada en la API' : 'Abono registrado en la API');
+        this.log(
+          input.kind === 'payment'
+            ? 'Abono registrado en la API'
+            : input.kind === 'advance'
+              ? 'Avance registrado en la API'
+              : 'Transferencia registrada en la API',
+        );
         return;
       }
       const isIncome = input.kind === 'income';
@@ -529,6 +549,8 @@ export class DemoStore {
         person: input.person,
         ownership: input.person ? 'loaned' : (input.ownership ?? 'own'),
         recurring: input.recurring === true || input.recurring === 'true',
+        loanRole: input.loanRole,
+        loanProduct: input.loanProduct,
       };
       this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
       this.form.set(null);
@@ -536,7 +558,17 @@ export class DemoStore {
       return;
     }
     const id = input.id ?? crypto.randomUUID();
-    const kind = input.kind as Movement['kind'];
+    // `input.kind` es la operación pedida (qué botón/tipo eligió la persona), no
+    // necesariamente la clase que se guarda: transferencia y avance no son su propia
+    // clase de movimiento, la pata que sale es un gasto y la que entra un ingreso —
+    // `movementSubtype` es la única marca que los distingue de una compra o un sueldo
+    // real, y lo que excluyen los KPI y el filtro de Operación. `payment` (abono de
+    // tarjeta) sí sigue siendo su propia clase, sin tocar.
+    const isDualLeg = input.kind === 'payment' || input.kind === 'transfer' || input.kind === 'advance';
+    const movementSubtype: Movement['movementSubtype'] =
+      input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
+    const kind: Movement['kind'] =
+      input.kind === 'payment' ? 'payment' : input.kind === 'income' ? 'income' : 'expense';
     const movement: Movement = {
       id,
       date: input.date,
@@ -544,6 +576,7 @@ export class DemoStore {
       accountId: input.accountId,
       category: input.category,
       kind,
+      movementSubtype,
       amount: kind === 'income' ? input.amount : -input.amount,
       status: 'confirmed',
       person: input.person,
@@ -555,6 +588,7 @@ export class DemoStore {
       installmentTotal:
         input.installmentTotal && input.installmentTotal > 1 ? Number(input.installmentTotal) : undefined,
       loanRole: input.loanRole,
+      loanProduct: input.loanProduct,
       originalCurrency: input.originalCurrency,
       originalAmount: input.originalCurrency === 'USD' ? Number(input.originalAmount) : undefined,
       exchangeRate: input.originalCurrency === 'USD' ? Number(input.exchangeRate) : undefined,
@@ -564,8 +598,16 @@ export class DemoStore {
       movements: [
         ...d.movements.filter((m) => m.id !== id),
         movement,
-        ...(kind === 'payment' || kind === 'transfer'
-          ? [{ ...movement, id: id + '-to', accountId: input.targetId!, amount: input.amount }]
+        ...(isDualLeg
+          ? [
+              {
+                ...movement,
+                id: id + '-to',
+                accountId: input.targetId!,
+                amount: input.amount,
+                kind: (input.kind === 'payment' ? 'payment' : 'income') as Movement['kind'],
+              },
+            ]
           : []),
       ],
       notifications: d.notifications.map((n) => (n.id === input.notificationId ? { ...n, read: true } : n)),

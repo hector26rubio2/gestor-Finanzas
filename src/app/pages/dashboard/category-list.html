@@ -1,0 +1,11 @@
+<div class="category-list" [attr.aria-label]="ariaLabel()">
+  @for (category of items(); track category.name) {
+  <button type="button" (click)="pick.emit(category.name)" [class.selected]="selected() === category.name">
+    <span><i [style.background]="category.color"></i>{{ category.name }}</span><b>{{ money(category.value) }}</b
+    ><small>{{ category.percent }} %</small
+    ><em><i [style.width.%]="category.percent" [style.background]="category.color"></i></em>
+  </button>
+  } @empty {
+  <p class="empty">{{ emptyText() }}</p>
+  }
+</div>

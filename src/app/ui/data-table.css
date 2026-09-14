@@ -5,14 +5,22 @@
   flex: 1;
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  overflow: hidden;
   background: var(--surface);
   color: var(--text);
 }
+/*
+ * El recorte de esquinas redondeadas vive aqui, no en `:host`: si el host entero
+ * recorta overflow, el menu de los `demo-select` de paginacion en el `<footer>`
+ * (Filas por pagina, Ir a pagina) queda invisible en vez de flotar sobre la
+ * tabla -aparecia en el arbol de accesibilidad pero no se veia en pantalla-. Solo
+ * el area con scroll necesita el recorte (la fila resaltada al pasar el mouse no
+ * puede asomar por encima de la esquina redondeada de arriba).
+ */
 .viewport {
   min-height: 0;
   flex: 1;
   overflow: auto;
+  border-radius: var(--radius) var(--radius) 0 0;
   scrollbar-width: thin;
   scrollbar-color: var(--line) transparent;
 }
