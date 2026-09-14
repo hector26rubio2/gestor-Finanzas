@@ -11,8 +11,10 @@ import {
   QueryList,
   ViewChild,
   computed,
+  effect,
   input,
   signal,
+  untracked,
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -124,6 +126,21 @@ export class DataTableComponent {
     if (inject(Router, { optional: true })) {
       sincronizarPaginaConLaUrl(() => this.urlKey(), this.page);
     }
+    // Sin esto, cambiar de filtro en el padre (otra cuenta, otro periodo) deja la tabla
+    // en la pagina donde se quedo el listado anterior -a veces mas alla del nuevo total,
+    // aterrizando en la ultima pagina en vez de la primera-. Un cambio real en el total de
+    // filas es la señal de que la lista es otra, no una actualizacion de la misma; se
+    // ignora el primer disparo del effect (el del montaje) para no pisar una pagina que
+    // ya llego fijada por la URL.
+    let primerCalculo = true;
+    effect(() => {
+      this.totalCount();
+      if (primerCalculo) {
+        primerCalculo = false;
+        return;
+      }
+      if (this.totalRows() === null && untracked(this.page) !== 0) this.page.set(0);
+    });
   }
   setSize(event: Event): void {
     const size = Number((event.target as HTMLSelectElement).value);
