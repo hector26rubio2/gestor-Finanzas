@@ -40,6 +40,7 @@ export default {
   'login.enterAsReviewer': 'Entrar como revisor',
   'login.connecting': 'Conectando à API…',
   'login.signInToContinue': 'Entre com o Google para continuar.',
+  'login.authError': 'Não foi possível concluir o login com o Google. Tente novamente.',
   'login.localAccessNote': 'Acesso local · Informação protegida neste dispositivo',
 
   // ui: componentes compartilhados (kpi, tabela, overlay, select, sem acesso, skeleton, gráfico)

@@ -313,4 +313,29 @@ describe('RemoteBootstrap', () => {
     expect(store.remoteError()).toBe('');
     expect(store.user()).toBeNull();
   });
+
+  it('surfaces the failed Google callback instead of a silent anonymous state', async () => {
+    // El backend redirige aca con "?authError=1" cuando el callback de Google falla del
+    // lado del servidor -antes la persona se quedaba viendo un JSON crudo en el dominio
+    // de la API y esta pantalla ni se enteraba-.
+    window.history.pushState(null, '', '/dashboard?authError=1&foo=bar');
+    const api = {
+      session: vi.fn(() => throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' }))),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    await TestBed.inject(RemoteBootstrap).initialize();
+
+    const store = TestBed.inject(DemoStore);
+    expect(store.remoteState()).toBe('error');
+    expect(store.remoteError()).not.toBe('');
+    expect(window.location.search).not.toContain('authError');
+    expect(window.location.search).toContain('foo=bar');
+    window.history.pushState(null, '', '/');
+  });
 });

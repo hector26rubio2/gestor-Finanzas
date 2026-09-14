@@ -40,6 +40,7 @@ export default {
   'login.enterAsReviewer': 'Entrer en tant que relecteur',
   'login.connecting': "Connexion à l'API…",
   'login.signInToContinue': 'Connectez-vous avec Google pour continuer.',
+  'login.authError': "La connexion avec Google n'a pas pu aboutir. Réessayez.",
   'login.localAccessNote': 'Accès local · Informations protégées sur cet appareil',
 
   // ui: composants partagés (kpi, tableau, overlay, select, accès refusé, skeleton, graphique)

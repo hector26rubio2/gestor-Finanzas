@@ -18,12 +18,14 @@ import { MovementKindCatalog, signOf } from './movement-kinds';
 import { P } from './permissions';
 import { Router } from '@angular/router';
 import { DemoStore } from './store';
+import { I18nService } from './i18n';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
   private readonly store = inject(DemoStore);
   private readonly router = inject(Router);
+  private readonly i18n = inject(I18nService);
   private sessionSignature: string | null = null;
 
   /**
@@ -152,15 +154,31 @@ export class RemoteBootstrap {
       this.escucharCambiosDeAcceso();
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) {
-        this.store.remoteError.set('');
+        const authError = this.consumeAuthError();
+        this.store.remoteError.set(authError ?? '');
         this.store.user.set(null);
-        this.store.remoteState.set('anonymous');
+        this.store.remoteState.set(authError ? 'error' : 'anonymous');
         return;
       }
       this.store.remoteError.set(error instanceof Error ? error.message : 'No fue posible cargar la API.');
       this.store.remoteState.set('error');
       this.store.user.set(null);
     }
+  }
+
+  /**
+   * Si el callback de Google falló del lado del backend, redirige de vuelta con
+   * `?authError=1` en vez de dejar a la persona viendo el JSON crudo de la API. Sin
+   * esto, la sesión simplemente volvía a "anonymous" y la pantalla de login no decía
+   * nada de lo que había pasado.
+   */
+  private consumeAuthError(): string | null {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.has('authError')) return null;
+    params.delete('authError');
+    const query = params.toString();
+    window.history.replaceState(null, '', window.location.pathname + (query ? `?${query}` : ''));
+    return this.i18n.t('login.authError');
   }
 
   /** Revisa la sesión y recarga todo cuando un administrador cambia los permisos. */
