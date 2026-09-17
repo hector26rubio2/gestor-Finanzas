@@ -26,11 +26,21 @@
     <div class="search-control">
       <demo-icon name="search" />
       <input
-        type="search"
+        type="text"
         [attr.placeholder]="i18n.t('accounts.filters.search.placeholder')"
         [ngModel]="accountQuery()"
         (ngModelChange)="setAccountQuery($event)"
       />
+      @if (accountQuery()) {
+      <button
+        type="button"
+        class="clear-search"
+        [attr.aria-label]="i18n.t('accounts.filters.search.clear')"
+        (click)="setAccountQuery('')"
+      >
+        <demo-icon name="close" />
+      </button>
+      }
     </div>
   </label>
   <label
@@ -43,41 +53,34 @@
   /></label>
   <span>{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span>
 </section>
-<section class="cards" [class.compact]="compactCards()">
-  <div class="card-strip" tabindex="0" [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')">
-    @for (a of visibleAccounts(); track a.id) {
-    <button
-      class="bank-card"
-      [style.--card-color]="a.color"
-      [class.active]="selectedAccountFilter() === a.id"
-      (click)="selectAccount(a.id, a.type)"
-    >
-      <span
-        >{{ a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ?
-        i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash') }}</span
-      ><b>{{ a.name }}</b><em>{{ a.lastFour ? '•••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour') }}</em
-      ><small
-        >{{ a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel') }}
-        <strong>{{ store.money(displayBalance(a)) }}</strong></small
-      >
-    </button>
-    }
-  </div>
-  @if (filteredAccounts().length > accountPageSize) {
-  <nav class="card-pages" [attr.aria-label]="i18n.t('accounts.pagination.ariaLabel')">
-    <button (click)="accountPage.update((p) => Math.max(0, p - 1))" [disabled]="accountPage() === 0">‹</button
-    ><span>{{ accountPage() + 1 }} / {{ accountPageCount() }}</span
-    ><button
-      (click)="accountPage.update((p) => Math.min(accountPageCount() - 1, p + 1))"
-      [disabled]="accountPage() >= accountPageCount() - 1"
-    >
-      ›
-    </button>
-  </nav>
-  }
-  <button class="compact-toggle" (click)="compactCards.update((v) => !v)">
-    {{ compactCards() ? i18n.t('accounts.cards.expand') : i18n.t('accounts.cards.compact') }}
+<section
+  class="account-switch"
+  role="tablist"
+  tabindex="0"
+  [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
+>
+  <button
+    type="button"
+    class="switch-chip"
+    role="tab"
+    [attr.aria-selected]="selectedAccountFilter() === 'all'"
+    [class.active]="selectedAccountFilter() === 'all'"
+    (click)="filterByAccount('all')"
+  >
+    {{ i18n.t('accounts.cards.allChip') }}
   </button>
+  @for (a of filteredAccounts(); track a.id) {
+  <button
+    type="button"
+    class="switch-chip"
+    role="tab"
+    [attr.aria-selected]="selectedAccountFilter() === a.id"
+    [class.active]="selectedAccountFilter() === a.id"
+    (click)="selectAccount(a.id, a.type)"
+  >
+    {{ a.name }}
+  </button>
+  }
 </section>
 <section class="table-zone">
   <demo-table
@@ -86,7 +89,7 @@
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
     [remotePage]="store.remoteMovementPage()"
-    (pageSizeChange)="compactCards.set($event > 5); book.changeMovementPageSize($event)"
+    (pageSizeChange)="book.changeMovementPageSize($event)"
     (pageChange)="book.loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
   />

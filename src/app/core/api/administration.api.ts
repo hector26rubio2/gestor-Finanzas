@@ -1,5 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '../http/api-http-client';
+import { RUNTIME_CONFIG } from '../runtime';
 import { API_ROUTES } from './api-routes';
 import { ApiFeatureFlag } from './preferences.api';
 import { ApiPage } from './shared-api-types';
@@ -130,11 +131,32 @@ export interface ApiClientError {
   resolution?: string | null;
   createdAt?: string;
   resolvedAt?: string | null;
+  /** Presentes solo en reportes manuales enviados desde el botón flotante. */
+  title?: string | null;
+  severity?: 'low' | 'medium' | 'high' | 'critical' | null;
+  stepsToReproduce?: string | null;
+  url?: string | null;
+  hasScreenshot?: boolean;
+  githubIssueUrl?: string | null;
+  githubIssueNumber?: number | null;
+}
+
+/** Lo que arma `BugReportButtonComponent` a partir de lo capturado en el navegador. */
+export interface BugReportPayload {
+  title: string;
+  description: string;
+  stepsToReproduce?: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  url: string;
+  consoleLogJson?: string;
+  systemInfoJson?: string;
+  screenshotBase64?: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class AdministrationApi {
   private readonly transport = inject(API_TRANSPORT);
+  private readonly runtime = inject(RUNTIME_CONFIG);
 
   audit(page = 1, size = 50) {
     return this.transport.request<ApiPage<ApiAuditEvent>>({
@@ -190,11 +212,11 @@ export class AdministrationApi {
     });
   }
 
-  adminRoles(page = 1, size = 25) {
+  adminRoles(page = 1, size = 25, organizationId?: string) {
     return this.transport.request<ApiPage<ApiAdminRole>>({
       method: 'GET',
       path: API_ROUTES.adminRoles,
-      params: { page, size },
+      params: organizationId ? { page, size, organizationId } : { page, size },
     });
   }
 
@@ -286,5 +308,18 @@ export class AdministrationApi {
       path: API_ROUTES.adminError(id),
       body: { status, resolution },
     });
+  }
+
+  reportBug(payload: BugReportPayload) {
+    return this.transport.request<{ error: ApiClientError; githubIssueUrl: string | null }>({
+      method: 'POST',
+      path: API_ROUTES.bugReports,
+      body: payload,
+    });
+  }
+
+  /** URL directa (fuera del transporte JSON) para pintar la captura en un `<img>`; va por cookie de sesión. */
+  screenshotUrl(id: string): string {
+    return `${this.runtime.apiBaseUrl ?? ''}${API_ROUTES.adminErrorScreenshot(id)}`;
   }
 }

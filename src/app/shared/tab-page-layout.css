@@ -1,0 +1,57 @@
+/*
+ * Diseño compartido por las pestañas de una sola tabla (Movimientos, Cuentas...): el
+ * `:host` se suma al flex-column acotado de `.workspace-page` (`height: calc(100dvh -
+ * 112px)`), con los KPI arriba y `.table-zone` ocupando el resto. Sin el `:host`, la
+ * pestaña rendía a su alto de contenido y una tabla de muchas filas desbordaba la
+ * página entera en vez de scrollear ella sola dentro de su propio `.viewport` — el
+ * scroll tiene que quedarse en la tabla, nunca en la página.
+ *
+ * Angular no comparte estilos entre componentes standalone (cada uno carga solo su
+ * propio `styleUrl`), así que esto vivía copiado en cada `.css` — y una copia se quedó
+ * sin el `:host`. Un solo archivo importado evita que las copias se desincronicen.
+ */
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 0;
+  flex: 1;
+}
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 12px;
+}
+/*
+ * `.kpis.mini`: la mitad del alto de una tarjeta normal (kpi.css pone `min-height:
+ * 100px` en su `:host` base). Antes solo se recortaba el padding y la tarjeta seguía
+ * forzando 100px por su propio mínimo, con dos líneas de texto flotando en medio de un
+ * hueco vacío — la mitad de la tarjeta desperdiciada y la tabla de abajo, apretada.
+ */
+.kpis.mini demo-kpi {
+  min-height: 50px;
+  padding: 10px 14px;
+}
+.table-zone {
+  flex: 1;
+  min-height: 230px;
+  display: flex;
+}
+@media (max-width: 1100px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: 1fr 1fr;
+  }
+  /*
+   * En móvil la tabla se convierte en tarjetas y crece con los datos: fijar el alto la
+   * desbordaba. Fluye con la página, que es como se navega con el pulgar.
+   */
+  .table-zone {
+    height: auto;
+    flex: none;
+  }
+}

@@ -1,35 +1,4 @@
-/*
- * `.kpis`/`.table-zone` son compartidas con otras pestañas (Movimientos, Reportes...),
- * pero cada componente standalone solo carga su propio styleUrl: sin esta copia, la
- * cuadrícula de KPI se apilaba en una sola columna en vez de repartirse en filas.
- */
-.kpis {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
-  gap: 12px;
-}
-.kpis.mini demo-kpi {
-  padding: 16px 18px;
-}
-.table-zone {
-  flex: 1;
-  min-height: 230px;
-  display: flex;
-}
-@media (max-width: 1100px) {
-  .kpis {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 700px) {
-  .kpis {
-    grid-template-columns: 1fr 1fr;
-  }
-  .table-zone {
-    height: auto;
-    flex: none;
-  }
-}
+@import '../../shared/tab-page-layout.css';
 
 .account-tools select {
   appearance: none;
@@ -50,120 +19,38 @@
   border-color: var(--accent);
 }
 
-.cards {
+/*
+ * Fila de una sola linea con scroll horizontal: con 3 cuentas o con 30 ocupa el mismo
+ * alto fijo, en vez de crecer hacia abajo o competir por espacio con la tabla. En
+ * celular es exactamente el mismo gesto que deslizar un carrusel, sin serlo -son
+ * nombres, no tarjetas grandes-. La tarjeta bonita de verdad solo se ve al abrir una
+ * cuenta, en el inspector (`workspace.html`), ya ensanchado para eso.
+ */
+.account-switch {
   display: flex;
-  align-items: stretch;
-  flex-wrap: wrap;
-  gap: 12px;
-  min-height: 142px;
-}
-
-.card-strip {
-  display: flex;
-  gap: 12px;
+  flex-wrap: nowrap;
   overflow-x: auto;
-  flex: 1;
-  min-width: 0;
-  scroll-snap-type: x proximity;
-  padding: 2px 2px 8px;
+  gap: 8px;
+  padding-bottom: 4px;
   scrollbar-width: thin;
 }
 
-.card-strip {
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.card-strip::-webkit-scrollbar {
-  display: none;
-}
-
-.card-strip .bank-card {
-  flex: 0 0 230px;
-  width: 230px;
-  scroll-snap-align: start;
-}
-
-.card-strip .bank-card.active {
-  outline: 3px solid color-mix(in srgb, var(--accent) 65%, transparent);
-  outline-offset: 2px;
-}
-
-.card-pages {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  align-self: center;
-}
-
-.card-pages button {
+.switch-chip {
+  flex: none;
   border: 1px solid var(--line);
   background: var(--surface);
   color: var(--text);
-  border-radius: 8px;
-  padding: 7px 10px;
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
 }
 
-.bank-card {
-  width: min(230px, 24%);
-  border: 0;
-  border-radius: 16px;
-  color: #fff;
-  text-align: left;
-  padding: 17px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--card-color) 95%, #fff),
-    color-mix(in srgb, var(--card-color) 65%, #000)
-  );
-  display: grid;
-  gap: 10px;
-  box-shadow: 0 10px 20px color-mix(in srgb, var(--text) 14%, transparent);
-}
-
-.bank-card span {
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-}
-
-.bank-card b {
-  font-size: 0.9rem;
-}
-
-.bank-card em {
-  font-style: normal;
-  letter-spacing: 0.1em;
-}
-
-.bank-card small {
-  display: flex;
-  justify-content: space-between;
-  gap: 5px;
-}
-
-.compact-toggle {
-  margin-left: auto;
-  background: var(--surface);
-  color: var(--text);
-  border: 1px dashed var(--line);
-  border-radius: var(--radius);
-  padding: 12px;
-}
-
-.cards.compact {
-  min-height: 70px;
-}
-
-.cards.compact .bank-card {
-  width: 180px;
-  display: flex;
-  align-items: center;
-  padding: 12px;
-}
-
-.cards.compact .bank-card span,
-.cards.compact .bank-card small {
-  display: none;
+.switch-chip.active {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .account-tools {
@@ -202,18 +89,65 @@
   white-space: nowrap;
 }
 
+/*
+ * El input vive dentro de `.search-control`, no al revés: el borde/foco/fondo son de la
+ * envoltura y el input queda transparente y sin borde propio, así la lupa y el texto se
+ * ven como un único control en vez de dos pegados. El botón de limpiar es nuestro (no el
+ * "×" nativo de `type=search`, que llegaba sin espacio ni estilo y chocaba con el borde).
+ */
 .search-control {
   display: flex;
   align-items: center;
+  gap: 8px;
+  height: 38px;
   border: 1px solid var(--line);
   border-radius: 9px;
   background: var(--canvas);
-  padding-left: 10px;
+  padding: 0 10px;
 }
 
-.search-control input {
+.search-control demo-icon {
+  color: var(--muted);
+  flex: none;
+}
+
+/*
+ * Especificidad reforzada a proposito: `.account-tools input` (mas arriba) pone su
+ * propio borde y fondo a cualquier `<input>` del bloque de filtros, buscador incluido.
+ * Con la misma especificidad que aquel, el orden en el archivo decidia quien ganaba —
+ * fragil ante el primer reordenamiento— y el input de busqueda se pintaba con su propio
+ * borde dentro del borde de `.search-control`, como una caja metida en otra caja, y el
+ * icono quedaba flotando en el borde exterior en vez de leerse como parte del control.
+ */
+.account-tools .search-control input {
+  height: 100%;
   border: 0;
   background: transparent;
+  padding: 0;
+  flex: 1;
+  min-width: 0;
+}
+
+.search-control input:focus {
+  outline: none;
+}
+
+.clear-search {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 0;
+}
+
+.clear-search:hover {
+  background: color-mix(in srgb, var(--muted) 16%, transparent);
+  color: var(--text);
 }
 
 .search-control:focus-within {
@@ -221,22 +155,8 @@
   border-color: var(--accent);
 }
 
-@media (max-width: 1100px) {
-  .bank-card {
-    min-width: 190px;
-  }
-
-  .cards {
-    overflow: auto;
-  }
-}
-
 @media (max-width: 700px) {
   .account-tools {
     grid-template-columns: 1fr;
-  }
-
-  .cards {
-    overflow: auto;
   }
 }

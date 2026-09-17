@@ -149,6 +149,15 @@
     </button>
     }
   </section>
+  @if (organizationOptions().length > 1) {
+  <demo-select
+    class="roles-organization-filter"
+    [ngModel]="rolesOrganizationFilter()"
+    (ngModelChange)="setRolesOrganizationFilter($event)"
+    [options]="rolesOrganizationOptions()"
+    [ariaLabel]="i18n.t('admin.roles.filter.ariaLabel')"
+  />
+  }
   <section class="role-grid">
     @for (role of roles(); track role.id) {
     <article class="role-card" [class.inactive]="!role.isActive">

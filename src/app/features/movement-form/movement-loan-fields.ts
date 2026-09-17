@@ -34,13 +34,29 @@ export class MovementLoanFieldsComponent {
       .people.map((p) => ({ value: p.name, label: this.i18n.t('form.movement.person.borrowed', { name: p.name }) })),
   ]);
 
+  /** Al volver a "propia" se limpia `loanRole`: el campo se oculta y no debe quedar
+   * un valor viejo listo para mandarse a guardar sin que nadie lo vea. */
+  onPersonChange(value: string): void {
+    this.model['person'] = value;
+    if (!value) this.model['loanRole'] = '';
+  }
+
   // No es un `computed()`: `showLoan` es un `@Input()` normal, y `model['operationType']`
   // es una propiedad mutable de un objeto que se sigue siendo el mismo por referencia.
   // Ninguna de las dos la rastrearia un `computed()` — la primera lectura quedaria en
   // cache para siempre y ocultar el prestamo al elegir una tarjeta de credito, o al
   // cambiar el selector de Tipo, nunca se reflejaria.
+  /**
+   * Con responsabilidad propia no hay relación con nadie: un préstamo a uno mismo no
+   * es préstamo. `person` vacío es "propia" (ver `personOptions`).
+   */
   showLoanRole(): boolean {
-    return this.showLoan && this.model['operationType'] === 'loan' && this.caps.allows(P.movimientos.prestamos.crear);
+    return (
+      this.showLoan &&
+      this.model['operationType'] === 'loan' &&
+      !!this.model['person'] &&
+      this.caps.allows(P.movimientos.prestamos.crear)
+    );
   }
 
   /**

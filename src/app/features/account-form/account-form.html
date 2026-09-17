@@ -47,13 +47,44 @@
         [ariaLabel]="i18n.t('form.account.field.paymentOrder')"
       />
     </demo-field>
-    <demo-field [label]="i18n.t('form.account.field.paymentPriority')">
-      <demo-select
-        name="paymentPriority"
-        [(ngModel)]="paymentPriority"
-        [options]="paymentPriorityOptions()"
-        [ariaLabel]="i18n.t('form.account.field.paymentPriorityAria')"
-      />
+    <demo-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
+      <ol
+        class="priority-list"
+        [attr.aria-label]="i18n.t('form.account.field.paymentPriorityAria')"
+        (dragover)="$event.preventDefault()"
+      >
+        @for (item of paymentPriorityOrder(); track item; let i = $index, first = $first, last = $last) {
+        <li
+          draggable="true"
+          (dragstart)="startDragPriority(i)"
+          (dragover)="$event.preventDefault()"
+          (drop)="dropPriority(i)"
+        >
+          <demo-icon name="grip" class="priority-grip" />
+          <span class="priority-rank">{{ i + 1 }}</span>
+          <span class="priority-label">{{ priorityLabels()[item] }}</span>
+          <span class="priority-actions">
+            <button
+              type="button"
+              [disabled]="first"
+              (click)="movePriority(i, -1)"
+              [attr.aria-label]="i18n.t('form.account.priorityMoveUp')"
+            >
+              <demo-icon name="chevronUp" />
+            </button>
+            <button
+              type="button"
+              [disabled]="last"
+              (click)="movePriority(i, 1)"
+              [attr.aria-label]="i18n.t('form.account.priorityMoveDown')"
+            >
+              <demo-icon name="chevronDown" />
+            </button>
+          </span>
+        </li>
+        }
+      </ol>
+      <small class="priority-hint">{{ i18n.t('form.account.priorityHint') }}</small>
     </demo-field>
     <demo-field [label]="i18n.t('form.account.field.minimumPayment')">
       <input name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" />

@@ -6,3 +6,18 @@
   <input type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
 </demo-field>
 }
+<demo-field [label]="i18n.t('form.movement.field.purchaseApr')">
+  <input
+    type="number"
+    name="purchaseApr"
+    min="0"
+    step="0.1"
+    [ngModel]="purchaseApr()"
+    (ngModelChange)="onPurchaseAprChange($event)"
+  />
+</demo-field>
+@if (isOverridden() && cardApr() !== undefined) { @let tasaTarjeta = cardApr()!;
+<button type="button" class="text-reset" (click)="useCardApr()">
+  {{ i18n.t('form.movement.purchaseApr.useCardDefault', { rate: tasaTarjeta }) }}
+</button>
+}

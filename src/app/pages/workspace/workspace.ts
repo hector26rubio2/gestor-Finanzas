@@ -17,6 +17,7 @@ import { firstValueFrom } from 'rxjs';
 import { formatReturnRate } from '../../core/money';
 import { I18nService } from '../../core/i18n';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
+import type { Account } from '../../core/demo-data';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
@@ -168,20 +169,30 @@ export class WorkspaceComponent {
     this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1), 0),
   );
   /**
-   * Interes del proximo corte, con la tasa que declara la tarjeta.
+   * Interes del proximo corte, compra por compra, con la tasa propia de cada una o —a
+   * falta de ella— la que declara la tarjeta.
    *
    * Antes aplicaba un 0.023 mensual fijo —un 27.6 % anual— a cualquier tarjeta, sin
    * mirar la suya: las de los datos demo declaran 10.2 % y 7.8 %, y la pantalla enseñaba
    * un numero que no salia de ninguna parte bajo el rotulo «Interes estimado». Inventar
    * una cifra en una pantalla de dinero es peor que no darla, porque quien la lee decide
-   * con ella.
+   * con ella. Y una compra puntual puede traer su propia tasa —cambio ese mes, aunque la
+   * tarjeta no cambio la suya—, asi que sumar todo a una sola tasa ya no era exacto.
    *
-   * Sin tasa declarada devuelve null y la linea no se pinta.
+   * Sin tasa declarada (ni propia ni de la tarjeta) para ninguna compra, devuelve null y
+   * la linea no se pinta; con algunas si y otras no, las que no tienen simplemente no
+   * suman interes en vez de tirar el numero entero.
    */
   readonly cardEstimatedInterest = computed(() => {
-    const anual = this.selectedAccount()?.annualRate;
-    if (anual === undefined || anual === null || !Number.isFinite(anual)) return null;
-    return Math.round(this.cardDebt() * (anual / 100 / 12));
+    const tasaTarjeta = this.selectedAccount()?.annualRate;
+    const intereses = this.cardPurchases().map((m) => {
+      const anual = m.purchaseApr ?? tasaTarjeta;
+      return anual !== undefined && anual !== null && Number.isFinite(anual)
+        ? Math.abs(m.amount) * (anual / 100 / 12)
+        : null;
+    });
+    if (intereses.every((x) => x === null)) return null;
+    return Math.round(intereses.reduce((sum: number, x) => sum + (x ?? 0), 0));
   });
   readonly cardStatementTotal = computed(() =>
     Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
@@ -229,6 +240,16 @@ export class WorkspaceComponent {
     this.store.data().movements.find((m) => m.id === this.store.inspector()?.id),
   );
   readonly selectedAccount = computed(() => this.store.account(this.store.inspector()?.id ?? ''));
+  /** El inspector muestra la tarjeta bonita y se ensancha solo para estos dos tipos. */
+  readonly isAccountInspector = computed(() => {
+    const type = this.store.inspector()?.type;
+    return type === 'card' || type === 'account';
+  });
+  /** Deuda como numero positivo en una tarjeta; saldo tal cual en el resto. */
+  displayBalance(account: Account): number {
+    const value = this.store.balance(account);
+    return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
+  }
   readonly selectedPerson = computed(() => this.store.data().people.find((p) => p.id === this.store.inspector()?.id));
   readonly selectedInvestment = computed(() =>
     this.store.data().investments.find((i) => i.id === this.store.inspector()?.id),
@@ -444,6 +465,12 @@ export class WorkspaceComponent {
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.settlementFailed'));
     }
+  }
+  /** Abre el mismo formulario de alta, precargado con la cuenta o tarjeta elegida. */
+  editSelectedAccount(): void {
+    const account = this.selectedAccount();
+    if (!account) return;
+    this.store.form.set({ kind: 'account', account });
   }
   async deactivateSelectedAccount() {
     const account = this.selectedAccount();

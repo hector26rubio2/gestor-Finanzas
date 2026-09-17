@@ -53,6 +53,7 @@ const TRAZOS: Readonly<Record<string, string>> = {
   trash: 'M4 7h16M9 7V4h6v3M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13M10 11v6M14 11v6',
   pause: 'M9 5v14M15 5v14',
   play: 'M7 4l13 8-13 8z',
+  grip: 'M8 6h.01M8 12h.01M8 18h.01M16 6h.01M16 12h.01M16 18h.01',
 
   // Paginación
   first: 'M13 6l-6 6 6 6M19 6l-6 6 6 6',

@@ -131,6 +131,7 @@ export class MovementFormComponent {
       recurrence: m?.recurrence ?? 'monthly',
       installmentCurrent: m?.installmentCurrent ?? 1,
       installmentTotal: m?.installmentTotal ?? 1,
+      purchaseApr: m?.purchaseApr,
       loanRole: m?.loanRole ?? '',
       loanProduct: m?.loanProduct ?? '',
       operationType:

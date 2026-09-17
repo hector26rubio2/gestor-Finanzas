@@ -2,6 +2,7 @@
   <demo-select
     name="person"
     [(ngModel)]="model['person']"
+    (ngModelChange)="onPersonChange($event)"
     [options]="personOptions()"
     [ariaLabel]="i18n.t('form.movement.field.person')"
   />

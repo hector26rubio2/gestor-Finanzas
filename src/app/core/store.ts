@@ -245,12 +245,15 @@ export class DemoStore {
     accountId?: string;
     targetId?: string;
     movement?: Movement;
+    /** Cuenta o tarjeta a editar: presente abre el formulario en modo edicion. */
+    account?: Account;
     notificationId?: string;
     ownership?: Movement['ownership'];
     recurring?: boolean | string;
     recurrence?: Movement['recurrence'];
     installmentCurrent?: number;
     installmentTotal?: number;
+    purchaseApr?: number;
     loanRole?: Movement['loanRole'];
     loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
@@ -426,6 +429,7 @@ export class DemoStore {
     recurrence?: Movement['recurrence'];
     installmentCurrent?: number;
     installmentTotal?: number;
+    purchaseApr?: number;
     loanRole?: Movement['loanRole'];
     loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
@@ -534,6 +538,7 @@ export class DemoStore {
           rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
           description: input.description,
           idempotencyKey: crypto.randomUUID(),
+          purchaseApr: isCard ? input.purchaseApr : undefined,
         }),
       );
       const sign = signOf(created.flow, created.effect);
@@ -551,6 +556,7 @@ export class DemoStore {
         recurring: input.recurring === true || input.recurring === 'true',
         loanRole: input.loanRole,
         loanProduct: input.loanProduct,
+        purchaseApr: created.purchaseApr ?? undefined,
       };
       this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
       this.form.set(null);
@@ -592,6 +598,9 @@ export class DemoStore {
       originalCurrency: input.originalCurrency,
       originalAmount: input.originalCurrency === 'USD' ? Number(input.originalAmount) : undefined,
       exchangeRate: input.originalCurrency === 'USD' ? Number(input.exchangeRate) : undefined,
+      // Solo aplica a una compra de tarjeta: el resto de clases no causa interes por
+      // tasa anual, asi que un valor aqui no significaria nada (misma regla del backend).
+      purchaseApr: kind === 'expense' && this.account(input.accountId)?.type === 'credit' ? input.purchaseApr : undefined,
     };
     this.data.update((d) => ({
       ...d,
