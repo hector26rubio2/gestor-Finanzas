@@ -202,9 +202,27 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
 
     await componente.loadRolesPage(2);
 
-    expect(adminRoles).toHaveBeenCalledWith(2, 12);
+    expect(adminRoles).toHaveBeenCalledWith(2, 12, undefined);
     expect(componente.roles()[0].id).toBe('r2');
     expect(componente.rolesPage()).toBe(2);
+  });
+
+  /**
+   * Con dos organizaciones el listado sin filtro traía los roles de sistema
+   * (Beta, Colaborador, Propietario) repetidos una vez por organizacion, y no había
+   * nada en pantalla que lo distinguiera de un duplicado real.
+   */
+  it('filtrar por organizacion se lo pasa a adminRoles y reinicia a la pagina 1', async () => {
+    const adminRoles = vi.fn((page: number) =>
+      of({ items: [{ ...rol, id: `r${page}` }], page, size: 12, total: 3, totalPages: 1, hasNext: false }),
+    );
+    const componente = montar({ adminRoles } as unknown as Partial<FinanceApiClient>);
+    componente.rolesTotal.set(3);
+
+    componente.setRolesOrganizationFilter('org-2');
+
+    expect(componente.rolesOrganizationFilter()).toBe('org-2');
+    expect(adminRoles).toHaveBeenCalledWith(1, 12, 'org-2');
   });
 });
 

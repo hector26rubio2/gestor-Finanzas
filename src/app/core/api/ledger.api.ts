@@ -18,6 +18,7 @@ export interface ApiMovement {
   createdAt: string;
   reversalOf: string | null;
   reversedBy: string | null;
+  purchaseApr: number | null;
 }
 
 export interface ApiConvertedMoney {

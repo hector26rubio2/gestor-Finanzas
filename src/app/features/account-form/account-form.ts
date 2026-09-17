@@ -7,11 +7,15 @@ import { OverlayComponent } from '../../ui/ui';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
 import { FieldComponent } from '../../ui/field';
+import { IconComponent } from '../../ui/icon';
+
+/** Componentes de un abono, en el orden en que se le aplican a la deuda. */
+export type PriorityItem = 'fees' | 'interest' | 'capital';
 
 @Component({
   selector: 'demo-account-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent],
+  imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account-form.html',
   styleUrl: './account-form.css',
@@ -41,11 +45,37 @@ export class AccountFormComponent {
     { value: 'highest-rate', label: this.i18n.t('form.account.paymentOrder.highestRate') },
     { value: 'smallest', label: this.i18n.t('form.account.paymentOrder.smallest') },
   ]);
-  readonly paymentPriorityOptions = computed<readonly UiOption[]>(() => [
-    { value: 'fees-interest-capital', label: this.i18n.t('form.account.paymentPriority.feesInterestCapital') },
-    { value: 'interest-capital', label: this.i18n.t('form.account.paymentPriority.interestCapital') },
-    { value: 'capital', label: this.i18n.t('form.account.paymentPriority.capital') },
-  ]);
+  readonly priorityLabels = computed<Record<PriorityItem, string>>(() => ({
+    fees: this.i18n.t('form.account.priorityItem.fees'),
+    interest: this.i18n.t('form.account.priorityItem.interest'),
+    capital: this.i18n.t('form.account.priorityItem.capital'),
+  }));
+  /** Orden en que un abono cubre cada componente de la deuda; arrastrable o con flechas. */
+  readonly paymentPriorityOrder = signal<PriorityItem[]>(['fees', 'interest', 'capital']);
+  private readonly draggedPriorityIndex = signal<number | null>(null);
+  movePriority(index: number, delta: -1 | 1): void {
+    const target = index + delta;
+    this.paymentPriorityOrder.update((order) => {
+      if (target < 0 || target >= order.length) return order;
+      const next = [...order];
+      [next[index], next[target]] = [next[target], next[index]];
+      return next;
+    });
+  }
+  startDragPriority(index: number): void {
+    this.draggedPriorityIndex.set(index);
+  }
+  dropPriority(index: number): void {
+    const from = this.draggedPriorityIndex();
+    this.draggedPriorityIndex.set(null);
+    if (from === null || from === index) return;
+    this.paymentPriorityOrder.update((order) => {
+      const next = [...order];
+      const [moved] = next.splice(from, 1);
+      next.splice(index, 0, moved);
+      return next;
+    });
+  }
   exchangeRate = 4168.35;
   opening = 0;
   limit = 5000000;
@@ -53,7 +83,6 @@ export class AccountFormComponent {
   dueDay = 5;
   annualRate = 28.5;
   paymentOrder = 'oldest';
-  paymentPriority = 'fees-interest-capital';
   minimumPayment = 50000;
   private store = inject(DemoStore);
   closed = () => this.store.form.set(null);

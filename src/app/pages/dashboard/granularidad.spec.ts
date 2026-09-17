@@ -9,6 +9,7 @@ import { DemoStore } from '../../core/store';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { MovementFormComponent } from '../../features/movement-form/movement-form';
 import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
+import { MovementInstallmentFieldsComponent } from '../../features/movement-form/movement-installment-fields';
 import { MovementCategoryFieldComponent } from '../../features/movement-form/movement-category-field';
 import { DashboardComponent } from './dashboard';
 
@@ -199,13 +200,50 @@ describe('movimientos: cada figura del ledger por separado', () => {
   it('los campos de préstamo y de crédito son dos permisos distintos', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
     const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan' };
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: 'Ana' };
     fixture.componentInstance.showLoan = true;
 
     expect(fixture.componentInstance.showLoanRole()).toBe(true);
     fixture.componentInstance.model['loanRole'] = 'lent';
     // Sin administracion.creditos.crear, ver el producto sigue cerrado aunque ya haya rol.
     expect(fixture.componentInstance.showLoanProduct()).toBe(false);
+  });
+
+  it('con responsabilidad propia no se ofrece la relación de préstamo', () => {
+    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
+    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: '' };
+    fixture.componentInstance.showLoan = true;
+
+    expect(fixture.componentInstance.showLoanRole()).toBe(false);
+
+    fixture.componentInstance.onPersonChange('Ana');
+    expect(fixture.componentInstance.showLoanRole()).toBe(true);
+    fixture.componentInstance.model['loanRole'] = 'lent';
+
+    fixture.componentInstance.onPersonChange('');
+    expect(fixture.componentInstance.showLoanRole()).toBe(false);
+    expect(fixture.componentInstance.model['loanRole']).toBe('');
+  });
+
+  it('la tasa de la compra a cuotas usa la de la tarjeta por defecto y se puede reemplazar', () => {
+    preparar([P.movimientos.ver, P.movimientos.crear]);
+    const fixture = TestBed.createComponent(MovementInstallmentFieldsComponent);
+    fixture.componentInstance.model = { accountId: 'credit-emerald', installmentTotal: 6 };
+
+    // Los datos demo no declaran tasa para esta tarjeta: sin escribir nada, no hay
+    // ninguna que ofrecer como default.
+    expect(fixture.componentInstance.cardApr()).toBeUndefined();
+    expect(fixture.componentInstance.purchaseApr()).toBeNull();
+    expect(fixture.componentInstance.isOverridden()).toBe(false);
+
+    fixture.componentInstance.onPurchaseAprChange(27.5);
+    expect(fixture.componentInstance.purchaseApr()).toBe(27.5);
+    expect(fixture.componentInstance.isOverridden()).toBe(true);
+
+    fixture.componentInstance.useCardApr();
+    expect(fixture.componentInstance.model['purchaseApr']).toBeUndefined();
+    expect(fixture.componentInstance.isOverridden()).toBe(false);
   });
 
   it('prestar y deber se ofrecen por separado', () => {
@@ -228,7 +266,7 @@ describe('movimientos: cada figura del ledger por separado', () => {
   it('cambiar showLoan después de creado el componente se refleja sin recrearlo', () => {
     preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
     const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan' };
+    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: 'Ana' };
     fixture.componentInstance.showLoan = true;
     expect(fixture.componentInstance.showLoanRole()).toBe(true);
 

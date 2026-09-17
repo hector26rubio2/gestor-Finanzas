@@ -15,6 +15,11 @@ export interface Movement {
   recurrence?: 'weekly' | 'monthly' | 'yearly';
   installmentCurrent?: number;
   installmentTotal?: number;
+  /**
+   * Tasa anual propia de esta compra a cuotas, en porcentaje. Puede cambiar mes a mes
+   * aunque la tarjeta no cambie la suya; ausente usa la de la tarjeta (`Account.annualRate`).
+   */
+  purchaseApr?: number;
   loanRole?: 'lent' | 'borrowed' | 'repayment';
   /** Solo cuando es un crédito formal del banco (no un préstamo con una persona). */
   loanProduct?: 'personal' | 'mortgage' | 'vehicle' | 'education' | 'other';

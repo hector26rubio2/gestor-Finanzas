@@ -14,7 +14,7 @@ import { RecurrencesApi } from './api/recurrences.api';
 import { ReportingApi } from './api/reporting.api';
 import { SessionApi } from './api/session.api';
 import { SettlementsApi } from './api/settlements.api';
-import { ApiClientError } from './api/administration.api';
+import { ApiClientError, BugReportPayload } from './api/administration.api';
 import { ApiPreference } from './api/preferences.api';
 import { MovementQuery } from './api/shared-api-types';
 
@@ -68,6 +68,7 @@ export type {
   ApiCapabilityDescriptor,
   ApiAdminFeatureFlag,
   ApiClientError,
+  BugReportPayload,
 } from './api/administration.api';
 export { RecurrencesApi } from './api/recurrences.api';
 export type { ApiRecurrence, ApiProjectedOccurrence, ApiMaterialization } from './api/recurrences.api';
@@ -214,8 +215,8 @@ export class FinanceApiClient {
   inviteOrganizationMember(...args: Parameters<AdministrationApi['inviteOrganizationMember']>) {
     return this.administrationApi.inviteOrganizationMember(...args);
   }
-  adminRoles(page = 1, size = 25) {
-    return this.administrationApi.adminRoles(page, size);
+  adminRoles(page = 1, size = 25, organizationId?: string) {
+    return this.administrationApi.adminRoles(page, size, organizationId);
   }
   deleteAdminRole(id: string) {
     return this.administrationApi.deleteAdminRole(id);
@@ -249,6 +250,12 @@ export class FinanceApiClient {
   }
   updateAdminError(id: string, status: ApiClientError['status'], resolution?: string) {
     return this.administrationApi.updateAdminError(id, status, resolution);
+  }
+  reportBug(payload: BugReportPayload) {
+    return this.administrationApi.reportBug(payload);
+  }
+  screenshotUrl(id: string) {
+    return this.administrationApi.screenshotUrl(id);
   }
   recurrences() {
     return this.recurrencesApi.recurrences();

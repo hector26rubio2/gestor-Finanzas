@@ -1,3 +1,5 @@
+@import '../../shared/bank-card.css';
+
 :host {
   display: block;
 }
@@ -343,14 +345,46 @@
     repeating-linear-gradient(0deg, var(--line) 0 1px, transparent 1px 50px);
 }
 
-.detail > .amount {
+/*
+ * Con la tarjeta bonita al lado (no encima) del resumen, el panel ensanchado deja de
+ * tener un hueco vacio a la derecha del dibujo — antes se apilaban en una sola columna
+ * y sobraba todo ese ancho que el modo "wide" del inspector existe para llenar.
+ */
+.detail-top.split {
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.detail-top.split .bank-card {
+  flex: 0 0 260px;
+  max-width: 260px;
+}
+
+.detail-top.split .detail-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-info > .amount {
   font-size: 2rem;
   font-weight: 700;
   color: var(--accent);
 }
 
-.detail > p {
+.detail-info > p {
   color: var(--muted);
+}
+
+@media (max-width: 700px) {
+  .detail-top.split {
+    flex-direction: column;
+  }
+
+  .detail-top.split .bank-card {
+    max-width: 320px;
+    width: 100%;
+  }
 }
 
 dl div {

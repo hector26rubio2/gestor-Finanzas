@@ -6,7 +6,6 @@ import { UiSelectComponent } from '../../ui/select';
 import { DemoStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
-import type { Account } from '../../core/demo-data';
 
 @Component({
   selector: 'app-accounts-tab',
@@ -22,7 +21,6 @@ export class AccountsTabComponent {
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
 
-  readonly compactCards = signal(false);
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
   readonly filteredAccounts = computed(() => {
@@ -38,17 +36,6 @@ export class AccountsTabComponent {
             (account.lastFour ?? '').toLocaleLowerCase('es').includes(query)),
       );
   });
-  readonly accountPage = signal(0);
-  readonly accountPageSize = 6;
-  readonly accountPageCount = computed(() =>
-    Math.max(1, Math.ceil(this.filteredAccounts().length / this.accountPageSize)),
-  );
-  readonly visibleAccounts = computed(() =>
-    this.filteredAccounts().slice(
-      this.accountPage() * this.accountPageSize,
-      (this.accountPage() + 1) * this.accountPageSize,
-    ),
-  );
   readonly selectedAccountFilter = signal('all');
   readonly accountMovementRows = computed(() =>
     this.book
@@ -60,19 +47,18 @@ export class AccountsTabComponent {
 
   setAccountQuery(value: string): void {
     this.accountQuery.set(value);
-    this.accountPage.set(0);
   }
   setAccountType(value: 'all' | 'savings' | 'credit' | 'cash'): void {
     this.accountType.set(value);
-    this.accountPage.set(0);
   }
+  /** Cambia cual cuenta filtra la tabla de abajo, sin abrir su inspector. */
+  filterByAccount(id: string): void {
+    this.selectedAccountFilter.set(id);
+  }
+  /** Abre el inspector completo: extracto, historial y acciones (pago, editar, desactivar). */
   selectAccount(id: string, type: string): void {
     this.selectedAccountFilter.set(id);
     this.store.cardPaymentMode.set(false);
     this.store.inspect(type === 'credit' ? 'card' : 'account', id);
-  }
-  displayBalance(account: Account): number {
-    const value = this.store.balance(account);
-    return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
   }
 }

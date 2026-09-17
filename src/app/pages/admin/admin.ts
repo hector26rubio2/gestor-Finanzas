@@ -73,6 +73,10 @@ export class AdminComponent implements OnInit {
   readonly tab = signal<Tab>('summary');
   readonly users = signal<ApiAdminUser[]>([]);
   readonly roles = signal<readonly ApiAdminRole[]>([]);
+  /** Vacio es "todas": una cuenta con varias organizaciones veia sus roles de sistema
+   * (Beta, Colaborador, Propietario) repetidos una vez por organizacion, sin nada que
+   * dijera que eran filas distintas. Este filtro los separa. */
+  readonly rolesOrganizationFilter = signal<string>('');
   readonly rolesPage = signal(1);
   readonly rolesTotal = signal(0);
   readonly rolesSize = 12;
@@ -219,6 +223,12 @@ export class AdminComponent implements OnInit {
   readonly organizationOptions = computed<readonly UiOption[]>(() =>
     this.organizations().map((organization) => ({ value: organization.id, label: organization.name })),
   );
+  /** Con una sola organizacion no hay nada que filtrar: el selector solo aparece
+   * cuando de verdad puede separar filas que si no se veian mezcladas. */
+  readonly rolesOrganizationOptions = computed<readonly UiOption[]>(() => [
+    { value: '', label: this.i18n.t('admin.roles.filter.all') },
+    ...this.organizationOptions(),
+  ]);
   readonly activeUsers = computed(() => this.users().filter((x) => x.isActive).length);
   readonly enabledFlags = computed(() => this.flagRows().filter((x) => x.isEnabled).length);
   readonly openErrors = computed(() => this.errors().filter((x) => x.status !== 'resolved').length);
@@ -310,7 +320,7 @@ export class AdminComponent implements OnInit {
           ? firstValueFrom(this.api.adminUsers())
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.roles.listar)
-          ? firstValueFrom(this.api.adminRoles(1, this.rolesSize))
+          ? firstValueFrom(this.api.adminRoles(1, this.rolesSize, this.rolesOrganizationFilter() || undefined))
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.auditoria.listar)
           ? firstValueFrom(this.api.superAdminAudit(1, 50))
@@ -564,13 +574,20 @@ export class AdminComponent implements OnInit {
   async loadRolesPage(page: number) {
     if (page < 1 || page > this.rolesTotalPages()) return;
     try {
-      const pagina = await firstValueFrom(this.api.adminRoles(page, this.rolesSize));
+      const pagina = await firstValueFrom(
+        this.api.adminRoles(page, this.rolesSize, this.rolesOrganizationFilter() || undefined),
+      );
       this.roles.set(pagina.items);
       this.rolesPage.set(pagina.page);
       this.rolesTotal.set(pagina.total);
     } catch {
       /* se queda en la pagina actual; el proximo intento la corrige */
     }
+  }
+
+  setRolesOrganizationFilter(organizationId: string) {
+    this.rolesOrganizationFilter.set(organizationId);
+    this.loadRolesPage(1);
   }
   async deleteRole(r: ApiAdminRole) {
     if (!confirm(this.i18n.t('admin.roles.confirmDelete', { name: r.name }))) return;

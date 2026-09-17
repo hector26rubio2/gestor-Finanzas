@@ -44,7 +44,7 @@
 <demo-overlay
   [title]="inspectorTitle()"
   mode="inspector"
-  [wide]="store.cardPaymentMode()"
+  [wide]="store.cardPaymentMode() || isAccountInspector()"
   (closed)="store.inspector.set(null); store.cardPaymentMode.set(false)"
   ><ng-container *ngTemplateOutlet="inspector"></ng-container
 ></demo-overlay>
@@ -55,16 +55,39 @@
 }
 <ng-template #inspector
   ><section class="detail">
-    <span class="amount">{{ inspectorAmount() }}</span>
-    <p>{{ inspectorSubtitle() }}</p>
-    <dl>
-      @for (item of inspectorFacts(); track item[0]) {
-      <div>
-        <dt>{{ item[0] }}</dt>
-        <dd>{{ item[1] }}</dd>
+    <div class="detail-top" [class.split]="isAccountInspector() && selectedAccount()">
+      @if (isAccountInspector() && selectedAccount(); as a) {
+      <div class="bank-card" [style.--card-color]="a.color">
+        <span class="bank-card-top">
+          <span class="bank-card-type"
+            >{{ a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ?
+            i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash') }}</span
+          >
+          <i class="bank-card-chip" aria-hidden="true"></i>
+        </span>
+        <em>{{ a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour') }}</em>
+        <span class="bank-card-bottom">
+          <b>{{ a.name }}</b>
+          <small
+            >{{ a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel') }}
+            <strong>{{ store.money(displayBalance(a)) }}</strong></small
+          >
+        </span>
       </div>
       }
-    </dl>
+      <div class="detail-info">
+        <span class="amount">{{ inspectorAmount() }}</span>
+        <p>{{ inspectorSubtitle() }}</p>
+        <dl>
+          @for (item of inspectorFacts(); track item[0]) {
+          <div>
+            <dt>{{ item[0] }}</dt>
+            <dd>{{ item[1] }}</dd>
+          </div>
+          }
+        </dl>
+      </div>
+    </div>
     @if (store.inspector()?.type === 'card' && !store.cardPaymentMode()) {
     <section class="statement">
       <header>
@@ -119,6 +142,9 @@
       <button class="action" (click)="store.cardPaymentMode.set(true)">
         {{ i18n.t('workspace.actions.registerPayment') }}
       </button>
+      } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') &&
+      !store.cardPaymentMode() && can(P.cuentas.editar)) {
+      <button (click)="editSelectedAccount()">{{ i18n.t('workspace.actions.editAccount') }}</button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
       <button class="danger-action" (click)="deactivateSelectedAccount()">
         {{ i18n.t('workspace.actions.deactivateAccount') }}
