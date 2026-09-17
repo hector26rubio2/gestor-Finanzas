@@ -142,8 +142,8 @@
       <button class="action" (click)="store.cardPaymentMode.set(true)">
         {{ i18n.t('workspace.actions.registerPayment') }}
       </button>
-      } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') &&
-      !store.cardPaymentMode() && can(P.cuentas.editar)) {
+      } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') && !store.cardPaymentMode()
+      && can(P.cuentas.editar)) {
       <button (click)="editSelectedAccount()">{{ i18n.t('workspace.actions.editAccount') }}</button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
       <button class="danger-action" (click)="deactivateSelectedAccount()">

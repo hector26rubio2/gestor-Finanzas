@@ -53,12 +53,7 @@
   /></label>
   <span>{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span>
 </section>
-<section
-  class="account-switch"
-  role="tablist"
-  tabindex="0"
-  [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
->
+<section class="account-switch" role="tablist" tabindex="0" [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')">
   <button
     type="button"
     class="switch-chip"

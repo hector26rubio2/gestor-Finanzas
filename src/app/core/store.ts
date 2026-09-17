@@ -600,7 +600,8 @@ export class DemoStore {
       exchangeRate: input.originalCurrency === 'USD' ? Number(input.exchangeRate) : undefined,
       // Solo aplica a una compra de tarjeta: el resto de clases no causa interes por
       // tasa anual, asi que un valor aqui no significaria nada (misma regla del backend).
-      purchaseApr: kind === 'expense' && this.account(input.accountId)?.type === 'credit' ? input.purchaseApr : undefined,
+      purchaseApr:
+        kind === 'expense' && this.account(input.accountId)?.type === 'credit' ? input.purchaseApr : undefined,
     };
     this.data.update((d) => ({
       ...d,
