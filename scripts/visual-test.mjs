@@ -207,16 +207,16 @@ async function devuelveElFoco(locator, mensaje) {
 
 async function exerciseInteractions(page) {
   await waitForRoute(page, 'accounts');
-  const cards = page.locator('.cards');
   for (const size of ['5', '10', '25']) {
     await chooseOption(page, 'Filas por página', size);
     const renderedRows = await page.locator('demo-table tbody tr').count();
     assert(renderedRows === Number(size), `The table did not render ${size} rows (rendered ${renderedRows})`);
   }
-  await page.waitForFunction(() => document.querySelector('.cards')?.classList.contains('compact'));
-  assert(await cards.evaluate((node) => node.classList.contains('compact')), 'Selecting 25 rows did not compact cards');
 
-  const cardTrigger = page.locator('.bank-card').first();
+  // El primer chip es "Todas" (solo filtra, no abre nada); el segundo es la primera
+  // cuenta real, y ese sí abre el inspector — igual que antes lo hacía `.bank-card`,
+  // cuando el carrusel de tarjetas grandes vivía en esta misma página.
+  const cardTrigger = page.locator('.switch-chip').nth(1);
   await cardTrigger.focus();
   await cardTrigger.press('Enter');
   const inspector = page.locator('dialog.inspector');
