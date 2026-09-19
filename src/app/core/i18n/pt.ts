@@ -1274,4 +1274,10 @@ export default {
   'dashboard.layout.reset': 'Restaurar layout',
   'dashboard.widgetActions.joinRow': 'Colocar ao lado do anterior',
   'dashboard.widgetActions.splitRow': 'Mover para a própria linha',
+  'bugReport.screenshot.failed': 'Não foi possível capturar a tela. Você pode enviar o relatório sem captura.',
+  'bugReport.success.githubPending':
+    'Seu relatório foi salvo. A issue do GitHub ainda não foi criada; um administrador pode tentar de novo.',
+  'admin.errors.createIssue': 'Criar issue no GitHub',
+  'admin.errors.issueCreated': 'Issue criada no GitHub',
+  'admin.errors.issueFailed': 'Não foi possível criar a issue',
 } as const;

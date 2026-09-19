@@ -264,6 +264,9 @@ export class FinanceApiClient {
   reportBug(payload: BugReportPayload) {
     return this.administrationApi.reportBug(payload);
   }
+  createErrorGithubIssue(id: string) {
+    return this.administrationApi.createErrorGithubIssue(id);
+  }
   screenshotUrl(id: string) {
     return this.administrationApi.screenshotUrl(id);
   }

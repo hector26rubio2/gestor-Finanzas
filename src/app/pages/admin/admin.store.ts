@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import {
   AdministrationApi,
   ApiAdminFeatureFlag,
+  ApiBugReportResult,
   ApiAdminOrganization,
   ApiAdminOrganizationFlag,
   ApiAdminRole,
@@ -628,6 +629,16 @@ export class AdminStore {
   async renombrarOrganizacion(id: string, name: string): Promise<void> {
     const org = await firstValueFrom(this.api.updateAdminOrganization(id, { name }));
     this.organizations.update((xs) => xs.map((x) => (x.id === org.id ? org : x)));
+  }
+
+  async crearIssueDeGithub(error: ApiClientError): Promise<ApiBugReportResult> {
+    const result = await firstValueFrom(this.api.createErrorGithubIssue(error.id));
+    if (result.githubIssueUrl) {
+      this.errors.update((xs) =>
+        xs.map((x) => (x.id === error.id ? { ...x, githubIssueUrl: result.githubIssueUrl ?? undefined } : x)),
+      );
+    }
+    return result;
   }
 
   async actualizarError(error: ApiClientError, status: ApiClientError['status']): Promise<void> {

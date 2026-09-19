@@ -1283,4 +1283,10 @@ export default {
   'dashboard.layout.reset': 'Réinitialiser la disposition',
   'dashboard.widgetActions.joinRow': 'Placer à côté du précédent',
   'dashboard.widgetActions.splitRow': 'Placer sur sa propre ligne',
+  'bugReport.screenshot.failed': "L'écran n'a pas pu être capturé. Vous pouvez envoyer le rapport sans capture.",
+  'bugReport.success.githubPending':
+    "Votre rapport est enregistré. L'issue GitHub n'a pas encore été créée ; un administrateur peut réessayer.",
+  'admin.errors.createIssue': "Créer l'issue GitHub",
+  'admin.errors.issueCreated': 'Issue GitHub créée',
+  'admin.errors.issueFailed': "L'issue n'a pas pu être créée",
 } as const;

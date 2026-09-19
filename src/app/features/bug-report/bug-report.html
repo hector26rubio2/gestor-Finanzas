@@ -85,6 +85,8 @@
     />
     } @else if (screenshotTooLarge()) {
     <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
+    } @else if (screenshotFailed()) {
+    <p class="mb-3 text-[0.9rem] text-destructive" role="alert">{{ i18n.t('bugReport.screenshot.failed') }}</p>
     }
 
     <dl class="my-3 grid gap-2 [&>div]:flex [&>div]:justify-between [&>div]:text-[0.9rem] [&_dt]:text-muted-foreground">
@@ -104,6 +106,12 @@
     <p>{{ i18n.t('bugReport.success.message') }}</p>
     @if (githubIssueUrl(); as url) {
     <a hlmBtn [href]="url" target="_blank" rel="noopener">{{ i18n.t('bugReport.success.githubLink') }} ↗</a>
+    } @else {
+    <p class="text-[0.85rem] text-muted-foreground" role="status">
+      {{ i18n.t('bugReport.success.githubPending') }} @if (githubDetail(); as detail) {
+      <span class="mt-1 block text-[0.8rem]">{{ detail }}</span>
+      }
+    </p>
     }
   </section>
   } }

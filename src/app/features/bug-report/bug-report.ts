@@ -52,6 +52,9 @@ export class BugReportButtonComponent {
   readonly capturingScreenshot = signal(false);
   readonly screenshotDataUrl = signal<string | null>(null);
   readonly screenshotTooLarge = signal(false);
+  readonly screenshotFailed = signal(false);
+  readonly githubStatus = signal<string>('disabled');
+  readonly githubDetail = signal<string | null>(null);
   readonly includeScreenshot = signal(true);
   readonly githubIssueUrl = signal<string | null>(null);
 
@@ -86,6 +89,7 @@ export class BugReportButtonComponent {
     this.severity = 'medium';
     this.screenshotDataUrl.set(null);
     this.screenshotTooLarge.set(false);
+    this.screenshotFailed.set(false);
     this.includeScreenshot.set(true);
     this.githubIssueUrl.set(null);
     this.sending.set(false);
@@ -114,9 +118,13 @@ export class BugReportButtonComponent {
     if (!this.includeScreenshot() || this.screenshotDataUrl()) return;
     this.capturingScreenshot.set(true);
     try {
-      const html2canvas = (await import('html2canvas')).default;
-      const canvas = await html2canvas(document.body, { scale: 0.35, useCORS: true, logging: false });
-      const dataUrl = canvas.toDataURL('image/jpeg', 0.45);
+      const { domToJpeg } = await import('modern-screenshot');
+      const dataUrl = await domToJpeg(document.documentElement, {
+        scale: 0.5,
+        quality: 0.55,
+        backgroundColor: getComputedStyle(document.body).backgroundColor,
+        filter: (node) => !(node instanceof HTMLElement && node.classList.contains('cdk-overlay-container')),
+      });
       const base64Length = dataUrl.length - dataUrl.indexOf(',') - 1;
       if (base64Length > MAX_SCREENSHOT_BASE64_CHARS) {
         this.screenshotTooLarge.set(true);
@@ -124,9 +132,10 @@ export class BugReportButtonComponent {
       } else {
         this.screenshotDataUrl.set(dataUrl);
       }
-    } catch {
-      // La captura es un extra, nunca debe impedir enviar el reporte.
+    } catch (error) {
+      console.warn('No se pudo capturar la pantalla', error);
       this.screenshotDataUrl.set(null);
+      this.screenshotFailed.set(true);
     } finally {
       this.capturingScreenshot.set(false);
     }
@@ -170,6 +179,8 @@ export class BugReportButtonComponent {
         }),
       );
       this.githubIssueUrl.set(result.githubIssueUrl);
+      this.githubStatus.set(result.githubStatus ?? 'disabled');
+      this.githubDetail.set(result.githubDetail ?? null);
       this.step.set(4);
     } catch {
       this.store.toast.set(this.i18n.t('bugReport.toast.failed'));
