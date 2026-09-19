@@ -1,4 +1,6 @@
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { AppStore } from '../../../../core/state/store';
 
@@ -13,7 +15,7 @@ export interface AccountListItem {
 
 /** Lista de cuentas por gasto, cada una con su color — clic filtra el resto del panel por esa cuenta. */
 @Component({
-  imports: [HlmButton],
+  imports: [NgScrollbar, HlmScrollAreaImports, HlmButton],
   selector: 'fin-account-list',
   host: { class: 'flex min-h-0 flex-1' },
   templateUrl: './account-list.html',

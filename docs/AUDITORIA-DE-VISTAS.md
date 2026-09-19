@@ -158,3 +158,19 @@ Cómo se hizo: capturas de las 11 rutas a 1440 px y a 390 px (`pnpm test:ui`), r
 | 8     | `FinanceGateway` y decisión sobre el modo demo                  | L        | Medio: menos superficie                  |
 | 9     | Paginación remota y filtros en servidor                         | L        | Medio: escala                            |
 | 10    | Importar extractos, acciones masivas, presupuestos              | L        | Producto                                 |
+
+## 10. Estado tras el rediseño con Spartan (19-sep-2026)
+
+Entregado desde esta auditoría:
+
+- **Dashboard**: cuadrícula libre de 12 columnas (arrastrar y redimensionar ancho y alto, los de abajo suben), diseño guardado por usuario en el servidor con caché local, tema completo restaurado al iniciar sesión.
+- **Tabla**: `fin-table` sobre TanStack Table con orden, búsqueda por campo, facetas, visibilidad de columnas y selección múltiple opcional.
+- **Componentes Spartan**: Tabs (tipo de movimiento), Badge con icono Lucide (categorías), Combobox multiselección (permisos, por sección con interruptor), Questionnaire de Brain (reporte de problemas), Sidebar con grupos colapsables, ScrollArea (menú, listas del dashboard, modales y paneles), Select y botones `hlmBtn` en toda la aplicación.
+- **Administración**: auditoría traducida y filtrable por traza y persona afectada, banderas en cascada global ∧ organización ∧ persona, permisos solo por rol, consolidación en la organización general.
+- **Botón de reportes**: movible y con posición recordada.
+
+Pendiente y deliberado:
+
+- `input type="color"` y `type="range"` siguen nativos: Spartan no ofrece selector de color y el `slider` de Brain no está generado en Helm todavía.
+- Las tablas embebidas (widget de tabla, inspector) usan el desplazamiento nativo para conservar el encabezado fijo y la región enfocable.
+- Puntos 5 y 6 de la hoja de ruta (pruebas de componente por pestaña de administración, flujos E2E) y la reducción del bundle (835 kB frente al presupuesto de 700 kB) siguen abiertos.
