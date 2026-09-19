@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
 import { UiOption, UiSelectComponent } from '../../../ui/select';
+import { BrnCollapsible, BrnCollapsibleContent, BrnCollapsibleTrigger } from '@spartan-ng/brain/collapsible';
 
 export type Scale = 'day' | 'week' | 'month' | 'year';
 
@@ -12,9 +13,9 @@ export type Scale = 'day' | 'week' | 'month' | 'year';
  * dibuja el estado que ya se le paso.
  */
 @Component({
-  selector: 'demo-filter-panel',
+  selector: 'fin-filter-panel',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent],
+  imports: [FormsModule, UiSelectComponent, BrnCollapsible, BrnCollapsibleContent, BrnCollapsibleTrigger],
   templateUrl: './filter-panel.html',
   styleUrl: './filter-panel.css',
   host: { style: 'display: contents' },
@@ -40,6 +41,7 @@ export class FilterPanelComponent {
   readonly categorySelectOptions = input<readonly UiOption[]>([]);
   readonly periodLabel = input('');
   readonly movementsCount = input(0);
+  readonly filtersExpanded = signal(true);
 
   readonly i18n = inject(I18nService);
 

@@ -1,75 +1,75 @@
-<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
+<fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
   <form class="management-form" (ngSubmit)="save()">
-    <demo-field [label]="i18n.t('form.field.name')">
+    <fin-field [label]="i18n.t('form.field.name')">
       <input name="name" [(ngModel)]="name" required />
-    </demo-field>
+    </fin-field>
     @if (kind() === 'category') {
-    <demo-field [label]="i18n.t('form.management.field.categoryType')">
-      <demo-select
+    <fin-field [label]="i18n.t('form.management.field.categoryType')">
+      <fin-select
         name="categoryType"
         [(ngModel)]="categoryType"
         [options]="categoryTypeOptions()"
         [ariaLabel]="i18n.t('form.management.field.categoryTypeAria')"
       />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.management.field.color')">
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.color')">
       <input name="color" type="color" [(ngModel)]="color" />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.management.field.icon')">
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.icon')">
       <input name="icon" [(ngModel)]="icon" required />
-    </demo-field>
+    </fin-field>
     } @if (kind() === 'person') {
-    <demo-field [label]="i18n.t('form.management.field.email')">
+    <fin-field [label]="i18n.t('form.management.field.email')">
       <input name="email" type="email" [(ngModel)]="email" />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.management.field.relationship')">
-      <demo-select
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.relationship')">
+      <fin-select
         name="relationship"
         [(ngModel)]="relationship"
         [options]="relationshipOptions()"
         [ariaLabel]="i18n.t('form.management.field.relationshipAria')"
       />
-    </demo-field>
+    </fin-field>
     } @if (kind() === 'investment') {
-    <demo-field [label]="i18n.t('form.management.field.instrument')">
-      <demo-select
+    <fin-field [label]="i18n.t('form.management.field.instrument')">
+      <fin-select
         name="instrument"
         [(ngModel)]="instrument"
         [options]="instrumentOptions()"
         [ariaLabel]="i18n.t('form.management.field.instrumentAria')"
       />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.field.currency')">
-      <demo-select
+    </fin-field>
+    <fin-field [label]="i18n.t('form.field.currency')">
+      <fin-select
         name="currency"
         [(ngModel)]="currency"
         [options]="currencyOptions()"
         [ariaLabel]="i18n.t('form.management.field.currencyAria')"
       />
-    </demo-field>
+    </fin-field>
     } @if (kind() === 'recurrence') {
-    <demo-field [label]="i18n.t('form.field.amount')">
+    <fin-field [label]="i18n.t('form.field.amount')">
       <input name="amount" type="number" min="1" [(ngModel)]="amount" required />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.management.field.account')">
-      <demo-select
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.account')">
+      <fin-select
         name="account"
         [(ngModel)]="accountId"
         [options]="accountOptions()"
         [ariaLabel]="i18n.t('form.management.field.accountAria')"
       />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.frequency.label')">
-      <demo-select
+    </fin-field>
+    <fin-field [label]="i18n.t('form.frequency.label')">
+      <fin-select
         name="frequency"
         [(ngModel)]="frequency"
         [options]="frequencyOptions()"
         [ariaLabel]="i18n.t('form.frequency.label')"
       />
-    </demo-field>
-    <demo-field [label]="i18n.t('form.management.field.start')">
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.start')">
       <input name="start" type="date" [(ngModel)]="start" required />
-    </demo-field>
+    </fin-field>
     } @if (error()) {
     <p class="error" role="alert">{{ error() }}</p>
     }
@@ -78,4 +78,4 @@
       ><button class="primary" type="submit">{{ i18n.t('form.actions.save') }}</button>
     </footer>
   </form>
-</demo-overlay>
+</fin-overlay>

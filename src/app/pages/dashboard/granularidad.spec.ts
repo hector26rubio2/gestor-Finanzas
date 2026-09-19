@@ -92,7 +92,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.algunKpi()).toBe(true);
-    const etiquetas = [...fixture.nativeElement.querySelectorAll('.kpis demo-kpi')].map((n: Element) =>
+    const etiquetas = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map((n: Element) =>
       n.textContent?.trim(),
     );
     expect(etiquetas).toHaveLength(1);
@@ -167,7 +167,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(titulos).toContain('Ingresos en el tiempo');
     expect(titulos).not.toContain('Flujo de caja');
 
-    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis demo-kpi')].map(
+    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map(
       (n: Element) => n.textContent?.trim() ?? '',
     );
     expect(etiquetasKpi.some((t) => t.includes('Promedio por movimiento'))).toBe(true);

@@ -22,7 +22,7 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.trigger demo-icon {
+.trigger fin-icon {
   --icon-size: 15px;
   color: var(--muted);
   transition: transform 0.16s ease;
@@ -31,7 +31,7 @@
   border-color: var(--accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 16%, transparent);
 }
-.trigger[aria-expanded='true'] demo-icon {
+.trigger[aria-expanded='true'] fin-icon {
   transform: rotate(180deg);
 }
 .menu {

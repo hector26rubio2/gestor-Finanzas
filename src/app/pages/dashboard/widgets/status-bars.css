@@ -2,7 +2,7 @@
   display: flex;
   flex: 1;
 }
-.status-bars {
+.fin-status-bars {
   display: grid;
   align-content: center;
   gap: 16px;
@@ -40,7 +40,7 @@
 .status-bar-fill.danger {
   background: var(--danger);
 }
-.empty {
+.fin-empty {
   margin: auto;
   text-align: center;
 }

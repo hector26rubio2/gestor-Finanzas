@@ -55,6 +55,19 @@ export interface ApiAdminRole {
   isActive: boolean;
 }
 
+/** Una organización, tal como la ve Administración. */
+export interface ApiAdminOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  baseCurrency: string;
+  isActive: boolean;
+  /** La organización donde cae quien entra sin invitación pendiente. A lo sumo una. */
+  isDefault: boolean;
+  memberCount: number;
+  createdAt: string;
+}
+
 /** Un permiso del catálogo: código, dónde vive y qué concede. */
 export interface ApiPermissionDescriptor {
   code: string;
@@ -217,6 +230,31 @@ export class AdministrationApi {
       method: 'GET',
       path: API_ROUTES.adminRoles,
       params: organizationId ? { page, size, organizationId } : { page, size },
+    });
+  }
+
+  adminOrganizations(page = 1, size = 25) {
+    return this.transport.request<ApiPage<ApiAdminOrganization>>({
+      method: 'GET',
+      path: API_ROUTES.adminOrganizations,
+      params: { page, size },
+    });
+  }
+
+  createAdminOrganization(request: { name: string; baseCurrency?: string | null }) {
+    return this.transport.request<ApiAdminOrganization>({
+      method: 'POST',
+      path: API_ROUTES.adminOrganizations,
+      body: request,
+    });
+  }
+
+  /** Mueve la membresía activa de una persona a otra organización. Solo un administrador. */
+  moveAdminUserOrganization(id: string, organizationId: string) {
+    return this.transport.request<void>({
+      method: 'PUT',
+      path: API_ROUTES.adminUserOrganization(id),
+      body: { organizationId },
     });
   }
 

@@ -1,12 +1,12 @@
-<demo-field [label]="i18n.t('form.movement.field.installmentTotal')">
+<fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
   <input type="number" name="installmentTotal" min="1" [(ngModel)]="model['installmentTotal']" />
-</demo-field>
+</fin-field>
 @if (currentEditable) {
-<demo-field [label]="i18n.t('form.movement.field.installmentCurrent')">
+<fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
   <input type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
-</demo-field>
+</fin-field>
 }
-<demo-field [label]="i18n.t('form.movement.field.purchaseApr')">
+<fin-field [label]="i18n.t('form.movement.field.purchaseApr')">
   <input
     type="number"
     name="purchaseApr"
@@ -15,7 +15,7 @@
     [ngModel]="purchaseApr()"
     (ngModelChange)="onPurchaseAprChange($event)"
   />
-</demo-field>
+</fin-field>
 @if (isOverridden() && cardApr() !== undefined) { @let tasaTarjeta = cardApr()!;
 <button type="button" class="text-reset" (click)="useCardApr()">
   {{ i18n.t('form.movement.purchaseApr.useCardDefault', { rate: tasaTarjeta }) }}

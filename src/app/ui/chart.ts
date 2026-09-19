@@ -22,6 +22,8 @@ import {
 } from 'echarts/charts';
 import {
   DataZoomComponent,
+  DatasetComponent,
+  TransformComponent,
   GridComponent,
   LegendComponent,
   MarkLineComponent,
@@ -42,6 +44,8 @@ echarts.use([
   ScatterChart,
   TreemapChart,
   DataZoomComponent,
+  DatasetComponent,
+  TransformComponent,
   GridComponent,
   LegendComponent,
   MarkLineComponent,
@@ -65,7 +69,7 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
  * de modo que quien no ve la gráfica necesita la frase que la resume.
  */
 @Component({
-  selector: 'demo-chart',
+  selector: 'fin-chart',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './chart.html',
@@ -135,7 +139,8 @@ export class ChartComponent implements OnDestroy {
       this.grafica.resize();
       // `true` reemplaza: al cambiar de tipo de widget o de periodo, las series viejas no
       // deben sobrevivir mezcladas con las nuevas.
-      this.grafica.setOption({ ...base, ...(option as object) }, true);
+      const reduceMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      this.grafica.setOption({ ...base, ...(option as object), ...(reduceMotion ? { animation: false } : {}) }, true);
     });
   }
 

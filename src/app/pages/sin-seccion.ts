@@ -14,7 +14,7 @@ import { I18nService } from '../core/i18n';
  * ni un aviso, solo una aplicación colgada.
  */
 @Component({
-  selector: 'demo-sin-seccion',
+  selector: 'fin-sin-seccion',
   standalone: true,
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,

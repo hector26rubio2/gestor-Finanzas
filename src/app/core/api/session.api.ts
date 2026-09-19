@@ -53,4 +53,8 @@ export class SessionApi {
   logout() {
     return this.transport.request<void>({ method: 'POST', path: API_ROUTES.logout });
   }
+
+  devLogin(who: 'admin' | 'member' = 'admin') {
+    return this.transport.request<void>({ method: 'POST', path: `${API_ROUTES.devLogin}?who=${who}` });
+  }
 }

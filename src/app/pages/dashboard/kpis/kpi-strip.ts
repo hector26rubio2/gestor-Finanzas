@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { I18nService } from '../../../core/i18n';
 import { IconComponent, IconName } from '../../../ui/icon';
-import { KpiComponent } from '../../../ui/ui';
+import { KpiComponent } from '../../../ui/kpi/kpi';
 
 export interface KpiCardConfig {
   label: string;
@@ -24,7 +24,7 @@ export interface CustomKpiCardConfig extends KpiCardConfig {
  * concedidos ya lo decide el padre al armar `fixedKpis`, esto solo itera.
  */
 @Component({
-  selector: 'demo-kpi-strip',
+  selector: 'fin-kpi-strip',
   standalone: true,
   imports: [KpiComponent, IconComponent],
   templateUrl: './kpi-strip.html',

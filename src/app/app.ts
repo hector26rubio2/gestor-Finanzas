@@ -1,11 +1,15 @@
-import { ChangeDetectionStrategy, Component, HostListener, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from './core/permissions';
 import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
 import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
+import { BugReportButtonComponent } from './features/bug-report/bug-report';
 import { MovementFormComponent } from './features/movement-form/movement-form';
+import { NgxSonnerToaster } from 'ngx-sonner';
+import { HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton, HlmSidebarService } from '@spartan-ng/helm/sidebar';
 
 /**
  * Kinds de `store.form()` que abren su propio formulario (cuenta, categoría, persona,
@@ -23,7 +27,16 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MovementFormComponent, IconComponent],
+  imports: [
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    MovementFormComponent,
+    IconComponent,
+    BugReportButtonComponent,
+    NgxSonnerToaster,
+    HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.css',
@@ -34,13 +47,15 @@ export class AppComponent {
   private readonly features = inject(FEATURES);
   readonly P = P;
   private router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly arranque = inject(RemoteBootstrap);
   readonly i18n = inject(I18nService);
   private readonly cargarIdioma = effect(() => void this.i18n.load(this.store.preferences().locale));
   /** Nombre del espacio activo; la sesion lo trae y antes estaba escrito a mano. */
   readonly espacioActivo = computed(() => this.store.organization()?.name ?? this.i18n.t('shell.personal'));
-  readonly collapsed = signal(false);
-  readonly mobileOpen = signal(false);
+  readonly sidebar = inject(HlmSidebarService);
+  readonly collapsed = computed(() => !this.sidebar.isMobile() && !this.sidebar.open());
+  readonly mobileOpen = this.sidebar.openMobile;
 
   /**
    * El menú se abre y se cierra con un solo control, el de la barra superior.
@@ -55,29 +70,17 @@ export class AppComponent {
    * renderizado de servidor, en algunos entornos de prueba y en webviews viejas. Sin
    * esta comprobación el armazón entero reventaba al construirse.
    */
-  private readonly consultaEstrecha =
-    typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-      ? window.matchMedia('(max-width: 780px)')
-      : null;
-  private readonly estrecha = signal(this.consultaEstrecha?.matches ?? false);
-  readonly menuAbierto = computed(() => (this.estrecha() ? this.mobileOpen() : !this.collapsed()));
+  readonly menuAbierto = computed(() => this.sidebar.isMobile() ? this.mobileOpen() : this.sidebar.open());
 
   constructor() {
-    this.router.events.subscribe((evento) => {
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((evento) => {
       if (evento instanceof NavigationEnd)
         this.enLogin.set(evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '').endsWith('/login'));
-    });
-    this.consultaEstrecha?.addEventListener('change', (evento) => {
-      this.estrecha.set(evento.matches);
-      // Al pasar a pantalla ancha el panel vuelve a su sitio: dejar abierta la
-      // superposición mostraría el velo sobre un menú que ya no lo necesita.
-      if (!evento.matches) this.mobileOpen.set(false);
     });
   }
 
   alternarMenu(): void {
-    if (this.estrecha()) this.mobileOpen.update((v) => !v);
-    else this.collapsed.update((v) => !v);
+    this.sidebar.toggleSidebar();
   }
 
   /**
@@ -143,7 +146,7 @@ export class AppComponent {
   }
   @HostListener('document:keydown.escape')
   closeMobileMenu(): void {
-    this.mobileOpen.set(false);
+    this.sidebar.setOpenMobile(false);
     this.profileOpen.set(false);
   }
   async logout(): Promise<void> {

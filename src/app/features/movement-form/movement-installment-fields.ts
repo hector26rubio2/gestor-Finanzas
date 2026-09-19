@@ -11,7 +11,7 @@ import { DemoStore } from '../../core/store';
  * porque no se puede comprar hoy algo que ya va por su quinta cuota.
  */
 @Component({
-  selector: 'demo-movement-installment-fields',
+  selector: 'fin-movement-installment-fields',
   standalone: true,
   imports: [FormsModule, NumericInputDirective, FieldComponent],
   templateUrl: './movement-installment-fields.html',

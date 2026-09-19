@@ -13,7 +13,7 @@ import { FieldComponent } from '../../ui/field';
  * manual sigue funcionando igual.
  */
 @Component({
-  selector: 'demo-movement-currency-fields',
+  selector: 'fin-movement-currency-fields',
   standalone: true,
   imports: [FormsModule, NumericInputDirective, FieldComponent],
   templateUrl: './movement-currency-fields.html',

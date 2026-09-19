@@ -19,7 +19,7 @@ export interface UiOption {
 }
 
 @Component({
-  selector: 'demo-select',
+  selector: 'fin-select',
   standalone: true,
   imports: [IconComponent],
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => UiSelectComponent), multi: true }],

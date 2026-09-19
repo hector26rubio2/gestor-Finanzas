@@ -65,7 +65,7 @@
   >
   <label
     >{{ i18n.t('table.rowsPerPage') }}
-    <demo-select
+    <fin-select
       class="compact-select"
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions"
@@ -80,7 +80,7 @@
       [disabled]="currentPage() === 0"
       (click)="setPage(0)"
     >
-      <demo-icon name="first" />
+      <fin-icon name="first" />
     </button>
     <button
       type="button"
@@ -89,7 +89,7 @@
       [disabled]="currentPage() === 0"
       (click)="setPage(currentPage() - 1)"
     >
-      <demo-icon name="previous" /></button
+      <fin-icon name="previous" /></button
     ><label class="page-jump"
       >{{ i18n.t('table.page.label') }}
       <!--
@@ -97,7 +97,7 @@
             aplica antes de que las opciones existan, y al llegar desde un enlace con
             ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
           -->
-      <demo-select
+      <fin-select
         class="compact-select"
         [ariaLabel]="i18n.t('table.page.goTo')"
         [options]="pageSelectOptions()"
@@ -113,14 +113,14 @@
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(currentPage() + 1)"
     >
-      <demo-icon name="next" /></button
+      <fin-icon name="next" /></button
     ><button
       type="button"
       [attr.aria-label]="i18n.t('table.page.last')"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(pageCount() - 1)"
     >
-      <demo-icon name="last" />
+      <fin-icon name="last" />
     </button>
   </div>
 </footer>

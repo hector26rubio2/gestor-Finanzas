@@ -21,7 +21,7 @@
     <p>{{ i18n.t('dashboard.noAccess.detail') }}</p>
   </section>
   } @else {
-  <demo-filter-panel
+  <fin-filter-panel
     [scales]="scales()"
     [scale]="scale()"
     [hasFilters]="hasFilters()"
@@ -55,7 +55,7 @@
     (globalCategoryChange)="globalCategory.set($event)"
   />
   } @if (algunKpi()) {
-  <demo-kpi-strip
+  <fin-kpi-strip
     [fixedKpis]="fixedKpiItems()"
     [customKpis]="caps.allows(P.dashboard.widget.propios) ? customKpiItems() : []"
     [canRemove]="customizing() && caps.allows(P.dashboard.widget.deshabilitar)"
@@ -66,7 +66,7 @@
   }
   <section class="grid">
     @for (widget of widgets(); track widget.id) {
-    <demo-widget-card
+    <fin-widget-card
       [kicker]="widget.kicker"
       [title]="widget.title"
       [wide]="widget.wide && widget.type !== 'indicator'"
@@ -78,7 +78,7 @@
       -->
       @if (widget.type === 'categories' && !customizing()) {
       <div class="local" headerExtra>
-        <demo-select
+        <fin-select
           [ngModel]="localCategory()"
           (ngModelChange)="localCategory.set($event)"
           [options]="localCategoryOptions()"
@@ -95,7 +95,7 @@
       </div>
       } @if (customizing()) {
       <div class="widget-actions" actions>
-        <demo-widget-controls
+        <fin-widget-controls
           [type]="widget.type"
           [dimension]="widget.dimension ?? 'category'"
           [measure]="widget.measure ?? 'expense'"
@@ -123,7 +123,7 @@
         />
       </div>
       } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
-      <demo-chart
+      <fin-chart
         [option]="flujoOption()"
         [height]="320"
         [ariaLabel]="
@@ -137,7 +137,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('categories') {
-      <demo-category-list
+      <fin-category-list
         [items]="categoryDistribution()"
         [selected]="localCategory()"
         [emptyText]="i18n.t('dashboard.widget.categories.empty')"
@@ -145,14 +145,14 @@
         (pick)="localCategory.set($event)"
       />
       } @case ('accounts') {
-      <demo-account-list
+      <fin-account-list
         [items]="accountDistribution()"
         [selected]="accountId()"
         [emptyText]="i18n.t('dashboard.widget.accounts.empty')"
         (pick)="accountId.set($event)"
       />
       } @case ('trend') { @if (timeline().length) {
-      <demo-chart
+      <fin-chart
         [option]="tendenciaOption()"
         [height]="300"
         [ariaLabel]="
@@ -162,7 +162,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
       } } @case ('scatter') { @if (movements().length) {
-      <demo-chart
+      <fin-chart
         [option]="dispersionOption()"
         [height]="340"
         [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
@@ -170,7 +170,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
       } } @case ('donut') { @if (categoryDistribution().length) {
-      <demo-chart
+      <fin-chart
         [option]="anilloOption()"
         [height]="340"
         (pick)="localCategory.set($event)"
@@ -179,7 +179,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
       } } @case ('stacked') { @if (timeline().length) {
-      <demo-chart
+      <fin-chart
         [option]="apiladoOption()"
         [height]="300"
         [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
@@ -187,7 +187,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('gauge') { @if (income() > 0) {
-      <demo-chart
+      <fin-chart
         [option]="medidorOption()"
         [height]="340"
         [ariaLabel]="
@@ -201,7 +201,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
       } } @case ('heatmap') { @if (timeline().length) {
-      <demo-chart
+      <fin-chart
         [option]="intensidadOption()"
         [height]="230"
         [ariaLabel]="i18n.t('dashboard.widget.heatmap.ariaLabel')"
@@ -209,7 +209,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('histogram') { @if (movements().length) {
-      <demo-chart
+      <fin-chart
         [option]="histogramaOption()"
         [height]="300"
         [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
@@ -217,7 +217,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('card') {
-      <demo-kpi
+      <fin-kpi
         [bare]="true"
         [label]="measureLabel(widget)"
         [value]="formatMeasure(cardValue(widget), widget)"
@@ -225,10 +225,10 @@
         [subirEsBueno]="(widget.measure ?? 'expense') !== 'expense'"
       />
       } @case ('table') {
-      <demo-table [columns]="tableColumns()" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
+      <fin-table [columns]="tableColumns()" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
       } @case ('indicator') { @if (movements().length) {
       <div class="indicator-layout">
-        <demo-chart [option]="widgetOption(widget)" [height]="300" [ariaLabel]="widget.title" />
+        <fin-chart [option]="widgetOption(widget)" [height]="300" [ariaLabel]="widget.title" />
         <dl class="indicator-info">
           <div>
             <dt>Actual</dt>
@@ -256,7 +256,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('colorScale') {
-      <demo-color-scale
+      <fin-color-scale
         [value]="formatMeasure(cardValue(widget), widget)"
         [label]="measureLabel(widget)"
         [min]="formatMeasure(widget.goalMin ?? 0, widget)"
@@ -268,10 +268,10 @@
         [statusColor]="indicatorStatus(widget).color"
       />
       } @case ('statusBars') {
-      <demo-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
+      <fin-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
       } @default { @if (movements().length) {
       <div class="chart-fill">
-        <demo-chart
+        <fin-chart
           [option]="widgetOption(widget)"
           [height]="widget.type === 'matrix' ? 260 : 320"
           [ariaLabel]="widget.title"
@@ -280,7 +280,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } }
-    </demo-widget-card>
+    </fin-widget-card>
     }
   </section>
   @if (caps.allows(P.dashboard.tabla.ver)) {
@@ -290,86 +290,86 @@
         <h2>{{ i18n.t('dashboard.recent.title') }}</h2>
       </div>
       @if (caps.allows(P.movimientos.ver)) {
-      <a class="see-all" routerLink="/movements">{{ i18n.t('dashboard.recent.seeAll') }}<demo-icon name="next" /></a>
+      <a class="see-all" routerLink="/movements">{{ i18n.t('dashboard.recent.seeAll') }}<fin-icon name="next" /></a>
       }
     </header>
-    <demo-table [columns]="columns()" [rows]="rows()" (rowSelected)="inspect($event)" />
+    <fin-table [columns]="columns()" [rows]="rows()" (rowSelected)="inspect($event)" />
   </section>
   } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
   <aside class="customize">
     <b>{{ i18n.t('dashboard.customizePanel.title') }}</b>
     @if (caps.allows(P.dashboard.widget.crear)) {
     <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">
-      <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
+      <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
     </button>
     @if (availableKpiFormulaOptions().length) {
     <button class="create-widget" type="button" (click)="openKpiCreator()">
-      <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
+      <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
     </button>
     } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
-    <button type="button" (click)="show(widget.id)"><demo-icon name="plus" /> {{ widget.title }}</button>
+    <button type="button" (click)="show(widget.id)"><fin-icon name="plus" /> {{ widget.title }}</button>
     } @empty {
     <span>{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
     } }
   </aside>
   } @if (widgetCreatorOpen()) {
-  <demo-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
+  <fin-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
     <form class="widget-builder" (submit)="createWidget($event)">
-      <demo-field [label]="i18n.t('dashboard.widgetForm.name')">
+      <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
         <input name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetForm.visualization')">
-        <demo-select
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetForm.visualization')">
+        <fin-select
           name="widgetMetric"
           [(ngModel)]="newWidgetMetric"
           [options]="widgetTypeOptions()"
           [ariaLabel]="i18n.t('dashboard.widgetForm.visualization.ariaLabel')"
         />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetForm.distribution')">
-        <demo-select
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetForm.distribution')">
+        <fin-select
           name="widgetWidth"
           [(ngModel)]="newWidgetWidth"
           [options]="widgetWidthOptions()"
           [ariaLabel]="i18n.t('dashboard.widgetForm.distribution.ariaLabel')"
         />
-      </demo-field>
+      </fin-field>
       @if (isGeneric(newWidgetMetric)) {
-      <demo-field [label]="i18n.t('dashboard.widgetForm.dimensionAxis')">
-        <demo-select
+      <fin-field [label]="i18n.t('dashboard.widgetForm.dimensionAxis')">
+        <fin-select
           name="widgetDimension"
           [(ngModel)]="newWidgetDimension"
           [options]="dimensionOptions()"
           [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
         />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetForm.measureValue')">
-        <demo-select
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetForm.measureValue')">
+        <fin-select
           name="widgetMeasure"
           [(ngModel)]="newWidgetMeasure"
           [options]="measureOptions()"
           [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
         />
-      </demo-field>
+      </fin-field>
       } @if (needsDimension2(newWidgetMetric)) {
-      <demo-field [label]="i18n.t('dashboard.widgetActions.series.ariaLabel')">
-        <demo-select
+      <fin-field [label]="i18n.t('dashboard.widgetActions.series.ariaLabel')">
+        <fin-select
           name="widgetDimension2"
           [(ngModel)]="newWidgetDimension2"
           [options]="dimensionOptions()"
           [ariaLabel]="i18n.t('dashboard.widgetForm.dimension2.ariaLabel')"
         />
-      </demo-field>
+      </fin-field>
       } @if (needsGoal(newWidgetMetric)) {
-      <demo-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
+      <fin-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
         <input name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
         <input name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
         <input name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
-      </demo-field>
+      </fin-field>
       }
       <p>{{ i18n.t('dashboard.widgetForm.note') }}</p>
       <div>
@@ -378,21 +378,21 @@
         ><button type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
       </div>
     </form>
-  </demo-overlay>
+  </fin-overlay>
   } @if (kpiCreatorOpen()) {
-  <demo-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
+  <fin-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
     <form class="widget-builder" (submit)="createKpi($event)">
-      <demo-field [label]="i18n.t('dashboard.widgetForm.name')">
+      <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
         <input name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
-      </demo-field>
-      <demo-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
-        <demo-select
+      </fin-field>
+      <fin-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
+        <fin-select
           name="kpiMeasure"
           [(ngModel)]="newKpiFormula"
           [options]="availableKpiFormulaOptions()"
           [ariaLabel]="i18n.t('dashboard.kpiForm.measure.ariaLabel')"
         />
-      </demo-field>
+      </fin-field>
       <p>{{ i18n.t('dashboard.kpiForm.note') }}</p>
       <div>
         <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">
@@ -400,9 +400,9 @@
         ><button type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
       </div>
     </form>
-  </demo-overlay>
+  </fin-overlay>
   } @if (selectedMovement(); as movement) {
-  <demo-overlay
+  <fin-overlay
     [title]="i18n.t('workspace.inspector.title.movement')"
     mode="inspector"
     (closed)="store.inspector.set(null)"
@@ -432,7 +432,7 @@
         </div>
       </dl>
       <a routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
-    </div></demo-overlay
+    </div></fin-overlay
   >
   }
 </article>

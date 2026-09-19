@@ -1,0 +1,39 @@
+@layer theme, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+@import 'tw-animate-css';
+@import '@angular/cdk/overlay-prebuilt.css';
+@source './app/ui/helm';
+
+/* Helm emits valued state attributes, not boolean attribute presence. */
+@custom-variant data-active (&[data-active='true']);
+@custom-variant data-open (&[data-state='open']);
+@custom-variant data-closed (&[data-state='closed']);
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --color-popover: var(--surface);
+  --color-popover-foreground: var(--text);
+  --color-border: var(--line);
+  --color-input: var(--control-line);
+  --color-ring: var(--accent);
+  --color-muted: var(--panel);
+  --color-muted-foreground: var(--muted);
+  --color-sidebar: var(--nav);
+  --color-sidebar-foreground: var(--text);
+  --color-sidebar-accent: var(--accent-soft);
+  --color-sidebar-accent-foreground: var(--accent);
+  --color-sidebar-border: var(--line);
+  --color-sidebar-ring: var(--accent);
+}
+
+/* Desktop width changes are immediate: resizing every chart for 200ms stutters. */
+[data-slot='sidebar-gap'], [data-slot='sidebar-container'] { transition: none; }
+[data-slot='sidebar-container'] { border-color: var(--line); }
+[data-slot='sidebar-inner'] { height: 100%; }
+[data-mobile='true'] { max-width: min(286px, 90vw); }
+[data-slot='sheet-content'], [data-mobile='true'] { animation-duration: 180ms; animation-timing-function: var(--ease-drawer); }
+@media (prefers-reduced-motion: reduce) {
+  [data-slot='sheet-content'], [data-mobile='true'], .cdk-overlay-backdrop { animation: none !important; transition: none !important; }
+}

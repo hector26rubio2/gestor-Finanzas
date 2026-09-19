@@ -10,7 +10,7 @@ export interface CategoryListItem {
 
 /** Lista de categorías de gasto, cada una con su barra de reparto — clic filtra el resto del panel por esa categoría. */
 @Component({
-  selector: 'demo-category-list',
+  selector: 'fin-category-list',
   standalone: true,
   templateUrl: './category-list.html',
   styleUrl: './category-list.css',

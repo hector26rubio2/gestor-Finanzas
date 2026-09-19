@@ -5,7 +5,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select';
 import { FieldComponent } from '../../ui/field';
 
 @Component({
-  selector: 'demo-movement-recurrence-fields',
+  selector: 'fin-movement-recurrence-fields',
   standalone: true,
   imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-recurrence-fields.html',

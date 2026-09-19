@@ -19,35 +19,35 @@
       (ngModelChange)="store.query.set($event); loadMovementPage(1)"
   /></label>
   <label
-    >{{ i18n.t('movements.filters.period.label') }}<demo-select
+    >{{ i18n.t('movements.filters.period.label') }}<fin-select
       [ngModel]="store.period()"
       (ngModelChange)="store.period.set($event); loadMovementPage(1)"
       [options]="periodOptions()"
       [ariaLabel]="i18n.t('movements.filters.period.label')"
   /></label>
   <label
-    >{{ i18n.t('movements.filters.account.label') }}<demo-select
+    >{{ i18n.t('movements.filters.account.label') }}<fin-select
       [ngModel]="store.accountFilter()"
       [options]="movementAccountOptions()"
       [ariaLabel]="i18n.t('movements.filters.account.label')"
       (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
   /></label>
   <label
-    >{{ i18n.t('movements.filters.accountType.label') }}<demo-select
+    >{{ i18n.t('movements.filters.accountType.label') }}<fin-select
       [ngModel]="book.movementAccountType()"
       (ngModelChange)="book.movementAccountType.set($event)"
       [options]="book.accountTypeOptions()"
       [ariaLabel]="i18n.t('movements.filters.accountType.label')"
   /></label>
   <label
-    >{{ i18n.t('movements.filters.category.label') }}<demo-select
+    >{{ i18n.t('movements.filters.category.label') }}<fin-select
       [ngModel]="book.movementCategory()"
       (ngModelChange)="book.movementCategory.set($event)"
       [options]="movementCategoryOptions()"
       [ariaLabel]="i18n.t('movements.filters.category.label')"
   /></label>
   <label
-    >{{ i18n.t('movements.filters.operation.label') }}<demo-select
+    >{{ i18n.t('movements.filters.operation.label') }}<fin-select
       [ngModel]="book.movementOperation()"
       (ngModelChange)="book.movementOperation.set($event)"
       [options]="movementOperationOptions()"
@@ -58,21 +58,21 @@
   }
 </section>
 <section class="kpis mini">
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
     icon="trendUp"
     tone="success"
     [value]="store.money(store.income())"
     [hint]="i18n.t('movements.kpi.selectionHint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('movements.kpi.expense.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(store.expense())"
     [hint]="i18n.t('movements.kpi.selectionHint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('movements.kpi.records.label')"
     icon="movements"
     [value]="store.movements().length.toString()"
@@ -80,7 +80,7 @@
   />
 </section>
 <section class="table-zone">
-  <demo-table
+  <fin-table
     urlKey="pagina"
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
@@ -90,5 +90,5 @@
     (pageSizeChange)="changeMovementPageSize($event)"
     (pageChange)="loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
-  ></demo-table>
+  ></fin-table>
 </section>

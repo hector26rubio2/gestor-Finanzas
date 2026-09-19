@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
-import { DataTableComponent, KpiComponent } from '../../ui/ui';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { KpiComponent } from '../../ui/kpi/kpi';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';

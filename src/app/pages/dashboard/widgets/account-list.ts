@@ -12,7 +12,7 @@ export interface AccountListItem {
 
 /** Lista de cuentas por gasto, cada una con su color — clic filtra el resto del panel por esa cuenta. */
 @Component({
-  selector: 'demo-account-list',
+  selector: 'fin-account-list',
   standalone: true,
   templateUrl: './account-list.html',
   styleUrl: './account-list.css',

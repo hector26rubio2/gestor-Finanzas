@@ -11,7 +11,7 @@ import { FieldComponent } from '../../ui/field';
  * que ya exige el backend (`CategoryTypeDto` no admite un valor neutro).
  */
 @Component({
-  selector: 'demo-movement-category-field',
+  selector: 'fin-movement-category-field',
   standalone: true,
   imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-category-field.html',

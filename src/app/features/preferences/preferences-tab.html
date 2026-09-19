@@ -63,7 +63,7 @@
           (ngModelChange)="setThemeValue('border', $event)"
       /></label>
       <label
-        >{{ i18n.t('preferences.density.label') }}<demo-select
+        >{{ i18n.t('preferences.density.label') }}<fin-select
           [disabled]="!can(P.preferencias.editar)"
           [ngModel]="store.preferences().density"
           [options]="densityOptions()"
@@ -87,7 +87,7 @@
     }
     <section class="theme-preview" [attr.aria-label]="i18n.t('preferences.preview.ariaLabel')">
       <div class="preview-nav">
-        <b><demo-icon name="dashboard" /> Finanzas</b><span>Dashboard</span
+        <b><fin-icon name="dashboard" /> Finanzas</b><span>Dashboard</span
         ><span>{{ i18n.t('preferences.preview.movements') }}</span>
       </div>
       <div class="preview-body">
@@ -108,7 +108,7 @@
   <article>
     <h2>{{ i18n.t('preferences.typographyLanguage.title') }}</h2>
     <label
-      >{{ i18n.t('preferences.font.label') }}<demo-select
+      >{{ i18n.t('preferences.font.label') }}<fin-select
         [options]="fontOptions"
         [ngModel]="store.preferences().font"
         [disabled]="!can(P.preferencias.editar)"
@@ -116,7 +116,7 @@
         [ariaLabel]="i18n.t('preferences.font.label')"
     /></label>
     <label
-      >{{ i18n.t('preferences.language.label') }}<demo-select
+      >{{ i18n.t('preferences.language.label') }}<fin-select
         [options]="languageOptions"
         [ngModel]="store.preferences().locale"
         [disabled]="!can(P.preferencias.editar)"
@@ -165,7 +165,7 @@
           [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
       /></label>
       <label
-        >{{ i18n.t('preferences.invite.roleLabel') }}<demo-select
+        >{{ i18n.t('preferences.invite.roleLabel') }}<fin-select
           name="rol"
           [(ngModel)]="rolInvitado"
           [options]="roleOptions()"

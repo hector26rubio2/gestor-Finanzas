@@ -1,8 +1,8 @@
-<demo-field [label]="i18n.t('form.movement.field.category')">
-  <demo-select
+<fin-field [label]="i18n.t('form.movement.field.category')">
+  <fin-select
     name="category"
     [(ngModel)]="model['category']"
     [options]="categoryOptions()"
     [ariaLabel]="i18n.t('form.movement.field.category')"
   />
-</demo-field>
+</fin-field>

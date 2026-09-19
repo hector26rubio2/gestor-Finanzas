@@ -3,13 +3,13 @@ import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';
-import { OverlayComponent } from '../../ui/ui';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
 import { FieldComponent } from '../../ui/field';
 
 @Component({
-  selector: 'demo-management-form',
+  selector: 'fin-management-form',
   standalone: true,
   imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,

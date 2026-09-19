@@ -28,7 +28,6 @@
 .kpi-top {
   display: flex;
   align-items: center;
-  gap: 8px;
 }
 :host(.bare) .kpi-top,
 :host(.bare) .kpi-foot {
@@ -52,7 +51,7 @@
   background: color-mix(in srgb, var(--danger) 14%, var(--surface));
   color: var(--danger);
 }
-.icon-chip demo-icon {
+.icon-chip fin-icon {
   width: 18px;
   height: 18px;
 }
@@ -85,9 +84,10 @@
 .kpi-foot {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   min-width: 0;
+  width: 100%;
 }
 .chispa {
   flex: none;
@@ -109,4 +109,12 @@ strong {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+.kpi-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  min-width: 0;
 }

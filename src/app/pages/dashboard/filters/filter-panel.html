@@ -1,13 +1,20 @@
-<section class="filter-panel" aria-labelledby="filters-title">
+<section class="filter-panel" aria-labelledby="filters-title" brnCollapsible [expanded]="filtersExpanded()" (expandedChange)="filtersExpanded.set($event)">
   <header>
     <div>
       <h2 id="filters-title">{{ i18n.t('dashboard.filters.title') }}</h2>
+      <p class="summary">{{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}</p>
     </div>
-    <button class="quiet" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
-      {{ i18n.t('dashboard.filters.clear') }}
-    </button>
+    <div class="filter-actions">
+      <button class="quiet" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
+        {{ i18n.t('dashboard.filters.clear') }}
+      </button>
+      <button class="quiet filter-toggle" type="button" brnCollapsibleTrigger [attr.aria-label]="i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open')">
+        {{ i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open') }}
+        <span aria-hidden="true">{{ filtersExpanded() ? '⌃' : '⌄' }}</span>
+      </button>
+    </div>
   </header>
-  <div class="filters">
+  <div class="filters" brnCollapsibleContent>
     <fieldset>
       <legend>{{ i18n.t('dashboard.filters.period.legend') }}</legend>
       @for (item of scales(); track item.value) {
@@ -55,7 +62,7 @@
           /></label>
           @if (scale() === 'month' || scale() === 'week' || scale() === 'day') {
           <label
-            >{{ i18n.t('dashboard.period.month') }}<demo-select
+            >{{ i18n.t('dashboard.period.month') }}<fin-select
               [ngModel]="anchorMonth()"
               (ngModelChange)="monthChange.emit($event)"
               [options]="monthOptions()"
@@ -63,7 +70,7 @@
           /></label>
           } @if (scale() === 'week') {
           <label
-            >{{ i18n.t('dashboard.period.week') }}<demo-select
+            >{{ i18n.t('dashboard.period.week') }}<fin-select
               [ngModel]="anchorWeekOfMonth()"
               (ngModelChange)="weekOfMonthChange.emit($event)"
               [options]="weekOfMonthOptions()"
@@ -88,28 +95,28 @@
       </div>
     </div>
     <label
-      >{{ i18n.t('dashboard.filters.account.label') }}<demo-select
+      >{{ i18n.t('dashboard.filters.account.label') }}<fin-select
         [ngModel]="accountId()"
         (ngModelChange)="accountIdChange.emit($event)"
         [options]="accountSelectOptions()"
         [ariaLabel]="i18n.t('dashboard.filters.account.ariaLabel')"
     /></label>
     <label
-      >{{ i18n.t('dashboard.filters.accountType.label') }}<demo-select
+      >{{ i18n.t('dashboard.filters.accountType.label') }}<fin-select
         [ngModel]="accountType()"
         (ngModelChange)="accountTypeChange.emit($event)"
         [options]="accountTypeOptions()"
         [ariaLabel]="i18n.t('dashboard.filters.accountType.ariaLabel')"
     /></label>
     <label
-      >{{ i18n.t('dashboard.filters.category.label') }}<demo-select
+      >{{ i18n.t('dashboard.filters.category.label') }}<fin-select
         [ngModel]="globalCategory()"
         (ngModelChange)="globalCategoryChange.emit($event)"
         [options]="categorySelectOptions()"
         [ariaLabel]="i18n.t('dashboard.filters.category.ariaLabel')"
     /></label>
   </div>
-  <p class="summary" role="status">
+  <p class="summary" role="status" aria-live="polite">
     {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
   </p>
 </section>

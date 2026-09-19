@@ -87,7 +87,7 @@ h2 {
   margin: 18px 0 4px;
 }
 button,
-select {
+fin-select {
   width: 100%;
   min-height: 45px;
   margin-top: 12px;
@@ -130,7 +130,7 @@ label {
   font-size: 0.76rem;
   margin-top: 12px;
 }
-select {
+fin-select {
   padding: 0 12px;
 }
 small {

@@ -1,6 +1,6 @@
 <section class="report-toolbar" [attr.aria-label]="i18n.t('reports.filtersAriaLabel')">
   <label
-    >{{ i18n.t('reports.periodLabel') }}<demo-select
+    >{{ i18n.t('reports.periodLabel') }}<fin-select
       [ngModel]="reportPeriod()"
       (ngModelChange)="reportPeriod.set($event)"
       [options]="reportPeriodOptions()"
@@ -9,31 +9,31 @@
   <p>{{ i18n.t('reports.traceabilityNote') }}</p>
   @if (can(P.reportes.exportar)) {
   <button type="button" class="export-action" (click)="exportReport()">
-    <demo-icon name="download" /> {{ i18n.t('reports.exportButton') }}
+    <fin-icon name="download" /> {{ i18n.t('reports.exportButton') }}
   </button>
   }
 </section>
 <section class="kpis mini report-kpis">
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('reports.kpi.net.label')"
     icon="trendUp"
     [value]="store.money(reportNet())"
     [hint]="i18n.t('reports.kpi.net.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('reports.kpi.savingsRate.label')"
     icon="percent"
     [value]="reportSavingsRate()"
     [hint]="i18n.t('reports.kpi.savingsRate.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('reports.kpi.averageExpense.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(reportAverageExpense())"
     [hint]="i18n.t('reports.kpi.averageExpense.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('reports.kpi.topCategory.label')"
     icon="tag"
     [value]="topCategory().name"

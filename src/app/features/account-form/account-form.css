@@ -11,7 +11,7 @@ label {
   font-size: 0.76rem;
 }
 input,
-select,
+fin-select,
 button {
   min-height: 42px;
   border: 1px solid var(--line);

@@ -18,7 +18,7 @@
 }
 /*
  * El recorte de esquinas redondeadas vive aqui, no en `:host`: si el host entero
- * recorta overflow, el menu de los `demo-select` de paginacion en el `<footer>`
+ * recorta overflow, el menu de los `select` de paginacion en el `<footer>`
  * (Filas por pagina, Ir a pagina) queda invisible en vez de flotar sobre la
  * tabla -aparecia en el arbol de accesibilidad pero no se veia en pantalla-. Solo
  * el area con scroll necesita el recorte (la fila resaltada al pasar el mouse no
@@ -75,7 +75,7 @@ tbody tr.selectable:focus-within {
   cursor: pointer;
   font-weight: 600;
 }
-.empty {
+.fin-empty {
   text-align: center;
   padding: 48px 16px;
   color: var(--muted);
@@ -107,7 +107,7 @@ label,
   align-items: center;
   gap: 10px;
 }
-select,
+fin-select,
 .pages button {
   font: inherit;
   background: var(--surface);
@@ -181,7 +181,7 @@ select:focus-visible,
     font-size: 0.72rem;
     font-weight: 650;
   }
-  td.empty {
+  td.fin-empty {
     display: block;
   }
   .detail-field {

@@ -85,7 +85,7 @@ describe('«ver» es la funcionalidad entera', () => {
 
     const raiz = fixture.nativeElement as HTMLElement;
     expect(raiz.querySelector('.sin-acceso')).toBeNull();
-    expect(raiz.querySelector('table')).not.toBeNull();
+    expect(raiz.querySelector('fin-table')).not.toBeNull();
     expect(fixture.componentInstance.algunKpi()).toBe(false);
   });
 

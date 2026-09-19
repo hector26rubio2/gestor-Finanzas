@@ -8,13 +8,13 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * vuelta del `@for` de dashboard.html.
  *
  * El host mismo es la caja `.widget` -no `display: contents`-: una grafica
- * `demo-chart` adentro observa su propio ancho con `ResizeObserver` para
+ * `chart` adentro observa su propio ancho con `ResizeObserver` para
  * seguir el tamaño de la tarjeta, y con un antecesor `display: contents` de
  * por medio ese observador nunca vuelve a disparar tras el primer layout, asi
  * que la grafica se queda pintada a la mitad del ancho real (#dashboard-wide).
  */
 @Component({
-  selector: 'demo-widget-card',
+  selector: 'fin-widget-card',
   standalone: true,
   templateUrl: './widget-card.html',
   styleUrl: './widget-card.css',

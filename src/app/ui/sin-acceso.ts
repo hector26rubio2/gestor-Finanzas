@@ -11,7 +11,7 @@ import { I18nService } from '../core/i18n';
  * reporta un fallo que no existe en vez de pedir lo que le falta.
  */
 @Component({
-  selector: 'demo-sin-acceso',
+  selector: 'fin-sin-acceso',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sin-acceso.html',

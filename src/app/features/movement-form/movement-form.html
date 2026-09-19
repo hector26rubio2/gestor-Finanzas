@@ -1,7 +1,7 @@
-<demo-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
+<fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
   ><form (ngSubmit)="submit()">
     @let vis = visibility();
-    <demo-movement-kind-selector
+    <fin-movement-kind-selector
       [kind]="model['kind']"
       [options]="types()"
       [ariaLabel]="i18n.t('form.movement.typeGroup')"
@@ -10,27 +10,27 @@
     @if (!model['kind']) {
     <p class="hint">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
     } @else {
-    <demo-field [label]="i18n.t('form.movement.field.operationType')">
-      <demo-select
+    <fin-field [label]="i18n.t('form.movement.field.operationType')">
+      <fin-select
         name="operationType"
         [ngModel]="model['operationType']"
         (ngModelChange)="setOperationType($event)"
         [options]="operationTypeOptions()"
         [ariaLabel]="i18n.t('form.movement.field.operationType')"
       />
-    </demo-field>
+    </fin-field>
     <div class="form-grid">
-      <demo-movement-core-fields [model]="model" [kind]="effectiveKind()" [showTargetAccount]="vis.showTargetAccount" />
+      <fin-movement-core-fields [model]="model" [kind]="effectiveKind()" [showTargetAccount]="vis.showTargetAccount" />
       @if (vis.showCategory) {
-      <demo-movement-category-field [model]="model" [kind]="effectiveKind()" />
+      <fin-movement-category-field [model]="model" [kind]="effectiveKind()" />
       } @if (vis.showPerson) {
-      <demo-movement-loan-fields [model]="model" [showLoan]="vis.showLoan" />
+      <fin-movement-loan-fields [model]="model" [showLoan]="vis.showLoan" />
       } @if (vis.showRecurrence) {
-      <demo-movement-recurrence-fields [model]="model" />
+      <fin-movement-recurrence-fields [model]="model" />
       } @if (vis.showInstallments) {
-      <demo-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
+      <fin-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
       } @if (vis.showCurrency) {
-      <demo-movement-currency-fields [model]="model" />
+      <fin-movement-currency-fields [model]="model" />
       }
     </div>
     } @if (error()) {
@@ -39,8 +39,14 @@
     <footer>
       <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button>@if
       (model['kind']) {
-      <button class="primary" type="submit">{{ i18n.t('form.movement.actions.save') }}</button>
+      <button class="primary" type="submit" [disabled]="actions.isRunning(saveActionKey)">
+        {{
+          actions.isRunning(saveActionKey)
+            ? i18n.t('form.movement.actions.saving')
+            : i18n.t('form.movement.actions.save')
+        }}
+      </button>
       }
     </footer>
-  </form></demo-overlay
+  </form></fin-overlay
 >

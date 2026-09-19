@@ -8,7 +8,7 @@
  * y esta lista crece con `flex: 1` para llenarla, con scroll propio si de todos modos no
  * le alcanza.
  */
-.category-list {
+.fin-category-list {
   display: grid;
   align-content: start;
   gap: 4px;
@@ -68,7 +68,7 @@
   border-color: var(--accent) !important;
   background: var(--accent-soft) !important;
 }
-.empty {
+.fin-empty {
   margin: auto;
   text-align: center;
 }

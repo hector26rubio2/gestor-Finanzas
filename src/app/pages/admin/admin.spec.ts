@@ -227,7 +227,7 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
 });
 
 /**
- * Las tablas de usuarios y auditoría pasaron de `<table>` propia a `demo-table`
+ * Las tablas de usuarios y auditoría pasaron de `<fin-table>` propia a `table`
  * genérica: estas pruebas cubren la transformación de filas (roles a texto,
  * fecha formateada, actor resuelto) que antes vivía directo en la plantilla.
  */

@@ -72,7 +72,7 @@ export type IconName = keyof typeof TRAZOS;
  * significa algo, no el dibujo.
  */
 @Component({
-  selector: 'demo-icon',
+  selector: 'fin-icon',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './icon.html',

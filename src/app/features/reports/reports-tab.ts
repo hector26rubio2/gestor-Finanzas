@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, 
 import { FormsModule } from '@angular/forms';
 import { toCsv, downloadCsv } from '../../core/csv';
 import { IconComponent } from '../../ui/icon';
-import { KpiComponent } from '../../ui/ui';
+import { KpiComponent } from '../../ui/kpi/kpi';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, DemoStore } from '../../core/store';

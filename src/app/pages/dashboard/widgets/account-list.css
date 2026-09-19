@@ -3,7 +3,7 @@
   flex: 1;
   min-height: 0;
 }
-.account-list {
+.fin-account-list {
   display: grid;
   align-content: start;
   gap: 4px;
@@ -41,7 +41,7 @@
   border-color: var(--accent) !important;
   background: var(--accent-soft) !important;
 }
-.empty {
+.fin-empty {
   margin: auto;
   text-align: center;
 }

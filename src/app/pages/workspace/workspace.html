@@ -7,27 +7,27 @@
     <div class="head-actions">
       @if (page() === 'accounts' && can(P.cuentas.crear)) {
       <button (click)="store.form.set({ kind: 'account' })">
-        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}
+        <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}
       </button>
       } @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
       <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">
-        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newCategory') }}
+        <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newCategory') }}
       </button>
       } @if (page() === 'people' && can(P.personas.crear)) {
       <button (click)="store.form.set({ kind: 'person' })">
-        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
+        <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
       </button>
       } @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
       <button (click)="store.form.set({ kind: 'investment' })">
-        <demo-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
+        <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
       </button>
       } @if (page() === 'reports' && can(P.reportes.exportar)) {
       <button (click)="exportReport()">
-        <demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
+        <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'movements' && can(P.movimientos.exportar)) {
       <button class="secondary-action" (click)="exportMovements()">
-        <demo-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
+        <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'notifications' && can(P.notificaciones.editar)) {
       <button (click)="readAll()">{{ i18n.t('workspace.actions.markAllRead') }}</button>
@@ -35,23 +35,23 @@
     </div>
   </header>
   @if (sinNingunBloque()) {
-  <demo-sin-acceso />
+  <fin-sin-acceso />
   } @else {
   <router-outlet />
   }
 </article>
 @if (store.inspector(); as selected) {
-<demo-overlay
+<fin-overlay
   [title]="inspectorTitle()"
   mode="inspector"
   [wide]="store.cardPaymentMode() || isAccountInspector()"
   (closed)="store.inspector.set(null); store.cardPaymentMode.set(false)"
   ><ng-container *ngTemplateOutlet="inspector"></ng-container
-></demo-overlay>
+></fin-overlay>
 } @if (store.form()?.kind === 'account') {
-<demo-account-form />
+<fin-account-form />
 } @if (['category', 'person', 'investment', 'recurrence'].includes(store.form()?.kind ?? '')) {
-<demo-management-form />
+<fin-management-form />
 }
 <ng-template #inspector
   ><section class="detail">
@@ -196,7 +196,7 @@
         >
       </div>
       <div class="payment-table">
-        <demo-table
+        <fin-table
           [columns]="paymentAllocationColumns()"
           [rows]="paymentAllocationRows()"
           [selectable]="false"

@@ -139,6 +139,11 @@ export const P = {
       listar: 'administracion.usuarios.listar',
       editar: 'administracion.usuarios.editar',
       deshabilitar: 'administracion.usuarios.deshabilitar',
+      organizacion: { editar: 'administracion.usuarios.organizacion.editar' },
+    },
+    organizaciones: {
+      listar: 'administracion.organizaciones.listar',
+      crear: 'administracion.organizaciones.crear',
     },
     roles: {
       listar: 'administracion.roles.listar',

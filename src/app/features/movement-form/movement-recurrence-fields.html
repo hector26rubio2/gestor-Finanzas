@@ -1,18 +1,18 @@
-<demo-field [label]="i18n.t('form.movement.field.recurring')">
-  <demo-select
+<fin-field [label]="i18n.t('form.movement.field.recurring')">
+  <fin-select
     name="recurring"
     [(ngModel)]="model['recurring']"
     [options]="recurringOptions()"
     [ariaLabel]="i18n.t('form.movement.field.recurring')"
   />
-</demo-field>
+</fin-field>
 @if (model['recurring'] === 'true') {
-<demo-field [label]="i18n.t('form.frequency.label')">
-  <demo-select
+<fin-field [label]="i18n.t('form.frequency.label')">
+  <fin-select
     name="recurrence"
     [(ngModel)]="model['recurrence']"
     [options]="frequencyOptions()"
     [ariaLabel]="i18n.t('form.frequency.label')"
   />
-</demo-field>
+</fin-field>
 }

@@ -133,7 +133,7 @@ export function createEmptyData(): DemoData {
  */
 export const demoUsers = [
   {
-    id: 'demo-owner',
+    id: 'owner',
     name: 'Valentina Torres',
     email: 'valentina@example.test',
     capabilities: [
@@ -242,7 +242,7 @@ export const demoUsers = [
     ] as string[],
   },
   {
-    id: 'demo-reviewer',
+    id: 'reviewer',
     name: 'Daniel Ríos',
     email: 'daniel@example.test',
     capabilities: [

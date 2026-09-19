@@ -12,7 +12,7 @@ import { FieldComponent } from '../../ui/field';
  * crédito, porque esa deuda es con el banco, no con una persona.
  */
 @Component({
-  selector: 'demo-movement-loan-fields',
+  selector: 'fin-movement-loan-fields',
   standalone: true,
   imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-loan-fields.html',

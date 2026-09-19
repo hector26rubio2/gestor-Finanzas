@@ -1,6 +1,7 @@
+<ngx-sonner-toaster position="top-right" theme="system" richColors closeButton />
 @if (cargandoSesion()) {
 <div class="cargando" role="status" aria-live="polite">
-  <demo-icon name="dashboard" class="cargando-marca" />
+  <fin-icon name="dashboard" class="cargando-marca" />
   <b>Finanzas</b>
   <p>{{ i18n.t('shell.loading') }}</p>
   <span class="cargando-barra"><i></i></span>
@@ -9,8 +10,9 @@
 <router-outlet />
 } @else {
 <a class="saltar-al-contenido" href="#contenido-principal">{{ i18n.t('shell.skipToContent') }}</a>
-<div class="app" [class.collapsed]="collapsed()">
-  <aside [class.mobile-open]="mobileOpen()">
+<div hlmSidebarWrapper sidebarWidth="238px" sidebarWidthIcon="70px" class="app" [class.collapsed]="collapsed()">
+  <hlm-sidebar collapsible="icon">
+  <aside class="sidebar-content" [class.collapsed]="collapsed()">
     <div class="brand-row">
       <button
         type="button"
@@ -20,7 +22,7 @@
         [attr.aria-label]="menuAbierto() ? i18n.t('shell.collapseMenu') : i18n.t('shell.expandMenu')"
         (click)="alternarMenu()"
       >
-        <demo-icon name="dashboard" class="brand-mark" />
+        <fin-icon name="dashboard" class="brand-mark" />
       </button>
       <a routerLink="/dashboard" class="brand aside-label" [attr.aria-label]="i18n.t('shell.goHome')"
         ><b>Finanzas</b></a
@@ -46,7 +48,7 @@
             }</small
           ></span
         >
-        <demo-icon name="more" class="profile-more aside-label" />
+        <fin-icon name="more" class="profile-more aside-label" />
       </button>
       @if (profileOpen()) {
       <div class="profile-menu">
@@ -58,28 +60,39 @@
       </div>
       }
     </div>
-    <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
+    <nav
+      id="primary-navigation"
+      [attr.aria-label]="i18n.t('shell.primaryNav')"
+    >
       @for (group of groups(); track group) {
       <small class="aside-label">{{ i18n.t('shell.group.' + group) }}</small>
+      <ul>
       @for (item of items(group); track item.path) {
-      <a
-        [routerLink]="'/' + item.path"
-        routerLinkActive="active"
-        [attr.aria-label]="i18n.t('nav.' + item.path)"
-        (click)="mobileOpen.set(false)"
-        ><demo-icon class="nav-icon" [name]="item.icon" /><span class="aside-label"
-          >{{ i18n.t('nav.' + item.path) }}</span
-        >
-        @if (item.path === 'notifications' && store.unread()) {
-        <i>{{ store.unread() }}</i>
-        }
-      </a>
-      } }
+      <li>
+        <a
+          hlmSidebarMenuButton
+          [tooltip]="i18n.t('nav.' + item.path)"
+          [isActive]="activeRoute.isActive"
+          #activeRoute="routerLinkActive"
+          ariaCurrentWhenActive="page"
+          [routerLink]="'/' + item.path"
+          routerLinkActive="active"
+          [attr.aria-label]="i18n.t('nav.' + item.path)"
+          (click)="sidebar.setOpenMobile(false)"
+          ><fin-icon class="nav-icon" [name]="item.icon" /><span class="aside-label"
+            >{{ i18n.t('nav.' + item.path) }}</span
+          >
+          @if (item.path === 'notifications' && store.unread()) {
+          <i>{{ store.unread() }}</i>
+          }
+        </a>
+      </li>
+      }
+      </ul>
+      }
     </nav>
   </aside>
-  @if (mobileOpen()) {
-  <button class="scrim" [attr.aria-label]="i18n.t('shell.closeMenu')" (click)="mobileOpen.set(false)"></button>
-  }
+  </hlm-sidebar>
   <section class="stage">
     <header class="topbar">
       <button
@@ -90,20 +103,20 @@
         [attr.aria-label]="menuAbierto() ? i18n.t('shell.closeMenu') : i18n.t('shell.openMenu')"
         (click)="alternarMenu()"
       >
-        <demo-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
-      ><span class="org"><demo-icon name="organization" /> {{ espacioActivo() }}</span>
+        <fin-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
+      ><span class="org"><fin-icon name="organization" /> {{ espacioActivo() }}</span>
       <div class="top-actions">
         <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
-          <demo-icon name="search" /></button
+          <fin-icon name="search" /></button
         ><a routerLink="/notifications" class="bell" [attr.aria-label]="i18n.t('nav.notifications')"
-          ><demo-icon name="notifications" />
+          ><fin-icon name="notifications" />
           @if (store.unread()) {
           <i>{{ store.unread() }}</i>
           }
         </a>
         @if (caps.allows(P.movimientos.crear)) {
         <button class="primary" (click)="store.open()">
-          <demo-icon name="plus" /> {{ i18n.t('shell.newMovement') }}
+          <fin-icon name="plus" /> {{ i18n.t('shell.newMovement') }}
         </button>
         }
       </div>
@@ -111,10 +124,16 @@
     <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
   </section>
 </div>
+@defer (when abreFormularioDeMovimiento()) {
 @if (abreFormularioDeMovimiento()) {
-<demo-movement-form />
+<fin-movement-form />
+}
 } @if (store.toast()) {
 <div class="toast" role="status">
   {{ store.toast() }}<button [attr.aria-label]="i18n.t('shell.dismissToast')" (click)="store.toast.set('')">×</button>
 </div>
-} }
+}
+@defer (on idle) {
+  <app-bug-report />
+}
+}

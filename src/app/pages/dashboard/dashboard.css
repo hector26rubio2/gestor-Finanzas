@@ -8,7 +8,7 @@
   margin: auto;
   overflow-x: clip;
 }
-.sin-acceso {
+.fin-sin-acceso {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -32,7 +32,7 @@
   padding: 1px 6px;
 }
 .hero,
-.filter-panel > header,
+.fin-filter-panel > header,
 .recent > header {
   display: flex;
   flex-wrap: wrap;
@@ -66,7 +66,7 @@ p {
 }
 button,
 input,
-select {
+fin-select {
   background: var(--surface);
   border: 1px solid var(--line);
   color: var(--text);
@@ -79,7 +79,7 @@ select {
   border-radius: var(--radius);
   padding: 22px 24px;
 }
-.local select {
+.local fin-select {
   width: 100%;
 }
 .quiet {
@@ -119,7 +119,7 @@ button:disabled {
   width: 100%;
   flex: 1;
 }
-.indicator-layout demo-chart {
+.indicator-layout fin-chart {
   min-width: 0;
   max-width: 100%;
 }
@@ -192,7 +192,7 @@ button:disabled {
 .see-all:hover {
   background: var(--accent-soft);
 }
-.see-all demo-icon {
+.see-all fin-icon {
   --icon-size: 15px;
 }
 .legend {
@@ -434,7 +434,7 @@ button:disabled {
   align-items: center;
   gap: 8px;
 }
-.local demo-select {
+.local fin-select {
   min-width: 160px;
 }
 .local button {
@@ -460,7 +460,7 @@ button:disabled {
   background: linear-gradient(var(--accent), color-mix(in srgb, var(--accent) 30%, transparent));
   border-radius: 5px 5px 0 0;
 }
-.empty {
+.fin-empty {
   margin: auto;
   text-align: center;
 }
@@ -496,7 +496,7 @@ button:disabled {
   gap: 14px;
 }
 .widget-builder input,
-.widget-builder select {
+.widget-builder fin-select {
   width: 100%;
 }
 .widget-builder > div {

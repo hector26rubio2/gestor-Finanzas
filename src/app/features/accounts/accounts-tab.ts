@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DataTableComponent, KpiComponent } from '../../ui/ui';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { KpiComponent } from '../../ui/kpi/kpi';
 import { IconComponent } from '../../ui/icon';
 import { UiSelectComponent } from '../../ui/select';
 import { DemoStore } from '../../core/store';

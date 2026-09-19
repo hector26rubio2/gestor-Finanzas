@@ -9,7 +9,7 @@ import { FieldComponent } from '../../ui/field';
 
 /** Fecha, cuenta origen, cuenta destino (solo transferencia), descripción e importe. */
 @Component({
-  selector: 'demo-movement-core-fields',
+  selector: 'fin-movement-core-fields',
   standalone: true,
   imports: [FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
   templateUrl: './movement-core-fields.html',

@@ -10,7 +10,9 @@ import { P } from '../../core/permissions';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { CAPABILITIES, DemoStore } from '../../core/store';
 import { IconComponent, IconName } from '../../ui/icon';
-import { DataTableComponent, KpiComponent, OverlayComponent } from '../../ui/ui';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { KpiComponent } from '../../ui/kpi/kpi';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { ChartComponent, ChartOption } from '../../ui/chart';
 import { ChartThemeService } from '../../ui/chart-theme';
@@ -282,7 +284,7 @@ export class DashboardComponent {
    * Saltar de año a golpe de "‹"/"›" es razonable entre meses vecinos, pero no para ir de
    * 2026 a 1999: son mas de trescientos clics. El selector deja escribir el destino
    * directamente, sin ser el `<input type=date>` del sistema -que no encaja con el resto
-   * de controles de la app-, con un `demo-select` como todos los otros filtros.
+   * de controles de la app-, con un `select` como todos los otros filtros.
    */
   readonly periodPickerOpen = signal(false);
   readonly anchorYear = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getFullYear()));
@@ -2033,9 +2035,13 @@ export class DashboardComponent {
       case 'barH': {
         const agg = this.aggregate(widget).slice(0, 12);
         const horizontal = widget.type === 'barH';
+        // ECharts ordena la fuente declarativamente antes de pintarla. Esto deja la
+        // agregación en el componente y el ordenamiento en el motor de gráficos, y
+        // permite reutilizar el mismo dataset cuando añadamos filtros o series.
+        // Referencia: https://echarts.apache.org/handbook/en/concepts/data-transform
+        const source = [['label', 'value'], ...agg.map((item) => [item.label, item.value])];
         const ejeCategoria = {
           type: 'category' as const,
-          data: agg.map((a) => a.label),
           axisLine: { lineStyle: { color: palette.line } },
           axisTick: { show: false },
           axisLabel: { color: palette.muted, hideOverlap: true },
@@ -2051,16 +2057,25 @@ export class DashboardComponent {
             : { top: 20, right: 18, bottom: 34, left: 62 },
           xAxis: horizontal ? ejeValor : ejeCategoria,
           yAxis: horizontal ? ejeCategoria : ejeValor,
+          dataset: [
+            { id: 'bar-source', source },
+            {
+              id: 'bar-sorted',
+              fromDatasetId: 'bar-source',
+              transform: { type: 'sort', config: { dimension: 'value', order: 'desc' } },
+            },
+          ],
           tooltip: { trigger: 'axis' as const, valueFormatter },
           series: [
             {
               type: 'bar' as const,
+              datasetId: 'bar-sorted',
+              encode: horizontal ? { x: 'value', y: 'label' } : { x: 'label', y: 'value' },
               barMaxWidth: 26,
               itemStyle: {
                 color: palette.accent,
                 borderRadius: (horizontal ? [0, 5, 5, 0] : [5, 5, 0, 0]) as [number, number, number, number],
               },
-              data: agg.map((a) => a.value),
             },
           ],
         };
@@ -2372,7 +2387,7 @@ export class DashboardComponent {
   measureLabel(widget: Widget): string {
     return this.measureOptions().find((o) => o.value === (widget.measure ?? 'expense'))?.label ?? '';
   }
-  /** Filas {etiqueta, valor} para un widget "tabla", ya formateadas para `demo-table`. */
+  /** Filas {etiqueta, valor} para un widget "tabla", ya formateadas para `table`. */
   tableRows(widget: Widget): Record<string, string>[] {
     return this.aggregate(widget).map((a) => ({ label: a.label, value: this.formatMeasure(a.value, widget) }));
   }

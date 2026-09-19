@@ -11,7 +11,8 @@ import { SinAccesoComponent } from '../../ui/sin-acceso';
 import { P } from '../../core/permissions';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { CAPABILITIES, DemoStore } from '../../core/store';
-import { DataTableComponent, OverlayComponent } from '../../ui/ui';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { FinanceApiClient } from '../../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { formatReturnRate } from '../../core/money';
@@ -146,7 +147,7 @@ export class WorkspaceComponent {
     });
   });
   readonly appliedPayment = computed(() => this.paymentAllocation().reduce((sum, row) => sum + row.applied, 0));
-  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `demo-table`. */
+  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `table`. */
   readonly paymentAllocationRows = computed(() =>
     this.paymentAllocation().map((row) => ({
       ...row,

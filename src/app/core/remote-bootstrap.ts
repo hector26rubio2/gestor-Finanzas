@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { Account, DemoData, Movement } from './demo-data';
 import {
@@ -27,6 +27,8 @@ export class RemoteBootstrap {
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private sessionSignature: string | null = null;
+  private readonly destroyRef = inject(DestroyRef);
+  private started = false;
 
   /**
    * Canal en vivo abierto, si lo hay. Se guarda para poder cerrarlo: al cerrar sesion
@@ -45,14 +47,24 @@ export class RemoteBootstrap {
   private cerradaAProposito = false;
 
   async start(): Promise<void> {
+    if (this.started) return;
+    this.started = true;
     this.store.restoreDemoSession();
     await this.initialize();
     if (this.store.runtime.mode !== 'api') return;
     // El sondeo se queda como respaldo: cubre el canal caido, el navegador sin
     // EventSource y el despliegue con mas de una instancia, donde el aviso puede salir
     // por una maquina distinta de la que atiende esta pestana.
-    window.setInterval(() => void this.pollSession(), 60_000);
-    window.addEventListener('focus', () => void this.pollSession());
+    if (this.destroyRef.destroyed) return;
+    const timer = window.setInterval(() => void this.pollSession(), 60_000);
+    const onFocus = () => void this.pollSession();
+    window.addEventListener('focus', onFocus);
+    this.destroyRef.onDestroy(() => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      this.canal?.close();
+      this.canal = null;
+    });
     this.escucharCambiosDeAcceso();
   }
 
