@@ -45,12 +45,12 @@ export class AdminStore {
   readonly users = signal<readonly ApiAdminUser[]>([]);
   readonly usersPage = signal(1);
   readonly usersTotal = signal(0);
-  readonly usersSize = 25;
+  readonly usersSize = 100;
   readonly userSearch = signal('');
   readonly roles = signal<readonly ApiAdminRole[]>([]);
   readonly rolesPage = signal(1);
   readonly rolesTotal = signal(0);
-  readonly rolesSize = 12;
+  readonly rolesSize = 50;
   readonly rolesOrganizationFilter = signal('');
   private readonly rolesByOrganization = signal<Readonly<Record<string, readonly ApiAdminRole[]>>>({});
   readonly organizations = signal<readonly ApiAdminOrganization[]>([]);
@@ -349,6 +349,10 @@ export class AdminStore {
     return !!organizationId && this.pending().has(`userPermission:${user.id}:${organizationId}:${code}`);
   }
 
+  roleCountOf(organizationId: string): number {
+    return this.roles().filter((role) => role.organizationId === organizationId).length;
+  }
+
   isRoleActive(role: ApiAdminRole): boolean {
     return this.draft('roleActive', `roleActive:${role.id}`)?.value ?? role.isActive;
   }
@@ -618,6 +622,7 @@ export class AdminStore {
   async crearOrganizacion(body: { name: string; baseCurrency: string }): Promise<void> {
     const creada = await firstValueFrom(this.api.createAdminOrganization(body));
     this.organizations.update((xs) => [...xs, creada]);
+    await this.cargarRoles(1);
   }
 
   async renombrarOrganizacion(id: string, name: string): Promise<void> {

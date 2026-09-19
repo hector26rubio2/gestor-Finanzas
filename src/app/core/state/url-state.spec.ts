@@ -87,6 +87,31 @@ describe('estado en la URL', () => {
     expect(router.url).toContain('pagina=3');
   });
 
+  it('un cambio de señal mientras se sale de la ruta no cancela la navegación', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([
+          { path: 'dentro', children: [] },
+          { path: 'fuera', children: [] },
+        ]),
+      ],
+    });
+    const router = TestBed.inject(Router);
+    await router.navigateByUrl('/dentro');
+    const fixture = TestBed.createComponent(Anfitrion);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const saliendo = router.navigateByUrl('/fuera', { replaceUrl: true });
+    fixture.componentInstance.tipo.set('credit');
+    fixture.detectChanges();
+    await saliendo;
+    await fixture.whenStable();
+
+    expect(router.url).toBe('/fuera');
+  });
+
   it('la primera pagina no aparece en la URL', async () => {
     const { fixture, router } = montar();
     fixture.componentInstance.pagina.set(2);

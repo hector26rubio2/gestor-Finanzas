@@ -106,4 +106,21 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
 
     expect(router.url).toBe('/login?returnUrl=%2Fmovements%3Fpagina%3D3');
   });
+
+  it('sin sesión y sin una vista concreta, el login queda limpio, sin consulta', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+      ],
+    });
+    const store = TestBed.inject(AppStore);
+    store.remoteState.set('ready');
+    store.user.set(null);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/dashboard');
+
+    expect(router.url).toBe('/login');
+  });
 });

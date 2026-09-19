@@ -5,6 +5,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ApiAdminOrganization } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
@@ -13,6 +14,7 @@ import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { AdminStore } from '../../admin.store';
+import { AdminPanelComponent } from '../../panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
 
 @Component({
@@ -24,6 +26,8 @@ import { OrganizationSheetComponent } from './organization-sheet';
     HlmInput,
     HlmLabel,
     HlmSwitch,
+    HlmTableImports,
+    AdminPanelComponent,
     EmptyStateComponent,
     IconComponent,
     OrganizationSheetComponent,
@@ -37,68 +41,104 @@ import { OrganizationSheetComponent } from './organization-sheet';
         [detail]="i18n.t('admin.emptyState.organizations.detail')"
       />
     } @else {
-      <section class="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <h2 class="text-base font-semibold">{{ i18n.t('admin.organizations.title') }}</h2>
-          <p class="text-sm text-muted-foreground">{{ i18n.t('admin.organizations.subtitle') }}</p>
+      <app-admin-panel
+        [title]="i18n.t('admin.organizations.title')"
+        [subtitle]="i18n.t('admin.organizations.subtitle')"
+      >
+        <div panelActions class="flex flex-wrap items-center gap-2">
+          <label class="relative">
+            <fin-icon
+              name="search"
+              class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            />
+            <input
+              hlmInput
+              class="w-64 ps-9"
+              [ngModel]="search()"
+              (ngModelChange)="search.set($event)"
+              [placeholder]="i18n.t('admin.organizations.searchPlaceholder')"
+              [attr.aria-label]="i18n.t('admin.organizations.searchPlaceholder')"
+            />
+          </label>
+          @if (caps.allows(P.administracion.organizaciones.crear)) {
+            <button hlmBtn (click)="creating.set(true)">
+              <fin-icon name="plus" /> {{ i18n.t('admin.organizations.actions.create') }}
+            </button>
+          }
         </div>
-        @if (caps.allows(P.administracion.organizaciones.crear)) {
-          <button hlmBtn (click)="creating.set(true)">
-            <fin-icon name="plus" /> {{ i18n.t('admin.organizations.actions.create') }}
-          </button>
-        }
-      </section>
-      <section class="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-        @for (org of store.organizations(); track org.id) {
-          <article
-            class="flex flex-col gap-3 rounded-xl border border-border bg-card p-4"
-            [class.opacity-70]="!store.isOrganizationActive(org)"
-          >
-            <header class="flex items-start gap-3">
-              <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
-                <fin-icon name="organization" />
-              </span>
-              <span class="flex min-w-0 flex-1 flex-col">
-                <h3 class="flex flex-wrap items-center gap-2 text-sm font-semibold">
-                  {{ org.name }}
-                  @if (store.isDefaultOrganization(org)) {
-                    <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
-                  }
-                  @if (!store.isOrganizationActive(org)) {
-                    <span hlmBadge variant="outline">{{ i18n.t('admin.organizations.inactiveBadge') }}</span>
-                  }
-                </h3>
-                <small class="text-xs text-muted-foreground">{{ org.slug }} · {{ org.baseCurrency }}</small>
-                <small class="text-xs text-muted-foreground">
-                  {{ i18n.t('admin.organizations.memberCount', { count: org.memberCount }) }}
-                </small>
-              </span>
-              @if (caps.allows(P.administracion.organizaciones.editar)) {
-                <hlm-switch
-                  [checked]="store.isOrganizationActive(org)"
-                  [disabled]="store.isDefaultOrganization(org)"
-                  [aria-label]="i18n.t('admin.organizations.activeToggle', { name: org.name })"
-                  (checkedChange)="store.setOrganizationActive(org, $event)"
-                />
+        <div hlmTableContainer>
+          <table hlmTable [attr.aria-label]="i18n.t('admin.organizations.title')">
+            <thead hlmTHead class="bg-muted/40">
+              <tr hlmTr>
+                <th hlmTh class="h-11 px-5">{{ i18n.t('admin.organizations.column.organization') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.currency') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.members') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.roles') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.default') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.active') }}</th>
+                <th hlmTh class="w-32 px-5">
+                  <span class="sr-only">{{ i18n.t('admin.common.actions') }}</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody hlmTBody>
+              @for (org of visibleOrganizations(); track org.id) {
+                <tr hlmTr [class.opacity-60]="!store.isOrganizationActive(org)">
+                  <td hlmTd class="px-5 py-3">
+                    <div class="flex items-center gap-3">
+                      <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
+                        <fin-icon name="organization" />
+                      </span>
+                      <span class="flex min-w-0 flex-col">
+                        <b class="text-sm">{{ org.name }}</b>
+                        <small class="text-xs text-muted-foreground">{{ org.slug }}</small>
+                      </span>
+                    </div>
+                  </td>
+                  <td hlmTd class="px-4">{{ org.baseCurrency }}</td>
+                  <td hlmTd class="px-4 tabular-nums">{{ org.memberCount }}</td>
+                  <td hlmTd class="px-4 tabular-nums">{{ store.roleCountOf(org.id) }}</td>
+                  <td hlmTd class="px-4">
+                    @if (store.isDefaultOrganization(org)) {
+                      <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
+                    } @else if (canMakeDefault(org)) {
+                      <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(org)">
+                        {{ i18n.t('admin.organizations.makeDefault') }}
+                      </button>
+                    }
+                  </td>
+                  <td hlmTd class="px-4">
+                    <span class="flex items-center gap-2">
+                      @if (caps.allows(P.administracion.organizaciones.editar)) {
+                        <hlm-switch
+                          [checked]="store.isOrganizationActive(org)"
+                          [disabled]="store.isDefaultOrganization(org)"
+                          [aria-label]="i18n.t('admin.organizations.activeToggle', { name: org.name })"
+                          (checkedChange)="store.setOrganizationActive(org, $event)"
+                        />
+                      }
+                      <span class="text-xs text-muted-foreground">{{
+                        store.isOrganizationActive(org)
+                          ? i18n.t('admin.users.state.active')
+                          : i18n.t('admin.organizations.inactiveBadge')
+                      }}</span>
+                    </span>
+                  </td>
+                  <td hlmTd class="px-5 text-end">
+                    <button hlmBtn variant="outline" size="sm" (click)="managingId.set(org.id)">
+                      {{ i18n.t('admin.organizations.manage') }}
+                    </button>
+                  </td>
+                </tr>
+              } @empty {
+                <tr hlmTr>
+                  <td hlmTd colspan="7" class="py-10 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
+                </tr>
               }
-            </header>
-            <footer class="mt-auto flex flex-wrap justify-end gap-2">
-              @if (
-                caps.allows(P.administracion.organizaciones.editar) &&
-                !store.isDefaultOrganization(org) &&
-                store.isOrganizationActive(org)
-              ) {
-                <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(org)">
-                  {{ i18n.t('admin.organizations.makeDefault') }}
-                </button>
-              }
-              <button hlmBtn variant="outline" size="sm" (click)="managingId.set(org.id)">
-                {{ i18n.t('admin.organizations.manage') }}
-              </button>
-            </footer>
-          </article>
-        }
-      </section>
+            </tbody>
+          </table>
+        </div>
+      </app-admin-panel>
     }
     <app-organization-sheet [organization]="managing()" (closed)="managingId.set(null)" />
     <fin-sheet-panel
@@ -133,6 +173,7 @@ export class OrganizationsTabComponent {
   readonly P = P;
 
   readonly creating = signal(false);
+  readonly search = signal('');
   readonly name = signal('');
   readonly currency = signal('COP');
   readonly saving = signal(false);
@@ -140,6 +181,15 @@ export class OrganizationsTabComponent {
   readonly managing = computed<ApiAdminOrganization | null>(
     () => this.store.organizations().find((org) => org.id === this.managingId()) ?? null,
   );
+
+  readonly visibleOrganizations = computed(() => {
+    const term = this.search().trim().toLowerCase();
+    return this.store.organizations().filter((org) => !term || `${org.name} ${org.slug}`.toLowerCase().includes(term));
+  });
+
+  canMakeDefault(org: ApiAdminOrganization): boolean {
+    return this.caps.allows(P.administracion.organizaciones.editar) && this.store.isOrganizationActive(org);
+  }
 
   async create(): Promise<void> {
     this.saving.set(true);

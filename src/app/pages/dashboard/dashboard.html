@@ -77,12 +77,12 @@
     (openCreator)="openKpiCreator()"
   />
   }
-  <section class="grid min-w-0 grid-cols-2 items-stretch gap-[18px] max-[700px]:grid-cols-1">
+  <section class="grid min-w-0 grid-cols-2 items-stretch gap-4 min-[1700px]:grid-cols-3 max-[700px]:grid-cols-1">
     @for (widget of widgets(); track widget.id) {
     <fin-widget-card
       [kicker]="widget.kicker"
       [title]="widget.title"
-      [wide]="widget.wide && widget.type !== 'indicator'"
+      [wide]="(widget.wide || widget.type === 'table') && widget.type !== 'indicator'"
     >
       <!--
         El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
@@ -314,7 +314,7 @@
     }
   </section>
   @if (caps.allows(P.dashboard.tabla.ver)) {
-  <section class="flex h-[520px] flex-col rounded-lg border border-border bg-card px-6 py-[22px]">
+  <section class="flex h-[max(600px,calc(100dvh-5rem))] flex-col rounded-lg border border-border bg-card px-5 py-4">
     <header class="mb-3.5 flex flex-wrap items-end justify-between gap-5">
       <div>
         <h2 class="my-1 text-base">{{ i18n.t('dashboard.recent.title') }}</h2>
@@ -328,6 +328,7 @@
     <fin-table
       [columns]="columns()"
       [rows]="rows()"
+      [pageSize]="15"
       [tableLabel]="i18n.t('dashboard.recent.title')"
       (rowSelected)="inspect($event)"
     />

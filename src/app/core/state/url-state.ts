@@ -2,6 +2,14 @@ import { WritableSignal, effect, inject, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
+function saliendoDeLaRuta(router: Router): boolean {
+  const navegacion = untracked(() => router.currentNavigation());
+  if (!navegacion) return false;
+  const rutaActual = router.url.split(/[?#]/)[0];
+  if (rutaActual === '/') return false;
+  return navegacion.extractedUrl.toString().split(/[?#]/)[0] !== rutaActual;
+}
+
 /**
  * Ata una señal a un parámetro de la URL.
  *
@@ -44,7 +52,7 @@ export function sincronizarConLaUrl<T extends string>(
 
   effect(() => {
     const valor = senal();
-    if (aplicando) return;
+    if (aplicando || saliendoDeLaRuta(router)) return;
     void router.navigate([], {
       queryParams: { [clave]: valor === porDefecto ? null : valor },
       queryParamsHandling: 'merge',
@@ -85,7 +93,7 @@ export function sincronizarPaginaConLaUrl(clave: () => string | null, senal: Wri
   effect(() => {
     const nombre = clave();
     const indice = senal();
-    if (aplicando || !nombre) return;
+    if (aplicando || !nombre || saliendoDeLaRuta(router)) return;
     void router.navigate([], {
       queryParams: { [nombre]: indice === 0 ? null : indice + 1 },
       queryParamsHandling: 'merge',

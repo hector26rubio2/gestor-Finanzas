@@ -15,6 +15,7 @@ import { PagerComponent } from '../../../../ui/pager/pager';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
+import { AdminPanelComponent } from '../../panel/admin-panel';
 import { UserSheetComponent } from './user-sheet';
 
 @Component({
@@ -26,6 +27,7 @@ import { UserSheetComponent } from './user-sheet';
     HlmButton,
     HlmInput,
     HlmTableImports,
+    AdminPanelComponent,
     EmptyStateComponent,
     IconComponent,
     PagerComponent,
@@ -37,52 +39,56 @@ import { UserSheetComponent } from './user-sheet';
     @if (store.sinDatos()) {
       <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.users.detail')" />
     } @else {
-      <section class="rounded-xl border border-border bg-card">
-        <header class="flex flex-wrap items-end justify-between gap-3 p-4">
-          <div>
-            <h2 class="text-base font-semibold">{{ i18n.t('admin.users.title') }}</h2>
-            <p class="text-sm text-muted-foreground">{{ i18n.t('admin.users.subtitle') }}</p>
-          </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <label class="relative">
-              <fin-icon
-                name="search"
-                class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-              />
-              <input
-                hlmInput
-                class="w-64 ps-9"
-                [ngModel]="search()"
-                (ngModelChange)="onSearch($event)"
-                [placeholder]="i18n.t('admin.users.searchPlaceholder')"
-                [attr.aria-label]="i18n.t('admin.users.searchPlaceholder')"
-              />
-            </label>
-            <fin-select
-              class="w-44"
-              [ngModel]="status()"
-              (ngModelChange)="status.set($event)"
-              [options]="statusOptions()"
-              [ariaLabel]="i18n.t('admin.users.statusFilterAriaLabel')"
+      <app-admin-panel [title]="i18n.t('admin.users.title')" [subtitle]="i18n.t('admin.users.subtitle')">
+        <div panelActions class="flex flex-wrap items-center gap-2">
+          <label class="relative">
+            <fin-icon
+              name="search"
+              class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
             />
-          </div>
-        </header>
+            <input
+              hlmInput
+              class="w-72 ps-9"
+              [ngModel]="search()"
+              (ngModelChange)="onSearch($event)"
+              [placeholder]="i18n.t('admin.users.searchPlaceholder')"
+              [attr.aria-label]="i18n.t('admin.users.searchPlaceholder')"
+            />
+          </label>
+          <fin-select
+            class="w-56"
+            [ngModel]="organization()"
+            (ngModelChange)="organization.set($event)"
+            [options]="organizationOptions()"
+            [ariaLabel]="i18n.t('admin.roles.filter.ariaLabel')"
+          />
+          <fin-select
+            class="w-44"
+            [ngModel]="status()"
+            (ngModelChange)="status.set($event)"
+            [options]="statusOptions()"
+            [ariaLabel]="i18n.t('admin.users.statusFilterAriaLabel')"
+          />
+        </div>
         <div hlmTableContainer>
           <table hlmTable [attr.aria-label]="i18n.t('admin.users.title')">
-            <thead hlmTHead>
+            <thead hlmTHead class="bg-muted/40">
               <tr hlmTr>
-                <th hlmTh>{{ i18n.t('admin.users.column.user') }}</th>
-                <th hlmTh>{{ i18n.t('admin.users.column.status') }}</th>
-                <th hlmTh>{{ i18n.t('admin.users.column.roles') }}</th>
-                <th hlmTh>{{ i18n.t('admin.users.column.capabilities') }}</th>
-                <th hlmTh>{{ i18n.t('admin.users.column.lastAccess') }}</th>
-                <th hlmTh class="w-12"></th>
+                <th hlmTh class="h-11 px-5">{{ i18n.t('admin.users.column.user') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.roles.drawer.organizationLabel') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.users.column.status') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.users.column.roles') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.users.column.capabilities') }}</th>
+                <th hlmTh class="px-4">{{ i18n.t('admin.users.column.lastAccess') }}</th>
+                <th hlmTh class="w-32 px-5">
+                  <span class="sr-only">{{ i18n.t('admin.common.actions') }}</span>
+                </th>
               </tr>
             </thead>
             <tbody hlmTBody>
               @for (user of visibleUsers(); track user.id) {
                 <tr hlmTr>
-                  <td hlmTd>
+                  <td hlmTd class="px-5 py-3">
                     <div class="flex items-center gap-3">
                       <span
                         class="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-xs font-semibold text-primary"
@@ -95,7 +101,13 @@ import { UserSheetComponent } from './user-sheet';
                       </div>
                     </div>
                   </td>
-                  <td hlmTd>
+                  <td hlmTd class="px-4">
+                    {{ organizationName(user) }}
+                    @if (store.hasPendingMove(user)) {
+                      <span hlmBadge variant="secondary" class="ms-1">{{ i18n.t('admin.common.unsaved') }}</span>
+                    }
+                  </td>
+                  <td hlmTd class="px-4">
                     <span hlmBadge [variant]="store.isUserActive(user) ? 'secondary' : 'outline'">
                       {{
                         store.isUserActive(user)
@@ -103,46 +115,46 @@ import { UserSheetComponent } from './user-sheet';
                           : i18n.t('admin.users.state.inactive')
                       }}
                     </span>
-                    @if (store.userHasChanges(user)) {
+                    @if (store.userHasChanges(user) && !store.hasPendingMove(user)) {
                       <span hlmBadge variant="secondary" class="ms-1">{{ i18n.t('admin.common.unsaved') }}</span>
                     }
                   </td>
-                  <td hlmTd>{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
-                  <td hlmTd>{{ user.capabilities.length }} {{ i18n.t('admin.users.assignedSuffix') }}</td>
-                  <td hlmTd class="whitespace-nowrap">
+                  <td hlmTd class="px-4">{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
+                  <td hlmTd class="px-4">{{ user.capabilities.length }} {{ i18n.t('admin.users.assignedSuffix') }}</td>
+                  <td hlmTd class="px-4">
                     {{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess') }}
                   </td>
-                  <td hlmTd>
+                  <td hlmTd class="px-5 text-end">
                     @if (caps.allows(P.administracion.usuarios.editar)) {
                       <button
                         hlmBtn
-                        variant="ghost"
-                        size="icon-sm"
+                        variant="outline"
+                        size="sm"
                         [attr.aria-label]="i18n.t('admin.users.manageAriaLabel') + ': ' + user.displayName"
                         (click)="selectedId.set(user.id)"
                       >
-                        <fin-icon name="next" />
+                        {{ i18n.t('admin.organizations.manage') }}
                       </button>
                     }
                   </td>
                 </tr>
               } @empty {
                 <tr hlmTr>
-                  <td hlmTd colspan="6" class="py-8 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
+                  <td hlmTd colspan="7" class="py-10 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
         <fin-pager
-          class="p-4"
+          class="border-t border-border px-5 py-3"
           [page]="store.usersPage()"
           [size]="store.usersSize"
           [total]="store.usersTotal()"
-          [summary]="i18n.t('admin.users.countLabel', { count: store.usersTotal() })"
+          [summary]="i18n.t('admin.users.countLabel', { count: visibleUsers().length })"
           (pageChange)="store.cargarUsuarios($event)"
         />
-      </section>
+      </app-admin-panel>
     }
     <app-user-sheet [user]="selected()" (closed)="selectedId.set(null)" />
   `,
@@ -156,6 +168,7 @@ export class UsersTabComponent {
 
   readonly search = signal(this.store.userSearch());
   readonly status = signal('all');
+  readonly organization = signal('');
   readonly selectedId = signal<string | null>(null);
   private searchTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -165,9 +178,22 @@ export class UsersTabComponent {
     { value: 'inactive', label: this.i18n.t('admin.users.status.inactive') },
   ]);
 
+  readonly organizationOptions = computed<readonly UiOption[]>(() => [
+    { value: '', label: this.i18n.t('admin.roles.filter.all') },
+    ...this.store.organizations().map((org) => ({ value: org.id, label: org.name })),
+  ]);
+
   readonly visibleUsers = computed(() =>
-    this.store.users().filter((user) => this.status() === 'all' || (this.status() === 'active') === user.isActive),
+    this.store
+      .users()
+      .filter((user) => this.status() === 'all' || (this.status() === 'active') === this.store.isUserActive(user))
+      .filter((user) => !this.organization() || this.store.targetOrganizationId(user) === this.organization()),
   );
+
+  organizationName(user: ApiAdminUser): string {
+    const id = this.store.targetOrganizationId(user);
+    return this.store.organizations().find((org) => org.id === id)?.name ?? '—';
+  }
 
   readonly selected = computed<ApiAdminUser | null>(
     () => this.store.users().find((user) => user.id === this.selectedId()) ?? null,

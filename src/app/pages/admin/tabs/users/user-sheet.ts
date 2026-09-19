@@ -110,22 +110,6 @@ import { PermissionGroupsComponent } from '../../permission-groups/permission-gr
             }
           </section>
         }
-        @if (caps.allows(P.administracion.banderas.editar) && store.platformFlags().length) {
-          <section class="flex flex-col gap-1">
-            <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.featuresTitle') }}</h3>
-            <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.featuresHint') }}</p>
-            @for (flag of store.platformFlags(); track flag.key) {
-              <fin-option-row
-                [label]="labels.feature(flag.key)"
-                [description]="flag.key"
-                [checked]="store.flagValue(flag.key, organizationId(), u.id)"
-                [changed]="store.flagChanged(flag.key, organizationId(), u.id)"
-                [disabled]="store.hasPendingMove(u) || !organizationId()"
-                (toggled)="store.setFlag(flag.key, organizationId(), u.id, $event)"
-              />
-            }
-          </section>
-        }
         <section class="flex flex-col gap-2">
           <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
           <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.permissionsHint') }}</p>

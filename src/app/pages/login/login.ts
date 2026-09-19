@@ -9,9 +9,7 @@ import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
 import { IconComponent } from '../../ui/icon/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { I18nService } from '../../core/i18n';
-import { FinanceApiClient } from '../../core/api/api-client';
 import { safeReturnPath } from '../../core/session/return-url';
-import { firstValueFrom } from 'rxjs';
 @Component({
   imports: [FormsModule, HlmButton, HlmLabel, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -23,7 +21,6 @@ export class LoginComponent {
   private route = inject(ActivatedRoute);
   private remote = inject(RemoteBootstrap);
   private location = inject(Location);
-  private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
   selectedLocale = this.store.preferences().locale;
   selectedTheme = this.store.preferences().theme;
@@ -72,13 +69,5 @@ export class LoginComponent {
   }
   retry(): void {
     void this.remote.initialize();
-  }
-
-  readonly localAccessEnabled = this.store.runtime.apiBaseUrl?.includes('localhost') ?? false;
-
-  async localLogin(): Promise<void> {
-    await firstValueFrom(this.api.devLogin('admin'));
-    await this.remote.initialize();
-    if (this.store.user()) await this.router.navigateByUrl(this.returnPath());
   }
 }
