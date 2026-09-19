@@ -45,7 +45,7 @@
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
-<section
+<div
   class="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]"
   role="tablist"
   tabindex="0"
@@ -79,7 +79,7 @@
     {{ a.name }}
   </button>
   }
-</section>
+</div>
 <fin-table-zone>
   <fin-table
     [columns]="book.movementColumns()"

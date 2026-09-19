@@ -28,7 +28,7 @@ export class CalendarTabComponent implements OnInit {
     const classes: string[] = [];
     classes.push(this.calendarView() === 'day' ? 'p-[18px]' : 'p-[7px]');
     if (day.iso === this.store.selectedCalendarDate()) classes.push('shadow-[inset_0_0_0_2px_var(--color-primary)]');
-    if (!day.current) classes.push('opacity-50');
+    if (!day.current) classes.push('text-muted-foreground');
     return classes.join(' ');
   }
   can(permiso: string): boolean {

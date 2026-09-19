@@ -43,7 +43,7 @@
     [hint]="store.money(topCategory().value)"
   />
 </fin-kpi-grid>
-<section class="grid auto-rows-max grid-cols-[1.2fr_0.8fr] gap-3.5 overflow-auto max-[700px]:grid-cols-1">
+<section class="grid auto-rows-max grid-cols-[1.2fr_0.8fr] gap-3.5 max-[700px]:grid-cols-1">
   @if (can(P.reportes.comparativo.ver)) {
   <div hlmCard class="min-h-[250px] gap-0 p-5">
     <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
@@ -60,6 +60,7 @@
     <div
       class="flex h-[190px] items-stretch gap-3 border-b border-border px-2 pt-7 max-[700px]:overflow-x-auto"
       role="img"
+      tabindex="0"
       [attr.aria-label]="i18n.t('reports.incomeExpense.ariaLabel')"
     >
       @for (v of reportSeries(); track v.month) {
