@@ -3,9 +3,9 @@ import { provideHttpClient } from '@angular/common/http';
 import { inject, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app/app';
-import { API_TRANSPORT, HttpApiTransport } from './app/core/api-client';
-import { patchConsole } from './app/core/console-buffer';
-import { RemoteBootstrap } from './app/core/remote-bootstrap';
+import { API_TRANSPORT, HttpApiTransport } from './app/core/api/api-client';
+import { patchConsole } from './app/core/utils/console-buffer';
+import { RemoteBootstrap } from './app/core/session/remote-bootstrap';
 import { routes } from './app/routes';
 
 // Antes de arrancar Angular: para que el reporte de bugs pueda incluir los logs de

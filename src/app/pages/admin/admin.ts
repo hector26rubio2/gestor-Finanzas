@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/permissions';
-import { CAPABILITIES } from '../../core/store';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES } from '../../core/state/store';
 import { ConfirmDialogComponent } from '../../ui/confirm-dialog/confirm-dialog';
-import { IconComponent } from '../../ui/icon';
+import { IconComponent } from '../../ui/icon/icon';
 import { AdminStore, AdminTab } from './admin.store';
 import { AdminSaveBarComponent } from './save-bar/admin-save-bar';
 import { AuditTabComponent } from './tabs/audit/audit-tab';

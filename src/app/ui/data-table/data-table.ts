@@ -17,11 +17,11 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { sincronizarPaginaConLaUrl } from '../../core/url-state';
+import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon';
-import { UiOption, UiSelectComponent } from '../select';
-import { FinTableCellDirective } from '../table-cell.directive';
+import { IconComponent } from '../icon/icon';
+import { UiOption, UiSelectComponent } from '../select/select';
+import { FinTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {
   key: string;

@@ -4,8 +4,8 @@ import { KpiComponent } from '../../ui/kpi/kpi';
 import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
 import { TableZoneComponent } from '../../ui/table-zone/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { AppStore } from '../../core/store';
-import { formatReturnRate } from '../../core/money';
+import { AppStore } from '../../core/state/store';
+import { formatReturnRate } from '../../core/utils/money';
 import { I18nService } from '../../core/i18n';
 import { SIN_DATO } from '../../shared/utils/placeholders';
 

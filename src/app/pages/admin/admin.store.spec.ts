@@ -2,8 +2,8 @@ import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AdministrationApi, ApiAdminOrganization, ApiAdminRole, ApiAdminUser } from '../../core/api/administration.api';
-import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { AdminStore } from './admin.store';
 
 const role = (over: Partial<ApiAdminRole> = {}): ApiAdminRole => ({

@@ -16,9 +16,9 @@ import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { ApiAdminRole } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
-import { AppStore } from '../../../../core/store';
+import { AppStore } from '../../../../core/state/store';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiSelectComponent } from '../../../../ui/select';
+import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
 import { BulkChange, PermissionGroupsComponent } from '../../permission-groups/permission-groups';
 

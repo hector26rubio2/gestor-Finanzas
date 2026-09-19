@@ -60,16 +60,18 @@ Resultados de verificación:
 
 ### P2 — Migración visual selectiva a Spartan
 
+Nota (19-sep-2026): todas las pantallas están sobre Tailwind + Spartan y ya no hay CSS por componente; los puntos que siguen abiertos se refieren a piezas concretas (filtros con búsqueda, acciones de fila, skeletons).
+
 - [ ] Dropdown Menu: hecho el de perfil (18-sep-2026); faltan las acciones de filas. Dropdown Menu para perfil y acciones de filas, con foco y navegación por teclado.
 - [ ] Popover/Combobox para filtros con búsqueda; Sheet para filtros móviles; chips de filtros activos y acción de limpiar. Conservar valores, permisos, fechas, moneda y estado de consulta.
 - [ ] Alert Dialog: hecho para reversar movimiento y desactivar cuenta (`ConfirmDialogComponent`, 18-sep-2026); faltan otras acciones destructivas (p. ej. eliminar rol en Administración). Alert Dialog para acciones destructivas, con estados pendientes y error recuperable.
-- [ ] Table estilizada sobre el modelo actual: conservar ordenación, paginación remota, selección y celdas personalizadas. No sustituir la tabla con una maqueta que pierda estas funciones.
+- [x] Table estilizada sobre el modelo actual (19-sep-2026, `fin-table` sobre Helm table): conservar ordenación, paginación remota, selección y celdas personalizadas. No sustituir la tabla con una maqueta que pierda estas funciones.
 - [ ] Skeletons: `fin-skeleton` ya usa `hlm-skeleton` y se muestra al paginar Movimientos (18-sep-2026); faltan cuentas y tarjetas y estados vacíos. Skeletons con dimensiones estables y estados vacíos coherentes en cuentas y tarjetas.
 - [ ] Notificaciones: `store.toast.set()` ya se muestra con ngx-sonner y el banner propio desapareció (18-sep-2026); falta migrar los sitios a `AsyncActionService` para tener estado pendiente. Unificar notificaciones pendientes/éxito/error sobre AsyncAction/ngx-sonner; probar rechazo, doble clic, cancelación y navegación durante la petición.
 
 ### P2 — Organización del código
 
-- [ ] Una carpeta por componente propio: `.ts`, `.html`, `.css`, `.spec.ts`, `index.ts`. Comenzar por select, chart, field, icon y subcampos del formulario de movimientos.
+- [x] Una carpeta por componente propio (19-sep-2026): select, chart, field, icon, sin-acceso y subcampos del formulario de movimientos; `core/` agrupado en api, http, i18n, session, state y utils. Ver `docs/ESTRUCTURA-Y-AUDITORIA.md`.
 - [ ] Barrels por área y alias de dominio, evitando ciclos o reexportaciones de módulos pesados en puntos de entrada iniciales.
 - [ ] Mantener el código generado de Helm reconocible respecto al upstream; registrar personalizaciones. No reorganizarlo mecánicamente como los componentes propios sin revisar imports.
 - [ ] `DemoStore` ya es `AppStore` (18-sep-2026); quedan `DemoData`, `DemoAuditEvent`, `DemoNotification`. Renombrar símbolos internos pendientes que aún llevan `Demo` con refactor semántico y análisis de impacto. No hacer reemplazos globales que alcancen etiquetas HTML nativas o datos almacenados.

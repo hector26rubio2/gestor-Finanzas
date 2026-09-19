@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '../http/api-http-client';
-import { RUNTIME_CONFIG } from '../runtime';
+import { RUNTIME_CONFIG } from '../session/runtime';
 import { API_ROUTES } from './api-routes';
 import { ApiFeatureFlag } from './preferences.api';
 import { ApiPage } from './shared-api-types';

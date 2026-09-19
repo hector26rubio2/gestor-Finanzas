@@ -4,13 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
-import { applyTheme, AppStore, Preferences } from '../../core/store';
-import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { IconComponent } from '../../ui/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select';
+import { applyTheme, AppStore, Preferences } from '../../core/state/store';
+import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
+import { IconComponent } from '../../ui/icon/icon';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { I18nService } from '../../core/i18n';
-import { FinanceApiClient } from '../../core/api-client';
-import { safeReturnPath } from '../../core/return-url';
+import { FinanceApiClient } from '../../core/api/api-client';
+import { safeReturnPath } from '../../core/session/return-url';
 import { firstValueFrom } from 'rxjs';
 @Component({
   imports: [FormsModule, HlmButton, HlmLabel, IconComponent, UiSelectComponent],

@@ -4,119 +4,42 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ApiDashboard, FinanceApiClient } from '../../core/api-client';
-import { accountBalance, Movement } from '../../core/demo-data';
+import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
+import { accountBalance, Movement } from '../../core/state/demo-data';
 import { I18nService } from '../../core/i18n';
-import { parseMoney, sumBy } from '../../core/money';
-import { P } from '../../core/permissions';
-import { sincronizarConLaUrl } from '../../core/url-state';
-import { CAPABILITIES, AppStore } from '../../core/store';
-import { IconComponent, IconName } from '../../ui/icon';
+import { parseMoney, sumBy } from '../../core/utils/money';
+import { P } from '../../core/session/permissions';
+import { sincronizarConLaUrl } from '../../core/state/url-state';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
+import { IconComponent, IconName } from '../../ui/icon/icon';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select';
-import { ChartComponent, ChartOption } from '../../ui/chart';
-import { ChartThemeService } from '../../ui/chart-theme';
-import { NumericInputDirective } from '../../ui/numeric-input.directive';
-import { FieldComponent } from '../../ui/field';
-import { CategoryListComponent } from './widgets/category-list';
-import { AccountListComponent } from './widgets/account-list';
-import { ColorScaleComponent } from './widgets/color-scale';
-import { StatusBarsComponent } from './widgets/status-bars';
-import { WidgetControlsComponent } from './widgets/widget-controls';
-import { WidgetCardComponent } from './widgets/widget-card';
-import { FilterPanelComponent } from './filters/filter-panel';
-import { KpiStripComponent } from './kpis/kpi-strip';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { ChartComponent, ChartOption } from '../../ui/chart/chart';
+import { ChartThemeService } from '../../ui/chart/chart-theme';
+import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
+import { FieldComponent } from '../../ui/field/field';
+import { CategoryListComponent } from './widgets/category-list/category-list';
+import { AccountListComponent } from './widgets/account-list/account-list';
+import { ColorScaleComponent } from './widgets/color-scale/color-scale';
+import { StatusBarsComponent } from './widgets/status-bars/status-bars';
+import { WidgetControlsComponent } from './widgets/widget-controls/widget-controls';
+import { WidgetCardComponent } from './widgets/widget-card/widget-card';
+import { FilterPanelComponent } from './filters/filter-panel/filter-panel';
+import { KpiStripComponent } from './kpis/kpi-strip/kpi-strip';
 
-type Scale = 'day' | 'week' | 'month' | 'year';
-/**
- * Los nueve primeros son fijos: cada uno trae su propia lógica de datos (ingresos vs
- * gastos, categorías con click-to-filter, dispersión fecha/importe...) y no aceptan
- * dimension/measure. Los que siguen son genéricos: cualquier combinación de dimensión y
- * métrica pasa por `aggregate`/`aggregate2D` y `widgetOption`, que es lo que hace posible
- * "crear un widget nuevo eligiendo qué medir" en vez de una lista cerrada de graficas.
- */
-type FixedWidgetType =
-  'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap' | 'gauge' | 'histogram';
-type GenericWidgetType =
-  | 'line'
-  | 'area'
-  | 'bar'
-  | 'barH'
-  | 'grouped'
-  | 'stackedBars'
-  | 'stacked100'
-  | 'pie'
-  | 'treemap'
-  | 'funnel'
-  | 'waterfall'
-  | 'card'
-  | 'matrix'
-  | 'table'
-  | 'indicator'
-  | 'colorScale'
-  | 'statusBars';
-type WidgetType = FixedWidgetType | GenericWidgetType;
-/** Eje / agrupación disponible para un widget genérico. */
-type Dimension = 'category' | 'account' | 'date' | 'kind' | 'person' | 'recurring' | 'installments';
-/** Qué se mide dentro de cada grupo de la dimensión. */
-type Measure = 'amount' | 'expense' | 'income' | 'count' | 'average';
-/**
- * Las cinco medidas simples, mas formulas que cruzan ingreso y gasto -solo para la franja
- * de KPI de arriba, no para los widgets del grid, que ya tienen su propio motor de
- * dimension/medida.
- */
-type KpiFormula =
-  | Measure
-  | 'savingsRate'
-  | 'expenseShare'
-  | 'dailyExpense'
-  | 'dailyIncome'
-  | 'liquidityMonths'
-  | 'expenseConcentration'
-  | 'debtToIncome'
-  | 'daysToDeplete'
-  | 'avgPaymentDelay'
-  | 'fixedExpenseShare'
-  | 'installmentExpenseShare'
-  | 'creditUtilization'
-  | 'mostUsedCard';
-type Widget = {
-  id: string;
-  title: string;
-  kicker: string;
-  type: WidgetType;
-  wide: boolean;
-  capability?: string;
-  dimension?: Dimension;
-  dimension2?: Dimension;
-  measure?: Measure;
-  /** Solo para `type: 'indicator'`: escala y meta del KPI, cada tramo con su propio color. */
-  goalMin?: number;
-  goalTarget?: number;
-  goalMax?: number;
-};
-const GENERIC_TYPES: readonly GenericWidgetType[] = [
-  'line',
-  'area',
-  'bar',
-  'barH',
-  'grouped',
-  'stackedBars',
-  'stacked100',
-  'pie',
-  'treemap',
-  'funnel',
-  'waterfall',
-  'card',
-  'matrix',
-  'table',
-  'indicator',
-  'colorScale',
-  'statusBars',
-];
-const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 'stacked100', 'matrix'];
+import {
+  Scale,
+  WidgetType,
+  Dimension,
+  Measure,
+  KpiFormula,
+  Widget,
+  GENERIC_TYPES,
+  TWO_DIMENSION_TYPES,
+} from './dashboard.model';
+import { cifraCorta, conAlfa, degradado, ejesDeIntervalo } from './dashboard-chart-style';
 
 @Component({
   imports: [
@@ -1397,68 +1320,6 @@ export class DashboardComponent {
     this.widgetCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title }));
   }
-  /**
-   * Opciones comunes de eje para las graficas de intervalo del tablero.
-   *
-   * El eje de valores se rotula en miles o millones: las cifras en pesos colombianos
-   * llegan a siete digitos y repetidas en cada marca tapaban la grafica.
-   */
-  private ejes(palette: ReturnType<ChartThemeService['palette']>, etiquetas: readonly string[]) {
-    return {
-      grid: { top: 28, right: 18, bottom: 34, left: 62 },
-      xAxis: {
-        type: 'category' as const,
-        data: [...etiquetas],
-        boundaryGap: false,
-        axisLine: { lineStyle: { color: palette.line } },
-        axisTick: { show: false },
-        axisLabel: { color: palette.muted, hideOverlap: true },
-      },
-      yAxis: {
-        type: 'value' as const,
-        splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
-        axisLabel: { color: palette.muted, formatter: (valor: number) => this.cifraCorta(valor) },
-      },
-    };
-  }
-
-  /** 1.650.000 se lee peor que 1,7 M cuando se repite en cada marca del eje. */
-  private cifraCorta(valor: number) {
-    const absoluto = Math.abs(valor);
-    if (absoluto >= 1_000_000) return `${(valor / 1_000_000).toFixed(absoluto >= 10_000_000 ? 0 : 1)} M`;
-    if (absoluto >= 1_000) return `${Math.round(valor / 1_000)} k`;
-    return String(valor);
-  }
-
-  private degradado(color: string) {
-    return {
-      type: 'linear' as const,
-      x: 0,
-      y: 0,
-      x2: 0,
-      y2: 1,
-      colorStops: [
-        { offset: 0, color: this.conAlfa(color, 0.28) },
-        { offset: 1, color: this.conAlfa(color, 0) },
-      ],
-    };
-  }
-
-  /** El tema entrega los colores como los escribio su autor: hex, rgb() o color-mix(). */
-  private conAlfa(color: string, alfa: number) {
-    const limpio = color.trim();
-    if (/^#[0-9a-f]{6}$/i.test(limpio)) {
-      const n = parseInt(limpio.slice(1), 16);
-      return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alfa})`;
-    }
-    if (limpio.startsWith('rgb'))
-      return limpio.replace(/^rgba?\(([^)]+)\)$/, (_, dentro: string) => {
-        const partes = dentro.split(/[,/]/).map((x) => x.trim());
-        return `rgba(${partes[0]}, ${partes[1]}, ${partes[2]}, ${alfa})`;
-      });
-    return `color-mix(in srgb, ${limpio} ${Math.round(alfa * 100)}%, transparent)`;
-  }
-
   /** Ingresos y gastos del periodo, con lupa cuando los intervalos no caben holgados. */
   readonly flujoOption = computed<ChartOption>(() => {
     const palette = this.temaGrafica.palette();
@@ -1472,12 +1333,12 @@ export class DashboardComponent {
       symbolSize: 7,
       lineStyle: { width: 2.4, color },
       itemStyle: { color },
-      areaStyle: { color: this.degradado(color) },
+      areaStyle: { color: degradado(color) },
       emphasis: { focus: 'series' as const, showSymbol: true },
       data: valores,
     });
     return {
-      ...this.ejes(
+      ...ejesDeIntervalo(
         palette,
         puntos.map((p) => p.label),
       ),
@@ -1503,17 +1364,17 @@ export class DashboardComponent {
                 bottom: 4,
                 borderColor: palette.line,
                 backgroundColor: 'transparent',
-                fillerColor: this.conAlfa(palette.accent, 0.14),
+                fillerColor: conAlfa(palette.accent, 0.14),
                 dataBackground: {
                   lineStyle: { color: palette.line },
-                  areaStyle: { color: this.conAlfa(palette.accent, 0.1) },
+                  areaStyle: { color: conAlfa(palette.accent, 0.1) },
                 },
                 selectedDataBackground: {
                   lineStyle: { color: palette.accent },
-                  areaStyle: { color: this.conAlfa(palette.accent, 0.18) },
+                  areaStyle: { color: conAlfa(palette.accent, 0.18) },
                 },
                 handleStyle: { color: palette.surface, borderColor: palette.accent },
-                moveHandleStyle: { color: this.conAlfa(palette.accent, 0.4) },
+                moveHandleStyle: { color: conAlfa(palette.accent, 0.4) },
                 textStyle: { color: palette.muted },
               },
             ]
@@ -1540,7 +1401,7 @@ export class DashboardComponent {
     const gastos = puntos.map((p) => p.expense);
     const promedio = gastos.length ? gastos.reduce((s, v) => s + v, 0) / gastos.length : 0;
     return {
-      ...this.ejes(
+      ...ejesDeIntervalo(
         palette,
         puntos.map((p) => p.label),
       ),
@@ -1553,13 +1414,13 @@ export class DashboardComponent {
           showSymbol: false,
           lineStyle: { width: 2.4, color: palette.accent },
           itemStyle: { color: palette.accent },
-          areaStyle: { color: this.degradado(palette.accent) },
+          areaStyle: { color: degradado(palette.accent) },
           data: gastos,
           markLine: {
             silent: true,
             symbol: 'none',
             label: {
-              formatter: this.i18n.t('dashboard.chart.average', { value: this.cifraCorta(promedio) }),
+              formatter: this.i18n.t('dashboard.chart.average', { value: cifraCorta(promedio) }),
               color: palette.muted,
               position: 'insideEndTop' as const,
             },
@@ -1599,7 +1460,7 @@ export class DashboardComponent {
         name: this.i18n.t('dashboard.chart.amountAxis'),
         nameTextStyle: { color: palette.muted },
         splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
-        axisLabel: { color: palette.muted, formatter: (valor: number) => this.cifraCorta(valor) },
+        axisLabel: { color: palette.muted, formatter: (valor: number) => cifraCorta(valor) },
       },
       tooltip: {
         trigger: 'item' as const,
@@ -1680,7 +1541,7 @@ export class DashboardComponent {
       data: valores,
     });
     return {
-      ...this.ejes(
+      ...ejesDeIntervalo(
         palette,
         puntos.map((p) => p.label),
       ),
@@ -1748,9 +1609,9 @@ export class DashboardComponent {
             lineStyle: {
               width: 26,
               color: [
-                [0.1, this.conAlfa(palette.danger, 0.75)],
-                [0.2, this.conAlfa(palette.warn, 0.75)],
-                [1, this.conAlfa(palette.accent, 0.75)],
+                [0.1, conAlfa(palette.danger, 0.75)],
+                [0.2, conAlfa(palette.warn, 0.75)],
+                [1, conAlfa(palette.accent, 0.75)],
               ],
             },
           },
@@ -1808,8 +1669,8 @@ export class DashboardComponent {
         bottom: 0,
         itemHeight: 120,
         textStyle: { color: palette.muted },
-        formatter: (valor: number) => this.cifraCorta(valor),
-        inRange: { color: [this.conAlfa(palette.accent, 0.12), palette.accent] },
+        formatter: (valor: number) => cifraCorta(valor),
+        inRange: { color: [conAlfa(palette.accent, 0.12), palette.accent] },
       },
       tooltip: {
         position: 'top' as const,
@@ -1839,9 +1700,9 @@ export class DashboardComponent {
     const ancho = max / cubetas || 1;
     const conteo = Array.from({ length: cubetas }, () => 0);
     for (const valor of montos) conteo[Math.min(cubetas - 1, Math.floor(valor / ancho))]++;
-    const etiquetas = conteo.map((_, i) => `${this.cifraCorta(i * ancho)}–${this.cifraCorta((i + 1) * ancho)}`);
+    const etiquetas = conteo.map((_, i) => `${cifraCorta(i * ancho)}–${cifraCorta((i + 1) * ancho)}`);
     return {
-      ...this.ejes(palette, etiquetas),
+      ...ejesDeIntervalo(palette, etiquetas),
       tooltip: {
         trigger: 'axis' as const,
         valueFormatter: (v: unknown) =>
@@ -2015,7 +1876,7 @@ export class DashboardComponent {
       case 'area': {
         const agg = this.aggregate(widget);
         return {
-          ...this.ejes(
+          ...ejesDeIntervalo(
             palette,
             agg.map((a) => a.label),
           ),
@@ -2027,7 +1888,7 @@ export class DashboardComponent {
               showSymbol: agg.length <= 20,
               lineStyle: { width: 2.4, color: palette.accent },
               itemStyle: { color: palette.accent },
-              areaStyle: widget.type === 'area' ? { color: this.degradado(palette.accent) } : undefined,
+              areaStyle: widget.type === 'area' ? { color: degradado(palette.accent) } : undefined,
               data: agg.map((a) => a.value),
             },
           ],
@@ -2051,7 +1912,7 @@ export class DashboardComponent {
         const ejeValor = {
           type: 'value' as const,
           splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
-          axisLabel: { color: palette.muted, formatter: (v: number) => this.cifraCorta(v) },
+          axisLabel: { color: palette.muted, formatter: (v: number) => cifraCorta(v) },
         };
         return {
           grid: horizontal
@@ -2090,7 +1951,7 @@ export class DashboardComponent {
         const porcentaje = widget.type === 'stacked100';
         const totales = categories.map((_, i) => series.reduce((s, serie) => s + serie.data[i], 0) || 1);
         return {
-          ...this.ejes(palette, categories),
+          ...ejesDeIntervalo(palette, categories),
           legend: {
             data: series.map((s) => s.name),
             top: 0,
@@ -2203,7 +2064,7 @@ export class DashboardComponent {
           acumulado += a.value;
         }
         return {
-          ...this.ejes(
+          ...ejesDeIntervalo(
             palette,
             agg.map((a) => a.label),
           ),
@@ -2243,8 +2104,8 @@ export class DashboardComponent {
             left: 'center',
             bottom: 0,
             textStyle: { color: palette.muted },
-            formatter: (v: number) => this.cifraCorta(v),
-            inRange: { color: [this.conAlfa(palette.accent, 0.12), palette.accent] },
+            formatter: (v: number) => cifraCorta(v),
+            inRange: { color: [conAlfa(palette.accent, 0.12), palette.accent] },
           },
           tooltip: {
             formatter: (p: { value: [number, number, number] }) =>
@@ -2312,9 +2173,9 @@ export class DashboardComponent {
             lineStyle: {
               width: 16,
               color: [
-                [low, this.conAlfa(palette.danger, 0.35)],
-                [mid, this.conAlfa(palette.warn, 0.35)],
-                [1, this.conAlfa(palette.success, 0.35)],
+                [low, conAlfa(palette.danger, 0.35)],
+                [mid, conAlfa(palette.warn, 0.35)],
+                [1, conAlfa(palette.success, 0.35)],
               ],
             },
           },
@@ -2322,7 +2183,7 @@ export class DashboardComponent {
           anchor: { show: false },
           axisTick: { show: false },
           splitLine: { distance: -18, length: 10, lineStyle: { color: palette.surface, width: 2 } },
-          axisLabel: { distance: 26, color: palette.muted, fontSize: 10, formatter: (v: number) => this.cifraCorta(v) },
+          axisLabel: { distance: 26, color: palette.muted, fontSize: 10, formatter: (v: number) => cifraCorta(v) },
           detail: {
             valueAnimation: true,
             offsetCenter: [0, '15%'],

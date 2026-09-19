@@ -1,11 +1,11 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiMovement, FinanceApiClient } from '../../core/api-client';
-import { UiOption } from '../../ui/select';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
-import { parseMoney } from '../../core/money';
-import { classifyFamily, signOf } from '../../core/movement-kinds';
+import { ApiMovement, FinanceApiClient } from '../../core/api/api-client';
+import { UiOption } from '../../ui/select/select';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
+import { parseMoney } from '../../core/utils/money';
+import { classifyFamily, signOf } from '../../core/utils/movement-kinds';
 import { I18nService } from '../../core/i18n';
 
 /**
@@ -166,7 +166,7 @@ export class MovementsBookService {
     this.store.remoteMovementSize.set(size);
     void this.loadMovementPage(1);
   }
-  private toRemoteMovement(source: ApiMovement): import('../../core/demo-data').Movement {
+  private toRemoteMovement(source: ApiMovement): import('../../core/state/demo-data').Movement {
     // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
     // duplicada la expresión de signo y la lista de clases escrita a mano.
     const amount = parseMoney(source.amount.base) * signOf(source.flow, source.effect);

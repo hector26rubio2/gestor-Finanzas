@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { I18nService } from '../../core/i18n';
-import { IconComponent, IconName } from '../icon';
-import { ChartComponent } from '../chart';
-import { ChartThemeService } from '../chart-theme';
+import { IconComponent, IconName } from '../icon/icon';
+import { ChartComponent } from '../chart/chart';
+import { ChartThemeService } from '../chart/chart-theme';
 import { KpiGridContext } from '../kpi-grid/kpi-grid';
 
 @Component({

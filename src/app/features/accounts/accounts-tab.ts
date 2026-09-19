@@ -7,8 +7,8 @@ import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
 import { SearchFieldComponent } from '../../ui/search-field/search-field';
 import { TableZoneComponent } from '../../ui/table-zone/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { UiSelectComponent } from '../../ui/select';
-import { AppStore } from '../../core/store';
+import { UiSelectComponent } from '../../ui/select/select';
+import { AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 

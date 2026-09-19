@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '../../../core/i18n';
-import { IconComponent } from '../../../ui/icon';
+import { IconComponent } from '../../../ui/icon/icon';
 import { AdminStore } from '../admin.store';
 
 @Component({

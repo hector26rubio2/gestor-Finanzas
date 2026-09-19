@@ -2,15 +2,15 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api-client';
-import { P } from '../../core/permissions';
-import { RUNTIME_CONFIG } from '../../core/runtime';
-import { AppStore } from '../../core/store';
+import { FinanceApiClient } from '../../core/api/api-client';
+import { P } from '../../core/session/permissions';
+import { RUNTIME_CONFIG } from '../../core/session/runtime';
+import { AppStore } from '../../core/state/store';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { MovementFormComponent } from '../../features/movement-form/movement-form';
-import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
-import { MovementInstallmentFieldsComponent } from '../../features/movement-form/movement-installment-fields';
-import { MovementCategoryFieldComponent } from '../../features/movement-form/movement-category-field';
+import { MovementLoanFieldsComponent } from '../../features/movement-form/loan-fields/loan-fields';
+import { MovementInstallmentFieldsComponent } from '../../features/movement-form/installment-fields/installment-fields';
+import { MovementCategoryFieldComponent } from '../../features/movement-form/category-field/category-field';
 import { DashboardComponent } from './dashboard';
 
 /**

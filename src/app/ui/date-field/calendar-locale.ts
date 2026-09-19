@@ -1,6 +1,6 @@
 import { Injectable, effect, inject, untracked } from '@angular/core';
 import { injectBrnCalendarI18n } from '@spartan-ng/brain/calendar';
-import { AppStore } from '../../core/store';
+import { AppStore } from '../../core/state/store';
 
 const REFERENCE_SUNDAY = new Date(2023, 0, 1, 12);
 

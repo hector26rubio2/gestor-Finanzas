@@ -2,8 +2,8 @@ import { Injector, Type, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
 import { filter, map, take } from 'rxjs';
-import { safeReturnPath } from './core/return-url';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
+import { safeReturnPath } from './core/session/return-url';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/state/store';
 
 /**
  * Deja entrar a una sección, o manda a la primera que sí esté abierta.
@@ -83,7 +83,10 @@ const sinCambiosPendientes: CanDeactivateFn<{ puedeSalir(): boolean | Promise<bo
 
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent) },
-  { path: 'sin-acceso', loadComponent: () => import('./pages/sin-seccion').then((m) => m.SinSeccionComponent) },
+  {
+    path: 'sin-acceso',
+    loadComponent: () => import('./pages/sin-seccion/sin-seccion').then((m) => m.SinSeccionComponent),
+  },
   ...navigation.map((n) => {
     if (n.path === 'dashboard')
       return {

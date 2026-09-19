@@ -1,8 +1,8 @@
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
 import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
-import { I18nService } from '../i18n';
-import { RUNTIME_CONFIG } from '../runtime';
+import { I18nService } from '../i18n/i18n.service';
+import { RUNTIME_CONFIG } from '../session/runtime';
 import { API_ROUTES } from '../api/api-routes';
 
 /**

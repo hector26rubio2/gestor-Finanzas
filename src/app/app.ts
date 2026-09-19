@@ -11,12 +11,12 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { P } from './core/permissions';
-import { safeReturnPath } from './core/return-url';
+import { P } from './core/session/permissions';
+import { safeReturnPath } from './core/session/return-url';
 import { I18nService } from './core/i18n';
-import { RemoteBootstrap } from './core/remote-bootstrap';
-import { IconComponent } from './ui/icon';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
+import { RemoteBootstrap } from './core/session/remote-bootstrap';
+import { IconComponent } from './ui/icon/icon';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/state/store';
 import { BugReportButtonComponent } from './features/bug-report/bug-report';
 import { MovementFormComponent } from './features/movement-form/movement-form';
 import { NgxSonnerToaster } from 'ngx-sonner';

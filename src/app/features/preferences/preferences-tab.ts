@@ -6,12 +6,12 @@ import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api-client';
-import { IconComponent } from '../../ui/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select';
-import { P } from '../../core/permissions';
-import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { applyTheme, CAPABILITIES, AppStore } from '../../core/store';
+import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api/api-client';
+import { IconComponent } from '../../ui/icon/icon';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { P } from '../../core/session/permissions';
+import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
+import { applyTheme, CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 
 @Component({

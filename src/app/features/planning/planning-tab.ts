@@ -5,10 +5,10 @@ import { FormsModule } from '@angular/forms';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
-import { sincronizarConLaUrl } from '../../core/url-state';
+import { sincronizarConLaUrl } from '../../core/state/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
 
 @Component({

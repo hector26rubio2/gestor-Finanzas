@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } 
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api/api-client';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
-import { sincronizarConLaUrl } from '../../core/url-state';
+import { sincronizarConLaUrl } from '../../core/state/url-state';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 
 @Component({
