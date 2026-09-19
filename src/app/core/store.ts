@@ -393,9 +393,14 @@ export class AppStore {
     this.accountFilter.set('all');
     this.toast.set('Información inicial restaurada.');
   }
-  log(action: string) {
+  /**
+   * Anota la acción en el historial y, salvo que `notify` sea false, la avisa con un toast.
+   * Las escrituras que ya pasan por AsyncActionService pasan `notify: false`: ese servicio
+   * muestra su propio aviso de cargando/éxito/error y el toast de aquí salía duplicado.
+   */
+  log(action: string, notify = true) {
     this.history.update((h) => [{ date: new Date().toISOString().slice(0, 10), action }, ...h]);
-    this.toast.set(action);
+    if (notify) this.toast.set(action);
   }
   async persistPreferences() {
     if (this.runtime.mode !== 'api') return;
@@ -476,7 +481,7 @@ export class AppStore {
           ),
         }));
         this.form.set(null);
-        this.log('Movimiento reclasificado en la API');
+        this.log('Movimiento reclasificado en la API', false);
         return;
       }
       const account = this.account(input.accountId);
@@ -533,6 +538,7 @@ export class AppStore {
             : input.kind === 'advance'
               ? 'Avance registrado en la API'
               : 'Transferencia registrada en la API',
+          false,
         );
         return;
       }
@@ -575,7 +581,7 @@ export class AppStore {
       };
       this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
       this.form.set(null);
-      this.log('Movimiento registrado en la API');
+      this.log('Movimiento registrado en la API', false);
       return;
     }
     const id = input.id ?? crypto.randomUUID();
@@ -638,7 +644,7 @@ export class AppStore {
       notifications: d.notifications.map((n) => (n.id === input.notificationId ? { ...n, read: true } : n)),
     }));
     this.form.set(null);
-    this.log(input.id ? 'Movimiento corregido; acción registrada' : 'Movimiento registrado');
+    this.log(input.id ? 'Movimiento corregido; acción registrada' : 'Movimiento registrado', false);
   }
   async createAccount(
     name: string,
@@ -689,7 +695,7 @@ export class AppStore {
           ],
         }));
         this.form.set(null);
-        this.log('Tarjeta creada en la API');
+        this.log('Tarjeta creada en la API', false);
         return;
       }
       const accountRequest = { name, kind: type === 'cash' ? 1 : 3, currency, lastFour: '0000' };
@@ -736,7 +742,7 @@ export class AppStore {
         }));
       }
       this.form.set(null);
-      this.log('Cuenta creada en la API');
+      this.log('Cuenta creada en la API', false);
       return;
     }
     const id = crypto.randomUUID();
@@ -774,7 +780,7 @@ export class AppStore {
             ],
     }));
     this.form.set(null);
-    this.log('Cuenta creada');
+    this.log('Cuenta creada', false);
   }
   async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
     // El backend distingue ingreso de gasto porque no existe categoria neutra: un
