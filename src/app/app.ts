@@ -1,3 +1,4 @@
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -9,8 +10,14 @@ import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
 import { BugReportButtonComponent } from './features/bug-report/bug-report';
 import { MovementFormComponent } from './features/movement-form/movement-form';
 import { NgxSonnerToaster } from 'ngx-sonner';
-import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
-import { HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton, HlmSidebarService } from '@spartan-ng/helm/sidebar';
+import {
+  HlmDropdownMenu,
+  HlmDropdownMenuItem,
+  HlmDropdownMenuLabel,
+  HlmDropdownMenuTrigger,
+} from '@spartan-ng/helm/dropdown-menu';
+import { HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton } from '@spartan-ng/helm/sidebar';
+import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service';
 
 /**
  * Kinds de `store.form()` que abren su propio formulario (cuenta, categoría, persona,
@@ -29,6 +36,7 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
   selector: 'app-root',
   standalone: true,
   imports: [
+    NgTemplateOutlet,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -37,7 +45,10 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
     BugReportButtonComponent,
     NgxSonnerToaster,
     HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton,
-    ...HlmDropdownMenuImports,
+    HlmDropdownMenu,
+    HlmDropdownMenuItem,
+    HlmDropdownMenuLabel,
+    HlmDropdownMenuTrigger,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',

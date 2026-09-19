@@ -57,6 +57,9 @@ describe('AppComponent y la pantalla de entrada', () => {
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
     fixture.detectChanges();
+    // El armazón va en un @defer para no cargarse en el login: llega tras su chunk.
+    await fixture.whenStable();
+    fixture.detectChanges();
 
     expect(fixture.componentInstance.enLogin()).toBe(false);
     expect(fixture.nativeElement.querySelector('aside')).not.toBeNull();

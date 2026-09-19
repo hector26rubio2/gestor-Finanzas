@@ -44,7 +44,7 @@ Resultados de verificación:
 
 ### P1 — Rendimiento y robustez
 
-- [ ] Separar el shell autenticado del login para no descargar componentes del sidebar antes de entrar. Volver a medir el presupuesto sin subirlo artificialmente.
+- [x] Shell autenticado en un `@defer` (19-sep-2026): el bundle inicial pasó de 815,18 kB a 554,03 kB (transferencia estimada 195,74 → 140,25 kB), por debajo del presupuesto de 700 kB. Medido en local con `pnpm build`, no en producción. Separar el shell autenticado del login para no descargar componentes del sidebar antes de entrar. Volver a medir el presupuesto sin subirlo artificialmente.
 - [ ] Medir dashboard autenticado con throttling y caché fría/caliente. Montar gráficas fuera de pantalla con defer/viewport y placeholders de altura estable; mantener sus filtros y exportación.
 - [ ] Auditar idempotencia de creación de cuenta/tarjeta/movimiento en servidor con solicitudes concurrentes. Deshabilitar un botón o compartir una promesa no prueba idempotencia entre pestañas.
 - [ ] Medir creación de tarjetas por tramo: petición, transacción, consultas y refresco posterior. Evitar recargar todo el workspace tras cada escritura cuando se pueda actualizar el resultado concreto.

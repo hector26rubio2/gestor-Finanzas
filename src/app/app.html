@@ -1,14 +1,18 @@
 <ngx-sonner-toaster position="top-right" theme="system" richColors closeButton />
-@if (cargandoSesion()) {
+<ng-template #cargando>
 <div class="cargando" role="status" aria-live="polite">
   <fin-icon name="dashboard" class="cargando-marca" />
   <b>Finanzas</b>
   <p>{{ i18n.t('shell.loading') }}</p>
   <span class="cargando-barra"><i></i></span>
 </div>
+</ng-template>
+@if (cargandoSesion()) {
+<ng-container *ngTemplateOutlet="cargando" />
 } @else if (!store.user() || enLogin()) {
 <router-outlet />
 } @else {
+@defer (on immediate) {
 <a class="saltar-al-contenido" href="#contenido-principal">{{ i18n.t('shell.skipToContent') }}</a>
 <div hlmSidebarWrapper sidebarWidth="238px" sidebarWidthIcon="70px" class="app" [class.collapsed]="collapsed()">
   <hlm-sidebar collapsible="icon">
@@ -133,5 +137,8 @@
 }
 @defer (on idle) {
   <app-bug-report />
+}
+} @placeholder {
+<ng-container *ngTemplateOutlet="cargando" />
 }
 }
