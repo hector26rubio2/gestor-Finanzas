@@ -1251,4 +1251,5 @@ export default {
   'admin.users.drawer.pendingMove':
     "Sera déplacée à l'enregistrement. Ses rôles, permissions et fonctions se modifient ensuite, dans la nouvelle organisation.",
   'date.placeholder': 'Choisir une date',
+  'errors.forbidden': "Vous n'avez pas la permission de faire cela. Demandez l'accès à un administrateur.",
 } as const;

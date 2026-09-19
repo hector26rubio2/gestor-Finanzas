@@ -1243,4 +1243,5 @@ export default {
   'admin.users.drawer.pendingMove':
     'Will move on save. Their roles, permissions and features are edited afterwards, in the new organization.',
   'date.placeholder': 'Pick a date',
+  'errors.forbidden': 'You do not have permission to do this. Ask an administrator for access.',
 } as const;

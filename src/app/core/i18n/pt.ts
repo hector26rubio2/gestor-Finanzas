@@ -1242,4 +1242,5 @@ export default {
   'admin.users.drawer.pendingMove':
     'Será movida ao salvar. Papéis, permissões e funções são editados depois, na nova organização.',
   'date.placeholder': 'Escolher data',
+  'errors.forbidden': 'Você não tem permissão para fazer isso. Peça acesso a um administrador.',
 } as const;

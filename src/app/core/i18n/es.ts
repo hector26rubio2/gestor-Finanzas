@@ -1253,4 +1253,5 @@ export default {
   'admin.users.drawer.pendingMove':
     'Se mudará al guardar. Sus roles, permisos y funciones se editan después, en la nueva organización.',
   'date.placeholder': 'Elegir fecha',
+  'errors.forbidden': 'No tienes permiso para hacer esto. Pídele acceso a un administrador.',
 } as const;
