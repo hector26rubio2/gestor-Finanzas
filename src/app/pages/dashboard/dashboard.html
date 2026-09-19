@@ -20,11 +20,6 @@
     }
   </header>
   @if (nadaQueMostrar()) {
-  <!--
-        Llegar hasta aqui sin ninguna pieza concedida es raro, pero posible: quien
-        administra puede haber dejado el acceso al panel y haber quitado los cuatro KPI,
-        los widgets y la tabla. Una pantalla vacia sin explicacion se lee como averiada.
-      -->
   <section
     data-slot="sin-acceso"
     class="grid justify-items-start gap-2 rounded-lg border border-border bg-card p-7"
@@ -71,286 +66,258 @@
   <fin-kpi-strip
     [fixedKpis]="fixedKpiItems()"
     [customKpis]="kpisPropios()"
-    [rows]="layout.kpiRows()"
+    [flow]="layout.kpiFlow()"
     [resizable]="customizing()"
-    (rowResize)="layout.resizeKpis($event.key, $event.sizes)"
+    (resize)="layout.resizeKpi($event.id, $event.change)"
+    (move)="layout.moveKpi($event.id, $event.direction)"
+    (drop)="layout.dropKpi($event.from, $event.to)"
     [canRemove]="customizing() && caps.allows(P.dashboard.widget.deshabilitar)"
     [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length > 0"
     (removeKpi)="removeKpi($event)"
     (openCreator)="openKpiCreator()"
   />
   }
-  <section class="flex min-w-0 flex-col gap-4">
-    @for (row of layout.widgetRows(); track row.key) {
-    <div class="relative h-[var(--row-h)] max-[700px]:h-auto" [style.--row-h.px]="row.height">
-      <hlm-resizable-group
-        direction="horizontal"
-        class="max-[700px]:h-auto max-[700px]:flex-col max-[700px]:gap-4"
-        [layout]="row.sizes"
-        (layoutChange)="layout.resizeWidgets(row.key, $event)"
-      >
-        @for (id of row.ids; track id; let position = $index; let last = $last) { @if (widgetById(id); as widget) {
-        <hlm-resizable-panel
-          class="block p-1 max-[700px]:flex-none! max-[700px]:p-0"
-          [id]="'widget-' + id"
-          [defaultSize]="row.sizes[position]"
-          [minSize]="minPanelSize"
-          [collapsible]="false"
-        >
-          <fin-widget-card [fill]="true" [kicker]="widget.kicker" [title]="widget.title">
-            <!--
-        El filtro de categoría vivía en su propia fila debajo del título: ocupaba una
-        fila entera solo para un select, y empujaba la lista hacia abajo. Junto al título
-        no le hace falta esa fila propia.
-      -->
-            @if (widget.type === 'categories' && !customizing()) {
-            <div class="flex items-center gap-2 max-[470px]:flex-col max-[470px]:items-stretch" headerExtra>
-              <fin-select
-                class="w-full min-w-40"
-                [ngModel]="localCategory()"
-                (ngModelChange)="localCategory.set($event)"
-                [options]="localCategoryOptions()"
-                [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
-              />
-              <button
-                hlmBtn
-                variant="outline"
-                type="button"
-                class="whitespace-nowrap"
-                (click)="promoteCategory()"
-                [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
-              >
-                {{ i18n.t('dashboard.category.applyAll') }}
-              </button>
-            </div>
-            } @if (customizing()) {
-            <div class="flex flex-wrap items-center justify-end gap-x-[5px] gap-y-2" actions>
-              <fin-widget-controls
-                [type]="widget.type"
-                [dimension]="widget.dimension ?? 'category'"
-                [measure]="widget.measure ?? 'expense'"
-                [dimension2]="widget.dimension2 ?? 'kind'"
-                [goalMin]="widget.goalMin ?? 0"
-                [goalTarget]="widget.goalTarget ?? 0"
-                [goalMax]="widget.goalMax ?? 0"
-                [typeOptions]="widgetTypeOptions()"
-                [dimensionOptions]="dimensionOptions()"
-                [measureOptions]="measureOptions()"
-                [showDimensionMeasure]="isGeneric(widget.type)"
-                [showSeries]="needsDimension2(widget.type)"
-                [showGoal]="needsGoal(widget.type)"
-                [canReorder]="caps.allows(P.dashboard.widget.orden.editar)"
-                [canJoin]="canJoinPrevious(widget.id)"
-                [canSplit]="canSplitRow(widget.id)"
-                (joinPrevious)="layout.joinPrevious(widget.id)"
-                (splitRow)="layout.splitFromRow(widget.id)"
-                [canChangeType]="caps.allows(P.dashboard.widget.tipo.editar)"
-                [canHide]="caps.allows(P.dashboard.widget.deshabilitar)"
-                (moveUp)="layout.moveWidget(widget.id, -1)"
-                (moveDown)="layout.moveWidget(widget.id, 1)"
-                (typeChange)="changeType(widget.id, $event)"
-                (dimensionChange)="changeDimension(widget.id, $event)"
-                (measureChange)="changeMeasure(widget.id, $event)"
-                (dimension2Change)="changeDimension2(widget.id, $event)"
-                (goalChange)="changeGoal(widget.id, $event.key, $event.value)"
-                (hide)="hide(widget.id)"
-              />
-            </div>
-            } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
-            <fin-chart
-              [option]="flujoOption()"
-              height="fill"
-              [ariaLabel]="
-                    i18n.t('dashboard.widget.flow.ariaLabel', {
-                      income: store.money(income()),
-                      expense: store.money(expense()),
-                      count: timeline().length
-                    })
-                  "
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } @case ('categories') {
-            <fin-category-list
-              [items]="categoryDistribution()"
-              [selected]="localCategory()"
-              [emptyText]="i18n.t('dashboard.widget.categories.empty')"
-              [ariaLabel]="i18n.t('dashboard.category.list.ariaLabel')"
-              (pick)="localCategory.set($event)"
-            />
-            } @case ('accounts') {
-            <fin-account-list
-              [items]="accountDistribution()"
-              [selected]="accountId()"
-              [emptyText]="i18n.t('dashboard.widget.accounts.empty')"
-              (pick)="accountId.set($event)"
-            />
-            } @case ('trend') { @if (timeline().length) {
-            <fin-chart
-              [option]="tendenciaOption()"
-              height="fill"
-              [ariaLabel]="
-                    i18n.t('dashboard.widget.trend.ariaLabel', { total: store.money(expense()) })
-                  "
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
-            } } @case ('scatter') { @if (movements().length) {
-            <fin-chart
-              [option]="dispersionOption()"
-              height="fill"
-              [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
-            } } @case ('donut') { @if (categoryDistribution().length) {
-            <fin-chart
-              [option]="anilloOption()"
-              height="fill"
-              (pick)="localCategory.set($event)"
-              [ariaLabel]="i18n.t('dashboard.widget.donut.ariaLabel', { total: store.money(expense()) })"
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
-            } } @case ('stacked') { @if (timeline().length) {
-            <fin-chart
-              [option]="apiladoOption()"
-              height="fill"
-              [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } @case ('gauge') { @if (income() > 0) {
-            <fin-chart
-              [option]="medidorOption()"
-              height="fill"
-              [ariaLabel]="
-              i18n.t('dashboard.widget.gauge.ariaLabel', {
-                rate: tasaDeAhorro(),
-                net: store.money(net()),
-                income: store.money(income())
+  <section
+    cdkDropList
+    cdkDropListOrientation="mixed"
+    class="grid min-w-0 grid-cols-12 auto-rows-[10px] gap-x-5 [grid-auto-flow:row_dense]"
+    (cdkDropListDropped)="layout.dropWidget($event.previousIndex, $event.currentIndex)"
+  >
+    @for (item of layout.widgetFlow(); track item.id) { @if (widgetById(item.id); as widget) {
+    <fin-flow-item
+      [item]="item"
+      [editable]="customizing() && caps.allows(P.dashboard.widget.orden.editar)"
+      [minCols]="widgetMinCols"
+      (resized)="layout.resizeWidget(item.id, $event)"
+      (moved)="layout.moveWidget(item.id, $event)"
+    >
+      <fin-widget-card [fill]="true" [kicker]="widget.kicker" [title]="widget.title">
+        @if (widget.type === 'categories' && !customizing()) {
+        <div class="flex items-center gap-2 max-[470px]:flex-col max-[470px]:items-stretch" headerExtra>
+          <fin-select
+            class="w-full min-w-40"
+            [ngModel]="localCategory()"
+            (ngModelChange)="localCategory.set($event)"
+            [options]="localCategoryOptions()"
+            [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
+          />
+          <button
+            hlmBtn
+            variant="outline"
+            type="button"
+            class="whitespace-nowrap"
+            (click)="promoteCategory()"
+            [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
+          >
+            {{ i18n.t('dashboard.category.applyAll') }}
+          </button>
+        </div>
+        } @if (customizing()) {
+        <div class="flex flex-wrap items-center justify-end gap-x-[5px] gap-y-2" actions>
+          <fin-widget-controls
+            [type]="widget.type"
+            [dimension]="widget.dimension ?? 'category'"
+            [measure]="widget.measure ?? 'expense'"
+            [dimension2]="widget.dimension2 ?? 'kind'"
+            [goalMin]="widget.goalMin ?? 0"
+            [goalTarget]="widget.goalTarget ?? 0"
+            [goalMax]="widget.goalMax ?? 0"
+            [typeOptions]="widgetTypeOptions()"
+            [dimensionOptions]="dimensionOptions()"
+            [measureOptions]="measureOptions()"
+            [showDimensionMeasure]="isGeneric(widget.type)"
+            [showSeries]="needsDimension2(widget.type)"
+            [showGoal]="needsGoal(widget.type)"
+            [canReorder]="caps.allows(P.dashboard.widget.orden.editar)"
+            [canChangeType]="caps.allows(P.dashboard.widget.tipo.editar)"
+            [canHide]="caps.allows(P.dashboard.widget.deshabilitar)"
+            (moveUp)="layout.moveWidget(widget.id, -1)"
+            (moveDown)="layout.moveWidget(widget.id, 1)"
+            (typeChange)="changeType(widget.id, $event)"
+            (dimensionChange)="changeDimension(widget.id, $event)"
+            (measureChange)="changeMeasure(widget.id, $event)"
+            (dimension2Change)="changeDimension2(widget.id, $event)"
+            (goalChange)="changeGoal(widget.id, $event.key, $event.value)"
+            (hide)="hide(widget.id)"
+          />
+        </div>
+        } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
+        <fin-chart
+          [option]="flujoOption()"
+          height="fill"
+          [ariaLabel]="
+              i18n.t('dashboard.widget.flow.ariaLabel', {
+                income: store.money(income()),
+                expense: store.money(expense()),
+                count: timeline().length
               })
             "
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
-            } } @case ('heatmap') { @if (timeline().length) {
-            <fin-chart
-              [option]="intensidadOption()"
-              height="fill"
-              [ariaLabel]="i18n.t('dashboard.widget.heatmap.ariaLabel')"
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } @case ('histogram') { @if (movements().length) {
-            <fin-chart
-              [option]="histogramaOption()"
-              height="fill"
-              [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
-            />
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } @case ('card') {
-            <fin-kpi
-              [bare]="true"
-              [label]="measureLabel(widget)"
-              [value]="formatMeasure(cardValue(widget), widget)"
-              [delta]="kpiTrend(widget.measure ?? 'expense')"
-              [subirEsBueno]="(widget.measure ?? 'expense') !== 'expense'"
-            />
-            } @case ('table') {
-            <fin-table
-              [columns]="tableColumns()"
-              [rows]="tableRows(widget)"
-              [selectable]="false"
-              [pageSize]="8"
-              [tableLabel]="widget.title"
-            />
-            } @case ('indicator') { @if (movements().length) {
-            <div
-              class="grid w-full flex-1 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] content-center items-center gap-x-7 gap-y-4"
-            >
-              <fin-chart
-                class="min-h-40 min-w-0 max-w-full"
-                [option]="widgetOption(widget)"
-                height="fill"
-                [ariaLabel]="widget.title"
-              />
-              <dl
-                class="grid min-w-0 gap-3.5 [&_dd]:mt-0.5 [&_dd]:text-[0.95rem] [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:text-foreground [&_dt]:text-[0.72rem] [&_dt]:font-semibold [&_dt]:tracking-[0.04em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
-              >
-                <div>
-                  <dt>Actual</dt>
-                  <dd>{{ formatMeasure(cardValue(widget), widget) }}</dd>
-                </div>
-                <div>
-                  <dt>Meta</dt>
-                  <dd>{{ formatMeasure(widget.goalTarget ?? 0, widget) }}</dd>
-                </div>
-                <div>
-                  <dt>Rango</dt>
-                  <dd>
-                    {{ formatMeasure(widget.goalMin ?? 0, widget) }} – {{ formatMeasure(widget.goalMax ?? 0, widget) }}
-                  </dd>
-                </div>
-                <div>
-                  <dt>Estado</dt>
-                  <dd>
-                    <span
-                      class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
-                      [style.color]="indicatorStatus(widget).color"
-                      [style.border-color]="indicatorStatus(widget).color"
-                    >
-                      {{ indicatorStatus(widget).label }}
-                    </span>
-                  </dd>
-                </div>
-              </dl>
-            </div>
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } @case ('colorScale') {
-            <fin-color-scale
-              [value]="formatMeasure(cardValue(widget), widget)"
-              [label]="measureLabel(widget)"
-              [min]="formatMeasure(widget.goalMin ?? 0, widget)"
-              [target]="i18n.t('dashboard.widget.indicator.metaLabel', { value: formatMeasure(widget.goalTarget ?? 0, widget) })"
-              [max]="formatMeasure(widget.goalMax ?? 0, widget)"
-              [pointerPercent]="colorScalePercent(widget)"
-              [metaPercent]="colorScaleMetaPercent(widget)"
-              [statusLabel]="indicatorStatus(widget).label"
-              [statusColor]="indicatorStatus(widget).color"
-            />
-            } @case ('statusBars') {
-            <fin-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
-            } @default { @if (movements().length) {
-            <div class="flex min-h-0 flex-1 flex-col justify-center">
-              <fin-chart [option]="widgetOption(widget)" height="fill" [ariaLabel]="widget.title" />
-            </div>
-            } @else {
-            <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-            } } }
-          </fin-widget-card>
-        </hlm-resizable-panel>
-        @if (!last) {
-        <hlm-resizable-handle
-          class="my-2 rounded-full bg-transparent data-[panel-group-direction=horizontal]:w-1 max-[700px]:hidden"
-          [class.hover:bg-primary]="customizing()"
-          [class.bg-primary/30]="customizing()"
-          [disabled]="!customizing()"
-          [attr.aria-label]="i18n.t('dashboard.layout.resizeWidget')"
         />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+        } } @case ('categories') {
+        <fin-category-list
+          [items]="categoryDistribution()"
+          [selected]="localCategory()"
+          [emptyText]="i18n.t('dashboard.widget.categories.empty')"
+          [ariaLabel]="i18n.t('dashboard.category.list.ariaLabel')"
+          (pick)="localCategory.set($event)"
+        />
+        } @case ('accounts') {
+        <fin-account-list
+          [items]="accountDistribution()"
+          [selected]="accountId()"
+          [emptyText]="i18n.t('dashboard.widget.accounts.empty')"
+          (pick)="accountId.set($event)"
+        />
+        } @case ('trend') { @if (timeline().length) {
+        <fin-chart
+          [option]="tendenciaOption()"
+          height="fill"
+          [ariaLabel]="
+              i18n.t('dashboard.widget.trend.ariaLabel', { total: store.money(expense()) })
+            "
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
+        } } @case ('scatter') { @if (movements().length) {
+        <fin-chart
+          [option]="dispersionOption()"
+          height="fill"
+          [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
+        } } @case ('donut') { @if (categoryDistribution().length) {
+        <fin-chart
+          [option]="anilloOption()"
+          height="fill"
+          (pick)="localCategory.set($event)"
+          [ariaLabel]="i18n.t('dashboard.widget.donut.ariaLabel', { total: store.money(expense()) })"
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
+        } } @case ('stacked') { @if (timeline().length) {
+        <fin-chart
+          [option]="apiladoOption()"
+          height="fill"
+          [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+        } } @case ('gauge') { @if (income() > 0) {
+        <fin-chart
+          [option]="medidorOption()"
+          height="fill"
+          [ariaLabel]="
+        i18n.t('dashboard.widget.gauge.ariaLabel', {
+          rate: tasaDeAhorro(),
+          net: store.money(net()),
+          income: store.money(income())
+        })
+      "
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
+        } } @case ('heatmap') { @if (timeline().length) {
+        <fin-chart
+          [option]="intensidadOption()"
+          height="fill"
+          [ariaLabel]="i18n.t('dashboard.widget.heatmap.ariaLabel')"
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+        } } @case ('histogram') { @if (movements().length) {
+        <fin-chart
+          [option]="histogramaOption()"
+          height="fill"
+          [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
+        />
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+        } } @case ('card') {
+        <fin-kpi
+          [bare]="true"
+          [label]="measureLabel(widget)"
+          [value]="formatMeasure(cardValue(widget), widget)"
+          [delta]="kpiTrend(widget.measure ?? 'expense')"
+          [subirEsBueno]="(widget.measure ?? 'expense') !== 'expense'"
+        />
+        } @case ('table') {
+        <fin-table
+          [columns]="tableColumns()"
+          [rows]="tableRows(widget)"
+          [selectable]="false"
+          [pageSize]="8"
+          [tableLabel]="widget.title"
+        />
+        } @case ('indicator') { @if (movements().length) {
+        <div
+          class="grid w-full flex-1 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] content-center items-center gap-x-7 gap-y-4"
+        >
+          <fin-chart
+            class="min-h-40 min-w-0 max-w-full"
+            [option]="widgetOption(widget)"
+            height="fill"
+            [ariaLabel]="widget.title"
+          />
+          <dl
+            class="grid min-w-0 gap-3.5 [&_dd]:mt-0.5 [&_dd]:text-[0.95rem] [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:text-foreground [&_dt]:text-[0.72rem] [&_dt]:font-semibold [&_dt]:tracking-[0.04em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
+          >
+            <div>
+              <dt>Actual</dt>
+              <dd>{{ formatMeasure(cardValue(widget), widget) }}</dd>
+            </div>
+            <div>
+              <dt>Meta</dt>
+              <dd>{{ formatMeasure(widget.goalTarget ?? 0, widget) }}</dd>
+            </div>
+            <div>
+              <dt>Rango</dt>
+              <dd>
+                {{ formatMeasure(widget.goalMin ?? 0, widget) }} – {{ formatMeasure(widget.goalMax ?? 0, widget) }}
+              </dd>
+            </div>
+            <div>
+              <dt>Estado</dt>
+              <dd>
+                <span
+                  class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
+                  [style.color]="indicatorStatus(widget).color"
+                  [style.border-color]="indicatorStatus(widget).color"
+                >
+                  {{ indicatorStatus(widget).label }}
+                </span>
+              </dd>
+            </div>
+          </dl>
+        </div>
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+        } } @case ('colorScale') {
+        <fin-color-scale
+          [value]="formatMeasure(cardValue(widget), widget)"
+          [label]="measureLabel(widget)"
+          [min]="formatMeasure(widget.goalMin ?? 0, widget)"
+          [target]="i18n.t('dashboard.widget.indicator.metaLabel', { value: formatMeasure(widget.goalTarget ?? 0, widget) })"
+          [max]="formatMeasure(widget.goalMax ?? 0, widget)"
+          [pointerPercent]="colorScalePercent(widget)"
+          [metaPercent]="colorScaleMetaPercent(widget)"
+          [statusLabel]="indicatorStatus(widget).label"
+          [statusColor]="indicatorStatus(widget).color"
+        />
+        } @case ('statusBars') {
+        <fin-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
+        } @default { @if (movements().length) {
+        <div class="flex min-h-0 flex-1 flex-col justify-center">
+          <fin-chart [option]="widgetOption(widget)" height="fill" [ariaLabel]="widget.title" />
+        </div>
+        } @else {
+        <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
         } } }
-      </hlm-resizable-group>
-      @if (customizing()) {
-      <fin-row-resize-handle
-        [height]="row.height"
-        [label]="i18n.t('dashboard.layout.resizeRow')"
-        (heightChange)="layout.resizeWidgetRow(row.key, $event)"
-      />
-      }
-    </div>
-    }
+      </fin-widget-card>
+    </fin-flow-item>
+    } }
   </section>
   @if (caps.allows(P.dashboard.tabla.ver)) {
   <section class="flex h-[max(600px,calc(100dvh-5rem))] flex-col rounded-lg border border-border bg-card px-5 py-4">

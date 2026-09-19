@@ -9,12 +9,6 @@ import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 
 export type GoalKey = 'goalMin' | 'goalTarget' | 'goalMax';
 
-/**
- * Barra de controles de un widget en modo "personalizar": mover, cambiar tipo,
- * dimensión/medida/serie, metas, ocultar. Antes vivía entera dentro del `@for` de
- * widgets en dashboard.html — quién puede hacer qué lo decide el padre (los
- * permisos no cambian por widget), esto solo dibuja lo que ya se le concedió.
- */
 @Component({
   selector: 'fin-widget-controls',
   imports: [HlmButton, HlmInput, FormsModule, IconComponent, UiSelectComponent, NumericInputDirective],
@@ -36,8 +30,6 @@ export class WidgetControlsComponent {
   readonly dimensionOptions = input<readonly UiOption[]>([]);
   readonly measureOptions = input<readonly UiOption[]>([]);
 
-  readonly canJoin = input(false);
-  readonly canSplit = input(false);
   readonly showDimensionMeasure = input(false);
   readonly showSeries = input(false);
   readonly showGoal = input(false);
@@ -46,8 +38,6 @@ export class WidgetControlsComponent {
   readonly canChangeType = input(false);
   readonly canHide = input(false);
 
-  @Output() readonly joinPrevious = new EventEmitter<void>();
-  @Output() readonly splitRow = new EventEmitter<void>();
   @Output() readonly moveUp = new EventEmitter<void>();
   @Output() readonly moveDown = new EventEmitter<void>();
   @Output() readonly typeChange = new EventEmitter<string>();

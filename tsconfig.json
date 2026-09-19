@@ -48,8 +48,7 @@
       "@spartan-ng/helm/scroll-area": ["./src/app/ui/helm/scroll-area/src/index.ts"],
       "@spartan-ng/helm/command": ["./src/app/ui/helm/command/src/index.ts"],
       "@spartan-ng/helm/combobox": ["./src/app/ui/helm/combobox/src/index.ts"],
-      "@spartan-ng/helm/kbd": ["./src/app/ui/helm/kbd/src/index.ts"],
-      "@spartan-ng/helm/resizable": ["./src/app/ui/helm/resizable/src/index.ts"]
+      "@spartan-ng/helm/kbd": ["./src/app/ui/helm/kbd/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

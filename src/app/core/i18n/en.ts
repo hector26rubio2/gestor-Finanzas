@@ -1269,12 +1269,7 @@ export default {
   'admin.summary.column.date': 'Date',
   'admin.summary.column.trace': 'Trace',
   'admin.common.actions': 'Actions',
-  'dashboard.layout.resizeWidget': 'Drag to change the width',
-  'dashboard.layout.resizeRow': 'Drag to change the row height',
-  'dashboard.layout.resizeKpi': 'Drag to change the indicator width',
   'dashboard.layout.reset': 'Reset layout',
-  'dashboard.widgetActions.joinRow': 'Place next to the previous one',
-  'dashboard.widgetActions.splitRow': 'Move to its own row',
   'bugReport.screenshot.failed': 'The screen could not be captured. You can send the report without a screenshot.',
   'bugReport.success.githubPending':
     'Your report was saved. The GitHub issue was not created yet; an administrator can retry it.',
@@ -1282,4 +1277,8 @@ export default {
   'admin.errors.issueCreated': 'GitHub issue created',
   'admin.errors.issueFailed': 'The issue could not be created',
   'shell.toggleSubmenu': 'Show or hide the {name} submenu',
+  'dashboard.layout.resizeWidth': 'Drag to change the width',
+  'dashboard.layout.resizeHeight': 'Drag to change the height',
+  'dashboard.layout.resizeBoth': 'Drag to change width and height',
+  'dashboard.layout.drag': 'Drag to move; with the keyboard use the arrow keys',
 } as const;

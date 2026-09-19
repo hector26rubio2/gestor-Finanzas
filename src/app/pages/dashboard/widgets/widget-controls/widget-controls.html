@@ -19,30 +19,6 @@
 >
   <fin-icon name="chevronDown" />
 </button>
-<button
-  hlmBtn
-  variant="ghost"
-  size="icon-sm"
-  type="button"
-  [disabled]="!canJoin()"
-  [attr.aria-label]="i18n.t('dashboard.widgetActions.joinRow')"
-  [attr.title]="i18n.t('dashboard.widgetActions.joinRow')"
-  (click)="joinPrevious.emit()"
->
-  <fin-icon name="joinRow" />
-</button>
-<button
-  hlmBtn
-  variant="ghost"
-  size="icon-sm"
-  type="button"
-  [disabled]="!canSplit()"
-  [attr.aria-label]="i18n.t('dashboard.widgetActions.splitRow')"
-  [attr.title]="i18n.t('dashboard.widgetActions.splitRow')"
-  (click)="splitRow.emit()"
->
-  <fin-icon name="splitRow" />
-</button>
 } @if (canChangeType()) {
 <fin-select
   [ariaLabel]="i18n.t('dashboard.widgetActions.type.ariaLabel')"
