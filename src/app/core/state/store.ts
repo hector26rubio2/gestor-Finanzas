@@ -7,6 +7,12 @@ import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from '../utils/money';
 import { P } from '../session/permissions';
 import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '../utils/movement-kinds';
 import { RUNTIME_CONFIG } from '../session/runtime';
+import { DEMO_CATEGORIES } from './demo-categories';
+import { PREFERENCES } from './theme';
+
+export { applyTheme, PREFERENCES } from './theme';
+export type { Preferences } from './theme';
+export { navigation } from './navigation';
 
 export interface DataProvider {
   load(): DemoData;
@@ -41,164 +47,7 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
     };
   },
 });
-export interface Preferences {
-  /** `system` no estampa data-theme y deja que mande prefers-color-scheme. */
-  theme: 'system' | 'light' | 'dark' | 'ocean' | 'sand' | 'berry';
-  accent: string;
-  font: string;
-  locale: string;
-  density: 'comfortable' | 'compact';
-  radius: number;
-  name: string;
-  primary: string;
-  secondary: string;
-  text: string;
-  surface: string;
-  border: string;
-}
-export const PREFERENCES = new InjectionToken('Preferences', {
-  providedIn: 'root',
-  factory: () =>
-    signal<Preferences>({
-      theme: 'system',
-      accent: '#4f46e5',
-      font: 'Public Sans, system-ui, sans-serif',
-      locale: 'es-CO',
-      density: 'comfortable',
-      radius: 16,
-      name: 'Mi tema indigo',
-      primary: '#4f46e5',
-      secondary: '#d97706',
-      text: '#1e2130',
-      surface: '#ffffff',
-      border: '#e4e7ec',
-    }),
-});
-
 const DEMO_SESSION_KEY = 'finanzas.demo.perfil';
-
-/**
- * Estampa el tema elegido. Con `system` retira el atributo para que la consulta
- * `prefers-color-scheme` de styles.css decida: antes se estampaba siempre
- * `light` y quien tenia el sistema en oscuro recibia la aplicacion en claro.
- */
-export function applyTheme(theme: Preferences['theme']): void {
-  if (theme === 'system') delete document.documentElement.dataset['theme'];
-  else document.documentElement.dataset['theme'] = theme;
-}
-
-/** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
-export const navigation = [
-  { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'overview', capability: P.dashboard.ver },
-  { path: 'movements', label: 'Movimientos', icon: 'movements', group: 'money', capability: P.movimientos.ver },
-  { path: 'calendar', label: 'Calendario', icon: 'calendar', group: 'money', capability: P.calendario.ver },
-  { path: 'accounts', label: 'Cuentas y tarjetas', icon: 'accounts', group: 'money', capability: P.cuentas.ver },
-  { path: 'people', label: 'Personas y deudas', icon: 'people', group: 'money', capability: P.personas.ver },
-  { path: 'portfolio', label: 'Patrimonio', icon: 'portfolio', group: 'money', capability: P.patrimonio.ver },
-  { path: 'planning', label: 'Planificación', icon: 'planning', group: 'analysis', capability: P.planificacion.ver },
-  { path: 'reports', label: 'Reportes', icon: 'reports', group: 'analysis', capability: P.reportes.ver },
-  {
-    path: 'notifications',
-    label: 'Notificaciones',
-    icon: 'notifications',
-    group: 'workspace',
-    capability: P.notificaciones.ver,
-  },
-  { path: 'admin', label: 'Administración', icon: 'admin', group: 'workspace', capability: P.administracion.ver },
-  { path: 'settings', label: 'Preferencias', icon: 'settings', group: 'workspace', capability: P.preferencias.ver },
-];
-
-/**
- * Semilla de categorías en modo demo.
- *
- * El modo demo no tiene backend que las sirva, y antes el formulario de movimiento
- * pintaba una lista fija propia en vez de leer `store.categories()` — una categoría
- * creada a mano no aparecía nunca al registrar un movimiento. Sin transferencias ni
- * pago de tarjeta aquí: esas son un `kind`, no una categoría (no existe categoría
- * neutra, la misma regla que ya aplica el backend).
- */
-const DEMO_CATEGORIES: readonly ApiCategory[] = [
-  {
-    id: 'demo-cat-food',
-    name: 'Alimentación',
-    type: 2,
-    color: '#f97316',
-    icon: '🍽️',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-housing',
-    name: 'Vivienda',
-    type: 2,
-    color: '#0ea5e9',
-    icon: '🏠',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-transport',
-    name: 'Transporte',
-    type: 2,
-    color: '#8b5cf6',
-    icon: '🚗',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-loans',
-    name: 'Préstamos',
-    type: 2,
-    color: '#ef4444',
-    icon: '🏦',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-investing',
-    name: 'Inversiones',
-    type: 2,
-    color: '#14b8a6',
-    icon: '📈',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-other-expense',
-    name: 'Otros',
-    type: 2,
-    color: '#64748b',
-    icon: '●',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-salary',
-    name: 'Salario',
-    type: 1,
-    color: '#22c55e',
-    icon: '💼',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-  {
-    id: 'demo-cat-other-income',
-    name: 'Otros',
-    type: 1,
-    color: '#64748b',
-    icon: '●',
-    parent: null,
-    isActive: true,
-    createdAt: '2026-01-01T00:00:00Z',
-  },
-];
 
 @Injectable({ providedIn: 'root' })
 export class AppStore {

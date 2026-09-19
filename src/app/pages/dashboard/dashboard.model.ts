@@ -86,3 +86,12 @@ export const GENERIC_TYPES: readonly GenericWidgetType[] = [
   'statusBars',
 ];
 export const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 'stacked100', 'matrix'];
+export type TimelinePoint = {
+  key: string;
+  label: string;
+  income: number;
+  expense: number;
+  incomeP: number;
+  expenseP: number;
+};
+export type CategorySlice = { name: string; value: number; percent: number; color: string };
