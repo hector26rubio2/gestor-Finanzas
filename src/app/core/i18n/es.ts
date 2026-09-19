@@ -1314,4 +1314,8 @@ export default {
   'admin.permissions.picker.summary': '{selected} de {total} permisos concedidos',
   'admin.permissions.picker.groupActions': 'Acciones por grupo',
   'admin.permissions.picker.group': 'Grupo de permisos',
+  'bugReport.q.progress': 'Pregunta %current de %total',
+  'bugReport.q.progressLabel': 'Progreso del reporte',
+  'bugReport.q.required': 'Completa este campo para continuar.',
+  'bugReport.actions.skip': 'Omitir',
 } as const;

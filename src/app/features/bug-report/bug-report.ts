@@ -1,5 +1,5 @@
+import { BrnQuestionnaireImports } from '@spartan-ng/brain/questionnaire';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CommonModule } from '@angular/common';
@@ -12,12 +12,9 @@ import { ConsoleBufferService } from '../../core/utils/console-buffer';
 import { I18nService } from '../../core/i18n';
 import { AppStore } from '../../core/state/store';
 import { APP_VERSION } from '../../core/utils/version';
-import { FieldComponent } from '../../ui/field/field';
 import { IconComponent } from '../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { UiOption } from '../../ui/select/select';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-
-type Step = 1 | 2 | 3 | 4;
 
 /** Tope alineado con `MaxScreenshotBase64Length` en el backend (deja margen bajo el límite de 1 MB por petición de Kestrel). */
 const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
@@ -65,14 +62,12 @@ function writeFab(position: FabPosition | null): void {
   selector: 'app-bug-report',
   imports: [
     HlmButton,
-    HlmCheckbox,
+    BrnQuestionnaireImports,
     HlmTextarea,
     HlmInput,
     CommonModule,
     FormsModule,
-    FieldComponent,
     IconComponent,
-    UiSelectComponent,
     OverlayComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -92,7 +87,8 @@ export class BugReportButtonComponent {
   private suppressClick = false;
 
   readonly open = signal(false);
-  readonly step = signal<Step>(1);
+  readonly done = signal(false);
+  readonly activeItem = signal<string | null>(null);
   readonly sending = signal(false);
   readonly capturingScreenshot = signal(false);
   readonly screenshotDataUrl = signal<string | null>(null);
@@ -185,7 +181,8 @@ export class BugReportButtonComponent {
   }
 
   private reset(): void {
-    this.step.set(1);
+    this.done.set(false);
+    this.activeItem.set(null);
     this.title = '';
     this.description = '';
     this.stepsToReproduce = '';
@@ -198,22 +195,13 @@ export class BugReportButtonComponent {
     this.sending.set(false);
   }
 
-  canAdvanceFromStep1(): boolean {
+  itemChanged(name: string | null): void {
+    this.activeItem.set(name);
+    if (name === 'review') void this.captureScreenshot();
+  }
+
+  private get canSubmit(): boolean {
     return this.title.trim().length > 0 && this.description.trim().length > 0;
-  }
-
-  async next(): Promise<void> {
-    if (this.step() === 1 && !this.canAdvanceFromStep1()) return;
-    if (this.step() === 2) {
-      this.step.set(3);
-      await this.captureScreenshot();
-      return;
-    }
-    this.step.update((s) => (s < 4 ? ((s + 1) as Step) : s));
-  }
-
-  back(): void {
-    this.step.update((s) => (s > 1 ? ((s - 1) as Step) : s));
   }
 
   /** Captura la pantalla actual, comprimida, solo si sigue marcado el checkbox al llegar a la revisión. */
@@ -244,6 +232,14 @@ export class BugReportButtonComponent {
     }
   }
 
+  pickSeverity(event: Event, value: string): void {
+    if ((event.target as HTMLInputElement).checked) this.severity = value as typeof this.severity;
+  }
+
+  pickScreenshot(event: Event): void {
+    this.toggleScreenshot((event.target as HTMLInputElement).checked);
+  }
+
   toggleScreenshot(include: boolean): void {
     this.includeScreenshot.set(include);
     if (!include) this.screenshotDataUrl.set(null);
@@ -264,8 +260,9 @@ export class BugReportButtonComponent {
     };
   }
 
-  async submit(): Promise<void> {
-    if (!this.canAdvanceFromStep1() || this.sending()) return;
+  async submit(event?: Event): Promise<void> {
+    event?.preventDefault();
+    if (!this.canSubmit || this.sending()) return;
     this.sending.set(true);
     try {
       const screenshot = this.includeScreenshot() ? this.screenshotDataUrl() : null;
@@ -284,7 +281,7 @@ export class BugReportButtonComponent {
       this.githubIssueUrl.set(result.githubIssueUrl);
       this.githubStatus.set(result.githubStatus ?? 'disabled');
       this.githubDetail.set(result.githubDetail ?? null);
-      this.step.set(4);
+      this.done.set(true);
     } catch {
       this.store.toast.set(this.i18n.t('bugReport.toast.failed'));
     } finally {
