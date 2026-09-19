@@ -24,7 +24,7 @@ import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
         </hlm-alert-dialog-header>
         <hlm-alert-dialog-footer>
           <button hlmAlertDialogCancel>{{ cancelLabel() }}</button>
-          <button hlmAlertDialogAction class="danger" (click)="confirm(ctx)">{{ confirmLabel() }}</button>
+          <button hlmAlertDialogAction variant="destructive" (click)="confirm(ctx)">{{ confirmLabel() }}</button>
         </hlm-alert-dialog-footer>
       </hlm-alert-dialog-content>
     </hlm-alert-dialog>

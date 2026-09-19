@@ -102,91 +102,96 @@
 :root[data-density='compact'] {
   font-size: 14px;
 }
-* {
-  box-sizing: border-box;
-}
-html {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font);
-}
-body {
-  margin: 0;
-  min-width: 320px;
-  background: var(--bg);
-}
-html,
-body {
-  scrollbar-width: none;
-}
-html::-webkit-scrollbar,
-body::-webkit-scrollbar,
-*::-webkit-scrollbar {
-  width: 0;
-  height: 0;
-}
-* {
-  scrollbar-width: none;
-}
-button,
-input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
-select,
-textarea {
-  font: inherit;
-}
 /*
+ * Base propia, en la capa `base`: las utilidades de Tailwind y las variantes de Helm la
+ * vencen siempre. Antes iba sin capa y pisaba a `hlmBtn`, `hlmInput` y compañía.
+ */
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+  html {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+  }
+  body {
+    margin: 0;
+    min-width: 320px;
+    background: var(--bg);
+  }
+  html,
+  body {
+    scrollbar-width: none;
+  }
+  html::-webkit-scrollbar,
+  body::-webkit-scrollbar,
+  *::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+  * {
+    scrollbar-width: none;
+  }
+  button,
+  input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
+  select,
+  textarea {
+    font: inherit;
+  }
+  /*
  * Las cifras van en versales de ancho fijo. Con anchos proporcionales un 1 ocupa menos
  * que un 8, así que una columna de importes queda desalineada y un total que cambia
  * hace bailar el texto de al lado. En una aplicación de dinero se nota en cada pantalla.
  */
-table td,
-.money,
-.amount,
-strong,
-b,
-kbd,
-time {
-  font-variant-numeric: tabular-nums;
-}
-button {
-  cursor: pointer;
-  /* Quita la espera de 300 ms que el navegador guarda por si es un doble toque. */
-  touch-action: manipulation;
-  min-height: 34px;
-  padding: 6px 11px;
-  border: 1px solid var(--control-line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  font-weight: 600;
-  line-height: 1.2;
-  transition:
-    border-color 0.16s ease,
-    background-color 0.16s ease,
-    color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.16s ease;
-}
-/*
+  table td,
+  .money,
+  .amount,
+  strong,
+  b,
+  kbd,
+  time {
+    font-variant-numeric: tabular-nums;
+  }
+  button {
+    cursor: pointer;
+    /* Quita la espera de 300 ms que el navegador guarda por si es un doble toque. */
+    touch-action: manipulation;
+    min-height: 34px;
+    padding: 6px 11px;
+    border: 1px solid var(--control-line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    font-weight: 600;
+    line-height: 1.2;
+    transition:
+      border-color 0.16s ease,
+      background-color 0.16s ease,
+      color 0.16s ease,
+      box-shadow 0.16s ease,
+      transform 0.16s ease;
+  }
+  /*
  * El hover solo donde hay un puntero fino. En una pantalla tactil el navegador deja el
  * estado puesto despues de tocar, asi que un boton se queda resaltado como si el dedo
  * siguiera encima.
  */
-@media (hover: hover) and (pointer: fine) {
-  button:hover:not(:disabled) {
-    border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
-    background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+  @media (hover: hover) and (pointer: fine) {
+    button:hover:not(:disabled) {
+      border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
+      background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
+    }
   }
-}
-button:active:not(:disabled) {
-  transform: translateY(1px);
-}
-button:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
+  button:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.48;
+  }
 
-/*
+  /*
  * Las tres variantes de boton, definidas una sola vez.
  *
  * Estaban por convencion y no por regla: «primary» se redefinia suelto en seis
@@ -199,169 +204,170 @@ button:disabled {
  * acompana, sin caja la que casi no importa. Es la jerarquia que sigue funcionando en
  * escala de grises y para quien no distingue colores.
  */
-.primary {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: var(--accent-contrast);
-  font-weight: 650;
-  box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 25%, transparent);
-}
+  .primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--accent-contrast);
+    font-weight: 650;
+    box-shadow: 0 1px 2px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
 
-.quiet {
-  background: transparent;
-  border-color: transparent;
-  color: var(--muted);
-}
+  .quiet {
+    background: transparent;
+    border-color: transparent;
+    color: var(--muted);
+  }
 
-.danger {
-  background: transparent;
-  border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
-  color: var(--danger);
-}
+  .danger {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+    color: var(--danger);
+  }
 
-@media (hover: hover) and (pointer: fine) {
-  .primary:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--accent) 86%, var(--text));
-    border-color: color-mix(in srgb, var(--accent) 86%, var(--text));
+  @media (hover: hover) and (pointer: fine) {
+    .primary:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--accent) 86%, var(--text));
+      border-color: color-mix(in srgb, var(--accent) 86%, var(--text));
+    }
+    /* El contorno de «quiet» aparece al apuntarlo: en reposo no compite con nada. */
+    .quiet:hover:not(:disabled) {
+      background: var(--accent-soft);
+      border-color: var(--line);
+      color: var(--text);
+    }
+    .danger:hover:not(:disabled) {
+      background: color-mix(in srgb, var(--danger) 12%, transparent);
+      border-color: var(--danger);
+    }
   }
-  /* El contorno de «quiet» aparece al apuntarlo: en reposo no compite con nada. */
-  .quiet:hover:not(:disabled) {
-    background: var(--accent-soft);
-    border-color: var(--line);
-    color: var(--text);
-  }
-  .danger:hover:not(:disabled) {
-    background: color-mix(in srgb, var(--danger) 12%, transparent);
-    border-color: var(--danger);
-  }
-}
-input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
-select,
-textarea {
-  width: 100%;
-  min-height: 36px;
-  border: 1px solid var(--control-line);
-  border-radius: 10px;
-  background: var(--surface);
-  color: var(--text);
-  padding: 7px 10px;
-  line-height: 1.25;
-  transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    background-color 0.16s ease;
-}
-/**
- * Envoltorio de una etiqueta con su control, reutilizable entre formularios.
- * `.field-full` la extiende a las dos columnas de un `.form-grid` de dos columnas.
- */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.field-full {
-  grid-column: 1 / -1;
-}
-select {
-  appearance: none;
-  padding-right: 34px;
-  background-image:
-    linear-gradient(45deg, transparent 50%, var(--muted) 50%),
-    linear-gradient(135deg, var(--muted) 50%, transparent 50%);
-  background-position:
-    calc(100% - 15px) 50%,
-    calc(100% - 10px) 50%;
-  background-size:
-    5px 5px,
-    5px 5px;
-  background-repeat: no-repeat;
-}
-@media (hover: hover) and (pointer: fine) {
-  input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):hover,
-  select:hover,
-  textarea:hover {
-    border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
-  }
-}
-input::placeholder,
-textarea::placeholder {
-  color: color-mix(in srgb, var(--muted) 78%, transparent);
-}
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-select:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  outline-offset: 2px;
-}
-textarea:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
-  outline-offset: 1px;
-  border-color: var(--accent);
-}
-
-/* Casilla propia: conserva el input semántico y el teclado, sin el aspecto nativo que
-   cambia entre Chrome, Electron y cada sistema operativo. */
-input[type='checkbox']:not(.switch input) {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  flex: 0 0 18px;
-  margin: 0;
-  border: 1px solid var(--control-line);
-  border-radius: 5px;
-  background: var(--surface);
-  display: grid;
-  place-content: center;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    box-shadow 0.15s ease;
-}
-input[type='checkbox']:not(.switch input)::before {
-  content: '';
-  width: 9px;
-  height: 5px;
-  border-left: 2px solid var(--accent-contrast);
-  border-bottom: 2px solid var(--accent-contrast);
-  transform: rotate(-45deg) scale(0);
-  transition: transform 0.12s ease;
-  margin-top: -2px;
-}
-input[type='checkbox']:not(.switch input):checked {
-  border-color: var(--accent);
-  background: var(--accent);
-}
-input[type='checkbox']:not(.switch input):checked::before {
-  transform: rotate(-45deg) scale(1);
-}
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
-}
-
-/* U-7: los botones de la barra superior median 33-40 px de ancho; el minimo
-   tactil recomendado es 44x44. Y a 16 px los campos evitan el zoom de iOS. */
-@media (pointer: coarse) {
-  button,
-  a.bell {
-    min-height: 44px;
-    min-width: 44px;
-  }
-}
-@media (max-width: 780px) {
   input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
   select,
   textarea {
-    font-size: 16px;
+    width: 100%;
+    min-height: 36px;
+    border: 1px solid var(--control-line);
+    border-radius: 10px;
+    background: var(--surface);
+    color: var(--text);
+    padding: 7px 10px;
+    line-height: 1.25;
+    transition:
+      border-color 0.16s ease,
+      box-shadow 0.16s ease,
+      background-color 0.16s ease;
+  }
+  /**
+ * Envoltorio de una etiqueta con su control, reutilizable entre formularios.
+ * `.field-full` la extiende a las dos columnas de un `.form-grid` de dos columnas.
+ */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    color: var(--muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .field-full {
+    grid-column: 1 / -1;
+  }
+  select {
+    appearance: none;
+    padding-right: 34px;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--muted) 50%),
+      linear-gradient(135deg, var(--muted) 50%, transparent 50%);
+    background-position:
+      calc(100% - 15px) 50%,
+      calc(100% - 10px) 50%;
+    background-size:
+      5px 5px,
+      5px 5px;
+    background-repeat: no-repeat;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']):hover,
+    select:hover,
+    textarea:hover {
+      border-color: color-mix(in srgb, var(--accent) 34%, var(--line));
+    }
+  }
+  input::placeholder,
+  textarea::placeholder {
+    color: color-mix(in srgb, var(--muted) 78%, transparent);
+  }
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  select:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+    outline-offset: 2px;
+  }
+  textarea:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--accent) 28%, transparent);
+    outline-offset: 1px;
+    border-color: var(--accent);
+  }
+
+  /* Casilla propia: conserva el input semántico y el teclado, sin el aspecto nativo que
+   cambia entre Chrome, Electron y cada sistema operativo. */
+  input[type='checkbox']:not(.switch input) {
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    margin: 0;
+    border: 1px solid var(--control-line);
+    border-radius: 5px;
+    background: var(--surface);
+    display: grid;
+    place-content: center;
+    transition:
+      border-color 0.15s ease,
+      background-color 0.15s ease,
+      box-shadow 0.15s ease;
+  }
+  input[type='checkbox']:not(.switch input)::before {
+    content: '';
+    width: 9px;
+    height: 5px;
+    border-left: 2px solid var(--accent-contrast);
+    border-bottom: 2px solid var(--accent-contrast);
+    transform: rotate(-45deg) scale(0);
+    transition: transform 0.12s ease;
+    margin-top: -2px;
+  }
+  input[type='checkbox']:not(.switch input):checked {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  input[type='checkbox']:not(.switch input):checked::before {
+    transform: rotate(-45deg) scale(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  /* U-7: los botones de la barra superior median 33-40 px de ancho; el minimo
+   tactil recomendado es 44x44. Y a 16 px los campos evitan el zoom de iOS. */
+  @media (pointer: coarse) {
+    button,
+    a.bell {
+      min-height: 44px;
+      min-width: 44px;
+    }
+  }
+  @media (max-width: 780px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='color']):not([type='range']),
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 }
 
