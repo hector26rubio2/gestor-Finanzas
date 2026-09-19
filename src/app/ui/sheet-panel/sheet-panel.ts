@@ -1,9 +1,11 @@
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'fin-sheet-panel',
-  imports: [HlmSheetImports],
+  imports: [HlmSheetImports, NgScrollbar, HlmScrollAreaImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (stateChanged)="onStateChanged($event)">
@@ -14,9 +16,11 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
             <p hlmSheetDescription>{{ subtitle() }}</p>
           }
         </hlm-sheet-header>
-        <div class="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
-          <ng-content />
-        </div>
+        <ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1">
+          <div class="flex flex-col gap-4 p-4">
+            <ng-content />
+          </div>
+        </ng-scrollbar>
         @if (footer()) {
           <hlm-sheet-footer class="flex-row justify-end border-t border-border">
             <ng-content select="[sheetFooter]" />

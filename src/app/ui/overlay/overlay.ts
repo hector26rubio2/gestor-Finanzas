@@ -1,4 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
 import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
@@ -8,7 +10,15 @@ import { IconComponent } from '../icon/icon';
 
 @Component({
   selector: 'fin-overlay',
-  imports: [NgTemplateOutlet, HlmButton, HlmDialogImports, HlmSheetImports, IconComponent],
+  imports: [
+    NgTemplateOutlet,
+    NgScrollbar,
+    HlmScrollAreaImports,
+    HlmButton,
+    HlmDialogImports,
+    HlmSheetImports,
+    IconComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #body><ng-content /></ng-template>
@@ -25,7 +35,9 @@ import { IconComponent } from '../icon/icon';
               <fin-icon name="close" />
             </button>
           </header>
-          <div class="min-h-0 flex-1 overflow-y-auto p-6"><ng-container [ngTemplateOutlet]="body" /></div>
+          <ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1"
+            ><div class="p-6"><ng-container [ngTemplateOutlet]="body" /></div
+          ></ng-scrollbar>
         </hlm-dialog-content>
       </hlm-dialog>
     } @else {
@@ -42,7 +54,9 @@ import { IconComponent } from '../icon/icon';
               <fin-icon name="close" />
             </button>
           </header>
-          <div class="min-h-0 flex-1 overflow-y-auto p-6"><ng-container [ngTemplateOutlet]="body" /></div>
+          <ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1"
+            ><div class="p-6"><ng-container [ngTemplateOutlet]="body" /></div
+          ></ng-scrollbar>
         </hlm-sheet-content>
       </hlm-sheet>
     }

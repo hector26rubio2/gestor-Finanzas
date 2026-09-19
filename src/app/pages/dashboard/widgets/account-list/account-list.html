@@ -1,18 +1,20 @@
-<div class="grid min-h-0 flex-1 content-start gap-1 overflow-y-auto pr-0.5 [scrollbar-width:thin]">
-  @for (item of items(); track item.id) {
-  <button
-    hlmBtn
-    variant="outline"
-    type="button"
-    class="grid h-auto grid-cols-[10px_1fr_auto] justify-items-stretch gap-2.5 px-3 py-[9px] text-start data-[selected=true]:border-primary data-[selected=true]:bg-accent"
-    [attr.data-selected]="selected() === item.id"
-    (click)="pick.emit(item.id)"
-  >
-    <i class="h-[34px] rounded-lg" [style.background]="item.color"></i
-    ><span class="grid">{{ item.name }}<small class="text-muted-foreground">{{ item.typeLabel }}</small></span
-    ><b>{{ money(item.amount, item.currency) }}</b>
-  </button>
-  } @empty {
-  <p class="m-auto text-center text-muted-foreground">{{ emptyText() }}</p>
-  }
-</div>
+<ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1">
+  <div class="grid content-start gap-1 pr-2">
+    @for (item of items(); track item.id) {
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      class="grid h-auto grid-cols-[10px_1fr_auto] justify-items-stretch gap-2.5 px-3 py-[9px] text-start data-[selected=true]:border-primary data-[selected=true]:bg-accent"
+      [attr.data-selected]="selected() === item.id"
+      (click)="pick.emit(item.id)"
+    >
+      <i class="h-[34px] rounded-lg" [style.background]="item.color"></i
+      ><span class="grid">{{ item.name }}<small class="text-muted-foreground">{{ item.typeLabel }}</small></span
+      ><b>{{ money(item.amount, item.currency) }}</b>
+    </button>
+    } @empty {
+    <p class="m-auto text-center text-muted-foreground">{{ emptyText() }}</p>
+    }
+  </div>
+</ng-scrollbar>
