@@ -29,6 +29,13 @@ export interface ApiAuditFilter {
   to?: string;
 }
 
+export interface ApiBugReportResult {
+  error: ApiClientError;
+  githubIssueUrl: string | null;
+  githubStatus: 'created' | 'disabled' | 'rejected' | 'failed';
+  githubDetail: string | null;
+}
+
 export interface ApiAdminUser {
   id: string;
   displayName: string;
@@ -420,7 +427,7 @@ export class AdministrationApi {
   }
 
   reportBug(payload: BugReportPayload) {
-    return this.transport.request<{ error: ApiClientError; githubIssueUrl: string | null }>({
+    return this.transport.request<ApiBugReportResult>({
       method: 'POST',
       path: API_ROUTES.bugReports,
       body: payload,
@@ -430,5 +437,12 @@ export class AdministrationApi {
   /** URL directa (fuera del transporte JSON) para pintar la captura en un `<img>`; va por cookie de sesión. */
   screenshotUrl(id: string): string {
     return `${this.runtime.apiBaseUrl ?? ''}${API_ROUTES.adminErrorScreenshot(id)}`;
+  }
+
+  createErrorGithubIssue(id: string) {
+    return this.transport.request<ApiBugReportResult>({
+      method: 'POST',
+      path: API_ROUTES.adminErrorGithubIssue(id),
+    });
   }
 }

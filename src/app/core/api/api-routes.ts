@@ -45,6 +45,7 @@ export const API_ROUTES = {
   adminRole: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}`,
   adminRoleActive: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}/active`,
   adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,
+  adminErrorGithubIssue: (id: string) => `/api/v1/superadmin/errors/${id}/github-issue`,
   adminErrorScreenshot: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}/screenshot`,
   adminOrganization: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}`,
   adminOrganizationDefault: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/default`,

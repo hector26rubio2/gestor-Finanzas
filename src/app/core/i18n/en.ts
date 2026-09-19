@@ -1275,4 +1275,10 @@ export default {
   'dashboard.layout.reset': 'Reset layout',
   'dashboard.widgetActions.joinRow': 'Place next to the previous one',
   'dashboard.widgetActions.splitRow': 'Move to its own row',
+  'bugReport.screenshot.failed': 'The screen could not be captured. You can send the report without a screenshot.',
+  'bugReport.success.githubPending':
+    'Your report was saved. The GitHub issue was not created yet; an administrator can retry it.',
+  'admin.errors.createIssue': 'Create GitHub issue',
+  'admin.errors.issueCreated': 'GitHub issue created',
+  'admin.errors.issueFailed': 'The issue could not be created',
 } as const;

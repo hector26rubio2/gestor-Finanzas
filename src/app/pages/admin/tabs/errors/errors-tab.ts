@@ -135,6 +135,10 @@ import { AdminStore } from '../../admin.store';
           <a hlmBtn [href]="error.githubIssueUrl" target="_blank" rel="noopener">
             {{ i18n.t('admin.errors.drawer.githubLink') }} ↗
           </a>
+        } @else if (error.title && caps.allows(P.administracion.errores.editar)) {
+          <button hlmBtn variant="outline" type="button" [disabled]="creatingIssue()" (click)="createIssue(error)">
+            <fin-icon name="flag" /> {{ i18n.t('admin.errors.createIssue') }}
+          </button>
         }
         <label class="flex flex-col gap-1.5 text-sm font-medium">
           {{ i18n.t('admin.errors.drawer.statusLabel') }}
@@ -161,6 +165,7 @@ export class ErrorsTabComponent {
   readonly P = P;
 
   readonly selected = signal<ApiClientError | null>(null);
+  readonly creatingIssue = signal(false);
   readonly selectedError = computed(
     () => this.store.errors().find((error) => error.id === this.selected()?.id) ?? this.selected(),
   );
@@ -174,6 +179,22 @@ export class ErrorsTabComponent {
     { value: '', label: this.i18n.t('admin.errors.status.all') },
     ...this.stateOptions(),
   ]);
+
+  async createIssue(error: ApiClientError): Promise<void> {
+    this.creatingIssue.set(true);
+    try {
+      const result = await this.store.crearIssueDeGithub(error);
+      this.app.toast.set(
+        result.githubStatus === 'created'
+          ? this.i18n.t('admin.errors.issueCreated')
+          : `${this.i18n.t('admin.errors.issueFailed')}: ${result.githubDetail ?? result.githubStatus}`,
+      );
+    } catch {
+      this.app.toast.set(this.i18n.t('admin.errors.issueFailed'));
+    } finally {
+      this.creatingIssue.set(false);
+    }
+  }
 
   async setStatus(error: ApiClientError, status: ApiClientError['status']): Promise<void> {
     if (status === error.status) return;
