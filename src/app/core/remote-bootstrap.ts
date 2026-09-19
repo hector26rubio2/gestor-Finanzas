@@ -268,7 +268,13 @@ export class RemoteBootstrap {
   }
 
   private signature(session: ApiSession): string {
+    // user.id y organization.id entran en la firma para que un cambio de identidad con
+    // los mismos permisos -otra persona, u otra organización, con el mismo rol- se note.
+    // Sin ellos, pollSession() comparaba solo capacidades/permisos y, si coincidían,
+    // dejaba en pantalla los datos de la sesión anterior sin volver a pedirlos.
     return JSON.stringify([
+      session.user.id,
+      session.organization.id,
       [...session.capabilities].sort(),
       [...(session.permissions ?? [])].sort(),
       session.isSuperAdmin === true,

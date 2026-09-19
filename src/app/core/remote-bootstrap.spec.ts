@@ -153,6 +153,45 @@ describe('RemoteBootstrap', () => {
     expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(upgraded.permissions);
   });
 
+  it('reloads when the identity changes even with the same permissions', async () => {
+    // Antes la firma de sesión solo miraba capacidades/permisos: si otra persona -u otra
+    // organización- entraba con el mismo rol, pollSession() no veía ningún cambio y
+    // dejaba en pantalla los datos de la sesión anterior.
+    const otherIdentity = {
+      ...session,
+      user: { ...session.user, id: 'u2', displayName: 'Otra persona' },
+    };
+    let current = session;
+    const api = {
+      session: vi.fn(() => of(current)),
+      accounts: vi.fn(() => of([])),
+      cards: vi.fn(() => of([])),
+      categories: vi.fn(() => of([])),
+      people: vi.fn(() => of([])),
+      debts: vi.fn(() => of([])),
+      investments: vi.fn(() => of([])),
+      movements: vi.fn(() => of(emptyPage)),
+      preferences: vi.fn(() => of(null)),
+      featureFlags: vi.fn(() => of([])),
+      notifications: vi.fn(() => of([])),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    const bootstrap = TestBed.inject(RemoteBootstrap);
+    await bootstrap.initialize();
+    await bootstrap.pollSession();
+    current = otherIdentity;
+    await bootstrap.pollSession();
+
+    expect(api.accounts).toHaveBeenCalledTimes(2);
+    expect(TestBed.inject(DemoStore).user()?.id).toBe('u2');
+  });
+
   it('keeps money exact, derives the family from the published table and never invents a field', async () => {
     const ledgerSession = {
       ...session,
