@@ -38,9 +38,9 @@ Resultados de verificación:
 
 ### P0 — Identidad y aislamiento
 
-- [ ] Backend: `IdentityReadStore.GetSessionAsync` selecciona la primera membresía activa de la organización, no la del principal. `SessionFromPrincipal` sustituye usuario y permisos pero conserva organizaciones y combina `IsSuperAdmin` con el valor almacenado. Resolver la sesión completa por usuario autenticado y organización; añadir pruebas con dos miembros de privilegios distintos. No se ha demostrado explotación ni se ha corregido en esta tanda.
-- [ ] Frontend: la firma de sesión de `RemoteBootstrap` incluye permisos pero no usuario/organización. Añadir pruebas de cambio de identidad con permisos iguales y evitar respuestas antiguas sobre el nuevo espacio.
-- [ ] Separar el acceso de desarrollo por defecto de las pruebas Google. Confirmar 401 sin cookie y aislamiento entre organizaciones. No considerar el proxy de auditoría una solución de autenticación.
+- [x] Backend (corregido el 18-sep-2026: `GetSessionAsync` recibe el userId autenticado y resuelve por usuario+organización, con prueba de dos miembros de privilegios distintos; `SessionFromPrincipal` ya no combina `IsSuperAdmin`): `IdentityReadStore.GetSessionAsync` selecciona la primera membresía activa de la organización, no la del principal. `SessionFromPrincipal` sustituye usuario y permisos pero conserva organizaciones y combina `IsSuperAdmin` con el valor almacenado. Resolver la sesión completa por usuario autenticado y organización; añadir pruebas con dos miembros de privilegios distintos. No se ha demostrado explotación ni se ha corregido en esta tanda.
+- [x] Frontend (corregido el 18-sep-2026: la firma incluye usuario y organización, con prueba): la firma de sesión de `RemoteBootstrap` incluye permisos pero no usuario/organización. Añadir pruebas de cambio de identidad con permisos iguales y evitar respuestas antiguas sobre el nuevo espacio.
+- [x] Verificado el 18-sep-2026: ya estaban separados (esquemas independientes; `AllowDevelopmentAuth` solo en Development/Testing y falla al arrancar en otro entorno; Google solo se registra si tiene credenciales). Pendiente solo una prueba automática de 401 sin cookie. Separar el acceso de desarrollo por defecto de las pruebas Google. Confirmar 401 sin cookie y aislamiento entre organizaciones. No considerar el proxy de auditoría una solución de autenticación.
 
 ### P1 — Rendimiento y robustez
 
@@ -60,19 +60,19 @@ Resultados de verificación:
 
 ### P2 — Migración visual selectiva a Spartan
 
-- [ ] Dropdown Menu para perfil y acciones de filas, con foco y navegación por teclado.
+- [ ] Dropdown Menu: hecho el de perfil (18-sep-2026); faltan las acciones de filas. Dropdown Menu para perfil y acciones de filas, con foco y navegación por teclado.
 - [ ] Popover/Combobox para filtros con búsqueda; Sheet para filtros móviles; chips de filtros activos y acción de limpiar. Conservar valores, permisos, fechas, moneda y estado de consulta.
-- [ ] Alert Dialog para acciones destructivas, con estados pendientes y error recuperable.
+- [ ] Alert Dialog: hecho para reversar movimiento y desactivar cuenta (`ConfirmDialogComponent`, 18-sep-2026); faltan otras acciones destructivas (p. ej. eliminar rol en Administración). Alert Dialog para acciones destructivas, con estados pendientes y error recuperable.
 - [ ] Table estilizada sobre el modelo actual: conservar ordenación, paginación remota, selección y celdas personalizadas. No sustituir la tabla con una maqueta que pierda estas funciones.
 - [ ] Skeletons con dimensiones estables y estados vacíos coherentes en cuentas y tarjetas.
-- [ ] Unificar notificaciones pendientes/éxito/error sobre AsyncAction/ngx-sonner; probar rechazo, doble clic, cancelación y navegación durante la petición.
+- [ ] Notificaciones: `store.toast.set()` ya se muestra con ngx-sonner y el banner propio desapareció (18-sep-2026); falta migrar los sitios a `AsyncActionService` para tener estado pendiente. Unificar notificaciones pendientes/éxito/error sobre AsyncAction/ngx-sonner; probar rechazo, doble clic, cancelación y navegación durante la petición.
 
 ### P2 — Organización del código
 
 - [ ] Una carpeta por componente propio: `.ts`, `.html`, `.css`, `.spec.ts`, `index.ts`. Comenzar por select, chart, field, icon y subcampos del formulario de movimientos.
 - [ ] Barrels por área y alias de dominio, evitando ciclos o reexportaciones de módulos pesados en puntos de entrada iniciales.
 - [ ] Mantener el código generado de Helm reconocible respecto al upstream; registrar personalizaciones. No reorganizarlo mecánicamente como los componentes propios sin revisar imports.
-- [ ] Renombrar símbolos internos pendientes que aún llevan `Demo` con refactor semántico y análisis de impacto. No hacer reemplazos globales que alcancen etiquetas HTML nativas o datos almacenados.
+- [ ] `DemoStore` ya es `AppStore` (18-sep-2026); quedan `DemoData`, `DemoAuditEvent`, `DemoNotification`. Renombrar símbolos internos pendientes que aún llevan `Demo` con refactor semántico y análisis de impacto. No hacer reemplazos globales que alcancen etiquetas HTML nativas o datos almacenados.
 - [ ] Ejecutar infraestructura/Host con base aislada, revisar errores de seeder y ejecutar auditoría de cambios de GitNexus antes de cualquier commit.
 
 ## Criterio de cierre
