@@ -2,9 +2,17 @@
   hlmBtn
   size="icon-lg"
   type="button"
-  class="fixed right-6 bottom-6 z-40 size-[52px] rounded-full p-0 shadow-pop"
+  class="fixed z-40 size-[52px] cursor-grab touch-none rounded-full p-0 shadow-pop active:cursor-grabbing"
+  [style.right.px]="fab().right"
+  [style.bottom.px]="fab().bottom"
   [attr.aria-label]="i18n.t('bugReport.fab.label')"
-  (click)="launch()"
+  [attr.title]="i18n.t('bugReport.fab.move')"
+  (pointerdown)="startFabDrag($event)"
+  (pointermove)="moveFab($event)"
+  (pointerup)="endFabDrag()"
+  (pointercancel)="endFabDrag()"
+  (keydown)="moveFabByKey($event)"
+  (click)="press()"
 >
   <fin-icon name="flag" />
 </button>

@@ -22,6 +22,45 @@ type Step = 1 | 2 | 3 | 4;
 /** Tope alineado con `MaxScreenshotBase64Length` en el backend (deja margen bajo el límite de 1 MB por petición de Kestrel). */
 const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
 
+const FAB_POSITION_KEY = 'finanzas.bug-report.fab.v1';
+const FAB_SIZE = 52;
+const FAB_MARGIN = 8;
+const FAB_DEFAULT = { right: 24, bottom: 24 };
+const FAB_DRAG_THRESHOLD = 4;
+
+interface FabPosition {
+  right: number;
+  bottom: number;
+}
+
+function clampFab(position: FabPosition): FabPosition {
+  const maxRight = Math.max(FAB_MARGIN, window.innerWidth - FAB_SIZE - FAB_MARGIN);
+  const maxBottom = Math.max(FAB_MARGIN, window.innerHeight - FAB_SIZE - FAB_MARGIN);
+  return {
+    right: Math.min(maxRight, Math.max(FAB_MARGIN, Math.round(position.right))),
+    bottom: Math.min(maxBottom, Math.max(FAB_MARGIN, Math.round(position.bottom))),
+  };
+}
+
+function readFab(): FabPosition {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(FAB_POSITION_KEY) ?? 'null') as FabPosition | null;
+    if (parsed && Number.isFinite(parsed.right) && Number.isFinite(parsed.bottom)) return clampFab(parsed);
+  } catch {
+    return FAB_DEFAULT;
+  }
+  return FAB_DEFAULT;
+}
+
+function writeFab(position: FabPosition | null): void {
+  try {
+    if (position) localStorage.setItem(FAB_POSITION_KEY, JSON.stringify(position));
+    else localStorage.removeItem(FAB_POSITION_KEY);
+  } catch {
+    return;
+  }
+}
+
 @Component({
   selector: 'app-bug-report',
   imports: [
@@ -37,14 +76,20 @@ const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
     OverlayComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(window:resize)': 'fab.set(clampFab(fab()))' },
   templateUrl: './bug-report.html',
 })
 export class BugReportButtonComponent {
+  protected readonly clampFab = clampFab;
   private readonly store = inject(AppStore);
   private readonly api = inject(FinanceApiClient);
   private readonly consoleBuffer = inject(ConsoleBufferService);
   private readonly router = inject(Router);
   readonly i18n = inject(I18nService);
+
+  readonly fab = signal<FabPosition>(readFab());
+  private fabDrag: { pointerX: number; pointerY: number; origin: FabPosition; moved: boolean } | null = null;
+  private suppressClick = false;
 
   readonly open = signal(false);
   readonly step = signal<Step>(1);
@@ -71,6 +116,64 @@ export class BugReportButtonComponent {
   ]);
 
   readonly consoleTail = () => this.consoleBuffer.snapshot().slice(-10);
+
+  startFabDrag(event: PointerEvent): void {
+    (event.currentTarget as HTMLElement).setPointerCapture?.(event.pointerId);
+    this.fabDrag = { pointerX: event.clientX, pointerY: event.clientY, origin: this.fab(), moved: false };
+  }
+
+  moveFab(event: PointerEvent): void {
+    const drag = this.fabDrag;
+    if (!drag) return;
+    const dx = event.clientX - drag.pointerX;
+    const dy = event.clientY - drag.pointerY;
+    if (!drag.moved && Math.hypot(dx, dy) < FAB_DRAG_THRESHOLD) return;
+    drag.moved = true;
+    this.fab.set(clampFab({ right: drag.origin.right - dx, bottom: drag.origin.bottom - dy }));
+  }
+
+  endFabDrag(): void {
+    const drag = this.fabDrag;
+    this.fabDrag = null;
+    if (!drag?.moved) return;
+    this.suppressClick = true;
+    writeFab(this.fab());
+  }
+
+  moveFabByKey(event: KeyboardEvent): void {
+    if (!event.altKey) return;
+    if (event.key === 'Home') {
+      event.preventDefault();
+      this.resetFab();
+      return;
+    }
+    const step = event.shiftKey ? 64 : 16;
+    const { right, bottom } = this.fab();
+    const delta: Record<string, FabPosition> = {
+      ArrowLeft: { right: right + step, bottom },
+      ArrowRight: { right: right - step, bottom },
+      ArrowUp: { right, bottom: bottom + step },
+      ArrowDown: { right, bottom: bottom - step },
+    };
+    const next = delta[event.key];
+    if (!next) return;
+    event.preventDefault();
+    this.fab.set(clampFab(next));
+    writeFab(this.fab());
+  }
+
+  resetFab(): void {
+    this.fab.set(FAB_DEFAULT);
+    writeFab(null);
+  }
+
+  press(): void {
+    if (this.suppressClick) {
+      this.suppressClick = false;
+      return;
+    }
+    this.launch();
+  }
 
   launch(): void {
     this.reset();

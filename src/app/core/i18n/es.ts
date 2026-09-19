@@ -1291,4 +1291,5 @@ export default {
   'dashboard.layout.resizeHeight': 'Arrastra para cambiar el alto',
   'dashboard.layout.resizeBoth': 'Arrastra para cambiar ancho y alto',
   'dashboard.layout.drag': 'Arrastra para mover; con teclado usa las flechas',
+  'bugReport.fab.move': 'Arrastra para mover · con teclado: Alt + flechas, Alt + Inicio restablece',
 } as const;

@@ -1289,4 +1289,5 @@ export default {
   'dashboard.layout.resizeHeight': 'Faites glisser pour changer la hauteur',
   'dashboard.layout.resizeBoth': 'Faites glisser pour changer largeur et hauteur',
   'dashboard.layout.drag': 'Faites glisser pour déplacer ; au clavier, utilisez les flèches',
+  'bugReport.fab.move': 'Faites glisser pour déplacer · clavier : Alt + flèches, Alt + Début réinitialise',
 } as const;

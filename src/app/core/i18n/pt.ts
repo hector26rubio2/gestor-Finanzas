@@ -1280,4 +1280,5 @@ export default {
   'dashboard.layout.resizeHeight': 'Arraste para mudar a altura',
   'dashboard.layout.resizeBoth': 'Arraste para mudar largura e altura',
   'dashboard.layout.drag': 'Arraste para mover; com o teclado use as setas',
+  'bugReport.fab.move': 'Arraste para mover · teclado: Alt + setas, Alt + Home restaura',
 } as const;

@@ -1281,4 +1281,5 @@ export default {
   'dashboard.layout.resizeHeight': 'Drag to change the height',
   'dashboard.layout.resizeBoth': 'Drag to change width and height',
   'dashboard.layout.drag': 'Drag to move; with the keyboard use the arrow keys',
+  'bugReport.fab.move': 'Drag to move · keyboard: Alt + arrows, Alt + Home resets',
 } as const;
