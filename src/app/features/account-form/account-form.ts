@@ -3,21 +3,20 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select';
-import { NumericInputDirective } from '../../ui/numeric-input.directive';
-import { FieldComponent } from '../../ui/field';
-import { IconComponent } from '../../ui/icon';
-import { AsyncActionService } from '../../core/async-action.service';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
+import { FieldComponent } from '../../ui/field/field';
+import { IconComponent } from '../../ui/icon/icon';
+import { AsyncActionService } from '../../core/utils/async-action.service';
 
 /** Componentes de un abono, en el orden en que se le aplican a la deuda. */
 export type PriorityItem = 'fees' | 'interest' | 'capital';
 
 @Component({
   selector: 'fin-account-form',
-  standalone: true,
   imports: [
     HlmButton,
     HlmInput,

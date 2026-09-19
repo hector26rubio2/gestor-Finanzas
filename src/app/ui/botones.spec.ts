@@ -12,7 +12,6 @@ import { beforeEach, describe, expect, it } from 'vitest';
  * por relleno, que es lo que sigue funcionando en escala de grises.
  */
 @Component({
-  standalone: true,
   template: `
     <button class="primary">Guardar</button>
     <button>Cancelar</button>

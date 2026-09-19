@@ -4,7 +4,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon';
+import { IconComponent } from '../icon/icon';
 
 @Component({
   selector: 'fin-overlay',

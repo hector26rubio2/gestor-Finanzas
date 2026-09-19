@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon';
+import { IconComponent } from '../icon/icon';
 
 @Component({
   selector: 'fin-empty',

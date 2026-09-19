@@ -2,9 +2,9 @@ import { CanMatchFn, Router, UrlTree, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { Observable, firstValueFrom, isObservable } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAPABILITIES, AppStore, FEATURES } from './core/store';
-import { P } from './core/permissions';
-import { RUNTIME_CONFIG } from './core/runtime';
+import { CAPABILITIES, AppStore, FEATURES } from './core/state/store';
+import { P } from './core/session/permissions';
+import { RUNTIME_CONFIG } from './core/session/runtime';
 import { routes } from './routes';
 
 /**

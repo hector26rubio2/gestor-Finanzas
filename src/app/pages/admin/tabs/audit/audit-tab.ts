@@ -9,10 +9,10 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ApiAuditEvent, ApiAuditFilter } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
-import { IconComponent } from '../../../../ui/icon';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { PagerComponent } from '../../../../ui/pager/pager';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiOption, UiSelectComponent } from '../../../../ui/select';
+import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso } from './audit-catalog';
 

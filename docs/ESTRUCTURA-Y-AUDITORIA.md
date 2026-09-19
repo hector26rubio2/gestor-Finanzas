@@ -1,0 +1,61 @@
+# Estructura del código y auditoría — 19 de septiembre de 2026
+
+Estado de `gestor-Finanzas` tras las fases A–E (sesión, administración por lotes, sistema de UI en Tailwind + Spartan y reorganización de carpetas). Sirve de mapa para quien llega y de lista honesta de lo que falta.
+
+## Reglas de estructura (guía de estilo de Angular)
+
+1. **Un componente por carpeta**, con el `.ts`, su plantilla y su `.spec.ts` al lado. Los componentes pequeños llevan la plantilla en línea.
+2. **Sin archivos sueltos en una carpeta de área**: `core/` se agrupa en `api/`, `http/`, `i18n/`, `session/`, `state/` y `utils/`; `ui/` en una carpeta por pieza.
+3. **Sin `standalone: true`**: es el valor por defecto desde Angular 19.
+4. **Sin CSS de componente**: solo existen `src/spartan.css` (tokens, variantes `data-*`, capas) y `src/styles.css` (variables de tema y una base mínima en `@layer base`).
+5. **Los componentes de Helm** (`ui/helm/*`) se generan con `npx ng g @spartan-ng/cli:ui <nombre> --no-interactive` y no se editan salvo que se anote aquí.
+6. **Nada de comentarios en el código nuevo**: los nombres y las funciones pequeñas explican; las directivas que exige la herramienta son la única excepción.
+
+## Mapa de carpetas
+
+| Carpeta                | Contenido                                                                                                                                                                                                                                                                              |
+| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/core/api`     | Contratos y llamadas al API por área (`*.api.ts`), rutas y la fachada `api-client.ts`.                                                                                                                                                                                                 |
+| `src/app/core/http`    | Transporte HTTP con CSRF y traducción de errores (el 403 de permisos sale con texto claro).                                                                                                                                                                                            |
+| `src/app/core/i18n`    | Servicio de traducción y los catálogos es/en/fr/pt. Se importa como `core/i18n`.                                                                                                                                                                                                       |
+| `src/app/core/session` | Arranque y refresco granular de la sesión (`remote-bootstrap`), permisos, `returnUrl`, configuración de ejecución.                                                                                                                                                                     |
+| `src/app/core/state`   | `AppStore`, datos de demostración y estado en la URL.                                                                                                                                                                                                                                  |
+| `src/app/core/utils`   | Dinero, CSV, tipos de movimiento, consola, versión y `AsyncActionService`.                                                                                                                                                                                                             |
+| `src/app/ui`           | Piezas de interfaz propias: `overlay` (modal e inspector sobre Helm dialog/sheet), `select` (Helm select), `data-table` (Helm table), `date-field`, `search-field`, `sheet-panel`, `kpi`, `kpi-grid`, `table-zone`, `bank-card`, `chart`, `icon`, `field`, `pager`, `option-row`, etc. |
+| `src/app/ui/helm`      | Código generado por Spartan.                                                                                                                                                                                                                                                           |
+| `src/app/pages`        | Pantallas con ruta propia: `admin` (una pestaña por componente y un `AdminStore`), `dashboard`, `login`, `workspace`, `sin-seccion`.                                                                                                                                                   |
+| `src/app/features`     | Pestañas del workspace (`movements`, `accounts`, `calendar`, `people`, `portfolio`, `planning`, `reports`, `notifications`, `preferences`) y formularios (`account-form`, `management-form`, `movement-form` con un subcomponente por grupo de campos, `bug-report`).                  |
+| `src/app/shared`       | Servicios compartidos entre pestañas y utilidades.                                                                                                                                                                                                                                     |
+
+## Sistema de UI
+
+- **Tokens**: `@theme inline` apunta a las variables que el tema activo escribe en runtime (`--bg`, `--surface`, `--accent`, `--radius`, `--font`…); cambiar tema, acento o radio desde Preferencias repinta todo sin regenerar CSS. `chart-theme.ts` observa esas mismas variables: no se renombran.
+- **Capas**: `theme`, `base`, `utilities`. La base propia (reinicio de márgenes, `border: 0 solid`, botones y campos transparentes) queda por debajo de las utilidades y de las variantes de Helm.
+- **Desfase Helm/Brain**: Helm usa variantes `data-checked`, `data-active`, `data-pressed`…, y Brain 1.4.1 emite `data-state="checked|active|on"`. `spartan.css` define esas variantes para que coincidan con ambos.
+- **Overlays**: modales, inspector, selectores, popovers y menús son overlays de CDK, así que el listado de un selector flota sobre el modal en vez de hacer scroll dentro. No hay `<dialog>` nativo.
+- **Fechas**: `fin-date-field` (Helm date-picker) guarda `yyyy-MM-dd`, construye las fechas a las 12:00 locales para evitar el desfase horario y localiza el calendario según el idioma de Preferencias (`CalendarLocale`).
+
+## Administración
+
+- `AdminStore` guarda lo leído del servidor y los cambios pendientes; la vista es la base más los borradores. Guardar los aplica juntos por olas (activar organización → predeterminada y mudanzas → desactivar → resto) con `Promise.allSettled`, quita del borrador lo aceptado, deja lo fallido con su motivo, relee la lista de personas una vez y refresca la sesión una vez.
+- Aviso al salir con cambios sin guardar (`canDeactivate` y `beforeunload`).
+- Formularios con envío propio (crear o editar rol, crear organización, renombrar, estado de un error) se aplican al momento.
+
+## Archivos grandes: estado y siguiente paso
+
+| Archivo                            | Líneas | Hecho                                                                                                    | Costura para partirlo                                                                                                                                                                                                                                                                          |
+| ---------------------------------- | ------ | -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pages/dashboard/dashboard.ts`     | ~2.285 | Tipos y constantes en `dashboard.model.ts`; helpers de estilo de gráficas en `dashboard-chart-style.ts`. | Un `DashboardStore` (periodo, filtros, movimientos del periodo, series, distribuciones) que inyecten un servicio de opciones de gráfica (los `*Option`), otro de KPI (`kpi*`) y otro de widgets (`widgets`, `hidden`, `move`, `createWidget`). Hoy todo lee las mismas señales del componente. |
+| `core/state/store.ts`              | ~910   | —                                                                                                        | Separar tokens de inyección y `navigation`, `applyTheme`, la semilla de demostración y `AppStore`.                                                                                                                                                                                             |
+| `pages/workspace/workspace.ts`     | ~550   | Plantilla del inspector migrada a Tailwind; tarjeta bancaria como componente.                            | Extraer el inspector (`inspector*`, `statement`, pago de tarjeta) a su propio componente con su servicio.                                                                                                                                                                                      |
+| `core/session/remote-bootstrap.ts` | ~575   | Diseño en rebanadas y refresco granular.                                                                 | Separar el flujo SSE/sondeo del cargador de rebanadas.                                                                                                                                                                                                                                         |
+
+Para cualquiera de estos cortes: `impact` de GitNexus antes de tocar el símbolo, `detect_changes` antes de confirmar, y una prueba por rebanada.
+
+## Deuda conocida
+
+- Presupuesto inicial: 735 kB (aviso a 700 kB, error a 1 MB). El CSS de utilidades crece con el uso de Helm; los componentes se cargan en el paquete inicial por el shell.
+- El calendario de Helm usa formatos de `Intl`; en idiomas con primer día de semana distinto se ajusta solo para `en` (domingo).
+- La tabla de datos (`fin-table`) conserva su API; una migración a `hlm-table` puro con columnas declarativas queda pendiente.
+- `axe`/Lighthouse de accesibilidad no se han vuelto a correr sobre el nuevo shell; hacerlo antes de la próxima entrega.
+- Índice único de banderas globales con `NULLS NOT DISTINCT` (backend).

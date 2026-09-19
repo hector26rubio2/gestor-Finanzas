@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiPermissionDescriptor } from '../../../core/api/administration.api';
 import { I18nService } from '../../../core/i18n';
-import { IconComponent } from '../../../ui/icon';
+import { IconComponent } from '../../../ui/icon/icon';
 import { OptionRowComponent } from '../../../ui/option-row/option-row';
 import { AdminLabels } from '../admin-labels';
 

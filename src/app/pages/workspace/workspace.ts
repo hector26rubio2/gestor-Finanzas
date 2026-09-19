@@ -9,19 +9,19 @@ import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { ManagementFormComponent } from '../../features/management-form/management-form';
-import { IconComponent } from '../../ui/icon';
-import { SinAccesoComponent } from '../../ui/sin-acceso';
-import { P } from '../../core/permissions';
-import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { IconComponent } from '../../ui/icon/icon';
+import { SinAccesoComponent } from '../../ui/sin-acceso/sin-acceso';
+import { P } from '../../core/session/permissions';
+import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-import { FinanceApiClient } from '../../core/api-client';
+import { FinanceApiClient } from '../../core/api/api-client';
 import { firstValueFrom } from 'rxjs';
-import { formatReturnRate } from '../../core/money';
+import { formatReturnRate } from '../../core/utils/money';
 import { I18nService } from '../../core/i18n';
-import { NumericInputDirective } from '../../ui/numeric-input.directive';
-import type { Account, Movement } from '../../core/demo-data';
+import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
+import type { Account, Movement } from '../../core/state/demo-data';
 import { ConfirmDialogComponent } from '../../ui/confirm-dialog/confirm-dialog';
 
 /*

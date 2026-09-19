@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { FinanceApiClient } from '../../core/api-client';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { FinanceApiClient } from '../../core/api/api-client';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 import { HeaderActionsService } from '../../shared/header-actions.service';
 

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
 import { I18nService } from '../../core/i18n';
-import { AppStore } from '../../core/store';
+import { AppStore } from '../../core/state/store';
 import { CalendarLocale } from './calendar-locale';
 
 const NOON = 12;

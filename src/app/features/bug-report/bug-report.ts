@@ -7,14 +7,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FinanceApiClient } from '../../core/api-client';
-import { ConsoleBufferService } from '../../core/console-buffer';
+import { FinanceApiClient } from '../../core/api/api-client';
+import { ConsoleBufferService } from '../../core/utils/console-buffer';
 import { I18nService } from '../../core/i18n';
-import { AppStore } from '../../core/store';
-import { APP_VERSION } from '../../core/version';
-import { FieldComponent } from '../../ui/field';
-import { IconComponent } from '../../ui/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select';
+import { AppStore } from '../../core/state/store';
+import { APP_VERSION } from '../../core/utils/version';
+import { FieldComponent } from '../../ui/field/field';
+import { IconComponent } from '../../ui/icon/icon';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 
 type Step = 1 | 2 | 3 | 4;

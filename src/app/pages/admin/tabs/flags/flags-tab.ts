@@ -6,10 +6,10 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { ApiAdminFeatureFlag } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/permissions';
-import { CAPABILITIES } from '../../../../core/store';
+import { P } from '../../../../core/session/permissions';
+import { CAPABILITIES } from '../../../../core/state/store';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
-import { IconComponent } from '../../../../ui/icon';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { AdminStore } from '../../admin.store';
 
 @Component({

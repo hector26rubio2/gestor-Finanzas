@@ -2,20 +2,20 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, CapabilitiesProvider, AppStore } from '../../core/store';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, CapabilitiesProvider, AppStore } from '../../core/state/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-import { MovementCategoryFieldComponent } from './movement-category-field';
-import { MovementCoreFieldsComponent } from './movement-core-fields';
-import { MovementCurrencyFieldsComponent } from './movement-currency-fields';
-import { MovementInstallmentFieldsComponent } from './movement-installment-fields';
-import { MovementKindOption, MovementKindSelectorComponent } from './movement-kind-selector';
-import { MovementLoanFieldsComponent } from './movement-loan-fields';
-import { MovementRecurrenceFieldsComponent } from './movement-recurrence-fields';
+import { MovementCategoryFieldComponent } from './category-field/category-field';
+import { MovementCoreFieldsComponent } from './core-fields/core-fields';
+import { MovementCurrencyFieldsComponent } from './currency-fields/currency-fields';
+import { MovementInstallmentFieldsComponent } from './installment-fields/installment-fields';
+import { MovementKindOption, MovementKindSelectorComponent } from './kind-selector/kind-selector';
+import { MovementLoanFieldsComponent } from './loan-fields/loan-fields';
+import { MovementRecurrenceFieldsComponent } from './recurrence-fields/recurrence-fields';
 import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-visibility-builder';
-import { UiOption, UiSelectComponent } from '../../ui/select';
-import { FieldComponent } from '../../ui/field';
-import { AsyncActionService } from '../../core/async-action.service';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { FieldComponent } from '../../ui/field/field';
+import { AsyncActionService } from '../../core/utils/async-action.service';
 
 /**
  * Formulario de movimiento, partido en un componente por grupo de campos.
@@ -34,7 +34,6 @@ import { AsyncActionService } from '../../core/async-action.service';
  */
 @Component({
   selector: 'fin-movement-form',
-  standalone: true,
   imports: [
     HlmButton,
     FormsModule,

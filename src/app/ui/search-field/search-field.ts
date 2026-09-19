@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, model } from '@angul
 import { FormsModule } from '@angular/forms';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon';
+import { IconComponent } from '../icon/icon';
 
 @Component({
   selector: 'fin-search-field',

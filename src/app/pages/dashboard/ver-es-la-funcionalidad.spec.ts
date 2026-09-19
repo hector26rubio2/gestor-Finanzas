@@ -2,10 +2,10 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api-client';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore, navigation } from '../../core/store';
-import { RUNTIME_CONFIG } from '../../core/runtime';
+import { FinanceApiClient } from '../../core/api/api-client';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore, navigation } from '../../core/state/store';
+import { RUNTIME_CONFIG } from '../../core/session/runtime';
 import { DashboardComponent } from './dashboard';
 
 /**

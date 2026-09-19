@@ -5,13 +5,13 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { ApiAdminRole } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../../../core/store';
+import { P } from '../../../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../../../core/state/store';
 import { ConfirmDialogComponent } from '../../../../ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
-import { IconComponent } from '../../../../ui/icon';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { PagerComponent } from '../../../../ui/pager/pager';
-import { UiOption, UiSelectComponent } from '../../../../ui/select';
+import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
 import { RoleSheetComponent } from './role-sheet';
 

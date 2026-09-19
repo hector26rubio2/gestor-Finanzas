@@ -1,4 +1,4 @@
-import { Account } from '../../core/demo-data';
+import { Account } from '../../core/state/demo-data';
 
 /**
  * Qué campo se ve, y en qué estado, para una combinación concreta de tipo de

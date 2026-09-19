@@ -4,16 +4,15 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/permissions';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { P } from '../../core/session/permissions';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select';
-import { NumericInputDirective } from '../../ui/numeric-input.directive';
-import { FieldComponent } from '../../ui/field';
+import { UiOption, UiSelectComponent } from '../../ui/select/select';
+import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
+import { FieldComponent } from '../../ui/field/field';
 
 @Component({
   selector: 'fin-management-form',
-  standalone: true,
   imports: [
     DateFieldComponent,
     HlmButton,
@@ -51,7 +50,7 @@ export class ManagementFormComponent {
     { value: 'income', label: this.i18n.t('form.management.categoryType.income') },
   ]);
   email = '';
-  relationship: import('../../core/demo-data').Person['relationship'] = 'Otro';
+  relationship: import('../../core/state/demo-data').Person['relationship'] = 'Otro';
   readonly relationshipOptions = computed<readonly UiOption[]>(() => [
     { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
     { value: 'Amistad', label: this.i18n.t('form.management.relationship.friendship') },

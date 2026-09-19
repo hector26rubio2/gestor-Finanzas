@@ -3,10 +3,10 @@ import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app';
-import { FinanceApiClient } from './core/api-client';
-import { P } from './core/permissions';
-import { RUNTIME_CONFIG } from './core/runtime';
-import { AppStore } from './core/store';
+import { FinanceApiClient } from './core/api/api-client';
+import { P } from './core/session/permissions';
+import { RUNTIME_CONFIG } from './core/session/runtime';
+import { AppStore } from './core/state/store';
 
 /**
  * El armazón de la aplicación y la pantalla de entrada.

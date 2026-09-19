@@ -13,10 +13,10 @@ import {
   ApiOrganizationMember,
   ApiPermissionDescriptor,
 } from '../../core/api/administration.api';
-import { CAPABILITIES, AppStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/permissions';
-import { RemoteBootstrap } from '../../core/remote-bootstrap';
+import { P } from '../../core/session/permissions';
+import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
 import { ApiPage } from '../../core/api/shared-api-types';
 import { AdminChange, affectsAccess, changeKey, changeWave, sameIds } from './admin-changes';
 
