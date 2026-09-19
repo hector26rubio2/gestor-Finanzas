@@ -1,5 +1,6 @@
-import { CanMatchFn, Router, UrlTree } from '@angular/router';
+import { CanMatchFn, Router, UrlTree, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
+import { Observable, firstValueFrom, isObservable } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CAPABILITIES, AppStore, FEATURES } from './core/store';
 import { P } from './core/permissions';
@@ -30,6 +31,8 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     store.user.set({ id: 'u1', name: 'Lectora', email: 'l@example.test', capabilities: [...permisos] } as never);
     store.featureFlags.set(banderas);
     store.featureFlagsLoaded.set(cargadas);
+    // El guard corre cuando el arranque ya terminó; mientras carga, espera (ver más abajo).
+    store.remoteState.set('ready');
     return store;
   };
 
@@ -70,5 +73,37 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     expect(TestBed.inject(FEATURES).enabled('dashboard')).toBe(true);
     const destino = guardDe('dashboard')();
     expect(TestBed.inject(Router).serializeUrl(destino as UrlTree)).toBe('/sin-acceso');
+  });
+
+  it('espera a que termine la carga de la sesión antes de decidir', async () => {
+    // Al recargar, el usuario y las banderas aún no llegaron: decidir entonces cerraba rutas
+    // abiertas y mandaba al login o al dashboard, perdiendo la vista en la que se estaba.
+    const store = montar([P.dashboard.ver], { dashboard: true });
+    store.remoteState.set('loading');
+
+    const resultado = guardDe('dashboard')();
+    expect(isObservable(resultado)).toBe(true);
+
+    const decision = firstValueFrom(resultado as Observable<boolean | UrlTree>);
+    store.remoteState.set('ready');
+    TestBed.tick();
+    expect(await decision).toBe(true);
+  });
+
+  it('sin sesión manda al login recordando la ruta pedida, con su consulta', async () => {
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter(routes),
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+      ],
+    });
+    const store = TestBed.inject(AppStore);
+    store.remoteState.set('ready');
+    store.user.set(null);
+    const router = TestBed.inject(Router);
+
+    await router.navigateByUrl('/movements?pagina=3');
+
+    expect(router.url).toBe('/login?returnUrl=%2Fmovements%3Fpagina%3D3');
   });
 });

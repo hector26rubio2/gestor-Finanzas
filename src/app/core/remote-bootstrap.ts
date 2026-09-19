@@ -1,5 +1,5 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
-import { firstValueFrom, forkJoin, of } from 'rxjs';
+import { Observable, ObservedValueOf, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
 import { Account, DemoData, Movement } from './demo-data';
 import {
   ApiAccount,
@@ -20,13 +20,83 @@ import { Router } from '@angular/router';
 import { AppStore } from './store';
 import { I18nService } from './i18n';
 
+type Rebanada =
+  | 'movementKinds'
+  | 'accounts'
+  | 'cards'
+  | 'categories'
+  | 'people'
+  | 'debts'
+  | 'investments'
+  | 'movements'
+  | 'preferences';
+const SLICES: readonly Rebanada[] = [
+  'movementKinds',
+  'accounts',
+  'cards',
+  'categories',
+  'people',
+  'debts',
+  'investments',
+  'movements',
+  'preferences',
+];
+/** Permiso que autoriza pedir cada rebanada: el mismo código que exige el endpoint. */
+const PERMISO_DE: Record<Rebanada, string> = {
+  movementKinds: P.movimientos.clases.listar,
+  accounts: P.cuentas.ver,
+  cards: P.cuentas.tarjetas.listar,
+  categories: P.cuentas.categorias.listar,
+  people: P.personas.ver,
+  debts: P.personas.deudas.listar,
+  investments: P.patrimonio.ver,
+  movements: P.movimientos.ver,
+  preferences: P.preferencias.ver,
+};
+
+interface RawData {
+  movementKinds: ObservedValueOf<ReturnType<FinanceApiClient['movementKinds']>>;
+  accounts: ObservedValueOf<ReturnType<FinanceApiClient['accounts']>>;
+  cards: ObservedValueOf<ReturnType<FinanceApiClient['cards']>>;
+  categories: ObservedValueOf<ReturnType<FinanceApiClient['categories']>>;
+  people: ObservedValueOf<ReturnType<FinanceApiClient['people']>>;
+  debts: ObservedValueOf<ReturnType<FinanceApiClient['debts']>>;
+  investments: ObservedValueOf<ReturnType<FinanceApiClient['investments']>>;
+  movements: ObservedValueOf<ReturnType<FinanceApiClient['movements']>>;
+  preferences: ObservedValueOf<ReturnType<FinanceApiClient['preferences']>> | null;
+  notifications: ObservedValueOf<ReturnType<FinanceApiClient['notifications']>>;
+}
+
+function emptyRaw(): RawData {
+  return {
+    movementKinds: [],
+    accounts: [],
+    cards: [],
+    categories: [],
+    people: [],
+    debts: [],
+    investments: [],
+    movements: { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false },
+    preferences: null,
+    notifications: [],
+  };
+}
+
+/** Persona y organización: si cambia una de las dos, los datos cargados ya no valen. */
+function identidadDe(session: ApiSession): string {
+  return `${session.user.id}|${session.organization.id}`;
+}
+
+function mismaLista(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && a.every((valor, i) => valor === b[i]);
+}
+
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
   private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
-  private sessionSignature: string | null = null;
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
 
@@ -68,6 +138,17 @@ export class RemoteBootstrap {
     this.escucharCambiosDeAcceso();
   }
 
+  /** Identidad de la sesión cargada: si cambia, hay que empezar de cero y no solo refrescar. */
+  private identidad: string | null = null;
+  /** Permisos de la sesión cargada, para saber qué datos se conceden o se quitan al refrescar. */
+  private permisos = new Set<string>();
+  private refrescando = false;
+  private raw: RawData = emptyRaw();
+
+  /**
+   * Carga completa: primera vez, al entrar y cuando cambia la persona o la organización.
+   * Es la única que pone `remoteState` en «loading» y, con él, el indicador de carga.
+   */
   async initialize(): Promise<void> {
     if (this.store.runtime.mode !== 'api') return;
     this.cerradaAProposito = false;
@@ -86,81 +167,26 @@ export class RemoteBootstrap {
         return;
       }
 
-      this.sessionSignature = this.signature(session);
+      this.identidad = identidadDe(session);
+      this.permisos = new Set(session.permissions);
 
       // Cada petición se hace si su permiso está concedido, y el permiso es el mismo
-      // código que exige el endpoint.
-      //
-      // Esto se decidía con la máscara numérica de capacidades, que es la que trae la
-      // sesión por compatibilidad y que un rol granular deja vacía. El efecto era el
-      // fallo que se reportó: conceder «ver movimientos» y nada más ponía la entrada en
-      // el menú, abría la ruta —las dos cosas miran el permiso— y luego no pedía los
-      // movimientos, porque preguntaba por un bit que nadie había marcado. La pantalla
-      // salía vacía y el permiso parecía no servir. Dos vocabularios para la misma
-      // decisión acaban divergiendo siempre; aquí queda uno.
-      const permisos = new Set(session.permissions ?? []);
-      const puede = (codigo: string) => permisos.has(codigo);
-      const sinMovimientos = { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false };
+      // código que exige el endpoint. Antes se decidía con la máscara numérica de
+      // capacidades, que un rol granular deja vacía: conceder «ver movimientos» y nada más
+      // ponía la entrada en el menú y luego no pedía los movimientos.
+      const claves = SLICES.filter((clave) => this.permisos.has(PERMISO_DE[clave]));
       const result = await firstValueFrom(
         forkJoin({
-          movementKinds: puede(P.movimientos.clases.listar) ? this.api.movementKinds() : of([]),
-          accounts: puede(P.cuentas.ver) ? this.api.accounts() : of([]),
-          cards: puede(P.cuentas.tarjetas.listar) ? this.api.cards() : of([]),
-          categories: puede(P.cuentas.categorias.listar) ? this.api.categories() : of([]),
-          people: puede(P.personas.ver) ? this.api.people() : of([]),
-          debts: puede(P.personas.deudas.listar) ? this.api.debts() : of([]),
-          investments: puede(P.patrimonio.ver) ? this.api.investments() : of([]),
-          movements: puede(P.movimientos.ver) ? this.api.movements({ page: 1, pageSize: 25 }) : of(sinMovimientos),
-          preferences: puede(P.preferencias.ver) ? this.api.preferences() : of(null),
+          datos: this.pedirRebanadas(claves),
           // Los valores efectivos no son una pantalla administrativa: toda sesión los
-          // necesita para decidir qué rutas puede ofrecer. La API solo devuelve el
-          // resultado para esta persona; editar el catálogo sigue protegido aparte.
+          // necesita para decidir qué rutas puede ofrecer. Sin ellos no hay menú.
           featureFlags: this.api.featureFlags(),
-          notifications: this.api.notifications(),
+          notifications: this.api.notifications().pipe(catchError(() => of([]))),
         }),
       );
-      // El catálogo entra antes que los movimientos: la familia de cada clase se
-      // deriva de la tabla publicada, no de números escritos a mano en el cliente.
-      const catalog = new MovementKindCatalog(result.movementKinds);
-      this.store.kindCatalog.set(catalog);
-      this.store.data.set(
-        this.toViewData(
-          catalog,
-          result.accounts,
-          result.cards,
-          result.movements.items,
-          result.people,
-          result.debts,
-          result.investments,
-          result.notifications,
-        ),
-      );
-      this.store.remoteMovementPage.set(result.movements.page);
-      this.store.remoteMovementSize.set(result.movements.size);
-      this.store.remoteMovementTotal.set(result.movements.total);
-      this.store.user.set(this.toViewUser(session));
-      this.store.organization.set({ id: session.organization.id, name: session.organization.name });
-      this.store.organizations.set((session.organizations ?? []).map((x) => ({ id: x.id, name: x.name })));
-      if (result.preferences) {
-        let custom: { accent?: string; radius?: number } = {};
-        try {
-          custom = result.preferences.customThemeJson ? JSON.parse(result.preferences.customThemeJson) : {};
-        } catch {
-          custom = {};
-        }
-        this.store.preferences.update((value) => ({
-          ...value,
-          locale: result.preferences!.language,
-          theme: result.preferences!.theme as typeof value.theme,
-          font: result.preferences!.font,
-          density: result.preferences!.density as typeof value.density,
-          accent: custom.accent ?? value.accent,
-          radius: custom.radius ?? value.radius,
-        }));
-      }
-      this.store.featureFlags.set(Object.fromEntries(result.featureFlags.map((flag) => [flag.key, flag.isEnabled])));
-      this.store.featureFlagsLoaded.set(true);
-      this.store.categories.set(result.categories);
+      this.raw = { ...emptyRaw(), ...result.datos, notifications: result.notifications };
+      this.aplicarDatos();
+      this.aplicarSesion(session, result.featureFlags);
       this.store.remoteState.set('ready');
       // Tras volver a entrar, el canal se reabre: al cerrar sesion se cerro a proposito.
       this.escucharCambiosDeAcceso();
@@ -175,6 +201,165 @@ export class RemoteBootstrap {
       this.store.remoteError.set(error instanceof Error ? error.message : 'No fue posible cargar la API.');
       this.store.remoteState.set('error');
       this.store.user.set(null);
+    }
+  }
+
+  /**
+   * Trae las rebanadas de datos pedidas. Un fallo en una no anula la sesión: esa lista queda
+   * vacía y se avisa una vez. Antes cualquier error no crítico (una lista con 403 o 500)
+   * dejaba `user` en null y el guard mandaba al login, perdiendo la vista.
+   */
+  private pedirRebanadas(claves: readonly Rebanada[]): Observable<Partial<RawData>> {
+    if (!claves.length) return of({});
+    let fallos = 0;
+    const pedidas: Record<string, Observable<unknown>> = {};
+    for (const clave of claves) {
+      pedidas[clave] = this.pedir(clave).pipe(
+        catchError(() => {
+          fallos++;
+          return of(emptyRaw()[clave]);
+        }),
+      );
+    }
+    return forkJoin(pedidas).pipe(
+      map((datos) => {
+        if (fallos) this.store.toast.set(this.i18n.t('shell.partialLoad'));
+        return datos as Partial<RawData>;
+      }),
+    );
+  }
+
+  private pedir(clave: Rebanada): Observable<unknown> {
+    switch (clave) {
+      case 'movementKinds':
+        return this.api.movementKinds();
+      case 'accounts':
+        return this.api.accounts();
+      case 'cards':
+        return this.api.cards();
+      case 'categories':
+        return this.api.categories();
+      case 'people':
+        return this.api.people();
+      case 'debts':
+        return this.api.debts();
+      case 'investments':
+        return this.api.investments();
+      case 'movements':
+        return this.api.movements({ page: 1, pageSize: 25 });
+      case 'preferences':
+        return this.api.preferences();
+    }
+  }
+
+  /** Vuelca las rebanadas cargadas al store. Es lo único que reescribe `store.data`. */
+  private aplicarDatos(): void {
+    const raw = this.raw;
+    // El catálogo entra antes que los movimientos: la familia de cada clase se
+    // deriva de la tabla publicada, no de números escritos a mano en el cliente.
+    const catalog = new MovementKindCatalog(raw.movementKinds);
+    this.store.kindCatalog.set(catalog);
+    this.store.data.set(
+      this.toViewData(
+        catalog,
+        raw.accounts,
+        raw.cards,
+        raw.movements.items,
+        raw.people,
+        raw.debts,
+        raw.investments,
+        raw.notifications,
+      ),
+    );
+    this.store.remoteMovementPage.set(raw.movements.page);
+    this.store.remoteMovementSize.set(raw.movements.size);
+    this.store.remoteMovementTotal.set(raw.movements.total);
+    this.store.categories.set(raw.categories);
+    if (raw.preferences) {
+      const preferences = raw.preferences;
+      let custom: { accent?: string; radius?: number } = {};
+      try {
+        custom = preferences.customThemeJson ? JSON.parse(preferences.customThemeJson) : {};
+      } catch {
+        custom = {};
+      }
+      this.store.preferences.update((value) => ({
+        ...value,
+        locale: preferences.language,
+        theme: preferences.theme as typeof value.theme,
+        font: preferences.font,
+        density: preferences.density as typeof value.density,
+        accent: custom.accent ?? value.accent,
+        radius: custom.radius ?? value.radius,
+      }));
+    }
+  }
+
+  /**
+   * Publica la sesión y las banderas solo si cambiaron. Cada `set` con un valor equivalente
+   * despertaba a todo lo que lee `store.user()` —el menú lateral incluido— y, con él, la
+   * pantalla activa; comparando antes solo se actualiza lo que de verdad cambió.
+   */
+  private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[]): void {
+    const user = this.toViewUser(session);
+    const actual = this.store.user();
+    const igual =
+      !!actual &&
+      actual.id === user.id &&
+      actual.name === user.name &&
+      actual.email === user.email &&
+      actual.photoUrl === user.photoUrl &&
+      mismaLista(actual.capabilities, user.capabilities);
+    if (!igual) this.store.user.set(user);
+
+    const organization = { id: session.organization.id, name: session.organization.name };
+    const org = this.store.organization();
+    if (!org || org.id !== organization.id || org.name !== organization.name) this.store.organization.set(organization);
+
+    const organizations = (session.organizations ?? []).map((x) => ({ id: x.id, name: x.name }));
+    if (JSON.stringify(organizations) !== JSON.stringify(this.store.organizations()))
+      this.store.organizations.set(organizations);
+
+    const banderas = Object.fromEntries(flags.map((flag) => [flag.key, flag.isEnabled]));
+    if (JSON.stringify(banderas) !== JSON.stringify(this.store.featureFlags())) this.store.featureFlags.set(banderas);
+    this.store.featureFlagsLoaded.set(true);
+  }
+
+  /**
+   * Refresca lo que cambió sin recargar la aplicación: relee la sesión y las banderas,
+   * trae solo los datos de los permisos recién concedidos, vacía los de los retirados y
+   * publica el resultado. No toca `remoteState`, así que no aparece el indicador de carga
+   * ni se destruye la pantalla activa; si un permiso cambia, solo se repinta lo que lo lee
+   * (el menú lateral, por ejemplo). Si cambió la persona o la organización, recarga todo.
+   */
+  private async cargarSesion(): Promise<void> {
+    if (this.cerradaAProposito || this.store.runtime.mode !== 'api') return;
+    if (this.store.remoteState() === 'loading' || this.refrescando) return;
+    this.refrescando = true;
+    try {
+      const [session, flags] = await firstValueFrom(forkJoin([this.api.session(), this.api.featureFlags()]));
+      if (this.identidad !== null && identidadDe(session) !== this.identidad) {
+        this.refrescando = false;
+        await this.initialize();
+        return;
+      }
+
+      const ahora = new Set(session.permissions ?? []);
+      const concedidas = SLICES.filter((c) => ahora.has(PERMISO_DE[c]) && !this.permisos.has(PERMISO_DE[c]));
+      const retiradas = SLICES.filter((c) => !ahora.has(PERMISO_DE[c]) && this.permisos.has(PERMISO_DE[c]));
+      const vacio = emptyRaw();
+      for (const clave of retiradas) this.raw = { ...this.raw, [clave]: vacio[clave] };
+      if (concedidas.length) {
+        const nuevas = await firstValueFrom(this.pedirRebanadas(concedidas));
+        this.raw = { ...this.raw, ...nuevas };
+      }
+      this.permisos = ahora;
+      if (concedidas.length || retiradas.length) this.aplicarDatos();
+      this.aplicarSesion(session, flags);
+    } catch {
+      /* los errores transitorios se ignoran; el próximo ciclo reintenta */
+    } finally {
+      this.refrescando = false;
     }
   }
 
@@ -213,7 +398,7 @@ export class RemoteBootstrap {
         withCredentials: true,
       });
       this.canal.addEventListener('permisos', () => {
-        if (!this.cerradaAProposito) void this.initialize();
+        if (!this.cerradaAProposito) void this.cargarSesion();
       });
     } catch {
       // Si el canal no se puede abrir, queda el sondeo.
@@ -236,7 +421,9 @@ export class RemoteBootstrap {
   async cerrarSesion(): Promise<void> {
     // Antes que nada: corta los ciclos que podrian volver a entrar mientras se cierra.
     this.cerradaAProposito = true;
-    this.sessionSignature = null;
+    this.identidad = null;
+    this.permisos = new Set();
+    this.raw = emptyRaw();
     this.canal?.close();
     this.canal = null;
 
@@ -255,38 +442,18 @@ export class RemoteBootstrap {
     await this.router.navigateByUrl('/login');
   }
 
+  /** Revisa la sesión (sondeo, foco de la ventana y cambios hechos desde Administración). */
   async pollSession(): Promise<void> {
-    if (this.cerradaAProposito) return;
-    if (this.store.runtime.mode !== 'api' || this.store.remoteState() === 'loading') return;
-    try {
-      const session = await firstValueFrom(this.api.session());
-      const signature = this.signature(session);
-      if (this.sessionSignature !== null && signature !== this.sessionSignature) await this.initialize();
-    } catch {
-      /* los errores transitorios se ignoran; el próximo ciclo reintenta */
-    }
+    await this.cargarSesion();
   }
 
-  private signature(session: ApiSession): string {
-    // user.id y organization.id entran en la firma para que un cambio de identidad con
-    // los mismos permisos -otra persona, u otra organización, con el mismo rol- se note.
-    // Sin ellos, pollSession() comparaba solo capacidades/permisos y, si coincidían,
-    // dejaba en pantalla los datos de la sesión anterior sin volver a pedirlos.
-    return JSON.stringify([
-      session.user.id,
-      session.organization.id,
-      [...session.capabilities].sort(),
-      [...(session.permissions ?? [])].sort(),
-      session.isSuperAdmin === true,
-    ]);
-  }
-
-  private toViewUser(session: ApiSession): (typeof this.store.users)[number] {
+  private toViewUser(session: ApiSession): (typeof this.store.users)[number] & { photoUrl?: string } {
     return {
       id: session.user.id,
       name: session.user.displayName,
       email: session.user.email,
       capabilities: [...(session.permissions ?? [])],
+      photoUrl: session.user.pictureUrl ?? undefined,
     };
   }
 

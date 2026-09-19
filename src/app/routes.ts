@@ -1,5 +1,8 @@
-import { Type, inject } from '@angular/core';
-import { CanMatchFn, Router, Routes } from '@angular/router';
+import { Injector, Type, inject } from '@angular/core';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
+import { filter, map, take } from 'rxjs';
+import { safeReturnPath } from './core/return-url';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
 
 /**
@@ -19,22 +22,42 @@ import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
 const guard: CanMatchFn = (route) => {
   const store = inject(AppStore);
   const router = inject(Router);
+  const injector = inject(Injector);
   const capacidades = inject(CAPABILITIES);
   const funcionalidades = inject(FEATURES);
-  if (!store.user()) return router.parseUrl('/login');
+  // La URL completa que se pidió, para volver a ella tras entrar. `route.path` solo trae el
+  // primer tramo y perdería la consulta (p. ej. la página de una tabla).
+  const solicitada = router.currentNavigation()?.extractedUrl.toString() ?? null;
 
-  const abierta = (entrada: (typeof navigation)[number]) =>
-    capacidades.allows(entrada.capability) && funcionalidades.enabled(entrada.path);
+  const decidir = (): boolean | UrlTree => {
+    if (!store.user()) {
+      const volver = safeReturnPath(solicitada);
+      return router.createUrlTree(['/login'], volver ? { queryParams: { returnUrl: volver } } : {});
+    }
 
-  const path = route.path ?? '';
-  const pedida = navigation.find((entrada) => entrada.path === path);
-  const permitida = pedida
-    ? abierta(pedida)
-    : capacidades.allows(route.data?.['capability'] ?? 'read') && funcionalidades.enabled(path);
-  if (permitida) return true;
+    const abierta = (entrada: (typeof navigation)[number]) =>
+      capacidades.allows(entrada.capability) && funcionalidades.enabled(entrada.path);
 
-  const destino = navigation.find(abierta);
-  return router.parseUrl(destino ? `/${destino.path}` : '/sin-acceso');
+    const path = route.path ?? '';
+    const pedida = navigation.find((entrada) => entrada.path === path);
+    const permitida = pedida
+      ? abierta(pedida)
+      : capacidades.allows(route.data?.['capability'] ?? 'read') && funcionalidades.enabled(path);
+    if (permitida) return true;
+
+    const destino = navigation.find(abierta);
+    return router.parseUrl(destino ? `/${destino.path}` : '/sin-acceso');
+  };
+
+  // Mientras el servidor resuelve la sesión no hay usuario ni banderas todavía: decidir en
+  // ese momento cerraría rutas que sí están abiertas y mandaría a la persona al login o al
+  // dashboard, perdiendo la vista en la que estaba al recargar.
+  if (store.remoteState() !== 'loading') return decidir();
+  return toObservable(store.remoteState, { injector }).pipe(
+    filter((estado) => estado !== 'loading'),
+    take(1),
+    map(decidir),
+  );
 };
 /**
  * Cada pestaña del workspace es su propio chunk perezoso: antes todas vivian dentro de

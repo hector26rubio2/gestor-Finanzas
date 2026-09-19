@@ -7,6 +7,8 @@ export interface ApiUser {
   displayName: string;
   email: string;
   isActive: boolean;
+  /** Foto de la cuenta de Google, si el proveedor la entregó. */
+  pictureUrl?: string | null;
 }
 
 export interface ApiOrganization {

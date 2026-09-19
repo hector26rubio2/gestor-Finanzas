@@ -41,7 +41,7 @@
           [attr.aria-label]="i18n.t('shell.profile')"
         >
           @if (store.user()?.photoUrl) {
-          <img class="avatar" [src]="store.user()?.photoUrl" alt="" />
+          <img class="avatar" [src]="store.user()?.photoUrl" alt="" referrerpolicy="no-referrer" />
           } @else {
           <span class="avatar">{{ userInitials() }}</span>
           }

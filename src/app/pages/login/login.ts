@@ -1,6 +1,6 @@
 import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { applyTheme, AppStore, Preferences } from '../../core/store';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
@@ -8,6 +8,7 @@ import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { I18nService } from '../../core/i18n';
 import { FinanceApiClient } from '../../core/api-client';
+import { safeReturnPath } from '../../core/return-url';
 import { firstValueFrom } from 'rxjs';
 @Component({
   standalone: true,
@@ -19,6 +20,7 @@ import { firstValueFrom } from 'rxjs';
 export class LoginComponent {
   readonly store = inject(AppStore);
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private remote = inject(RemoteBootstrap);
   private location = inject(Location);
   private api = inject(FinanceApiClient);
@@ -39,10 +41,14 @@ export class LoginComponent {
     { value: 'sand', label: 'Marfil cálido' },
     { value: 'berry', label: 'Ciruela' },
   ];
+  /** A dónde volver tras entrar: la vista que se pidió antes de caer aquí, o el dashboard. */
+  private returnPath(): string {
+    return safeReturnPath(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/dashboard';
+  }
   login(index: number) {
     this.store.user.set(this.store.users[index]);
     this.store.rememberDemoSession(index);
-    void this.router.navigateByUrl('/dashboard');
+    void this.router.navigateByUrl(this.returnPath());
   }
   theme(value: string) {
     const theme = value as Preferences['theme'];
@@ -59,7 +65,9 @@ export class LoginComponent {
     // dashboard: el navegador solo estaba obedeciendo a dónde se le dijo que
     // volviera. `prepareExternalUrl` respeta el base-href del build (local sirve
     // en «/», el despliegue en «/gestor-Finanzas/»), así que no hay que adivinarlo.
-    const returnUrl = encodeURIComponent(`${window.location.origin}${this.location.prepareExternalUrl('/dashboard')}`);
+    const returnUrl = encodeURIComponent(
+      `${window.location.origin}${this.location.prepareExternalUrl(this.returnPath())}`,
+    );
     return `${this.store.runtime.apiBaseUrl}/api/v1/auth/google?returnUrl=${returnUrl}`;
   }
   retry(): void {
@@ -71,6 +79,6 @@ export class LoginComponent {
   async localLogin(): Promise<void> {
     await firstValueFrom(this.api.devLogin('admin'));
     await this.remote.initialize();
-    if (this.store.user()) await this.router.navigateByUrl('/dashboard');
+    if (this.store.user()) await this.router.navigateByUrl(this.returnPath());
   }
 }
