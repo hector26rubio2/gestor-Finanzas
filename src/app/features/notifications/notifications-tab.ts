@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, AppStore } from '../../core/store';
@@ -8,10 +9,9 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-notifications-tab',
-  standalone: true,
+  imports: [HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notifications-tab.html',
-  styleUrl: './notifications-tab.css',
 })
 export class NotificationsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(AppStore);

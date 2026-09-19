@@ -1,36 +1,40 @@
 @if (icon() || delta() !== null) {
-<div class="kpi-top">
+<div class="flex items-center" [class.justify-center]="bare()">
   @if (icon()) {
-  <span class="icon-chip" [class]="tone()"><fin-icon [name]="icon()" /></span>
+  <span class="grid size-[34px] flex-none place-items-center rounded-[10px]" [class]="chipClass()">
+    <fin-icon [name]="icon()" class="[--icon-size:18px]" />
+  </span>
   } @if (delta() !== null) {
-  <span class="delta" [class.sube]="mejora()" [class.baja]="empeora()" [attr.title]="deltaTitulo()">
+  <span
+    class="ms-auto flex-none rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
+    [class]="deltaClass()"
+    [attr.title]="deltaTitulo()"
+  >
     {{ flecha() }} {{ deltaTexto() }}
   </span>
   }
 </div>
 }
-<div class="kpi-body" [class.has-top]="icon() || delta() !== null">
-  <span class="label">{{ label() }}</span>
-  <strong>{{ value() }}</strong>
-  <div class="kpi-foot">
+<div class="flex min-w-0 flex-1 flex-col items-center justify-center">
+  <span class="text-[0.78rem] text-muted-foreground">{{ label() }}</span>
+  <strong
+    class="text-[clamp(1.12rem,1.55vw,1.55rem)] font-semibold tracking-[-0.04em] tabular-nums [overflow-wrap:anywhere]"
+    >{{ value() }}</strong
+  >
+  <div class="flex w-full min-w-0 items-center justify-center gap-2.5">
     @if (hint()) {
-    <span class="hint">{{ hint() }}</span>
-    } @if (series().length > 1) {
-    <!--
-        En diferido y al entrar en pantalla: la tarjeta de indicador la usa el armazon,
-        que va en el paquete inicial, y arrastrar ECharts hasta ahi lo pasaba de 1.00 MB
-        -el presupuesto- a 1.12 MB. Asi la biblioteca sigue viviendo en su propio trozo y
-        la chispa aparece cuando hay algo que mirar.
-      -->
-    @defer (on viewport) {
+    <span class="overflow-hidden text-[0.72rem] text-ellipsis whitespace-nowrap text-muted-foreground"
+      >{{ hint() }}</span
+    >
+    } @if (series().length > 1) { @defer (on viewport) {
     <fin-chart
-      class="chispa"
+      class="flex-none"
       [option]="chispaOption()"
       [height]="38"
       [ariaLabel]="i18n.t('kpi.sparkline.ariaLabel', { label: label() })"
     />
     } @placeholder {
-    <span class="chispa-hueco"></span>
+    <span class="block h-[38px]"></span>
     } }
   </div>
 </div>

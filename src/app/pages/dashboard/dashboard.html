@@ -1,11 +1,20 @@
-<article class="dashboard" data-page="dashboard">
-  <header class="hero">
+<article class="m-auto flex w-full min-w-0 max-w-[1800px] flex-col gap-4 overflow-x-clip" data-page="dashboard">
+  <header class="flex flex-wrap items-end justify-between gap-5 max-[700px]:flex-col max-[700px]:items-start">
     <div>
-      <h1>{{ i18n.t('dashboard.greeting', { name: store.user()?.name?.split(' ')?.[0] ?? '' }) }}</h1>
-      <p>{{ i18n.t('dashboard.subtitle') }}</p>
+      <h1 class="my-[5px] font-display text-[clamp(2rem,3vw,3.2rem)]">
+        {{ i18n.t('dashboard.greeting', { name: store.user()?.name?.split(' ')?.[0] ?? '' }) }}
+      </h1>
+      <p class="text-muted-foreground">{{ i18n.t('dashboard.subtitle') }}</p>
     </div>
     @if (puedePersonalizar()) {
-    <button type="button" [attr.aria-pressed]="customizing()" (click)="customizing.update((v) => !v)">
+    <button
+      hlmBtn
+      variant="outline"
+      size="lg"
+      type="button"
+      [attr.aria-pressed]="customizing()"
+      (click)="customizing.update((v) => !v)"
+    >
       {{ customizing() ? i18n.t('dashboard.actions.finish') : i18n.t('dashboard.actions.customize') }}
     </button>
     }
@@ -16,9 +25,13 @@
         administra puede haber dejado el acceso al panel y haber quitado los cuatro KPI,
         los widgets y la tabla. Una pantalla vacia sin explicacion se lee como averiada.
       -->
-  <section class="sin-acceso" role="status">
-    <h2>{{ i18n.t('dashboard.noAccess.title') }}</h2>
-    <p>{{ i18n.t('dashboard.noAccess.detail') }}</p>
+  <section
+    data-slot="sin-acceso"
+    class="grid justify-items-start gap-2 rounded-lg border border-border bg-card p-7"
+    role="status"
+  >
+    <h2 class="text-[1.05rem]">{{ i18n.t('dashboard.noAccess.title') }}</h2>
+    <p class="max-w-[60ch] text-muted-foreground">{{ i18n.t('dashboard.noAccess.detail') }}</p>
   </section>
   } @else {
   <fin-filter-panel
@@ -64,7 +77,7 @@
     (openCreator)="openKpiCreator()"
   />
   }
-  <section class="grid">
+  <section class="grid min-w-0 grid-cols-2 items-stretch gap-[18px] max-[700px]:grid-cols-1">
     @for (widget of widgets(); track widget.id) {
     <fin-widget-card
       [kicker]="widget.kicker"
@@ -77,16 +90,19 @@
         no le hace falta esa fila propia.
       -->
       @if (widget.type === 'categories' && !customizing()) {
-      <div class="local" headerExtra>
+      <div class="flex items-center gap-2 max-[470px]:flex-col max-[470px]:items-stretch" headerExtra>
         <fin-select
+          class="w-full min-w-40"
           [ngModel]="localCategory()"
           (ngModelChange)="localCategory.set($event)"
           [options]="localCategoryOptions()"
           [ariaLabel]="i18n.t('dashboard.category.explore.ariaLabel')"
         />
         <button
+          hlmBtn
+          variant="outline"
           type="button"
-          class="quiet"
+          class="whitespace-nowrap"
           (click)="promoteCategory()"
           [disabled]="localCategory() === 'all' || localCategory() === globalCategory()"
         >
@@ -94,7 +110,7 @@
         </button>
       </div>
       } @if (customizing()) {
-      <div class="widget-actions" actions>
+      <div class="flex flex-wrap items-center justify-end gap-x-[5px] gap-y-2" actions>
         <fin-widget-controls
           [type]="widget.type"
           [dimension]="widget.dimension ?? 'category'"
@@ -135,7 +151,7 @@
                   "
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('categories') {
       <fin-category-list
         [items]="categoryDistribution()"
@@ -160,7 +176,7 @@
                   "
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.trend.empty') }}</p>
       } } @case ('scatter') { @if (movements().length) {
       <fin-chart
         [option]="dispersionOption()"
@@ -168,7 +184,7 @@
         [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.scatter.empty') }}</p>
       } } @case ('donut') { @if (categoryDistribution().length) {
       <fin-chart
         [option]="anilloOption()"
@@ -177,11 +193,11 @@
         [ariaLabel]="i18n.t('dashboard.widget.donut.ariaLabel', { total: store.money(expense()) })"
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
       } } @case ('stacked') { @if (timeline().length) {
       <fin-chart [option]="apiladoOption()" [height]="300" [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')" />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('gauge') { @if (income() > 0) {
       <fin-chart
         [option]="medidorOption()"
@@ -195,7 +211,7 @@
             "
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.gauge.empty') }}</p>
       } } @case ('heatmap') { @if (timeline().length) {
       <fin-chart
         [option]="intensidadOption()"
@@ -203,7 +219,7 @@
         [ariaLabel]="i18n.t('dashboard.widget.heatmap.ariaLabel')"
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('histogram') { @if (movements().length) {
       <fin-chart
         [option]="histogramaOption()"
@@ -211,7 +227,7 @@
         [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
       />
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('card') {
       <fin-kpi
         [bare]="true"
@@ -223,9 +239,18 @@
       } @case ('table') {
       <fin-table [columns]="tableColumns()" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
       } @case ('indicator') { @if (movements().length) {
-      <div class="indicator-layout">
-        <fin-chart [option]="widgetOption(widget)" [height]="300" [ariaLabel]="widget.title" />
-        <dl class="indicator-info">
+      <div
+        class="grid w-full flex-1 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] content-center items-center gap-x-7 gap-y-4"
+      >
+        <fin-chart
+          class="min-w-0 max-w-full"
+          [option]="widgetOption(widget)"
+          [height]="300"
+          [ariaLabel]="widget.title"
+        />
+        <dl
+          class="grid min-w-0 gap-3.5 [&_dd]:mt-0.5 [&_dd]:text-[0.95rem] [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:text-foreground [&_dt]:text-[0.72rem] [&_dt]:font-semibold [&_dt]:tracking-[0.04em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
+        >
           <div>
             <dt>Actual</dt>
             <dd>{{ formatMeasure(cardValue(widget), widget) }}</dd>
@@ -240,7 +265,7 @@
           </div>
           <div>
             <span
-              class="status-pill"
+              class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
               [style.color]="indicatorStatus(widget).color"
               [style.border-color]="indicatorStatus(widget).color"
             >
@@ -250,7 +275,7 @@
         </dl>
       </div>
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('colorScale') {
       <fin-color-scale
         [value]="formatMeasure(cardValue(widget), widget)"
@@ -266,7 +291,7 @@
       } @case ('statusBars') {
       <fin-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
       } @default { @if (movements().length) {
-      <div class="chart-fill">
+      <div class="flex min-h-0 flex-1 flex-col justify-center">
         <fin-chart
           [option]="widgetOption(widget)"
           [height]="widget.type === 'matrix' ? 260 : 320"
@@ -274,45 +299,52 @@
         />
       </div>
       } @else {
-      <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
+      <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } }
     </fin-widget-card>
     }
   </section>
   @if (caps.allows(P.dashboard.tabla.ver)) {
-  <section class="recent">
-    <header>
+  <section class="flex h-[520px] flex-col rounded-lg border border-border bg-card px-6 py-[22px]">
+    <header class="mb-3.5 flex flex-wrap items-end justify-between gap-5">
       <div>
-        <h2>{{ i18n.t('dashboard.recent.title') }}</h2>
+        <h2 class="my-1 text-base">{{ i18n.t('dashboard.recent.title') }}</h2>
       </div>
       @if (caps.allows(P.movimientos.ver)) {
-      <a class="see-all" routerLink="/movements">{{ i18n.t('dashboard.recent.seeAll') }}<fin-icon name="next" /></a>
+      <a hlmBtn variant="ghost" size="sm" class="rounded-full text-primary" routerLink="/movements"
+        >{{ i18n.t('dashboard.recent.seeAll') }}<fin-icon name="next"
+      /></a>
       }
     </header>
     <fin-table [columns]="columns()" [rows]="rows()" (rowSelected)="inspect($event)" />
   </section>
   } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
-  <aside class="customize">
+  <aside
+    data-slot="customize"
+    class="fixed right-[18px] bottom-[18px] z-20 flex items-center gap-2 rounded-xl border border-border bg-card p-3.5 shadow-pop max-[700px]:right-2.5 max-[700px]:left-2.5 max-[700px]:overflow-auto"
+  >
     <b>{{ i18n.t('dashboard.customizePanel.title') }}</b>
     @if (caps.allows(P.dashboard.widget.crear)) {
-    <button class="create-widget" type="button" (click)="widgetCreatorOpen.set(true)">
+    <button hlmBtn variant="outline" type="button" (click)="widgetCreatorOpen.set(true)">
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
     </button>
     @if (availableKpiFormulaOptions().length) {
-    <button class="create-widget" type="button" (click)="openKpiCreator()">
+    <button hlmBtn variant="outline" type="button" (click)="openKpiCreator()">
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
     </button>
     } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
-    <button type="button" (click)="show(widget.id)"><fin-icon name="plus" /> {{ widget.title }}</button>
+    <button hlmBtn variant="outline" type="button" (click)="show(widget.id)">
+      <fin-icon name="plus" /> {{ widget.title }}
+    </button>
     } @empty {
-    <span>{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
+    <span class="text-xs text-muted-foreground">{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
     } }
   </aside>
   } @if (widgetCreatorOpen()) {
   <fin-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
-    <form class="widget-builder" (submit)="createWidget($event)">
+    <form class="grid gap-3.5" (submit)="createWidget($event)">
       <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
-        <input name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
+        <input hlmInput name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
       </fin-field>
       <fin-field [label]="i18n.t('dashboard.widgetForm.visualization')">
         <fin-select
@@ -358,28 +390,28 @@
       </fin-field>
       } @if (needsGoal(newWidgetMetric)) {
       <fin-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
-        <input name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
+        <input hlmInput name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
       </fin-field>
       <fin-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
-        <input name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
+        <input hlmInput name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
       </fin-field>
       <fin-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
-        <input name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
+        <input hlmInput name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
       </fin-field>
       }
-      <p>{{ i18n.t('dashboard.widgetForm.note') }}</p>
-      <div>
-        <button type="button" class="quiet" (click)="widgetCreatorOpen.set(false)">
+      <p class="text-muted-foreground">{{ i18n.t('dashboard.widgetForm.note') }}</p>
+      <div class="flex justify-end gap-2">
+        <button hlmBtn variant="outline" type="button" (click)="widgetCreatorOpen.set(false)">
           {{ i18n.t('dashboard.widgetForm.cancel') }}</button
-        ><button type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
+        ><button hlmBtn type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
       </div>
     </form>
   </fin-overlay>
   } @if (kpiCreatorOpen()) {
   <fin-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
-    <form class="widget-builder" (submit)="createKpi($event)">
+    <form class="grid gap-3.5" (submit)="createKpi($event)">
       <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
-        <input name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
+        <input hlmInput name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
       </fin-field>
       <fin-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
         <fin-select
@@ -389,11 +421,11 @@
           [ariaLabel]="i18n.t('dashboard.kpiForm.measure.ariaLabel')"
         />
       </fin-field>
-      <p>{{ i18n.t('dashboard.kpiForm.note') }}</p>
-      <div>
-        <button type="button" class="quiet" (click)="kpiCreatorOpen.set(false)">
+      <p class="text-muted-foreground">{{ i18n.t('dashboard.kpiForm.note') }}</p>
+      <div class="flex justify-end gap-2">
+        <button hlmBtn variant="outline" type="button" (click)="kpiCreatorOpen.set(false)">
           {{ i18n.t('dashboard.widgetForm.cancel') }}</button
-        ><button type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
+        ><button hlmBtn type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
       </div>
     </form>
   </fin-overlay>
@@ -402,11 +434,13 @@
     [title]="i18n.t('workspace.inspector.title.movement')"
     mode="inspector"
     (closed)="store.inspector.set(null)"
-    ><div class="detail">
-      <span>{{ i18n.t('dashboard.detailModal.kicker') }}</span>
+    ><div class="grid gap-3.5">
+      <span class="text-[0.72rem] tracking-[0.12em] text-primary">{{ i18n.t('dashboard.detailModal.kicker') }}</span>
       <h2>{{ movement.description }}</h2>
-      <strong>{{ store.money(movement.amount) }}</strong>
-      <dl>
+      <strong class="text-[1.8rem]">{{ store.money(movement.amount) }}</strong>
+      <dl
+        class="grid gap-2.5 [&>div]:flex [&>div]:justify-between [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5 [&_dt]:text-muted-foreground"
+      >
         <div>
           <dt>{{ i18n.t('dashboard.detail.date') }}</dt>
           <dd>{{ movement.date }}</dd>
@@ -427,7 +461,7 @@
           </dd>
         </div>
       </dl>
-      <a routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
+      <a hlmBtn class="h-11 w-full" routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
     </div></fin-overlay
   >
   }

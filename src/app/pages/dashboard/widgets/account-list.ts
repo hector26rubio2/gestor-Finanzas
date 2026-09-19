@@ -1,3 +1,4 @@
+import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { AppStore } from '../../../core/store';
 
@@ -12,10 +13,10 @@ export interface AccountListItem {
 
 /** Lista de cuentas por gasto, cada una con su color — clic filtra el resto del panel por esa cuenta. */
 @Component({
+  imports: [HlmButton],
   selector: 'fin-account-list',
-  standalone: true,
+  host: { class: 'flex min-h-0 flex-1' },
   templateUrl: './account-list.html',
-  styleUrl: './account-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountListComponent {

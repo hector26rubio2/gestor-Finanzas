@@ -70,10 +70,9 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
  */
 @Component({
   selector: 'fin-chart',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './chart.html',
-  styleUrl: './chart.css',
+  host: { class: 'block w-full' },
+  template: `<div class="lienzo w-full" role="img" [attr.aria-label]="ariaLabel()"></div>`,
 })
 export class ChartComponent implements OnDestroy {
   readonly i18n = inject(I18nService);

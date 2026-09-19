@@ -26,7 +26,17 @@ import {
   HlmDropdownMenuLabel,
   HlmDropdownMenuTrigger,
 } from '@spartan-ng/helm/dropdown-menu';
-import { HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton } from '@spartan-ng/helm/sidebar';
+import {
+  HlmSidebar,
+  HlmSidebarWrapper,
+  HlmSidebarMenu,
+  HlmSidebarMenuBadge,
+  HlmSidebarMenuButton,
+  HlmSidebarMenuItem,
+} from '@spartan-ng/helm/sidebar';
+import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmProgress, HlmProgressIndicator } from '@spartan-ng/helm/progress';
 import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service';
 
 /**
@@ -44,9 +54,17 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
 
 @Component({
   selector: 'app-root',
-  standalone: true,
   imports: [
     NgTemplateOutlet,
+    HlmAvatar,
+    HlmAvatarFallback,
+    HlmAvatarImage,
+    HlmButton,
+    HlmProgress,
+    HlmProgressIndicator,
+    HlmSidebarMenu,
+    HlmSidebarMenuBadge,
+    HlmSidebarMenuItem,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -64,7 +82,6 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
-  styleUrl: './app.css',
 })
 export class AppComponent {
   readonly store = inject(AppStore);

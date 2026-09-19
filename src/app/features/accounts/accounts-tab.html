@@ -1,4 +1,4 @@
-<section class="account-kpis kpis mini">
+<fin-kpi-grid>
   <fin-kpi
     [label]="i18n.t('accounts.kpi.available.label')"
     icon="wallet"
@@ -19,31 +19,21 @@
     [value]="store.data().accounts.length.toString()"
     [hint]="i18n.t('accounts.kpi.count.hint')"
   />
-</section>
-<section class="account-tools" [attr.aria-label]="i18n.t('accounts.filters.ariaLabel')">
-  <label
+</fin-kpi-grid>
+<section
+  class="grid grid-cols-[minmax(220px,1fr)_minmax(170px,240px)_auto] items-end gap-2.5 rounded-xl border border-border bg-card px-3 py-[11px] max-[700px]:grid-cols-1"
+  [attr.aria-label]="i18n.t('accounts.filters.ariaLabel')"
+>
+  <label class="grid gap-[5px] text-[0.72rem] text-muted-foreground"
     ><span>{{ i18n.t('accounts.filters.search.label') }}</span>
-    <div class="search-control">
-      <fin-icon name="search" />
-      <input
-        type="text"
-        [attr.placeholder]="i18n.t('accounts.filters.search.placeholder')"
-        [ngModel]="accountQuery()"
-        (ngModelChange)="setAccountQuery($event)"
-      />
-      @if (accountQuery()) {
-      <button
-        type="button"
-        class="clear-search"
-        [attr.aria-label]="i18n.t('accounts.filters.search.clear')"
-        (click)="setAccountQuery('')"
-      >
-        <fin-icon name="close" />
-      </button>
-      }
-    </div>
+    <fin-search-field
+      [value]="accountQuery()"
+      (valueChange)="setAccountQuery($event)"
+      [placeholder]="i18n.t('accounts.filters.search.placeholder')"
+      [ariaLabel]="i18n.t('accounts.filters.search.label')"
+    />
   </label>
-  <label
+  <label class="grid gap-[5px] text-[0.72rem] text-muted-foreground"
     ><span>{{ i18n.t('accounts.filters.type.label') }}</span
     ><fin-select
       [ngModel]="accountType()"
@@ -51,33 +41,46 @@
       [options]="book.accountTypeOptions()"
       [ariaLabel]="i18n.t('accounts.filters.type.label')"
   /></label>
-  <span>{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span>
+  <span class="self-center text-[0.72rem] whitespace-nowrap text-muted-foreground"
+    >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
+  >
 </section>
-<section class="account-switch" role="tablist" tabindex="0" [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')">
+<section
+  class="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]"
+  role="tablist"
+  tabindex="0"
+  [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
+>
   <button
+    hlmBtn
+    variant="outline"
+    size="sm"
     type="button"
-    class="switch-chip"
     role="tab"
+    class="flex-none rounded-full text-[0.78rem] data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:text-primary"
+    [attr.data-active]="selectedAccountFilter() === 'all'"
     [attr.aria-selected]="selectedAccountFilter() === 'all'"
-    [class.active]="selectedAccountFilter() === 'all'"
     (click)="filterByAccount('all')"
   >
     {{ i18n.t('accounts.cards.allChip') }}
   </button>
   @for (a of filteredAccounts(); track a.id) {
   <button
+    hlmBtn
+    variant="outline"
+    size="sm"
     type="button"
-    class="switch-chip"
     role="tab"
+    class="flex-none rounded-full text-[0.78rem] data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:text-primary"
+    [attr.data-active]="selectedAccountFilter() === a.id"
     [attr.aria-selected]="selectedAccountFilter() === a.id"
-    [class.active]="selectedAccountFilter() === a.id"
     (click)="selectAccount(a.id, a.type)"
   >
     {{ a.name }}
   </button>
   }
 </section>
-<section class="table-zone">
+<fin-table-zone>
   <fin-table
     [columns]="book.movementColumns()"
     [rows]="accountMovementRows()"
@@ -88,4 +91,4 @@
     (pageChange)="book.loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
   />
-</section>
+</fin-table-zone>

@@ -1,11 +1,13 @@
-<section class="sin-seccion" role="status">
+<section class="contents" role="status">
   @if (haySesion()) {
-  <h1>{{ i18n.t('sinSeccion.withSession.title') }}</h1>
-  <p>{{ i18n.t('sinSeccion.withSession.detail') }}</p>
-  <button type="button" (click)="reintentar()">{{ i18n.t('sinSeccion.withSession.retry') }}</button>
+  <h1 class="text-[1.2rem]">{{ i18n.t('sinSeccion.withSession.title') }}</h1>
+  <p class="leading-[1.6] text-muted-foreground">{{ i18n.t('sinSeccion.withSession.detail') }}</p>
+  <button hlmBtn type="button" class="mt-1.5" (click)="reintentar()">
+    {{ i18n.t('sinSeccion.withSession.retry') }}
+  </button>
   } @else {
-  <h1>{{ i18n.t('sinSeccion.noSession.title') }}</h1>
-  <p>{{ i18n.t('sinSeccion.noSession.detail') }}</p>
-  <a routerLink="/login">{{ i18n.t('sinSeccion.noSession.goToLogin') }}</a>
+  <h1 class="text-[1.2rem]">{{ i18n.t('sinSeccion.noSession.title') }}</h1>
+  <p class="leading-[1.6] text-muted-foreground">{{ i18n.t('sinSeccion.noSession.detail') }}</p>
+  <a hlmBtn routerLink="/login" class="mt-1.5">{{ i18n.t('sinSeccion.noSession.goToLogin') }}</a>
   }
 </section>

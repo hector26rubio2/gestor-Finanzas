@@ -1,3 +1,4 @@
+import { HlmInput } from '@spartan-ng/helm/input';
 import { Component, Input, OnInit, inject, signal } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
@@ -15,9 +16,8 @@ import { FieldComponent } from '../../ui/field';
 @Component({
   selector: 'fin-movement-currency-fields',
   standalone: true,
-  imports: [FormsModule, NumericInputDirective, FieldComponent],
+  imports: [HlmInput, FormsModule, NumericInputDirective, FieldComponent],
   templateUrl: './movement-currency-fields.html',
-  styleUrl: './movement-currency-fields.css',
   host: { style: 'display: contents' },
   // El `<form>` vive en el orquestador: sin esto, el ngModel de este componente
   // registra su propio NgForm aislado en vez de sumarse al del padre.

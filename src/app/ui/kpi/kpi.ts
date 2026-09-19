@@ -3,15 +3,14 @@ import { I18nService } from '../../core/i18n';
 import { IconComponent, IconName } from '../icon';
 import { ChartComponent } from '../chart';
 import { ChartThemeService } from '../chart-theme';
+import { KpiGridContext } from '../kpi-grid/kpi-grid';
 
 @Component({
   selector: 'fin-kpi',
-  standalone: true,
   imports: [ChartComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi.html',
-  styleUrl: './kpi.css',
-  host: { '[class.bare]': 'bare()' },
+  host: { '[class]': 'hostClass()' },
 })
 export class KpiComponent {
   readonly i18n = inject(I18nService);
@@ -20,6 +19,8 @@ export class KpiComponent {
   readonly hint = input('');
   /** Sin su propio borde/fondo/relleno, para vivir dentro de una tarjeta que ya los pone. */
   readonly bare = input(false);
+  readonly compact = input(false);
+  private readonly grid = inject(KpiGridContext, { optional: true });
   /** Icono del chip. Sin nombre, la tarjeta no dibuja chip: no todas lo necesitan. */
   readonly icon = input<IconName | ''>('');
   /** Color del chip. «accent» por defecto; «success»/«danger» para ingresos y gastos. */
@@ -35,6 +36,25 @@ export class KpiComponent {
   readonly subirEsBueno = input(true);
 
   private readonly tema = inject(ChartThemeService);
+
+  readonly hostClass = computed(() => {
+    const base = 'flex min-w-0 flex-col justify-center gap-1.5 text-foreground';
+    if (this.bare()) return `${base} min-h-0 flex-1 items-center border-0 bg-transparent p-0 text-center`;
+    const shape =
+      this.compact() || this.grid?.compact() ? 'min-h-[50px] px-3.5 py-2.5' : 'min-h-[100px] px-5 py-[18px]';
+    return `${base} ${shape} rounded-lg border border-border bg-card`;
+  });
+  readonly chipClass = computed(() => {
+    const tone = this.tone();
+    if (tone === 'success') return 'bg-success/15 text-success';
+    if (tone === 'danger') return 'bg-destructive/15 text-destructive';
+    return 'bg-accent text-primary';
+  });
+  readonly deltaClass = computed(() => {
+    if (this.mejora()) return 'bg-accent text-primary';
+    if (this.empeora()) return 'bg-destructive/12 text-destructive';
+    return 'bg-accent text-muted-foreground';
+  });
 
   readonly mejora = computed(() => {
     const valor = this.delta();

@@ -1,5 +1,5 @@
 <fin-overlay [title]="i18n.t('form.account.title.create')" mode="modal" (closed)="closed()"
-  ><form (ngSubmit)="save()">
+  ><form class="grid grid-cols-2 gap-[18px] max-[500px]:grid-cols-1" (ngSubmit)="save()">
     <fin-field [label]="i18n.t('form.account.field.type')">
       <fin-select
         name="type"
@@ -9,7 +9,7 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.name')">
-      <input name="name" [(ngModel)]="name" required />
+      <input hlmInput name="name" [(ngModel)]="name" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.currency')">
       <fin-select
@@ -20,24 +20,24 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.opening')">
-      <input name="opening" [(ngModel)]="opening" type="number" />
+      <input hlmInput name="opening" [(ngModel)]="opening" type="number" />
     </fin-field>
     @if (currency === 'USD') {
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
-      <input name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
+      <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
     </fin-field>
     } @if (type === 'credit') {
     <fin-field [label]="i18n.t('form.account.field.limit')">
-      <input name="limit" [(ngModel)]="limit" type="number" min="1" required />
+      <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.cutDay')">
-      <input name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required />
+      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.dueDay')">
-      <input name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
+      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.annualRate')">
-      <input name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01" />
+      <input hlmInput name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01" />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentOrder')">
       <fin-select
@@ -49,22 +49,29 @@
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
       <ol
-        class="priority-list"
+        class="grid gap-2"
         [attr.aria-label]="i18n.t('form.account.field.paymentPriorityAria')"
         (dragover)="$event.preventDefault()"
       >
         @for (item of paymentPriorityOrder(); track item; let i = $index, first = $first, last = $last) {
         <li
+          class="flex cursor-grab items-center gap-2.5 rounded-md border border-border bg-card px-2.5 py-2 active:cursor-grabbing"
           draggable="true"
           (dragstart)="startDragPriority(i)"
           (dragover)="$event.preventDefault()"
           (drop)="dropPriority(i)"
         >
-          <fin-icon name="grip" class="priority-grip" />
-          <span class="priority-rank">{{ i + 1 }}</span>
-          <span class="priority-label">{{ priorityLabels()[item] }}</span>
-          <span class="priority-actions">
+          <fin-icon name="grip" class="flex-none text-muted-foreground" />
+          <span
+            class="grid size-[22px] flex-none place-items-center rounded-full bg-accent text-[0.72rem] font-bold text-primary"
+            >{{ i + 1 }}</span
+          >
+          <span class="flex-1 text-[0.86rem] font-medium text-foreground">{{ priorityLabels()[item] }}</span>
+          <span class="flex flex-none gap-1">
             <button
+              hlmBtn
+              variant="outline"
+              size="icon-xs"
               type="button"
               [disabled]="first"
               (click)="movePriority(i, -1)"
@@ -73,6 +80,9 @@
               <fin-icon name="chevronUp" />
             </button>
             <button
+              hlmBtn
+              variant="outline"
+              size="icon-xs"
               type="button"
               [disabled]="last"
               (click)="movePriority(i, 1)"
@@ -84,19 +94,22 @@
         </li>
         }
       </ol>
-      <small class="priority-hint">{{ i18n.t('form.account.priorityHint') }}</small>
+      <small class="text-[0.72rem] text-muted-foreground">{{ i18n.t('form.account.priorityHint') }}</small>
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.minimumPayment')">
-      <input name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" />
+      <input hlmInput name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" />
     </fin-field>
     }
-    <p>{{ i18n.t('form.account.hint.opening') }}</p>
+    <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
+      {{ i18n.t('form.account.hint.opening') }}
+    </p>
     @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
+    <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }
-    <footer>
-      <button type="button" (click)="closed()">{{ i18n.t('form.actions.cancel') }}</button
-      ><button class="primary" type="submit" [disabled]="actions.isRunning(saveActionKey)">
+    <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+      <button hlmBtn variant="outline" size="lg" type="button" (click)="closed()">
+        {{ i18n.t('form.actions.cancel') }}</button
+      ><button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
         {{ actions.isRunning(saveActionKey) ? i18n.t('form.account.actions.creating') :
         i18n.t('form.account.actions.create') }}
       </button>

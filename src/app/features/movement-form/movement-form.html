@@ -1,5 +1,5 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
-  ><form (ngSubmit)="submit()">
+  ><form class="flex flex-col gap-[22px]" (ngSubmit)="submit()">
     @let vis = visibility();
     <fin-movement-kind-selector
       [kind]="model['kind']"
@@ -8,7 +8,9 @@
       (kindChange)="setKind($event)"
     />
     @if (!model['kind']) {
-    <p class="hint">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
+    <p class="px-1 py-[22px] text-center text-[0.88rem] text-muted-foreground">
+      {{ i18n.t('form.movement.chooseTypeHint') }}
+    </p>
     } @else {
     <fin-field [label]="i18n.t('form.movement.field.operationType')">
       <fin-select
@@ -19,7 +21,7 @@
         [ariaLabel]="i18n.t('form.movement.field.operationType')"
       />
     </fin-field>
-    <div class="form-grid">
+    <div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
       <fin-movement-core-fields [model]="model" [kind]="effectiveKind()" [showTargetAccount]="vis.showTargetAccount" />
       @if (vis.showCategory) {
       <fin-movement-category-field [model]="model" [kind]="effectiveKind()" />
@@ -34,12 +36,13 @@
       }
     </div>
     } @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
+    <p class="text-destructive" role="alert">{{ error() }}</p>
     }
-    <footer>
-      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button>@if
-      (model['kind']) {
-      <button class="primary" type="submit" [disabled]="actions.isRunning(saveActionKey)">
+    <footer class="flex justify-end gap-2.5 border-t border-border pt-[18px]">
+      <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
+        {{ i18n.t('form.actions.cancel') }}</button
+      >@if (model['kind']) {
+      <button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
         {{ actions.isRunning(saveActionKey) ? i18n.t('form.movement.actions.saving') :
         i18n.t('form.movement.actions.save') }}
       </button>

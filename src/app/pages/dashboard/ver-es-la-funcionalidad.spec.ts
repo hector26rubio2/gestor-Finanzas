@@ -74,7 +74,7 @@ describe('«ver» es la funcionalidad entera', () => {
     fixture.detectChanges();
 
     const raiz = fixture.nativeElement as HTMLElement;
-    expect(raiz.querySelector('.sin-acceso')).toBeNull();
+    expect(raiz.querySelector('[data-slot="sin-acceso"]')).toBeNull();
     expect(raiz.textContent ?? '').toContain('Gastos');
   });
 
@@ -84,7 +84,7 @@ describe('«ver» es la funcionalidad entera', () => {
     fixture.detectChanges();
 
     const raiz = fixture.nativeElement as HTMLElement;
-    expect(raiz.querySelector('.sin-acceso')).toBeNull();
+    expect(raiz.querySelector('[data-slot="sin-acceso"]')).toBeNull();
     expect(raiz.querySelector('fin-table')).not.toBeNull();
     expect(fixture.componentInstance.algunKpi()).toBe(false);
   });
@@ -96,7 +96,7 @@ describe('«ver» es la funcionalidad entera', () => {
 
     const titulos = fixture.componentInstance.widgets().map((w) => w.title);
     expect(titulos).toEqual(['Gastos por categoría']);
-    expect((fixture.nativeElement as HTMLElement).querySelector('.sin-acceso')).toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-slot="sin-acceso"]')).toBeNull();
   });
 
   it('sin ninguna pieza del panel se explica, en vez de dejarlo en blanco', () => {
@@ -105,6 +105,6 @@ describe('«ver» es la funcionalidad entera', () => {
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
 
-    expect((fixture.nativeElement as HTMLElement).querySelector('.sin-acceso')).not.toBeNull();
+    expect((fixture.nativeElement as HTMLElement).querySelector('[data-slot="sin-acceso"]')).not.toBeNull();
   });
 });

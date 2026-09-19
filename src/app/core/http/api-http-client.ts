@@ -1,6 +1,7 @@
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
 import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
+import { I18nService } from '../i18n';
 import { RUNTIME_CONFIG } from '../runtime';
 import { API_ROUTES } from '../api/api-routes';
 
@@ -52,6 +53,7 @@ export class ApiRequestError extends Error {
 export class HttpApiTransport implements ApiTransport {
   private readonly http = inject(HttpClient);
   private readonly config = inject(RUNTIME_CONFIG);
+  private readonly i18n = inject(I18nService);
   private csrfToken: string | null = null;
   private csrfInFlight: Observable<string> | null = null;
 
@@ -90,10 +92,15 @@ export class HttpApiTransport implements ApiTransport {
         )
       : send();
 
-    return response$.pipe(
-      catchError((error: HttpErrorResponse) =>
-        throwError(() => new ApiRequestError(error.status, (error.error ?? {}) as ApiProblem)),
-      ),
+    return response$.pipe(catchError((error: HttpErrorResponse) => throwError(() => this.toRequestError(error))));
+  }
+
+  private toRequestError(error: HttpErrorResponse): ApiRequestError {
+    const problem = (error.error ?? {}) as ApiProblem;
+    const denied = error.status === 403 && (!problem.code || problem.code === 'authorization.denied');
+    return new ApiRequestError(
+      error.status,
+      denied ? { ...problem, detail: this.i18n.t('errors.forbidden') } : problem,
     );
   }
 

@@ -1,3 +1,4 @@
+import { DateFieldComponent } from '../../../../ui/date-field/date-field';
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -18,6 +19,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
 @Component({
   selector: 'app-admin-audit-tab',
   imports: [
+    DateFieldComponent,
     DatePipe,
     FormsModule,
     HlmButton,
@@ -62,11 +64,11 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             />
             <label hlmLabel class="flex items-start flex-col gap-1">
               <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.from') }}</span>
-              <input hlmInput type="date" [ngModel]="from()" (ngModelChange)="update('from', $event)" />
+              <fin-date-field [ngModel]="from()" (ngModelChange)="update('from', $event)" />
             </label>
             <label hlmLabel class="flex items-start flex-col gap-1">
               <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.to') }}</span>
-              <input hlmInput type="date" [ngModel]="to()" (ngModelChange)="update('to', $event)" />
+              <fin-date-field [ngModel]="to()" (ngModelChange)="update('to', $event)" />
             </label>
           </div>
           @if (hasFilters()) {

@@ -67,6 +67,32 @@ describe('FinanceApiClient', () => {
     });
   });
 
+  it('explains a permission denial in plain words instead of the raw problem', async () => {
+    const promise = firstValueFrom(api.session());
+    http
+      .expectOne('https://api.example.test/api/v1/session')
+      .flush({ title: 'Forbidden', code: 'authorization.denied' }, { status: 403, statusText: 'Forbidden' });
+    await expect(promise).rejects.toMatchObject({
+      status: 403,
+      message: expect.stringContaining('permiso'),
+    });
+  });
+
+  it('keeps the server detail when the 403 is about the organization, not about permissions', async () => {
+    const promise = firstValueFrom(api.session());
+    http.expectOne('https://api.example.test/api/v1/session').flush(
+      {
+        title: 'Organización',
+        detail: 'La organización solicitada no pertenece a la sesión activa.',
+        code: 'organization.denied',
+      },
+      { status: 403, statusText: 'Forbidden' },
+    );
+    await expect(promise).rejects.toMatchObject({
+      message: 'La organización solicitada no pertenece a la sesión activa.',
+    });
+  });
+
   it('uses the published calendar query contract', async () => {
     const promise = firstValueFrom(api.projectedCalendar('2026-09-01', '2026-09-30'));
     const request = http.expectOne(

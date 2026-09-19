@@ -1,3 +1,4 @@
+import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { I18nService } from '../../../core/i18n';
 import { IconComponent, IconName } from '../../../ui/icon';
@@ -25,10 +26,8 @@ export interface CustomKpiCardConfig extends KpiCardConfig {
  */
 @Component({
   selector: 'fin-kpi-strip',
-  standalone: true,
-  imports: [KpiComponent, IconComponent],
+  imports: [HlmButton, KpiComponent, IconComponent],
   templateUrl: './kpi-strip.html',
-  styleUrl: './kpi-strip.css',
   host: { style: 'display: contents' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

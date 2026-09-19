@@ -1,10 +1,16 @@
 <ngx-sonner-toaster position="top-right" theme="system" richColors closeButton />
 <ng-template #cargando>
-  <div class="cargando" role="status" aria-live="polite">
-    <fin-icon name="dashboard" class="cargando-marca" />
-    <b>Finanzas</b>
-    <p>{{ i18n.t('shell.loading') }}</p>
-    <span class="cargando-barra"><i></i></span>
+  <div
+    class="grid min-h-dvh content-center justify-items-center gap-2.5 bg-background p-6 text-foreground"
+    role="status"
+    aria-live="polite"
+  >
+    <fin-icon name="dashboard" class="text-primary [--icon-size:34px]" />
+    <b class="font-display text-[1.3rem] leading-[1.1] font-bold tracking-[-0.02em]">Finanzas</b>
+    <p class="text-[0.86rem] text-muted-foreground">{{ i18n.t('shell.loading') }}</p>
+    <hlm-progress class="mt-2 h-0.5 w-[min(220px,60vw)]">
+      <hlm-progress-indicator class="w-2/5 motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-55" />
+    </hlm-progress>
   </div>
 </ng-template>
 @if (cargandoSesion()) {
@@ -12,65 +18,107 @@
 } @else if (!store.user() || enLogin()) {
 <router-outlet />
 } @else { @defer (on immediate) {
-<a class="saltar-al-contenido" href="#contenido-principal">{{ i18n.t('shell.skipToContent') }}</a>
-<div hlmSidebarWrapper sidebarWidth="238px" sidebarWidthIcon="70px" class="app" [class.collapsed]="collapsed()">
+<a
+  class="absolute top-2 left-2 z-[200] -translate-y-[calc(100%+24px)] rounded-lg bg-primary px-4 py-2.5 font-semibold text-primary-foreground no-underline transition-transform duration-[140ms] ease-out focus-visible:translate-y-0"
+  href="#contenido-principal"
+  >{{ i18n.t('shell.skipToContent') }}</a
+>
+<div
+  hlmSidebarWrapper
+  sidebarWidth="238px"
+  sidebarWidthIcon="70px"
+  class="group/app flex min-h-dvh"
+  [attr.data-collapsed]="collapsed()"
+>
   <hlm-sidebar collapsible="icon">
-    <aside class="sidebar-content" [class.collapsed]="collapsed()">
-      <div class="brand-row">
+    <aside class="flex h-full w-full flex-col overflow-x-hidden px-3 py-[18px]">
+      <div
+        class="mx-0.5 mb-3 flex min-h-10 items-center group-data-[collapsed=true]/app:mb-2.5 group-data-[collapsed=true]/app:flex-col group-data-[collapsed=true]/app:gap-1.5"
+      >
         <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
           type="button"
-          class="brand-toggle"
+          class="p-1 text-primary"
           [attr.aria-expanded]="menuAbierto()"
           aria-controls="primary-navigation"
           [attr.aria-label]="menuAbierto() ? i18n.t('shell.collapseMenu') : i18n.t('shell.expandMenu')"
           (click)="alternarMenu()"
         >
-          <fin-icon name="dashboard" class="brand-mark" />
+          <fin-icon name="dashboard" class="[--icon-size:22px]" />
         </button>
-        <a routerLink="/dashboard" class="brand aside-label" [attr.aria-label]="i18n.t('shell.goHome')"
+        <a
+          routerLink="/dashboard"
+          class="flex min-w-0 items-center gap-2.5 px-1.5 py-1 text-[1.14rem] text-foreground no-underline group-data-[collapsed=true]/app:hidden"
+          [attr.aria-label]="i18n.t('shell.goHome')"
           ><b>Finanzas</b></a
         >
       </div>
-      <div class="profile">
+      <div class="mx-0.5 mb-[7px]">
         <button
-          class="profile-trigger"
+          data-slot="profile-trigger"
           type="button"
+          class="flex w-full items-center gap-[9px] rounded-[11px] border border-transparent bg-transparent p-[7px] text-start text-foreground hover:bg-accent group-data-[collapsed=true]/app:justify-center group-data-[collapsed=true]/app:px-0 group-data-[collapsed=true]/app:py-1.5"
           [hlmDropdownMenuTrigger]="profileMenu"
           align="start"
           side="right"
           [attr.aria-label]="i18n.t('shell.profile')"
         >
-          @if (store.user()?.photoUrl) {
-          <img class="avatar" [src]="store.user()?.photoUrl" alt="" referrerpolicy="no-referrer" />
-          } @else {
-          <span class="avatar">{{ userInitials() }}</span>
-          }
-          <span class="profile-copy aside-label"
-            ><strong>{{ store.user()?.name }}</strong
-            ><small
+          <hlm-avatar class="size-[29px] flex-none rounded-[9px] after:rounded-[9px]">
+            @if (store.user()?.photoUrl) {
+            <img
+              hlmAvatarImage
+              class="rounded-[9px]"
+              [src]="store.user()?.photoUrl"
+              alt=""
+              referrerpolicy="no-referrer"
+            />
+            }
+            <span hlmAvatarFallback class="rounded-[9px] bg-accent text-[0.72rem] font-bold text-primary"
+              >{{ userInitials() }}</span
+            >
+          </hlm-avatar>
+          <span class="grid min-w-0 leading-[1.15] group-data-[collapsed=true]/app:hidden"
+            ><strong class="overflow-hidden text-[0.75rem] text-ellipsis whitespace-nowrap"
+              >{{ store.user()?.name }}</strong
+            ><small class="mt-[3px] text-[0.72rem] text-muted-foreground"
               >{{ espacioActivo() }} @if (store.organizations().length > 1) {
-              <b class="workspace-count">{{ store.organizations().length }}</b>
+              <b class="rounded-full bg-accent px-[7px] py-px font-bold text-primary"
+                >{{ store.organizations().length }}</b
+              >
               }</small
             ></span
           >
-          <fin-icon name="more" class="profile-more aside-label" />
+          <fin-icon
+            name="more"
+            class="ms-auto text-muted-foreground [--icon-size:16px] group-data-[collapsed=true]/app:hidden"
+          />
         </button>
       </div>
       <ng-template #profileMenu>
-        <div hlmDropdownMenu class="profile-menu">
-          <div hlmDropdownMenuLabel class="profile-menu-head">
-            <strong>{{ store.user()?.name }}</strong><small>{{ store.user()?.email }}</small>
+        <div hlmDropdownMenu class="min-w-[218px]">
+          <div hlmDropdownMenuLabel class="grid gap-0.5 border-b border-border px-2.5 pt-2 pb-2.5">
+            <strong>{{ store.user()?.name }}</strong
+            ><small class="overflow-hidden text-ellipsis text-muted-foreground">{{ store.user()?.email }}</small>
           </div>
           <a hlmDropdownMenuItem routerLink="/settings">{{ i18n.t('shell.profile') }}</a>
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
-      <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
+      <nav
+        id="primary-navigation"
+        class="min-h-0 overflow-auto [scrollbar-width:none]"
+        [attr.aria-label]="i18n.t('shell.primaryNav')"
+      >
         @for (group of groups(); track group) {
-        <small class="aside-label">{{ i18n.t('shell.group.' + group) }}</small>
-        <ul>
+        <small
+          class="block px-2.5 pt-3.5 pb-[7px] text-[0.72rem] font-bold tracking-[0.08em] text-muted-foreground group-data-[collapsed=true]/app:hidden"
+          >{{ i18n.t('shell.group.' + group) }}</small
+        >
+        <ul hlmSidebarMenu>
           @for (item of items(group); track item.path) {
-          <li>
+          <li hlmSidebarMenuItem>
             <a
               hlmSidebarMenuButton
               [tooltip]="i18n.t('nav.' + item.path)"
@@ -81,13 +129,14 @@
               routerLinkActive="active"
               [attr.aria-label]="i18n.t('nav.' + item.path)"
               (click)="sidebar.setOpenMobile(false)"
-              ><fin-icon class="nav-icon" [name]="item.icon" /><span class="aside-label"
+              ><fin-icon [name]="item.icon" class="[--icon-size:19px]" /><span
+                class="group-data-[collapsed=true]/app:hidden"
                 >{{ i18n.t('nav.' + item.path) }}</span
               >
-              @if (item.path === 'notifications' && store.unread()) {
-              <i>{{ store.unread() }}</i>
-              }
             </a>
+            @if (item.path === 'notifications' && store.unread()) {
+            <span hlmSidebarMenuBadge>{{ store.unread() }}</span>
+            }
           </li>
           }
         </ul>
@@ -95,35 +144,65 @@
       </nav>
     </aside>
   </hlm-sidebar>
-  <section class="stage">
-    <header class="topbar">
+  <section class="flex min-h-dvh min-w-0 flex-1 flex-col">
+    <header
+      data-slot="topbar"
+      class="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background/90 px-7 backdrop-blur-[14px] max-[780px]:px-3.5"
+    >
       <button
-        class="menu-toggle"
+        hlmBtn
+        variant="outline"
+        size="icon"
         type="button"
+        class="mr-2.5 hidden text-primary max-[780px]:inline-flex"
         [attr.aria-expanded]="menuAbierto()"
         aria-controls="primary-navigation"
         [attr.aria-label]="menuAbierto() ? i18n.t('shell.closeMenu') : i18n.t('shell.openMenu')"
         (click)="alternarMenu()"
       >
-        <fin-icon [name]="mobileOpen() ? 'close' : 'menu'" /></button
-      ><span class="org"><fin-icon name="organization" /> {{ espacioActivo() }}</span>
-      <div class="top-actions">
-        <button [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
-          <fin-icon name="search" /></button
-        ><a routerLink="/notifications" class="bell" [attr.aria-label]="i18n.t('nav.notifications')"
-          ><fin-icon name="notifications" />
+        <fin-icon [name]="mobileOpen() ? 'close' : 'menu'" class="[--icon-size:18px]" /></button
+      ><span class="inline-flex items-center gap-[7px] text-[0.82rem] max-[780px]:hidden"
+        ><fin-icon name="organization" class="[--icon-size:18px]" /> {{ espacioActivo() }}</span
+      >
+      <div class="ms-auto flex items-center gap-[9px]">
+        <button hlmBtn variant="outline" size="icon" [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
+          <fin-icon name="search" class="[--icon-size:18px]" /></button
+        ><a
+          hlmBtn
+          variant="outline"
+          size="icon"
+          routerLink="/notifications"
+          class="relative"
+          [attr.aria-label]="i18n.t('nav.notifications')"
+          ><fin-icon name="notifications" class="[--icon-size:18px]" />
           @if (store.unread()) {
-          <i>{{ store.unread() }}</i>
+          <span
+            class="absolute -top-1.5 -right-[5px] rounded-full bg-primary px-[5px] py-0.5 text-[0.72rem] text-primary-foreground"
+            >{{ store.unread() }}</span
+          >
           }
         </a>
         @if (caps.allows(P.movimientos.crear)) {
-        <button class="primary" [attr.aria-label]="i18n.t('shell.newMovement')" (click)="store.open()">
-          <fin-icon name="plus" /><span class="primary-label">{{ i18n.t('shell.newMovement') }}</span>
+        <button
+          hlmBtn
+          class="px-3 font-semibold"
+          [attr.aria-label]="i18n.t('shell.newMovement')"
+          (click)="store.open()"
+        >
+          <fin-icon name="plus" class="[--icon-size:18px]" /><span class="max-[780px]:hidden"
+            >{{ i18n.t('shell.newMovement') }}</span
+          >
         </button>
         }
       </div>
     </header>
-    <main id="contenido-principal" tabindex="-1"><router-outlet /></main>
+    <main
+      id="contenido-principal"
+      tabindex="-1"
+      class="min-w-0 flex-1 px-7 py-6 max-[780px]:px-3.5 max-[780px]:py-[18px]"
+    >
+      <router-outlet />
+    </main>
   </section>
 </div>
 @defer (when abreFormularioDeMovimiento()) { @if (abreFormularioDeMovimiento()) {

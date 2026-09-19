@@ -1,39 +1,51 @@
 <section
-  class="filter-panel"
+  class="rounded-lg border border-border bg-card px-6 py-[22px] shadow-pop"
   aria-labelledby="filters-title"
   brnCollapsible
   [expanded]="filtersExpanded()"
   (expandedChange)="filtersExpanded.set($event)"
 >
-  <header>
+  <header class="flex flex-wrap items-end justify-between gap-5">
     <div>
-      <h2 id="filters-title">{{ i18n.t('dashboard.filters.title') }}</h2>
-      <p class="summary">
+      <h2 id="filters-title" class="my-1 text-base">{{ i18n.t('dashboard.filters.title') }}</h2>
+      <p class="mt-3 text-[0.72rem] text-muted-foreground">
         {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
       </p>
     </div>
-    <div class="filter-actions">
-      <button class="quiet" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
+    <div class="flex items-center gap-2">
+      <button hlmBtn variant="outline" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
         {{ i18n.t('dashboard.filters.clear') }}
       </button>
       <button
-        class="quiet filter-toggle"
+        hlmBtn
+        variant="outline"
         type="button"
         brnCollapsibleTrigger
         [attr.aria-label]="i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open')"
       >
         {{ i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open') }}
-        <span aria-hidden="true">{{ filtersExpanded() ? '⌃' : '⌄' }}</span>
+        <fin-icon [name]="filtersExpanded() ? 'chevronUp' : 'chevronDown'" />
       </button>
     </div>
   </header>
-  <div class="filters" brnCollapsibleContent>
-    <fieldset>
-      <legend>{{ i18n.t('dashboard.filters.period.legend') }}</legend>
+  <div
+    class="mt-4 grid grid-cols-[1.2fr_repeat(4,minmax(130px,1fr))] items-end gap-3 data-[state=closed]:hidden max-[1200px]:grid-cols-[repeat(2,minmax(0,1fr))] max-[470px]:grid-cols-1 [&>*]:min-w-0"
+    brnCollapsibleContent
+  >
+    <fieldset
+      class="m-0 mt-1.5 grid grid-cols-4 gap-0.5 rounded-[10px] border-0 bg-muted p-1 max-[1200px]:col-span-full max-[470px]:col-auto"
+    >
+      <legend class="text-[0.72rem] font-semibold text-muted-foreground">
+        {{ i18n.t('dashboard.filters.period.legend') }}
+      </legend>
       @for (item of scales(); track item.value) {
       <button
+        hlmBtn
+        variant="ghost"
+        size="sm"
         type="button"
-        [class.active]="scale() === item.value"
+        class="px-[5px] data-[active=true]:bg-primary data-[active=true]:text-primary-foreground data-[active=true]:hover:bg-primary"
+        [attr.data-active]="scale() === item.value"
         [attr.aria-pressed]="scale() === item.value"
         (click)="scaleChange.emit(item.value)"
       >
@@ -41,31 +53,51 @@
       </button>
       }
     </fieldset>
-    <div class="period-nav" [attr.aria-label]="i18n.t('dashboard.filters.period.nav')">
+    <div
+      class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
+      [attr.aria-label]="i18n.t('dashboard.filters.period.nav')"
+    >
       <span>{{ i18n.t('dashboard.filters.period.active') }}</span>
-      <div class="period-picker" [class.open]="periodPickerOpen()">
-        <button
-          type="button"
-          [attr.aria-label]="i18n.t('dashboard.filters.period.prev')"
-          (click)="shiftPeriod.emit(-1)"
+      <hlm-popover [state]="periodPickerOpen() ? 'open' : 'closed'" (stateChanged)="onPickerState($event)">
+        <div
+          class="mt-1.5 grid grid-cols-[34px_minmax(130px,1fr)_34px] items-center rounded-[10px] border border-border bg-muted"
         >
-          ‹</button
-        ><button
-          type="button"
-          class="period-label"
-          [attr.aria-expanded]="periodPickerOpen()"
-          aria-haspopup="true"
-          (click)="togglePeriodPicker.emit()"
-        >
-          {{ periodShortLabel() }}
-        </button>
-        <button type="button" [attr.aria-label]="i18n.t('dashboard.filters.period.next')" (click)="shiftPeriod.emit(1)">
-          ›
-        </button>
-        @if (periodPickerOpen()) {
-        <div class="period-picker-menu">
-          <label
+          <button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            type="button"
+            class="rounded-none rounded-l-[10px] p-2"
+            [attr.aria-label]="i18n.t('dashboard.filters.period.prev')"
+            (click)="shiftPeriod.emit(-1)"
+          >
+            ‹</button
+          ><button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            hlmPopoverTrigger
+            class="rounded-none text-[0.76rem] font-semibold data-[state=open]:text-primary"
+            aria-haspopup="true"
+          >
+            {{ periodShortLabel() }}
+          </button>
+          <button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            type="button"
+            class="rounded-none rounded-r-[10px] p-2"
+            [attr.aria-label]="i18n.t('dashboard.filters.period.next')"
+            (click)="shiftPeriod.emit(1)"
+          >
+            ›
+          </button>
+        </div>
+        <div *hlmPopoverPortal="let ctx" hlmPopoverContent class="grid w-64 gap-2.5 p-3">
+          <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
             >{{ i18n.t('dashboard.period.year') }}<input
+              hlmInput
               type="text"
               inputmode="numeric"
               autocomplete="off"
@@ -74,7 +106,7 @@
               [attr.aria-label]="i18n.t('dashboard.period.year')"
           /></label>
           @if (scale() === 'month' || scale() === 'week' || scale() === 'day') {
-          <label
+          <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
             >{{ i18n.t('dashboard.period.month') }}<fin-select
               [ngModel]="anchorMonth()"
               (ngModelChange)="monthChange.emit($event)"
@@ -82,7 +114,7 @@
               [ariaLabel]="i18n.t('dashboard.period.month')"
           /></label>
           } @if (scale() === 'week') {
-          <label
+          <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
             >{{ i18n.t('dashboard.period.week') }}<fin-select
               [ngModel]="anchorWeekOfMonth()"
               (ngModelChange)="weekOfMonthChange.emit($event)"
@@ -90,8 +122,9 @@
               [ariaLabel]="i18n.t('dashboard.filters.period.weekOfMonth')"
           /></label>
           } @if (scale() === 'day') {
-          <label
+          <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
             >{{ i18n.t('dashboard.period.day') }}<input
+              hlmInput
               type="text"
               inputmode="numeric"
               autocomplete="off"
@@ -100,28 +133,27 @@
               [attr.aria-label]="i18n.t('dashboard.period.day')"
           /></label>
           }
-          <button type="button" class="quiet" (click)="closePeriodPicker.emit()">
+          <button hlmBtn variant="outline" type="button" (click)="closePeriodPicker.emit()">
             {{ i18n.t('dashboard.filters.period.close') }}
           </button>
         </div>
-        }
-      </div>
+      </hlm-popover>
     </div>
-    <label
+    <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
       >{{ i18n.t('dashboard.filters.account.label') }}<fin-select
         [ngModel]="accountId()"
         (ngModelChange)="accountIdChange.emit($event)"
         [options]="accountSelectOptions()"
         [ariaLabel]="i18n.t('dashboard.filters.account.ariaLabel')"
     /></label>
-    <label
+    <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
       >{{ i18n.t('dashboard.filters.accountType.label') }}<fin-select
         [ngModel]="accountType()"
         (ngModelChange)="accountTypeChange.emit($event)"
         [options]="accountTypeOptions()"
         [ariaLabel]="i18n.t('dashboard.filters.accountType.ariaLabel')"
     /></label>
-    <label
+    <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
       >{{ i18n.t('dashboard.filters.category.label') }}<fin-select
         [ngModel]="globalCategory()"
         (ngModelChange)="globalCategoryChange.emit($event)"
@@ -129,7 +161,7 @@
         [ariaLabel]="i18n.t('dashboard.filters.category.ariaLabel')"
     /></label>
   </div>
-  <p class="summary" role="status" aria-live="polite">
+  <p class="mt-3 text-[0.72rem] text-muted-foreground" role="status" aria-live="polite">
     {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
   </p>
 </section>

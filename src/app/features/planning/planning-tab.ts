@@ -1,5 +1,10 @@
+import { DateFieldComponent } from '../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
@@ -8,11 +13,10 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
 
 @Component({
   selector: 'app-planning-tab',
-  standalone: true,
-  imports: [FormsModule],
+  imports: [DateFieldComponent, FormsModule, NgTemplateOutlet, HlmInput, HlmTabsImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './planning-tab.html',
-  styleUrl: './planning-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class PlanningTabComponent {
   readonly store = inject(AppStore);

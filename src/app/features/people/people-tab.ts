@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
+import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
+import { TableZoneComponent } from '../../ui/table-zone/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
@@ -8,11 +11,10 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
 
 @Component({
   selector: 'app-people-tab',
-  standalone: true,
-  imports: [DataTableComponent, KpiComponent],
+  imports: [DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './people-tab.html',
-  styleUrl: '../../pages/workspace/workspace.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class PeopleTabComponent {
   readonly store = inject(AppStore);

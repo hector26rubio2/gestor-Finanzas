@@ -210,7 +210,7 @@ async function exerciseInteractions(page) {
   // El primer chip es "Todas" (solo filtra, no abre nada); el segundo es la primera
   // cuenta real, y ese sí abre el inspector — igual que antes lo hacía `.bank-card`,
   // cuando el carrusel de tarjetas grandes vivía en esta misma página.
-  const cardTrigger = page.locator('.switch-chip').nth(1);
+  const cardTrigger = page.locator('[role="tab"]').nth(1);
   await cardTrigger.focus();
   await cardTrigger.press('Enter');
   const inspector = page.locator('[data-slot="sheet-content"]');

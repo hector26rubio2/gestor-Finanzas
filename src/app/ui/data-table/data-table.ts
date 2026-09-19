@@ -13,6 +13,8 @@ import {
   untracked,
 } from '@angular/core';
 import { Router } from '@angular/router';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmTableImports } from '@spartan-ng/helm/table';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { sincronizarPaginaConLaUrl } from '../../core/url-state';
@@ -36,11 +38,13 @@ export interface TableColumn {
 
 @Component({
   selector: 'fin-table',
-  standalone: true,
-  imports: [FormsModule, CommonModule, IconComponent, UiSelectComponent],
+  imports: [FormsModule, CommonModule, HlmButton, HlmTableImports, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
-  styleUrl: './data-table.css',
+  host: {
+    class:
+      'flex min-h-0 min-w-0 flex-1 flex-col rounded-lg border border-border bg-card text-foreground max-[520px]:max-w-full max-[520px]:overflow-visible',
+  },
 })
 export class DataTableComponent {
   readonly i18n = inject(I18nService);
@@ -160,6 +164,10 @@ export class DataTableComponent {
   }
   setPageValue(value: string): void {
     this.setPage(Number(value));
+  }
+  detailClass(column: TableColumn, rowIndex: number): string {
+    if (column.essential !== false) return '';
+    return this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden';
   }
   display(value: unknown): string {
     return value == null ? '—' : String(value);

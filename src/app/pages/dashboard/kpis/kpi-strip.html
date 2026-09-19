@@ -1,4 +1,7 @@
-<section class="kpis" aria-label="Indicadores filtrados">
+<section
+  class="grid grid-cols-4 gap-4 max-[820px]:grid-cols-2 max-[470px]:grid-cols-1"
+  aria-label="Indicadores filtrados"
+>
   @for (kpi of fixedKpis(); track kpi.label) {
   <fin-kpi
     [label]="kpi.label"
@@ -11,7 +14,7 @@
     [subirEsBueno]="kpi.subirEsBueno"
   />
   } @for (kpi of customKpis(); track kpi.id) {
-  <div class="custom-kpi">
+  <div class="relative min-w-0">
     <fin-kpi
       [label]="kpi.label"
       [icon]="kpi.icon"
@@ -24,8 +27,11 @@
     />
     @if (canRemove()) {
     <button
+      hlmBtn
+      variant="ghost"
+      size="icon-xs"
       type="button"
-      class="quiet custom-kpi-remove"
+      class="absolute top-2 right-2"
       [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
       (click)="removeKpi.emit(kpi.id)"
     >
@@ -34,7 +40,13 @@
     }
   </div>
   } @if (canCreate()) {
-  <button type="button" class="add-kpi" (click)="openCreator.emit()">
+  <button
+    hlmBtn
+    variant="outline"
+    type="button"
+    class="min-h-[108px] justify-center gap-2 rounded-lg border-dashed text-muted-foreground hover:border-primary hover:bg-accent hover:text-primary"
+    (click)="openCreator.emit()"
+  >
     <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
   </button>
   }

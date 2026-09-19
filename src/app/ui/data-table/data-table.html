@@ -1,36 +1,50 @@
 <div
-  class="viewport"
+  class="min-h-0 flex-1 overflow-auto rounded-t-lg [scrollbar-width:thin] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary max-[520px]:overflow-visible max-[520px]:p-2.5"
   data-testid="table-scroll"
   tabindex="0"
   role="region"
   [attr.aria-label]="i18n.t('table.scrollRegion', { label: tableLabel() })"
 >
-  <table>
+  <table hlmTable class="border-separate border-spacing-0 text-left max-[520px]:block max-[520px]:w-full">
     <caption class="sr-only">
       {{ tableLabel() }}
     </caption>
-    <thead>
-      <tr>
+    <thead hlmTHead class="max-[520px]:sr-only">
+      <tr hlmTr class="border-0 hover:bg-transparent">
         @for (column of columns(); track column.key) {
-        <th scope="col">{{ column.label }}</th>
+        <th
+          hlmTh
+          scope="col"
+          class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold tracking-wide text-muted-foreground"
+        >
+          {{ column.label }}
+        </th>
         }
       </tr>
     </thead>
-    <tbody>
+    <tbody hlmTBody class="max-[520px]:grid max-[520px]:w-full max-[520px]:gap-2.5">
       @for (row of visibleRows(); track row; let rowIndex = $index) {
       <tr
-        [class.selectable]="selectable()"
-        [class.expanded]="isRowExpanded(rowIndex)"
+        hlmTr
+        class="max-[520px]:block max-[520px]:w-full max-[520px]:rounded-xl max-[520px]:border max-[520px]:border-border max-[520px]:px-3 max-[520px]:py-2"
+        [class]="selectable() ? 'cursor-pointer focus-within:bg-primary/[0.07] hover:bg-primary/[0.07]' : ''"
         (click)="selectable() && rowSelected.emit(row)"
       >
         @for (column of columns(); track column.key; let first = $first) {
-        <td [attr.data-label]="column.label" [class.detail-field]="column.essential === false">
+        <td
+          hlmTd
+          class="border-b border-border px-[18px] py-3.5 max-[520px]:grid max-[520px]:w-full max-[520px]:grid-cols-[minmax(92px,0.65fr)_1fr] max-[520px]:gap-3 max-[520px]:border-dashed max-[520px]:px-0 max-[520px]:py-2 max-[520px]:whitespace-normal max-[520px]:[overflow-wrap:anywhere] max-[520px]:before:text-[0.72rem] max-[520px]:before:font-semibold max-[520px]:before:text-muted-foreground max-[520px]:before:content-[attr(data-label)] max-[520px]:last:border-b-0"
+          [class]="detailClass(column, rowIndex)"
+          [attr.data-label]="column.label"
+        >
           @if (cellTemplate(column.key); as tpl) {
           <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row }" />
           } @else if (first && selectable()) {
           <button
+            hlmBtn
+            variant="ghost"
             type="button"
-            class="row-link"
+            class="h-auto justify-start p-0 text-start font-semibold hover:bg-transparent"
             (click)="$event.stopPropagation(); rowSelected.emit(row)"
             [attr.aria-label]="i18n.t('table.rowDetail', { value: display(row[column.key]) })"
           >
@@ -39,9 +53,12 @@
           } @else { {{ display(row[column.key]) }} }
         </td>
         } @if (hasDetailColumns()) {
-        <td class="detail-toggle">
+        <td hlmTd class="hidden border-0 max-[520px]:block max-[520px]:px-0 max-[520px]:pt-2 max-[520px]:pb-0">
           <button
+            hlmBtn
+            variant="ghost"
             type="button"
+            class="w-full text-[0.78rem] font-semibold text-primary"
             (click)="$event.stopPropagation(); toggleRow(rowIndex)"
             [attr.aria-expanded]="isRowExpanded(rowIndex)"
           >
@@ -51,29 +68,41 @@
         }
       </tr>
       } @empty {
-      <tr>
-        <td [attr.colspan]="columns().length || 1" class="empty">{{ i18n.t('table.empty') }}</td>
+      <tr hlmTr>
+        <td
+          hlmTd
+          [attr.colspan]="columns().length || 1"
+          class="px-4 py-12 text-center whitespace-normal text-muted-foreground"
+        >
+          {{ i18n.t('table.empty') }}
+        </td>
       </tr>
       }
     </tbody>
   </table>
 </div>
 @if (showFooter()) {
-<footer>
+<footer
+  class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground max-[520px]:sticky max-[520px]:bottom-0 max-[520px]:grid max-[520px]:justify-items-center max-[520px]:gap-3 max-[520px]:bg-card max-[520px]:px-3 max-[520px]:py-3.5"
+>
   <span [id]="rangeId" aria-live="polite"
     >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }}</span
   >
-  <label
-    >{{ i18n.t('table.rowsPerPage') }}
+  <label class="flex items-center gap-2.5">
+    {{ i18n.t('table.rowsPerPage') }}
     <fin-select
-      class="compact-select"
+      class="w-[84px]"
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions"
       [ngModel]="size().toString()"
       (ngModelChange)="setSizeValue($event)"
-  /></label>
-  <div class="pages">
+    />
+  </label>
+  <div class="flex items-center gap-2.5 max-[520px]:flex-wrap max-[520px]:justify-center max-[520px]:gap-2">
     <button
+      hlmBtn
+      variant="outline"
+      size="icon-sm"
       type="button"
       [attr.aria-label]="i18n.t('table.page.first')"
       [disabled]="currentPage() === 0"
@@ -82,37 +111,44 @@
       <fin-icon name="first" />
     </button>
     <button
+      hlmBtn
+      variant="outline"
+      size="icon-sm"
       type="button"
       [attr.aria-label]="i18n.t('table.page.previous')"
       [attr.aria-describedby]="rangeId"
       [disabled]="currentPage() === 0"
       (click)="setPage(currentPage() - 1)"
     >
-      <fin-icon name="previous" /></button
-    ><label class="page-jump"
-      >{{ i18n.t('table.page.label') }}
-      <!--
-            La seleccion va en la opcion, no en el select: [value] sobre el select se
-            aplica antes de que las opciones existan, y al llegar desde un enlace con
-            ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
-          -->
+      <fin-icon name="previous" />
+    </button>
+    <label class="flex items-center gap-2.5">
+      {{ i18n.t('table.page.label') }}
       <fin-select
-        class="compact-select"
+        class="w-[84px]"
         [ariaLabel]="i18n.t('table.page.goTo')"
         [options]="pageSelectOptions()"
         [ngModel]="currentPage().toString()"
         (ngModelChange)="setPageValue($event)"
       />
-      {{ i18n.t('table.page.ofTotal', { total: pageCount() }) }} </label
-    ><button
+      {{ i18n.t('table.page.ofTotal', { total: pageCount() }) }}
+    </label>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon-sm"
       type="button"
       [attr.aria-label]="i18n.t('table.page.next')"
       [attr.aria-describedby]="rangeId"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(currentPage() + 1)"
     >
-      <fin-icon name="next" /></button
-    ><button
+      <fin-icon name="next" />
+    </button>
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon-sm"
       type="button"
       [attr.aria-label]="i18n.t('table.page.last')"
       [disabled]="currentPage() + 1 >= pageCount()"

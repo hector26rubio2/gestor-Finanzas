@@ -4,11 +4,15 @@ import { IconComponent } from '../icon';
 
 @Component({
   selector: 'fin-empty',
-  standalone: true,
   imports: [IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './empty-state.html',
-  styleUrl: './empty-state.css',
+  host: { class: 'flex min-h-[180px] flex-col items-center justify-center p-6 text-center text-foreground' },
+  template: `
+    <fin-icon name="dashboard" class="text-3xl text-primary" />
+    <h3 class="mb-2 mt-3 text-base font-semibold">{{ title() }}</h3>
+    <p class="mb-4 max-w-[420px] text-sm leading-relaxed text-muted-foreground">{{ detail() }}</p>
+    <ng-content />
+  `,
 })
 export class EmptyStateComponent {
   readonly i18n = inject(I18nService);

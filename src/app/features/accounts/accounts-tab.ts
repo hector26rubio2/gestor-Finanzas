@@ -2,7 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
-import { IconComponent } from '../../ui/icon';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
+import { SearchFieldComponent } from '../../ui/search-field/search-field';
+import { TableZoneComponent } from '../../ui/table-zone/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { UiSelectComponent } from '../../ui/select';
 import { AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
@@ -10,11 +14,19 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
 
 @Component({
   selector: 'app-accounts-tab',
-  standalone: true,
-  imports: [FormsModule, DataTableComponent, KpiComponent, IconComponent, UiSelectComponent],
+  imports: [
+    FormsModule,
+    HlmButton,
+    DataTableComponent,
+    KpiComponent,
+    KpiGridComponent,
+    SearchFieldComponent,
+    TableZoneComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './accounts-tab.html',
-  styleUrl: './accounts-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class AccountsTabComponent {
   readonly Math = Math;

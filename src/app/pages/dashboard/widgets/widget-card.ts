@@ -15,10 +15,12 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  */
 @Component({
   selector: 'fin-widget-card',
-  standalone: true,
   templateUrl: './widget-card.html',
-  styleUrl: './widget-card.css',
-  host: { class: 'widget', role: 'article', '[class.wide]': 'wide()' },
+  host: {
+    class:
+      'flex min-h-[360px] min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card px-6 py-[22px] max-[700px]:col-auto',
+    '[class.col-span-full]': 'wide()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WidgetCardComponent {

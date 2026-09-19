@@ -1,34 +1,41 @@
-<article class="workspace-page" data-page="workspace">
-  <header class="page-head">
+<article
+  class="flex h-[calc(100dvh-112px)] min-h-[560px] flex-col gap-4 max-[700px]:h-auto max-[700px]:min-h-[calc(100dvh-100px)]"
+  data-page="workspace"
+>
+  <header class="flex flex-none flex-wrap items-end justify-between gap-x-[18px] gap-y-3 max-[700px]:items-start">
     <div>
-      <h1>{{ meta().title }}</h1>
-      <p>{{ meta().description }}</p>
+      <h1 class="my-1 font-display text-[clamp(1.7rem,2.6vw,2.5rem)]">{{ meta().title }}</h1>
+      <p class="text-[0.84rem] text-muted-foreground max-[700px]:hidden">{{ meta().description }}</p>
     </div>
-    <div class="head-actions">
+    <div class="flex flex-wrap items-center gap-2.5">
       @if (page() === 'accounts' && can(P.cuentas.crear)) {
-      <button (click)="store.form.set({ kind: 'account' })">
+      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'account' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}
       </button>
       } @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
-      <button class="secondary-action" (click)="store.form.set({ kind: 'category' })">
+      <button hlmBtn variant="outline" size="lg" class="text-primary" (click)="store.form.set({ kind: 'category' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newCategory') }}
       </button>
       } @if (page() === 'people' && can(P.personas.crear)) {
-      <button (click)="store.form.set({ kind: 'person' })">
+      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'person' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
       </button>
       } @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
-      <button (click)="store.form.set({ kind: 'investment' })">
+      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'investment' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
       </button>
       } @if (page() === 'reports' && can(P.reportes.exportar)) {
-      <button (click)="exportReport()"><fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}</button>
+      <button hlmBtn variant="outline" size="lg" (click)="exportReport()">
+        <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
+      </button>
       } @if (page() === 'movements' && can(P.movimientos.exportar)) {
-      <button class="secondary-action" (click)="exportMovements()">
+      <button hlmBtn variant="outline" size="lg" class="text-primary" (click)="exportMovements()">
         <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'notifications' && can(P.notificaciones.editar)) {
-      <button (click)="readAll()">{{ i18n.t('workspace.actions.markAllRead') }}</button>
+      <button hlmBtn variant="outline" size="lg" (click)="readAll()">
+        {{ i18n.t('workspace.actions.markAllRead') }}
+      </button>
       }
     </div>
   </header>
@@ -52,58 +59,52 @@
 <fin-management-form />
 }
 <ng-template #inspector
-  ><section class="detail">
-    <div class="detail-top" [class.split]="isAccountInspector() && selectedAccount()">
+  ><section class="flex flex-col gap-4">
+    <div
+      [class]="isAccountInspector() && selectedAccount() ? 'flex items-start gap-6 max-[700px]:flex-col' : 'flex flex-col gap-4'"
+    >
       @if (isAccountInspector() && selectedAccount(); as a) {
-      <div class="bank-card" [style.--card-color]="a.color">
-        <span class="bank-card-top">
-          <span class="bank-card-type"
-            >{{ a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ?
-            i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash') }}</span
-          >
-          <i class="bank-card-chip" aria-hidden="true"></i>
-        </span>
-        <em>{{ a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour') }}</em>
-        <span class="bank-card-bottom">
-          <b>{{ a.name }}</b>
-          <small
-            >{{ a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel') }}
-            <strong>{{ store.money(displayBalance(a)) }}</strong></small
-          >
-        </span>
-      </div>
+      <fin-bank-card
+        class="flex-[0_0_260px] max-w-[260px] max-[700px]:w-full max-[700px]:max-w-[320px]"
+        [color]="a.color ?? 'var(--accent)'"
+        [typeLabel]="a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ? i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash')"
+        [numberLabel]="a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour')"
+        [name]="a.name"
+        [balanceLabel]="a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel')"
+        [balance]="store.money(displayBalance(a))"
+      />
       }
-      <div class="detail-info">
-        <span class="amount">{{ inspectorAmount() }}</span>
-        <p>{{ inspectorSubtitle() }}</p>
+      <div class="min-w-0 flex-1">
+        <span class="block text-[2rem] font-bold text-primary">{{ inspectorAmount() }}</span>
+        <p class="text-muted-foreground">{{ inspectorSubtitle() }}</p>
         <dl>
           @for (item of inspectorFacts(); track item[0]) {
-          <div>
-            <dt>{{ item[0] }}</dt>
-            <dd>{{ item[1] }}</dd>
+          <div class="flex justify-between border-b border-border py-3">
+            <dt class="text-xs text-muted-foreground">{{ item[0] }}</dt>
+            <dd class="font-semibold">{{ item[1] }}</dd>
           </div>
           }
         </dl>
       </div>
     </div>
     @if (store.inspector()?.type === 'card' && !store.cardPaymentMode()) {
-    <section class="statement">
-      <header>
+    <section class="my-4 grid gap-3 rounded-xl border border-primary/30 bg-accent p-3.5">
+      <header class="flex items-center justify-between gap-2.5">
         <div>
           <span>{{ i18n.t('workspace.statement.title') }}</span>
-          <h3>{{ i18n.t('workspace.statement.nextCutoff', { day: selectedAccount()?.cutDay ?? '' }) }}</h3>
+          <h3 class="mt-[3px]">
+            {{ i18n.t('workspace.statement.nextCutoff', { day: selectedAccount()?.cutDay ?? '' }) }}
+          </h3>
         </div>
         <b>{{ store.money(cardStatementTotal()) }}</b>
       </header>
-      <div>
+      <div
+        class="flex items-center justify-between gap-2.5 [&>span]:grid [&>span]:gap-[3px] [&>span]:text-[0.72rem] [&>span]:text-muted-foreground [&_b]:text-foreground"
+      >
         <span
           >{{ i18n.t('workspace.statement.cyclePurchases') }} <b>{{ store.money(cardStatementPurchases()) }}</b></span
         >
         <span>{{ i18n.t('workspace.statement.nextInstallments') }} <b>{{ store.money(nextInstallments()) }}</b></span>
-        <!--
-                Solo si la tarjeta declara su tasa. Antes salia siempre, calculado con un
-                porcentaje fijo que no era el de ninguna tarjeta.
-              -->
         @if (cardEstimatedInterest(); as interes) {
         <span>{{ i18n.t('workspace.statement.estimatedInterest') }} <b>{{ store.money(interes) }}</b></span>
         }
@@ -113,52 +114,69 @@
         >
       </div>
       @if (cardEstimatedInterest() === null) {
-      <small>{{ i18n.t('workspace.statement.noRateNote') }}</small>
+      <small class="text-muted-foreground">{{ i18n.t('workspace.statement.noRateNote') }}</small>
       }
-      <small>{{ i18n.t('workspace.statement.estimateNote') }}</small>
+      <small class="text-muted-foreground">{{ i18n.t('workspace.statement.estimateNote') }}</small>
     </section>
     } @if (can(P.cuentas.historial.ver)) {
     <h3>{{ i18n.t('workspace.history.title') }}</h3>
     <ol>
       @for (h of store.history(); track $index) {
-      <li><b>{{ h.action }}</b><span>{{ h.date }}</span></li>
+      <li class="flex justify-between border-s-2 border-primary pb-[15px] ps-3.5 pt-1">
+        <b>{{ h.action }}</b><span class="text-[0.72rem] text-muted-foreground">{{ h.date }}</span>
+      </li>
       }
     </ol>
     }
-    <footer>
+    <footer class="mt-[22px] flex gap-[9px]">
       @if (store.inspector()?.type === 'movement') { @if (can(P.movimientos.editar)) {
-      <button (click)="editSelected()">{{ i18n.t('workspace.actions.edit') }}</button>
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">
+        {{ i18n.t('workspace.actions.edit') }}
+      </button>
       } @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
-      <button (click)="shareSelected()">{{ i18n.t('workspace.actions.registerSharedPurchase') }}</button>
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
+        {{ i18n.t('workspace.actions.registerSharedPurchase') }}
+      </button>
       } @if (can(P.movimientos.deshabilitar)) {
-      <button class="danger-action" (click)="askReverse()">{{ i18n.t('workspace.actions.reverse') }}</button>
+      <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askReverse()">
+        {{ i18n.t('workspace.actions.reverse') }}
+      </button>
       } } @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
-      <button class="action" (click)="issueSelectedSettlement()">
+      <button hlmBtn class="h-[42px] flex-1" (click)="issueSelectedSettlement()">
         {{ i18n.t('workspace.actions.issueSettlement') }}
       </button>
       } @if (store.inspector()?.type === 'card' && !store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-      <button class="action" (click)="store.cardPaymentMode.set(true)">
+      <button hlmBtn class="h-[42px] flex-1" (click)="store.cardPaymentMode.set(true)">
         {{ i18n.t('workspace.actions.registerPayment') }}
       </button>
       } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') && !store.cardPaymentMode()
       && can(P.cuentas.editar)) {
-      <button (click)="editSelectedAccount()">{{ i18n.t('workspace.actions.editAccount') }}</button>
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedAccount()">
+        {{ i18n.t('workspace.actions.editAccount') }}
+      </button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
-      <button class="danger-action" (click)="askDeactivateAccount()">
+      <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askDeactivateAccount()">
         {{ i18n.t('workspace.actions.deactivateAccount') }}
       </button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
       store.selectedCalendarDate()).length === 0) {
-      <button disabled>{{ i18n.t('workspace.actions.noMovements') }}</button>
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" disabled>
+        {{ i18n.t('workspace.actions.noMovements') }}
+      </button>
       } }
     </footer>
     @if (store.inspector()?.type === 'day') {
-    <section class="day-movements">
+    <section class="mt-4 grid gap-2">
       <h3>{{ i18n.t('workspace.dayMovements.title') }}</h3>
       @for (movement of store.dayMoves(store.inspector()?.id ?? store.selectedCalendarDate()); track movement.id) {
-      <button (click)="openDayMovement(movement.id)">
-        <span
-          >{{ movement.description }}<small
+      <button
+        hlmBtn
+        variant="outline"
+        class="h-auto justify-between py-2 text-start"
+        (click)="openDayMovement(movement.id)"
+      >
+        <span class="grid gap-[3px]"
+          >{{ movement.description }}<small class="text-muted-foreground"
             >{{ store.account(movement.accountId)?.name }} · {{ movement.category }}</small
           ></span
         ><b>{{ store.money(movement.amount) }}</b>
@@ -168,24 +186,31 @@
       }
     </section>
     } @if (store.inspector()?.type === 'movement' && store.calendarReturnDate()) {
-    <button class="back-link" (click)="returnToCalendarDay()">{{ i18n.t('workspace.dayMovements.backLink') }}</button>
+    <button hlmBtn variant="outline" size="sm" class="mt-3 self-start" (click)="returnToCalendarDay()">
+      {{ i18n.t('workspace.dayMovements.backLink') }}
+    </button>
     } @if (store.inspector()?.type === 'card' && store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-    <section class="card-payment">
-      <header>
+    <section class="mt-[18px] grid gap-4 border-t border-border pt-[18px]">
+      <header class="flex items-center justify-between gap-3">
         <div>
           <span>{{ i18n.t('workspace.cardPayment.title') }}</span>
-          <h3>{{ i18n.t('workspace.cardPayment.question') }}</h3>
+          <h3 class="mt-1">{{ i18n.t('workspace.cardPayment.question') }}</h3>
         </div>
-        <button (click)="store.cardPaymentMode.set(false)">{{ i18n.t('workspace.cardPayment.back') }}</button>
+        <button hlmBtn variant="outline" size="sm" (click)="store.cardPaymentMode.set(false)">
+          {{ i18n.t('workspace.cardPayment.back') }}
+        </button>
       </header>
-      <label
+      <label class="grid gap-1.5 text-muted-foreground"
         >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
+          hlmInput
           type="number"
           min="1"
           [ngModel]="cardPaymentAmount()"
           (ngModelChange)="cardPaymentAmount.set(+$event)"
       /></label>
-      <div class="payment-summary">
+      <div
+        class="flex items-center justify-between gap-3 [&_b]:text-foreground [&>span]:grid [&>span]:flex-1 [&>span]:gap-[5px] [&>span]:rounded-[10px] [&>span]:border [&>span]:border-border [&>span]:p-3 [&>span]:text-muted-foreground"
+      >
         <span>{{ i18n.t('workspace.cardPayment.debtBefore') }} <b>{{ store.money(cardDebt()) }}</b></span
         ><span>{{ i18n.t('workspace.cardPayment.appliedAmount') }} <b>{{ store.money(appliedPayment()) }}</b></span
         ><span
@@ -193,7 +218,7 @@
           <b>{{ store.money(Math.max(0, cardDebt() - appliedPayment())) }}</b></span
         >
       </div>
-      <div class="payment-table">
+      <div class="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <fin-table
           [columns]="paymentAllocationColumns()"
           [rows]="paymentAllocationRows()"
@@ -202,7 +227,7 @@
           [ariaLabel]="i18n.t('workspace.cardPayment.title')"
         />
       </div>
-      <button class="action" (click)="confirmCardPayment()">{{ i18n.t('workspace.cardPayment.confirm') }}</button>
+      <button hlmBtn class="h-10" (click)="confirmCardPayment()">{{ i18n.t('workspace.cardPayment.confirm') }}</button>
     </section>
     }
   </section></ng-template

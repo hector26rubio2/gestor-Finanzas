@@ -1,7 +1,7 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
-  <form class="management-form" (ngSubmit)="save()">
+  <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" (ngSubmit)="save()">
     <fin-field [label]="i18n.t('form.field.name')">
-      <input name="name" [(ngModel)]="name" required />
+      <input hlmInput name="name" [(ngModel)]="name" required />
     </fin-field>
     @if (kind() === 'category') {
     <fin-field [label]="i18n.t('form.management.field.categoryType')">
@@ -16,11 +16,11 @@
       <input name="color" type="color" [(ngModel)]="color" />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.icon')">
-      <input name="icon" [(ngModel)]="icon" required />
+      <input hlmInput name="icon" [(ngModel)]="icon" required />
     </fin-field>
     } @if (kind() === 'person') {
     <fin-field [label]="i18n.t('form.management.field.email')">
-      <input name="email" type="email" [(ngModel)]="email" />
+      <input hlmInput name="email" type="email" [(ngModel)]="email" />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.relationship')">
       <fin-select
@@ -49,7 +49,7 @@
     </fin-field>
     } @if (kind() === 'recurrence') {
     <fin-field [label]="i18n.t('form.field.amount')">
-      <input name="amount" type="number" min="1" [(ngModel)]="amount" required />
+      <input hlmInput name="amount" type="number" min="1" [(ngModel)]="amount" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.account')">
       <fin-select
@@ -68,14 +68,15 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.start')">
-      <input name="start" type="date" [(ngModel)]="start" required />
+      <fin-date-field name="start" [(ngModel)]="start" required />
     </fin-field>
     } @if (error()) {
-    <p class="error" role="alert">{{ error() }}</p>
+    <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }
-    <footer>
-      <button type="button" (click)="store.form.set(null)">{{ i18n.t('form.actions.cancel') }}</button
-      ><button class="primary" type="submit">{{ i18n.t('form.actions.save') }}</button>
+    <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+      <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
+        {{ i18n.t('form.actions.cancel') }}</button
+      ><button hlmBtn size="lg" type="submit">{{ i18n.t('form.actions.save') }}</button>
     </footer>
   </form>
 </fin-overlay>

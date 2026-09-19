@@ -1,11 +1,24 @@
-<div class="category-list" [attr.aria-label]="ariaLabel()">
+<div
+  class="grid min-h-0 flex-1 content-start gap-1 overflow-y-auto pr-0.5 [scrollbar-width:thin]"
+  [attr.aria-label]="ariaLabel()"
+>
   @for (category of items(); track category.name) {
-  <button type="button" (click)="pick.emit(category.name)" [class.selected]="selected() === category.name">
-    <span><i [style.background]="category.color"></i>{{ category.name }}</span><b>{{ money(category.value) }}</b
-    ><small>{{ category.percent }} %</small
-    ><em><i [style.width.%]="category.percent" [style.background]="category.color"></i></em>
+  <button
+    hlmBtn
+    variant="outline"
+    type="button"
+    class="grid h-auto grid-cols-[1fr_auto_42px] gap-2 px-3 py-[9px] text-start data-[selected=true]:border-primary data-[selected=true]:bg-accent"
+    [attr.data-selected]="selected() === category.name"
+    (click)="pick.emit(category.name)"
+  >
+    <span class="flex items-center gap-[7px]"
+      ><i class="size-[9px] rounded-[3px]" [style.background]="category.color"></i>{{ category.name }}</span
+    ><b>{{ money(category.value) }}</b><small class="text-end">{{ category.percent }} %</small
+    ><em class="col-span-full mb-2.5 h-[5px] overflow-hidden rounded-lg bg-border last:mb-0"
+      ><i class="block h-full" [style.width.%]="category.percent" [style.background]="category.color"></i
+    ></em>
   </button>
   } @empty {
-  <p class="empty">{{ emptyText() }}</p>
+  <p class="m-auto text-center text-muted-foreground">{{ emptyText() }}</p>
   }
 </div>

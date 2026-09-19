@@ -1,3 +1,5 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
@@ -16,10 +18,18 @@ export type PriorityItem = 'fees' | 'interest' | 'capital';
 @Component({
   selector: 'fin-account-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent, IconComponent],
+  imports: [
+    HlmButton,
+    HlmInput,
+    FormsModule,
+    OverlayComponent,
+    UiSelectComponent,
+    NumericInputDirective,
+    FieldComponent,
+    IconComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account-form.html',
-  styleUrl: './account-form.css',
 })
 export class AccountFormComponent {
   private readonly capabilities = inject(CAPABILITIES);

@@ -1,4 +1,4 @@
-<section class="kpis mini">
+<fin-kpi-grid>
   <fin-kpi
     [label]="i18n.t('portfolio.kpi.available.label')"
     icon="wallet"
@@ -25,11 +25,11 @@
     [value]="store.money(investmentGain())"
     [hint]="i18n.t('portfolio.kpi.gain.hint')"
   />
-</section>
-<section class="table-zone">
+</fin-kpi-grid>
+<fin-table-zone>
   <fin-table
     [columns]="investmentColumns()"
     [rows]="investmentRows()"
     (rowSelected)="store.inspect('investment', $event['id'])"
   />
-</section>
+</fin-table-zone>

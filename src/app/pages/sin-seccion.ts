@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { RouterLink } from '@angular/router';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
 import { AppStore } from '../core/store';
@@ -15,11 +16,13 @@ import { I18nService } from '../core/i18n';
  */
 @Component({
   selector: 'fin-sin-seccion',
-  standalone: true,
-  imports: [RouterLink],
+  imports: [HlmButton, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sin-seccion.html',
-  styleUrl: './sin-seccion.css',
+  host: {
+    class:
+      'mx-auto my-12 grid max-w-[60ch] justify-items-start gap-3 rounded-lg border border-border bg-card p-8 text-foreground',
+  },
 })
 export class SinSeccionComponent {
   readonly i18n = inject(I18nService);

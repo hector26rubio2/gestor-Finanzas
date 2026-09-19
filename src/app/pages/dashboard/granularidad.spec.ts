@@ -77,7 +77,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     fixture.detectChanges();
 
     // Quedaba una caja con el título «Diseño del dashboard» y ningún botón dentro.
-    expect(fixture.nativeElement.querySelector('aside.customize')).toBeNull();
+    expect(fixture.nativeElement.querySelector('aside[data-slot="customize"]')).toBeNull();
   });
 
   it('sin ninguna de las cuatro acciones el botón de personalizar no se ofrece', () => {
@@ -92,7 +92,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.algunKpi()).toBe(true);
-    const etiquetas = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map((n: Element) =>
+    const etiquetas = [...fixture.nativeElement.querySelectorAll('fin-kpi-strip fin-kpi')].map((n: Element) =>
       n.textContent?.trim(),
     );
     expect(etiquetas).toHaveLength(1);
@@ -167,7 +167,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(titulos).toContain('Ingresos en el tiempo');
     expect(titulos).not.toContain('Flujo de caja');
 
-    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map(
+    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('fin-kpi-strip fin-kpi')].map(
       (n: Element) => n.textContent?.trim() ?? '',
     );
     expect(etiquetasKpi.some((t) => t.includes('Promedio por movimiento'))).toBe(true);

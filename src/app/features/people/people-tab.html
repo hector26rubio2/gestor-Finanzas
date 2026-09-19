@@ -1,4 +1,4 @@
-<section class="kpis mini">
+<fin-kpi-grid>
   @if (can(P.personas.deudas.listar)) {
   <fin-kpi
     [label]="i18n.t('people.kpi.owed.label')"
@@ -28,7 +28,7 @@
     [value]="slowestPayer().name"
     [hint]="i18n.t('people.kpi.slowest.hint', { days: slowestPayer().days })"
   />
-</section>
-<section class="table-zone">
+</fin-kpi-grid>
+<fin-table-zone>
   <fin-table [columns]="peopleColumns()" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
-</section>
+</fin-table-zone>
