@@ -47,6 +47,12 @@ export const API_ROUTES = {
   adminRoleActive: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}/active`,
   adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,
   adminErrorScreenshot: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}/screenshot`,
+  adminOrganization: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}`,
+  adminOrganizationDefault: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/default`,
+  adminOrganizationMembers: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/members`,
+  adminOrganizationFlags: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/feature-flags`,
+  adminOrganizationFlag: (id: string, key: string) =>
+    `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/feature-flags/${encodeURIComponent(key)}`,
   superAdminFeatureFlag: (key: string) => `/api/v1/superadmin/feature-flags/${encodeURIComponent(key)}`,
   movement: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}`,
   movementClassification: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/classification`,

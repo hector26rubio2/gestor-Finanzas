@@ -121,10 +121,7 @@ async function waitForRoute(page, route) {
   await page.goto(`${baseUrl}/${route}`, { waitUntil: 'domcontentloaded' });
   await page.waitForURL(new RegExp(`/${route}(?:$|[?])`));
   try {
-    await page
-      .locator('.workspace-page, .dashboard, .admin-page, fin-sin-seccion')
-      .first()
-      .waitFor({ state: 'visible' });
+    await page.locator('[data-page], fin-sin-seccion').first().waitFor({ state: 'visible' });
   } catch {
     // Un tiempo agotado a secas no dice nada: cuenta donde acabo y que habia en pantalla,
     // que es la diferencia entre arreglarlo y volver a ignorar esta suite.
@@ -149,13 +146,10 @@ async function waitForRoute(page, route) {
  * elemento, no por que la aplicacion estuviera rota.
  */
 async function chooseOption(page, ariaLabel, optionLabel) {
-  const control = page.locator('fin-select').filter({ has: page.locator(`button[aria-label^="${ariaLabel}"]`) });
-  await control.locator('button.trigger').click();
-  await control
-    .locator('.menu button', { hasText: new RegExp(`^\\s*${optionLabel}\\s*$`) })
-    .first()
-    .click();
-  await control.locator('.menu').waitFor({ state: 'detached' });
+  await page.locator(`[data-slot="select-trigger"][aria-label^="${ariaLabel}"]`).click();
+  const item = page.locator('[data-slot="select-item"]', { hasText: new RegExp(`^\\s*${optionLabel}\\s*$`) }).first();
+  await item.click();
+  await item.waitFor({ state: 'detached' });
 }
 
 async function horizontalOverflow(page, label) {
@@ -219,24 +213,24 @@ async function exerciseInteractions(page) {
   const cardTrigger = page.locator('.switch-chip').nth(1);
   await cardTrigger.focus();
   await cardTrigger.press('Enter');
-  const inspector = page.locator('dialog.inspector');
+  const inspector = page.locator('[data-slot="sheet-content"]');
   await inspector.waitFor({ state: 'visible' });
   assert(
     await inspector.evaluate((node) => node.contains(document.activeElement)),
     'Focus did not move into inspector',
   );
   await page.getByLabel('Cerrar panel').click();
-  await inspector.waitFor({ state: 'hidden' });
+  await inspector.waitFor({ state: 'detached' });
   await devuelveElFoco(cardTrigger, 'Inspector did not restore trigger focus');
 
   const modalTrigger = page.getByRole('button', { name: 'Nuevo movimiento' });
   await modalTrigger.focus();
   await modalTrigger.press('Enter');
-  const modal = page.locator('dialog:not(.inspector)');
+  const modal = page.locator('[data-slot="dialog-content"]');
   await modal.waitFor({ state: 'visible' });
   assert(await modal.evaluate((node) => node.contains(document.activeElement)), 'Focus did not move into modal');
   await page.keyboard.press('Escape');
-  await modal.waitFor({ state: 'hidden' });
+  await modal.waitFor({ state: 'detached' });
   await devuelveElFoco(modalTrigger, 'Modal did not restore trigger focus');
 
   await waitForRoute(page, 'settings');

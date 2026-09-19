@@ -14,6 +14,19 @@ export interface ApiAuditEvent {
   traceId: string;
   changesJson: string | null;
   createdAt: string;
+  organizationId?: string;
+  /** Quién hizo el cambio; `userId` es la persona afectada. Nulo si lo hizo el sistema. */
+  actorUserId?: string | null;
+}
+
+/** Filtros de la auditoría; se aplican en el servidor y se combinan. */
+export interface ApiAuditFilter {
+  organizationId?: string;
+  actorUserId?: string;
+  action?: string;
+  entityType?: string;
+  from?: string;
+  to?: string;
 }
 
 export interface ApiAdminUser {
@@ -66,6 +79,15 @@ export interface ApiAdminOrganization {
   isDefault: boolean;
   memberCount: number;
   createdAt: string;
+}
+
+/** Valor efectivo de una bandera para una organización y de dónde sale. */
+export interface ApiAdminOrganizationFlag {
+  key: string;
+  isEnabled: boolean;
+  /** `organization` si la organización la fija ella misma; si no, hereda de `global` o `default`. */
+  source: 'organization' | 'global' | 'default';
+  organizationValue: boolean | null;
 }
 
 /** Un permiso del catálogo: código, dónde vive y qué concede. */
@@ -307,11 +329,60 @@ export class AdministrationApi {
     });
   }
 
-  superAdminAudit(page = 1, size = 50) {
+  superAdminAudit(page = 1, size = 50, filter: ApiAuditFilter = {}) {
+    const params: Record<string, string | number> = { page, size };
+    for (const [key, value] of Object.entries(filter)) if (value) params[key] = value;
     return this.transport.request<ApiPage<ApiAuditEvent>>({
       method: 'GET',
       path: API_ROUTES.superAdminAudit,
-      params: { page, size },
+      params,
+    });
+  }
+
+  updateAdminOrganization(id: string, request: { name?: string; isActive?: boolean }) {
+    return this.transport.request<ApiAdminOrganization>({
+      method: 'PUT',
+      path: API_ROUTES.adminOrganization(id),
+      body: request,
+    });
+  }
+
+  setDefaultAdminOrganization(id: string) {
+    return this.transport.request<ApiAdminOrganization>({
+      method: 'PUT',
+      path: API_ROUTES.adminOrganizationDefault(id),
+    });
+  }
+
+  /** Quiénes pertenecen a la organización, invitados incluidos. */
+  adminOrganizationMembers(id: string) {
+    return this.transport.request<readonly ApiOrganizationMember[]>({
+      method: 'GET',
+      path: API_ROUTES.adminOrganizationMembers(id),
+    });
+  }
+
+  /** Suma a una persona: si ya estaba en otra organización, se muda; si no tenía ninguna activa, entra. */
+  addAdminOrganizationMember(id: string, userId: string) {
+    return this.transport.request<void>({
+      method: 'POST',
+      path: API_ROUTES.adminOrganizationMembers(id),
+      body: { userId },
+    });
+  }
+
+  adminOrganizationFlags(id: string) {
+    return this.transport.request<readonly ApiAdminOrganizationFlag[]>({
+      method: 'GET',
+      path: API_ROUTES.adminOrganizationFlags(id),
+    });
+  }
+
+  setAdminOrganizationFlag(id: string, key: string, isEnabled: boolean) {
+    return this.transport.request<ApiAdminOrganizationFlag>({
+      method: 'PUT',
+      path: API_ROUTES.adminOrganizationFlag(id, key),
+      body: { isEnabled },
     });
   }
 

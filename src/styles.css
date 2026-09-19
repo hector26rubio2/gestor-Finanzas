@@ -110,6 +110,35 @@
   * {
     box-sizing: border-box;
   }
+  *,
+  ::before,
+  ::after {
+    border-color: var(--line);
+  }
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6,
+  p,
+  dl,
+  dd,
+  figure,
+  blockquote,
+  pre {
+    margin: 0;
+  }
+  ul,
+  ol,
+  menu {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  table {
+    border-collapse: collapse;
+  }
   html {
     background: var(--bg);
     color: var(--text);
@@ -153,7 +182,7 @@
   time {
     font-variant-numeric: tabular-nums;
   }
-  button {
+  button:not([data-slot], [role]) {
     cursor: pointer;
     /* Quita la espera de 300 ms que el navegador guarda por si es un doble toque. */
     touch-action: manipulation;
@@ -178,15 +207,15 @@
  * siguiera encima.
  */
   @media (hover: hover) and (pointer: fine) {
-    button:hover:not(:disabled) {
+    button:not([data-slot], [role]):hover:not(:disabled) {
       border-color: color-mix(in srgb, var(--accent) 42%, var(--line));
       background: color-mix(in srgb, var(--accent-soft) 64%, var(--surface));
     }
   }
-  button:active:not(:disabled) {
+  button:not([data-slot], [role]):active:not(:disabled) {
     transform: translateY(1px);
   }
-  button:disabled {
+  button:not([data-slot], [role]):disabled {
     cursor: not-allowed;
     opacity: 0.48;
   }
@@ -296,7 +325,7 @@
   textarea::placeholder {
     color: color-mix(in srgb, var(--muted) 78%, transparent);
   }
-  button:focus-visible,
+  button:not([data-slot], [role]):focus-visible,
   a:focus-visible,
   input:focus-visible,
   select:focus-visible {
@@ -356,7 +385,7 @@
   /* U-7: los botones de la barra superior median 33-40 px de ancho; el minimo
    tactil recomendado es 44x44. Y a 16 px los campos evitan el zoom de iOS. */
   @media (pointer: coarse) {
-    button,
+    button:not([data-slot], [role]),
     a.bell {
       min-height: 44px;
       min-width: 44px;
