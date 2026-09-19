@@ -1,5 +1,88 @@
+@if (showToolbar()) {
+<div class="flex shrink-0 flex-wrap items-center gap-2 border-b border-border p-3" role="search">
+  <fin-search-field
+    class="w-full min-w-48 max-w-xs flex-1"
+    [value]="searchText()"
+    (valueChange)="setSearchText($event)"
+    [placeholder]="i18n.t('table.search.placeholder')"
+    [ariaLabel]="i18n.t('table.search.ariaLabel', { label: tableLabel() })"
+  />
+  <fin-select
+    class="w-44"
+    [options]="fieldOptions()"
+    [ngModel]="searchField()"
+    (ngModelChange)="setSearchField($event)"
+    [ariaLabel]="i18n.t('table.search.field')"
+  />
+  @for (facet of facetColumns(); track facet.key) { @let selected = facetSelection(facet.key);
+  <button
+    hlmBtn
+    variant="outline"
+    type="button"
+    class="gap-2"
+    [hlmDropdownMenuTrigger]="facetMenu"
+    [attr.aria-label]="i18n.t('table.filter.by', { label: facet.label })"
+  >
+    <fin-icon name="filter" />
+    {{ facet.label }} @if (selected.length) {
+    <span hlmBadge variant="secondary">{{ selected.length }}</span>
+    }
+  </button>
+  <ng-template #facetMenu>
+    <div hlmDropdownMenu class="max-h-72 min-w-48 overflow-auto">
+      <div hlmDropdownMenuLabel>{{ facet.label }}</div>
+      @for (option of facetValues(facet.key); track option.value) {
+      <button
+        hlmDropdownMenuCheckbox
+        type="button"
+        [checked]="selected.includes(option.value)"
+        (triggered)="toggleFacet(facet.key, option.value)"
+      >
+        <hlm-dropdown-menu-checkbox-indicator />
+        <span class="flex-1">{{ option.value }}</span>
+        <span class="text-xs text-muted-foreground">{{ option.count }}</span>
+      </button>
+      } @empty {
+      <p class="px-2 py-1.5 text-xs text-muted-foreground">{{ i18n.t('table.filter.noValues') }}</p>
+      }
+    </div>
+  </ng-template>
+  } @if (hasFilters()) {
+  <button hlmBtn variant="ghost" type="button" class="gap-2" (click)="clearFilters()">
+    <fin-icon name="close" /> {{ i18n.t('table.filters.clear') }}
+  </button>
+  }
+  <button
+    hlmBtn
+    variant="outline"
+    type="button"
+    class="ms-auto gap-2"
+    [hlmDropdownMenuTrigger]="columnsMenu"
+    align="end"
+    [attr.aria-label]="i18n.t('table.columns.ariaLabel')"
+  >
+    <fin-icon name="columns" /> {{ i18n.t('table.columns') }}
+  </button>
+  <ng-template #columnsMenu>
+    <div hlmDropdownMenu class="min-w-48">
+      <div hlmDropdownMenuLabel>{{ i18n.t('table.columns.toggle') }}</div>
+      @for (column of hideableColumns(); track column.id) {
+      <button
+        hlmDropdownMenuCheckbox
+        type="button"
+        [checked]="column.getIsVisible()"
+        (triggered)="column.toggleVisibility()"
+      >
+        <hlm-dropdown-menu-checkbox-indicator />
+        {{ columnOf(column.id)?.label ?? column.id }}
+      </button>
+      }
+    </div>
+  </ng-template>
+</div>
+}
 <div
-  class="min-h-0 flex-1 overflow-auto rounded-t-lg [scrollbar-width:thin] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary max-[520px]:overflow-visible max-[520px]:p-2.5"
+  class="min-h-0 flex-1 overflow-auto [scrollbar-width:thin] focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary max-[520px]:overflow-visible max-[520px]:p-2.5"
   data-testid="table-scroll"
   tabindex="0"
   role="region"
@@ -11,46 +94,75 @@
     </caption>
     <thead hlmTHead class="max-[520px]:sr-only">
       <tr hlmTr class="border-0 hover:bg-transparent">
-        @for (column of columns(); track column.key) {
+        @for (header of visibleHeaders(); track header.id) { @let column = header.column; @let direction =
+        column.getIsSorted();
         <th
           hlmTh
           scope="col"
           class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold tracking-wide text-muted-foreground"
+          [attr.aria-sort]="column.getCanSort() ? ariaSort(direction) : null"
         >
-          {{ column.label }}
+          @if (column.id === '__select') {
+          <hlm-checkbox
+            [checked]="table.getIsAllPageRowsSelected()"
+            [attr.aria-label]="i18n.t('table.selection.all')"
+            (checkedChange)="toggleAllRows($event)"
+          />
+          } @else if (column.getCanSort()) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            type="button"
+            class="-ms-3 h-auto gap-1.5 px-3 py-1 text-xs font-semibold tracking-wide text-muted-foreground hover:text-foreground"
+            [attr.aria-label]="i18n.t('table.sort.by', { label: columnOf(column.id)?.label ?? column.id })"
+            (click)="column.toggleSorting(undefined, $event.shiftKey)"
+          >
+            {{ columnOf(column.id)?.label }}
+            <fin-icon [name]="sortIcon(direction)" class="[--icon-size:14px]" />
+          </button>
+          } @else { {{ columnOf(column.id)?.label }} }
         </th>
         }
       </tr>
     </thead>
     <tbody hlmTBody class="max-[520px]:grid max-[520px]:w-full max-[520px]:gap-2.5">
-      @for (row of visibleRows(); track row; let rowIndex = $index) {
+      @for (row of visibleRows(); track row.id; let rowIndex = $index) {
       <tr
         hlmTr
         class="max-[520px]:block max-[520px]:w-full max-[520px]:rounded-xl max-[520px]:border max-[520px]:border-border max-[520px]:px-3 max-[520px]:py-2"
         [class]="selectable() ? 'cursor-pointer focus-within:bg-primary/[0.07] hover:bg-primary/[0.07]' : ''"
-        (click)="selectable() && rowSelected.emit(row)"
+        [attr.data-state]="row.getIsSelected() ? 'selected' : null"
+        (click)="selectable() && rowSelected.emit(row.original)"
       >
-        @for (column of columns(); track column.key; let first = $first) {
+        @for (cell of row.getVisibleCells(); track cell.id; let first = $first) { @let key = cell.column.id;
         <td
           hlmTd
           class="border-b border-border px-[18px] py-3.5 max-[520px]:grid max-[520px]:w-full max-[520px]:grid-cols-[minmax(92px,0.65fr)_1fr] max-[520px]:gap-3 max-[520px]:border-dashed max-[520px]:px-0 max-[520px]:py-2 max-[520px]:whitespace-normal max-[520px]:[overflow-wrap:anywhere] max-[520px]:before:text-[0.72rem] max-[520px]:before:font-semibold max-[520px]:before:text-muted-foreground max-[520px]:before:content-[attr(data-label)] max-[520px]:last:border-b-0"
-          [class]="detailClass(column, rowIndex)"
-          [attr.data-label]="column.label"
+          [class]="key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex)"
+          [attr.data-label]="columnOf(key)?.label"
         >
-          @if (cellTemplate(column.key); as tpl) {
-          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row }" />
+          @if (key === '__select') {
+          <hlm-checkbox
+            [checked]="row.getIsSelected()"
+            [attr.aria-label]="i18n.t('table.selection.row')"
+            (click)="$event.stopPropagation()"
+            (checkedChange)="toggleRowSelection(row, $event)"
+          />
+          } @else if (cellTemplate(key); as tpl) {
+          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row.original }" />
           } @else if (first && selectable()) {
           <button
             hlmBtn
             variant="ghost"
             type="button"
             class="h-auto justify-start p-0 text-start font-semibold hover:bg-transparent"
-            (click)="$event.stopPropagation(); rowSelected.emit(row)"
-            [attr.aria-label]="i18n.t('table.rowDetail', { value: display(row[column.key]) })"
+            (click)="$event.stopPropagation(); rowSelected.emit(row.original)"
+            [attr.aria-label]="i18n.t('table.rowDetail', { value: display(row.original[key]) })"
           >
-            {{ display(row[column.key]) }}
+            {{ display(row.original[key]) }}
           </button>
-          } @else { {{ display(row[column.key]) }} }
+          } @else { {{ display(row.original[key]) }} }
         </td>
         } @if (hasDetailColumns()) {
         <td hlmTd class="hidden border-0 max-[520px]:block max-[520px]:px-0 max-[520px]:pt-2 max-[520px]:pb-0">
@@ -71,10 +183,10 @@
       <tr hlmTr>
         <td
           hlmTd
-          [attr.colspan]="columns().length || 1"
+          [attr.colspan]="columns().length + (multiSelect() ? 1 : 0) || 1"
           class="px-4 py-12 text-center whitespace-normal text-muted-foreground"
         >
-          {{ i18n.t('table.empty') }}
+          {{ hasFilters() ? i18n.t('table.emptyFiltered') : i18n.t('table.empty') }}
         </td>
       </tr>
       }
@@ -86,14 +198,15 @@
   class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground max-[520px]:sticky max-[520px]:bottom-0 max-[520px]:grid max-[520px]:justify-items-center max-[520px]:gap-3 max-[520px]:bg-card max-[520px]:px-3 max-[520px]:py-3.5"
 >
   <span [id]="rangeId" aria-live="polite"
-    >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }}</span
+    >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }} @if (multiSelect() &&
+    selectedCount()) { · {{ i18n.t('table.selection.count', { count: selectedCount() }) }} }</span
   >
   <label class="flex items-center gap-2.5">
     {{ i18n.t('table.rowsPerPage') }}
     <fin-select
       class="w-[84px]"
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
-      [options]="sizeOptions"
+      [options]="sizeOptions()"
       [ngModel]="size().toString()"
       (ngModelChange)="setSizeValue($event)"
     />

@@ -3,42 +3,128 @@ import {
   Component,
   ContentChildren,
   EventEmitter,
-  inject,
   Output,
   QueryList,
   computed,
   effect,
+  inject,
   input,
   signal,
   untracked,
 } from '@angular/core';
-import { Router } from '@angular/router';
-import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmTableImports } from '@spartan-ng/helm/table';
-import { CommonModule } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
+import { Router } from '@angular/router';
+import { HlmBadgeImports } from '@spartan-ng/helm/badge';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmTableImports } from '@spartan-ng/helm/table';
+import {
+  ColumnDef,
+  columnFacetingFeature,
+  columnFilteringFeature,
+  columnVisibilityFeature,
+  createFacetedRowModel,
+  createFacetedUniqueValues,
+  createFilteredRowModel,
+  createPaginatedRowModel,
+  createSortedRowModel,
+  filterFn_includesString,
+  globalFilteringFeature,
+  injectTable,
+  rowPaginationFeature,
+  rowSelectionFeature,
+  rowSortingFeature,
+  sortFn_alphanumeric,
+  tableFeatures,
+} from '@tanstack/angular-table';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon/icon';
+import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
+import { IconComponent, IconName } from '../icon/icon';
+import { SearchFieldComponent } from '../search-field/search-field';
 import { UiOption, UiSelectComponent } from '../select/select';
 import { FinTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {
   key: string;
   label: string;
-  /**
-   * `false` saca la columna de la tarjeta apilada en movil (max-width: 520px) y la manda
-   * al detalle plegable de la fila. Sin esto, una tabla de 8-9 columnas como la de
-   * Movimientos convertia cada fila en una tarjeta larguisima y una sola pagina se volvia
-   * un scroll de miles de pixeles. En escritorio no cambia nada: todas las columnas se ven
-   * igual que siempre.
-   */
   essential?: boolean;
+  sortable?: boolean;
+  sortKey?: string;
+  facet?: boolean;
+  hideable?: boolean;
 }
+
+type Row = Record<string, any>;
+
+interface SearchQuery {
+  field: string;
+  text: string;
+}
+
+const SELECT_COLUMN = '__select';
+const ALL_FIELDS = '__all';
+
+const searchFilter = (
+  row: { getAllCells: () => { column: { id: string } }[]; getValue: (id: string) => unknown },
+  _id: string,
+  query: SearchQuery | undefined,
+): boolean => {
+  const needle = query?.text.trim().toLowerCase();
+  if (!needle) return true;
+  const ids =
+    query!.field === ALL_FIELDS
+      ? row
+          .getAllCells()
+          .map((cell) => cell.column.id)
+          .filter((id) => id !== SELECT_COLUMN)
+      : [query!.field];
+  return ids.some((id) =>
+    String(row.getValue(id) ?? '')
+      .toLowerCase()
+      .includes(needle),
+  );
+};
+
+const oneOfFilter = (
+  row: { getValue: (id: string) => unknown },
+  id: string,
+  allowed: readonly string[] | undefined,
+): boolean => !allowed?.length || allowed.includes(String(row.getValue(id) ?? ''));
+oneOfFilter.autoRemove = (value: readonly string[] | undefined) => !value?.length;
+
+const features = tableFeatures({
+  rowPaginationFeature,
+  rowSortingFeature,
+  columnFilteringFeature,
+  globalFilteringFeature,
+  columnVisibilityFeature,
+  rowSelectionFeature,
+  columnFacetingFeature,
+  paginatedRowModel: createPaginatedRowModel(),
+  sortedRowModel: createSortedRowModel(),
+  filteredRowModel: createFilteredRowModel(),
+  facetedRowModel: createFacetedRowModel(),
+  facetedUniqueValues: createFacetedUniqueValues(),
+  sortFns: { alphanumeric: sortFn_alphanumeric },
+  filterFns: { includesString: filterFn_includesString, oneOf: oneOfFilter, search: searchFilter },
+});
 
 @Component({
   selector: 'fin-table',
-  imports: [FormsModule, CommonModule, HlmButton, HlmTableImports, IconComponent, UiSelectComponent],
+  imports: [
+    FormsModule,
+    NgTemplateOutlet,
+    HlmBadgeImports,
+    HlmButton,
+    HlmCheckbox,
+    HlmDropdownMenuImports,
+    HlmTableImports,
+    IconComponent,
+    SearchFieldComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
   host: {
@@ -48,12 +134,6 @@ export interface TableColumn {
 })
 export class DataTableComponent {
   readonly i18n = inject(I18nService);
-  /**
-   * Plantillas a medida por columna, proyectadas como `<ng-template finCell="...">`
-   * hijas de `<fin-table>`. Sin esto, una fila con una celda que no es texto plano
-   * (un avatar, una insignia de estado, un botón) obligaba a reescribir la tabla
-   * entera a mano en vez de usar esta — ver `table-cell.directive.ts`.
-   */
   @ContentChildren(FinTableCellDirective) private cellTemplates!: QueryList<FinTableCellDirective>;
   cellTemplate(key: string) {
     return this.cellTemplates?.find((t) => t.column === key)?.template ?? null;
@@ -62,23 +142,141 @@ export class DataTableComponent {
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
   readonly tableLabel = input(this.i18n.t('table.defaultLabel'));
   readonly columns = input<TableColumn[]>([]);
-  readonly rows = input<Record<string, any>[]>([]);
+  readonly rows = input<Row[]>([]);
   readonly pageSize = input(10);
-  /** Set by remote consumers to avoid slicing an already paged response. */
   readonly totalRows = input<number | null>(null);
   readonly remotePage = input(1);
   readonly selectable = input(true);
-  /** En falso para una vista pequeña de solo lectura (un resumen, una previsualización): sin paginación que administrar. */
+  readonly multiSelect = input(false);
+  readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
-  @Output() readonly rowSelected = new EventEmitter<Record<string, any>>();
+  readonly urlKey = input<string | null>(null);
+  @Output() readonly rowSelected = new EventEmitter<Row>();
+  @Output() readonly selectionChange = new EventEmitter<Row[]>();
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
+
   readonly page = signal(0);
+  private readonly selectedSize = signal<number | null>(null);
+  readonly searchField = signal(ALL_FIELDS);
+  readonly searchText = signal('');
+
+  readonly remote = computed(() => this.totalRows() !== null);
+  readonly size = computed(() => Math.max(1, this.selectedSize() ?? this.pageSize()));
   readonly hasDetailColumns = computed(() => this.columns().some((c) => c.essential === false));
+  readonly showToolbar = computed(() => this.toolbar() ?? (this.showFooter() && !this.remote()));
+
+  private readonly columnDefs = computed<ColumnDef<typeof features, Row>[]>(() => {
+    const remote = this.remote();
+    const defs: ColumnDef<typeof features, Row>[] = this.columns().map((column) => ({
+      id: column.key,
+      accessorFn: (row: Row) => row[column.sortKey ?? column.key],
+      header: column.label,
+      enableSorting: !remote && column.sortable !== false,
+      enableHiding: column.hideable !== false,
+      enableColumnFilter: !remote && !!column.facet,
+      filterFn: 'oneOf',
+      sortFn: 'alphanumeric',
+    }));
+    if (this.multiSelect()) {
+      defs.unshift({
+        id: SELECT_COLUMN,
+        header: '',
+        enableSorting: false,
+        enableHiding: false,
+        enableColumnFilter: false,
+      });
+    }
+    return defs;
+  });
+
+  readonly table = injectTable(() => ({
+    features,
+    columns: this.columnDefs(),
+    data: this.rows(),
+    manualPagination: this.remote(),
+    rowCount: this.totalRows() ?? undefined,
+    autoResetPageIndex: false,
+    globalFilterFn: 'search',
+    enableGlobalFilter: !this.remote(),
+    getRowId: (row: Row, index: number) => String(row['id'] ?? index),
+    state: {
+      pagination: {
+        pageIndex: this.remote() ? Math.max(0, this.remotePage() - 1) : this.page(),
+        pageSize: this.size(),
+      },
+    },
+    onPaginationChange: (updater: unknown) => {
+      const current = { pageIndex: this.currentPage(), pageSize: this.size() };
+      const next =
+        typeof updater === 'function'
+          ? (updater as (value: typeof current) => typeof current)(current)
+          : (updater as typeof current);
+      if (next.pageSize !== current.pageSize) this.setSizeValue(String(next.pageSize));
+      else this.setPage(next.pageIndex);
+    },
+  }));
+
+  readonly totalCount = computed(() =>
+    this.remote() ? this.totalRows()! : this.table.getPrePaginatedRowModel().rows.length,
+  );
+  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.size())));
+  readonly currentPage = computed(() =>
+    Math.min(this.remote() ? Math.max(0, this.remotePage() - 1) : this.page(), this.pageCount() - 1),
+  );
+  readonly start = computed(() => (this.totalCount() ? this.currentPage() * this.size() + 1 : 0));
+  readonly end = computed(() => Math.min((this.currentPage() + 1) * this.size(), this.totalCount()));
+  readonly visibleRows = computed(() => this.table.getRowModel().rows);
+  readonly visibleHeaders = computed(() => this.table.getHeaderGroups()[0]?.headers ?? []);
+  readonly selectedCount = computed(() => this.table.getSelectedRowModel().rows.length);
+  readonly facetColumns = computed(() => this.columns().filter((column) => column.facet && !this.remote()));
+  readonly hideableColumns = computed(() =>
+    this.table.getAllLeafColumns().filter((column) => column.id !== SELECT_COLUMN && column.getCanHide()),
+  );
+  readonly fieldOptions = computed<readonly UiOption[]>(() => [
+    { value: ALL_FIELDS, label: this.i18n.t('table.search.allFields') },
+    ...this.columns().map((column) => ({ value: column.key, label: column.label })),
+  ]);
+  readonly hasFilters = computed(
+    () =>
+      this.searchText().trim() !== '' ||
+      this.facetColumns().some(
+        (column) => (this.table.getColumn(column.key)?.getFilterValue() as unknown[] | undefined)?.length,
+      ),
+  );
+  readonly pageSelectOptions = computed<readonly UiOption[]>(() =>
+    Array.from({ length: this.pageCount() }, (_, index) => ({
+      value: index.toString(),
+      label: (index + 1).toString(),
+    })),
+  );
+  readonly sizeOptions = computed<readonly UiOption[]>(() =>
+    [...new Set([5, 10, 25, 50, 100, this.size()])]
+      .sort((a, b) => a - b)
+      .map((value) => ({ value: String(value), label: String(value) })),
+  );
+
   private readonly expandedRows = signal<ReadonlySet<number>>(new Set());
+
+  constructor() {
+    if (inject(Router, { optional: true })) {
+      sincronizarPaginaConLaUrl(() => this.urlKey(), this.page);
+    }
+    let primerCalculo = true;
+    effect(() => {
+      this.totalCount();
+      if (primerCalculo) {
+        primerCalculo = false;
+        return;
+      }
+      if (!untracked(this.remote) && untracked(this.page) !== 0) this.page.set(0);
+    });
+  }
+
   isRowExpanded(index: number): boolean {
     return this.expandedRows().has(index);
   }
+
   toggleRow(index: number): void {
     this.expandedRows.update((current) => {
       const next = new Set(current);
@@ -88,87 +286,102 @@ export class DataTableComponent {
     });
   }
 
-  /**
-   * Clave del parámetro donde se guarda la página. Opcional a propósito: la tabla es un
-   * componente genérico y tiene que poder montarse fuera de una ruta —en una prueba, por
-   * ejemplo—, así que sin clave o sin enrutador simplemente no sincroniza.
-   */
-  readonly urlKey = input<string | null>(null);
-  private readonly selectedSize = signal<number | null>(null);
-  readonly size = computed(() => Math.max(1, this.selectedSize() ?? this.pageSize()));
-  readonly totalCount = computed(() => this.totalRows() ?? this.rows().length);
-  readonly pageCount = computed(() => Math.max(1, Math.ceil(this.totalCount() / this.size())));
-  readonly currentPage = computed(() =>
-    Math.min(this.totalRows() === null ? this.page() : Math.max(0, this.remotePage() - 1), this.pageCount() - 1),
-  );
-  readonly start = computed(() => (this.totalCount() ? this.currentPage() * this.size() + 1 : 0));
-  readonly end = computed(() => Math.min((this.currentPage() + 1) * this.size(), this.totalCount()));
-  readonly visibleRows = computed(() =>
-    this.totalRows() === null ? this.rows().slice(this.currentPage() * this.size(), this.end()) : this.rows(),
-  );
-  readonly pageOptions = computed(() => Array.from({ length: this.pageCount() }, (_, index) => index));
-  readonly sizeOptions: readonly UiOption[] = [
-    { value: '5', label: '5' },
-    { value: '10', label: '10' },
-    { value: '25', label: '25' },
-    { value: '50', label: '50' },
-    { value: '100', label: '100' },
-  ];
-  readonly pageSelectOptions = computed<readonly UiOption[]>(() =>
-    this.pageOptions().map((number) => ({ value: number.toString(), label: (number + 1).toString() })),
-  );
+  setSearchText(text: string): void {
+    this.searchText.set(text);
+    this.applySearch();
+  }
 
-  constructor() {
-    // Fuera de una ruta la tabla sigue funcionando igual, sin tocar la URL. La clave se
-    // pasa como funcion: es un input de señal y aun no tiene valor en el constructor.
-    if (inject(Router, { optional: true })) {
-      sincronizarPaginaConLaUrl(() => this.urlKey(), this.page);
-    }
-    // Sin esto, cambiar de filtro en el padre (otra cuenta, otro periodo) deja la tabla
-    // en la pagina donde se quedo el listado anterior -a veces mas alla del nuevo total,
-    // aterrizando en la ultima pagina en vez de la primera-. Un cambio real en el total de
-    // filas es la señal de que la lista es otra, no una actualizacion de la misma; se
-    // ignora el primer disparo del effect (el del montaje) para no pisar una pagina que
-    // ya llego fijada por la URL.
-    let primerCalculo = true;
-    effect(() => {
-      this.totalCount();
-      if (primerCalculo) {
-        primerCalculo = false;
-        return;
-      }
-      if (this.totalRows() === null && untracked(this.page) !== 0) this.page.set(0);
-    });
+  setSearchField(field: string): void {
+    this.searchField.set(field);
+    this.applySearch();
   }
-  setSize(event: Event): void {
-    const size = Number((event.target as HTMLSelectElement).value);
-    this.selectedSize.set(size);
+
+  private applySearch(): void {
+    const text = this.searchText();
+    this.table.setGlobalFilter(text.trim() ? ({ field: this.searchField(), text } satisfies SearchQuery) : undefined);
     this.page.set(0);
-    this.pageSizeChange.emit(size);
-    if (this.totalRows() !== null) this.pageChange.emit(1);
   }
+
+  facetValues(key: string): readonly { value: string; count: number }[] {
+    const column = this.table.getColumn(key);
+    if (!column) return [];
+    return [...column.getFacetedUniqueValues().entries()]
+      .filter(([value]) => value !== null && value !== undefined && value !== '')
+      .map(([value, count]) => ({ value: String(value), count }))
+      .sort((a, b) => a.value.localeCompare(b.value, undefined, { numeric: true }));
+  }
+
+  facetSelection(key: string): readonly string[] {
+    return (this.table.getColumn(key)?.getFilterValue() as string[] | undefined) ?? [];
+  }
+
+  toggleFacet(key: string, value: string): void {
+    const current = this.facetSelection(key);
+    const next = current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
+    this.table.getColumn(key)?.setFilterValue(next.length ? next : undefined);
+    this.page.set(0);
+  }
+
+  clearFilters(): void {
+    this.searchText.set('');
+    this.table.setGlobalFilter(undefined);
+    this.table.resetColumnFilters(true);
+    this.page.set(0);
+  }
+
+  sortIcon(direction: false | 'asc' | 'desc'): IconName {
+    if (direction === 'asc') return 'sortAscending';
+    if (direction === 'desc') return 'sortDescending';
+    return 'sortNone';
+  }
+
+  ariaSort(direction: false | 'asc' | 'desc'): 'ascending' | 'descending' | 'none' {
+    if (direction === 'asc') return 'ascending';
+    if (direction === 'desc') return 'descending';
+    return 'none';
+  }
+
+  toggleRowSelection(row: { toggleSelected: (value?: boolean) => void }, checked: boolean): void {
+    row.toggleSelected(checked);
+    this.emitSelection();
+  }
+
+  toggleAllRows(checked: boolean): void {
+    this.table.toggleAllPageRowsSelected(checked);
+    this.emitSelection();
+  }
+
+  private emitSelection(): void {
+    this.selectionChange.emit(this.table.getSelectedRowModel().rows.map((row) => row.original));
+  }
+
   setSizeValue(value: string): void {
     const size = Number(value);
     this.selectedSize.set(size);
     this.page.set(0);
     this.pageSizeChange.emit(size);
-    if (this.totalRows() !== null) this.pageChange.emit(1);
+    if (this.remote()) this.pageChange.emit(1);
   }
+
   setPage(zeroBasedPage: number): void {
     const next = Math.max(0, Math.min(zeroBasedPage, this.pageCount() - 1));
-    if (this.totalRows() === null) this.page.set(next);
-    else this.pageChange.emit(next + 1);
+    if (this.remote()) this.pageChange.emit(next + 1);
+    else this.page.set(next);
   }
-  setPageFromEvent(event: Event): void {
-    this.setPage(Number((event.target as HTMLSelectElement).value));
-  }
+
   setPageValue(value: string): void {
     this.setPage(Number(value));
   }
+
   detailClass(column: TableColumn, rowIndex: number): string {
     if (column.essential !== false) return '';
     return this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden';
   }
+
+  columnOf(key: string): TableColumn | undefined {
+    return this.columns().find((column) => column.key === key);
+  }
+
   display(value: unknown): string {
     return value == null ? '—' : String(value);
   }

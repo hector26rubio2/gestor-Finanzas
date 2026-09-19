@@ -20,6 +20,7 @@
     "@ng-icons/core": "^32.2.0",
     "@ng-icons/lucide": "^32.2.0",
     "@spartan-ng/brain": "1.4.1",
+    "@tanstack/angular-table": "9.2.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "echarts": "^6.1.0",

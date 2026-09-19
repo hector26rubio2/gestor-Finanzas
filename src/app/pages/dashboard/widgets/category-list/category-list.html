@@ -12,7 +12,8 @@
     (click)="pick.emit(category.name)"
   >
     <span class="flex items-center gap-[7px]"
-      ><i class="size-[9px] rounded-[3px]" [style.background]="category.color"></i>{{ category.name }}</span
+      ><i class="size-[9px] rounded-[3px]" [style.background]="category.color"></i
+      ><fin-category-badge [name]="category.name" variant="outline" /></span
     ><b>{{ money(category.value) }}</b><small class="text-end">{{ category.percent }} %</small
     ><em class="col-span-full mb-2.5 h-[5px] overflow-hidden rounded-lg bg-border last:mb-0"
       ><i class="block h-full" [style.width.%]="category.percent" [style.background]="category.color"></i

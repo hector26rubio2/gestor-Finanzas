@@ -248,6 +248,7 @@
           [columns]="tableColumns()"
           [rows]="tableRows(widget)"
           [selectable]="false"
+          [toolbar]="false"
           [pageSize]="8"
           [tableLabel]="widget.title"
         />
@@ -337,7 +338,9 @@
       [pageSize]="15"
       [tableLabel]="i18n.t('dashboard.recent.title')"
       (rowSelected)="inspect($event)"
-    />
+    >
+      <ng-template finCell="category" let-row><fin-category-badge [name]="row.category" /></ng-template>
+    </fin-table>
   </section>
   } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
   <aside

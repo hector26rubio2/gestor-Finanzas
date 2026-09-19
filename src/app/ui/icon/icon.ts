@@ -1,7 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
+  lucideArrowDown,
   lucideArrowLeftRight,
+  lucideArrowUp,
+  lucideArrowUpDown,
+  lucideColumns3,
+  lucideListFilter,
   lucideBanknote,
   lucideBell,
   lucideBriefcase,
@@ -106,6 +111,11 @@ const ICONOS = {
   undo: 'lucideRotateCcw',
   layers: 'lucideLayers',
   gripHorizontal: 'lucideGripHorizontal',
+  columns: 'lucideColumns3',
+  filter: 'lucideListFilter',
+  sortAscending: 'lucideArrowUp',
+  sortDescending: 'lucideArrowDown',
+  sortNone: 'lucideArrowUpDown',
   utensils: 'lucideUtensils',
   car: 'lucideCar',
   home: 'lucideHouse',
@@ -127,7 +137,12 @@ const ICONOS = {
 export type IconName = keyof typeof ICONOS;
 
 const REGISTRO = {
+  lucideArrowDown,
   lucideArrowLeftRight,
+  lucideArrowUp,
+  lucideArrowUpDown,
+  lucideColumns3,
+  lucideListFilter,
   lucideBanknote,
   lucideBell,
   lucideBriefcase,
