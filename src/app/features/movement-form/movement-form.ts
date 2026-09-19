@@ -1,3 +1,4 @@
+import { todayIso } from '../../core/utils/dates';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -120,7 +121,7 @@ export class MovementFormComponent {
     const m = context.movement;
     this.model = {
       kind: context.kind,
-      date: m?.date ?? '2026-08-31',
+      date: m?.date ?? (this.store.runtime.mode === 'demo' ? '2026-08-31' : todayIso()),
       accountId: context.accountId ?? m?.accountId ?? '',
       targetId: context.targetId ?? '',
       description: m?.description ?? '',

@@ -20,7 +20,12 @@ export class KpiComponent {
   /** Sin su propio borde/fondo/relleno, para vivir dentro de una tarjeta que ya los pone. */
   readonly bare = input(false);
   readonly compact = input(false);
-  readonly row = input(false);
+  readonly row = input(true);
+  readonly layoutRow = computed(() => this.row() && !this.bare());
+  readonly hasSeries = computed(() => {
+    const values = this.series();
+    return values.length > 1 && Math.max(...values) !== Math.min(...values);
+  });
   private readonly grid = inject(KpiGridContext, { optional: true });
   /** Icono del chip. Sin nombre, la tarjeta no dibuja chip: no todas lo necesitan. */
   readonly icon = input<IconName | ''>('');
@@ -39,7 +44,7 @@ export class KpiComponent {
   private readonly tema = inject(ChartThemeService);
 
   readonly hostClass = computed(() => {
-    if (this.row())
+    if (this.layoutRow())
       return 'flex min-h-[84px] min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-foreground';
     const base = 'flex min-w-0 flex-col justify-center gap-1.5 text-foreground';
     if (this.bare()) return `${base} min-h-0 flex-1 items-center border-0 bg-transparent p-0 text-center`;

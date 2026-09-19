@@ -1,3 +1,4 @@
+import { addMonthsToIso, todayIso } from '../../core/utils/dates';
 import { DateFieldComponent } from '../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
@@ -58,7 +59,7 @@ export class PlanningTabComponent {
     if (visibles.length && !visibles.includes(this.planningTab())) this.planningTab.set(visibles[0]);
   });
   readonly monthly = signal(1200000);
-  targetDate = '2027-08-31';
+  targetDate = this.store.runtime.mode === 'demo' ? '2027-08-31' : addMonthsToIso(todayIso(), 12);
   readonly currentMonths = computed(() => Math.max(1, Math.ceil(this.store.debt() / 650000)));
   readonly proposedMonths = computed(() => Math.max(1, Math.ceil(this.store.debt() / Math.max(1, this.monthly()))));
   readonly currentInterest = computed(() => Math.round(this.store.debt() * 0.018 * this.currentMonths()));

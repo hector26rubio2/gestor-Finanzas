@@ -1,3 +1,4 @@
+import { todayIso } from '../utils/dates';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { toast as sonner } from 'ngx-sonner';
@@ -128,7 +129,7 @@ export class AppStore {
   /** Dia de vuelta cuando el inspector de un movimiento se abrio desde una agenda diaria. */
   readonly calendarReturnDate = signal<string | null>(null);
   /** Dia seleccionado en el calendario. El inspector de dia lo usa de resguardo. */
-  readonly selectedCalendarDate = signal('2026-08-18');
+  readonly selectedCalendarDate = signal(this.runtime.mode === 'demo' ? '2026-08-18' : todayIso());
   /** El inspector de una tarjeta muestra el extracto o la simulacion de un abono. */
   readonly cardPaymentMode = signal(false);
   readonly movements = computed(() =>

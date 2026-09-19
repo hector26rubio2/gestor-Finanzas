@@ -1,4 +1,4 @@
-@if (row()) { @if (icon()) {
+@if (layoutRow()) { @if (icon()) {
 <span class="grid size-10 flex-none place-items-center rounded-[10px]" [class]="chipClass()">
   <fin-icon [name]="icon()" class="[--icon-size:20px]" />
 </span>
@@ -13,7 +13,7 @@
   <span class="truncate text-[0.72rem] text-muted-foreground" [attr.title]="hint()">{{ hint() }}</span>
   }
 </div>
-@if (delta() !== null || series().length > 1) {
+@if (delta() !== null || hasSeries()) {
 <div class="flex flex-none flex-col items-end gap-1">
   @if (delta() !== null) {
   <span
@@ -23,7 +23,7 @@
   >
     {{ flecha() }} {{ deltaTexto() }}
   </span>
-  } @if (series().length > 1) { @defer (on viewport) {
+  } @if (hasSeries()) { @defer (on viewport) {
   <fin-chart
     class="block w-20"
     [option]="chispaOption()"
@@ -62,7 +62,7 @@
     <span class="overflow-hidden text-[0.72rem] text-ellipsis whitespace-nowrap text-muted-foreground"
       >{{ hint() }}</span
     >
-    } @if (series().length > 1) { @defer (on viewport) {
+    } @if (hasSeries()) { @defer (on viewport) {
     <fin-chart
       class="flex-none"
       [option]="chispaOption()"

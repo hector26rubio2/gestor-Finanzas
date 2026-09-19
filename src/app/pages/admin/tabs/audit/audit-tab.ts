@@ -1,5 +1,4 @@
 import { DateFieldComponent } from '../../../../ui/date-field/date-field';
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -13,6 +12,7 @@ import { IconComponent } from '../../../../ui/icon/icon';
 import { PagerComponent } from '../../../../ui/pager/pager';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
+import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso } from './audit-catalog';
 
@@ -20,7 +20,6 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
   selector: 'app-admin-audit-tab',
   imports: [
     DateFieldComponent,
-    DatePipe,
     FormsModule,
     HlmButton,
     HlmInput,
@@ -96,7 +95,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             <tbody hlmTBody>
               @for (event of store.audit(); track event.id) {
                 <tr hlmTr>
-                  <td hlmTd class="whitespace-nowrap">{{ event.createdAt | date: 'dd/MM/yy HH:mm' }}</td>
+                  <td hlmTd class="whitespace-nowrap">{{ labels.dateTime(event.createdAt) }}</td>
                   <td hlmTd>{{ actorName(event) }}</td>
                   <td hlmTd>
                     <b class="text-sm">{{ event.action }}</b>
@@ -141,7 +140,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
     <fin-sheet-panel
       [open]="!!selected()"
       [title]="selected()?.action ?? ''"
-      [subtitle]="(selected()?.createdAt | date: 'medium') ?? ''"
+      [subtitle]="labels.dateTimeLong(selected()?.createdAt)"
       (closed)="selected.set(null)"
     >
       @if (selected(); as event) {
@@ -175,6 +174,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
 })
 export class AuditTabComponent {
   readonly store = inject(AdminStore);
+  readonly labels = inject(AdminLabels);
   readonly i18n = inject(I18nService);
 
   readonly action = signal(this.store.auditFilter().action ?? '');

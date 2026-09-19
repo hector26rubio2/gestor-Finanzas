@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
@@ -18,7 +17,6 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
 @Component({
   selector: 'app-admin-flags-tab',
   imports: [
-    DatePipe,
     FormsModule,
     HlmBadge,
     HlmInput,
@@ -116,7 +114,7 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
                       </span>
                     }
                   </td>
-                  <td hlmTd class="px-5 text-muted-foreground">{{ row.updatedAt | date: 'dd MMM, HH:mm' }}</td>
+                  <td hlmTd class="px-5 text-muted-foreground">{{ labels.dateTime(row.updatedAt) }}</td>
                 </tr>
               } @empty {
                 <tr hlmTr>

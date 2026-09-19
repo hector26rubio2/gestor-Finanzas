@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -20,7 +19,7 @@ interface SummaryKpi {
 
 @Component({
   selector: 'app-admin-summary-tab',
-  imports: [DatePipe, HlmBadge, HlmButton, HlmTableImports, AdminPanelComponent, EmptyStateComponent, IconComponent],
+  imports: [HlmBadge, HlmButton, HlmTableImports, AdminPanelComponent, EmptyStateComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.sinDatos()) {
@@ -85,7 +84,7 @@ interface SummaryKpi {
                     </span>
                   </td>
                   <td hlmTd class="px-5">
-                    {{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess') }}
+                    {{ user.lastSeenAt ? labels.dateTime(user.lastSeenAt) : i18n.t('admin.users.noAccess') }}
                   </td>
                 </tr>
               } @empty {
@@ -165,7 +164,7 @@ interface SummaryKpi {
                   <tr hlmTr>
                     <td hlmTd class="px-5 py-3 font-medium">{{ event.action }}</td>
                     <td hlmTd class="px-4">{{ event.entityType }}</td>
-                    <td hlmTd class="px-4">{{ event.createdAt | date: 'dd MMM, HH:mm' }}</td>
+                    <td hlmTd class="px-4">{{ labels.dateTime(event.createdAt) }}</td>
                     <td hlmTd class="px-5">
                       <code class="text-xs text-muted-foreground">{{ event.traceId.slice(0, 8) }}</code>
                     </td>
