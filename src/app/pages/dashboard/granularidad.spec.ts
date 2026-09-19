@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { MovementFormComponent } from '../../features/movement-form/movement-form';
 import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
@@ -28,7 +28,7 @@ function preparar(permisos: readonly string[]) {
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
     ],
   });
-  const store = TestBed.inject(DemoStore);
+  const store = TestBed.inject(AppStore);
   store.user.set({ ...store.users[0], capabilities: [...permisos] });
   return store;
 }
@@ -45,7 +45,7 @@ const VER_WIDGETS = [
 
 /** El formulario de movimiento se abre desde el almacén: sin eso no hay qué montar. */
 function abrirFormulario(kind: string) {
-  TestBed.inject(DemoStore).form.set({ kind } as never);
+  TestBed.inject(AppStore).form.set({ kind } as never);
 }
 
 describe('dashboard: reorganizar no es cambiar de visualización', () => {

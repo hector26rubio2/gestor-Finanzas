@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, CapabilitiesProvider, DemoStore } from '../../core/store';
+import { CAPABILITIES, CapabilitiesProvider, AppStore } from '../../core/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { MovementCategoryFieldComponent } from './movement-category-field';
 import { MovementCoreFieldsComponent } from './movement-core-fields';
@@ -52,7 +52,7 @@ import { AsyncActionService } from '../../core/async-action.service';
   styleUrl: './movement-form.css',
 })
 export class MovementFormComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities: CapabilitiesProvider = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   readonly error = signal('');

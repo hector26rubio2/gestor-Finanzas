@@ -3,7 +3,7 @@ import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
 import { FieldComponent } from '../../ui/field';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 
 /**
  * Cuotas de una compra con tarjeta. La cuota actual solo es editable al revisar una
@@ -25,7 +25,7 @@ export class MovementInstallmentFieldsComponent {
   @Input({ required: true }) model!: Record<string, any>;
   @Input() currentEditable = false;
   readonly i18n = inject(I18nService);
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
 
   /** La tasa con la que nace la tarjeta, para precargar el campo sin obligar a escribirla. */
   cardApr(): number | undefined {

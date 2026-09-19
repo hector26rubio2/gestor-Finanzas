@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
@@ -18,7 +18,7 @@ import { FieldComponent } from '../../ui/field';
 })
 export class ManagementFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');

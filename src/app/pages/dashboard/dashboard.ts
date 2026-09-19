@@ -8,7 +8,7 @@ import { I18nService } from '../../core/i18n';
 import { parseMoney, sumBy } from '../../core/money';
 import { P } from '../../core/permissions';
 import { sincronizarConLaUrl } from '../../core/url-state';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { IconComponent, IconName } from '../../ui/icon';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
@@ -145,7 +145,7 @@ const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 's
 export class DashboardComponent {
   readonly P = P;
   private readonly api = inject(FinanceApiClient);
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   private readonly temaGrafica = inject(ChartThemeService);

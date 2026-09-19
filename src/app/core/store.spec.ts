@@ -1,14 +1,14 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 
-describe('DemoStore', () => {
-  let store: DemoStore;
+describe('AppStore', () => {
+  let store: AppStore;
 
   beforeEach(() => {
     window.__FINANZAS_CONFIG__ = { mode: 'demo' };
     TestBed.resetTestingModule();
-    store = TestBed.inject(DemoStore);
+    store = TestBed.inject(AppStore);
   });
 
   it('filters the ledger without mutating the fixture', () => {
@@ -157,7 +157,7 @@ describe('sesión demo persistida', () => {
   });
 
   it('no inicia sesión cuando no hay perfil guardado', () => {
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.restoreDemoSession();
     // Number(null) es 0 y 0 es un índice válido: sin la guarda explícita, no
     // haber iniciado sesión entraba como el primer perfil.
@@ -165,21 +165,21 @@ describe('sesión demo persistida', () => {
   });
 
   it('recupera el perfil elegido tras recargar', () => {
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.rememberDemoSession(1);
     store.restoreDemoSession();
     expect(store.user()).toBe(store.users[1]);
   });
 
   it('ignora un índice guardado fuera de rango', () => {
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     sessionStorage.setItem('finanzas.demo.perfil', '99');
     store.restoreDemoSession();
     expect(store.user()).toBeNull();
   });
 
   it('olvida el perfil al cerrar sesión', () => {
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.rememberDemoSession(0);
     store.forgetDemoSession();
     store.restoreDemoSession();

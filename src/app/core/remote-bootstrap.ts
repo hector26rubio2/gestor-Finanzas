@@ -17,13 +17,13 @@ import { parseAmount, parseMoney, parseRate } from './money';
 import { classifyFamily, MovementKindCatalog, signOf } from './movement-kinds';
 import { P } from './permissions';
 import { Router } from '@angular/router';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 import { I18nService } from './i18n';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private sessionSignature: string | null = null;

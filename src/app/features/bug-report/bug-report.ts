@@ -6,7 +6,7 @@ import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from '../../core/api-client';
 import { ConsoleBufferService } from '../../core/console-buffer';
 import { I18nService } from '../../core/i18n';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { APP_VERSION } from '../../core/version';
 import { FieldComponent } from '../../ui/field';
 import { IconComponent } from '../../ui/icon';
@@ -27,7 +27,7 @@ const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
   styleUrl: './bug-report.css',
 })
 export class BugReportButtonComponent {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly api = inject(FinanceApiClient);
   private readonly consoleBuffer = inject(ConsoleBufferService);
   private readonly router = inject(Router);

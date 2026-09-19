@@ -6,7 +6,7 @@ import { AppComponent } from './app';
 import { FinanceApiClient } from './core/api-client';
 import { P } from './core/permissions';
 import { RUNTIME_CONFIG } from './core/runtime';
-import { DemoStore } from './core/store';
+import { AppStore } from './core/store';
 
 /**
  * El armazón de la aplicación y la pantalla de entrada.
@@ -38,7 +38,7 @@ describe('AppComponent y la pantalla de entrada', () => {
 
   it('no envuelve el login con el armazón, aunque ya haya usuario', async () => {
     const fixture = montar();
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/login');
@@ -52,7 +52,7 @@ describe('AppComponent y la pantalla de entrada', () => {
 
   it('fuera del login el armazón vuelve', async () => {
     const fixture = montar();
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
@@ -69,7 +69,7 @@ describe('AppComponent y la pantalla de entrada', () => {
     fixture.detectChanges();
 
     // Sin dashboard.ver, ir a /dashboard a ciegas devolvería al mismo sitio por el guard.
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver] });
     fixture.detectChanges();
     await fixture.whenStable();

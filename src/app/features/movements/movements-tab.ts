@@ -18,7 +18,7 @@ import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import { HeaderActionsService } from '../../shared/header-actions.service';
@@ -32,7 +32,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
   styleUrl: './movements-tab.css',
 })
 export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);

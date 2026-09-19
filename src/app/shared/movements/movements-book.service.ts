@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiMovement, FinanceApiClient } from '../../core/api-client';
 import { UiOption } from '../../ui/select';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { parseMoney } from '../../core/money';
 import { classifyFamily, signOf } from '../../core/movement-kinds';
 import { I18nService } from '../../core/i18n';
@@ -19,7 +19,7 @@ import { I18nService } from '../../core/i18n';
  */
 @Injectable({ providedIn: 'root' })
 export class MovementsBookService {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly api = inject(FinanceApiClient);
   private readonly i18n = inject(I18nService);

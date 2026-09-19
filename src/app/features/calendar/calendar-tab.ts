@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } 
 import { firstValueFrom } from 'rxjs';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
@@ -15,7 +15,7 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
   styleUrl: './calendar-tab.css',
 })
 export class CalendarTabComponent implements OnInit {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);

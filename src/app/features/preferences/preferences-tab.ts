@@ -6,7 +6,7 @@ import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { applyTheme, CAPABILITIES, DemoStore } from '../../core/store';
+import { applyTheme, CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 
 @Component({
@@ -18,7 +18,7 @@ import { I18nService } from '../../core/i18n';
   styleUrl: './preferences-tab.css',
 })
 export class PreferencesTabComponent implements OnInit {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);

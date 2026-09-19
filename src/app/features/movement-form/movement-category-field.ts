@@ -1,7 +1,7 @@
 import { Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { buildCategoryOptions } from './movement-category-options.factory';
 import { FieldComponent } from '../../ui/field';
@@ -22,7 +22,7 @@ export class MovementCategoryFieldComponent {
   @Input({ required: true }) model!: Record<string, any>;
   @Input({ required: true }) kind!: string;
 
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
 
   // No es un `computed()`: `kind` es un `@Input()` normal que cambia sin recrear

@@ -2,7 +2,7 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { applyTheme, DemoStore, Preferences } from '../../core/store';
+import { applyTheme, AppStore, Preferences } from '../../core/store';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
@@ -17,7 +17,7 @@ import { firstValueFrom } from 'rxjs';
   styleUrl: './login.css',
 })
 export class LoginComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private router = inject(Router);
   private remote = inject(RemoteBootstrap);
   private location = inject(Location);

@@ -5,7 +5,7 @@ import { P } from './core/permissions';
 import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
-import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
 import { BugReportButtonComponent } from './features/bug-report/bug-report';
 import { MovementFormComponent } from './features/movement-form/movement-form';
 import { NgxSonnerToaster } from 'ngx-sonner';
@@ -44,7 +44,7 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
   styleUrl: './app.css',
 })
 export class AppComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   readonly P = P;

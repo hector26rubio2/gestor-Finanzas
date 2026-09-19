@@ -2,7 +2,7 @@ import { Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { FieldComponent } from '../../ui/field';
 
@@ -23,7 +23,7 @@ export class MovementLoanFieldsComponent {
   @Input({ required: true }) model!: Record<string, any>;
   @Input() showLoan = false;
 
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
 

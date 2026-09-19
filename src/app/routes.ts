@@ -1,6 +1,6 @@
 import { Type, inject } from '@angular/core';
 import { CanMatchFn, Router, Routes } from '@angular/router';
-import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
 
 /**
  * Deja entrar a una sección, o manda a la primera que sí esté abierta.
@@ -17,7 +17,7 @@ import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
  * porque esa ruta no está guardada.
  */
 const guard: CanMatchFn = (route) => {
-  const store = inject(DemoStore);
+  const store = inject(AppStore);
   const router = inject(Router);
   const capacidades = inject(CAPABILITIES);
   const funcionalidades = inject(FEATURES);

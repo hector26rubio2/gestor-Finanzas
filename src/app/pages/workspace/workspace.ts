@@ -10,7 +10,7 @@ import { IconComponent } from '../../ui/icon';
 import { SinAccesoComponent } from '../../ui/sin-acceso';
 import { P } from '../../core/permissions';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { FinanceApiClient } from '../../core/api-client';
@@ -64,7 +64,7 @@ const SIN_DATO = '—';
 export class WorkspaceComponent {
   readonly Math = Math;
   readonly i18n = inject(I18nService);
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   readonly P = P;
@@ -432,8 +432,8 @@ export class WorkspaceComponent {
     this.store.inspector.set(pending.restore);
   }
   readonly pendingConfirm = signal<
-    | { kind: 'reverse'; movement: Movement; restore: ReturnType<DemoStore['inspector']> }
-    | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<DemoStore['inspector']> }
+    | { kind: 'reverse'; movement: Movement; restore: ReturnType<AppStore['inspector']> }
+    | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<AppStore['inspector']> }
     | null
   >(null);
   /** Último tipo pedido: el texto no cambia mientras el diálogo se cierra. */

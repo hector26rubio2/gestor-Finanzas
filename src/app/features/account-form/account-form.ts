@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
@@ -85,7 +85,7 @@ export class AccountFormComponent {
   annualRate = 28.5;
   paymentOrder = 'oldest';
   minimumPayment = 50000;
-  private store = inject(DemoStore);
+  private store = inject(AppStore);
   readonly actions = inject(AsyncActionService);
   readonly saveActionKey = 'account:create';
   closed = () => this.store.form.set(null);

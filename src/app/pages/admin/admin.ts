@@ -17,7 +17,7 @@ import { P } from '../../core/permissions';
 import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { EmptyStateComponent } from '../../ui/empty-state/empty-state';
 import { FinTableCellDirective } from '../../ui/table-cell.directive';
@@ -42,7 +42,7 @@ type Tab = 'summary' | 'users' | 'roles' | 'organizations' | 'flags' | 'audit' |
   styleUrl: './admin.css',
 })
 export class AdminComponent implements OnInit {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private api = inject(FinanceApiClient);
   private readonly arranque = inject(RemoteBootstrap);
   readonly caps = inject(CAPABILITIES);

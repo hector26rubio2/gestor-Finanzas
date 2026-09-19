@@ -5,7 +5,7 @@ import { ApiRequestError, FinanceApiClient } from './api-client';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { CAPABILITIES, DemoStore, FEATURES, navigation } from './store';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from './store';
 
 describe('permisos granulares', () => {
   beforeEach(() => {
@@ -59,7 +59,7 @@ describe('permisos granulares', () => {
   });
 
   it('allows compara contra los permisos que trae la sesión', () => {
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     const caps = TestBed.inject(CAPABILITIES);
     store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver] });
 
@@ -81,7 +81,7 @@ describe('banderas de funcionalidad', () => {
 
   it('contra la API, mientras el catálogo no llegue, nada abre', () => {
     window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://api.example.test' };
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     const features = TestBed.inject(FEATURES);
 
     // Antes devolvía true: un fallo de red abría todo en vez de cerrarlo.
@@ -120,7 +120,7 @@ describe('sesión sin permisos', () => {
 
     await TestBed.inject(RemoteBootstrap).initialize();
 
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     expect(store.remoteState()).toBe('error');
     expect(store.remoteError()).toContain('permisos');
     expect(store.user()).toBeNull();
@@ -138,6 +138,6 @@ describe('sesión sin permisos', () => {
     });
 
     await TestBed.inject(RemoteBootstrap).initialize();
-    expect(TestBed.inject(DemoStore).remoteState()).toBe('anonymous');
+    expect(TestBed.inject(AppStore).remoteState()).toBe('anonymous');
   });
 });

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { formatReturnRate } from '../../core/money';
 import { I18nService } from '../../core/i18n';
 import { SIN_DATO } from '../../shared/utils/placeholders';
@@ -15,7 +15,7 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
   styleUrl: '../../pages/workspace/workspace.css',
 })
 export class PortfolioTabComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
 
   readonly investmentColumns = computed(() => [

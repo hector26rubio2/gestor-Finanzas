@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { DemoStore } from '../../../core/store';
+import { AppStore } from '../../../core/store';
 
 export interface CategoryListItem {
   name: string;
@@ -17,7 +17,7 @@ export interface CategoryListItem {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryListComponent {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   readonly items = input<readonly CategoryListItem[]>([]);
   readonly selected = input('all');
   readonly emptyText = input('');

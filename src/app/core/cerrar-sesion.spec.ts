@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from './api-client';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 
 /**
  * Cerrar sesion estaba escrito dos veces —el menu de perfil y Preferencias— y las copias
@@ -36,7 +36,7 @@ describe('cerrar sesion', () => {
 
   it('lleva a la pantalla de acceso y olvida el perfil local', async () => {
     const arranque = montar('demo');
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     const router = TestBed.inject(Router);
     store.user.set(store.users[0]);
     sessionStorage.setItem('finanzas.demo.perfil', '0');
@@ -53,7 +53,7 @@ describe('cerrar sesion', () => {
   it('si el servidor no responde, la sesion local se cierra igual', async () => {
     const logout = vi.fn(() => throwError(() => new Error('sin red')));
     const arranque = montar('api', { logout } as unknown as Partial<FinanceApiClient>);
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     const router = TestBed.inject(Router);
     store.user.set(store.users[0]);
     await router.navigateByUrl('/dashboard');
@@ -82,7 +82,7 @@ describe('cerrar sesion', () => {
       logout: vi.fn(() => of(void 0)),
       session,
     } as unknown as Partial<FinanceApiClient>);
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set(store.users[0]);
 
     await arranque.cerrarSesion();
@@ -99,7 +99,7 @@ describe('cerrar sesion', () => {
     const arranque = montar('api', {
       logout: vi.fn(() => of(void 0)),
     } as unknown as Partial<FinanceApiClient>);
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set(store.users[0]);
 
     await arranque.cerrarSesion();
@@ -111,7 +111,7 @@ describe('cerrar sesion', () => {
   it('cierra tambien la sesion del servidor cuando la hay', async () => {
     const logout = vi.fn(() => of(void 0));
     const arranque = montar('api', { logout } as unknown as Partial<FinanceApiClient>);
-    TestBed.inject(DemoStore).user.set(TestBed.inject(DemoStore).users[0]);
+    TestBed.inject(AppStore).user.set(TestBed.inject(AppStore).users[0]);
 
     await arranque.cerrarSesion();
 

@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
@@ -15,7 +15,7 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
   styleUrl: './planning-tab.css',
 })
 export class PlanningTabComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   can(permiso: string): boolean {

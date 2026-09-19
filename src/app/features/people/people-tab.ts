@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/c
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { SIN_DATO } from '../../shared/utils/placeholders';
 
@@ -15,7 +15,7 @@ import { SIN_DATO } from '../../shared/utils/placeholders';
   styleUrl: '../../pages/workspace/workspace.css',
 })
 export class PeopleTabComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   readonly P = P;

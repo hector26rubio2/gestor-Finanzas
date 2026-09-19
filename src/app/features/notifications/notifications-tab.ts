@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@
 import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { HeaderActionsService } from '../../shared/header-actions.service';
 
@@ -14,7 +14,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
   styleUrl: './notifications-tab.css',
 })
 export class NotificationsTabComponent implements OnInit, OnDestroy {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
   private readonly headerActions = inject(HeaderActionsService);

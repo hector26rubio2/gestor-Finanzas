@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { AdminComponent } from './admin';
 
 /**
@@ -122,7 +122,7 @@ describe('AdminComponent y el guardado de un rol', () => {
 
     await componente.saveRole();
 
-    expect(TestBed.inject(DemoStore).toast()).toContain('movimientos.teletransportar');
+    expect(TestBed.inject(AppStore).toast()).toContain('movimientos.teletransportar');
   });
 });
 
@@ -180,7 +180,7 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
     await componente.deleteRole(rol);
 
     expect(deleteAdminRole).toHaveBeenCalledWith('r1');
-    expect(TestBed.inject(DemoStore).toast()).toContain('Auditor');
+    expect(TestBed.inject(AppStore).toast()).toContain('Auditor');
   });
 
   it('activar y desactivar refleja el nuevo estado sin esperar a recargar', async () => {

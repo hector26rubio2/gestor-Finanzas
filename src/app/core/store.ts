@@ -21,14 +21,14 @@ export interface CapabilitiesProvider {
 export const CAPABILITIES = new InjectionToken<CapabilitiesProvider>('Capabilities', {
   providedIn: 'root',
   factory: () => {
-    const store = inject(DemoStore);
+    const store = inject(AppStore);
     return { allows: (capability) => !!store.user()?.capabilities.includes(capability) };
   },
 });
 export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('FeatureFlags', {
   providedIn: 'root',
   factory: () => {
-    const store = inject(DemoStore);
+    const store = inject(AppStore);
     return {
       // Una ruta funcional en modo API debe aparecer expresamente en el catálogo. La
       // única excepción es el plano de control: el superadmin necesita conservar la
@@ -201,7 +201,7 @@ const DEMO_CATEGORIES: readonly ApiCategory[] = [
 ];
 
 @Injectable({ providedIn: 'root' })
-export class DemoStore {
+export class AppStore {
   readonly runtime = inject(RUNTIME_CONFIG);
   private provider = inject(DATA_PROVIDER);
   private injector = inject(Injector);
