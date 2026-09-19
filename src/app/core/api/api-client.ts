@@ -111,9 +111,6 @@ export class FinanceApiClient {
   logout() {
     return this.sessionApi.logout();
   }
-  devLogin(who: 'admin' | 'member' = 'admin') {
-    return this.sessionApi.devLogin(who);
-  }
   createAccount(...args: Parameters<AccountsApi['createAccount']>) {
     return this.accountsApi.createAccount(...args);
   }

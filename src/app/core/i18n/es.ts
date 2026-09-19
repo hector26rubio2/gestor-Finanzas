@@ -42,7 +42,6 @@ export default {
   'login.signInToContinue': 'Inicia sesión con Google para continuar.',
   'login.authError': 'No fue posible completar el inicio de sesión con Google. Intenta de nuevo.',
   'login.localAccessNote': 'Acceso local · Información protegida en este dispositivo',
-  'login.localAccess': 'Entrar con cuenta local de pruebas',
 
   // ui: componentes compartidos (kpi, tabla, overlay, select, sin-acceso, skeleton, chart)
   'kpi.sparkline.ariaLabel': '{label}: evolución del periodo',

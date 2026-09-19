@@ -42,7 +42,6 @@ export default {
   'login.signInToContinue': 'Sign in with Google to continue.',
   'login.authError': 'We could not complete Google sign-in. Please try again.',
   'login.localAccessNote': 'Local access · Information protected on this device',
-  'login.localAccess': 'Enter local test account',
 
   // ui: shared components (kpi, table, overlay, select, no-access, skeleton, chart)
   'kpi.sparkline.ariaLabel': '{label}: trend over the period',
