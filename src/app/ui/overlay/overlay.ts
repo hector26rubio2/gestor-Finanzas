@@ -1,82 +1,64 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  EventEmitter,
-  OnDestroy,
-  Output,
-  ViewChild,
-  inject,
-  input,
-} from '@angular/core';
+import { NgTemplateOutlet } from '@angular/common';
+import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { I18nService } from '../../core/i18n';
+import { IconComponent } from '../icon';
 
 @Component({
   selector: 'fin-overlay',
-  standalone: true,
+  imports: [NgTemplateOutlet, HlmButton, HlmDialogImports, HlmSheetImports, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './overlay.html',
-  styleUrl: './overlay.css',
+  template: `
+    <ng-template #body><ng-content /></ng-template>
+    @if (mode() === 'modal') {
+      <hlm-dialog state="open" (stateChanged)="onStateChanged($event)">
+        <hlm-dialog-content
+          *hlmDialogPortal="let ctx"
+          [showCloseButton]="false"
+          class="flex max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none flex-col gap-0 p-0 sm:max-w-none"
+        >
+          <header class="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
+            <h2 hlmDialogTitle class="text-lg font-semibold">{{ title() }}</h2>
+            <button hlmBtn variant="ghost" size="icon-sm" hlmDialogClose [attr.aria-label]="i18n.t('overlay.close')">
+              <fin-icon name="close" />
+            </button>
+          </header>
+          <div class="min-h-0 flex-1 overflow-y-auto p-6"><ng-container [ngTemplateOutlet]="body" /></div>
+        </hlm-dialog-content>
+      </hlm-dialog>
+    } @else {
+      <hlm-sheet side="right" state="open" (stateChanged)="onStateChanged($event)">
+        <hlm-sheet-content
+          *hlmSheetPortal="let ctx"
+          [showCloseButton]="false"
+          [class]="wide() ? 'data-[side=right]:sm:max-w-3xl' : 'data-[side=right]:sm:max-w-xl'"
+          class="w-full gap-0 p-0"
+        >
+          <header class="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
+            <h2 hlmSheetTitle class="text-lg font-semibold">{{ title() }}</h2>
+            <button hlmBtn variant="ghost" size="icon-sm" hlmSheetClose [attr.aria-label]="i18n.t('overlay.close')">
+              <fin-icon name="close" />
+            </button>
+          </header>
+          <div class="min-h-0 flex-1 overflow-y-auto p-6"><ng-container [ngTemplateOutlet]="body" /></div>
+        </hlm-sheet-content>
+      </hlm-sheet>
+    }
+  `,
 })
-export class OverlayComponent implements AfterViewInit, OnDestroy {
+export class OverlayComponent {
   readonly i18n = inject(I18nService);
-  private static nextId = 0;
-  readonly titleId = `overlay-title-${OverlayComponent.nextId++}`;
   readonly title = input(this.i18n.t('overlay.defaultTitle'));
   readonly mode = input<'modal' | 'inspector'>('inspector');
   readonly wide = input(false);
-  @Output() readonly closed = new EventEmitter<void>();
-  @ViewChild('dialog', { static: true }) private dialog!: ElementRef<HTMLDialogElement>;
-  @ViewChild('closeButton', { static: true }) private closeButton!: ElementRef<HTMLButtonElement>;
-  private previousFocus: HTMLElement | null = null;
-  private pointerStartedOnBackdrop = false;
+  readonly closed = output<void>();
   private emittedClose = false;
-  /**
-   * Se recuerda quien tenia el foco al construirse, no al pintarse.
-   *
-   * Entre una cosa y otra cabe el desmontaje de otro panel, y al desmontarse ese devuelve
-   * el foco a su propio disparador: el panel nuevo acababa recordando un boton que no era
-   * el suyo y, al cerrarse, mandaba el foco a la otra punta de la pantalla. Solo se nota
-   * al abrir un panel justo despues de cerrar otro, que es donde lo cazo la suite.
-   */
-  private readonly abridor = typeof document === 'undefined' ? null : (document.activeElement as HTMLElement | null);
 
-  ngAfterViewInit(): void {
-    this.previousFocus = this.abridor;
-    this.dialog.nativeElement.showModal();
-    this.closeButton.nativeElement.focus();
-  }
-  ngOnDestroy(): void {
-    if (this.dialog.nativeElement.open) this.dialog.nativeElement.close();
-    // Solo se devuelve el foco si nadie se lo ha llevado ya a otro sitio con sentido:
-    // robarselo a la pantalla que acaba de recibirlo es peor que no devolverlo.
-    const activo = document.activeElement;
-    const nadieLoTiene = !activo || activo === document.body || this.dialog.nativeElement.contains(activo);
-    if (nadieLoTiene && this.previousFocus?.isConnected) this.previousFocus.focus();
-  }
-  requestClose(): void {
-    if (this.dialog.nativeElement.open) this.dialog.nativeElement.close();
-    if (!this.emittedClose) {
-      this.emittedClose = true;
-      this.closed.emit();
-    }
-  }
-  onCancel(event: Event): void {
-    event.preventDefault();
-    this.requestClose();
-  }
-  backdrop(event: MouseEvent): void {
-    if (!this.pointerStartedOnBackdrop || event.target !== this.dialog.nativeElement) return;
-    this.pointerStartedOnBackdrop = false;
-    if (this.isOutsidePanel(event.clientX, event.clientY)) this.requestClose();
-  }
-  rememberPointerOrigin(event: PointerEvent): void {
-    this.pointerStartedOnBackdrop =
-      event.target === this.dialog.nativeElement && this.isOutsidePanel(event.clientX, event.clientY);
-  }
-  private isOutsidePanel(clientX: number, clientY: number): boolean {
-    const rect = this.dialog.nativeElement.getBoundingClientRect();
-    return clientX < rect.left || clientX > rect.right || clientY < rect.top || clientY > rect.bottom;
+  protected onStateChanged(state: 'open' | 'closed'): void {
+    if (state !== 'closed' || this.emittedClose) return;
+    this.emittedClose = true;
+    this.closed.emit();
   }
 }

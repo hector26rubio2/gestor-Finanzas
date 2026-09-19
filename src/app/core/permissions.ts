@@ -144,6 +144,7 @@ export const P = {
     organizaciones: {
       listar: 'administracion.organizaciones.listar',
       crear: 'administracion.organizaciones.crear',
+      editar: 'administracion.organizaciones.editar',
     },
     roles: {
       listar: 'administracion.roles.listar',

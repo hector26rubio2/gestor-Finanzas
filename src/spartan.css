@@ -10,8 +10,12 @@
 @import '@angular/cdk/overlay-prebuilt.css';
 @source './app';
 
-/* Helm emits valued state attributes, not boolean attribute presence. */
-@custom-variant data-active (&[data-active='true']);
+@custom-variant data-active (&:is([data-active='true'], [data-state='active']));
+@custom-variant data-checked (&:is([data-checked='true'], [data-state='checked']));
+@custom-variant data-unchecked (&:is([data-unchecked='true'], [data-state='unchecked']));
+@custom-variant data-pressed (&:is([data-pressed='true'], [data-state='on']));
+@custom-variant data-vertical (&[data-orientation='vertical']);
+@custom-variant data-horizontal (&[data-orientation='horizontal']);
 @custom-variant data-open (&[data-state='open']);
 @custom-variant data-closed (&[data-state='closed']);
 /* Los temas oscuros de la aplicación se marcan con `data-theme`, no con la preferencia del sistema. */

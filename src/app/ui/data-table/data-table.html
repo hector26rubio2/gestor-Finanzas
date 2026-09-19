@@ -70,7 +70,6 @@
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions"
       [ngModel]="size().toString()"
-      [openUp]="true"
       (ngModelChange)="setSizeValue($event)"
   /></label>
   <div class="pages">
@@ -102,7 +101,6 @@
         [ariaLabel]="i18n.t('table.page.goTo')"
         [options]="pageSelectOptions()"
         [ngModel]="currentPage().toString()"
-        [openUp]="true"
         (ngModelChange)="setPageValue($event)"
       />
       {{ i18n.t('table.page.ofTotal', { total: pageCount() }) }} </label

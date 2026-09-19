@@ -1,6 +1,6 @@
 import { Injector, Type, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
+import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 import { safeReturnPath } from './core/return-url';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/store';
@@ -78,6 +78,9 @@ const workspaceFeatureLoader: Record<string, () => Promise<Type<unknown>>> = {
   settings: () => import('./features/preferences/preferences-tab').then((m) => m.PreferencesTabComponent),
 };
 
+const sinCambiosPendientes: CanDeactivateFn<{ puedeSalir(): boolean | Promise<boolean> }> = (component) =>
+  component.puedeSalir();
+
 export const routes: Routes = [
   { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent) },
   { path: 'sin-acceso', loadComponent: () => import('./pages/sin-seccion').then((m) => m.SinSeccionComponent) },
@@ -93,6 +96,7 @@ export const routes: Routes = [
       return {
         path: n.path,
         canMatch: [guard],
+        canDeactivate: [sinCambiosPendientes],
         data: { capability: n.capability },
         loadComponent: () => import('./pages/admin/admin').then((m) => m.AdminComponent),
       };
