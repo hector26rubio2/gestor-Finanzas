@@ -71,3 +71,62 @@ describe('botón flotante de reportes', () => {
     expect(component.fab().right).toBeLessThan(window.innerWidth);
   });
 });
+
+describe('reporte con cuestionario', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        {
+          provide: FinanceApiClient,
+          useValue: {
+            session: vi.fn(() => of(null)),
+            reportBug: vi.fn(() =>
+              of({ githubIssueUrl: 'https://github.com/x/y/issues/1', githubStatus: 'created', githubDetail: null }),
+            ),
+          },
+        },
+      ],
+    });
+  });
+
+  it('pide título y descripción antes de avanzar y termina en el resultado', async () => {
+    const fixture = TestBed.createComponent(BugReportButtonComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.launch();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const overlay = document.body;
+    const fieldsets = () =>
+      [...overlay.querySelectorAll('fieldset[brnQuestionnaireItem], fieldset')] as HTMLFieldSetElement[];
+    expect(fieldsets().length).toBe(5);
+    const visible = () =>
+      fieldsets()
+        .filter((item) => !item.hasAttribute('hidden'))
+        .map((item) => item.getAttribute('name'));
+    expect(visible()).toEqual(['title']);
+
+    component.title = 'El saldo no cambia';
+    component.description = 'Esperaba ver el saldo actualizado';
+    component.severity = 'high';
+    await component.submit();
+    fixture.detectChanges();
+
+    expect(component.done()).toBe(true);
+    expect(component.githubIssueUrl()).toBe('https://github.com/x/y/issues/1');
+  });
+
+  it('no envía sin título o sin descripción', async () => {
+    const fixture = TestBed.createComponent(BugReportButtonComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    component.launch();
+    component.title = 'Solo título';
+    await component.submit();
+    expect(component.done()).toBe(false);
+  });
+});
