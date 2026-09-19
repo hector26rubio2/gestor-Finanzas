@@ -9,6 +9,7 @@ import { CAPABILITIES, DemoStore, FEATURES, navigation } from './core/store';
 import { BugReportButtonComponent } from './features/bug-report/bug-report';
 import { MovementFormComponent } from './features/movement-form/movement-form';
 import { NgxSonnerToaster } from 'ngx-sonner';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton, HlmSidebarService } from '@spartan-ng/helm/sidebar';
 
 /**
@@ -36,6 +37,7 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
     BugReportButtonComponent,
     NgxSonnerToaster,
     HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton,
+    ...HlmDropdownMenuImports,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
@@ -114,7 +116,6 @@ export class AppComponent {
   private readonly salirDeLaEntrada = effect(() => {
     if (this.store.user() && this.enLogin()) void this.router.navigateByUrl('/' + this.primeraRutaPermitida());
   });
-  readonly profileOpen = signal(false);
   /**
    * Si lo que hay abierto es un movimiento.
    *
@@ -147,10 +148,8 @@ export class AppComponent {
   @HostListener('document:keydown.escape')
   closeMobileMenu(): void {
     this.sidebar.setOpenMobile(false);
-    this.profileOpen.set(false);
   }
   async logout(): Promise<void> {
-    this.profileOpen.set(false);
     await this.arranque.cerrarSesion();
   }
 }

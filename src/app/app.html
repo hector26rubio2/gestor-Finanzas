@@ -28,12 +28,14 @@
         ><b>Finanzas</b></a
       >
     </div>
-    <div class="profile" [class.open]="profileOpen()">
+    <div class="profile">
       <button
         class="profile-trigger"
         type="button"
-        (click)="profileOpen.update((v) => !v)"
-        [attr.aria-expanded]="profileOpen()"
+        [hlmDropdownMenuTrigger]="profileMenu"
+        align="start"
+        side="right"
+        [attr.aria-label]="i18n.t('shell.profile')"
       >
         @if (store.user()?.photoUrl) {
         <img class="avatar" [src]="store.user()?.photoUrl" alt="" />
@@ -50,16 +52,16 @@
         >
         <fin-icon name="more" class="profile-more aside-label" />
       </button>
-      @if (profileOpen()) {
-      <div class="profile-menu">
-        <div class="profile-menu-head">
+    </div>
+    <ng-template #profileMenu>
+      <div hlmDropdownMenu class="profile-menu">
+        <div hlmDropdownMenuLabel class="profile-menu-head">
           <strong>{{ store.user()?.name }}</strong><small>{{ store.user()?.email }}</small>
         </div>
-        <a routerLink="/settings" (click)="profileOpen.set(false)">{{ i18n.t('shell.profile') }}</a>
-        <button type="button" (click)="logout()">{{ i18n.t('shell.logout') }}</button>
+        <a hlmDropdownMenuItem routerLink="/settings">{{ i18n.t('shell.profile') }}</a>
+        <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
       </div>
-      }
-    </div>
+    </ng-template>
     <nav
       id="primary-navigation"
       [attr.aria-label]="i18n.t('shell.primaryNav')"

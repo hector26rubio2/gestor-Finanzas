@@ -201,9 +201,7 @@ nav a {
     background: var(--accent-soft);
   }
   nav a:hover .nav-icon,
-  .profile-trigger:hover,
-  .profile-menu a:hover,
-  .profile-menu button:hover {
+  .profile-trigger:hover {
     color: inherit;
   }
 }
@@ -302,12 +300,12 @@ nav a:hover .nav-icon {
   color: var(--muted);
   letter-spacing: 1px;
 }
+.collapsed .profile-trigger {
+  justify-content: center;
+  padding: 6px 0;
+}
 .profile-menu {
-  position: absolute;
-  z-index: 30;
-  left: 0;
-  top: calc(100% + 6px);
-  width: 218px;
+  min-width: 218px;
   padding: 6px;
   border: 1px solid var(--line);
   border-radius: 12px;
@@ -327,8 +325,11 @@ nav a:hover .nav-icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.profile-menu a,
-.profile-menu button {
+/* El \`button {}\` global va sin capa y vence a las utilidades de Tailwind de Helm. */
+.profile-menu [hlmDropdownMenuItem] {
+  display: flex;
+  width: 100%;
+  min-height: 0;
   text-align: left;
   border: 0;
   background: transparent;
@@ -336,18 +337,11 @@ nav a:hover .nav-icon {
   text-decoration: none;
   padding: 10px;
   border-radius: 8px;
+  font-weight: 500;
 }
-.profile-menu a:hover,
-.profile-menu button:hover {
+.profile-menu [hlmDropdownMenuItem]:hover,
+.profile-menu [hlmDropdownMenuItem]:focus-visible {
   background: var(--accent-soft);
-}
-.collapsed .profile-trigger {
-  justify-content: center;
-  padding: 6px 0;
-}
-.collapsed .profile-menu {
-  left: 52px;
-  top: 0;
 }
 .stage {
   display: flex;
