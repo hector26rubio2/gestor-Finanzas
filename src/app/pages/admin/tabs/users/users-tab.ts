@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
@@ -21,7 +20,6 @@ import { UserSheetComponent } from './user-sheet';
 @Component({
   selector: 'app-admin-users-tab',
   imports: [
-    DatePipe,
     FormsModule,
     HlmBadge,
     HlmButton,
@@ -122,7 +120,7 @@ import { UserSheetComponent } from './user-sheet';
                   <td hlmTd class="px-4">{{ user.roles.join(', ') || i18n.t('admin.users.directAccess') }}</td>
                   <td hlmTd class="px-4">{{ user.capabilities.length }} {{ i18n.t('admin.users.assignedSuffix') }}</td>
                   <td hlmTd class="px-4">
-                    {{ user.lastSeenAt ? (user.lastSeenAt | date: 'dd MMM, HH:mm') : i18n.t('admin.users.noAccess') }}
+                    {{ user.lastSeenAt ? labels.dateTime(user.lastSeenAt) : i18n.t('admin.users.noAccess') }}
                   </td>
                   <td hlmTd class="px-5 text-end">
                     @if (caps.allows(P.administracion.usuarios.editar)) {

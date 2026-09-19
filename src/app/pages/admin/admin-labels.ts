@@ -1,6 +1,8 @@
 import { Injectable, inject } from '@angular/core';
 import { ApiClientError, ApiPermissionDescriptor } from '../../core/api/administration.api';
 import { I18nService } from '../../core/i18n';
+import { AppStore } from '../../core/state/store';
+import { formatDateTime, formatDateTimeLong } from '../../core/utils/dates';
 
 const ACTION_KEYS: Readonly<Record<number, string>> = {
   1: 'view',
@@ -60,6 +62,16 @@ export class AdminLabels {
 
   level(permission: ApiPermissionDescriptor): string {
     return this.i18n.t(`admin.permissions.level.${LEVEL_KEYS[permission.level] ?? 'basic'}`);
+  }
+
+  private readonly store = inject(AppStore);
+
+  dateTime(value: string | null | undefined): string {
+    return formatDateTime(value, this.store.preferences().locale);
+  }
+
+  dateTimeLong(value: string | null | undefined): string {
+    return formatDateTimeLong(value, this.store.preferences().locale);
   }
 
   feature(key: string): string {

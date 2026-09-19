@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
@@ -19,7 +18,6 @@ import { AdminStore } from '../../admin.store';
 @Component({
   selector: 'app-admin-errors-tab',
   imports: [
-    DatePipe,
     FormsModule,
     HlmBadge,
     HlmButton,
@@ -63,7 +61,7 @@ import { AdminStore } from '../../admin.store';
                 <span class="flex min-w-0 flex-1 flex-col">
                   <b class="truncate text-sm">{{ error.message }}</b>
                   <small class="truncate text-xs text-muted-foreground">
-                    {{ error.version }} · {{ error.lastSeenAt | date: 'dd MMM, HH:mm' }} ·
+                    {{ error.version }} · {{ labels.dateTime(error.lastSeenAt) }} ·
                     {{ i18n.t('admin.errors.affectedUsersLabel', { count: error.affectedUsers }) }}
                   </small>
                 </span>
@@ -124,7 +122,7 @@ import { AdminStore } from '../../admin.store';
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.errors.drawer.lastSeen') }}</dt>
-            <dd>{{ error.lastSeenAt | date: 'medium' }}</dd>
+            <dd>{{ labels.dateTimeLong(error.lastSeenAt) }}</dd>
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.common.traceId') }}</dt>
