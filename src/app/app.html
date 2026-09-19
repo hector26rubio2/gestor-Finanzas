@@ -117,8 +117,8 @@
           }
         </a>
         @if (caps.allows(P.movimientos.crear)) {
-        <button class="primary" (click)="store.open()">
-          <fin-icon name="plus" /> {{ i18n.t('shell.newMovement') }}
+        <button class="primary" [attr.aria-label]="i18n.t('shell.newMovement')" (click)="store.open()">
+          <fin-icon name="plus" /><span class="primary-label">{{ i18n.t('shell.newMovement') }}</span>
         </button>
         }
       </div>

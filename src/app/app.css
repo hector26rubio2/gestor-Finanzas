@@ -480,12 +480,8 @@ main {
   .org {
     display: none;
   }
-  .primary {
-    font-size: 0;
-  }
-  .primary::after {
-    content: '＋';
-    font-size: 1rem;
+  .primary-label {
+    display: none;
   }
   main {
     padding: 18px 14px;

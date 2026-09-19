@@ -378,9 +378,9 @@ export class RemoteBootstrap {
     return {
       id: source.id,
       date: source.date,
-      description: source.description ?? 'Sin descripción',
+      description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
       accountId,
-      category: source.linkNames['category']?.name ?? 'Sin categoría',
+      category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
       ...classifyFamily(family, amount),
       amount,
       status: 'confirmed',

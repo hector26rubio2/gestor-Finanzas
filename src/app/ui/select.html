@@ -2,7 +2,7 @@
   type="button"
   class="trigger"
   [disabled]="isDisabled()"
-  [attr.aria-label]="ariaLabel()"
+  [attr.aria-label]="ariaLabel() + ': ' + selectedLabel()"
   aria-haspopup="listbox"
   [attr.aria-expanded]="open()"
   (click)="open.update((value) => !value)"
