@@ -92,3 +92,22 @@
     transition: none !important;
   }
 }
+.cdk-drag-preview {
+  box-sizing: border-box;
+  border-radius: var(--radius-lg, 12px);
+  box-shadow: var(--shadow);
+  opacity: 0.92;
+}
+.cdk-drag-placeholder {
+  opacity: 0.35;
+}
+.cdk-drop-list-dragging .cdk-drag,
+.cdk-drag-animating {
+  transition: transform 220ms var(--ease-out);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cdk-drop-list-dragging .cdk-drag,
+  .cdk-drag-animating {
+    transition: none !important;
+  }
+}

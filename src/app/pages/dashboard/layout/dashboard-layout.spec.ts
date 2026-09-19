@@ -1,82 +1,87 @@
 import { describe, expect, it } from 'vitest';
 import {
-  LayoutItem,
-  buildRows,
-  canJoinPrevious,
-  canSplit,
+  FlowDefault,
+  FlowItem,
+  clampCols,
   clampHeight,
-  joinPreviousRow,
-  reconcileRows,
-  splitOut,
+  colsFromWidth,
+  moveItem,
+  rowSpan,
+  reconcileFlow,
   swapAdjacent,
+  withCols,
   withHeight,
-  withSizes,
 } from './dashboard-layout';
 
-const item = (id: string, height = 360, alone = false): LayoutItem => ({ id, height, alone });
-const idsOf = (rows: readonly { ids: readonly string[] }[]) => rows.map((row) => row.ids.join('+'));
+const base = (id: string, cols = 6, height = 360): FlowDefault => ({ id, cols, height });
+const ids = (items: readonly FlowItem[]) => items.map((item) => item.id);
 
-describe('diseño del dashboard', () => {
-  it('reparte los elementos en filas del tamaño pedido y deja solos los anchos', () => {
-    const rows = buildRows([item('a'), item('b'), item('c'), item('d', 520, true), item('e')], 2);
-    expect(idsOf(rows)).toEqual(['a+b', 'c', 'd', 'e']);
-    expect(rows[0].sizes).toEqual([50, 50]);
-    expect(rows[2].height).toBe(520);
+describe('diseño del dashboard en cuadrícula de 12 columnas', () => {
+  it('con un diseño vacío parte de los valores por defecto', () => {
+    const items = reconcileFlow([], [base('a'), base('b', 12, 520)]);
+    expect(items).toEqual([base('a'), base('b', 12, 520)]);
   });
 
-  it('cada fila suma siempre cien', () => {
-    const rows = withSizes(buildRows([item('a'), item('b'), item('c')], 3), 'a', [20, 30, 70]);
-    expect(rows[0].sizes.reduce((total, size) => total + size, 0)).toBeCloseTo(100);
+  it('el ancho se acota entre el mínimo y las doce columnas', () => {
+    expect(clampCols(0)).toBe(2);
+    expect(clampCols(20)).toBe(12);
+    expect(clampCols(4.4)).toBe(4);
+    expect(clampCols(1, 1)).toBe(1);
   });
 
-  it('acota la altura de una fila', () => {
-    expect(clampHeight(10)).toBe(120);
+  it('el alto se acota y se ajusta a pasos de diez', () => {
+    expect(clampHeight(10)).toBe(100);
     expect(clampHeight(5000)).toBe(1100);
     expect(clampHeight(437)).toBe(440);
-    expect(withHeight(buildRows([item('a')], 2), 'a', 900)[0].height).toBe(900);
   });
 
-  it('unir con la fila anterior reparte el ancho y no deja filas vacías', () => {
-    const rows = joinPreviousRow(buildRows([item('a'), item('b'), item('c')], 1), 'b');
-    expect(idsOf(rows)).toEqual(['a+b', 'c']);
-    expect(rows[0].sizes[0]).toBeCloseTo(50);
-    expect(canJoinPrevious(rows, 'a')).toBe(false);
-    expect(canJoinPrevious(rows, 'c')).toBe(true);
+  it('achicar un elemento no toca a los demás', () => {
+    const items = reconcileFlow([], [base('a'), base('b'), base('c')]);
+    const next = withCols(items, 'a', 4);
+    expect(next.map((item) => item.cols)).toEqual([4, 6, 6]);
+    expect(next[1]).toBe(items[1]);
   });
 
-  it('sacar un elemento de su fila lo deja en una fila propia', () => {
-    const rows = splitOut(buildRows([item('a'), item('b')], 2), 'b');
-    expect(idsOf(rows)).toEqual(['a', 'b']);
-    expect(canSplit(rows, 'a')).toBe(false);
+  it('cambiar el alto solo afecta al elemento pedido', () => {
+    const items = reconcileFlow([], [base('a'), base('b')]);
+    expect(withHeight(items, 'b', 600).map((item) => item.height)).toEqual([360, 600]);
   });
 
-  it('intercambiar con el vecino conserva la forma de las filas', () => {
-    const rows = buildRows([item('a'), item('b'), item('c')], 2);
-    expect(idsOf(swapAdjacent(rows, 'b', 1))).toEqual(['a+c', 'b']);
-    expect(idsOf(swapAdjacent(rows, 'a', -1))).toEqual(['a+b', 'c']);
+  it('mover reordena y respeta los límites', () => {
+    const items = reconcileFlow([], [base('a'), base('b'), base('c')]);
+    expect(ids(moveItem(items, 0, 2))).toEqual(['b', 'c', 'a']);
+    expect(moveItem(items, 0, 9)).toBe(items);
+    expect(ids(swapAdjacent(items, 'b', -1))).toEqual(['b', 'a', 'c']);
+    expect(swapAdjacent(items, 'a', -1)).toBe(items);
   });
 
-  it('al reconciliar quita lo que ya no existe y renormaliza la fila', () => {
-    const rows = buildRows([item('a'), item('b')], 2);
-    const next = reconcileRows(withSizes(rows, 'a', [70, 30]), [item('b')], 2);
-    expect(idsOf(next)).toEqual(['b']);
-    expect(next[0].sizes).toEqual([100]);
+  it('al reconciliar quita lo que ya no existe, conserva el orden y añade lo nuevo al final', () => {
+    const items = withCols(reconcileFlow([], [base('a'), base('b'), base('c')]), 'c', 3);
+    const next = reconcileFlow(items, [base('c'), base('a'), base('d', 12)]);
+    expect(ids(next)).toEqual(['a', 'c', 'd']);
+    expect(next[1].cols).toBe(3);
+    expect(next[2].cols).toBe(12);
   });
 
-  it('al reconciliar añade lo nuevo a la última fila con hueco', () => {
-    const rows = buildRows([item('a'), item('b'), item('c')], 2);
-    const next = reconcileRows(rows, [item('a'), item('b'), item('c'), item('d')], 2);
-    expect(idsOf(next)).toEqual(['a+b', 'c+d']);
-    const alone = reconcileRows(rows, [item('a'), item('b'), item('c'), item('e', 500, true)], 2);
-    expect(idsOf(alone)).toEqual(['a+b', 'c', 'e']);
+  it('sin cambios devuelve el mismo diseño', () => {
+    const items = reconcileFlow([], [base('a'), base('b')]);
+    expect(reconcileFlow(items, [base('a'), base('b')])).toBe(items);
   });
 
-  it('sin cambios devuelve las mismas filas', () => {
-    const rows = buildRows([item('a'), item('b')], 2);
-    expect(reconcileRows(rows, [item('a'), item('b')], 2)).toBe(rows);
+  it('cambiar a un valor igual devuelve el mismo diseño', () => {
+    const items = reconcileFlow([], [base('a'), base('b')]);
+    expect(withCols(items, 'a', 6)).toBe(items);
+    expect(withHeight(items, 'a', 360)).toBe(items);
+    expect(withCols(items, 'zzz', 4)).toBe(items);
   });
 
-  it('con un diseño vacío arma el de partida', () => {
-    expect(idsOf(reconcileRows([], [item('a'), item('b'), item('c')], 2))).toEqual(['a+b', 'c']);
+  it('calcula las filas de la cuadrícula incluyendo el espacio entre ítems', () => {
+    expect(rowSpan(360)).toBe(38);
+    expect(rowSpan(100)).toBe(12);
+  });
+
+  it('convierte un ancho en píxeles a columnas de la cuadrícula', () => {
+    expect(colsFromWidth(568, 1160, 16)).toBeCloseTo(6, 0);
+    expect(colsFromWidth(1160, 1160, 16)).toBeCloseTo(12, 0);
   });
 });

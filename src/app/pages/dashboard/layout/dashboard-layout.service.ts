@@ -1,35 +1,39 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
 import { AppStore } from '../../../core/state/store';
 import {
-  LayoutItem,
-  LayoutRow,
-  joinPreviousRow,
-  reconcileRows,
-  splitOut,
+  FlowDefault,
+  FlowItem,
+  KPI_MIN_COLS,
+  WIDGET_MIN_COLS,
+  moveItem,
+  reconcileFlow,
   swapAdjacent,
+  withCols,
   withHeight,
-  withSizes,
 } from './dashboard-layout';
 
-interface StoredLayout {
-  readonly version: 1;
-  readonly widgets: readonly LayoutRow[];
-  readonly kpis: readonly LayoutRow[];
+export interface FlowResize {
+  readonly cols?: number;
+  readonly height?: number;
 }
 
-const EMPTY: StoredLayout = { version: 1, widgets: [], kpis: [] };
-const WIDGETS_PER_ROW = 2;
-const KPIS_PER_ROW = 4;
+interface StoredLayout {
+  readonly version: 2;
+  readonly widgets: readonly FlowItem[];
+  readonly kpis: readonly FlowItem[];
+}
 
-function isRow(value: unknown): value is LayoutRow {
-  const row = value as LayoutRow;
+const EMPTY: StoredLayout = { version: 2, widgets: [], kpis: [] };
+
+function isFlowItem(value: unknown): value is FlowItem {
+  const item = value as FlowItem;
   return (
-    !!row &&
-    typeof row.key === 'string' &&
-    Array.isArray(row.ids) &&
-    Array.isArray(row.sizes) &&
-    row.ids.length === row.sizes.length &&
-    typeof row.height === 'number'
+    !!item &&
+    typeof item.id === 'string' &&
+    Number.isFinite(item.cols) &&
+    Number.isFinite(item.height) &&
+    item.cols >= 1 &&
+    item.cols <= 12
   );
 }
 
@@ -38,7 +42,7 @@ function read(key: string): StoredLayout {
     const raw = localStorage.getItem(key);
     if (!raw) return EMPTY;
     const parsed = JSON.parse(raw) as StoredLayout;
-    if (parsed.version !== 1 || !parsed.widgets?.every(isRow) || !parsed.kpis?.every(isRow)) return EMPTY;
+    if (parsed.version !== 2 || !parsed.widgets?.every(isFlowItem) || !parsed.kpis?.every(isFlowItem)) return EMPTY;
     return parsed;
   } catch {
     return EMPTY;
@@ -56,14 +60,14 @@ function write(key: string, value: StoredLayout): void {
 @Injectable()
 export class DashboardLayoutService {
   private readonly store = inject(AppStore);
-  private readonly storageKey = computed(() => `finanzas.dashboard.layout.v1.${this.store.user()?.id ?? 'anon'}`);
+  private readonly storageKey = computed(() => `finanzas.dashboard.layout.v2.${this.store.user()?.id ?? 'anon'}`);
 
   private readonly stored = signal<StoredLayout>(read(this.storageKey()));
-  readonly widgetItems = signal<readonly LayoutItem[]>([]);
-  readonly kpiItems = signal<readonly LayoutItem[]>([]);
+  readonly widgetDefaults = signal<readonly FlowDefault[]>([]);
+  readonly kpiDefaults = signal<readonly FlowDefault[]>([]);
 
-  readonly widgetRows = computed(() => reconcileRows(this.stored().widgets, this.widgetItems(), WIDGETS_PER_ROW));
-  readonly kpiRows = computed(() => reconcileRows(this.stored().kpis, this.kpiItems(), KPIS_PER_ROW));
+  readonly widgetFlow = computed(() => reconcileFlow(this.stored().widgets, this.widgetDefaults()));
+  readonly kpiFlow = computed(() => reconcileFlow(this.stored().kpis, this.kpiDefaults()));
   readonly customized = computed(() => this.stored().widgets.length > 0 || this.stored().kpis.length > 0);
 
   constructor() {
@@ -73,28 +77,34 @@ export class DashboardLayoutService {
     });
   }
 
-  resizeWidgets(key: string, sizes: readonly number[]): void {
-    this.commitWidgets(withSizes(this.widgetRows(), key, sizes));
+  resizeWidget(id: string, change: FlowResize): void {
+    let next = this.widgetFlow();
+    if (change.cols !== undefined) next = withCols(next, id, change.cols, WIDGET_MIN_COLS);
+    if (change.height !== undefined) next = withHeight(next, id, change.height);
+    this.commitWidgets(next);
   }
 
-  resizeWidgetRow(key: string, height: number): void {
-    this.commitWidgets(withHeight(this.widgetRows(), key, height));
+  resizeKpi(id: string, change: FlowResize): void {
+    let next = this.kpiFlow();
+    if (change.cols !== undefined) next = withCols(next, id, change.cols, KPI_MIN_COLS);
+    if (change.height !== undefined) next = withHeight(next, id, change.height);
+    this.commitKpis(next);
   }
 
-  resizeKpis(key: string, sizes: readonly number[]): void {
-    this.commitKpis(withSizes(this.kpiRows(), key, sizes));
+  dropWidget(from: number, to: number): void {
+    this.commitWidgets(moveItem(this.widgetFlow(), from, to));
   }
 
-  joinPrevious(id: string): void {
-    this.commitWidgets(joinPreviousRow(this.widgetRows(), id));
-  }
-
-  splitFromRow(id: string): void {
-    this.commitWidgets(splitOut(this.widgetRows(), id));
+  dropKpi(from: number, to: number): void {
+    this.commitKpis(moveItem(this.kpiFlow(), from, to));
   }
 
   moveWidget(id: string, direction: number): void {
-    this.commitWidgets(swapAdjacent(this.widgetRows(), id, direction));
+    this.commitWidgets(swapAdjacent(this.widgetFlow(), id, direction));
+  }
+
+  moveKpi(id: string, direction: number): void {
+    this.commitKpis(swapAdjacent(this.kpiFlow(), id, direction));
   }
 
   reset(): void {
@@ -102,12 +112,14 @@ export class DashboardLayoutService {
     write(this.storageKey(), EMPTY);
   }
 
-  private commitWidgets(widgets: readonly LayoutRow[]): void {
-    this.commit({ ...this.stored(), widgets, kpis: this.kpiRows() });
+  private commitWidgets(widgets: readonly FlowItem[]): void {
+    if (widgets === this.widgetFlow()) return;
+    this.commit({ version: 2, widgets, kpis: this.kpiFlow() });
   }
 
-  private commitKpis(kpis: readonly LayoutRow[]): void {
-    this.commit({ ...this.stored(), kpis, widgets: this.widgetRows() });
+  private commitKpis(kpis: readonly FlowItem[]): void {
+    if (kpis === this.kpiFlow()) return;
+    this.commit({ version: 2, widgets: this.widgetFlow(), kpis });
   }
 
   private commit(next: StoredLayout): void {

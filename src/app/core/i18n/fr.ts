@@ -1277,12 +1277,7 @@ export default {
   'admin.summary.column.date': 'Date',
   'admin.summary.column.trace': 'Trace',
   'admin.common.actions': 'Actions',
-  'dashboard.layout.resizeWidget': 'Faites glisser pour changer la largeur',
-  'dashboard.layout.resizeRow': 'Faites glisser pour changer la hauteur de la ligne',
-  'dashboard.layout.resizeKpi': "Faites glisser pour changer la largeur de l'indicateur",
   'dashboard.layout.reset': 'Réinitialiser la disposition',
-  'dashboard.widgetActions.joinRow': 'Placer à côté du précédent',
-  'dashboard.widgetActions.splitRow': 'Placer sur sa propre ligne',
   'bugReport.screenshot.failed': "L'écran n'a pas pu être capturé. Vous pouvez envoyer le rapport sans capture.",
   'bugReport.success.githubPending':
     "Votre rapport est enregistré. L'issue GitHub n'a pas encore été créée ; un administrateur peut réessayer.",
@@ -1290,4 +1285,8 @@ export default {
   'admin.errors.issueCreated': 'Issue GitHub créée',
   'admin.errors.issueFailed': "L'issue n'a pas pu être créée",
   'shell.toggleSubmenu': 'Afficher ou masquer le sous-menu {name}',
+  'dashboard.layout.resizeWidth': 'Faites glisser pour changer la largeur',
+  'dashboard.layout.resizeHeight': 'Faites glisser pour changer la hauteur',
+  'dashboard.layout.resizeBoth': 'Faites glisser pour changer largeur et hauteur',
+  'dashboard.layout.drag': 'Faites glisser pour déplacer ; au clavier, utilisez les flèches',
 } as const;
