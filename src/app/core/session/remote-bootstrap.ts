@@ -1,95 +1,12 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
-import { Observable, ObservedValueOf, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
-import { Account, DemoData, Movement } from '../state/demo-data';
-import {
-  ApiAccount,
-  ApiAccountKind,
-  ApiCard,
-  ApiDebtPosition,
-  ApiInvestment,
-  ApiMovement,
-  ApiNotification,
-  ApiRequestError,
-  ApiSession,
-  FinanceApiClient,
-} from '../api/api-client';
-import { parseAmount, parseMoney, parseRate } from '../utils/money';
-import { classifyFamily, MovementKindCatalog, signOf } from '../utils/movement-kinds';
-import { P } from './permissions';
+import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
+import { ApiRequestError, ApiSession, FinanceApiClient } from '../api/api-client';
+import { MovementKindCatalog } from '../utils/movement-kinds';
 import { Router } from '@angular/router';
+import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
+import { toViewData, toViewUser } from './remote-mappers';
 import { AppStore } from '../state/store';
 import { I18nService } from '../i18n/i18n.service';
-
-type Rebanada =
-  | 'movementKinds'
-  | 'accounts'
-  | 'cards'
-  | 'categories'
-  | 'people'
-  | 'debts'
-  | 'investments'
-  | 'movements'
-  | 'preferences';
-const SLICES: readonly Rebanada[] = [
-  'movementKinds',
-  'accounts',
-  'cards',
-  'categories',
-  'people',
-  'debts',
-  'investments',
-  'movements',
-  'preferences',
-];
-/** Permiso que autoriza pedir cada rebanada: el mismo código que exige el endpoint. */
-const PERMISO_DE: Record<Rebanada, string> = {
-  movementKinds: P.movimientos.clases.listar,
-  accounts: P.cuentas.ver,
-  cards: P.cuentas.tarjetas.listar,
-  categories: P.cuentas.categorias.listar,
-  people: P.personas.ver,
-  debts: P.personas.deudas.listar,
-  investments: P.patrimonio.ver,
-  movements: P.movimientos.ver,
-  preferences: P.preferencias.ver,
-};
-
-interface RawData {
-  movementKinds: ObservedValueOf<ReturnType<FinanceApiClient['movementKinds']>>;
-  accounts: ObservedValueOf<ReturnType<FinanceApiClient['accounts']>>;
-  cards: ObservedValueOf<ReturnType<FinanceApiClient['cards']>>;
-  categories: ObservedValueOf<ReturnType<FinanceApiClient['categories']>>;
-  people: ObservedValueOf<ReturnType<FinanceApiClient['people']>>;
-  debts: ObservedValueOf<ReturnType<FinanceApiClient['debts']>>;
-  investments: ObservedValueOf<ReturnType<FinanceApiClient['investments']>>;
-  movements: ObservedValueOf<ReturnType<FinanceApiClient['movements']>>;
-  preferences: ObservedValueOf<ReturnType<FinanceApiClient['preferences']>> | null;
-  notifications: ObservedValueOf<ReturnType<FinanceApiClient['notifications']>>;
-}
-
-function emptyRaw(): RawData {
-  return {
-    movementKinds: [],
-    accounts: [],
-    cards: [],
-    categories: [],
-    people: [],
-    debts: [],
-    investments: [],
-    movements: { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false },
-    preferences: null,
-    notifications: [],
-  };
-}
-
-/** Persona y organización: si cambia una de las dos, los datos cargados ya no valen. */
-function identidadDe(session: ApiSession): string {
-  return `${session.user.id}|${session.organization.id}`;
-}
-
-function mismaLista(a: readonly string[], b: readonly string[]): boolean {
-  return a.length === b.length && a.every((valor, i) => valor === b[i]);
-}
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
@@ -260,7 +177,8 @@ export class RemoteBootstrap {
     const catalog = new MovementKindCatalog(raw.movementKinds);
     this.store.kindCatalog.set(catalog);
     this.store.data.set(
-      this.toViewData(
+      toViewData(
+        this.i18n,
         catalog,
         raw.accounts,
         raw.cards,
@@ -301,7 +219,7 @@ export class RemoteBootstrap {
    * pantalla activa; comparando antes solo se actualiza lo que de verdad cambió.
    */
   private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[]): void {
-    const user = this.toViewUser(session);
+    const user = toViewUser(session);
     const actual = this.store.user();
     const igual =
       !!actual &&
@@ -446,129 +364,4 @@ export class RemoteBootstrap {
   async pollSession(): Promise<void> {
     await this.cargarSesion();
   }
-
-  private toViewUser(session: ApiSession): (typeof this.store.users)[number] & { photoUrl?: string } {
-    return {
-      id: session.user.id,
-      name: session.user.displayName,
-      email: session.user.email,
-      capabilities: [...(session.permissions ?? [])],
-      photoUrl: session.user.pictureUrl ?? undefined,
-    };
-  }
-
-  private toViewData(
-    catalog: MovementKindCatalog,
-    accounts: readonly ApiAccount[],
-    cards: readonly ApiCard[],
-    movements: readonly ApiMovement[],
-    people: readonly { id: string; displayName: string }[],
-    debts: readonly ApiDebtPosition[],
-    investments: readonly ApiInvestment[],
-    notifications: readonly ApiNotification[],
-  ): DemoData {
-    const viewAccounts: Account[] = [
-      ...accounts.map((account) => ({
-        id: account.id,
-        name: account.name,
-        type: account.kind === ApiAccountKind.cash ? ('cash' as const) : ('savings' as const),
-        currency: account.currency,
-        openingBalance: 0,
-        lastFour: account.lastFour ?? undefined,
-        institution: account.institution ?? undefined,
-      })),
-      ...cards.map((card) => ({
-        id: card.id,
-        name: card.name,
-        type: 'credit' as const,
-        currency: card.currency,
-        openingBalance: 0,
-        limit: parseMoney(card.creditLimit),
-        lastFour: card.lastFour ?? undefined,
-        cutDay: card.cycle.statementDay,
-        dueDay: card.cycle.paymentDueDay,
-        // La tasa de compras la publica el servidor; la pantalla del extracto la usaba
-        // inventada. Ausente si no viene: mejor no dar la cifra que darla falsa.
-        annualRate: tasaAnual(card.terms?.purchaseApr?.value),
-      })),
-    ];
-    const debtByPerson = new Map(debts.map((debt) => [debt.counterparty.id, debt]));
-    // Los campos que la API todavía no expone se dejan ausentes a propósito.
-    // Rellenarlos con constantes plausibles —riesgo «Medio», liquidez
-    // «Programada», cero unidades— los presentaba en pantalla como si fueran
-    // datos medidos. Un dato que falta se comunica; no se sustituye.
-    return {
-      accounts: viewAccounts,
-      movements: movements.map((movement) => this.toMovement(catalog, movement)),
-      people: people.map((person) => {
-        const position = debtByPerson.get(person.id);
-        return {
-          id: person.id,
-          name: person.displayName,
-          owed: parseMoney(position?.receivable),
-          owing: parseMoney(position?.ownDebt),
-        };
-      }),
-      investments: investments.map((investment) => ({
-        id: investment.id,
-        name: investment.name,
-        type: investment.instrumentType,
-        cost: parseMoney(investment.costBasis),
-        value: parseMoney(investment.marketValue ?? investment.costBasis),
-        currency: investment.currency,
-      })),
-      notifications: notifications.map((notification) => ({
-        id: notification.id,
-        title: notification.title,
-        detail: this.notificationDetail(notification),
-        read: notification.readAt !== null,
-      })),
-      auditEvents: [],
-      featureFlags: {},
-    };
-  }
-
-  private notificationDetail(notification: ApiNotification): string {
-    try {
-      const payload = JSON.parse(notification.payloadJson) as Record<string, unknown>;
-      return String(payload['detail'] ?? payload['description'] ?? notification.kind);
-    } catch {
-      return notification.kind;
-    }
-  }
-
-  private toMovement(catalog: MovementKindCatalog, source: ApiMovement): Movement {
-    const accountId = source.links['account'] ?? source.links['card'] ?? '';
-    const sign = signOf(source.flow, source.effect);
-    const amount = parseMoney(source.amount.base) * sign;
-    const family = catalog.family(source.kind, source.effect, source.flow);
-    return {
-      id: source.id,
-      date: source.date,
-      description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
-      accountId,
-      category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
-      ...classifyFamily(family, amount),
-      amount,
-      status: 'confirmed',
-      person: source.linkNames['counterparty']?.name,
-      ownership: source.links['counterparty'] ? 'loaned' : 'own',
-      recurring: Boolean(source.links['recurrence']),
-      originalCurrency: source.amount.original.currency === 'USD' ? 'USD' : 'COP',
-      originalAmount: parseAmount(source.amount.original.amount, source.amount.original.currency),
-      exchangeRate: parseRate(source.amount.rate),
-    };
-  }
-}
-
-/**
- * Tasa anual publicada por la API, o ausente.
- *
- * No se usa `parseRate` porque devuelve 0 cuando no hay valor, y 0 % es una tasa
- * legitima: confundir «no se» con «cero» es como se acaba enseñando una cifra inventada.
- */
-function tasaAnual(valor: string | number | null | undefined): number | undefined {
-  if (valor === null || valor === undefined) return undefined;
-  const numero = typeof valor === 'number' ? valor : Number(valor.trim());
-  return Number.isFinite(numero) ? numero : undefined;
 }

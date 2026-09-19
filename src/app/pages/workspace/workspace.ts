@@ -1,28 +1,16 @@
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmInput } from '@spartan-ng/helm/input';
-import { BankCardComponent } from '../../ui/bank-card/bank-card';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import { HeaderActionsService } from '../../shared/header-actions.service';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
-import { FormsModule } from '@angular/forms';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { ManagementFormComponent } from '../../features/management-form/management-form';
 import { IconComponent } from '../../ui/icon/icon';
 import { SinAccesoComponent } from '../../ui/sin-acceso/sin-acceso';
 import { P } from '../../core/session/permissions';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { firstValueFrom } from 'rxjs';
-import { formatReturnRate } from '../../core/utils/money';
+import { InspectorComponent } from './inspector/inspector';
 import { I18nService } from '../../core/i18n';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import type { Account, Movement } from '../../core/state/demo-data';
-import { ConfirmDialogComponent } from '../../ui/confirm-dialog/confirm-dialog';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
@@ -42,25 +30,15 @@ const paginasConMeta = [
   'settings',
 ] as const;
 
-/** Marca de dato ausente. Un campo que la API no publica se comunica, no se rellena. */
-const SIN_DATO = '—';
-
 @Component({
   imports: [
-    CommonModule,
     HlmButton,
-    HlmInput,
-    BankCardComponent,
-    FormsModule,
     RouterOutlet,
-    OverlayComponent,
+    InspectorComponent,
     AccountFormComponent,
     ManagementFormComponent,
     SinAccesoComponent,
     IconComponent,
-    NumericInputDirective,
-    DataTableComponent,
-    ConfirmDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -111,8 +89,6 @@ export class WorkspaceComponent {
     return this.capabilities.allows(permiso);
   }
   private route = inject(ActivatedRoute);
-  private readonly arranque = inject(RemoteBootstrap);
-  private api = inject(FinanceApiClient);
   readonly page = computed(() => this.route.snapshot.url[0]?.path ?? 'movements');
   readonly meta = computed(() => {
     const page = (paginasConMeta as readonly string[]).includes(this.page()) ? this.page() : 'movements';
@@ -121,95 +97,6 @@ export class WorkspaceComponent {
       description: this.i18n.t(`workspace.labels.${page}.description`),
     };
   });
-  readonly cardPaymentAmount = signal(500000);
-  readonly cardPurchases = computed(() => {
-    const id = this.selectedAccount()?.id;
-    return this.store
-      .data()
-      .movements.filter((m) => m.accountId === id && m.amount < 0 && m.kind === 'expense')
-      .slice(0, 12);
-  });
-  readonly cardDebt = computed(() => {
-    const account = this.selectedAccount();
-    return account
-      ? Math.max(0, -this.store.balance(account)) ||
-          this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount), 0)
-      : 0;
-  });
-  readonly paymentAllocation = computed(() => {
-    let remaining = Math.max(0, this.cardPaymentAmount());
-    return this.cardPurchases().map((m) => {
-      const before = Math.abs(m.amount);
-      const applied = Math.min(before, remaining);
-      remaining -= applied;
-      return {
-        id: m.id,
-        description: m.description,
-        installment: m.installmentTotal ? `${m.installmentCurrent}/${m.installmentTotal}` : '1/1',
-        before,
-        applied,
-        after: before - applied,
-      };
-    });
-  });
-  readonly appliedPayment = computed(() => this.paymentAllocation().reduce((sum, row) => sum + row.applied, 0));
-  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `table`. */
-  readonly paymentAllocationRows = computed(() =>
-    this.paymentAllocation().map((row) => ({
-      ...row,
-      before: this.store.money(row.before),
-      applied: this.store.money(row.applied),
-      after: this.store.money(row.after),
-    })),
-  );
-  readonly paymentAllocationColumns = computed(() => [
-    { key: 'description', label: this.i18n.t('workspace.cardPayment.table.purchase') },
-    { key: 'installment', label: this.i18n.t('workspace.cardPayment.table.installment') },
-    { key: 'before', label: this.i18n.t('workspace.cardPayment.table.balanceBefore') },
-    { key: 'applied', label: this.i18n.t('workspace.cardPayment.table.applied') },
-    { key: 'after', label: this.i18n.t('workspace.cardPayment.table.balanceAfter') },
-  ]);
-  readonly cardStatementPurchases = computed(() =>
-    this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount), 0),
-  );
-  readonly nextInstallments = computed(() =>
-    this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1), 0),
-  );
-  /**
-   * Interes del proximo corte, compra por compra, con la tasa propia de cada una o —a
-   * falta de ella— la que declara la tarjeta.
-   *
-   * Antes aplicaba un 0.023 mensual fijo —un 27.6 % anual— a cualquier tarjeta, sin
-   * mirar la suya: las de los datos demo declaran 10.2 % y 7.8 %, y la pantalla enseñaba
-   * un numero que no salia de ninguna parte bajo el rotulo «Interes estimado». Inventar
-   * una cifra en una pantalla de dinero es peor que no darla, porque quien la lee decide
-   * con ella. Y una compra puntual puede traer su propia tasa —cambio ese mes, aunque la
-   * tarjeta no cambio la suya—, asi que sumar todo a una sola tasa ya no era exacto.
-   *
-   * Sin tasa declarada (ni propia ni de la tarjeta) para ninguna compra, devuelve null y
-   * la linea no se pinta; con algunas si y otras no, las que no tienen simplemente no
-   * suman interes en vez de tirar el numero entero.
-   */
-  readonly cardEstimatedInterest = computed(() => {
-    const tasaTarjeta = this.selectedAccount()?.annualRate;
-    const intereses = this.cardPurchases().map((m) => {
-      const anual = m.purchaseApr ?? tasaTarjeta;
-      return anual !== undefined && anual !== null && Number.isFinite(anual)
-        ? Math.abs(m.amount) * (anual / 100 / 12)
-        : null;
-    });
-    if (intereses.every((x) => x === null)) return null;
-    return Math.round(intereses.reduce((sum: number, x) => sum + (x ?? 0), 0));
-  });
-  readonly cardStatementTotal = computed(() =>
-    Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
-  );
-  readonly months = [
-    { value: '2026-08', label: 'Agosto 2026' },
-    { value: '2026-07', label: 'Julio 2026' },
-    { value: '2026-06', label: 'Junio 2026' },
-    { value: '2026-05', label: 'Mayo 2026' },
-  ];
   private readonly headerActions = inject(HeaderActionsService);
   /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   exportReport(): void {
@@ -219,328 +106,6 @@ export class WorkspaceComponent {
     this.headerActions.exportMovements()?.();
   }
 
-  openDayMovement(id: string) {
-    this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());
-    this.store.inspect('movement', id);
-  }
-  returnToCalendarDay() {
-    const date = this.store.calendarReturnDate();
-    if (date) this.store.inspect('day', date);
-  }
-  async confirmCardPayment() {
-    const card = this.selectedAccount();
-    if (!card || this.appliedPayment() <= 0) return;
-    const source = this.store.data().accounts.find((account) => account.type === 'savings');
-    await this.store.save({
-      kind: 'payment',
-      date: new Date().toISOString().slice(0, 10),
-      accountId: source?.id ?? '',
-      targetId: card.id,
-      description: `Abono a ${card.name}`,
-      amount: this.appliedPayment(),
-      category: 'Pago de tarjeta',
-    });
-    this.store.inspect('card', card.id);
-    this.store.cardPaymentMode.set(false);
-  }
-  readonly selectedMovement = computed(() =>
-    this.store.data().movements.find((m) => m.id === this.store.inspector()?.id),
-  );
-  readonly selectedAccount = computed(() => this.store.account(this.store.inspector()?.id ?? ''));
-  /** El inspector muestra la tarjeta bonita y se ensancha solo para estos dos tipos. */
-  readonly isAccountInspector = computed(() => {
-    const type = this.store.inspector()?.type;
-    return type === 'card' || type === 'account';
-  });
-  /** Deuda como numero positivo en una tarjeta; saldo tal cual en el resto. */
-  displayBalance(account: Account): number {
-    const value = this.store.balance(account);
-    return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
-  }
-  readonly selectedPerson = computed(() => this.store.data().people.find((p) => p.id === this.store.inspector()?.id));
-  readonly selectedInvestment = computed(() =>
-    this.store.data().investments.find((i) => i.id === this.store.inspector()?.id),
-  );
-  readonly inspectorTitle = computed(() => {
-    const s = this.store.inspector();
-    if (s?.type === 'movement') return this.i18n.t('workspace.inspector.title.movement');
-    if (s?.type === 'card') return this.selectedAccount()?.name ?? this.i18n.t('workspace.inspector.title.card');
-    if (s?.type === 'day')
-      return this.i18n.t('workspace.inspector.title.day', {
-        date: new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
-          new Date(`${s.id}T00:00:00Z`),
-        ),
-      });
-    if (s?.type === 'person') return this.selectedPerson()?.name ?? this.i18n.t('workspace.inspector.title.person');
-    if (s?.type === 'investment')
-      return this.selectedInvestment()?.name ?? this.i18n.t('workspace.inspector.title.investment');
-    return this.i18n.t('workspace.inspector.title.account');
-  });
-  readonly inspectorAmount = computed(() => {
-    const m = this.selectedMovement(),
-      a = this.selectedAccount(),
-      p = this.selectedPerson(),
-      i = this.selectedInvestment();
-    return m
-      ? this.store.money(m.amount)
-      : a
-        ? this.store.money(a.type === 'credit' ? Math.max(0, -this.store.balance(a)) : this.store.balance(a))
-        : p
-          ? this.store.money(p.owed - p.owing)
-          : i
-            ? this.store.money(i.value)
-            : this.i18n.t('workspace.inspector.operationsCount', {
-                count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
-              });
-  });
-  readonly inspectorSubtitle = computed(
-    () =>
-      this.selectedMovement()?.description ??
-      this.selectedAccount()?.name ??
-      this.selectedPerson()?.name ??
-      this.selectedInvestment()?.type ??
-      this.i18n.t('workspace.inspector.defaultSubtitle'),
-  );
-  readonly inspectorFacts = computed(() => {
-    const m = this.selectedMovement(),
-      a = this.selectedAccount(),
-      p = this.selectedPerson(),
-      i = this.selectedInvestment();
-    const t = (key: string, params?: Record<string, string | number>) => this.i18n.t(key, params);
-    if (m)
-      return [
-        [t('workspace.inspector.facts.date'), m.date],
-        [t('workspace.inspector.facts.account'), this.store.account(m.accountId)?.name ?? SIN_DATO],
-        [t('workspace.inspector.facts.category'), m.category],
-        [
-          t('workspace.inspector.facts.nature'),
-          m.amount < 0 ? t('workspace.inspector.facts.debit') : t('workspace.inspector.facts.credit'),
-        ],
-        [t('workspace.inspector.facts.status'), m.status],
-        [
-          t('workspace.inspector.facts.responsibility'),
-          m.person ? t('workspace.inspector.facts.loanedTo', { person: m.person }) : t('workspace.inspector.facts.own'),
-        ],
-        [
-          t('workspace.inspector.facts.installments'),
-          m.installmentTotal
-            ? t('workspace.inspector.facts.installmentsOf', {
-                current: m.installmentCurrent ?? 1,
-                total: m.installmentTotal,
-              })
-            : t('workspace.inspector.facts.oneInstallment'),
-        ],
-        [
-          t('workspace.inspector.facts.recurrence'),
-          m.recurring
-            ? (m.recurrence ?? t('workspace.inspector.facts.yes'))
-            : t('workspace.inspector.facts.notRecurring'),
-        ],
-        [
-          t('workspace.inspector.facts.loan'),
-          m.loanRole === 'lent'
-            ? t('workspace.inspector.facts.loanGiven')
-            : m.loanRole === 'borrowed'
-              ? t('workspace.inspector.facts.loanReceived')
-              : m.loanRole === 'repayment'
-                ? t('workspace.inspector.facts.loanRepayment')
-                : t('workspace.inspector.facts.notApplicable'),
-        ],
-        [
-          t('workspace.inspector.facts.originalCurrency'),
-          m.originalCurrency === 'USD'
-            ? t('workspace.inspector.facts.originalCurrencyValue', {
-                amount: m.originalAmount ?? 0,
-                rate: m.exchangeRate ?? 0,
-              })
-            : 'COP',
-        ],
-      ];
-    if (a)
-      return [
-        [t('workspace.inspector.facts.lastFour'), a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
-        [t('workspace.inspector.facts.currency'), a.currency],
-        [
-          t('workspace.inspector.facts.referenceRate'),
-          a.currency === 'USD'
-            ? (a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'))
-            : t('workspace.inspector.facts.notApplicable'),
-        ],
-        [
-          t('workspace.inspector.facts.cutoff'),
-          a.cutDay ? String(a.cutDay) : t('workspace.inspector.facts.notApplicable'),
-        ],
-        [
-          t('workspace.inspector.facts.dueDate'),
-          a.dueDay ? String(a.dueDay) : t('workspace.inspector.facts.notApplicable'),
-        ],
-        [
-          t('workspace.inspector.facts.limit'),
-          a.limit ? this.store.money(a.limit) : t('workspace.inspector.facts.notApplicable'),
-        ],
-      ];
-    if (p)
-      return [
-        [t('workspace.inspector.facts.owed'), this.store.money(p.owed)],
-        [t('workspace.inspector.facts.owing'), this.store.money(p.owing)],
-        [t('workspace.inspector.facts.balance'), this.store.money(p.owed - p.owing)],
-      ];
-    if (i)
-      return [
-        [t('workspace.inspector.facts.type'), i.type],
-        [t('workspace.inspector.facts.cost'), this.store.money(i.cost)],
-        [t('workspace.inspector.facts.value'), this.store.money(i.value)],
-        [t('workspace.inspector.facts.variation'), formatReturnRate(i.value, i.cost)],
-      ];
-    return [
-      [t('workspace.inspector.facts.date'), this.store.inspector()?.id ?? this.store.selectedCalendarDate()],
-      [
-        t('workspace.inspector.facts.operations'),
-        String(this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length),
-      ],
-    ];
-  });
-  editSelected() {
-    const m = this.selectedMovement();
-    if (m) this.store.open(m.kind, m.accountId, m);
-  }
-  /**
-   * Pide confirmar antes de reversar. El inspector es un `<dialog>` modal nativo, y el
-   * overlay de CDK del diálogo de confirmación quedaría detrás de él: se cierra el
-   * inspector mientras se pregunta y se restaura si la persona cancela.
-   */
-  askReverse(): void {
-    const movement = this.selectedMovement();
-    if (!movement) return;
-    this.confirmKind.set('reverse');
-    this.pendingConfirm.set({ kind: 'reverse', movement, restore: this.store.inspector() });
-    this.store.inspector.set(null);
-  }
-  askDeactivateAccount(): void {
-    const account = this.selectedAccount();
-    if (!account || account.type === 'credit') return;
-    this.confirmKind.set('deactivateAccount');
-    this.pendingConfirm.set({ kind: 'deactivateAccount', account, restore: this.store.inspector() });
-    this.store.inspector.set(null);
-  }
-  confirmPending(): void {
-    const pending = this.pendingConfirm();
-    this.pendingConfirm.set(null);
-    if (pending?.kind === 'reverse') void this.reverseMovement(pending.movement);
-    else if (pending?.kind === 'deactivateAccount') void this.deactivateAccount(pending.account);
-  }
-  dismissPending(): void {
-    const pending = this.pendingConfirm();
-    if (!pending) return;
-    this.pendingConfirm.set(null);
-    this.store.inspector.set(pending.restore);
-  }
-  readonly pendingConfirm = signal<
-    | { kind: 'reverse'; movement: Movement; restore: ReturnType<AppStore['inspector']> }
-    | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<AppStore['inspector']> }
-    | null
-  >(null);
-  /** Último tipo pedido: el texto no cambia mientras el diálogo se cierra. */
-  private readonly confirmKind = signal<'reverse' | 'deactivateAccount'>('reverse');
-  readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
-  async reverseMovement(movement: Movement) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.data.update((data) => ({
-        ...data,
-        movements: data.movements.filter((item) => item.id !== movement.id),
-      }));
-      this.store.inspector.set(null);
-      this.store.log(this.i18n.t('workspace.messages.movementReversedLocal'));
-      return;
-    }
-    try {
-      await firstValueFrom(
-        this.api.reverseMovement(movement.id, {
-          date: new Date().toISOString().slice(0, 10),
-          reason: 'Reversado desde la aplicación',
-        }),
-      );
-      this.store.inspector.set(null);
-      this.store.toast.set(this.i18n.t('workspace.messages.movementReversed'));
-      await this.movementsBook.loadMovementPage(this.store.remoteMovementPage());
-    } catch (error) {
-      this.store.toast.set(
-        error instanceof Error ? error.message : this.i18n.t('workspace.messages.movementReverseFailed'),
-      );
-    }
-  }
-  async shareSelected() {
-    const movement = this.selectedMovement();
-    const person = this.store.data().people.find((item) => item.name === movement?.person);
-    if (!movement || !person) return;
-    if (this.store.runtime.mode === 'demo')
-      return this.store.log(this.i18n.t('workspace.messages.sharedPurchaseLocal'));
-    try {
-      await firstValueFrom(
-        this.api.createSharedPurchase({
-          purchaseMovement: movement.id,
-          shares: [{ counterparty: person.id, basis: 1, percent: { rate: '1' } }],
-          description: movement.description,
-        }),
-      );
-      this.store.toast.set(this.i18n.t('workspace.messages.sharedPurchase'));
-    } catch (error) {
-      this.store.toast.set(
-        error instanceof Error ? error.message : this.i18n.t('workspace.messages.sharedPurchaseFailed'),
-      );
-    }
-  }
-  async issueSelectedSettlement() {
-    const person = this.selectedPerson();
-    if (!person) return;
-    if (this.store.runtime.mode === 'demo') return this.store.log(this.i18n.t('workspace.messages.settlementLocal'));
-    const today = new Date().toISOString().slice(0, 10);
-    const start = `${today.slice(0, 7)}-01`;
-    try {
-      await firstValueFrom(
-        this.api.issueSettlement({
-          counterparty: person.id,
-          period: { start, end: today },
-          cutOff: today,
-          currency: 'COP',
-        }),
-      );
-      this.store.toast.set(this.i18n.t('workspace.messages.settlementIssued', { name: person.name }));
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.settlementFailed'));
-    }
-  }
-  /** Abre el mismo formulario de alta, precargado con la cuenta o tarjeta elegida. */
-  editSelectedAccount(): void {
-    const account = this.selectedAccount();
-    if (!account) return;
-    this.store.form.set({ kind: 'account', account });
-  }
-  async deactivateAccount(account: Account) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
-      this.store.inspector.set(null);
-      this.store.log(this.i18n.t('workspace.messages.accountDeactivatedLocal'));
-      return;
-    }
-    try {
-      await firstValueFrom(
-        this.api.updateAccount(account.id, {
-          name: account.name,
-          lastFour: account.lastFour ?? null,
-          isDefault: false,
-          isActive: false,
-        }),
-      );
-      this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
-      this.store.inspector.set(null);
-      this.store.toast.set(this.i18n.t('workspace.messages.accountDeactivated'));
-    } catch (error) {
-      this.store.toast.set(
-        error instanceof Error ? error.message : this.i18n.t('workspace.messages.accountDeactivateFailed'),
-      );
-    }
-  }
   /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   readAll(): void {
     this.headerActions.readAll()?.();
