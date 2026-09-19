@@ -128,11 +128,14 @@ export class MovementsBookService {
       timeZone: 'UTC',
     }).format(parsed);
   }
+  /** Hay una página de movimientos en camino; la tabla muestra un esqueleto encima. */
+  readonly movementsLoading = signal(false);
   async loadMovementPage(page: number): Promise<void> {
     // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
     // fallo al cargar la pagina, que no es lo que pasa.
     if (this.store.runtime.mode !== 'api' || !this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
+    this.movementsLoading.set(true);
     try {
       const period = this.store.period();
       const result = await firstValueFrom(
@@ -155,6 +158,8 @@ export class MovementsBookService {
     } catch (error) {
       if (request !== this.movementRequest) return;
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la página solicitada.');
+    } finally {
+      if (request === this.movementRequest) this.movementsLoading.set(false);
     }
   }
   changeMovementPageSize(size: number): void {

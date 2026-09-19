@@ -15,6 +15,7 @@ import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { toCsv, downloadCsv } from '../../core/csv';
 import { DataTableComponent } from '../../ui/data-table/data-table';
+import { SkeletonComponent } from '../../ui/skeleton/skeleton';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
@@ -26,7 +27,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 @Component({
   selector: 'app-movements-tab',
   standalone: true,
-  imports: [CommonModule, FormsModule, DataTableComponent, KpiComponent, UiSelectComponent],
+  imports: [CommonModule, FormsModule, DataTableComponent, KpiComponent, UiSelectComponent, SkeletonComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movements-tab.html',
   styleUrl: './movements-tab.css',

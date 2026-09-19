@@ -79,7 +79,10 @@
     [hint]="i18n.t('movements.kpi.records.hint')"
   />
 </section>
-<section class="table-zone">
+<section class="table-zone" [attr.aria-busy]="book.movementsLoading()">
+  @if (book.movementsLoading()) {
+  <fin-skeleton class="table-loading" />
+  }
   <fin-table
     urlKey="pagina"
     [columns]="book.movementColumns()"

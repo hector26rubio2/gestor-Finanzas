@@ -108,3 +108,14 @@
     grid-template-columns: 1fr;
   }
 }
+
+.table-zone {
+  position: relative;
+}
+.table-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  opacity: 0.92;
+}
