@@ -36,6 +36,8 @@ export class WidgetControlsComponent {
   readonly dimensionOptions = input<readonly UiOption[]>([]);
   readonly measureOptions = input<readonly UiOption[]>([]);
 
+  readonly canJoin = input(false);
+  readonly canSplit = input(false);
   readonly showDimensionMeasure = input(false);
   readonly showSeries = input(false);
   readonly showGoal = input(false);
@@ -44,6 +46,8 @@ export class WidgetControlsComponent {
   readonly canChangeType = input(false);
   readonly canHide = input(false);
 
+  @Output() readonly joinPrevious = new EventEmitter<void>();
+  @Output() readonly splitRow = new EventEmitter<void>();
   @Output() readonly moveUp = new EventEmitter<void>();
   @Output() readonly moveDown = new EventEmitter<void>();
   @Output() readonly typeChange = new EventEmitter<string>();

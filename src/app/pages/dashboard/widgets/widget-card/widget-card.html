@@ -6,4 +6,6 @@
   <ng-content select="[headerExtra]" />
   <ng-content select="[actions]" />
 </header>
-<ng-content />
+<div class="flex min-h-0 flex-1 flex-col" [class.overflow-auto]="fill()">
+  <ng-content />
+</div>

@@ -1,5 +1,6 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmResizableImports } from '@spartan-ng/helm/resizable';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -27,7 +28,10 @@ import { StatusBarsComponent } from './widgets/status-bars/status-bars';
 import { WidgetControlsComponent } from './widgets/widget-controls/widget-controls';
 import { WidgetCardComponent } from './widgets/widget-card/widget-card';
 import { FilterPanelComponent } from './filters/filter-panel/filter-panel';
-import { KpiStripComponent } from './kpis/kpi-strip/kpi-strip';
+import { CUSTOM_KPI_PREFIX, FIXED_KPI_PREFIX, KpiStripComponent } from './kpis/kpi-strip/kpi-strip';
+import { DashboardLayoutService } from './layout/dashboard-layout.service';
+import { LayoutItem, MIN_PANEL_SIZE, canJoinPrevious, canSplit } from './layout/dashboard-layout';
+import { RowResizeHandleComponent } from './layout/row-resize-handle/row-resize-handle';
 
 import { Scale, WidgetType, Dimension, Measure, Widget, GENERIC_TYPES, TWO_DIMENSION_TYPES } from './dashboard.model';
 import { DashboardKpis } from './dashboard-kpis';
@@ -56,7 +60,10 @@ import {} from './dashboard-chart-style';
     WidgetCardComponent,
     FilterPanelComponent,
     KpiStripComponent,
+    HlmResizableImports,
+    RowResizeHandleComponent,
   ],
+  providers: [DashboardLayoutService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
@@ -64,6 +71,38 @@ export class DashboardComponent extends DashboardKpis {
   readonly P = P;
   private readonly api = inject(FinanceApiClient);
   readonly customizing = signal(false);
+  readonly layout = inject(DashboardLayoutService);
+  readonly minPanelSize = MIN_PANEL_SIZE;
+
+  readonly kpisPropios = computed(() => (this.caps.allows(P.dashboard.widget.propios) ? this.customKpiItems() : []));
+
+  private readonly widgetsById = computed(() => new Map(this.widgets().map((widget) => [widget.id, widget])));
+
+  private readonly sincronizarDiseno = effect(() => {
+    this.layout.widgetItems.set(this.widgets().map((widget) => this.itemDeDiseno(widget)));
+    this.layout.kpiItems.set([
+      ...this.fixedKpiItems().map((kpi) => ({ id: FIXED_KPI_PREFIX + kpi.key, height: 84 })),
+      ...this.kpisPropios().map((kpi) => ({ id: CUSTOM_KPI_PREFIX + kpi.id, height: 84 })),
+    ]);
+  });
+
+  widgetById(id: string): Widget | undefined {
+    return this.widgetsById().get(id);
+  }
+
+  canJoinPrevious(id: string): boolean {
+    return canJoinPrevious(this.layout.widgetRows(), id);
+  }
+
+  canSplitRow(id: string): boolean {
+    return canSplit(this.layout.widgetRows(), id);
+  }
+
+  private itemDeDiseno(widget: Widget): LayoutItem {
+    const alone = (widget.wide || widget.type === 'table') && widget.type !== 'indicator';
+    const heights: Partial<Record<WidgetType, number>> = { table: 520, card: 140, gauge: 340, heatmap: 300 };
+    return { id: widget.id, alone, height: heights[widget.type] ?? 360 };
+  }
 
   /**
    * Personalizar agrupa cuatro acciones distintas: reordenar, cambiar de tipo, ocultar

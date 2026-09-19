@@ -1,43 +1,56 @@
-<section class="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-3" aria-label="Indicadores filtrados">
-  @for (kpi of fixedKpis(); track kpi.label) {
-  <fin-kpi
-    [row]="true"
-    [label]="kpi.label"
-    [icon]="kpi.icon"
-    [tone]="kpi.tone"
-    [value]="kpi.value"
-    [hint]="kpi.hint"
-    [series]="kpi.series"
-    [delta]="kpi.delta"
-    [subirEsBueno]="kpi.subirEsBueno"
-  />
-  } @for (kpi of customKpis(); track kpi.id) {
-  <div class="relative min-w-0">
-    <fin-kpi
-      [row]="true"
-      [label]="kpi.label"
-      [icon]="kpi.icon"
-      [tone]="kpi.tone"
-      [value]="kpi.value"
-      [hint]="kpi.hint"
-      [series]="kpi.series"
-      [delta]="kpi.delta"
-      [subirEsBueno]="kpi.subirEsBueno"
-    />
-    @if (canRemove()) {
-    <button
-      hlmBtn
-      variant="ghost"
-      size="icon-xs"
-      type="button"
-      class="absolute top-2 right-2"
-      [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
-      (click)="removeKpi.emit(kpi.id)"
+<section class="flex flex-col gap-3" aria-label="Indicadores filtrados">
+  @for (row of rows(); track row.key) {
+  <hlm-resizable-group
+    direction="horizontal"
+    class="-mx-1.5 h-auto w-auto max-[700px]:flex-col max-[700px]:gap-3"
+    [layout]="row.sizes"
+    (layoutChange)="rowResize.emit({ key: row.key, sizes: $event })"
+  >
+    @for (id of row.ids; track id; let position = $index; let last = $last) { @if (entry(id); as item) {
+    <hlm-resizable-panel
+      class="block px-1.5 max-[700px]:flex-none!"
+      [id]="'kpi-' + id"
+      [defaultSize]="row.sizes[position]"
+      [minSize]="minSize"
+      [collapsible]="false"
     >
-      <fin-icon name="close" />
-    </button>
-    }
-  </div>
+      <div class="relative h-full">
+        <fin-kpi
+          class="h-full"
+          [label]="item.card.label"
+          [icon]="item.card.icon"
+          [tone]="item.card.tone"
+          [value]="item.card.value"
+          [hint]="item.card.hint"
+          [series]="item.card.series"
+          [delta]="item.card.delta"
+          [subirEsBueno]="item.card.subirEsBueno"
+        />
+        @if (item.customId && canRemove()) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-xs"
+          type="button"
+          class="absolute top-2 right-2"
+          [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
+          (click)="removeKpi.emit(item.customId)"
+        >
+          <fin-icon name="close" />
+        </button>
+        }
+      </div>
+    </hlm-resizable-panel>
+    @if (!last) {
+    <hlm-resizable-handle
+      class="mx-0.5 my-1 rounded-full bg-transparent data-[panel-group-direction=horizontal]:w-1 max-[700px]:hidden"
+      [class.hover:bg-primary]="resizable()"
+      [class.bg-primary/30]="resizable()"
+      [disabled]="!resizable()"
+      [attr.aria-label]="i18n.t('dashboard.layout.resizeKpi')"
+    />
+    } } }
+  </hlm-resizable-group>
   } @if (canCreate()) {
   <button
     hlmBtn

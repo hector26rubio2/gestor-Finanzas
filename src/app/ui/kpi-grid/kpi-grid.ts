@@ -10,7 +10,7 @@ export class KpiGridContext {
   changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [KpiGridContext],
   host: {
-    class: 'grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3 max-[1100px]:grid-cols-2',
+    class: 'grid grid-cols-[repeat(auto-fit,minmax(210px,1fr))] gap-3 max-[1100px]:grid-cols-2 max-[520px]:grid-cols-1',
   },
   template: `<ng-content />`,
 })

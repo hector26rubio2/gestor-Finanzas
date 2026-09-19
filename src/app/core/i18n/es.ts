@@ -1279,4 +1279,10 @@ export default {
   'admin.summary.column.date': 'Fecha',
   'admin.summary.column.trace': 'Traza',
   'admin.common.actions': 'Acciones',
+  'dashboard.layout.resizeWidget': 'Arrastra para cambiar el ancho',
+  'dashboard.layout.resizeRow': 'Arrastra para cambiar el alto de la fila',
+  'dashboard.layout.resizeKpi': 'Arrastra para cambiar el ancho del indicador',
+  'dashboard.layout.reset': 'Restablecer diseño',
+  'dashboard.widgetActions.joinRow': 'Poner junto al anterior',
+  'dashboard.widgetActions.splitRow': 'Sacar a su propia fila',
 } as const;
