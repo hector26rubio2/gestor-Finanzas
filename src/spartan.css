@@ -1,31 +1,64 @@
-@layer theme, utilities;
+/*
+ * Tailwind v4 + Spartan (Helm/Brain). Sin «preflight»: la base propia vive en `@layer base`
+ * (styles.css) y las utilidades ganan siempre a ella. El orden de las capas se fija aquí,
+ * en la primera hoja que carga la aplicación.
+ */
+@layer theme, base, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 @import 'tw-animate-css';
 @import '@angular/cdk/overlay-prebuilt.css';
-@source './app/ui/helm';
+@source './app';
 
 /* Helm emits valued state attributes, not boolean attribute presence. */
 @custom-variant data-active (&[data-active='true']);
 @custom-variant data-open (&[data-state='open']);
 @custom-variant data-closed (&[data-state='closed']);
+/* Los temas oscuros de la aplicación se marcan con `data-theme`, no con la preferencia del sistema. */
+@custom-variant dark (:is([data-theme='dark'], [data-theme='ocean'], [data-theme='berry']) &);
 
+/*
+ * Los tokens apuntan a las variables que el tema activo escribe en runtime (styles.css y
+ * `applyTheme`); `chart-theme.ts` las observa, así que conservan su nombre. Cambiar de
+ * tema, de acento o de radio en Preferencias repinta todo sin regenerar CSS.
+ */
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
+  --color-surface: var(--surface);
+  --color-panel: var(--panel);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--text);
   --color-popover: var(--surface);
   --color-popover-foreground: var(--text);
+  --color-primary: var(--accent);
+  --color-primary-foreground: var(--accent-contrast);
+  --color-secondary: var(--panel);
+  --color-secondary-foreground: var(--text);
+  --color-accent: var(--accent-soft);
+  --color-accent-foreground: var(--text);
+  --color-muted: var(--panel);
+  --color-muted-foreground: var(--muted);
+  --color-destructive: var(--danger);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-border: var(--line);
   --color-input: var(--control-line);
   --color-ring: var(--accent);
-  --color-muted: var(--panel);
-  --color-muted-foreground: var(--muted);
   --color-sidebar: var(--nav);
   --color-sidebar-foreground: var(--text);
   --color-sidebar-accent: var(--accent-soft);
   --color-sidebar-accent-foreground: var(--accent);
   --color-sidebar-border: var(--line);
   --color-sidebar-ring: var(--accent);
+  --font-sans: var(--font);
+  --font-display: var(--display);
+  --radius-sm: calc(var(--radius) * 0.375);
+  --radius-md: calc(var(--radius) * 0.625);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --shadow-pop: var(--shadow);
 }
 
 /* Desktop width changes are immediate: resizing every chart for 200ms stutters. */
