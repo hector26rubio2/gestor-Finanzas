@@ -128,10 +128,6 @@
 @if (abreFormularioDeMovimiento()) {
 <fin-movement-form />
 }
-} @if (store.toast()) {
-<div class="toast" role="status">
-  {{ store.toast() }}<button [attr.aria-label]="i18n.t('shell.dismissToast')" (click)="store.toast.set('')">×</button>
-</div>
 }
 @defer (on idle) {
   <app-bug-report />

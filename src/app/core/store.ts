@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { toast as sonner } from 'ngx-sonner';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
 import { ApiCategory, FinanceApiClient } from './api-client';
 import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from './money';
@@ -239,7 +240,21 @@ export class DemoStore {
   readonly query = signal('');
   readonly period = signal('all');
   readonly accountFilter = signal('all');
-  readonly toast = signal('');
+  /**
+   * Último aviso. Escribirlo lo muestra en ngx-sonner, el mismo sistema que usa
+   * AsyncActionService: antes convivían este banner propio y los toasts de sonner. Se
+   * conserva el signal para que los llamadores existentes (`toast.set(...)`) y las
+   * pruebas que lo leen sigan funcionando; `''` solo limpia el valor.
+   */
+  readonly toast = (() => {
+    const message = signal('');
+    const write = message.set.bind(message);
+    message.set = (value: string) => {
+      if (value) sonner(value);
+      write(value);
+    };
+    return message;
+  })();
   readonly form = signal<{
     kind: string;
     accountId?: string;

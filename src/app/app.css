@@ -437,24 +437,6 @@ main {
   flex: 1;
   padding: 24px 28px;
 }
-.toast {
-  position: fixed;
-  right: 24px;
-  top: 24px;
-  z-index: 100;
-  background: var(--text);
-  color: var(--bg);
-  padding: 13px 16px;
-  border-radius: 12px;
-  box-shadow: var(--shadow);
-  max-width: 420px;
-}
-.toast button {
-  border: 0;
-  background: transparent;
-  color: inherit;
-  margin-left: 14px;
-}
 .scrim {
   display: none;
 }

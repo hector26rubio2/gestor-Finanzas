@@ -27,7 +27,6 @@ export default {
   'shell.primaryNav': 'Navegación principal',
   'shell.closeMenu': 'Cerrar menú',
   'shell.openMenu': 'Abrir menú',
-  'shell.dismissToast': 'Cerrar aviso',
   'login.title': 'Tu dinero, explicado con claridad.',
   'login.subtitle': 'Organiza, comprende y proyecta tus finanzas desde un solo lugar.',
   'login.welcome': 'Bienvenido',
