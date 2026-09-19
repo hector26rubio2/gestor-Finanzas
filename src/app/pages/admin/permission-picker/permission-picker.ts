@@ -91,9 +91,11 @@ export interface BulkChange {
         </button>
       </div>
     }
-    <p class="text-xs text-muted-foreground" aria-live="polite">
-      {{ i18n.t('admin.permissions.picker.summary', { selected: selected().length, total: total() }) }}
-    </p>
+    @if (!hideSummary()) {
+      <p class="text-xs text-muted-foreground" aria-live="polite">
+        {{ i18n.t('admin.permissions.picker.summary', { selected: selected().length, total: total() }) }}
+      </p>
+    }
   `,
 })
 export class PermissionPickerComponent {
@@ -105,6 +107,7 @@ export class PermissionPickerComponent {
   readonly disabled = input(false);
   readonly bulk = input(false);
   readonly showLevel = input(false);
+  readonly hideSummary = input(false);
   readonly toggled = output<string>();
   readonly bulkChange = output<BulkChange>();
 

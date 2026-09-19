@@ -74,6 +74,18 @@ export class AdminLabels {
     return formatDateTimeLong(value, this.store.preferences().locale);
   }
 
+  auditAction(action: string): string {
+    const key = `admin.audit.actionName.${action}`;
+    const text = this.i18n.t(key);
+    return text === key ? action : text;
+  }
+
+  auditEntity(entity: string): string {
+    const key = `admin.audit.entityName.${entity}`;
+    const text = this.i18n.t(key);
+    return text === key ? entity : text;
+  }
+
   feature(key: string): string {
     return FEATURE_KEYS.has(key) ? this.i18n.t(`nav.${key}`) : key;
   }

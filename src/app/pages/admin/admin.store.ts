@@ -323,31 +323,25 @@ export class AdminStore {
     return user.memberships?.find((m) => m.organizationId === organizationId);
   }
 
-  private grantedByRoles(user: ApiAdminUser, code: string): boolean {
+  effectivePermissions(user: ApiAdminUser): readonly string[] {
     const organizationId = this.userOrganizationId(user);
-    const membership = organizationId ? this.membership(user, organizationId) : undefined;
-    return membership?.roles.some((role) => role.isActive && role.permissions?.includes(code)) ?? false;
-  }
-
-  hasPermission(user: ApiAdminUser, code: string): boolean {
-    const organizationId = this.userOrganizationId(user);
-    if (!organizationId) return false;
-    const draft = this.draft('userPermission', `userPermission:${user.id}:${organizationId}:${code}`);
-    if (draft) return draft.value ?? this.grantedByRoles(user, code);
-    return this.membership(user, organizationId)?.effectivePermissions?.includes(code) ?? false;
-  }
-
-  permissionOverride(user: ApiAdminUser, code: string): boolean | null {
-    const organizationId = this.userOrganizationId(user);
-    if (!organizationId) return null;
-    const draft = this.draft('userPermission', `userPermission:${user.id}:${organizationId}:${code}`);
-    if (draft) return draft.value;
-    return this.membership(user, organizationId)?.overrides?.find((o) => o.code === code)?.isAllowed ?? null;
-  }
-
-  permissionChanged(user: ApiAdminUser, code: string): boolean {
-    const organizationId = this.userOrganizationId(user);
-    return !!organizationId && this.pending().has(`userPermission:${user.id}:${organizationId}:${code}`);
+    if (!organizationId) return [];
+    const draft = this.draft('userRoles', `userRoles:${user.id}:${organizationId}`);
+    if (draft) {
+      const chosen = new Set(draft.roleIds);
+      const known = new Map<string, ApiAdminRole>();
+      const sources = [
+        ...(this.membership(user, organizationId)?.roles ?? []),
+        ...this.roles().filter((role) => role.organizationId === organizationId),
+        ...this.rolesOf(organizationId),
+      ];
+      for (const role of sources) known.set(role.id, role);
+      const permissions = [...known.values()]
+        .filter((role) => chosen.has(role.id) && role.isActive)
+        .flatMap((role) => role.permissions ?? []);
+      if (permissions.length || draft.roleIds.length) return [...new Set(permissions)].sort();
+    }
+    return this.membership(user, organizationId)?.effectivePermissions ?? [];
   }
 
   roleCountOf(organizationId: string): number {
@@ -369,14 +363,20 @@ export class AdminStore {
 
   flagValue(key: string, organizationId: string | null, userId: string | null): boolean {
     const draft = this.draft('flag', `flag:${key}:${organizationId ?? '-'}:${userId ?? '-'}`);
+    if (organizationId && !userId)
+      return this.globalFlagValue(key) && (draft?.value ?? this.flagBase(key, organizationId, null));
     if (draft) return draft.value;
     return this.flagBase(key, organizationId, userId);
+  }
+
+  globalFlagValue(key: string): boolean {
+    return this.draft('flag', `flag:${key}:-:-`)?.value ?? this.flagBase(key, null, null);
   }
 
   private flagBase(key: string, organizationId: string | null, userId: string | null): boolean {
     if (organizationId && !userId) {
       const efectiva = this.flagsByOrganization()[organizationId]?.find((flag) => flag.key === key);
-      if (efectiva) return efectiva.isEnabled;
+      if (efectiva) return efectiva.organizationValue ?? true;
     }
     const candidatas = this.flags().filter((flag) => flag.key === key);
     const propia = userId
@@ -416,20 +416,6 @@ export class AdminStore {
     this.put({ kind: 'userRoles', userId: user.id, organizationId, roleIds }, sameIds(roleIds, base));
   }
 
-  togglePermission(user: ApiAdminUser, code: string): void {
-    const organizationId = this.userOrganizationId(user);
-    if (!organizationId || this.hasPendingMove(user)) return;
-    const value = !this.hasPermission(user, code);
-    const base = this.membership(user, organizationId)?.effectivePermissions?.includes(code) ?? false;
-    this.put({ kind: 'userPermission', userId: user.id, organizationId, code, value }, value === base);
-  }
-
-  clearOverride(user: ApiAdminUser, code: string): void {
-    const organizationId = this.userOrganizationId(user);
-    if (!organizationId || this.hasPendingMove(user)) return;
-    this.put({ kind: 'userPermission', userId: user.id, organizationId, code, value: null }, false);
-  }
-
   setUserOrganization(user: ApiAdminUser, organizationId: string): void {
     const actual = this.userOrganizationId(user);
     if (organizationId === actual) {
@@ -439,8 +425,7 @@ export class AdminStore {
     this.pending.update((map) => {
       const next = new Map(map);
       for (const [key, change] of map) {
-        const deLaPersona =
-          (change.kind === 'userRoles' || change.kind === 'userPermission') && change.userId === user.id;
+        const deLaPersona = change.kind === 'userRoles' && change.userId === user.id;
         const bandera = change.kind === 'flag' && change.userId === user.id;
         if (deLaPersona || bandera) next.delete(key);
       }
@@ -524,11 +509,6 @@ export class AdminStore {
         await firstValueFrom(this.api.assignAdminUserRoles(change.userId, change.organizationId, change.roleIds));
         return;
       }
-      case 'userPermission':
-        await firstValueFrom(
-          this.api.setAdminUserCapability(change.userId, change.organizationId, change.code, change.value),
-        );
-        return;
       case 'userOrganization':
         await firstValueFrom(this.api.addAdminOrganizationMember(change.organizationId, change.userId));
         this.membersByOrganization.set({});
@@ -552,6 +532,7 @@ export class AdminStore {
           saved,
         ]);
         if (change.organizationId && !change.userId) this.parchearBanderaDeOrganizacion(change);
+        else if (!change.organizationId && !change.userId) await this.recargarBanderasDeOrganizaciones();
         return;
       }
       case 'organizationActive': {
@@ -569,16 +550,46 @@ export class AdminStore {
     }
   }
 
+  async consolidarOrganizaciones(): Promise<void> {
+    try {
+      const result = await firstValueFrom(this.api.consolidateAdminOrganizations());
+      this.membersByOrganization.set({});
+      this.rolesByOrganization.set({});
+      await this.cargar();
+      await this.arranque.pollSession();
+      this.app.toast.set(
+        this.i18n.t('admin.organizations.consolidate.done', {
+          users: result.movedUsers,
+          organizations: result.archivedOrganizations,
+        }),
+      );
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : '';
+      this.app.toast.set(
+        reason
+          ? this.i18n.t('admin.organizations.consolidate.failedReason', { reason })
+          : this.i18n.t('admin.toast.loadFailed'),
+      );
+    }
+  }
+
+  private async recargarBanderasDeOrganizaciones(): Promise<void> {
+    for (const id of Object.keys(this.flagsByOrganization())) await this.cargarBanderasDe(id);
+  }
+
   private parchearBanderaDeOrganizacion(change: Extract<AdminChange, { kind: 'flag' }>): void {
     const id = change.organizationId as string;
     this.flagsByOrganization.update((todas) => {
       const actuales = todas[id];
       if (!actuales) return todas;
+      const previa = actuales.find((f) => f.key === change.key);
+      const globalEnabled = previa?.globalEnabled ?? true;
       const propia: ApiAdminOrganizationFlag = {
         key: change.key,
-        isEnabled: change.value,
+        isEnabled: change.value && globalEnabled,
         source: 'organization',
         organizationValue: change.value,
+        globalEnabled,
       };
       return {
         ...todas,
@@ -680,15 +691,6 @@ export class AdminStore {
           user: this.userName(change.userId),
           roles: change.roleIds.map((id) => this.roleName(id)).join(', ') || t('admin.users.directAccess'),
         });
-      case 'userPermission':
-        return t(
-          change.value === null
-            ? 'admin.changes.permissionReset'
-            : change.value
-              ? 'admin.changes.permissionGrant'
-              : 'admin.changes.permissionRevoke',
-          { user: this.userName(change.userId), code: change.code },
-        );
       case 'userOrganization':
         return t('admin.changes.userOrganization', {
           user: this.userName(change.userId),

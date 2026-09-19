@@ -10,6 +10,7 @@ import { ApiAdminOrganization } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../../../core/state/store';
+import { ConfirmDialogComponent } from '../../../../ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
@@ -32,6 +33,7 @@ import { OrganizationSheetComponent } from './organization-sheet';
     IconComponent,
     OrganizationSheetComponent,
     SheetPanelComponent,
+    ConfirmDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -41,6 +43,15 @@ import { OrganizationSheetComponent } from './organization-sheet';
         [detail]="i18n.t('admin.emptyState.organizations.detail')"
       />
     } @else {
+      <fin-confirm-dialog
+        [open]="confirmingConsolidation()"
+        [title]="i18n.t('admin.organizations.consolidate.title')"
+        [description]="i18n.t('admin.organizations.consolidate.description')"
+        [confirmLabel]="i18n.t('admin.organizations.consolidate.confirm')"
+        [cancelLabel]="i18n.t('admin.common.cancel')"
+        (confirmed)="consolidate()"
+        (dismissed)="confirmingConsolidation.set(false)"
+      />
       <app-admin-panel
         [title]="i18n.t('admin.organizations.title')"
         [subtitle]="i18n.t('admin.organizations.subtitle')"
@@ -59,6 +70,19 @@ import { OrganizationSheetComponent } from './organization-sheet';
               [placeholder]="i18n.t('admin.organizations.searchPlaceholder')"
               [attr.aria-label]="i18n.t('admin.organizations.searchPlaceholder')"
             />
+          </label>
+          @if (canConsolidate()) {
+            <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
+              <fin-icon name="layers" /> {{ i18n.t('admin.organizations.consolidate.action') }}
+            </button>
+          }
+          <label class="flex items-center gap-2 text-xs text-muted-foreground">
+            <hlm-switch
+              [checked]="showArchived()"
+              [aria-label]="i18n.t('admin.organizations.showArchived')"
+              (checkedChange)="showArchived.set($event)"
+            />
+            {{ i18n.t('admin.organizations.showArchived') }}
           </label>
           @if (caps.allows(P.administracion.organizaciones.crear)) {
             <button hlmBtn (click)="creating.set(true)">
@@ -175,6 +199,8 @@ export class OrganizationsTabComponent {
   readonly P = P;
 
   readonly creating = signal(false);
+  readonly showArchived = signal(false);
+  readonly confirmingConsolidation = signal(false);
   readonly search = signal('');
   readonly name = signal('');
   readonly currency = signal('COP');
@@ -186,8 +212,23 @@ export class OrganizationsTabComponent {
 
   readonly visibleOrganizations = computed(() => {
     const term = this.search().trim().toLowerCase();
-    return this.store.organizations().filter((org) => !term || `${org.name} ${org.slug}`.toLowerCase().includes(term));
+    return this.store
+      .organizations()
+      .filter((org) => this.showArchived() || this.store.isOrganizationActive(org))
+      .filter((org) => !term || `${org.name} ${org.slug}`.toLowerCase().includes(term));
   });
+
+  readonly canConsolidate = computed(
+    () =>
+      this.caps.allows(P.administracion.organizaciones.editar) &&
+      this.store.organizations().filter((org) => org.isActive).length > 1 &&
+      this.store.organizations().some((org) => org.isDefault),
+  );
+
+  async consolidate(): Promise<void> {
+    this.confirmingConsolidation.set(false);
+    await this.store.consolidarOrganizaciones();
+  }
 
   canMakeDefault(org: ApiAdminOrganization): boolean {
     return this.caps.allows(P.administracion.organizaciones.editar) && this.store.isOrganizationActive(org);
