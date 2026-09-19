@@ -97,11 +97,8 @@
     <footer>
       <button type="button" (click)="closed()">{{ i18n.t('form.actions.cancel') }}</button
       ><button class="primary" type="submit" [disabled]="actions.isRunning(saveActionKey)">
-        {{
-          actions.isRunning(saveActionKey)
-            ? i18n.t('form.account.actions.creating')
-            : i18n.t('form.account.actions.create')
-        }}
+        {{ actions.isRunning(saveActionKey) ? i18n.t('form.account.actions.creating') :
+        i18n.t('form.account.actions.create') }}
       </button>
     </footer>
   </form></fin-overlay

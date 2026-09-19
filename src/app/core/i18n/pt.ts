@@ -448,10 +448,12 @@ export default {
   'workspace.messages.accountDeactivateFailed': 'Não foi possível desativar a conta.',
   'workspace.confirm.cancel': 'Cancelar',
   'workspace.confirm.reverse.title': 'Reverter esta transação?',
-  'workspace.confirm.reverse.description': 'Será registrada uma reversão vinculada à transação original, que deixará de afetar seus saldos.',
+  'workspace.confirm.reverse.description':
+    'Será registrada uma reversão vinculada à transação original, que deixará de afetar seus saldos.',
   'workspace.confirm.reverse.action': 'Reverter transação',
   'workspace.confirm.deactivateAccount.title': 'Desativar esta conta?',
-  'workspace.confirm.deactivateAccount.description': 'A conta deixará de ser exibida e não poderá ser usada em novas transações.',
+  'workspace.confirm.deactivateAccount.description':
+    'A conta deixará de ser exibida e não poderá ser usada em novas transações.',
   'workspace.confirm.deactivateAccount.action': 'Desativar conta',
   'sinSeccion.withSession.title': 'Seu acesso não abre nenhuma seção',
   'sinSeccion.withSession.detail':

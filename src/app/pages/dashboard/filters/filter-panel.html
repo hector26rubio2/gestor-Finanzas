@@ -1,14 +1,27 @@
-<section class="filter-panel" aria-labelledby="filters-title" brnCollapsible [expanded]="filtersExpanded()" (expandedChange)="filtersExpanded.set($event)">
+<section
+  class="filter-panel"
+  aria-labelledby="filters-title"
+  brnCollapsible
+  [expanded]="filtersExpanded()"
+  (expandedChange)="filtersExpanded.set($event)"
+>
   <header>
     <div>
       <h2 id="filters-title">{{ i18n.t('dashboard.filters.title') }}</h2>
-      <p class="summary">{{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}</p>
+      <p class="summary">
+        {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
+      </p>
     </div>
     <div class="filter-actions">
       <button class="quiet" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
         {{ i18n.t('dashboard.filters.clear') }}
       </button>
-      <button class="quiet filter-toggle" type="button" brnCollapsibleTrigger [attr.aria-label]="i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open')">
+      <button
+        class="quiet filter-toggle"
+        type="button"
+        brnCollapsibleTrigger
+        [attr.aria-label]="i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open')"
+      >
         {{ i18n.t(filtersExpanded() ? 'dashboard.filters.toggle.close' : 'dashboard.filters.toggle.open') }}
         <span aria-hidden="true">{{ filtersExpanded() ? '⌃' : '⌄' }}</span>
       </button>

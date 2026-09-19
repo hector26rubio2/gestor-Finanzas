@@ -451,10 +451,12 @@ export default {
   'workspace.messages.accountDeactivateFailed': 'Impossible de désactiver le compte.',
   'workspace.confirm.cancel': 'Annuler',
   'workspace.confirm.reverse.title': 'Annuler cette opération ?',
-  'workspace.confirm.reverse.description': "Une opération d'annulation liée à l'opération d'origine sera enregistrée et celle-ci n'affectera plus vos soldes.",
+  'workspace.confirm.reverse.description':
+    "Une opération d'annulation liée à l'opération d'origine sera enregistrée et celle-ci n'affectera plus vos soldes.",
   'workspace.confirm.reverse.action': "Annuler l'opération",
   'workspace.confirm.deactivateAccount.title': 'Désactiver ce compte ?',
-  'workspace.confirm.deactivateAccount.description': 'Le compte ne sera plus affiché et ne pourra plus servir à de nouvelles opérations.',
+  'workspace.confirm.deactivateAccount.description':
+    'Le compte ne sera plus affiché et ne pourra plus servir à de nouvelles opérations.',
   'workspace.confirm.deactivateAccount.action': 'Désactiver le compte',
   'sinSeccion.withSession.title': "Votre accès n'ouvre aucune section",
   'sinSeccion.withSession.detail':

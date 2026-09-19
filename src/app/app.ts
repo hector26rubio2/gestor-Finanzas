@@ -1,5 +1,14 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, HostListener, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  HostListener,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from './core/permissions';
@@ -44,7 +53,9 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
     IconComponent,
     BugReportButtonComponent,
     NgxSonnerToaster,
-    HlmSidebar, HlmSidebarWrapper, HlmSidebarMenuButton,
+    HlmSidebar,
+    HlmSidebarWrapper,
+    HlmSidebarMenuButton,
     HlmDropdownMenu,
     HlmDropdownMenuItem,
     HlmDropdownMenuLabel,
@@ -83,7 +94,7 @@ export class AppComponent {
    * renderizado de servidor, en algunos entornos de prueba y en webviews viejas. Sin
    * esta comprobación el armazón entero reventaba al construirse.
    */
-  readonly menuAbierto = computed(() => this.sidebar.isMobile() ? this.mobileOpen() : this.sidebar.open());
+  readonly menuAbierto = computed(() => (this.sidebar.isMobile() ? this.mobileOpen() : this.sidebar.open()));
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((evento) => {

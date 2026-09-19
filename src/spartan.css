@@ -29,11 +29,29 @@
 }
 
 /* Desktop width changes are immediate: resizing every chart for 200ms stutters. */
-[data-slot='sidebar-gap'], [data-slot='sidebar-container'] { transition: none; }
-[data-slot='sidebar-container'] { border-color: var(--line); }
-[data-slot='sidebar-inner'] { height: 100%; }
-[data-mobile='true'] { max-width: min(286px, 90vw); }
-[data-slot='sheet-content'], [data-mobile='true'] { animation-duration: 180ms; animation-timing-function: var(--ease-drawer); }
+[data-slot='sidebar-gap'],
+[data-slot='sidebar-container'] {
+  transition: none;
+}
+[data-slot='sidebar-container'] {
+  border-color: var(--line);
+}
+[data-slot='sidebar-inner'] {
+  height: 100%;
+}
+[data-mobile='true'] {
+  max-width: min(286px, 90vw);
+}
+[data-slot='sheet-content'],
+[data-mobile='true'] {
+  animation-duration: 180ms;
+  animation-timing-function: var(--ease-drawer);
+}
 @media (prefers-reduced-motion: reduce) {
-  [data-slot='sheet-content'], [data-mobile='true'], .cdk-overlay-backdrop { animation: none !important; transition: none !important; }
+  [data-slot='sheet-content'],
+  [data-mobile='true'],
+  .cdk-overlay-backdrop {
+    animation: none !important;
+    transition: none !important;
+  }
 }

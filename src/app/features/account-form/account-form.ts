@@ -118,8 +118,7 @@ export class AccountFormComponent {
         {
           loading: this.i18n.t('form.account.toast.loading'),
           success: this.i18n.t('form.account.toast.success'),
-          error: (error) =>
-            error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed'),
+          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed')),
         },
       );
     } catch (error) {

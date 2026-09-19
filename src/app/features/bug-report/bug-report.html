@@ -1,9 +1,6 @@
-<button
-  type="button"
-  class="bug-report-fab"
-  [attr.aria-label]="i18n.t('bugReport.fab.label')"
-  (click)="launch()"
-><fin-icon name="flag" /></button>
+<button type="button" class="bug-report-fab" [attr.aria-label]="i18n.t('bugReport.fab.label')" (click)="launch()">
+  <fin-icon name="flag" />
+</button>
 
 @if (open()) {
 <fin-overlay [title]="i18n.t('bugReport.title')" mode="modal" (closed)="close()">
@@ -17,7 +14,12 @@
   <section>
     <p class="hint">{{ i18n.t('bugReport.step1.intro') }}</p>
     <fin-field [label]="i18n.t('bugReport.field.title')">
-      <input type="text" [(ngModel)]="title" maxlength="200" [placeholder]="i18n.t('bugReport.field.titlePlaceholder')" />
+      <input
+        type="text"
+        [(ngModel)]="title"
+        maxlength="200"
+        [placeholder]="i18n.t('bugReport.field.titlePlaceholder')"
+      />
     </fin-field>
     <fin-field [label]="i18n.t('bugReport.field.description')">
       <textarea
@@ -28,7 +30,11 @@
       ></textarea>
     </fin-field>
     <fin-field [label]="i18n.t('bugReport.field.severity')">
-      <fin-select [(ngModel)]="severity" [options]="severityOptions()" [ariaLabel]="i18n.t('bugReport.field.severity')" />
+      <fin-select
+        [(ngModel)]="severity"
+        [options]="severityOptions()"
+        [ariaLabel]="i18n.t('bugReport.field.severity')"
+      />
     </fin-field>
   </section>
   } @case (2) {
@@ -60,8 +66,14 @@
     }
 
     <dl class="review-summary">
-      <div><dt>{{ i18n.t('bugReport.review.page') }}</dt><dd>{{ i18n.t('bugReport.review.pageValue') }}</dd></div>
-      <div><dt>{{ i18n.t('bugReport.review.console') }}</dt><dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd></div>
+      <div>
+        <dt>{{ i18n.t('bugReport.review.page') }}</dt>
+        <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('bugReport.review.console') }}</dt>
+        <dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd>
+      </div>
     </dl>
     <p class="privacy">{{ i18n.t('bugReport.review.privacyNote') }}</p>
   </section>

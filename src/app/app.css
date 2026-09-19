@@ -2,9 +2,22 @@
   display: block;
   min-height: 100dvh;
 }
-.app[hlmSidebarWrapper] { display: flex; }
-.app[hlmSidebarWrapper] .stage { flex: 1; }
-aside.sidebar-content { position: relative; inset: auto; width: 100%; height: 100dvh; transform: none; transition: none; box-shadow: none; box-sizing: border-box; }
+.app[hlmSidebarWrapper] {
+  display: flex;
+}
+.app[hlmSidebarWrapper] .stage {
+  flex: 1;
+}
+aside.sidebar-content {
+  position: relative;
+  inset: auto;
+  width: 100%;
+  height: 100dvh;
+  transform: none;
+  transition: none;
+  box-shadow: none;
+  box-sizing: border-box;
+}
 .cargando {
   min-height: 100dvh;
   display: grid;
@@ -325,7 +338,7 @@ nav a:hover .nav-icon {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-/* El \`button {}\` global va sin capa y vence a las utilidades de Tailwind de Helm. */
+/* El `button {}` global va sin capa y vence a las utilidades de Tailwind de Helm. */
 .profile-menu [hlmDropdownMenuItem] {
   display: flex;
   width: 100%;

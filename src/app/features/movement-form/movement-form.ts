@@ -218,16 +218,11 @@ export class MovementFormComponent {
         throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
       if (kind === 'income' && source?.type === 'credit')
         throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-      await this.actions.run(
-        this.saveActionKey,
-        () => this.store.save({ ...this.model, kind } as any),
-        {
-          loading: this.i18n.t('form.movement.toast.loading'),
-          success: this.i18n.t('form.movement.toast.success'),
-          error: (error) =>
-            error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed'),
-        },
-      );
+      await this.actions.run(this.saveActionKey, () => this.store.save({ ...this.model, kind } as any), {
+        loading: this.i18n.t('form.movement.toast.loading'),
+        success: this.i18n.t('form.movement.toast.success'),
+        error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+      });
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }

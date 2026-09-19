@@ -122,7 +122,7 @@ async function waitForRoute(page, route) {
   await page.waitForURL(new RegExp(`/${route}(?:$|[?])`));
   try {
     await page
-      .locator('.workspace-page, .dashboard, .admin-page, demo-sin-seccion')
+      .locator('.workspace-page, .dashboard, .admin-page, fin-sin-seccion')
       .first()
       .waitFor({ state: 'visible' });
   } catch {
@@ -149,7 +149,7 @@ async function waitForRoute(page, route) {
  * elemento, no por que la aplicacion estuviera rota.
  */
 async function chooseOption(page, ariaLabel, optionLabel) {
-  const control = page.locator('demo-select').filter({ has: page.locator(`button[aria-label="${ariaLabel}"]`) });
+  const control = page.locator('fin-select').filter({ has: page.locator(`button[aria-label^="${ariaLabel}"]`) });
   await control.locator('button.trigger').click();
   await control
     .locator('.menu button', { hasText: new RegExp(`^\\s*${optionLabel}\\s*$`) })
@@ -209,7 +209,7 @@ async function exerciseInteractions(page) {
   await waitForRoute(page, 'accounts');
   for (const size of ['5', '10', '25']) {
     await chooseOption(page, 'Filas por página', size);
-    const renderedRows = await page.locator('demo-table tbody tr').count();
+    const renderedRows = await page.locator('fin-table tbody tr').count();
     assert(renderedRows === Number(size), `The table did not render ${size} rows (rendered ${renderedRows})`);
   }
 

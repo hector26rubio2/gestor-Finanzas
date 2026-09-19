@@ -139,7 +139,8 @@ export class ChartComponent implements OnDestroy {
       this.grafica.resize();
       // `true` reemplaza: al cambiar de tipo de widget o de periodo, las series viejas no
       // deben sobrevivir mezcladas con las nuevas.
-      const reduceMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const reduceMotion =
+        typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
       this.grafica.setOption({ ...base, ...(option as object), ...(reduceMotion ? { animation: false } : {}) }, true);
     });
   }

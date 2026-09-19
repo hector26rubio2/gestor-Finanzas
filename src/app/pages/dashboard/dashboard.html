@@ -179,11 +179,7 @@
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.donut.empty') }}</p>
       } } @case ('stacked') { @if (timeline().length) {
-      <fin-chart
-        [option]="apiladoOption()"
-        [height]="300"
-        [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
-      />
+      <fin-chart [option]="apiladoOption()" [height]="300" [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')" />
       } @else {
       <p class="empty">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
       } } @case ('gauge') { @if (income() > 0) {
