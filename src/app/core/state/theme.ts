@@ -43,3 +43,65 @@ export function applyTheme(theme: Preferences['theme']): void {
   if (theme === 'system') delete document.documentElement.dataset['theme'];
   else document.documentElement.dataset['theme'] = theme;
 }
+
+export interface StoredPalette {
+  name?: string;
+  accent?: string;
+  primary?: string;
+  secondary?: string;
+  text?: string;
+  surface?: string;
+  border?: string;
+  radius?: number;
+}
+
+export interface StoredAppearance {
+  theme: string;
+  font: string;
+  density: string;
+}
+
+const THEME_IDS: readonly string[] = ['system', 'light', 'dark', 'ocean', 'sand', 'berry'];
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
+const OVERRIDDEN_VARIABLES = ['--font', '--accent', '--secondary', '--text', '--surface', '--line', '--radius'];
+const PALETTE_VARIABLES: readonly (readonly [keyof StoredPalette, string])[] = [
+  ['accent', '--accent'],
+  ['primary', '--accent'],
+  ['secondary', '--secondary'],
+  ['text', '--text'],
+  ['surface', '--surface'],
+  ['border', '--line'],
+];
+
+export function parsePalette(json: string | null | undefined): StoredPalette | null {
+  if (!json) return null;
+  try {
+    const parsed: unknown = JSON.parse(json);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? (parsed as StoredPalette) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function clearAppearanceOverrides(): void {
+  const style = document.documentElement.style;
+  for (const variable of OVERRIDDEN_VARIABLES) style.removeProperty(variable);
+}
+
+export function applyStoredAppearance(appearance: StoredAppearance, palette: StoredPalette | null): void {
+  clearAppearanceOverrides();
+  const root = document.documentElement;
+  if (THEME_IDS.includes(appearance.theme)) applyTheme(appearance.theme as Preferences['theme']);
+  if (appearance.density === 'compact' || appearance.density === 'comfortable') {
+    root.dataset['density'] = appearance.density;
+  }
+  if (appearance.font.includes(',')) root.style.setProperty('--font', appearance.font);
+  if (!palette) return;
+  for (const [key, variable] of PALETTE_VARIABLES) {
+    const value = palette[key];
+    if (typeof value === 'string' && HEX_COLOR.test(value)) root.style.setProperty(variable, value);
+  }
+  if (typeof palette.radius === 'number' && palette.radius >= 0 && palette.radius <= 48) {
+    root.style.setProperty('--radius', `${palette.radius}px`);
+  }
+}

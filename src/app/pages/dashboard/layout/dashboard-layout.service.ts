@@ -1,4 +1,6 @@
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { FinanceApiClient } from '../../../core/api/api-client';
 import { AppStore } from '../../../core/state/store';
 import {
   FlowDefault,
@@ -37,13 +39,20 @@ function isFlowItem(value: unknown): value is FlowItem {
   );
 }
 
+function parse(raw: string | null | undefined): StoredLayout | null {
+  if (!raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as StoredLayout;
+    if (parsed.version !== 2 || !parsed.widgets?.every(isFlowItem) || !parsed.kpis?.every(isFlowItem)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 function read(key: string): StoredLayout {
   try {
-    const raw = localStorage.getItem(key);
-    if (!raw) return EMPTY;
-    const parsed = JSON.parse(raw) as StoredLayout;
-    if (parsed.version !== 2 || !parsed.widgets?.every(isFlowItem) || !parsed.kpis?.every(isFlowItem)) return EMPTY;
-    return parsed;
+    return parse(localStorage.getItem(key)) ?? EMPTY;
   } catch {
     return EMPTY;
   }
@@ -57,9 +66,14 @@ function write(key: string, value: StoredLayout): void {
   }
 }
 
-@Injectable()
+const SAVE_DELAY_MS = 800;
+
+@Injectable({ providedIn: 'root' })
 export class DashboardLayoutService {
   private readonly store = inject(AppStore);
+  private readonly api = inject(FinanceApiClient);
+  private hydratedKey: string | null = null;
+  private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly storageKey = computed(() => `finanzas.dashboard.layout.v2.${this.store.user()?.id ?? 'anon'}`);
 
   private readonly stored = signal<StoredLayout>(read(this.storageKey()));
@@ -73,8 +87,25 @@ export class DashboardLayoutService {
   constructor() {
     effect(() => {
       const key = this.storageKey();
-      untracked(() => this.stored.set(read(key)));
+      untracked(() => {
+        if (this.hydratedKey !== key) this.stored.set(read(key));
+      });
     });
+  }
+
+  hydrate(json: string | null | undefined): void {
+    if (this.saveTimer) return;
+    const key = this.storageKey();
+    const remote = parse(json);
+    this.hydratedKey = key;
+    if (remote) {
+      this.stored.set(remote);
+      write(key, remote);
+      return;
+    }
+    const local = read(key);
+    this.stored.set(local);
+    if (local !== EMPTY) this.scheduleSave(local);
   }
 
   resizeWidget(id: string, change: FlowResize): void {
@@ -110,6 +141,7 @@ export class DashboardLayoutService {
   reset(): void {
     this.stored.set(EMPTY);
     write(this.storageKey(), EMPTY);
+    this.scheduleSave(EMPTY);
   }
 
   private commitWidgets(widgets: readonly FlowItem[]): void {
@@ -125,5 +157,16 @@ export class DashboardLayoutService {
   private commit(next: StoredLayout): void {
     this.stored.set(next);
     write(this.storageKey(), next);
+    this.scheduleSave(next);
+  }
+
+  private scheduleSave(layout: StoredLayout): void {
+    if (this.store.runtime.mode !== 'api') return;
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    this.saveTimer = setTimeout(() => {
+      this.saveTimer = null;
+      const json = layout === EMPTY ? null : JSON.stringify(layout);
+      void firstValueFrom(this.api.saveDashboardLayout(json)).catch(() => undefined);
+    }, SAVE_DELAY_MS);
   }
 }

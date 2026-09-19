@@ -183,8 +183,11 @@ export class FinanceApiClient {
   preferences() {
     return this.preferencesApi.preferences();
   }
-  updatePreferences(request: Omit<ApiPreference, 'userId' | 'updatedAt'>) {
+  updatePreferences(request: Omit<ApiPreference, 'userId' | 'updatedAt' | 'dashboardLayoutJson'>) {
     return this.preferencesApi.updatePreferences(request);
+  }
+  saveDashboardLayout(layoutJson: string | null) {
+    return this.preferencesApi.saveDashboardLayout(layoutJson);
   }
   featureFlags() {
     return this.preferencesApi.featureFlags();

@@ -163,12 +163,16 @@ export class PreferencesTabComponent implements OnInit {
     this.persistPreferences();
   }
   setAccent(accent: string): void {
-    this.store.preferences.update((value) => ({ ...value, accent }));
+    this.store.preferences.update((value) => ({ ...value, accent, primary: accent }));
     document.documentElement.style.setProperty('--accent', accent);
     this.persistPreferences();
   }
   setThemeValue(key: 'name' | 'primary' | 'secondary' | 'text' | 'surface' | 'border', value: string): void {
-    this.store.preferences.update((preferences) => ({ ...preferences, [key]: value }));
+    this.store.preferences.update((preferences) => ({
+      ...preferences,
+      [key]: value,
+      ...(key === 'primary' ? { accent: value } : {}),
+    }));
     const cssKey = (
       {
         primary: '--accent',

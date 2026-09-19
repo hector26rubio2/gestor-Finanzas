@@ -65,7 +65,6 @@ const KPI_HEIGHT = 120;
     CdkDropList,
     FlowItemComponent,
   ],
-  providers: [DashboardLayoutService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
