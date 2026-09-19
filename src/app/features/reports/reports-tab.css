@@ -1,4 +1,4 @@
-.chart {
+.fin-chart {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -14,7 +14,7 @@
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 12px;
 }
-.kpis.mini demo-kpi {
+.kpis.mini fin-kpi {
   padding: 16px 18px;
 }
 @media (max-width: 1100px) {
@@ -52,7 +52,7 @@
   font-size: 0.72rem;
 }
 
-.report-toolbar select {
+.report-toolbar fin-select {
   min-height: 34px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -132,7 +132,7 @@
   color: var(--muted);
 }
 
-.chart {
+.fin-chart {
   padding: 20px;
   min-height: 250px;
 }
@@ -145,7 +145,7 @@
   grid-column: 1/-1;
 }
 
-.chart > h2 {
+.fin-chart > h2 {
   margin: 0 0 5px;
 }
 

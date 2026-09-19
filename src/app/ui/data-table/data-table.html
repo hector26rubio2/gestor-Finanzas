@@ -1,0 +1,127 @@
+<div
+  class="viewport"
+  data-testid="table-scroll"
+  tabindex="0"
+  role="region"
+  [attr.aria-label]="i18n.t('table.scrollRegion', { label: tableLabel() })"
+>
+  <table>
+    <caption class="sr-only">
+      {{ tableLabel() }}
+    </caption>
+    <thead>
+      <tr>
+        @for (column of columns(); track column.key) {
+        <th scope="col">{{ column.label }}</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of visibleRows(); track row; let rowIndex = $index) {
+      <tr
+        [class.selectable]="selectable()"
+        [class.expanded]="isRowExpanded(rowIndex)"
+        (click)="selectable() && rowSelected.emit(row)"
+      >
+        @for (column of columns(); track column.key; let first = $first) {
+        <td [attr.data-label]="column.label" [class.detail-field]="column.essential === false">
+          @if (cellTemplate(column.key); as tpl) {
+          <ng-container *ngTemplateOutlet="tpl; context: { $implicit: row }" />
+          } @else if (first && selectable()) {
+          <button
+            type="button"
+            class="row-link"
+            (click)="$event.stopPropagation(); rowSelected.emit(row)"
+            [attr.aria-label]="i18n.t('table.rowDetail', { value: display(row[column.key]) })"
+          >
+            {{ display(row[column.key]) }}
+          </button>
+          } @else { {{ display(row[column.key]) }} }
+        </td>
+        } @if (hasDetailColumns()) {
+        <td class="detail-toggle">
+          <button
+            type="button"
+            (click)="$event.stopPropagation(); toggleRow(rowIndex)"
+            [attr.aria-expanded]="isRowExpanded(rowIndex)"
+          >
+            {{ isRowExpanded(rowIndex) ? i18n.t('table.detailToggle.hide') : i18n.t('table.detailToggle.show') }}
+          </button>
+        </td>
+        }
+      </tr>
+      } @empty {
+      <tr>
+        <td [attr.colspan]="columns().length || 1" class="empty">{{ i18n.t('table.empty') }}</td>
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+@if (showFooter()) {
+<footer>
+  <span [id]="rangeId" aria-live="polite"
+    >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }}</span
+  >
+  <label
+    >{{ i18n.t('table.rowsPerPage') }}
+    <fin-select
+      class="compact-select"
+      [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
+      [options]="sizeOptions"
+      [ngModel]="size().toString()"
+      [openUp]="true"
+      (ngModelChange)="setSizeValue($event)"
+  /></label>
+  <div class="pages">
+    <button
+      type="button"
+      [attr.aria-label]="i18n.t('table.page.first')"
+      [disabled]="currentPage() === 0"
+      (click)="setPage(0)"
+    >
+      <fin-icon name="first" />
+    </button>
+    <button
+      type="button"
+      [attr.aria-label]="i18n.t('table.page.previous')"
+      [attr.aria-describedby]="rangeId"
+      [disabled]="currentPage() === 0"
+      (click)="setPage(currentPage() - 1)"
+    >
+      <fin-icon name="previous" /></button
+    ><label class="page-jump"
+      >{{ i18n.t('table.page.label') }}
+      <!--
+            La seleccion va en la opcion, no en el select: [value] sobre el select se
+            aplica antes de que las opciones existan, y al llegar desde un enlace con
+            ?pagina=4 la tabla mostraba la pagina correcta con el selector en la 1.
+          -->
+      <fin-select
+        class="compact-select"
+        [ariaLabel]="i18n.t('table.page.goTo')"
+        [options]="pageSelectOptions()"
+        [ngModel]="currentPage().toString()"
+        [openUp]="true"
+        (ngModelChange)="setPageValue($event)"
+      />
+      {{ i18n.t('table.page.ofTotal', { total: pageCount() }) }} </label
+    ><button
+      type="button"
+      [attr.aria-label]="i18n.t('table.page.next')"
+      [attr.aria-describedby]="rangeId"
+      [disabled]="currentPage() + 1 >= pageCount()"
+      (click)="setPage(currentPage() + 1)"
+    >
+      <fin-icon name="next" /></button
+    ><button
+      type="button"
+      [attr.aria-label]="i18n.t('table.page.last')"
+      [disabled]="currentPage() + 1 >= pageCount()"
+      (click)="setPage(pageCount() - 1)"
+    >
+      <fin-icon name="last" />
+    </button>
+  </div>
+</footer>
+}

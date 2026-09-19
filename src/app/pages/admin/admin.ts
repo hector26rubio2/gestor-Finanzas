@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import {
   ApiAdminFeatureFlag,
+  ApiAdminOrganization,
   ApiAdminOverride,
   ApiAdminRole,
   ApiAdminUser,
@@ -16,12 +17,13 @@ import { P } from '../../core/permissions';
 import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../../core/store';
-import { DataTableComponent, EmptyStateComponent } from '../../ui/ui';
-import { DemoTableCellDirective } from '../../ui/table-cell.directive';
+import { CAPABILITIES, AppStore } from '../../core/store';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { EmptyStateComponent } from '../../ui/empty-state/empty-state';
+import { FinTableCellDirective } from '../../ui/table-cell.directive';
 import { I18nService } from '../../core/i18n';
 
-type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
+type Tab = 'summary' | 'users' | 'roles' | 'organizations' | 'flags' | 'audit' | 'errors';
 
 @Component({
   selector: 'app-admin',
@@ -33,14 +35,14 @@ type Tab = 'summary' | 'users' | 'roles' | 'flags' | 'audit' | 'errors';
     UiSelectComponent,
     EmptyStateComponent,
     DataTableComponent,
-    DemoTableCellDirective,
+    FinTableCellDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './admin.html',
   styleUrl: './admin.css',
 })
 export class AdminComponent implements OnInit {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private api = inject(FinanceApiClient);
   private readonly arranque = inject(RemoteBootstrap);
   readonly caps = inject(CAPABILITIES);
@@ -81,6 +83,20 @@ export class AdminComponent implements OnInit {
   readonly rolesTotal = signal(0);
   readonly rolesSize = 12;
   readonly rolesTotalPages = computed(() => Math.max(1, Math.ceil(this.rolesTotal() / this.rolesSize)));
+  readonly adminOrganizations = signal<readonly ApiAdminOrganization[]>([]);
+  readonly organizationsPage = signal(1);
+  readonly organizationsTotal = signal(0);
+  readonly organizationsSize = 12;
+  readonly organizationsTotalPages = computed(() =>
+    Math.max(1, Math.ceil(this.organizationsTotal() / this.organizationsSize)),
+  );
+  readonly organizationDraft = signal<{ name: string; baseCurrency: string } | null>(null);
+  readonly moveOrganizationOptions = computed<readonly UiOption[]>(() =>
+    this.adminOrganizations().map((org) => ({
+      value: org.id,
+      label: org.isDefault ? this.i18n.t('admin.organizations.defaultOption', { name: org.name }) : org.name,
+    })),
+  );
   readonly errors = signal<ApiClientError[]>([]);
   readonly audit = signal<ApiAuditEvent[]>([]);
   readonly adminFlags = signal<readonly ApiAdminFeatureFlag[]>([]);
@@ -121,6 +137,12 @@ export class AdminComponent implements OnInit {
       labelKey: 'admin.tabs.roles',
       icon: 'shield',
       capability: P.administracion.roles.listar,
+    },
+    {
+      id: 'organizations' as Tab,
+      labelKey: 'admin.tabs.organizations',
+      icon: 'organization',
+      capability: P.administracion.organizaciones.listar,
     },
     {
       id: 'flags' as Tab,
@@ -315,12 +337,15 @@ export class AdminComponent implements OnInit {
     try {
       // Solo se pide lo que el permiso abre: así una sesión sin una pestaña no
       // provoca un 403 en el arranque de la consola.
-      const [u, r, a, e, f, p] = await Promise.all([
+      const [u, r, org, a, e, f, p] = await Promise.all([
         this.caps.allows(P.administracion.usuarios.listar)
           ? firstValueFrom(this.api.adminUsers())
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.roles.listar)
           ? firstValueFrom(this.api.adminRoles(1, this.rolesSize, this.rolesOrganizationFilter() || undefined))
+          : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
+        this.caps.allows(P.administracion.organizaciones.listar)
+          ? firstValueFrom(this.api.adminOrganizations(1, this.organizationsSize))
           : Promise.resolve({ items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false }),
         this.caps.allows(P.administracion.auditoria.listar)
           ? firstValueFrom(this.api.superAdminAudit(1, 50))
@@ -345,6 +370,9 @@ export class AdminComponent implements OnInit {
       this.roles.set(r.items);
       this.rolesPage.set(r.page);
       this.rolesTotal.set(r.total);
+      this.adminOrganizations.set(org.items);
+      this.organizationsPage.set(org.page);
+      this.organizationsTotal.set(org.total);
       this.audit.set([...a.items]);
       this.adminFlags.set(f);
       this.permissionCatalog.set(p);
@@ -408,6 +436,9 @@ export class AdminComponent implements OnInit {
   concedidosEn(u: ApiAdminUser, items: readonly ApiPermissionDescriptor[]): number {
     const concedidos = this.permisosDe(u);
     return items.filter((permiso) => concedidos.includes(permiso.code)).length;
+  }
+  screenshotUrl(id: string): string {
+    return this.api.screenshotUrl(id);
   }
   errorLabel(s: ApiClientError['status']) {
     return s === 'new'
@@ -588,6 +619,59 @@ export class AdminComponent implements OnInit {
   setRolesOrganizationFilter(organizationId: string) {
     this.rolesOrganizationFilter.set(organizationId);
     this.loadRolesPage(1);
+  }
+  newOrganization() {
+    this.organizationDraft.set({ name: '', baseCurrency: 'COP' });
+  }
+  async saveOrganization() {
+    const draft = this.organizationDraft();
+    if (!draft || !draft.name.trim()) return;
+    try {
+      await firstValueFrom(this.api.createAdminOrganization({ name: draft.name, baseCurrency: draft.baseCurrency }));
+      this.organizationDraft.set(null);
+      await this.loadOrganizationsPage(1);
+    } catch (error) {
+      const motivo = error instanceof Error ? error.message : '';
+      this.store.toast.set(
+        motivo
+          ? this.i18n.t('admin.toast.createOrganizationFailedReason', { reason: motivo })
+          : this.i18n.t('admin.toast.createOrganizationFailed'),
+      );
+    }
+  }
+  async loadOrganizationsPage(page: number) {
+    if (page < 1 || page > this.organizationsTotalPages()) return;
+    try {
+      const pagina = await firstValueFrom(this.api.adminOrganizations(page, this.organizationsSize));
+      this.adminOrganizations.set(pagina.items);
+      this.organizationsPage.set(pagina.page);
+      this.organizationsTotal.set(pagina.total);
+    } catch {
+      /* se queda en la pagina actual; el proximo intento la corrige */
+    }
+  }
+  /** A qué organización pertenece esta persona ahora mismo, para preseleccionarla. */
+  currentOrganizationId(user: ApiAdminUser): string {
+    return this.userOrganizationId(user) ?? '';
+  }
+  async moveUserOrganization(user: ApiAdminUser, organizationId: string) {
+    if (!organizationId || organizationId === this.currentOrganizationId(user)) return;
+    const destino = this.adminOrganizations().find((org) => org.id === organizationId);
+    if (!destino) return;
+    if (!confirm(this.i18n.t('admin.users.drawer.confirmMoveOrganization', { name: destino.name }))) return;
+    try {
+      await firstValueFrom(this.api.moveAdminUserOrganization(user.id, organizationId));
+      await this.refrescarAccesos();
+      await this.recargarUsuarios();
+      this.store.toast.set(this.i18n.t('admin.toast.moveOrganizationSucceeded', { name: destino.name }));
+    } catch (error) {
+      const motivo = error instanceof Error ? error.message : '';
+      this.store.toast.set(
+        motivo
+          ? this.i18n.t('admin.toast.moveOrganizationFailedReason', { reason: motivo })
+          : this.i18n.t('admin.toast.moveOrganizationFailed'),
+      );
+    }
   }
   async deleteRole(r: ApiAdminRole) {
     if (!confirm(this.i18n.t('admin.roles.confirmDelete', { name: r.name }))) return;

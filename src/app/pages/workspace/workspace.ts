@@ -10,14 +10,16 @@ import { IconComponent } from '../../ui/icon';
 import { SinAccesoComponent } from '../../ui/sin-acceso';
 import { P } from '../../core/permissions';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
-import { CAPABILITIES, DemoStore } from '../../core/store';
-import { DataTableComponent, OverlayComponent } from '../../ui/ui';
+import { CAPABILITIES, AppStore } from '../../core/store';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { FinanceApiClient } from '../../core/api-client';
 import { firstValueFrom } from 'rxjs';
 import { formatReturnRate } from '../../core/money';
 import { I18nService } from '../../core/i18n';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
-import type { Account } from '../../core/demo-data';
+import type { Account, Movement } from '../../core/demo-data';
+import { ConfirmDialogComponent } from '../../ui/confirm-dialog/confirm-dialog';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
@@ -53,6 +55,7 @@ const SIN_DATO = '—';
     IconComponent,
     NumericInputDirective,
     DataTableComponent,
+    ConfirmDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
@@ -61,7 +64,7 @@ const SIN_DATO = '—';
 export class WorkspaceComponent {
   readonly Math = Math;
   readonly i18n = inject(I18nService);
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   readonly P = P;
@@ -146,7 +149,7 @@ export class WorkspaceComponent {
     });
   });
   readonly appliedPayment = computed(() => this.paymentAllocation().reduce((sum, row) => sum + row.applied, 0));
-  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `demo-table`. */
+  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `table`. */
   readonly paymentAllocationRows = computed(() =>
     this.paymentAllocation().map((row) => ({
       ...row,
@@ -397,9 +400,46 @@ export class WorkspaceComponent {
     const m = this.selectedMovement();
     if (m) this.store.open(m.kind, m.accountId, m);
   }
-  async reverseSelected() {
+  /**
+   * Pide confirmar antes de reversar. El inspector es un `<dialog>` modal nativo, y el
+   * overlay de CDK del diálogo de confirmación quedaría detrás de él: se cierra el
+   * inspector mientras se pregunta y se restaura si la persona cancela.
+   */
+  askReverse(): void {
     const movement = this.selectedMovement();
     if (!movement) return;
+    this.confirmKind.set('reverse');
+    this.pendingConfirm.set({ kind: 'reverse', movement, restore: this.store.inspector() });
+    this.store.inspector.set(null);
+  }
+  askDeactivateAccount(): void {
+    const account = this.selectedAccount();
+    if (!account || account.type === 'credit') return;
+    this.confirmKind.set('deactivateAccount');
+    this.pendingConfirm.set({ kind: 'deactivateAccount', account, restore: this.store.inspector() });
+    this.store.inspector.set(null);
+  }
+  confirmPending(): void {
+    const pending = this.pendingConfirm();
+    this.pendingConfirm.set(null);
+    if (pending?.kind === 'reverse') void this.reverseMovement(pending.movement);
+    else if (pending?.kind === 'deactivateAccount') void this.deactivateAccount(pending.account);
+  }
+  dismissPending(): void {
+    const pending = this.pendingConfirm();
+    if (!pending) return;
+    this.pendingConfirm.set(null);
+    this.store.inspector.set(pending.restore);
+  }
+  readonly pendingConfirm = signal<
+    | { kind: 'reverse'; movement: Movement; restore: ReturnType<AppStore['inspector']> }
+    | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<AppStore['inspector']> }
+    | null
+  >(null);
+  /** Último tipo pedido: el texto no cambia mientras el diálogo se cierra. */
+  private readonly confirmKind = signal<'reverse' | 'deactivateAccount'>('reverse');
+  readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
+  async reverseMovement(movement: Movement) {
     if (this.store.runtime.mode === 'demo') {
       this.store.data.update((data) => ({
         ...data,
@@ -472,9 +512,7 @@ export class WorkspaceComponent {
     if (!account) return;
     this.store.form.set({ kind: 'account', account });
   }
-  async deactivateSelectedAccount() {
-    const account = this.selectedAccount();
-    if (!account || account.type === 'credit') return;
+  async deactivateAccount(account: Account) {
     if (this.store.runtime.mode === 'demo') {
       this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
       this.store.inspector.set(null);

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from './api-client';
 import { P } from './permissions';
 import { RUNTIME_CONFIG } from './runtime';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 
 describe('persistPreferences', () => {
   const usuario = (permisos: readonly string[]) => ({
@@ -24,7 +24,7 @@ describe('persistPreferences', () => {
         { provide: FinanceApiClient, useValue: api },
       ],
     });
-    return { api, store: TestBed.inject(DemoStore) };
+    return { api, store: TestBed.inject(AppStore) };
   };
 
   beforeEach(() => TestBed.resetTestingModule());

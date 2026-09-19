@@ -1,6 +1,7 @@
 /** Stable v1 paths published by the backend; transport remains opt-in. */
 export const API_ROUTES = {
   csrf: '/api/v1/auth/csrf',
+  devLogin: '/api/v1/auth/dev-login',
   organizationMembers: '/api/v1/organization/members',
   logout: '/api/v1/auth/logout',
   session: '/api/v1/session',
@@ -23,6 +24,7 @@ export const API_ROUTES = {
   audit: '/api/v1/admin/audit',
   adminUsers: '/api/v1/superadmin/users',
   adminRoles: '/api/v1/superadmin/roles',
+  adminOrganizations: '/api/v1/superadmin/organizations',
   adminErrors: '/api/v1/superadmin/errors',
   bugReports: '/api/v1/bug-reports',
   superAdminCapabilities: '/api/v1/superadmin/capabilities',
@@ -40,6 +42,7 @@ export const API_ROUTES = {
   adminUserActive: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/active`,
   adminUserCapability: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/capability-override`,
   adminUserRoles: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/roles`,
+  adminUserOrganization: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/organization`,
   adminRole: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}`,
   adminRoleActive: (id: string) => `/api/v1/superadmin/roles/${encodeURIComponent(id)}/active`,
   adminError: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}`,

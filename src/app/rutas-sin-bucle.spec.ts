@@ -1,7 +1,7 @@
 import { CanMatchFn, Router, UrlTree } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAPABILITIES, DemoStore, FEATURES } from './core/store';
+import { CAPABILITIES, AppStore, FEATURES } from './core/store';
 import { P } from './core/permissions';
 import { RUNTIME_CONFIG } from './core/runtime';
 import { routes } from './routes';
@@ -26,7 +26,7 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     TestBed.configureTestingModule({
       providers: [{ provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } }],
     });
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     store.user.set({ id: 'u1', name: 'Lectora', email: 'l@example.test', capabilities: [...permisos] } as never);
     store.featureFlags.set(banderas);
     store.featureFlagsLoaded.set(cargadas);
@@ -59,7 +59,7 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
 
   it('sin sesión sigue mandando a la pantalla de acceso', () => {
     montar([], {});
-    TestBed.inject(DemoStore).user.set(null);
+    TestBed.inject(AppStore).user.set(null);
     const destino = guardDe('dashboard')();
     expect(TestBed.inject(Router).serializeUrl(destino as UrlTree)).toBe('/login');
   });

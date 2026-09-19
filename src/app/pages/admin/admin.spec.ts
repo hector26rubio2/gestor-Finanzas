@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { AdminComponent } from './admin';
 
 /**
@@ -122,7 +122,7 @@ describe('AdminComponent y el guardado de un rol', () => {
 
     await componente.saveRole();
 
-    expect(TestBed.inject(DemoStore).toast()).toContain('movimientos.teletransportar');
+    expect(TestBed.inject(AppStore).toast()).toContain('movimientos.teletransportar');
   });
 });
 
@@ -180,7 +180,7 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
     await componente.deleteRole(rol);
 
     expect(deleteAdminRole).toHaveBeenCalledWith('r1');
-    expect(TestBed.inject(DemoStore).toast()).toContain('Auditor');
+    expect(TestBed.inject(AppStore).toast()).toContain('Auditor');
   });
 
   it('activar y desactivar refleja el nuevo estado sin esperar a recargar', async () => {
@@ -227,7 +227,7 @@ describe('AdminComponent y las acciones sobre un rol existente', () => {
 });
 
 /**
- * Las tablas de usuarios y auditoría pasaron de `<table>` propia a `demo-table`
+ * Las tablas de usuarios y auditoría pasaron de `<fin-table>` propia a `table`
  * genérica: estas pruebas cubren la transformación de filas (roles a texto,
  * fecha formateada, actor resuelto) que antes vivía directo en la plantilla.
  */

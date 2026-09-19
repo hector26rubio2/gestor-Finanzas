@@ -1,24 +1,24 @@
 <section class="kpis mini">
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('portfolio.kpi.available.label')"
     icon="wallet"
     [value]="store.money(store.available() - store.debt())"
     [hint]="i18n.t('portfolio.kpi.available.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('portfolio.kpi.investments.label')"
     icon="portfolio"
     [value]="store.money(investmentValue())"
     [hint]="i18n.t('portfolio.kpi.investments.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('portfolio.kpi.return.label')"
     icon="trendUp"
     tone="success"
     [value]="investmentReturn()"
     [hint]="i18n.t('portfolio.kpi.return.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('portfolio.kpi.gain.label')"
     icon="trendUp"
     tone="success"
@@ -27,7 +27,7 @@
   />
 </section>
 <section class="table-zone">
-  <demo-table
+  <fin-table
     [columns]="investmentColumns()"
     [rows]="investmentRows()"
     (rowSelected)="store.inspect('investment', $event['id'])"

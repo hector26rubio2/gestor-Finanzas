@@ -13,13 +13,13 @@
   <nav class="tabs" [attr.aria-label]="i18n.t('admin.nav.ariaLabel')">
     @for (item of tabs(); track item.id) {
     <button [class.active]="tab() === item.id" (click)="tab.set(item.id)">
-      <demo-icon [name]="item.icon" />{{ item.label }}
+      <fin-icon [name]="item.icon" />{{ item.label }}
     </button>
     }
   </nav>
 
   @switch (tab()) { @case ('summary') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.summary.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.summary.detail')" />
   } @else {
   <section class="kpis">
     <article>
@@ -84,7 +84,7 @@
     </article>
   </section>
   } } @case ('users') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.users.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.users.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -93,42 +93,42 @@
         <p>{{ i18n.t('admin.users.subtitle') }}</p>
       </div>
       <label class="search"
-        ><demo-icon name="search" /><input
+        ><fin-icon name="search" /><input
           [(ngModel)]="userSearch"
           [placeholder]="i18n.t('admin.users.searchPlaceholder')" /></label
-      ><demo-select
+      ><fin-select
         [(ngModel)]="userStatus"
         [options]="userStatusOptions()"
         [ariaLabel]="i18n.t('admin.users.statusFilterAriaLabel')"
       />
     </div>
     <div class="table-wrap">
-      <demo-table
+      <fin-table
         [columns]="userColumns()"
         [rows]="userTableRows()"
         [selectable]="false"
         [showFooter]="false"
         [ariaLabel]="i18n.t('admin.users.title')"
       >
-        <ng-template demoCell="user" let-user>
+        <ng-template finCell="user" let-user>
           <div class="person">
             <span>{{ initials(user.displayName) }}</span>
             <div><b>{{ user.displayName }}</b><small>{{ user.email }}</small></div>
           </div>
         </ng-template>
-        <ng-template demoCell="status" let-user>
+        <ng-template finCell="status" let-user>
           <span class="status" [class.off]="!user.isActive"
             >{{ user.isActive ? i18n.t('admin.users.state.active') : i18n.t('admin.users.state.inactive') }}</span
           >
         </ng-template>
-        <ng-template demoCell="actions" let-user>
+        <ng-template finCell="actions" let-user>
           @if (caps.allows(P.administracion.usuarios.editar)) {
           <button class="icon-btn" [attr.aria-label]="i18n.t('admin.users.manageAriaLabel')" (click)="openUser(user)">
             →
           </button>
           }
         </ng-template>
-      </demo-table>
+      </fin-table>
     </div>
     <footer class="pager">
       <span>{{ i18n.t('admin.users.countLabel', { count: filteredUsers().length }) }}</span
@@ -136,7 +136,7 @@
     </footer>
   </section>
   } } @case ('roles') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.roles.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.roles.detail')" />
   } @else {
   <section class="cards-head">
     <div>
@@ -145,12 +145,12 @@
     </div>
     @if (caps.allows(P.administracion.roles.crear)) {
     <button class="primary" (click)="newRole()">
-      <demo-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}
+      <fin-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}
     </button>
     }
   </section>
   @if (organizationOptions().length > 1) {
-  <demo-select
+  <fin-select
     class="roles-organization-filter"
     [ngModel]="rolesOrganizationFilter()"
     (ngModelChange)="setRolesOrganizationFilter($event)"
@@ -162,7 +162,7 @@
     @for (role of roles(); track role.id) {
     <article class="role-card" [class.inactive]="!role.isActive">
       <header>
-        <demo-icon name="shield" class="role-icon" />
+        <fin-icon name="shield" class="role-icon" />
         <span>
           <h3>
             {{ role.name }} @if (!role.isActive) {
@@ -182,7 +182,7 @@
           [title]="i18n.t(role.isActive ? 'admin.roles.deactivate' : 'admin.roles.activate')"
           (click)="toggleRoleActive(role)"
         >
-          <demo-icon [name]="role.isActive ? 'pause' : 'play'" />
+          <fin-icon [name]="role.isActive ? 'pause' : 'play'" />
         </button>
         } @if (caps.allows(P.administracion.roles.eliminar) && !role.isSystem) {
         <button
@@ -191,7 +191,7 @@
           [title]="i18n.t('admin.roles.deleteAriaLabel')"
           (click)="deleteRole(role)"
         >
-          <demo-icon name="trash" />
+          <fin-icon name="trash" />
         </button>
         }
       </header>
@@ -222,8 +222,56 @@
       {{ i18n.t('admin.roles.pager.next') }}
     </button>
   </footer>
+  } } } @case ('organizations') { @if (sinDatosDeAdministracion()) {
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.organizations.detail')" />
+  } @else {
+  <section class="cards-head">
+    <div>
+      <h2>{{ i18n.t('admin.organizations.title') }}</h2>
+      <p>{{ i18n.t('admin.organizations.subtitle') }}</p>
+    </div>
+    @if (caps.allows(P.administracion.organizaciones.crear)) {
+    <button class="primary" (click)="newOrganization()">
+      <fin-icon name="plus" /> {{ i18n.t('admin.organizations.actions.create') }}
+    </button>
+    }
+  </section>
+  <section class="role-grid">
+    @for (org of adminOrganizations(); track org.id) {
+    <article class="role-card" [class.inactive]="!org.isActive">
+      <header>
+        <fin-icon name="organization" class="role-icon" />
+        <span>
+          <h3>
+            {{ org.name }} @if (org.isDefault) {
+            <small class="badge-inactive">{{ i18n.t('admin.organizations.defaultBadge') }}</small>
+            }
+          </h3>
+          <small>{{ i18n.t('admin.organizations.memberCount', { count: org.memberCount }) }}</small>
+        </span>
+      </header>
+      <p>{{ org.slug }} · {{ org.baseCurrency }}</p>
+    </article>
+    }
+  </section>
+  @if (organizationsTotalPages() > 1) {
+  <footer class="pager">
+    <button [disabled]="organizationsPage() <= 1" (click)="loadOrganizationsPage(organizationsPage() - 1)">
+      {{ i18n.t('admin.roles.pager.previous') }}
+    </button>
+    <span
+      >{{ i18n.t('admin.roles.pager.pageOfTotal', { page: organizationsPage(), total: organizationsTotalPages() })
+      }}</span
+    >
+    <button
+      [disabled]="organizationsPage() >= organizationsTotalPages()"
+      (click)="loadOrganizationsPage(organizationsPage() + 1)"
+    >
+      {{ i18n.t('admin.roles.pager.next') }}
+    </button>
+  </footer>
   } } } @case ('flags') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.flags.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.flags.detail')" />
   } @else {
   <section class="panel">
     <div class="toolbar">
@@ -232,7 +280,7 @@
         <p>{{ i18n.t('admin.flags.subtitle') }}</p>
       </div>
       <label class="search"
-        ><demo-icon name="search" /><input
+        ><fin-icon name="search" /><input
           [(ngModel)]="flagSearch"
           [placeholder]="i18n.t('admin.flags.searchPlaceholder')"
       /></label>
@@ -240,7 +288,7 @@
     <div class="flag-list">
       @for (flag of filteredFlags(); track flag.key + (flag.organizationId ?? '') + (flag.userId ?? '')) {
       <article>
-        <div class="flag-mark"><demo-icon name="flag" /></div>
+        <div class="flag-mark"><fin-icon name="flag" /></div>
         <div><b>{{ flag.key }}</b><small>{{ flag.audience }}</small></div>
         <span class="rollout">{{ flag.updatedAt | date: 'dd MMM, HH:mm' }}</span
         ><label class="switch"
@@ -255,7 +303,7 @@
     </div>
   </section>
   } } @case ('audit') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.audit.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.audit.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -264,36 +312,36 @@
         <p>{{ i18n.t('admin.audit.subtitle') }}</p>
       </div>
       <label class="search"
-        ><demo-icon name="search" /><input
+        ><fin-icon name="search" /><input
           [(ngModel)]="auditSearch"
           [placeholder]="i18n.t('admin.audit.searchPlaceholder')" /></label
-      ><demo-select
+      ><fin-select
         [(ngModel)]="auditAction"
         [options]="auditActionOptions()"
         [ariaLabel]="i18n.t('admin.audit.actionFilterAriaLabel')"
       />
     </div>
     <div class="table-wrap">
-      <demo-table
+      <fin-table
         [columns]="auditColumns()"
         [rows]="auditTableRows()"
         [selectable]="false"
         [showFooter]="false"
         [ariaLabel]="i18n.t('admin.audit.title')"
       >
-        <ng-template demoCell="action" let-e>
+        <ng-template finCell="action" let-e>
           <b>{{ e.action }}</b>
         </ng-template>
-        <ng-template demoCell="entity" let-e>
+        <ng-template finCell="entity" let-e>
           {{ e.entityType }}<small class="block">{{ e.entityId || '—' }}</small>
         </ng-template>
-        <ng-template demoCell="traceId" let-e>
+        <ng-template finCell="traceId" let-e>
           <code>{{ e.traceId.slice(0, 12) }}</code>
         </ng-template>
-        <ng-template demoCell="actions" let-e>
+        <ng-template finCell="actions" let-e>
           <button class="icon-btn" (click)="selectedAudit.set(e)">→</button>
         </ng-template>
-      </demo-table>
+      </fin-table>
     </div>
     <footer class="pager">
       <span>{{ i18n.t('admin.audit.countLabel', { count: filteredAudit().length }) }}</span
@@ -301,7 +349,7 @@
     </footer>
   </section>
   } } @case ('errors') { @if (sinDatosDeAdministracion()) {
-  <demo-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.errors.detail')" />
+  <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.errors.detail')" />
   } @else {
   <section class="panel table-panel">
     <div class="toolbar">
@@ -309,7 +357,7 @@
         <h2>{{ i18n.t('admin.errors.title') }}</h2>
         <p>{{ i18n.t('admin.errors.subtitle') }}</p>
       </div>
-      <demo-select
+      <fin-select
         [(ngModel)]="errorStatus"
         [options]="errorStatusOptions()"
         [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
@@ -365,6 +413,17 @@
           [checked]="user.isActive"
           (change)="setUserActive(user, !user.isActive)" /><span></span></span
     ></label>
+    } @if (caps.allows(P.administracion.usuarios.organizacion.editar) && moveOrganizationOptions().length > 1) {
+    <label class="active-row"
+      ><span
+        ><b>{{ i18n.t('admin.users.drawer.organizationTitle') }}</b
+        ><small>{{ i18n.t('admin.users.drawer.organizationDetail') }}</small></span
+      ><fin-select
+        [ngModel]="currentOrganizationId(user)"
+        (ngModelChange)="moveUserOrganization(user, $event)"
+        [options]="moveOrganizationOptions()"
+        [ariaLabel]="i18n.t('admin.users.drawer.organizationTitle')"
+    /></label>
     } @if (rolesFor(user).length) {
     <h3>{{ i18n.t('admin.users.drawer.rolesTitle') }}</h3>
     <p class="hint">{{ i18n.t('admin.users.drawer.rolesHint') }}</p>
@@ -401,13 +460,13 @@
     } @if (caps.allows(P.administracion.banderas.editar)) {
     <details class="cap-group feature-user-list" open>
       <summary>
-        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span class="summary-icon"><fin-icon name="menu" /></span>
         <span
           ><b>{{ i18n.t('admin.users.drawer.featuresTitle') }}</b
           ><small>{{ i18n.t('admin.users.drawer.featuresDetail') }}</small></span
         >
         <span class="summary-count">{{ enabledFeaturesFor(user) }}/{{ platformFlags().length }}</span>
-        <demo-icon name="chevronDown" class="summary-chevron" />
+        <fin-icon name="chevronDown" class="summary-chevron" />
       </summary>
       <p class="hint section-hint">{{ i18n.t('admin.users.drawer.featuresHint') }}</p>
       @for (flag of platformFlags(); track flag.key) {
@@ -427,10 +486,10 @@
     @for (group of permissionGroups(); track group.name) {
     <details class="cap-group">
       <summary>
-        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span class="summary-icon"><fin-icon name="menu" /></span>
         <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
         <span class="summary-count">{{ concedidosEn(user, group.items) }}/{{ group.items.length }}</span>
-        <demo-icon name="chevronDown" class="summary-chevron" />
+        <fin-icon name="chevronDown" class="summary-chevron" />
       </summary>
       @for (permiso of group.items; track permiso.code) {
       <label [class.module-visibility]="permiso.code.endsWith('.ver')"
@@ -464,7 +523,7 @@
     </label>
     @if (!role.id) {
     <label
-      >{{ i18n.t('admin.roles.drawer.organizationLabel') }}<demo-select
+      >{{ i18n.t('admin.roles.drawer.organizationLabel') }}<fin-select
         [(ngModel)]="role.organizationId"
         [options]="organizationOptions()"
         [ariaLabel]="i18n.t('admin.roles.drawer.organizationAriaLabel')"
@@ -472,7 +531,7 @@
     } @for (group of permissionGroups(); track group.name) {
     <details class="cap-group">
       <summary>
-        <span class="summary-icon"><demo-icon name="menu" /></span>
+        <span class="summary-icon"><fin-icon name="menu" /></span>
         <span><b>{{ resourceLabel(group.name) }}</b><small>{{ group.name }}</small></span>
         <div class="cap-bulk">
           <span
@@ -480,7 +539,7 @@
             group.items.length }) }}</span
           >
         </div>
-        <demo-icon name="chevronDown" class="summary-chevron" />
+        <fin-icon name="chevronDown" class="summary-chevron" />
       </summary>
       <div class="cap-actions">
         <button type="button" class="quiet" (click)="marcarGrupo(group.items, true)">
@@ -511,6 +570,31 @@
     ><button class="primary" (click)="saveRole()">{{ i18n.t('admin.roles.drawer.save') }}</button>
   </footer>
 </aside>
+} @if (organizationDraft(); as org) {
+<button
+  class="drawer-scrim"
+  (click)="organizationDraft.set(null)"
+  [attr.aria-label]="i18n.t('admin.common.close')"
+></button>
+<aside class="drawer">
+  <header>
+    <div>
+      <h2>{{ i18n.t('admin.organizations.actions.create') }}</h2>
+      <small>{{ i18n.t('admin.organizations.drawer.subtitle') }}</small>
+    </div>
+    <button class="icon-btn" (click)="organizationDraft.set(null)">×</button>
+  </header>
+  <div class="drawer-body role-form">
+    <label>{{ i18n.t('admin.organizations.drawer.nameLabel') }}<input [(ngModel)]="org.name" /></label>
+    <label
+      >{{ i18n.t('admin.organizations.drawer.currencyLabel') }}<input [(ngModel)]="org.baseCurrency" maxlength="3"
+    /></label>
+  </div>
+  <footer>
+    <button (click)="organizationDraft.set(null)">{{ i18n.t('admin.common.cancel') }}</button
+    ><button class="primary" (click)="saveOrganization()">{{ i18n.t('admin.roles.drawer.save') }}</button>
+  </footer>
+</aside>
 } @if (selectedError(); as error) {
 <button class="drawer-scrim" (click)="selectedError.set(null)"></button>
 <aside class="drawer">
@@ -522,7 +606,16 @@
     <button class="icon-btn" (click)="selectedError.set(null)">×</button>
   </header>
   <div class="drawer-body">
-    <div class="error-hero"><b>{{ error.message }}</b><small>{{ error.source }} · {{ error.version }}</small></div>
+    <div class="error-hero">
+      <b>{{ error.title || error.message }}</b><small>{{ error.source }} · {{ error.version }}</small>
+    </div>
+    @if (error.title) {
+    <p>{{ error.message }}</p>
+    } @if (error.stepsToReproduce) {
+    <p class="privacy"><b>{{ i18n.t('admin.errors.drawer.steps') }}:</b> {{ error.stepsToReproduce }}</p>
+    } @if (error.hasScreenshot) {
+    <img class="error-screenshot" [src]="screenshotUrl(error.id)" [alt]="i18n.t('admin.errors.drawer.screenshotAlt')" />
+    }
     <dl>
       <div>
         <dt>{{ i18n.t('admin.errors.drawer.occurrences') }}</dt>
@@ -543,8 +636,13 @@
         </dd>
       </div>
     </dl>
+    @if (error.githubIssueUrl) {
+    <a [href]="error.githubIssueUrl" target="_blank" rel="noopener" class="primary"
+      >{{ i18n.t('admin.errors.drawer.githubLink') }} ↗</a
+    >
+    }
     <label
-      >{{ i18n.t('admin.errors.drawer.statusLabel') }}<demo-select
+      >{{ i18n.t('admin.errors.drawer.statusLabel') }}<fin-select
         [ngModel]="error.status"
         [disabled]="!caps.allows(P.administracion.errores.editar)"
         [options]="errorStateOptions()"

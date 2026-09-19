@@ -7,7 +7,7 @@ export interface MovementKindOption {
 
 /** Fila de botones para elegir gasto, ingreso o transferencia. */
 @Component({
-  selector: 'demo-movement-kind-selector',
+  selector: 'fin-movement-kind-selector',
   standalone: true,
   templateUrl: './movement-kind-selector.html',
   styleUrl: './movement-kind-selector.css',

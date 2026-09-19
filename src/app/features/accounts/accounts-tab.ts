@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DataTableComponent, KpiComponent } from '../../ui/ui';
+import { DataTableComponent } from '../../ui/data-table/data-table';
+import { KpiComponent } from '../../ui/kpi/kpi';
 import { IconComponent } from '../../ui/icon';
 import { UiSelectComponent } from '../../ui/select';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 
@@ -17,7 +18,7 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
 })
 export class AccountsTabComponent {
   readonly Math = Math;
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
 

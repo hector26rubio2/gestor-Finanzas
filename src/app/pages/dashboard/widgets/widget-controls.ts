@@ -14,7 +14,7 @@ export type GoalKey = 'goalMin' | 'goalTarget' | 'goalMax';
  * permisos no cambian por widget), esto solo dibuja lo que ya se le concedió.
  */
 @Component({
-  selector: 'demo-widget-controls',
+  selector: 'fin-widget-controls',
   standalone: true,
   imports: [FormsModule, IconComponent, UiSelectComponent, NumericInputDirective],
   templateUrl: './widget-controls.html',

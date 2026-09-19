@@ -1,6 +1,9 @@
 {
   "extends": "./tsconfig.json",
-  "compilerOptions": { "outDir": "./dist/out-tsc", "types": [] },
+  "compilerOptions": {
+    "outDir": "./dist/out-tsc",
+    "types": []
+  },
   "files": ["src/main.ts"],
-  "include": ["src/**/*.d.ts"]
+  "include": ["src/**/*.d.ts", "src/app/ui/helm/**/src/**/*.ts"]
 }

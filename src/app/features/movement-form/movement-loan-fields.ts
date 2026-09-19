@@ -2,7 +2,7 @@ import { Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { FieldComponent } from '../../ui/field';
 
@@ -12,7 +12,7 @@ import { FieldComponent } from '../../ui/field';
  * crédito, porque esa deuda es con el banco, no con una persona.
  */
 @Component({
-  selector: 'demo-movement-loan-fields',
+  selector: 'fin-movement-loan-fields',
   standalone: true,
   imports: [FormsModule, UiSelectComponent, FieldComponent],
   templateUrl: './movement-loan-fields.html',
@@ -23,7 +23,7 @@ export class MovementLoanFieldsComponent {
   @Input({ required: true }) model!: Record<string, any>;
   @Input() showLoan = false;
 
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
 

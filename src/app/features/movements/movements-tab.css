@@ -61,7 +61,7 @@
 }
 
 .filters input,
-.filters select {
+.filters fin-select {
   height: 38px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -70,7 +70,7 @@
   padding: 0 11px;
 }
 
-.filters select {
+.filters fin-select {
   appearance: none;
   padding-right: 32px;
   background-image:
@@ -107,4 +107,15 @@
   .filters {
     grid-template-columns: 1fr;
   }
+}
+
+.table-zone {
+  position: relative;
+}
+.table-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  overflow: hidden;
+  opacity: 0.92;
 }

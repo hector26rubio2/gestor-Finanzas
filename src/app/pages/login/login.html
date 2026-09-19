@@ -1,6 +1,6 @@
 <main class="login">
   <section class="story">
-    <b><demo-icon name="dashboard" /> Finanzas</b>
+    <b><fin-icon name="dashboard" /> Finanzas</b>
     <div>
       <h1>{{ i18n.t('login.title') }}</h1>
       <p>{{ i18n.t('login.subtitle') }}</p>
@@ -9,7 +9,7 @@
   </section>
   <section class="access">
     <div class="login-card">
-      <demo-icon name="dashboard" class="mark" />
+      <fin-icon name="dashboard" class="mark" />
       <h2>{{ i18n.t('login.welcome') }}</h2>
       @if (store.runtime.mode === 'demo') {
       <p>{{ i18n.t('login.selectWorkspace') }}</p>
@@ -19,21 +19,27 @@
       <p role="status">{{ i18n.t('login.connecting') }}</p>
       } @else if (store.remoteState() === 'anonymous') {
       <p>{{ i18n.t('login.signInToContinue') }}</p>
+      @if (localAccessEnabled) {
+      <button class="google api-login" type="button" (click)="localLogin()">{{ i18n.t('login.localAccess') }}</button>
+      }
       <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> {{ i18n.t('login.google') }}</a>
       } @else {
       <p class="api-error" role="alert">{{ store.remoteError() }}</p>
       <a class="google api-login" [href]="googleLoginUrl()"><b>G</b> {{ i18n.t('login.google') }}</a>
+      @if (localAccessEnabled) {
+      <button class="google api-login" type="button" (click)="localLogin()">{{ i18n.t('login.localAccess') }}</button>
+      }
       <button (click)="retry()">{{ i18n.t('login.retry') }}</button>
       }
       <hr />
       <label
-        >{{ i18n.t('login.language') }}<demo-select
+        >{{ i18n.t('login.language') }}<fin-select
           [options]="languages"
           [(ngModel)]="selectedLocale"
           (ngModelChange)="locale($event)"
           [ariaLabel]="i18n.t('login.language')" /></label
       ><label
-        >{{ i18n.t('login.theme') }}<demo-select
+        >{{ i18n.t('login.theme') }}<fin-select
           [options]="themes"
           [(ngModel)]="selectedTheme"
           (ngModelChange)="theme($event)"

@@ -28,7 +28,7 @@
  * forzando 100px por su propio mínimo, con dos líneas de texto flotando en medio de un
  * hueco vacío — la mitad de la tarjeta desperdiciada y la tabla de abajo, apretada.
  */
-.kpis.mini demo-kpi {
+.kpis.mini fin-kpi {
   min-height: 50px;
   padding: 10px 14px;
 }

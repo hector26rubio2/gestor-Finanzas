@@ -9,7 +9,22 @@
     "experimentalDecorators": true,
     "useDefineForClassFields": false,
     "esModuleInterop": true,
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@spartan-ng/helm/sidebar": ["./src/app/ui/helm/sidebar/src/index.ts"],
+      "@spartan-ng/helm/utils": ["./src/app/ui/helm/utils/src/index.ts"],
+      "@spartan-ng/helm/button": ["./src/app/ui/helm/button/src/index.ts"],
+      "@spartan-ng/helm/input": ["./src/app/ui/helm/input/src/index.ts"],
+      "@spartan-ng/helm/separator": ["./src/app/ui/helm/separator/src/index.ts"],
+      "@spartan-ng/helm/sheet": ["./src/app/ui/helm/sheet/src/index.ts"],
+      "@spartan-ng/helm/skeleton": ["./src/app/ui/helm/skeleton/src/index.ts"],
+      "@spartan-ng/helm/tooltip": ["./src/app/ui/helm/tooltip/src/index.ts"],
+      "@spartan-ng/helm/alert-dialog": ["./src/app/ui/helm/alert-dialog/src/index.ts"],
+      "@spartan-ng/helm/dropdown-menu": ["./src/app/ui/helm/dropdown-menu/src/index.ts"]
+    }
   },
-  "angularCompilerOptions": { "strictTemplates": true, "strictInjectionParameters": true }
+  "angularCompilerOptions": {
+    "strictTemplates": true,
+    "strictInjectionParameters": true
+  }
 }

@@ -5,7 +5,7 @@ import { ApiRequestError, FinanceApiClient } from './api-client';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 
 describe('RemoteBootstrap', () => {
   const emptyPage = { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false };
@@ -79,8 +79,8 @@ describe('RemoteBootstrap', () => {
     expect(api.investments).not.toHaveBeenCalled();
     expect(api.preferences).not.toHaveBeenCalled();
     expect(api.featureFlags).toHaveBeenCalledOnce();
-    expect(TestBed.inject(DemoStore).remoteState()).toBe('ready');
-    expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(session.permissions);
+    expect(TestBed.inject(AppStore).remoteState()).toBe('ready');
+    expect(TestBed.inject(AppStore).user()?.capabilities).toEqual(session.permissions);
   });
 
   it('con «ver movimientos» y nada más, los movimientos se piden', async () => {
@@ -150,7 +150,46 @@ describe('RemoteBootstrap', () => {
 
     expect(api.session).toHaveBeenCalledTimes(4);
     expect(api.accounts).toHaveBeenCalledTimes(2);
-    expect(TestBed.inject(DemoStore).user()?.capabilities).toEqual(upgraded.permissions);
+    expect(TestBed.inject(AppStore).user()?.capabilities).toEqual(upgraded.permissions);
+  });
+
+  it('reloads when the identity changes even with the same permissions', async () => {
+    // Antes la firma de sesión solo miraba capacidades/permisos: si otra persona -u otra
+    // organización- entraba con el mismo rol, pollSession() no veía ningún cambio y
+    // dejaba en pantalla los datos de la sesión anterior.
+    const otherIdentity = {
+      ...session,
+      user: { ...session.user, id: 'u2', displayName: 'Otra persona' },
+    };
+    let current = session;
+    const api = {
+      session: vi.fn(() => of(current)),
+      accounts: vi.fn(() => of([])),
+      cards: vi.fn(() => of([])),
+      categories: vi.fn(() => of([])),
+      people: vi.fn(() => of([])),
+      debts: vi.fn(() => of([])),
+      investments: vi.fn(() => of([])),
+      movements: vi.fn(() => of(emptyPage)),
+      preferences: vi.fn(() => of(null)),
+      featureFlags: vi.fn(() => of([])),
+      notifications: vi.fn(() => of([])),
+    };
+    TestBed.configureTestingModule({
+      providers: [
+        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: FinanceApiClient, useValue: api },
+      ],
+    });
+
+    const bootstrap = TestBed.inject(RemoteBootstrap);
+    await bootstrap.initialize();
+    await bootstrap.pollSession();
+    current = otherIdentity;
+    await bootstrap.pollSession();
+
+    expect(api.accounts).toHaveBeenCalledTimes(2);
+    expect(TestBed.inject(AppStore).user()?.id).toBe('u2');
   });
 
   it('keeps money exact, derives the family from the published table and never invents a field', async () => {
@@ -271,7 +310,7 @@ describe('RemoteBootstrap', () => {
     });
 
     await TestBed.inject(RemoteBootstrap).initialize();
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     const [pago, gasto] = store.data().movements;
 
     // A-2: la familia sale de la tabla publicada, no de un número escrito a mano.
@@ -308,7 +347,7 @@ describe('RemoteBootstrap', () => {
 
     await TestBed.inject(RemoteBootstrap).initialize();
 
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     expect(store.remoteState()).toBe('anonymous');
     expect(store.remoteError()).toBe('');
     expect(store.user()).toBeNull();
@@ -331,7 +370,7 @@ describe('RemoteBootstrap', () => {
 
     await TestBed.inject(RemoteBootstrap).initialize();
 
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     expect(store.remoteState()).toBe('error');
     expect(store.remoteError()).not.toBe('');
     expect(window.location.search).not.toContain('authError');

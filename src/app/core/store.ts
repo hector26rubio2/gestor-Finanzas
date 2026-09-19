@@ -1,5 +1,6 @@
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { toast as sonner } from 'ngx-sonner';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
 import { ApiCategory, FinanceApiClient } from './api-client';
 import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from './money';
@@ -20,14 +21,14 @@ export interface CapabilitiesProvider {
 export const CAPABILITIES = new InjectionToken<CapabilitiesProvider>('Capabilities', {
   providedIn: 'root',
   factory: () => {
-    const store = inject(DemoStore);
+    const store = inject(AppStore);
     return { allows: (capability) => !!store.user()?.capabilities.includes(capability) };
   },
 });
 export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('FeatureFlags', {
   providedIn: 'root',
   factory: () => {
-    const store = inject(DemoStore);
+    const store = inject(AppStore);
     return {
       // Una ruta funcional en modo API debe aparecer expresamente en el catálogo. La
       // única excepción es el plano de control: el superadmin necesita conservar la
@@ -200,7 +201,7 @@ const DEMO_CATEGORIES: readonly ApiCategory[] = [
 ];
 
 @Injectable({ providedIn: 'root' })
-export class DemoStore {
+export class AppStore {
   readonly runtime = inject(RUNTIME_CONFIG);
   private provider = inject(DATA_PROVIDER);
   private injector = inject(Injector);
@@ -239,7 +240,21 @@ export class DemoStore {
   readonly query = signal('');
   readonly period = signal('all');
   readonly accountFilter = signal('all');
-  readonly toast = signal('');
+  /**
+   * Último aviso. Escribirlo lo muestra en ngx-sonner, el mismo sistema que usa
+   * AsyncActionService: antes convivían este banner propio y los toasts de sonner. Se
+   * conserva el signal para que los llamadores existentes (`toast.set(...)`) y las
+   * pruebas que lo leen sigan funcionando; `''` solo limpia el valor.
+   */
+  readonly toast = (() => {
+    const message = signal('');
+    const write = message.set.bind(message);
+    message.set = (value: string) => {
+      if (value) sonner(value);
+      write(value);
+    };
+    return message;
+  })();
   readonly form = signal<{
     kind: string;
     accountId?: string;

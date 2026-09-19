@@ -2,8 +2,8 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, CapabilitiesProvider, DemoStore } from '../../core/store';
-import { OverlayComponent } from '../../ui/ui';
+import { CAPABILITIES, CapabilitiesProvider, AppStore } from '../../core/store';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { MovementCategoryFieldComponent } from './movement-category-field';
 import { MovementCoreFieldsComponent } from './movement-core-fields';
 import { MovementCurrencyFieldsComponent } from './movement-currency-fields';
@@ -14,6 +14,7 @@ import { MovementRecurrenceFieldsComponent } from './movement-recurrence-fields'
 import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-visibility-builder';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { FieldComponent } from '../../ui/field';
+import { AsyncActionService } from '../../core/async-action.service';
 
 /**
  * Formulario de movimiento, partido en un componente por grupo de campos.
@@ -31,7 +32,7 @@ import { FieldComponent } from '../../ui/field';
  * de negocio en un solo sitio y sin plantilla de por medio.
  */
 @Component({
-  selector: 'demo-movement-form',
+  selector: 'fin-movement-form',
   standalone: true,
   imports: [
     FormsModule,
@@ -51,10 +52,12 @@ import { FieldComponent } from '../../ui/field';
   styleUrl: './movement-form.css',
 })
 export class MovementFormComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities: CapabilitiesProvider = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
+  readonly actions = inject(AsyncActionService);
+  readonly saveActionKey = 'movement:save';
 
   /**
    * Solo dirección del dinero: gasto o ingreso. Transferencia, avance, préstamo y
@@ -215,7 +218,11 @@ export class MovementFormComponent {
         throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
       if (kind === 'income' && source?.type === 'credit')
         throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-      await this.store.save({ ...this.model, kind } as any);
+      await this.actions.run(this.saveActionKey, () => this.store.save({ ...this.model, kind } as any), {
+        loading: this.i18n.t('form.movement.toast.loading'),
+        success: this.i18n.t('form.movement.toast.success'),
+        error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+      });
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }

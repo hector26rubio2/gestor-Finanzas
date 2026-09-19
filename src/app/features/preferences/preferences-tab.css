@@ -6,7 +6,7 @@
   font-size: 0.72rem;
 }
 
-.settings-grid select {
+.settings-grid fin-select {
   height: 38px;
   border: 1px solid var(--line);
   border-radius: 8px;

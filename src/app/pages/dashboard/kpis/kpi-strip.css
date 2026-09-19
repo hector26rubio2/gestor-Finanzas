@@ -46,7 +46,7 @@ button {
   color: var(--accent);
   background: var(--accent-soft);
 }
-.kpis demo-kpi {
+.kpis fin-kpi {
   min-width: 0;
 }
 @media (max-width: 820px) {

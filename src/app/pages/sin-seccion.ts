@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { RemoteBootstrap } from '../core/remote-bootstrap';
-import { DemoStore } from '../core/store';
+import { AppStore } from '../core/store';
 import { I18nService } from '../core/i18n';
 
 /**
@@ -14,7 +14,7 @@ import { I18nService } from '../core/i18n';
  * ni un aviso, solo una aplicación colgada.
  */
 @Component({
-  selector: 'demo-sin-seccion',
+  selector: 'fin-sin-seccion',
   standalone: true,
   imports: [RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,7 +24,7 @@ import { I18nService } from '../core/i18n';
 export class SinSeccionComponent {
   readonly i18n = inject(I18nService);
   private readonly arranque = inject(RemoteBootstrap);
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
 
   /**
    * A esta ruta se llega tecleandola, y sin sesion el texto daba por hecho lo contrario:

@@ -2,7 +2,7 @@
   display: flex;
   flex: 1;
 }
-.color-scale {
+.fin-color-scale {
   display: grid;
   align-content: center;
   gap: 14px;

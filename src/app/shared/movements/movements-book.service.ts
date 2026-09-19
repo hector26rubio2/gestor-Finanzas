@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiMovement, FinanceApiClient } from '../../core/api-client';
 import { UiOption } from '../../ui/select';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { parseMoney } from '../../core/money';
 import { classifyFamily, signOf } from '../../core/movement-kinds';
 import { I18nService } from '../../core/i18n';
@@ -19,7 +19,7 @@ import { I18nService } from '../../core/i18n';
  */
 @Injectable({ providedIn: 'root' })
 export class MovementsBookService {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly api = inject(FinanceApiClient);
   private readonly i18n = inject(I18nService);
@@ -128,11 +128,14 @@ export class MovementsBookService {
       timeZone: 'UTC',
     }).format(parsed);
   }
+  /** Hay una página de movimientos en camino; la tabla muestra un esqueleto encima. */
+  readonly movementsLoading = signal(false);
   async loadMovementPage(page: number): Promise<void> {
     // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
     // fallo al cargar la pagina, que no es lo que pasa.
     if (this.store.runtime.mode !== 'api' || !this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
+    this.movementsLoading.set(true);
     try {
       const period = this.store.period();
       const result = await firstValueFrom(
@@ -155,6 +158,8 @@ export class MovementsBookService {
     } catch (error) {
       if (request !== this.movementRequest) return;
       this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la página solicitada.');
+    } finally {
+      if (request === this.movementRequest) this.movementsLoading.set(false);
     }
   }
   changeMovementPageSize(size: number): void {

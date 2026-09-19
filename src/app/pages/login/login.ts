@@ -2,11 +2,13 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { applyTheme, DemoStore, Preferences } from '../../core/store';
+import { applyTheme, AppStore, Preferences } from '../../core/store';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { I18nService } from '../../core/i18n';
+import { FinanceApiClient } from '../../core/api-client';
+import { firstValueFrom } from 'rxjs';
 @Component({
   standalone: true,
   imports: [FormsModule, IconComponent, UiSelectComponent],
@@ -15,10 +17,11 @@ import { I18nService } from '../../core/i18n';
   styleUrl: './login.css',
 })
 export class LoginComponent {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private router = inject(Router);
   private remote = inject(RemoteBootstrap);
   private location = inject(Location);
+  private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
   selectedLocale = this.store.preferences().locale;
   selectedTheme = this.store.preferences().theme;
@@ -61,5 +64,13 @@ export class LoginComponent {
   }
   retry(): void {
     void this.remote.initialize();
+  }
+
+  readonly localAccessEnabled = this.store.runtime.apiBaseUrl?.includes('localhost') ?? false;
+
+  async localLogin(): Promise<void> {
+    await firstValueFrom(this.api.devLogin('admin'));
+    await this.remote.initialize();
+    if (this.store.user()) await this.router.navigateByUrl('/dashboard');
   }
 }

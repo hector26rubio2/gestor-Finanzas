@@ -62,6 +62,7 @@ export type {
   ApiAuditEvent,
   ApiAdminUser,
   ApiAdminRole,
+  ApiAdminOrganization,
   ApiPermissionDescriptor,
   ApiAdminOverride,
   ApiOrganizationMember,
@@ -109,6 +110,9 @@ export class FinanceApiClient {
   }
   logout() {
     return this.sessionApi.logout();
+  }
+  devLogin(who: 'admin' | 'member' = 'admin') {
+    return this.sessionApi.devLogin(who);
   }
   createAccount(...args: Parameters<AccountsApi['createAccount']>) {
     return this.accountsApi.createAccount(...args);
@@ -217,6 +221,15 @@ export class FinanceApiClient {
   }
   adminRoles(page = 1, size = 25, organizationId?: string) {
     return this.administrationApi.adminRoles(page, size, organizationId);
+  }
+  adminOrganizations(page = 1, size = 25) {
+    return this.administrationApi.adminOrganizations(page, size);
+  }
+  createAdminOrganization(...args: Parameters<AdministrationApi['createAdminOrganization']>) {
+    return this.administrationApi.createAdminOrganization(...args);
+  }
+  moveAdminUserOrganization(...args: Parameters<AdministrationApi['moveAdminUserOrganization']>) {
+    return this.administrationApi.moveAdminUserOrganization(...args);
   }
   deleteAdminRole(id: string) {
     return this.administrationApi.deleteAdminRole(id);

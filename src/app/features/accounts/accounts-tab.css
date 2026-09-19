@@ -1,6 +1,6 @@
 @import '../../shared/tab-page-layout.css';
 
-.account-tools select {
+.account-tools fin-select {
   appearance: none;
   padding-right: 32px;
   background-image:
@@ -72,7 +72,7 @@
 }
 
 .account-tools input,
-.account-tools select {
+.account-tools fin-select {
   width: 100%;
   height: 38px;
   border: 1px solid var(--line);
@@ -106,7 +106,7 @@
   padding: 0 10px;
 }
 
-.search-control demo-icon {
+.search-control fin-icon {
   color: var(--muted);
   flex: none;
 }

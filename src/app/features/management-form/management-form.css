@@ -1,4 +1,4 @@
-.management-form {
+.fin-management-form {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
@@ -11,7 +11,7 @@
   font-size: 0.76rem;
 }
 .management-form input,
-.management-form select,
+.management-form fin-select,
 .management-form button {
   min-height: 42px;
   border: 1px solid var(--line);
@@ -34,7 +34,7 @@
   color: var(--accent-contrast) !important;
 }
 @media (max-width: 500px) {
-  .management-form {
+  .fin-management-form {
     grid-template-columns: 1fr;
   }
   .management-form footer,

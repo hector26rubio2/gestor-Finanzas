@@ -2,10 +2,10 @@ import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, 
 import { FormsModule } from '@angular/forms';
 import { toCsv, downloadCsv } from '../../core/csv';
 import { IconComponent } from '../../ui/icon';
-import { KpiComponent } from '../../ui/ui';
+import { KpiComponent } from '../../ui/kpi/kpi';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
+import { CAPABILITIES, AppStore } from '../../core/store';
 import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/url-state';
 import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
@@ -20,7 +20,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
   styleUrl: './reports-tab.css',
 })
 export class ReportsTabComponent implements OnInit, OnDestroy {
-  readonly store = inject(DemoStore);
+  readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly headerActions = inject(HeaderActionsService);
   readonly i18n = inject(I18nService);

@@ -11,6 +11,16 @@ header {
   align-items: end;
   gap: 20px;
 }
+.filter-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.filter-toggle span {
+  display: inline-block;
+  margin-left: 4px;
+  transition: transform 160ms var(--ease-out, cubic-bezier(0.23, 1, 0.32, 1));
+}
 header span {
   font-size: 0.72rem;
   letter-spacing: 0.12em;
@@ -33,7 +43,7 @@ input {
   border-radius: 10px;
   padding: 9px 12px;
 }
-.filter-panel {
+.fin-filter-panel {
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: var(--radius);
@@ -46,6 +56,9 @@ input {
   gap: 12px;
   margin-top: 16px;
   align-items: end;
+}
+.filters[data-state='closed'] {
+  display: none;
 }
 .filters > *,
 .filters label,

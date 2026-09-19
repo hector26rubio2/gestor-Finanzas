@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiDashboard, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { DashboardComponent } from './dashboard';
 
 /**
@@ -45,7 +45,7 @@ describe('DashboardComponent y las cifras del servidor', () => {
         { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(dashboard)), ...api } },
       ],
     });
-    const store = TestBed.inject(DemoStore);
+    const store = TestBed.inject(AppStore);
     // Con alguna pieza concedida: sin ninguna no hay nada que pintar y no se pide nada.
     store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.tabla.ver] });
     return TestBed.createComponent(DashboardComponent);

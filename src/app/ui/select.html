@@ -2,13 +2,13 @@
   type="button"
   class="trigger"
   [disabled]="isDisabled()"
-  [attr.aria-label]="ariaLabel()"
+  [attr.aria-label]="ariaLabel() + ': ' + selectedLabel()"
   aria-haspopup="listbox"
   [attr.aria-expanded]="open()"
   (click)="open.update((value) => !value)"
   (keydown)="key($event)"
 >
-  <span>{{ selectedLabel() }}</span><demo-icon name="chevronDown" />
+  <span>{{ selectedLabel() }}</span><fin-icon name="chevronDown" />
 </button>
 @if (open()) {
 <div class="menu" role="listbox" [attr.aria-label]="ariaLabel()">

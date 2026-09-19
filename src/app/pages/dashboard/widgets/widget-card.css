@@ -1,12 +1,12 @@
 /*
  * El host ES la caja `.widget` (ver widget-card.ts, `host: { class: 'widget' }`):
  * a diferencia del resto de componentes de este refactor, aqui no se usa
- * `display: contents` porque una grafica de adentro (`demo-chart`) observa su
+ * `display: contents` porque una grafica de adentro (`chart`) observa su
  * propio ancho con `ResizeObserver` para seguir el tamaño de la tarjeta al
  * abrir/cerrar el menu o al marcarse "wide" -y con un antecesor
  * `display: contents` de por medio ese observador deja de disparar tras el
  * primer layout, dejando la grafica pintada a la mitad del ancho real.
- * Con el host siendo el propio `<demo-widget-card class="widget">`, no hace
+ * Con el host siendo el propio `<fin-widget-card class="widget">`, no hace
  * falta duplicar las reglas de `.widget`/`.widget.wide` de dashboard.css -las
  * de aqui son las unicas que existen para esta clase.
  */

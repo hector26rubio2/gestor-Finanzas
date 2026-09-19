@@ -1,6 +1,6 @@
 <section class="kpis" aria-label="Indicadores filtrados">
   @for (kpi of fixedKpis(); track kpi.label) {
-  <demo-kpi
+  <fin-kpi
     [label]="kpi.label"
     [icon]="kpi.icon"
     [tone]="kpi.tone"
@@ -12,7 +12,7 @@
   />
   } @for (kpi of customKpis(); track kpi.id) {
   <div class="custom-kpi">
-    <demo-kpi
+    <fin-kpi
       [label]="kpi.label"
       [icon]="kpi.icon"
       [tone]="kpi.tone"
@@ -29,13 +29,13 @@
       [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
       (click)="removeKpi.emit(kpi.id)"
     >
-      <demo-icon name="close" />
+      <fin-icon name="close" />
     </button>
     }
   </div>
   } @if (canCreate()) {
   <button type="button" class="add-kpi" (click)="openCreator.emit()">
-    <demo-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
+    <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
   </button>
   }
 </section>

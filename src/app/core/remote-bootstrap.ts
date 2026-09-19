@@ -1,4 +1,4 @@
-import { Injectable, inject } from '@angular/core';
+import { DestroyRef, Injectable, inject } from '@angular/core';
 import { firstValueFrom, forkJoin, of } from 'rxjs';
 import { Account, DemoData, Movement } from './demo-data';
 import {
@@ -17,16 +17,18 @@ import { parseAmount, parseMoney, parseRate } from './money';
 import { classifyFamily, MovementKindCatalog, signOf } from './movement-kinds';
 import { P } from './permissions';
 import { Router } from '@angular/router';
-import { DemoStore } from './store';
+import { AppStore } from './store';
 import { I18nService } from './i18n';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private sessionSignature: string | null = null;
+  private readonly destroyRef = inject(DestroyRef);
+  private started = false;
 
   /**
    * Canal en vivo abierto, si lo hay. Se guarda para poder cerrarlo: al cerrar sesion
@@ -45,14 +47,24 @@ export class RemoteBootstrap {
   private cerradaAProposito = false;
 
   async start(): Promise<void> {
+    if (this.started) return;
+    this.started = true;
     this.store.restoreDemoSession();
     await this.initialize();
     if (this.store.runtime.mode !== 'api') return;
     // El sondeo se queda como respaldo: cubre el canal caido, el navegador sin
     // EventSource y el despliegue con mas de una instancia, donde el aviso puede salir
     // por una maquina distinta de la que atiende esta pestana.
-    window.setInterval(() => void this.pollSession(), 60_000);
-    window.addEventListener('focus', () => void this.pollSession());
+    if (this.destroyRef.destroyed) return;
+    const timer = window.setInterval(() => void this.pollSession(), 60_000);
+    const onFocus = () => void this.pollSession();
+    window.addEventListener('focus', onFocus);
+    this.destroyRef.onDestroy(() => {
+      window.clearInterval(timer);
+      window.removeEventListener('focus', onFocus);
+      this.canal?.close();
+      this.canal = null;
+    });
     this.escucharCambiosDeAcceso();
   }
 
@@ -256,7 +268,13 @@ export class RemoteBootstrap {
   }
 
   private signature(session: ApiSession): string {
+    // user.id y organization.id entran en la firma para que un cambio de identidad con
+    // los mismos permisos -otra persona, u otra organización, con el mismo rol- se note.
+    // Sin ellos, pollSession() comparaba solo capacidades/permisos y, si coincidían,
+    // dejaba en pantalla los datos de la sesión anterior sin volver a pedirlos.
     return JSON.stringify([
+      session.user.id,
+      session.organization.id,
       [...session.capabilities].sort(),
       [...(session.permissions ?? [])].sort(),
       session.isSuperAdmin === true,
@@ -360,9 +378,9 @@ export class RemoteBootstrap {
     return {
       id: source.id,
       date: source.date,
-      description: source.description ?? 'Sin descripción',
+      description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
       accountId,
-      category: source.linkNames['category']?.name ?? 'Sin categoría',
+      category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
       ...classifyFamily(family, amount),
       amount,
       status: 'confirmed',

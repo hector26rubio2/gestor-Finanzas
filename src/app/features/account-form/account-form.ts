@@ -2,18 +2,19 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore } from '../../core/store';
-import { OverlayComponent } from '../../ui/ui';
+import { CAPABILITIES, AppStore } from '../../core/store';
+import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select';
 import { NumericInputDirective } from '../../ui/numeric-input.directive';
 import { FieldComponent } from '../../ui/field';
 import { IconComponent } from '../../ui/icon';
+import { AsyncActionService } from '../../core/async-action.service';
 
 /** Componentes de un abono, en el orden en que se le aplican a la deuda. */
 export type PriorityItem = 'fees' | 'interest' | 'capital';
 
 @Component({
-  selector: 'demo-account-form',
+  selector: 'fin-account-form',
   standalone: true,
   imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -84,7 +85,9 @@ export class AccountFormComponent {
   annualRate = 28.5;
   paymentOrder = 'oldest';
   minimumPayment = 50000;
-  private store = inject(DemoStore);
+  private store = inject(AppStore);
+  readonly actions = inject(AsyncActionService);
+  readonly saveActionKey = 'account:create';
   closed = () => this.store.form.set(null);
   async save() {
     try {
@@ -97,16 +100,25 @@ export class AccountFormComponent {
             ? P.cuentas.efectivo.crear
             : P.cuentas.ahorro.crear;
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
-      await this.store.createAccount(
-        this.name,
-        this.type,
-        Number(this.opening),
-        this.currency,
-        Number(this.exchangeRate),
+      await this.actions.run(
+        this.saveActionKey,
+        () =>
+          this.store.createAccount(
+            this.name,
+            this.type,
+            Number(this.opening),
+            this.currency,
+            Number(this.exchangeRate),
+            {
+              limit: Number(this.limit),
+              cutDay: Number(this.cutDay),
+              dueDay: Number(this.dueDay),
+            },
+          ),
         {
-          limit: Number(this.limit),
-          cutDay: Number(this.cutDay),
-          dueDay: Number(this.dueDay),
+          loading: this.i18n.t('form.account.toast.loading'),
+          success: this.i18n.t('form.account.toast.success'),
+          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed')),
         },
       );
     } catch (error) {

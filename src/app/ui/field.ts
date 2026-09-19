@@ -9,7 +9,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * control proyectado igual que antes, sin nada adicional que declarar.
  */
 @Component({
-  selector: 'demo-field',
+  selector: 'fin-field',
   standalone: true,
   templateUrl: './field.html',
   host: { style: 'display: contents' },

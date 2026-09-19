@@ -1,19 +1,19 @@
 <section class="account-kpis kpis mini">
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('accounts.kpi.available.label')"
     icon="wallet"
     tone="success"
     [value]="store.money(store.available())"
     [hint]="i18n.t('accounts.kpi.available.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('accounts.kpi.debt.label')"
     icon="trendDown"
     tone="danger"
     [value]="store.money(store.debt())"
     [hint]="i18n.t('accounts.kpi.debt.hint')"
   />
-  <demo-kpi
+  <fin-kpi
     [label]="i18n.t('accounts.kpi.count.label')"
     icon="accounts"
     [value]="store.data().accounts.length.toString()"
@@ -24,7 +24,7 @@
   <label
     ><span>{{ i18n.t('accounts.filters.search.label') }}</span>
     <div class="search-control">
-      <demo-icon name="search" />
+      <fin-icon name="search" />
       <input
         type="text"
         [attr.placeholder]="i18n.t('accounts.filters.search.placeholder')"
@@ -38,14 +38,14 @@
         [attr.aria-label]="i18n.t('accounts.filters.search.clear')"
         (click)="setAccountQuery('')"
       >
-        <demo-icon name="close" />
+        <fin-icon name="close" />
       </button>
       }
     </div>
   </label>
   <label
     ><span>{{ i18n.t('accounts.filters.type.label') }}</span
-    ><demo-select
+    ><fin-select
       [ngModel]="accountType()"
       (ngModelChange)="setAccountType($event)"
       [options]="book.accountTypeOptions()"
@@ -78,7 +78,7 @@
   }
 </section>
 <section class="table-zone">
-  <demo-table
+  <fin-table
     [columns]="book.movementColumns()"
     [rows]="accountMovementRows()"
     [pageSize]="store.remoteMovementSize()"

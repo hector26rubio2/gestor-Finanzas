@@ -5,7 +5,7 @@
   [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')"
   (click)="moveUp.emit()"
 >
-  <demo-icon name="chevronUp" />
+  <fin-icon name="chevronUp" />
 </button>
 <button
   class="quiet"
@@ -13,30 +13,30 @@
   [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')"
   (click)="moveDown.emit()"
 >
-  <demo-icon name="chevronDown" />
+  <fin-icon name="chevronDown" />
 </button>
 } @if (canChangeType()) {
-<demo-select
+<fin-select
   [ariaLabel]="i18n.t('dashboard.widgetActions.type.ariaLabel')"
   [ngModel]="type()"
   [options]="typeOptions()"
   (ngModelChange)="typeChange.emit($event)"
 />
 @if (showDimensionMeasure()) {
-<demo-select
+<fin-select
   [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
   [ngModel]="dimension()"
   [options]="dimensionOptions()"
   (ngModelChange)="dimensionChange.emit($event)"
 />
-<demo-select
+<fin-select
   [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
   [ngModel]="measure()"
   [options]="measureOptions()"
   (ngModelChange)="measureChange.emit($event)"
 />
 } @if (showSeries()) {
-<demo-select
+<fin-select
   [ariaLabel]="i18n.t('dashboard.widgetActions.series.ariaLabel')"
   [ngModel]="dimension2()"
   [options]="dimensionOptions()"

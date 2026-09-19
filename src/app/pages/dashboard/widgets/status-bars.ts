@@ -9,7 +9,7 @@ export interface StatusBarRow {
 
 /** Varias medidas del mismo widget, cada una como su propia barra de progreso. */
 @Component({
-  selector: 'demo-status-bars',
+  selector: 'fin-status-bars',
   standalone: true,
   templateUrl: './status-bars.html',
   styleUrl: './status-bars.css',

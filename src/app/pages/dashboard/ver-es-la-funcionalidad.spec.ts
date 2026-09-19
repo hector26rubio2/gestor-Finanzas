@@ -4,7 +4,7 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
-import { CAPABILITIES, DemoStore, navigation } from '../../core/store';
+import { CAPABILITIES, AppStore, navigation } from '../../core/store';
 import { RUNTIME_CONFIG } from '../../core/runtime';
 import { DashboardComponent } from './dashboard';
 
@@ -31,7 +31,7 @@ function preparar(permisos: readonly string[]) {
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
     ],
   });
-  const store = TestBed.inject(DemoStore);
+  const store = TestBed.inject(AppStore);
   store.user.set({ ...store.users[0], capabilities: [...permisos] });
   return store;
 }
@@ -85,7 +85,7 @@ describe('«ver» es la funcionalidad entera', () => {
 
     const raiz = fixture.nativeElement as HTMLElement;
     expect(raiz.querySelector('.sin-acceso')).toBeNull();
-    expect(raiz.querySelector('table')).not.toBeNull();
+    expect(raiz.querySelector('fin-table')).not.toBeNull();
     expect(fixture.componentInstance.algunKpi()).toBe(false);
   });
 

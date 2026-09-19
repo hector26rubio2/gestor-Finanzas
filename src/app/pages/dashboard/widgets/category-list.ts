@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { DemoStore } from '../../../core/store';
+import { AppStore } from '../../../core/store';
 
 export interface CategoryListItem {
   name: string;
@@ -10,14 +10,14 @@ export interface CategoryListItem {
 
 /** Lista de categorías de gasto, cada una con su barra de reparto — clic filtra el resto del panel por esa categoría. */
 @Component({
-  selector: 'demo-category-list',
+  selector: 'fin-category-list',
   standalone: true,
   templateUrl: './category-list.html',
   styleUrl: './category-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryListComponent {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   readonly items = input<readonly CategoryListItem[]>([]);
   readonly selected = input('all');
   readonly emptyText = input('');

@@ -13,7 +13,7 @@ declare global {
 
 export function readRuntimeConfig(): FinanzasRuntimeConfig {
   const configured = window.__FINANZAS_CONFIG__;
-  if (!configured?.mode) throw new Error('Falta config.js: seleccione explícitamente mode demo o api.');
+  if (!configured?.mode) throw new Error('Falta config.js: configure el endpoint de la API.');
   if (configured?.mode === 'api') {
     if (!configured.apiBaseUrl) throw new Error('apiBaseUrl es obligatorio cuando mode es api.');
     return { mode: 'api', apiBaseUrl: configured.apiBaseUrl.replace(/\/$/, '') };

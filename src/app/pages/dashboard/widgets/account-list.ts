@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { DemoStore } from '../../../core/store';
+import { AppStore } from '../../../core/store';
 
 export interface AccountListItem {
   id: string;
@@ -12,14 +12,14 @@ export interface AccountListItem {
 
 /** Lista de cuentas por gasto, cada una con su color — clic filtra el resto del panel por esa cuenta. */
 @Component({
-  selector: 'demo-account-list',
+  selector: 'fin-account-list',
   standalone: true,
   templateUrl: './account-list.html',
   styleUrl: './account-list.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AccountListComponent {
-  private readonly store = inject(DemoStore);
+  private readonly store = inject(AppStore);
   readonly items = input<readonly AccountListItem[]>([]);
   readonly selected = input('all');
   readonly emptyText = input('');

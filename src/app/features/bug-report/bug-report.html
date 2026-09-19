@@ -1,0 +1,105 @@
+<button type="button" class="bug-report-fab" [attr.aria-label]="i18n.t('bugReport.fab.label')" (click)="launch()">
+  <fin-icon name="flag" />
+</button>
+
+@if (open()) {
+<fin-overlay [title]="i18n.t('bugReport.title')" mode="modal" (closed)="close()">
+  <div class="bug-report-steps" role="list">
+    @for (n of [1, 2, 3, 4]; track n) {
+    <span class="dot" [class.active]="step() === n" [class.done]="step() > n" role="listitem"></span>
+    }
+  </div>
+
+  @switch (step()) { @case (1) {
+  <section>
+    <p class="hint">{{ i18n.t('bugReport.step1.intro') }}</p>
+    <fin-field [label]="i18n.t('bugReport.field.title')">
+      <input
+        type="text"
+        [(ngModel)]="title"
+        maxlength="200"
+        [placeholder]="i18n.t('bugReport.field.titlePlaceholder')"
+      />
+    </fin-field>
+    <fin-field [label]="i18n.t('bugReport.field.description')">
+      <textarea
+        rows="4"
+        [(ngModel)]="description"
+        maxlength="4000"
+        [placeholder]="i18n.t('bugReport.field.descriptionPlaceholder')"
+      ></textarea>
+    </fin-field>
+    <fin-field [label]="i18n.t('bugReport.field.severity')">
+      <fin-select
+        [(ngModel)]="severity"
+        [options]="severityOptions()"
+        [ariaLabel]="i18n.t('bugReport.field.severity')"
+      />
+    </fin-field>
+  </section>
+  } @case (2) {
+  <section>
+    <p class="hint">{{ i18n.t('bugReport.step2.intro') }}</p>
+    <fin-field [label]="i18n.t('bugReport.field.steps')">
+      <textarea
+        rows="6"
+        [(ngModel)]="stepsToReproduce"
+        maxlength="4000"
+        [placeholder]="i18n.t('bugReport.field.stepsPlaceholder')"
+      ></textarea>
+    </fin-field>
+  </section>
+  } @case (3) {
+  <section>
+    <p class="hint">{{ i18n.t('bugReport.step3.intro') }}</p>
+
+    <label class="screenshot-toggle">
+      <input type="checkbox" [checked]="includeScreenshot()" (change)="toggleScreenshot($any($event.target).checked)" />
+      {{ i18n.t('bugReport.field.includeScreenshot') }}
+    </label>
+    @if (capturingScreenshot()) {
+    <p class="hint">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
+    } @else if (includeScreenshot() && screenshotDataUrl()) {
+    <img class="screenshot-preview" [src]="screenshotDataUrl()" [alt]="i18n.t('bugReport.screenshot.previewAlt')" />
+    } @else if (screenshotTooLarge()) {
+    <p class="hint">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
+    }
+
+    <dl class="review-summary">
+      <div>
+        <dt>{{ i18n.t('bugReport.review.page') }}</dt>
+        <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('bugReport.review.console') }}</dt>
+        <dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd>
+      </div>
+    </dl>
+    <p class="privacy">{{ i18n.t('bugReport.review.privacyNote') }}</p>
+  </section>
+  } @case (4) {
+  <section class="success">
+    <p>{{ i18n.t('bugReport.success.message') }}</p>
+    @if (githubIssueUrl(); as url) {
+    <a [href]="url" target="_blank" rel="noopener" class="primary">{{ i18n.t('bugReport.success.githubLink') }} ↗</a>
+    }
+  </section>
+  } }
+
+  <footer>
+    @if (step() > 1 && step() < 4) {
+    <button type="button" (click)="back()">{{ i18n.t('bugReport.actions.back') }}</button>
+    } @if (step() < 3) {
+    <button class="primary" type="button" [disabled]="step() === 1 && !canAdvanceFromStep1()" (click)="next()">
+      {{ i18n.t('bugReport.actions.next') }}
+    </button>
+    } @if (step() === 3) {
+    <button class="primary" type="button" [disabled]="sending()" (click)="submit()">
+      {{ sending() ? i18n.t('bugReport.actions.sending') : i18n.t('bugReport.actions.send') }}
+    </button>
+    } @if (step() === 4) {
+    <button class="primary" type="button" (click)="close()">{{ i18n.t('bugReport.actions.close') }}</button>
+    }
+  </footer>
+</fin-overlay>
+}

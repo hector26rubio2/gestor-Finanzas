@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { RUNTIME_CONFIG } from '../../core/runtime';
-import { DemoStore } from '../../core/store';
+import { AppStore } from '../../core/store';
 import { AccountFormComponent } from '../../features/account-form/account-form';
 import { MovementFormComponent } from '../../features/movement-form/movement-form';
 import { MovementLoanFieldsComponent } from '../../features/movement-form/movement-loan-fields';
@@ -28,7 +28,7 @@ function preparar(permisos: readonly string[]) {
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
     ],
   });
-  const store = TestBed.inject(DemoStore);
+  const store = TestBed.inject(AppStore);
   store.user.set({ ...store.users[0], capabilities: [...permisos] });
   return store;
 }
@@ -45,7 +45,7 @@ const VER_WIDGETS = [
 
 /** El formulario de movimiento se abre desde el almacén: sin eso no hay qué montar. */
 function abrirFormulario(kind: string) {
-  TestBed.inject(DemoStore).form.set({ kind } as never);
+  TestBed.inject(AppStore).form.set({ kind } as never);
 }
 
 describe('dashboard: reorganizar no es cambiar de visualización', () => {
@@ -92,7 +92,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.algunKpi()).toBe(true);
-    const etiquetas = [...fixture.nativeElement.querySelectorAll('.kpis demo-kpi')].map((n: Element) =>
+    const etiquetas = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map((n: Element) =>
       n.textContent?.trim(),
     );
     expect(etiquetas).toHaveLength(1);
@@ -167,7 +167,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(titulos).toContain('Ingresos en el tiempo');
     expect(titulos).not.toContain('Flujo de caja');
 
-    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis demo-kpi')].map(
+    const etiquetasKpi = [...fixture.nativeElement.querySelectorAll('.kpis fin-kpi')].map(
       (n: Element) => n.textContent?.trim() ?? '',
     );
     expect(etiquetasKpi.some((t) => t.includes('Promedio por movimiento'))).toBe(true);
