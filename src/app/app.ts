@@ -12,6 +12,7 @@ import {
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from './core/permissions';
+import { safeReturnPath } from './core/return-url';
 import { I18nService } from './core/i18n';
 import { RemoteBootstrap } from './core/remote-bootstrap';
 import { IconComponent } from './ui/icon';
@@ -98,8 +99,11 @@ export class AppComponent {
 
   constructor() {
     this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((evento) => {
-      if (evento instanceof NavigationEnd)
-        this.enLogin.set(evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '').endsWith('/login'));
+      if (evento instanceof NavigationEnd) {
+        const ruta = evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '');
+        this.enLogin.set(ruta.endsWith('/login'));
+        this.rutaActual.set(ruta);
+      }
     });
   }
 
@@ -114,6 +118,8 @@ export class AppComponent {
    * armazón aparece alrededor de una pantalla de entrada que ya no hace falta.
    */
   readonly enLogin = signal(false);
+  /** Ruta activa sin consulta, para reubicar a la persona si esa sección se le cierra. */
+  private readonly rutaActual = signal('');
 
   /**
    * Mientras el servidor resuelve la sesion y trae los datos.
@@ -136,7 +142,25 @@ export class AppComponent {
   private readonly primeraRutaPermitida = computed(() => this.allowed()[0]?.path ?? 'dashboard');
 
   private readonly salirDeLaEntrada = effect(() => {
-    if (this.store.user() && this.enLogin()) void this.router.navigateByUrl('/' + this.primeraRutaPermitida());
+    if (!this.store.user() || !this.enLogin()) return;
+    // Si la persona venía de una vista concreta (recarga, enlace o sesión caducada), se
+    // vuelve a ella; el guard la redirige si no la tiene abierta.
+    const volver = safeReturnPath(this.router.parseUrl(this.router.url).queryParams['returnUrl']);
+    void this.router.navigateByUrl(volver ?? '/' + this.primeraRutaPermitida());
+  });
+
+  /**
+   * Si un cambio de permisos o de banderas cierra la sección en la que está, se la
+   * reubica en la primera abierta. El guard solo corre al navegar: sin esto la persona se
+   * quedaba viendo una pantalla que ya no le corresponde hasta que cambiara de ruta.
+   */
+  private readonly reubicarSiSeCierraLaRuta = effect(() => {
+    if (this.store.remoteState() !== 'ready' || !this.store.user() || this.enLogin()) return;
+    const abiertas = this.allowed().map((entrada) => entrada.path);
+    const seccion = this.rutaActual().split('/')[1];
+    if (!seccion || seccion === 'sin-acceso') return;
+    if (!navigation.some((entrada) => entrada.path === seccion) || abiertas.includes(seccion)) return;
+    void this.router.navigateByUrl(abiertas[0] ? '/' + abiertas[0] : '/sin-acceso');
   });
   /**
    * Si lo que hay abierto es un movimiento.
