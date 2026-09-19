@@ -1,11 +1,10 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
-import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
 import { CAPABILITIES } from '../../core/state/store';
 import { ConfirmDialogComponent } from '../../ui/confirm-dialog/confirm-dialog';
-import { IconComponent } from '../../ui/icon/icon';
-import { AdminStore, AdminTab } from './admin.store';
+import { sincronizarConLaUrl } from '../../core/state/url-state';
+import { ADMIN_TABS, ADMIN_TAB_IDS } from './admin-tabs';
+import { AdminStore } from './admin.store';
 import { AdminSaveBarComponent } from './save-bar/admin-save-bar';
 import { AuditTabComponent } from './tabs/audit/audit-tab';
 import { ErrorsTabComponent } from './tabs/errors/errors-tab';
@@ -15,31 +14,14 @@ import { RolesTabComponent } from './tabs/roles/roles-tab';
 import { SummaryTabComponent } from './tabs/summary/summary-tab';
 import { UsersTabComponent } from './tabs/users/users-tab';
 
-const TABS: readonly { id: AdminTab; labelKey: string; icon: string; capability: string }[] = [
-  { id: 'summary', labelKey: 'admin.tabs.summary', icon: 'dashboard', capability: P.administracion.ver },
-  { id: 'users', labelKey: 'admin.tabs.users', icon: 'people', capability: P.administracion.usuarios.listar },
-  { id: 'roles', labelKey: 'admin.tabs.roles', icon: 'shield', capability: P.administracion.roles.listar },
-  {
-    id: 'organizations',
-    labelKey: 'admin.tabs.organizations',
-    icon: 'organization',
-    capability: P.administracion.organizaciones.listar,
-  },
-  { id: 'flags', labelKey: 'admin.tabs.flags', icon: 'flag', capability: P.administracion.banderas.listar },
-  { id: 'audit', labelKey: 'admin.tabs.audit', icon: 'list', capability: P.administracion.auditoria.listar },
-  { id: 'errors', labelKey: 'admin.tabs.errors', icon: 'notifications', capability: P.administracion.errores.listar },
-];
-
 @Component({
   selector: 'app-admin',
   imports: [
-    HlmTabsImports,
     AdminSaveBarComponent,
     AuditTabComponent,
     ConfirmDialogComponent,
     ErrorsTabComponent,
     FlagsTabComponent,
-    IconComponent,
     OrganizationsTabComponent,
     RolesTabComponent,
     SummaryTabComponent,
@@ -53,53 +35,33 @@ const TABS: readonly { id: AdminTab; labelKey: string; icon: string; capability:
         <h1 class="font-display text-[clamp(1.5rem,2vw,2rem)] font-semibold tracking-tight">
           {{ i18n.t('admin.title') }}
         </h1>
-        <p class="mt-1 text-muted-foreground">{{ i18n.t('admin.subtitle') }}</p>
+        <p class="mt-1 text-muted-foreground">{{ i18n.t(currentLabel()) }} · {{ i18n.t('admin.subtitle') }}</p>
       </header>
-      <hlm-tabs [tab]="store.tab()" (tabActivated)="store.tab.set($any($event))">
-        <hlm-tabs-list
-          class="h-auto w-full justify-start overflow-x-auto"
-          [attr.aria-label]="i18n.t('admin.nav.ariaLabel')"
-        >
-          @for (item of tabs(); track item.id) {
-            <button [hlmTabsTrigger]="item.id" class="flex-none px-3 py-1.5">
-              <fin-icon [name]="item.icon" />
-              {{ item.label }}
-            </button>
+      <div class="flex flex-col gap-4">
+        @switch (store.tab()) {
+          @case ('summary') {
+            <app-admin-summary-tab />
           }
-        </hlm-tabs-list>
-        @for (item of tabs(); track item.id) {
-          <div
-            [hlmTabsContent]="item.id"
-            class="flex flex-col gap-4 pt-2 data-[state=inactive]:hidden [&[hidden]]:hidden [&>*]:flex [&>*]:flex-col [&>*]:gap-4"
-          >
-            @if (store.tab() === item.id) {
-              @switch (item.id) {
-                @case ('summary') {
-                  <app-admin-summary-tab />
-                }
-                @case ('users') {
-                  <app-admin-users-tab />
-                }
-                @case ('roles') {
-                  <app-admin-roles-tab />
-                }
-                @case ('organizations') {
-                  <app-admin-organizations-tab />
-                }
-                @case ('flags') {
-                  <app-admin-flags-tab />
-                }
-                @case ('audit') {
-                  <app-admin-audit-tab />
-                }
-                @case ('errors') {
-                  <app-admin-errors-tab />
-                }
-              }
-            }
-          </div>
+          @case ('users') {
+            <app-admin-users-tab />
+          }
+          @case ('roles') {
+            <app-admin-roles-tab />
+          }
+          @case ('organizations') {
+            <app-admin-organizations-tab />
+          }
+          @case ('flags') {
+            <app-admin-flags-tab />
+          }
+          @case ('audit') {
+            <app-admin-audit-tab />
+          }
+          @case ('errors') {
+            <app-admin-errors-tab />
+          }
         }
-      </hlm-tabs>
+      </div>
       <app-admin-save-bar />
     </div>
     <fin-confirm-dialog
@@ -120,13 +82,13 @@ export class AdminComponent implements OnInit {
 
   readonly leaving = signal<((allowed: boolean) => void) | null>(null);
 
-  readonly tabs = computed(() =>
-    TABS.filter((item) => this.caps.allows(item.capability)).map((item) => ({
-      id: item.id,
-      icon: item.icon,
-      label: this.i18n.t(item.labelKey),
-    })),
+  readonly currentLabel = computed(
+    () => ADMIN_TABS.find((tab) => tab.id === this.store.tab())?.labelKey ?? 'admin.tabs.summary',
   );
+
+  constructor() {
+    sincronizarConLaUrl('tab', this.store.tab, 'summary', (value) => ADMIN_TAB_IDS.includes(value));
+  }
 
   ngOnInit(): void {
     void this.store.cargar();
