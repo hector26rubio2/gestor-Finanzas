@@ -32,7 +32,7 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
     @if (store.sinDatos()) {
       <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.flags.detail')" />
     } @else {
-      <app-admin-panel [title]="i18n.t('admin.flags.title')" [subtitle]="i18n.t('admin.flags.subtitle')">
+      <app-admin-panel [title]="i18n.t('admin.flags.title')" [subtitle]="i18n.t('admin.flags.hierarchyNote')">
         <div panelActions class="flex flex-wrap items-center gap-2">
           <label class="relative">
             <fin-icon
@@ -103,11 +103,18 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
                       <span class="flex items-center gap-2">
                         <hlm-switch
                           [checked]="store.flagValue(row.key, organizationId(), null)"
-                          [disabled]="!canEdit()"
+                          [disabled]="!canEdit() || !store.globalFlagValue(row.key)"
                           [aria-label]="row.key + ' · ' + organizationName()"
                           (checkedChange)="store.setFlag(row.key, organizationId(), null, $event)"
                         />
-                        <span class="text-xs text-muted-foreground">{{ sourceLabel(row.key) }}</span>
+                        <span class="text-xs text-muted-foreground">
+                          @if (!store.globalFlagValue(row.key)) {
+                            <fin-icon name="warning" class="[--icon-size:13px]" />
+                            {{ i18n.t('admin.flags.blockedByGlobal') }}
+                          } @else {
+                            {{ sourceLabel(row.key) }}
+                          }
+                        </span>
                         @if (store.flagChanged(row.key, organizationId(), null)) {
                           <span hlmBadge variant="secondary">{{ i18n.t('admin.common.unsaved') }}</span>
                         }

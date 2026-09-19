@@ -34,7 +34,6 @@ const user = (over: Partial<ApiAdminUser> = {}): ApiAdminUser => ({
       status: 'Active',
       effectiveCapabilities: [],
       effectivePermissions: ['movimientos.ver'],
-      overrides: [],
       roles: [role()],
     },
   ],
@@ -58,7 +57,6 @@ describe('AdminStore', () => {
   const api = {
     setAdminUserActive: vi.fn(() => of(undefined)),
     assignAdminUserRoles: vi.fn(() => of(undefined)),
-    setAdminUserCapability: vi.fn(() => of(undefined)),
     setAdminRoleActive: vi.fn(() => of(undefined)),
     addAdminOrganizationMember: vi.fn(() => of(undefined)),
     updateAdminFeatureFlag: vi.fn(),
@@ -112,11 +110,11 @@ describe('AdminStore', () => {
     const daniel = store.users()[0];
 
     store.setUserActive(daniel, false);
-    store.togglePermission(daniel, 'movimientos.crear');
+    store.toggleUserRole(daniel, 'r2');
     store.setRoleActive(store.roles()[0], false);
 
     expect(api.setAdminUserActive).not.toHaveBeenCalled();
-    expect(api.setAdminUserCapability).not.toHaveBeenCalled();
+    expect(api.assignAdminUserRoles).not.toHaveBeenCalled();
     expect(api.setAdminRoleActive).not.toHaveBeenCalled();
     expect(store.count()).toBe(3);
   });
@@ -125,13 +123,11 @@ describe('AdminStore', () => {
     const store = create();
     const daniel = store.users()[0];
     store.setUserActive(daniel, false);
-    store.togglePermission(daniel, 'movimientos.crear');
     store.toggleUserRole(daniel, 'r2');
 
     await store.guardar();
 
     expect(api.setAdminUserActive).toHaveBeenCalledWith('u1', false);
-    expect(api.setAdminUserCapability).toHaveBeenCalledWith('u1', 'o1', 'movimientos.crear', true);
     expect(api.assignAdminUserRoles).toHaveBeenCalledWith('u1', 'o1', ['r1', 'r2']);
     expect(api.adminUsers).toHaveBeenCalledTimes(1);
     expect(pollSession).toHaveBeenCalledTimes(1);
@@ -144,7 +140,7 @@ describe('AdminStore', () => {
     const daniel = store.users()[0];
     api.setAdminUserActive.mockReturnValueOnce(throwError(() => new Error('sin permiso')));
     store.setUserActive(daniel, false);
-    store.togglePermission(daniel, 'movimientos.crear');
+    store.toggleUserRole(daniel, 'r2');
 
     await store.guardar();
 
@@ -152,7 +148,7 @@ describe('AdminStore', () => {
     expect(store.changes()[0].kind).toBe('userActive');
     expect(store.failures()).toHaveLength(1);
     expect(store.failures()[0].reason).toBe('sin permiso');
-    expect(api.setAdminUserCapability).toHaveBeenCalledTimes(1);
+    expect(api.assignAdminUserRoles).toHaveBeenCalledTimes(1);
   });
 
   it('activar una organización va antes de fijarla como predeterminada y desactivar va después', async () => {
@@ -188,7 +184,7 @@ describe('AdminStore', () => {
     const store = create();
     const daniel = store.users()[0];
     store.setUserActive(daniel, false);
-    store.togglePermission(daniel, 'movimientos.crear');
+    store.toggleUserRole(daniel, 'r2');
     store.setFlag('calendar', 'o1', daniel.id, false);
 
     store.setUserOrganization(daniel, 'o2');
@@ -200,19 +196,19 @@ describe('AdminStore', () => {
         .sort(),
     ).toEqual(['userActive', 'userOrganization']);
     expect(store.hasPendingMove(daniel)).toBe(true);
-    store.togglePermission(daniel, 'movimientos.editar');
+    store.toggleUserRole(daniel, 'r2');
     expect(store.count()).toBe(2);
   });
 
-  it('una excepción restablecida vuelve a lo que digan los roles', () => {
+  it('los permisos efectivos salen de los roles elegidos y no de excepciones', () => {
     const store = create();
     const daniel = store.users()[0];
+    expect(store.effectivePermissions(daniel)).toEqual(['movimientos.ver']);
 
-    store.clearOverride(daniel, 'movimientos.ver');
+    store.toggleUserRole(daniel, 'r2');
 
-    expect(store.permissionOverride(daniel, 'movimientos.ver')).toBeNull();
-    expect(store.hasPermission(daniel, 'movimientos.ver')).toBe(true);
     expect(store.count()).toBe(1);
+    expect(store.effectivePermissions(daniel)).toContain('movimientos.ver');
   });
 
   it('guardar un rol manda solo permisos del catálogo', async () => {

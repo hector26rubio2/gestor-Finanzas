@@ -64,7 +64,6 @@ export type {
   ApiAdminRole,
   ApiAdminOrganization,
   ApiPermissionDescriptor,
-  ApiAdminOverride,
   ApiOrganizationMember,
   ApiCapabilityDescriptor,
   ApiAdminFeatureFlag,
@@ -207,11 +206,11 @@ export class FinanceApiClient {
   adminUsers(page = 1, size = 25, search = '') {
     return this.administrationApi.adminUsers(page, size, search);
   }
+  consolidateAdminOrganizations() {
+    return this.administrationApi.consolidateAdminOrganizations();
+  }
   setAdminUserActive(id: string, isActive: boolean) {
     return this.administrationApi.setAdminUserActive(id, isActive);
-  }
-  setAdminUserCapability(...args: Parameters<AdministrationApi['setAdminUserCapability']>) {
-    return this.administrationApi.setAdminUserCapability(...args);
   }
   organizationMembers() {
     return this.administrationApi.organizationMembers();

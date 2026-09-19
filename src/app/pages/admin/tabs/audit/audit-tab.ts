@@ -42,7 +42,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             <h2 class="text-base font-semibold">{{ i18n.t('admin.audit.title') }}</h2>
             <p class="text-sm text-muted-foreground">{{ i18n.t('admin.audit.subtitle') }}</p>
           </div>
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
             <fin-select
               [ngModel]="action()"
               (ngModelChange)="update('action', $event)"
@@ -61,6 +61,12 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
               [options]="actorOptions()"
               [ariaLabel]="i18n.t('admin.audit.actorFilterAriaLabel')"
             />
+            <fin-select
+              [ngModel]="affected()"
+              (ngModelChange)="update('affected', $event)"
+              [options]="affectedOptions()"
+              [ariaLabel]="i18n.t('admin.audit.affectedFilterAriaLabel')"
+            />
             <label hlmLabel class="flex items-start flex-col gap-1">
               <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.from') }}</span>
               <fin-date-field [ngModel]="from()" (ngModelChange)="update('from', $event)" />
@@ -70,6 +76,17 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
               <fin-date-field [ngModel]="to()" (ngModelChange)="update('to', $event)" />
             </label>
           </div>
+          @if (traceId(); as trace) {
+            <div
+              class="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-accent px-3 py-2 text-sm"
+            >
+              <fin-icon name="filter" />
+              <span>{{ i18n.t('admin.audit.trace.filtering', { trace: trace.slice(0, 12) }) }}</span>
+              <button hlmBtn variant="ghost" size="sm" class="ms-auto" (click)="filterByTrace('')">
+                <fin-icon name="close" /> {{ i18n.t('admin.audit.trace.remove') }}
+              </button>
+            </div>
+          }
           @if (hasFilters()) {
             <div>
               <button hlmBtn variant="ghost" size="sm" (click)="clear()">
@@ -84,6 +101,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
               <tr hlmTr>
                 <th hlmTh>{{ i18n.t('admin.audit.column.date') }}</th>
                 <th hlmTh>{{ i18n.t('admin.audit.column.actor') }}</th>
+                <th hlmTh>{{ i18n.t('admin.audit.column.affected') }}</th>
                 <th hlmTh>{{ i18n.t('admin.audit.column.action') }}</th>
                 <th hlmTh>{{ i18n.t('admin.audit.column.entity') }}</th>
                 <th hlmTh>{{ i18n.t('admin.common.traceId') }}</th>
@@ -97,15 +115,28 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
                 <tr hlmTr>
                   <td hlmTd class="whitespace-nowrap">{{ labels.dateTime(event.createdAt) }}</td>
                   <td hlmTd>{{ actorName(event) }}</td>
+                  <td hlmTd>{{ event.userId ? store.userName(event.userId) : '—' }}</td>
                   <td hlmTd>
-                    <b class="text-sm">{{ event.action }}</b>
+                    <b class="text-sm">{{ labels.auditAction(event.action) }}</b>
+                    <small class="block text-xs text-muted-foreground">{{ event.action }}</small>
                   </td>
                   <td hlmTd>
-                    {{ event.entityType }}
+                    {{ labels.auditEntity(event.entityType) }}
                     <small class="block text-xs text-muted-foreground">{{ event.entityId || '—' }}</small>
                   </td>
                   <td hlmTd>
-                    <code class="text-xs">{{ event.traceId.slice(0, 12) }}</code>
+                    <button
+                      hlmBtn
+                      variant="outline"
+                      size="xs"
+                      type="button"
+                      class="font-mono"
+                      [attr.title]="i18n.t('admin.audit.trace.filterBy')"
+                      [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + event.traceId"
+                      (click)="filterByTrace(event.traceId)"
+                    >
+                      <fin-icon name="filter" /> {{ event.traceId.slice(0, 12) }}
+                    </button>
                   </td>
                   <td hlmTd>
                     <button
@@ -121,7 +152,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
                 </tr>
               } @empty {
                 <tr hlmTr>
-                  <td hlmTd colspan="6" class="py-8 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
+                  <td hlmTd colspan="7" class="py-8 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
                 </tr>
               }
             </tbody>
@@ -139,7 +170,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
     }
     <fin-sheet-panel
       [open]="!!selected()"
-      [title]="selected()?.action ?? ''"
+      [title]="selected() ? labels.auditAction(selected()!.action) : ''"
       [subtitle]="labels.dateTimeLong(selected()?.createdAt)"
       (closed)="selected.set(null)"
     >
@@ -154,13 +185,29 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             <dd>{{ event.userId ? store.userName(event.userId) : '—' }}</dd>
           </div>
           <div>
+            <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.column.action') }}</dt>
+            <dd>
+              {{ labels.auditAction(event.action) }}
+              <small class="block text-xs text-muted-foreground">{{ event.action }}</small>
+            </dd>
+          </div>
+          <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.column.entity') }}</dt>
-            <dd>{{ event.entityType }} / {{ event.entityId || '—' }}</dd>
+            <dd>{{ labels.auditEntity(event.entityType) }} / {{ event.entityId || '—' }}</dd>
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.common.traceId') }}</dt>
-            <dd>
+            <dd class="flex flex-wrap items-center gap-2">
               <code>{{ event.traceId }}</code>
+              <button
+                hlmBtn
+                variant="outline"
+                size="xs"
+                type="button"
+                (click)="filterByTrace(event.traceId); selected.set(null)"
+              >
+                <fin-icon name="filter" /> {{ i18n.t('admin.audit.trace.filterBy') }}
+              </button>
             </dd>
           </div>
         </dl>
@@ -180,27 +227,33 @@ export class AuditTabComponent {
   readonly action = signal(this.store.auditFilter().action ?? '');
   readonly entityType = signal(this.store.auditFilter().entityType ?? '');
   readonly actor = signal(this.store.auditFilter().actorUserId ?? '');
+  readonly affected = signal(this.store.auditFilter().userId ?? '');
+  readonly traceId = signal(this.store.auditFilter().traceId ?? '');
   readonly from = signal('');
   readonly to = signal('');
   readonly selected = signal<ApiAuditEvent | null>(null);
 
   readonly actionOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('admin.audit.action.all') },
-    ...AUDIT_ACTIONS.map((value) => ({ value, label: value })),
+    ...AUDIT_ACTIONS.map((value) => ({ value, label: this.labels.auditAction(value), description: value })),
   ]);
   readonly entityOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('admin.audit.entity.all') },
-    ...AUDIT_ENTITIES.map((value) => ({ value, label: value })),
+    ...AUDIT_ENTITIES.map((value) => ({ value, label: this.labels.auditEntity(value) })),
   ]);
   readonly actorOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('admin.audit.actor.all') },
     ...this.store.users().map((user) => ({ value: user.id, label: user.displayName, description: user.email })),
   ]);
+  readonly affectedOptions = computed<readonly UiOption[]>(() => [
+    { value: '', label: this.i18n.t('admin.audit.affected.all') },
+    ...this.store.users().map((user) => ({ value: user.id, label: user.displayName, description: user.email })),
+  ]);
   readonly hasFilters = computed(
-    () => !!(this.action() || this.entityType() || this.actor() || this.from() || this.to()),
+    () => !!(this.action() || this.entityType() || this.actor() || this.affected() || this.from() || this.to()),
   );
 
-  update(field: 'action' | 'entityType' | 'actor' | 'from' | 'to', value: string): void {
+  update(field: 'action' | 'entityType' | 'actor' | 'affected' | 'from' | 'to', value: string): void {
     this[field].set(value);
     void this.store.cargarAuditoria(1, this.filter());
   }
@@ -209,9 +262,16 @@ export class AuditTabComponent {
     this.action.set('');
     this.entityType.set('');
     this.actor.set('');
+    this.affected.set('');
+    this.traceId.set('');
     this.from.set('');
     this.to.set('');
     void this.store.cargarAuditoria(1, {});
+  }
+
+  filterByTrace(trace: string): void {
+    this.traceId.set(trace);
+    void this.store.cargarAuditoria(1, this.filter());
   }
 
   actorName(event: ApiAuditEvent): string {
@@ -227,6 +287,8 @@ export class AuditTabComponent {
       action: this.action() || undefined,
       entityType: this.entityType() || undefined,
       actorUserId: this.actor() || undefined,
+      userId: this.affected() || undefined,
+      traceId: this.traceId() || undefined,
       from: startOfDayIso(this.from()),
       to: endOfDayIso(this.to()),
     };

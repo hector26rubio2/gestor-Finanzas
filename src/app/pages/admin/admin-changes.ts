@@ -1,7 +1,6 @@
 export type AdminChange =
   | { kind: 'userActive'; userId: string; value: boolean }
   | { kind: 'userRoles'; userId: string; organizationId: string; roleIds: readonly string[] }
-  | { kind: 'userPermission'; userId: string; organizationId: string; code: string; value: boolean | null }
   | { kind: 'userOrganization'; userId: string; organizationId: string }
   | { kind: 'roleActive'; roleId: string; value: boolean }
   | { kind: 'flag'; key: string; organizationId: string | null; userId: string | null; value: boolean }
@@ -16,8 +15,6 @@ export function changeKey(change: AdminChange): string {
       return `userActive:${change.userId}`;
     case 'userRoles':
       return `userRoles:${change.userId}:${change.organizationId}`;
-    case 'userPermission':
-      return `userPermission:${change.userId}:${change.organizationId}:${change.code}`;
     case 'userOrganization':
       return `userOrganization:${change.userId}`;
     case 'roleActive':
