@@ -6,7 +6,7 @@
 <div class="flex min-w-0 flex-1 flex-col">
   <span class="truncate text-[0.78rem] text-muted-foreground" [attr.title]="label()">{{ label() }}</span>
   <strong
-    class="text-[clamp(1.1rem,1.4vw,1.4rem)] leading-tight font-semibold tracking-[-0.03em] tabular-nums [overflow-wrap:anywhere]"
+    class="text-[clamp(1.1rem,1.4vw,1.4rem)] leading-tight font-semibold tracking-[-0.03em] overflow-hidden text-ellipsis whitespace-nowrap tabular-nums"
     >{{ value() }}</strong
   >
   @if (hint()) {
@@ -14,7 +14,7 @@
   }
 </div>
 @if (delta() !== null || hasSeries()) {
-<div class="flex flex-none flex-col items-end gap-1">
+<div class="hidden flex-none flex-col items-end gap-1 @min-[13rem]:flex">
   @if (delta() !== null) {
   <span
     class="rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"

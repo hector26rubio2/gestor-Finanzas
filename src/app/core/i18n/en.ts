@@ -1269,4 +1269,10 @@ export default {
   'admin.summary.column.date': 'Date',
   'admin.summary.column.trace': 'Trace',
   'admin.common.actions': 'Actions',
+  'dashboard.layout.resizeWidget': 'Drag to change the width',
+  'dashboard.layout.resizeRow': 'Drag to change the row height',
+  'dashboard.layout.resizeKpi': 'Drag to change the indicator width',
+  'dashboard.layout.reset': 'Reset layout',
+  'dashboard.widgetActions.joinRow': 'Place next to the previous one',
+  'dashboard.widgetActions.splitRow': 'Move to its own row',
 } as const;

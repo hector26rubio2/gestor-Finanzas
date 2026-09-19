@@ -1268,4 +1268,10 @@ export default {
   'admin.summary.column.date': 'Data',
   'admin.summary.column.trace': 'Rastro',
   'admin.common.actions': 'Ações',
+  'dashboard.layout.resizeWidget': 'Arraste para mudar a largura',
+  'dashboard.layout.resizeRow': 'Arraste para mudar a altura da linha',
+  'dashboard.layout.resizeKpi': 'Arraste para mudar a largura do indicador',
+  'dashboard.layout.reset': 'Restaurar layout',
+  'dashboard.widgetActions.joinRow': 'Colocar ao lado do anterior',
+  'dashboard.widgetActions.splitRow': 'Mover para a própria linha',
 } as const;

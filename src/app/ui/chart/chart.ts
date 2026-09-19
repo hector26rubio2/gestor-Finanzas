@@ -71,13 +71,19 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 @Component({
   selector: 'fin-chart',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'block w-full' },
+  host: {
+    class: 'block w-full',
+    '[class.h-full]': 'llena()',
+    '[class.min-h-40]': 'llena()',
+    '[class.flex-1]': 'llena()',
+  },
   template: `<div class="lienzo w-full" role="img" [attr.aria-label]="ariaLabel()"></div>`,
 })
 export class ChartComponent implements OnDestroy {
   readonly i18n = inject(I18nService);
   readonly option = input.required<ChartOption>();
-  readonly height = input(260);
+  readonly height = input<number | 'fill'>(260);
+  readonly llena = computed(() => this.height() === 'fill');
   readonly ariaLabel = input(this.i18n.t('chart.defaultAriaLabel'));
   /** Nombre de la porción o punto pulsado, para las gráficas que filtran al tocarlas. */
   readonly pick = output<string>();
@@ -110,7 +116,7 @@ export class ChartComponent implements OnDestroy {
       const alto = this.height();
       const lienzo = this.host.nativeElement.querySelector('.lienzo') as HTMLElement | null;
       if (!lienzo) return;
-      lienzo.style.height = `${alto}px`;
+      lienzo.style.height = alto === 'fill' ? '100%' : `${alto}px`;
       // Sin lienzo 2D no hay nada que pintar: jsdom devuelve un `canvas` sin contexto, y
       // ECharts revienta al primer refresco. El texto alternativo del contenedor sigue
       // ahi, que es lo unico que una prueba de plantilla necesita comprobar.

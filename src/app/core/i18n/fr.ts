@@ -1277,4 +1277,10 @@ export default {
   'admin.summary.column.date': 'Date',
   'admin.summary.column.trace': 'Trace',
   'admin.common.actions': 'Actions',
+  'dashboard.layout.resizeWidget': 'Faites glisser pour changer la largeur',
+  'dashboard.layout.resizeRow': 'Faites glisser pour changer la hauteur de la ligne',
+  'dashboard.layout.resizeKpi': "Faites glisser pour changer la largeur de l'indicateur",
+  'dashboard.layout.reset': 'Réinitialiser la disposition',
+  'dashboard.widgetActions.joinRow': 'Placer à côté du précédent',
+  'dashboard.widgetActions.splitRow': 'Placer sur sa propre ligne',
 } as const;
