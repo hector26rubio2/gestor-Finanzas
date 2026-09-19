@@ -116,41 +116,116 @@ describe('RemoteBootstrap', () => {
     expect(api.investments).not.toHaveBeenCalled();
   });
 
-  it('reloads everything when the session permissions change', async () => {
-    const upgraded = {
-      ...session,
-      permissions: [...session.permissions, P.movimientos.crear],
-    };
-    let current = session;
-    const api = {
-      session: vi.fn(() => of(current)),
-      accounts: vi.fn(() => of([])),
-      cards: vi.fn(() => of([])),
-      categories: vi.fn(() => of([])),
-      people: vi.fn(() => of([])),
-      debts: vi.fn(() => of([])),
-      investments: vi.fn(() => of([])),
-      movements: vi.fn(() => of(emptyPage)),
-      preferences: vi.fn(() => of(null)),
-      featureFlags: vi.fn(() => of([])),
-      notifications: vi.fn(() => of([])),
-    };
+  const apiCon = (sessionActual: () => unknown, extra: Record<string, unknown> = {}) => ({
+    session: vi.fn(() => of(sessionActual())),
+    movementKinds: vi.fn(() => of([])),
+    accounts: vi.fn(() => of([])),
+    cards: vi.fn(() => of([])),
+    categories: vi.fn(() => of([])),
+    people: vi.fn(() => of([{ id: 'p1', displayName: 'Camilo' }])),
+    debts: vi.fn(() => of([])),
+    investments: vi.fn(() => of([])),
+    movements: vi.fn(() => of(emptyPage)),
+    preferences: vi.fn(() => of(null)),
+    featureFlags: vi.fn(() => of([])),
+    notifications: vi.fn(() => of([])),
+    ...extra,
+  });
+
+  const montar = (api: unknown) => {
     TestBed.configureTestingModule({
       providers: [
         { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
+    return TestBed.inject(RemoteBootstrap);
+  };
 
-    const bootstrap = TestBed.inject(RemoteBootstrap);
+  it('un cambio de permisos no recarga los datos que no cambian ni muestra la carga', async () => {
+    // Antes cualquier cambio de permisos volvía a pedir todo y ponía «loading»: se destruía la
+    // pantalla activa. Ahora solo se relee la sesión y se actualiza lo que la lee.
+    const upgraded = { ...session, permissions: [...session.permissions, P.movimientos.crear] };
+    let current = session;
+    const api = apiCon(() => current);
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
     await bootstrap.initialize();
+    const estados: string[] = [];
+    const datosAntes = store.data();
+
+    current = upgraded;
     await bootstrap.pollSession();
+    estados.push(store.remoteState());
+
+    expect(store.user()?.capabilities).toEqual(upgraded.permissions);
+    expect(estados).toEqual(['ready']);
+    expect(api.accounts).toHaveBeenCalledOnce();
+    expect(api.movements).toHaveBeenCalledOnce();
+    expect(store.data()).toBe(datosAntes);
+  });
+
+  it('un permiso recién concedido trae solo sus datos', async () => {
+    const upgraded = { ...session, permissions: [...session.permissions, P.personas.ver] };
+    let current = session;
+    const api = apiCon(() => current);
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+    await bootstrap.initialize();
+    expect(api.people).not.toHaveBeenCalled();
+
     current = upgraded;
     await bootstrap.pollSession();
 
-    expect(api.session).toHaveBeenCalledTimes(4);
-    expect(api.accounts).toHaveBeenCalledTimes(2);
-    expect(TestBed.inject(AppStore).user()?.capabilities).toEqual(upgraded.permissions);
+    expect(api.people).toHaveBeenCalledOnce();
+    expect(api.accounts).toHaveBeenCalledOnce();
+    expect(store.data().people.map((p) => p.name)).toEqual(['Camilo']);
+    expect(store.remoteState()).toBe('ready');
+  });
+
+  it('un permiso retirado vacía sus datos sin volver a pedir nada', async () => {
+    const withPeople = { ...session, permissions: [...session.permissions, P.personas.ver] };
+    let current = withPeople;
+    const api = apiCon(() => current);
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+    await bootstrap.initialize();
+    expect(store.data().people).toHaveLength(1);
+
+    current = session;
+    await bootstrap.pollSession();
+
+    expect(store.data().people).toEqual([]);
+    expect(api.people).toHaveBeenCalledOnce();
+    expect(api.accounts).toHaveBeenCalledOnce();
+    expect(store.remoteState()).toBe('ready');
+  });
+
+  it('un cambio de banderas se aplica sin recargar', async () => {
+    let flags: { key: string; isEnabled: boolean }[] = [{ key: 'movements', isEnabled: true }];
+    const api = apiCon(() => session, { featureFlags: vi.fn(() => of(flags)) });
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+    await bootstrap.initialize();
+    expect(store.featureFlags()['movements']).toBe(true);
+
+    flags = [{ key: 'movements', isEnabled: false }];
+    await bootstrap.pollSession();
+
+    expect(store.featureFlags()['movements']).toBe(false);
+    expect(api.accounts).toHaveBeenCalledOnce();
+  });
+
+  it('un error en una lista no anula la sesión', async () => {
+    const api = apiCon(() => session, { accounts: vi.fn(() => throwError(() => new Error('boom'))) });
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+
+    await bootstrap.initialize();
+
+    expect(store.remoteState()).toBe('ready');
+    expect(store.user()).not.toBeNull();
+    expect(api.movements).toHaveBeenCalledOnce();
   });
 
   it('reloads when the identity changes even with the same permissions', async () => {

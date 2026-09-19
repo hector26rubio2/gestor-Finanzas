@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'Nouveau mouvement',
   'shell.search': 'Rechercher des mouvements',
   'shell.loading': 'Chargement de vos informations…',
+  'shell.partialLoad': "Certaines données n'ont pas pu être chargées. Rechargez la page s'il manque quelque chose.",
   'shell.skipToContent': 'Passer au contenu',
   'shell.collapseMenu': 'Réduire le menu',
   'shell.expandMenu': 'Développer le menu',

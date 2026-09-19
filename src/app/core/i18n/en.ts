@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'New transaction',
   'shell.search': 'Search transactions',
   'shell.loading': 'Loading your information…',
+  'shell.partialLoad': "Some data couldn't be loaded. Reload the page if something is missing.",
   'shell.skipToContent': 'Skip to content',
   'shell.collapseMenu': 'Collapse menu',
   'shell.expandMenu': 'Expand menu',
