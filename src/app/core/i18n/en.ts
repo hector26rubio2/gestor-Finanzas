@@ -1297,4 +1297,11 @@ export default {
   'table.selection.all': 'Select all rows on the page',
   'table.selection.row': 'Select row',
   'table.selection.count': '{count} selected',
+  'admin.permissions.picker.placeholder': 'Search permissions to add…',
+  'admin.permissions.picker.ariaLabel': 'Search and add permissions',
+  'admin.permissions.picker.empty': 'No permission matches the search.',
+  'admin.permissions.picker.pending': 'Unsaved',
+  'admin.permissions.picker.summary': '{selected} of {total} permissions granted',
+  'admin.permissions.picker.groupActions': 'Group actions',
+  'admin.permissions.picker.group': 'Permission group',
 } as const;

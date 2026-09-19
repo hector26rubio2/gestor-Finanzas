@@ -1296,4 +1296,11 @@ export default {
   'table.selection.all': 'Selecionar todas as linhas da página',
   'table.selection.row': 'Selecionar linha',
   'table.selection.count': '{count} selecionadas',
+  'admin.permissions.picker.placeholder': 'Buscar permissões para adicionar…',
+  'admin.permissions.picker.ariaLabel': 'Buscar e adicionar permissões',
+  'admin.permissions.picker.empty': 'Nenhuma permissão corresponde à busca.',
+  'admin.permissions.picker.pending': 'Não salvo',
+  'admin.permissions.picker.summary': '{selected} de {total} permissões concedidas',
+  'admin.permissions.picker.groupActions': 'Ações por grupo',
+  'admin.permissions.picker.group': 'Grupo de permissões',
 } as const;

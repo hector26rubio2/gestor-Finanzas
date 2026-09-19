@@ -1307,4 +1307,11 @@ export default {
   'table.selection.all': 'Seleccionar todas las filas de la página',
   'table.selection.row': 'Seleccionar fila',
   'table.selection.count': '{count} seleccionadas',
+  'admin.permissions.picker.placeholder': 'Buscar permisos para agregar…',
+  'admin.permissions.picker.ariaLabel': 'Buscar y agregar permisos',
+  'admin.permissions.picker.empty': 'Ningún permiso coincide con la búsqueda.',
+  'admin.permissions.picker.pending': 'Sin guardar',
+  'admin.permissions.picker.summary': '{selected} de {total} permisos concedidos',
+  'admin.permissions.picker.groupActions': 'Acciones por grupo',
+  'admin.permissions.picker.group': 'Grupo de permisos',
 } as const;

@@ -10,7 +10,7 @@ import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
-import { PermissionGroupsComponent } from '../../permission-groups/permission-groups';
+import { PermissionPickerComponent } from '../../permission-picker/permission-picker';
 
 @Component({
   selector: 'app-user-sheet',
@@ -18,7 +18,7 @@ import { PermissionGroupsComponent } from '../../permission-groups/permission-gr
     FormsModule,
     HlmButton,
     OptionRowComponent,
-    PermissionGroupsComponent,
+    PermissionPickerComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
@@ -113,7 +113,7 @@ import { PermissionGroupsComponent } from '../../permission-groups/permission-gr
         <section class="flex flex-col gap-2">
           <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
           <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.permissionsHint') }}</p>
-          <app-permission-groups
+          <app-permission-picker
             [groups]="store.permissionGroups()"
             [checked]="hasPermission(u)"
             [changed]="permissionChanged(u)"
