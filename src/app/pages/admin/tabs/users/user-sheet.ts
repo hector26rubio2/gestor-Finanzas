@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
-import { IconComponent } from '../../../../ui/icon/icon';
 import { FormsModule } from '@angular/forms';
-import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmBadge } from '@spartan-ng/helm/badge';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { ApiAdminUser } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
@@ -11,19 +11,10 @@ import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
-import { PermissionPickerComponent } from '../../permission-picker/permission-picker';
 
 @Component({
   selector: 'app-user-sheet',
-  imports: [
-    IconComponent,
-    FormsModule,
-    HlmButton,
-    OptionRowComponent,
-    PermissionPickerComponent,
-    SheetPanelComponent,
-    UiSelectComponent,
-  ],
+  imports: [FormsModule, HlmBadge, IconComponent, OptionRowComponent, SheetPanelComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
@@ -59,69 +50,47 @@ import { PermissionPickerComponent } from '../../permission-picker/permission-pi
             }
           </section>
         }
-        @if (roles().length) {
-          <section class="flex flex-col gap-1">
-            <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.rolesTitle') }}</h3>
-            <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.rolesHint') }}</p>
-            @for (role of roles(); track role.id) {
-              <fin-option-row
-                kind="checkbox"
-                [label]="role.name"
-                [description]="role.description || ''"
-                [checked]="store.userRoleIds(u).includes(role.id)"
-                [changed]="rolesChanged(u)"
-                [disabled]="store.hasPendingMove(u)"
-                (toggled)="store.toggleUserRole(u, role.id)"
-              />
-            }
-          </section>
-        }
-        @if (overrides().length) {
-          <section class="flex flex-col gap-1">
-            <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.overridesTitle') }}</h3>
-            <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.overridesHint') }}</p>
-            @for (override of overrides(); track override.code) {
-              <div class="flex items-center justify-between gap-3 rounded-lg px-3 py-2">
-                <span class="flex min-w-0 flex-col">
-                  <b class="truncate text-sm">
-                    {{
-                      override.isAllowed
-                        ? i18n.t('admin.users.drawer.overrideForcedYes')
-                        : i18n.t('admin.users.drawer.overrideForcedNo')
-                    }}
-                    · {{ override.code }}
-                  </b>
-                  <small class="text-xs text-muted-foreground">
-                    {{
-                      override.affects.length > 1
-                        ? i18n.t('admin.users.drawer.overrideAffectsMany', { count: override.affects.length })
-                        : i18n.t('admin.users.drawer.overrideAffectsOne')
-                    }}
-                  </small>
-                </span>
-                <button
-                  hlmBtn
-                  variant="ghost"
-                  size="sm"
-                  [disabled]="store.hasPendingMove(u)"
-                  (click)="store.clearOverride(u, override.code)"
-                >
-                  <fin-icon name="trash" /> {{ i18n.t('admin.users.drawer.removeOverride') }}
-                </button>
-              </div>
-            }
-          </section>
-        }
+        <section class="flex flex-col gap-1">
+          <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.rolesTitle') }}</h3>
+          <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.rolesHint') }}</p>
+          @for (role of roles(); track role.id) {
+            <fin-option-row
+              kind="checkbox"
+              [label]="role.name"
+              [description]="role.description || ''"
+              [checked]="store.userRoleIds(u).includes(role.id)"
+              [changed]="rolesChanged(u)"
+              [disabled]="store.hasPendingMove(u) || !role.isActive"
+              (toggled)="store.toggleUserRole(u, role.id)"
+            />
+          } @empty {
+            <p class="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
+              {{ i18n.t('admin.users.drawer.noRoles') }}
+            </p>
+          }
+        </section>
         <section class="flex flex-col gap-2">
-          <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
-          <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.permissionsHint') }}</p>
-          <app-permission-picker
-            [groups]="store.permissionGroups()"
-            [checked]="hasPermission(u)"
-            [changed]="permissionChanged(u)"
-            [disabled]="store.hasPendingMove(u)"
-            (toggled)="store.togglePermission(u, $event)"
-          />
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.effectiveTitle') }}</h3>
+              <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.effectiveHint') }}</p>
+            </div>
+            <span hlmBadge variant="secondary">{{ effective().length }}</span>
+          </div>
+          @for (group of effectiveGroups(); track group.name) {
+            <div class="flex flex-col gap-1.5 rounded-lg border border-border p-3">
+              <b class="text-xs uppercase tracking-wide text-muted-foreground">{{ labels.resource(group.name) }}</b>
+              <div class="flex flex-wrap gap-1.5">
+                @for (permission of group.items; track permission.code) {
+                  <span hlmBadge variant="outline" [attr.title]="permission.code">
+                    <fin-icon name="check" class="[--icon-size:12px]" />{{ permission.description }}
+                  </span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.effectiveEmpty') }}</p>
+          }
         </section>
       }
     </fin-sheet-panel>
@@ -144,11 +113,17 @@ export class UserSheetComponent {
 
   readonly roles = computed(() => this.store.rolesOf(this.organizationId() ?? undefined));
 
-  readonly overrides = computed(() => {
+  readonly effective = computed(() => {
     const user = this.user();
-    const organizationId = this.organizationId();
-    if (!user || !organizationId) return [];
-    return user.memberships?.find((m) => m.organizationId === organizationId)?.overrides ?? [];
+    return user ? this.store.effectivePermissions(user) : [];
+  });
+
+  readonly effectiveGroups = computed(() => {
+    const granted = new Set(this.effective());
+    return this.store
+      .permissionGroups()
+      .map((group) => ({ name: group.name, items: group.items.filter((item) => granted.has(item.code)) }))
+      .filter((group) => group.items.length);
   });
 
   constructor() {
@@ -156,14 +131,6 @@ export class UserSheetComponent {
       const organizationId = this.organizationId();
       if (organizationId) void this.store.cargarRolesDe(organizationId);
     });
-  }
-
-  hasPermission(user: ApiAdminUser): (code: string) => boolean {
-    return (code) => this.store.hasPermission(user, code);
-  }
-
-  permissionChanged(user: ApiAdminUser): (code: string) => boolean {
-    return (code) => this.store.permissionChanged(user, code);
   }
 
   rolesChanged(user: ApiAdminUser): boolean {

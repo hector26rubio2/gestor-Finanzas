@@ -23,6 +23,9 @@ export interface ApiAuditEvent {
 export interface ApiAuditFilter {
   organizationId?: string;
   actorUserId?: string;
+  userId?: string;
+  traceId?: string;
+  entityId?: string;
   action?: string;
   entityType?: string;
   from?: string;
@@ -55,7 +58,6 @@ export interface ApiAdminUser {
     /** Lo que la persona puede hacer ahora, accion por accion. */
     effectivePermissions?: readonly string[];
     /** Excepciones directas: mandan sobre lo que digan los roles. */
-    overrides?: readonly ApiAdminOverride[];
     roles: readonly ApiAdminRole[];
   }[];
 }
@@ -89,12 +91,19 @@ export interface ApiAdminOrganization {
 }
 
 /** Valor efectivo de una bandera para una organización y de dónde sale. */
+export interface ApiConsolidationResult {
+  targetOrganizationId: string;
+  movedUsers: number;
+  archivedOrganizations: number;
+}
+
 export interface ApiAdminOrganizationFlag {
   key: string;
   isEnabled: boolean;
   /** `organization` si la organización la fija ella misma; si no, hereda de `global` o `default`. */
   source: 'organization' | 'global' | 'default';
   organizationValue: boolean | null;
+  globalEnabled: boolean;
 }
 
 /** Un permiso del catálogo: código, dónde vive y qué concede. */
@@ -123,13 +132,6 @@ export const ApiPermissionLevel: Readonly<Record<number, string>> = {
   2: 'avanzado',
   3: 'premium',
 };
-
-/** Una excepcion directa sobre una persona. */
-export interface ApiAdminOverride {
-  code: string;
-  isAllowed: boolean;
-  affects: readonly string[];
-}
 
 /** Una persona dentro de la organizacion activa. */
 export interface ApiOrganizationMember {
@@ -227,14 +229,6 @@ export class AdministrationApi {
 
   setAdminUserActive(id: string, isActive: boolean) {
     return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminUserActive(id), body: { isActive } });
-  }
-
-  setAdminUserCapability(id: string, organizationId: string, capability: string, isAllowed: boolean | null) {
-    return this.transport.request<void>({
-      method: 'PUT',
-      path: API_ROUTES.adminUserCapability(id),
-      body: { organizationId, capability, isAllowed },
-    });
   }
 
   /** Personas de la organizacion activa, invitadas incluidas. */
@@ -351,6 +345,13 @@ export class AdministrationApi {
       method: 'PUT',
       path: API_ROUTES.adminOrganization(id),
       body: request,
+    });
+  }
+
+  consolidateAdminOrganizations() {
+    return this.transport.request<ApiConsolidationResult>({
+      method: 'POST',
+      path: API_ROUTES.adminOrganizationsConsolidate,
     });
   }
 

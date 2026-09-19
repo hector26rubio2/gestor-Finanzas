@@ -21,7 +21,8 @@ import { AppStore } from '../../../../core/state/store';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
-import { BulkChange, PermissionPickerComponent } from '../../permission-picker/permission-picker';
+import { BulkChange } from '../../permission-picker/permission-picker';
+import { PermissionSectionsComponent } from '../../permission-picker/permission-sections';
 
 @Component({
   selector: 'app-role-sheet',
@@ -32,7 +33,7 @@ import { BulkChange, PermissionPickerComponent } from '../../permission-picker/p
     HlmInput,
     HlmLabel,
     HlmTextarea,
-    PermissionPickerComponent,
+    PermissionSectionsComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
@@ -64,10 +65,10 @@ import { BulkChange, PermissionPickerComponent } from '../../permission-picker/p
           />
         </label>
       }
-      <app-permission-picker
+      <app-permission-sections
         [groups]="store.permissionGroups()"
         [checked]="isChecked"
-        [bulk]="true"
+        [organizationId]="organizationId()"
         [showLevel]="true"
         (toggled)="toggle($event)"
         (bulkChange)="markGroup($event)"
