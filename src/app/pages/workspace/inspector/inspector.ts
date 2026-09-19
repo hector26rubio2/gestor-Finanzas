@@ -1,4 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
+import { IconComponent } from '../../../ui/icon/icon';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -20,6 +21,7 @@ import { OverlayComponent } from '../../../ui/overlay/overlay';
 @Component({
   selector: 'fin-inspector',
   imports: [
+    IconComponent,
     NgTemplateOutlet,
     FormsModule,
     HlmButton,

@@ -75,7 +75,7 @@
     }
     <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
-        {{ i18n.t('form.actions.cancel') }}</button
+        <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       ><button hlmBtn size="lg" type="submit">{{ i18n.t('form.actions.save') }}</button>
     </footer>
   </form>

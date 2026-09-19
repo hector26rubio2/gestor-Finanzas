@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../ui/icon/icon';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -25,7 +26,16 @@ import { AdminStore } from '../../admin.store';
 
 @Component({
   selector: 'app-organization-sheet',
-  imports: [FormsModule, HlmBadge, HlmButton, HlmInput, HlmLabel, OptionRowComponent, SheetPanelComponent],
+  imports: [
+    IconComponent,
+    FormsModule,
+    HlmBadge,
+    HlmButton,
+    HlmInput,
+    HlmLabel,
+    OptionRowComponent,
+    SheetPanelComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
@@ -42,7 +52,7 @@ import { AdminStore } from '../../admin.store';
               <input hlmInput [ngModel]="name()" (ngModelChange)="name.set($event)" />
             </label>
             <button hlmBtn variant="outline" [disabled]="!nameChanged() || renaming()" (click)="rename(org)">
-              {{ i18n.t('admin.organizations.saveName') }}
+              <fin-icon name="check" /> {{ i18n.t('admin.organizations.saveName') }}
             </button>
           </section>
         }

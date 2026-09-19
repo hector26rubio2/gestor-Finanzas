@@ -108,7 +108,7 @@
     }
     <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="closed()">
-        {{ i18n.t('form.actions.cancel') }}</button
+        <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       ><button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
         {{ actions.isRunning(saveActionKey) ? i18n.t('form.account.actions.creating') :
         i18n.t('form.account.actions.create') }}

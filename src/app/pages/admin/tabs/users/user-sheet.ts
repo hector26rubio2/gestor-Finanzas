@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiAdminUser } from '../../../../core/api/administration.api';
@@ -15,6 +16,7 @@ import { PermissionPickerComponent } from '../../permission-picker/permission-pi
 @Component({
   selector: 'app-user-sheet',
   imports: [
+    IconComponent,
     FormsModule,
     HlmButton,
     OptionRowComponent,
@@ -104,7 +106,7 @@ import { PermissionPickerComponent } from '../../permission-picker/permission-pi
                   [disabled]="store.hasPendingMove(u)"
                   (click)="store.clearOverride(u, override.code)"
                 >
-                  {{ i18n.t('admin.users.drawer.removeOverride') }}
+                  <fin-icon name="trash" /> {{ i18n.t('admin.users.drawer.removeOverride') }}
                 </button>
               </div>
             }

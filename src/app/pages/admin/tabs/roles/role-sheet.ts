@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../ui/icon/icon';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -25,6 +26,7 @@ import { BulkChange, PermissionPickerComponent } from '../../permission-picker/p
 @Component({
   selector: 'app-role-sheet',
   imports: [
+    IconComponent,
     FormsModule,
     HlmButton,
     HlmInput,
@@ -71,8 +73,12 @@ import { BulkChange, PermissionPickerComponent } from '../../permission-picker/p
         (bulkChange)="markGroup($event)"
       />
       <div sheetFooter class="flex gap-2">
-        <button hlmBtn variant="outline" (click)="closed.emit()">{{ i18n.t('admin.common.cancel') }}</button>
-        <button hlmBtn [disabled]="saving()" (click)="save()">{{ i18n.t('admin.roles.drawer.save') }}</button>
+        <button hlmBtn variant="outline" (click)="closed.emit()">
+          <fin-icon name="close" /> {{ i18n.t('admin.common.cancel') }}
+        </button>
+        <button hlmBtn [disabled]="saving()" (click)="save()">
+          <fin-icon name="check" /> {{ i18n.t('admin.roles.drawer.save') }}
+        </button>
       </div>
     </fin-sheet-panel>
   `,

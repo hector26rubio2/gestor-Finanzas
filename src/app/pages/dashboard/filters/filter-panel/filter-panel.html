@@ -14,7 +14,7 @@
     </div>
     <div class="flex items-center gap-2">
       <button hlmBtn variant="ghost" size="sm" type="button" (click)="clear.emit()" [disabled]="!hasFilters()">
-        {{ i18n.t('dashboard.filters.clear') }}
+        <fin-icon name="close" /> {{ i18n.t('dashboard.filters.clear') }}
       </button>
       <button
         hlmBtn
@@ -133,7 +133,7 @@
           /></label>
           }
           <button hlmBtn variant="outline" type="button" (click)="closePeriodPicker.emit()">
-            {{ i18n.t('dashboard.filters.period.close') }}
+            <fin-icon name="close" /> {{ i18n.t('dashboard.filters.period.close') }}
           </button>
         </div>
       </hlm-popover>

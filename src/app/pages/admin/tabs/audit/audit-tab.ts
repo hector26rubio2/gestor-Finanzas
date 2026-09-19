@@ -73,7 +73,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
           @if (hasFilters()) {
             <div>
               <button hlmBtn variant="ghost" size="sm" (click)="clear()">
-                {{ i18n.t('admin.audit.clearFilters') }}
+                <fin-icon name="close" /> {{ i18n.t('admin.audit.clearFilters') }}
               </button>
             </div>
           }
