@@ -1291,4 +1291,5 @@ export default {
   'admin.errors.createIssue': 'Crear issue en GitHub',
   'admin.errors.issueCreated': 'Issue creado en GitHub',
   'admin.errors.issueFailed': 'No se pudo crear el issue',
+  'shell.toggleSubmenu': 'Mostrar u ocultar el submenú de {name}',
 } as const;

@@ -28,12 +28,22 @@ import {
 } from '@spartan-ng/helm/dropdown-menu';
 import {
   HlmSidebar,
+  HlmSidebarGroup,
+  HlmSidebarGroupContent,
+  HlmSidebarGroupLabel,
   HlmSidebarWrapper,
   HlmSidebarMenu,
+  HlmSidebarMenuAction,
   HlmSidebarMenuBadge,
   HlmSidebarMenuButton,
   HlmSidebarMenuItem,
+  HlmSidebarMenuSub,
+  HlmSidebarMenuSubButton,
+  HlmSidebarMenuSubItem,
 } from '@spartan-ng/helm/sidebar';
+import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
+import { NgScrollbar } from 'ngx-scrollbar';
+import { ADMIN_TABS } from './pages/admin/admin-tabs';
 import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmProgress, HlmProgressIndicator } from '@spartan-ng/helm/progress';
@@ -52,6 +62,24 @@ import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service
  */
 const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'person', 'investment', 'recurrence'];
 
+const GRUPOS_CERRADOS_KEY = 'finanzas.sidebar.grupos-cerrados';
+
+function leerGruposCerrados(): ReadonlySet<string> {
+  try {
+    return new Set(JSON.parse(localStorage.getItem(GRUPOS_CERRADOS_KEY) ?? '[]') as string[]);
+  } catch {
+    return new Set();
+  }
+}
+
+function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
+  try {
+    localStorage.setItem(GRUPOS_CERRADOS_KEY, JSON.stringify([...grupos]));
+  } catch {
+    return;
+  }
+}
+
 @Component({
   selector: 'app-root',
   imports: [
@@ -62,9 +90,18 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'pe
     HlmButton,
     HlmProgress,
     HlmProgressIndicator,
+    HlmSidebarGroup,
+    HlmSidebarGroupContent,
+    HlmSidebarGroupLabel,
     HlmSidebarMenu,
+    HlmSidebarMenuAction,
     HlmSidebarMenuBadge,
     HlmSidebarMenuItem,
+    HlmSidebarMenuSub,
+    HlmSidebarMenuSubButton,
+    HlmSidebarMenuSubItem,
+    HlmScrollAreaImports,
+    NgScrollbar,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
@@ -120,8 +157,33 @@ export class AppComponent {
         const ruta = evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '');
         this.enLogin.set(ruta.endsWith('/login'));
         this.rutaActual.set(ruta);
+        this.pestanaAdmin.set(this.router.parseUrl(evento.urlAfterRedirects).queryParams['tab'] ?? 'summary');
+        if (ruta === '/admin') this.adminAbierto.set(true);
       }
     });
+  }
+
+  readonly pestanaAdmin = signal('summary');
+  readonly adminAbierto = signal(false);
+  readonly pestanasAdmin = computed(() => ADMIN_TABS.filter((tab) => this.caps.allows(tab.capability)));
+  private readonly gruposCerrados = signal<ReadonlySet<string>>(leerGruposCerrados());
+
+  grupoCerrado(group: string): boolean {
+    return !this.collapsed() && this.gruposCerrados().has(group);
+  }
+
+  alternarGrupo(group: string): void {
+    this.gruposCerrados.update((actual) => {
+      const siguiente = new Set(actual);
+      if (siguiente.has(group)) siguiente.delete(group);
+      else siguiente.add(group);
+      guardarGruposCerrados(siguiente);
+      return siguiente;
+    });
+  }
+
+  enAdmin(pestana: string): boolean {
+    return this.rutaActual() === '/admin' && this.pestanaAdmin() === pestana;
   }
 
   alternarMenu(): void {

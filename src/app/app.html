@@ -106,42 +106,81 @@
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
-      <nav
-        id="primary-navigation"
-        class="min-h-0 overflow-auto [scrollbar-width:none]"
-        [attr.aria-label]="i18n.t('shell.primaryNav')"
-      >
-        @for (group of groups(); track group) {
-        <small
-          class="block px-2.5 pt-3.5 pb-[7px] text-[0.72rem] font-bold tracking-[0.08em] text-muted-foreground group-data-[collapsed=true]/app:hidden"
-          >{{ i18n.t('shell.group.' + group) }}</small
-        >
-        <ul hlmSidebarMenu>
-          @for (item of items(group); track item.path) {
-          <li hlmSidebarMenuItem>
-            <a
-              hlmSidebarMenuButton
-              [tooltip]="i18n.t('nav.' + item.path)"
-              [isActive]="activeRoute.isActive"
-              #activeRoute="routerLinkActive"
-              ariaCurrentWhenActive="page"
-              [routerLink]="'/' + item.path"
-              routerLinkActive="active"
-              [attr.aria-label]="i18n.t('nav.' + item.path)"
-              (click)="sidebar.setOpenMobile(false)"
-              ><fin-icon [name]="item.icon" class="[--icon-size:19px]" /><span
-                class="group-data-[collapsed=true]/app:hidden"
-                >{{ i18n.t('nav.' + item.path) }}</span
-              >
-            </a>
-            @if (item.path === 'notifications' && store.unread()) {
-            <span hlmSidebarMenuBadge>{{ store.unread() }}</span>
+      <ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1" [attr.aria-label]="i18n.t('shell.primaryNav')">
+        <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
+          @for (group of groups(); track group) {
+          <div hlmSidebarGroup class="p-0">
+            <button
+              hlmSidebarGroupLabel
+              type="button"
+              class="w-full justify-between uppercase tracking-[0.08em]"
+              [attr.aria-expanded]="!grupoCerrado(group)"
+              (click)="alternarGrupo(group)"
+            >
+              <span>{{ i18n.t('shell.group.' + group) }}</span>
+              <fin-icon [name]="grupoCerrado(group) ? 'chevronDown' : 'chevronUp'" class="[--icon-size:14px]" />
+            </button>
+            @if (!grupoCerrado(group)) {
+            <div hlmSidebarGroupContent>
+              <ul hlmSidebarMenu>
+                @for (item of items(group); track item.path) {
+                <li hlmSidebarMenuItem>
+                  <a
+                    hlmSidebarMenuButton
+                    [tooltip]="i18n.t('nav.' + item.path)"
+                    [isActive]="activeRoute.isActive"
+                    #activeRoute="routerLinkActive"
+                    ariaCurrentWhenActive="page"
+                    [routerLink]="'/' + item.path"
+                    routerLinkActive="active"
+                    [attr.aria-label]="i18n.t('nav.' + item.path)"
+                    (click)="sidebar.setOpenMobile(false)"
+                    ><fin-icon [name]="item.icon" class="[--icon-size:19px]" /><span
+                      class="group-data-[collapsed=true]/app:hidden"
+                      >{{ i18n.t('nav.' + item.path) }}</span
+                    >
+                  </a>
+                  @if (item.path === 'notifications' && store.unread()) {
+                  <span hlmSidebarMenuBadge>{{ store.unread() }}</span>
+                  } @if (item.path === 'admin' && pestanasAdmin().length > 1) {
+                  <button
+                    hlmSidebarMenuAction
+                    type="button"
+                    [attr.aria-expanded]="adminAbierto()"
+                    [attr.aria-label]="i18n.t('shell.toggleSubmenu', { name: i18n.t('nav.admin') })"
+                    (click)="adminAbierto.set(!adminAbierto())"
+                  >
+                    <fin-icon [name]="adminAbierto() ? 'chevronUp' : 'chevronDown'" class="[--icon-size:14px]" />
+                  </button>
+                  @if (adminAbierto()) {
+                  <ul hlmSidebarMenuSub>
+                    @for (tab of pestanasAdmin(); track tab.id) {
+                    <li hlmSidebarMenuSubItem>
+                      <a
+                        hlmSidebarMenuSubButton
+                        routerLink="/admin"
+                        [queryParams]="{ tab: tab.id }"
+                        [isActive]="enAdmin(tab.id)"
+                        [attr.title]="i18n.t(tab.labelKey)"
+                        [attr.aria-current]="enAdmin(tab.id) ? 'page' : null"
+                        (click)="sidebar.setOpenMobile(false)"
+                        ><fin-icon [name]="tab.icon" class="[--icon-size:15px]" /><span
+                          >{{ i18n.t(tab.labelKey) }}</span
+                        ></a
+                      >
+                    </li>
+                    }
+                  </ul>
+                  } }
+                </li>
+                }
+              </ul>
+            </div>
             }
-          </li>
+          </div>
           }
-        </ul>
-        }
-      </nav>
+        </nav>
+      </ng-scrollbar>
     </aside>
   </hlm-sidebar>
   <div class="flex min-h-dvh min-w-0 flex-1 flex-col">
