@@ -237,7 +237,13 @@
         [subirEsBueno]="(widget.measure ?? 'expense') !== 'expense'"
       />
       } @case ('table') {
-      <fin-table [columns]="tableColumns()" [rows]="tableRows(widget)" [selectable]="false" [pageSize]="8" />
+      <fin-table
+        [columns]="tableColumns()"
+        [rows]="tableRows(widget)"
+        [selectable]="false"
+        [pageSize]="8"
+        [tableLabel]="widget.title"
+      />
       } @case ('indicator') { @if (movements().length) {
       <div
         class="grid w-full flex-1 grid-cols-[repeat(auto-fit,minmax(200px,1fr))] content-center items-center gap-x-7 gap-y-4"
@@ -264,13 +270,16 @@
             <dd>{{ formatMeasure(widget.goalMin ?? 0, widget) }} – {{ formatMeasure(widget.goalMax ?? 0, widget) }}</dd>
           </div>
           <div>
-            <span
-              class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
-              [style.color]="indicatorStatus(widget).color"
-              [style.border-color]="indicatorStatus(widget).color"
-            >
-              {{ indicatorStatus(widget).label }}
-            </span>
+            <dt>Estado</dt>
+            <dd>
+              <span
+                class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
+                [style.color]="indicatorStatus(widget).color"
+                [style.border-color]="indicatorStatus(widget).color"
+              >
+                {{ indicatorStatus(widget).label }}
+              </span>
+            </dd>
           </div>
         </dl>
       </div>
@@ -316,7 +325,12 @@
       /></a>
       }
     </header>
-    <fin-table [columns]="columns()" [rows]="rows()" (rowSelected)="inspect($event)" />
+    <fin-table
+      [columns]="columns()"
+      [rows]="rows()"
+      [tableLabel]="i18n.t('dashboard.recent.title')"
+      (rowSelected)="inspect($event)"
+    />
   </section>
   } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
   <aside

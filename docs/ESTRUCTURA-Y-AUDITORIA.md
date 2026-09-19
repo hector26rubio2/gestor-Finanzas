@@ -57,5 +57,5 @@ Para cualquiera de estos cortes: `impact` de GitNexus antes de tocar el símbolo
 - Presupuesto inicial: 735 kB (aviso a 700 kB, error a 1 MB). El CSS de utilidades crece con el uso de Helm; los componentes se cargan en el paquete inicial por el shell.
 - El calendario de Helm usa formatos de `Intl`; en idiomas con primer día de semana distinto se ajusta solo para `en` (domingo).
 - La tabla de datos (`fin-table`) conserva su API; una migración a `hlm-table` puro con columnas declarativas queda pendiente.
-- `axe`/Lighthouse de accesibilidad no se han vuelto a correr sobre el nuevo shell; hacerlo antes de la próxima entrega.
+- `axe-core` (19-sep-2026) sobre login, dashboard, movimientos, calendario, cuentas, personas, patrimonio, planificación, reportes, notificaciones y preferencias en claro 1280, oscuro 1280 y claro 390: sin violaciones tras subir contraste de `--muted`, `--danger`, `--success` y del acento oscuro, y corregir landmarks, listas de definición, encabezados y regiones desplazables. Sin medir aún: temas océano y baya, ni lector de pantalla.
 - Índice único de banderas globales con `NULLS NOT DISTINCT` (backend).

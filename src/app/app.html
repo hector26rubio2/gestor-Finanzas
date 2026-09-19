@@ -144,7 +144,7 @@
       </nav>
     </aside>
   </hlm-sidebar>
-  <section class="flex min-h-dvh min-w-0 flex-1 flex-col">
+  <div class="flex min-h-dvh min-w-0 flex-1 flex-col">
     <header
       data-slot="topbar"
       class="sticky top-0 z-10 flex h-16 items-center border-b border-border bg-background/90 px-7 backdrop-blur-[14px] max-[780px]:px-3.5"
@@ -203,7 +203,7 @@
     >
       <router-outlet />
     </main>
-  </section>
+  </div>
 </div>
 @defer (when abreFormularioDeMovimiento()) { @if (abreFormularioDeMovimiento()) {
 <fin-movement-form />

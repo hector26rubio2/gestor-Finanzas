@@ -2,6 +2,7 @@
   @for (n of store.data().notifications; track n.id) {
   <article class="flex flex-wrap items-center gap-3.5 border-b border-border px-4.5 py-4 last:border-b-0">
     <span
+      role="img"
       class="size-2.5 flex-none rounded-full border-[1.5px]"
       [class]="n.read ? 'border-input' : 'border-primary bg-primary'"
       [attr.aria-label]="n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread')"
