@@ -48,7 +48,7 @@ const TABS: readonly { id: AdminTab; labelKey: string; icon: string; capability:
   providers: [AdminStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="mx-auto flex w-full max-w-6xl flex-col gap-5 p-4 sm:p-6 lg:p-8" data-page="admin">
+    <div class="flex w-full min-w-0 flex-col gap-4" data-page="admin">
       <header>
         <h1 class="font-display text-3xl font-semibold tracking-tight">{{ i18n.t('admin.title') }}</h1>
         <p class="mt-1 text-muted-foreground">{{ i18n.t('admin.subtitle') }}</p>
@@ -66,7 +66,10 @@ const TABS: readonly { id: AdminTab; labelKey: string; icon: string; capability:
           }
         </hlm-tabs-list>
         @for (item of tabs(); track item.id) {
-          <div [hlmTabsContent]="item.id" class="flex flex-col gap-4 pt-2">
+          <div
+            [hlmTabsContent]="item.id"
+            class="flex flex-col gap-4 pt-2 data-[state=inactive]:hidden [&[hidden]]:hidden [&>*]:flex [&>*]:flex-col [&>*]:gap-4"
+          >
             @if (store.tab() === item.id) {
               @switch (item.id) {
                 @case ('summary') {
@@ -96,7 +99,7 @@ const TABS: readonly { id: AdminTab; labelKey: string; icon: string; capability:
         }
       </hlm-tabs>
       <app-admin-save-bar />
-    </main>
+    </div>
     <fin-confirm-dialog
       [open]="!!leaving()"
       [title]="i18n.t('admin.leave.title')"

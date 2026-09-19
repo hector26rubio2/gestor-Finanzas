@@ -357,7 +357,7 @@ export class RemoteBootstrap {
     this.store.user.set(null);
     this.store.form.set(null);
     this.store.inspector.set(null);
-    await this.router.navigateByUrl('/login');
+    await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
   /** Revisa la sesión (sondeo, foco de la ventana y cambios hechos desde Administración). */

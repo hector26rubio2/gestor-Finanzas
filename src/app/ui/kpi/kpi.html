@@ -1,4 +1,40 @@
-@if (icon() || delta() !== null) {
+@if (row()) { @if (icon()) {
+<span class="grid size-10 flex-none place-items-center rounded-[10px]" [class]="chipClass()">
+  <fin-icon [name]="icon()" class="[--icon-size:20px]" />
+</span>
+}
+<div class="flex min-w-0 flex-1 flex-col">
+  <span class="truncate text-[0.78rem] text-muted-foreground" [attr.title]="label()">{{ label() }}</span>
+  <strong
+    class="text-[clamp(1.1rem,1.4vw,1.4rem)] leading-tight font-semibold tracking-[-0.03em] tabular-nums [overflow-wrap:anywhere]"
+    >{{ value() }}</strong
+  >
+  @if (hint()) {
+  <span class="truncate text-[0.72rem] text-muted-foreground" [attr.title]="hint()">{{ hint() }}</span>
+  }
+</div>
+@if (delta() !== null || series().length > 1) {
+<div class="flex flex-none flex-col items-end gap-1">
+  @if (delta() !== null) {
+  <span
+    class="rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
+    [class]="deltaClass()"
+    [attr.title]="deltaTitulo()"
+  >
+    {{ flecha() }} {{ deltaTexto() }}
+  </span>
+  } @if (series().length > 1) { @defer (on viewport) {
+  <fin-chart
+    class="block w-20"
+    [option]="chispaOption()"
+    [height]="26"
+    [ariaLabel]="i18n.t('kpi.sparkline.ariaLabel', { label: label() })"
+  />
+  } @placeholder {
+  <span class="block h-[26px] w-20"></span>
+  } }
+</div>
+} } @else { @if (icon() || delta() !== null) {
 <div class="flex items-center" [class.justify-center]="bare()">
   @if (icon()) {
   <span class="grid size-[34px] flex-none place-items-center rounded-[10px]" [class]="chipClass()">
@@ -38,3 +74,4 @@
     } }
   </div>
 </div>
+}

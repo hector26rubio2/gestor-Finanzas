@@ -40,6 +40,30 @@ Estado de `gestor-Finanzas` tras las fases A–E (sesión, administración por l
 - `AdminStore` guarda lo leído del servidor y los cambios pendientes; la vista es la base más los borradores. Guardar los aplica juntos por olas (activar organización → predeterminada y mudanzas → desactivar → resto) con `Promise.allSettled`, quita del borrador lo aceptado, deja lo fallido con su motivo, relee la lista de personas una vez y refresca la sesión una vez.
 - Aviso al salir con cambios sin guardar (`canDeactivate` y `beforeunload`).
 - Formularios con envío propio (crear o editar rol, crear organización, renombrar, estado de un error) se aplican al momento.
+- Ancho completo y paneles (`app-admin-panel`): cabecera con título, acciones y filtros, tabla de Helm a todo lo ancho y pie con paginación. Resumen, Usuarios, Roles, Organizaciones y Feature Flags son tablas.
+- Usuarios: filtro por organización, estado y texto; columna de organización (con marca de mudanza sin guardar). La lista trae hasta 100 personas y el filtro por organización se aplica en el cliente; si crece, el servidor debería aceptar `organizationId`.
+- Feature Flags: solo nivel global y de organización, en dos columnas de interruptores (Global y la organización elegida, con el origen del valor). El nivel de usuario se quitó de la interfaz; el servidor conserva la precedencia usuario > organización > global para lo que ya exista.
+
+## Dashboard
+
+- Filtros: `hlm-toggle-group` para Día, Semana, Mes y Año; navegación de periodo con botones Helm unidos y popover; tres selectores con etiqueta visible. Una sola línea de resumen con `aria-live`.
+- KPI en fila (`fin-kpi [row]`): icono, cifra, pista y, a la derecha, variación y minigráfica; rejilla `auto-fill` de 250 px. El diseño apilado sigue en el resto de pantallas.
+- Tabla del periodo a la altura de la ventana (mínimo 600 px, 15 filas) y widgets de tabla a todo el ancho; tres columnas de widgets desde 1700 px.
+
+## Auditoría de interfaz (19-sep-2026)
+
+Hallazgos con las guías de UX, espacio y estilos del repositorio, ordenados por impacto:
+
+1. **Encabezados de página** ocupan 90–110 px (`clamp` hasta 3,2 rem): bajarlos a ~2 rem devuelve una fila de tabla en cada pantalla.
+2. **Fechas con formato de Angular en `en-US`** (`31 Dec, 19:00` en Administración): deben salir del idioma de Preferencias con `Intl.DateTimeFormat`.
+3. **Widgets vacíos** del dashboard ocupan 360 px cada uno con «No hay datos»: colapsar los vacíos a una línea o agruparlos por secciones (Flujo, Categorías, Tiempo, Riesgo).
+4. **Minigráficas planas** cuando no hay serie: no dibujarlas.
+5. **Botón flotante de errores** tapa la última columna y la paginación en la esquina inferior derecha; reservar `padding-bottom` o moverlo a la barra superior.
+6. **Calendario** abre en julio de 2026 aunque hoy sea septiembre: anclar a hoy como el dashboard.
+7. **Densidad de tablas**: filas de 61 px; ofrecer densidad compacta (48 px) en Preferencias.
+8. **Colores de estado** (Activo/Inactivo, origen del valor) son texto pequeño gris: usar `hlmBadge` con variante para que se lean de un vistazo.
+9. **Botones**: no queda ningún `<button>` sin `hlmBtn` en `src/app` (calendario, agenda y filas de errores pasaron a Helm).
+10. **Pendientes de medición**: temas océano y baya con axe, lector de pantalla, y contraste de gráficas.
 
 ## Archivos grandes: estado y siguiente paso
 

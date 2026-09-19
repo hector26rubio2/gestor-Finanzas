@@ -32,7 +32,8 @@ const guard: CanMatchFn = (route) => {
   const decidir = (): boolean | UrlTree => {
     if (!store.user()) {
       const volver = safeReturnPath(solicitada);
-      return router.createUrlTree(['/login'], volver ? { queryParams: { returnUrl: volver } } : {});
+      const distinta = volver && volver !== '/dashboard';
+      return router.createUrlTree(['/login'], distinta ? { queryParams: { returnUrl: volver } } : {});
     }
 
     const abierta = (entrada: (typeof navigation)[number]) =>

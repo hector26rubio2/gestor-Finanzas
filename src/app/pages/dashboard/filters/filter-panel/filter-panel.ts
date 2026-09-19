@@ -1,6 +1,7 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
+import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +23,7 @@ export type Scale = 'day' | 'week' | 'month' | 'year';
     HlmButton,
     HlmInput,
     HlmPopoverImports,
+    HlmToggleGroupImports,
     FormsModule,
     IconComponent,
     UiSelectComponent,
@@ -56,6 +58,10 @@ export class FilterPanelComponent {
   readonly filtersExpanded = signal(true);
 
   readonly i18n = inject(I18nService);
+
+  onScale(value: unknown): void {
+    if (typeof value === 'string' && value !== this.scale()) this.scaleChange.emit(value as Scale);
+  }
 
   onPickerState(state: 'open' | 'closed'): void {
     if ((state === 'open') !== this.periodPickerOpen()) this.togglePeriodPicker.emit();

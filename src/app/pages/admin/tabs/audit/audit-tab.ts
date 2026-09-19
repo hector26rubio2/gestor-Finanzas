@@ -88,7 +88,9 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
                 <th hlmTh>{{ i18n.t('admin.audit.column.action') }}</th>
                 <th hlmTh>{{ i18n.t('admin.audit.column.entity') }}</th>
                 <th hlmTh>{{ i18n.t('admin.common.traceId') }}</th>
-                <th hlmTh class="w-12"></th>
+                <th hlmTh class="w-12">
+                  <span class="sr-only">{{ i18n.t('admin.common.actions') }}</span>
+                </th>
               </tr>
             </thead>
             <tbody hlmTBody>
