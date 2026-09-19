@@ -3,7 +3,7 @@
   <h1 class="text-[1.2rem]">{{ i18n.t('sinSeccion.withSession.title') }}</h1>
   <p class="leading-[1.6] text-muted-foreground">{{ i18n.t('sinSeccion.withSession.detail') }}</p>
   <button hlmBtn type="button" class="mt-1.5" (click)="reintentar()">
-    {{ i18n.t('sinSeccion.withSession.retry') }}
+    <fin-icon name="undo" /> {{ i18n.t('sinSeccion.withSession.retry') }}
   </button>
   } @else {
   <h1 class="text-[1.2rem]">{{ i18n.t('sinSeccion.noSession.title') }}</h1>

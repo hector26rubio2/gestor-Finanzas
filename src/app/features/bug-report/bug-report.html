@@ -2,110 +2,30 @@
   hlmBtn
   size="icon-lg"
   type="button"
-  class="fixed right-6 bottom-6 z-40 size-[52px] rounded-full p-0 shadow-pop"
+  class="fixed z-40 size-[52px] cursor-grab touch-none rounded-full p-0 shadow-pop active:cursor-grabbing"
+  [style.right.px]="fab().right"
+  [style.bottom.px]="fab().bottom"
   [attr.aria-label]="i18n.t('bugReport.fab.label')"
-  (click)="launch()"
+  [attr.title]="i18n.t('bugReport.fab.move')"
+  (pointerdown)="startFabDrag($event)"
+  (pointermove)="moveFab($event)"
+  (pointerup)="endFabDrag()"
+  (pointercancel)="endFabDrag()"
+  (keydown)="moveFabByKey($event)"
+  (click)="press()"
 >
   <fin-icon name="flag" />
 </button>
 
 @if (open()) {
 <fin-overlay [title]="i18n.t('bugReport.title')" mode="modal" (closed)="close()">
-  <div class="mb-4 flex justify-center gap-2" role="list">
-    @for (n of [1, 2, 3, 4]; track n) {
-    <span
-      class="h-2 rounded-full"
-      [class]="step() === n ? 'w-5 bg-primary' : step() > n ? 'w-2 bg-accent' : 'w-2 bg-border'"
-      role="listitem"
-    ></span>
-    }
-  </div>
-
-  @switch (step()) { @case (1) {
-  <section>
-    <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.step1.intro') }}</p>
-    <fin-field [label]="i18n.t('bugReport.field.title')">
-      <input
-        hlmInput
-        type="text"
-        [(ngModel)]="title"
-        maxlength="200"
-        [placeholder]="i18n.t('bugReport.field.titlePlaceholder')"
-      />
-    </fin-field>
-    <fin-field [label]="i18n.t('bugReport.field.description')">
-      <textarea
-        hlmTextarea
-        rows="4"
-        [(ngModel)]="description"
-        maxlength="4000"
-        [placeholder]="i18n.t('bugReport.field.descriptionPlaceholder')"
-      ></textarea>
-    </fin-field>
-    <fin-field [label]="i18n.t('bugReport.field.severity')">
-      <fin-select
-        [(ngModel)]="severity"
-        [options]="severityOptions()"
-        [ariaLabel]="i18n.t('bugReport.field.severity')"
-      />
-    </fin-field>
-  </section>
-  } @case (2) {
-  <section>
-    <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.step2.intro') }}</p>
-    <fin-field [label]="i18n.t('bugReport.field.steps')">
-      <textarea
-        hlmTextarea
-        rows="6"
-        [(ngModel)]="stepsToReproduce"
-        maxlength="4000"
-        [placeholder]="i18n.t('bugReport.field.stepsPlaceholder')"
-      ></textarea>
-    </fin-field>
-  </section>
-  } @case (3) {
-  <section>
-    <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.step3.intro') }}</p>
-
-    <label class="mb-3 flex items-center gap-2 text-[0.9rem]">
-      <hlm-checkbox
-        [checked]="includeScreenshot()"
-        (checkedChange)="toggleScreenshot($event)"
-        [aria-label]="i18n.t('bugReport.field.includeScreenshot')"
-      />
-      {{ i18n.t('bugReport.field.includeScreenshot') }}
-    </label>
-    @if (capturingScreenshot()) {
-    <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
-    } @else if (includeScreenshot() && screenshotDataUrl()) {
-    <img
-      class="mb-3 max-w-full rounded-lg border border-border"
-      [src]="screenshotDataUrl()"
-      [alt]="i18n.t('bugReport.screenshot.previewAlt')"
-    />
-    } @else if (screenshotTooLarge()) {
-    <p class="mb-3 text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
-    } @else if (screenshotFailed()) {
-    <p class="mb-3 text-[0.9rem] text-destructive" role="alert">{{ i18n.t('bugReport.screenshot.failed') }}</p>
-    }
-
-    <dl class="my-3 grid gap-2 [&>div]:flex [&>div]:justify-between [&>div]:text-[0.9rem] [&_dt]:text-muted-foreground">
-      <div>
-        <dt>{{ i18n.t('bugReport.review.page') }}</dt>
-        <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
-      </div>
-      <div>
-        <dt>{{ i18n.t('bugReport.review.console') }}</dt>
-        <dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd>
-      </div>
-    </dl>
-    <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('bugReport.review.privacyNote') }}</p>
-  </section>
-  } @case (4) {
+  @if (done()) {
   <section class="grid gap-4 py-4 text-center">
     <p>{{ i18n.t('bugReport.success.message') }}</p>
     @if (githubIssueUrl(); as url) {
-    <a hlmBtn [href]="url" target="_blank" rel="noopener">{{ i18n.t('bugReport.success.githubLink') }} ↗</a>
+    <a hlmBtn [href]="url" target="_blank" rel="noopener"
+      ><fin-icon name="flag" /> {{ i18n.t('bugReport.success.githubLink') }} ↗</a
+    >
     } @else {
     <p class="text-[0.85rem] text-muted-foreground" role="status">
       {{ i18n.t('bugReport.success.githubPending') }} @if (githubDetail(); as detail) {
@@ -114,22 +34,177 @@
     </p>
     }
   </section>
-  } }
-
   <footer class="mt-4 flex justify-end gap-2.5">
-    @if (step() > 1 && step() < 4) {
-    <button hlmBtn variant="outline" type="button" (click)="back()">{{ i18n.t('bugReport.actions.back') }}</button>
-    } @if (step() < 3) {
-    <button hlmBtn type="button" [disabled]="step() === 1 && !canAdvanceFromStep1()" (click)="next()">
-      {{ i18n.t('bugReport.actions.next') }}
+    <button hlmBtn type="button" (click)="close()">
+      <fin-icon name="check" /> {{ i18n.t('bugReport.actions.close') }}
     </button>
-    } @if (step() === 3) {
-    <button hlmBtn type="button" [disabled]="sending()" (click)="submit()">
-      {{ sending() ? i18n.t('bugReport.actions.sending') : i18n.t('bugReport.actions.send') }}
-    </button>
-    } @if (step() === 4) {
-    <button hlmBtn type="button" (click)="close()">{{ i18n.t('bugReport.actions.close') }}</button>
-    }
   </footer>
+  } @else {
+  <form
+    #questionnaire="brnQuestionnaire"
+    brnQuestionnaire
+    class="grid gap-4"
+    [item]="activeItem()"
+    (itemChange)="itemChanged($event)"
+    (submit)="submit($event)"
+  >
+    <div
+      #progress="brnQuestionnaireProgress"
+      brnQuestionnaireProgress
+      class="flex justify-center gap-2"
+      [attr.aria-label]="i18n.t('bugReport.q.progressLabel')"
+      [valueText]="i18n.t('bugReport.q.progress')"
+    >
+      @for (filled of progress.segments(); track $index) {
+      <span class="h-2 rounded-full transition-all" [class]="filled ? 'w-5 bg-primary' : 'w-2 bg-border'"></span>
+      }
+    </div>
+
+    <fieldset brnQuestionnaireItem name="title" required class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
+      <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.title') }}</legend>
+      <p brnQuestionnaireDescription class="text-[0.9rem] text-muted-foreground">
+        {{ i18n.t('bugReport.step1.intro') }}
+      </p>
+      <input
+        hlmInput
+        brnQuestionnaireInput
+        name="title"
+        maxlength="200"
+        autocomplete="off"
+        [(ngModel)]="title"
+        [placeholder]="i18n.t('bugReport.field.titlePlaceholder')"
+      />
+      <p
+        brnQuestionnaireError
+        #titleError="brnQuestionnaireError"
+        class="text-[0.8rem] text-destructive"
+        [requiredMessage]="i18n.t('bugReport.q.required')"
+      >
+        {{ titleError.defaultMessage() }}
+      </p>
+    </fieldset>
+
+    <fieldset brnQuestionnaireItem name="description" required class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
+      <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.description') }}</legend>
+      <textarea
+        hlmTextarea
+        rows="5"
+        name="description"
+        maxlength="4000"
+        [(ngModel)]="description"
+        [placeholder]="i18n.t('bugReport.field.descriptionPlaceholder')"
+      ></textarea>
+      <input brnQuestionnaireInput class="sr-only" tabindex="-1" aria-hidden="true" [value]="description" />
+      <p
+        brnQuestionnaireError
+        #descriptionError="brnQuestionnaireError"
+        class="text-[0.8rem] text-destructive"
+        [requiredMessage]="i18n.t('bugReport.q.required')"
+      >
+        {{ descriptionError.defaultMessage() }}
+      </p>
+    </fieldset>
+
+    <fieldset brnQuestionnaireItem name="severity" required class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
+      <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.severity') }}</legend>
+      <div brnQuestionnaireChoices class="grid gap-2 sm:grid-cols-2">
+        @for (option of severityOptions(); track option.value) {
+        <label
+          brnQuestionnaireChoice
+          class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-[0.9rem] has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 data-[checked]:border-primary data-[checked]:bg-accent"
+          [value]="option.value"
+          [defaultChecked]="option.value === severity"
+          (checkedChange)="pickSeverity($event, option.value)"
+        >
+          <input brnQuestionnaireChoiceInput class="accent-primary" />
+          <span brnQuestionnaireChoiceLabel class="flex-1">{{ option.label }}</span>
+          <kbd
+            brnQuestionnaireChoiceShortcut
+            class="rounded border border-border px-1.5 text-xs text-muted-foreground"
+          ></kbd>
+        </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset brnQuestionnaireItem name="steps" class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
+      <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.steps') }}</legend>
+      <p brnQuestionnaireDescription class="text-[0.9rem] text-muted-foreground">
+        {{ i18n.t('bugReport.step2.intro') }}
+      </p>
+      <textarea
+        hlmTextarea
+        rows="6"
+        name="steps"
+        maxlength="4000"
+        [(ngModel)]="stepsToReproduce"
+        [placeholder]="i18n.t('bugReport.field.stepsPlaceholder')"
+      ></textarea>
+      <input brnQuestionnaireInput class="sr-only" tabindex="-1" aria-hidden="true" [value]="stepsToReproduce" />
+    </fieldset>
+
+    <fieldset brnQuestionnaireItem name="review" multiple class="grid gap-3 border-0 p-0 [&[hidden]]:hidden">
+      <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.step3.intro') }}</legend>
+      <div brnQuestionnaireChoices>
+        <label
+          brnQuestionnaireChoice
+          class="flex cursor-pointer items-center gap-2.5 text-[0.9rem]"
+          value="screenshot"
+          [defaultChecked]="includeScreenshot()"
+          (checkedChange)="pickScreenshot($event)"
+        >
+          <input brnQuestionnaireChoiceInput class="accent-primary" />
+          <span brnQuestionnaireChoiceLabel>{{ i18n.t('bugReport.field.includeScreenshot') }}</span>
+        </label>
+      </div>
+      @if (capturingScreenshot()) {
+      <p class="text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
+      } @else if (includeScreenshot() && screenshotDataUrl()) {
+      <img
+        class="max-h-56 w-full rounded-lg border border-border object-cover object-top"
+        [src]="screenshotDataUrl()"
+        [alt]="i18n.t('bugReport.screenshot.previewAlt')"
+      />
+      } @else if (screenshotTooLarge()) {
+      <p class="text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
+      } @else if (screenshotFailed()) {
+      <p class="text-[0.9rem] text-destructive" role="alert">{{ i18n.t('bugReport.screenshot.failed') }}</p>
+      }
+      <dl class="grid gap-2 [&>div]:flex [&>div]:justify-between [&>div]:text-[0.9rem] [&_dt]:text-muted-foreground">
+        <div>
+          <dt>{{ i18n.t('bugReport.review.page') }}</dt>
+          <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('bugReport.review.console') }}</dt>
+          <dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd>
+        </div>
+      </dl>
+      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('bugReport.review.privacyNote') }}</p>
+    </fieldset>
+
+    <footer class="flex justify-between gap-2.5">
+      <button hlmBtn variant="outline" type="button" brnQuestionnairePrevious [class.invisible]="questionnaire.first()">
+        <fin-icon name="previous" /> {{ i18n.t('bugReport.actions.back') }}
+      </button>
+      <span class="flex gap-2.5">
+        @if (questionnaire.activeItemName() === 'steps' && !stepsToReproduce.trim()) {
+        <button hlmBtn variant="outline" type="button" brnQuestionnaireSkip>
+          {{ i18n.t('bugReport.actions.skip') }} <fin-icon name="next" />
+        </button>
+        } @else if (questionnaire.last()) {
+        <button hlmBtn type="submit" brnQuestionnaireSubmit [disabled]="sending()">
+          <fin-icon name="flag" /> {{ sending() ? i18n.t('bugReport.actions.sending') : i18n.t('bugReport.actions.send')
+          }}
+        </button>
+        } @else {
+        <button hlmBtn type="button" brnQuestionnaireNext>
+          {{ i18n.t('bugReport.actions.next') }} <fin-icon name="next" />
+        </button>
+        }
+      </span>
+    </footer>
+  </form>
+  }
 </fin-overlay>
 }

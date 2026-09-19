@@ -1,4 +1,5 @@
 import { todayIso } from '../../core/utils/dates';
+import { IconComponent } from '../../ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -36,6 +37,7 @@ import { AsyncActionService } from '../../core/utils/async-action.service';
 @Component({
   selector: 'fin-movement-form',
   imports: [
+    IconComponent,
     HlmButton,
     FormsModule,
     OverlayComponent,

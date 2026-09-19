@@ -27,7 +27,7 @@ export class PeopleTabComponent {
 
   readonly peopleColumns = computed(() => [
     { key: 'name', label: this.i18n.t('people.column.name') },
-    { key: 'relationship', label: this.i18n.t('people.column.relationship') },
+    { key: 'relationship', label: this.i18n.t('people.column.relationship'), facet: true },
     { key: 'owed', label: this.i18n.t('people.column.owed') },
     { key: 'owing', label: this.i18n.t('people.column.owing') },
     { key: 'balance', label: this.i18n.t('people.column.balance') },

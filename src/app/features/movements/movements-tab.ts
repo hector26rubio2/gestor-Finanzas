@@ -1,3 +1,4 @@
+import { IconComponent } from '../../ui/icon/icon';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -32,6 +33,7 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 @Component({
   selector: 'app-movements-tab',
   imports: [
+    IconComponent,
     CommonModule,
     FormsModule,
     HlmButton,

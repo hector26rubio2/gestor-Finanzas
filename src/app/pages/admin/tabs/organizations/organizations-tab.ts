@@ -157,9 +157,11 @@ import { OrganizationSheetComponent } from './organization-sheet';
         <input hlmInput maxlength="3" [ngModel]="currency()" (ngModelChange)="currency.set($event.toUpperCase())" />
       </label>
       <div sheetFooter class="flex gap-2">
-        <button hlmBtn variant="outline" (click)="creating.set(false)">{{ i18n.t('admin.common.cancel') }}</button>
+        <button hlmBtn variant="outline" (click)="creating.set(false)">
+          <fin-icon name="close" /> {{ i18n.t('admin.common.cancel') }}
+        </button>
         <button hlmBtn [disabled]="saving() || !name().trim()" (click)="create()">
-          {{ i18n.t('admin.roles.drawer.save') }}
+          <fin-icon name="check" /> {{ i18n.t('admin.roles.drawer.save') }}
         </button>
       </div>
     </fin-sheet-panel>

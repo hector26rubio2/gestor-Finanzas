@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
+import { IconComponent } from '../../../../ui/icon/icon';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiAdminUser } from '../../../../core/api/administration.api';
@@ -10,15 +11,16 @@ import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
-import { PermissionGroupsComponent } from '../../permission-groups/permission-groups';
+import { PermissionPickerComponent } from '../../permission-picker/permission-picker';
 
 @Component({
   selector: 'app-user-sheet',
   imports: [
+    IconComponent,
     FormsModule,
     HlmButton,
     OptionRowComponent,
-    PermissionGroupsComponent,
+    PermissionPickerComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
@@ -104,7 +106,7 @@ import { PermissionGroupsComponent } from '../../permission-groups/permission-gr
                   [disabled]="store.hasPendingMove(u)"
                   (click)="store.clearOverride(u, override.code)"
                 >
-                  {{ i18n.t('admin.users.drawer.removeOverride') }}
+                  <fin-icon name="trash" /> {{ i18n.t('admin.users.drawer.removeOverride') }}
                 </button>
               </div>
             }
@@ -113,7 +115,7 @@ import { PermissionGroupsComponent } from '../../permission-groups/permission-gr
         <section class="flex flex-col gap-2">
           <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.permissionsTitle') }}</h3>
           <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.permissionsHint') }}</p>
-          <app-permission-groups
+          <app-permission-picker
             [groups]="store.permissionGroups()"
             [checked]="hasPermission(u)"
             [changed]="permissionChanged(u)"

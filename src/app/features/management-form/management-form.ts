@@ -1,4 +1,5 @@
 import { DateFieldComponent } from '../../ui/date-field/date-field';
+import { IconComponent } from '../../ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
@@ -14,6 +15,7 @@ import { FieldComponent } from '../../ui/field/field';
 @Component({
   selector: 'fin-management-form',
   imports: [
+    IconComponent,
     DateFieldComponent,
     HlmButton,
     HlmInput,

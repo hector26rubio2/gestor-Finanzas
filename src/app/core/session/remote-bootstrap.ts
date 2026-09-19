@@ -6,7 +6,9 @@ import { Router } from '@angular/router';
 import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
 import { toViewData, toViewUser } from './remote-mappers';
 import { AppStore } from '../state/store';
+import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '../state/theme';
 import { I18nService } from '../i18n/i18n.service';
+import { DashboardLayoutService } from '../../pages/dashboard/layout/dashboard-layout.service';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
@@ -14,6 +16,7 @@ export class RemoteBootstrap {
   private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
+  private readonly layout = inject(DashboardLayoutService);
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
 
@@ -195,21 +198,24 @@ export class RemoteBootstrap {
     this.store.categories.set(raw.categories);
     if (raw.preferences) {
       const preferences = raw.preferences;
-      let custom: { accent?: string; radius?: number } = {};
-      try {
-        custom = preferences.customThemeJson ? JSON.parse(preferences.customThemeJson) : {};
-      } catch {
-        custom = {};
-      }
+      const custom = parsePalette(preferences.customThemeJson);
       this.store.preferences.update((value) => ({
         ...value,
         locale: preferences.language,
         theme: preferences.theme as typeof value.theme,
         font: preferences.font,
         density: preferences.density as typeof value.density,
-        accent: custom.accent ?? value.accent,
-        radius: custom.radius ?? value.radius,
+        name: custom?.name ?? value.name,
+        accent: custom?.accent ?? value.accent,
+        primary: custom?.primary ?? custom?.accent ?? value.primary,
+        secondary: custom?.secondary ?? value.secondary,
+        text: custom?.text ?? value.text,
+        surface: custom?.surface ?? value.surface,
+        border: custom?.border ?? value.border,
+        radius: custom?.radius ?? value.radius,
       }));
+      applyStoredAppearance(preferences, custom);
+      this.layout.hydrate(preferences.dashboardLayoutJson);
     }
   }
 
@@ -353,6 +359,7 @@ export class RemoteBootstrap {
       }
     }
     this.store.remoteState.set('anonymous');
+    clearAppearanceOverrides();
     this.store.forgetDemoSession();
     this.store.user.set(null);
     this.store.form.set(null);

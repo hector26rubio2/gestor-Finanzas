@@ -1,4 +1,5 @@
 import { HlmButton } from '@spartan-ng/helm/button';
+import { CategoryBadgeComponent } from '../../../../ui/category-badge/category-badge';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { AppStore } from '../../../../core/state/store';
 
@@ -11,7 +12,7 @@ export interface CategoryListItem {
 
 /** Lista de categorías de gasto, cada una con su barra de reparto — clic filtra el resto del panel por esa categoría. */
 @Component({
-  imports: [HlmButton],
+  imports: [HlmButton, CategoryBadgeComponent],
   selector: 'fin-category-list',
   host: { class: 'flex min-h-0 flex-1' },
   templateUrl: './category-list.html',

@@ -1,3 +1,4 @@
+import { IconComponent } from '../../../../ui/icon/icon';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,17 +21,18 @@ import { AppStore } from '../../../../core/state/store';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
-import { BulkChange, PermissionGroupsComponent } from '../../permission-groups/permission-groups';
+import { BulkChange, PermissionPickerComponent } from '../../permission-picker/permission-picker';
 
 @Component({
   selector: 'app-role-sheet',
   imports: [
+    IconComponent,
     FormsModule,
     HlmButton,
     HlmInput,
     HlmLabel,
     HlmTextarea,
-    PermissionGroupsComponent,
+    PermissionPickerComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
@@ -62,7 +64,7 @@ import { BulkChange, PermissionGroupsComponent } from '../../permission-groups/p
           />
         </label>
       }
-      <app-permission-groups
+      <app-permission-picker
         [groups]="store.permissionGroups()"
         [checked]="isChecked"
         [bulk]="true"
@@ -71,8 +73,12 @@ import { BulkChange, PermissionGroupsComponent } from '../../permission-groups/p
         (bulkChange)="markGroup($event)"
       />
       <div sheetFooter class="flex gap-2">
-        <button hlmBtn variant="outline" (click)="closed.emit()">{{ i18n.t('admin.common.cancel') }}</button>
-        <button hlmBtn [disabled]="saving()" (click)="save()">{{ i18n.t('admin.roles.drawer.save') }}</button>
+        <button hlmBtn variant="outline" (click)="closed.emit()">
+          <fin-icon name="close" /> {{ i18n.t('admin.common.cancel') }}
+        </button>
+        <button hlmBtn [disabled]="saving()" (click)="save()">
+          <fin-icon name="check" /> {{ i18n.t('admin.roles.drawer.save') }}
+        </button>
       </div>
     </fin-sheet-panel>
   `,

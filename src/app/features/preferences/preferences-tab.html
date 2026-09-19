@@ -94,7 +94,7 @@
       [disabled]="!canCustomize()"
       (click)="saveCustomTheme()"
     >
-      {{ i18n.t('preferences.saveThemeButton') }}
+      <fin-icon name="check" /> {{ i18n.t('preferences.saveThemeButton') }}
     </button>
   </article>
   <article hlmCard class="gap-0 p-[22px]">
@@ -176,7 +176,7 @@
           [ariaLabel]="i18n.t('preferences.invite.roleAriaLabel')"
       /></label>
       <button hlmBtn type="submit" [disabled]="!rolesDisponibles().length">
-        {{ i18n.t('preferences.invite.submitButton') }}
+        <fin-icon name="check" /> {{ i18n.t('preferences.invite.submitButton') }}
       </button>
     </form>
     @if (errorDeInvitacion()) {
@@ -189,7 +189,7 @@
     <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.localData.description') }}</p>
     <div class="mt-3.5 flex flex-wrap gap-2.5">
       <button hlmBtn variant="outline" [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
-        {{ i18n.t('preferences.localData.resetButton') }}
+        <fin-icon name="undo" /> {{ i18n.t('preferences.localData.resetButton') }}
       </button>
       <button hlmBtn variant="outline" (click)="logout()">{{ i18n.t('preferences.logoutButton') }}</button>
     </div>

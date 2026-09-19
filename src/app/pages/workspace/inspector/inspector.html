@@ -80,7 +80,7 @@
     <footer class="mt-[22px] flex gap-[9px]">
       @if (store.inspector()?.type === 'movement') { @if (can(P.movimientos.editar)) {
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">
-        {{ i18n.t('workspace.actions.edit') }}
+        <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>
       } @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
@@ -101,11 +101,11 @@
       } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') && !store.cardPaymentMode()
       && can(P.cuentas.editar)) {
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedAccount()">
-        {{ i18n.t('workspace.actions.editAccount') }}
+        <fin-icon name="edit" /> {{ i18n.t('workspace.actions.editAccount') }}
       </button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
       <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askDeactivateAccount()">
-        {{ i18n.t('workspace.actions.deactivateAccount') }}
+        <fin-icon name="pause" /> {{ i18n.t('workspace.actions.deactivateAccount') }}
       </button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
       store.selectedCalendarDate()).length === 0) {
@@ -176,7 +176,9 @@
           [ariaLabel]="i18n.t('workspace.cardPayment.title')"
         />
       </div>
-      <button hlmBtn class="h-10" (click)="confirmCardPayment()">{{ i18n.t('workspace.cardPayment.confirm') }}</button>
+      <button hlmBtn class="h-10" (click)="confirmCardPayment()">
+        <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
+      </button>
     </section>
     }
   </section></ng-template

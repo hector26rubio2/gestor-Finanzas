@@ -1,14 +1,11 @@
-<div class="flex gap-2.5 overflow-auto p-[3px]" role="group" [attr.aria-label]="ariaLabel">
-  @for (t of options; track t.value) {
-  <button
-    hlmBtn
-    variant="outline"
-    type="button"
-    class="h-[46px] flex-1 px-5 font-semibold whitespace-nowrap aria-pressed:border-primary aria-pressed:bg-primary aria-pressed:text-primary-foreground aria-pressed:ring-[3px] aria-pressed:ring-primary/25 hover:aria-pressed:bg-primary"
-    [attr.aria-pressed]="kind === t.value"
-    (click)="kindChange.emit(t.value)"
-  >
-    {{ t.label }}
-  </button>
-  }
-</div>
+<hlm-tabs [tab]="kind" (tabActivated)="kindChange.emit($event)">
+  <hlm-tabs-list class="grid h-11 w-full auto-cols-fr grid-flow-col" [attr.aria-label]="ariaLabel">
+    @for (t of options; track t.value) {
+    <button [hlmTabsTrigger]="t.value" class="h-full gap-2 px-5 font-semibold whitespace-nowrap">
+      @if (iconOf(t.value); as icon) {
+      <fin-icon [name]="icon" />
+      } {{ t.label }}
+    </button>
+    }
+  </hlm-tabs-list>
+</hlm-tabs>

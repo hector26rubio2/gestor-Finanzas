@@ -21,6 +21,8 @@ import { ChartComponent } from '../../ui/chart/chart';
 import {} from '../../ui/chart/chart-theme';
 import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
 import { FieldComponent } from '../../ui/field/field';
+import { CategoryBadgeComponent } from '../../ui/category-badge/category-badge';
+import { FinTableCellDirective } from '../../ui/data-table/table-cell.directive';
 import { CategoryListComponent } from './widgets/category-list/category-list';
 import { AccountListComponent } from './widgets/account-list/account-list';
 import { ColorScaleComponent } from './widgets/color-scale/color-scale';
@@ -49,6 +51,8 @@ const KPI_HEIGHT = 120;
     ChartComponent,
     KpiComponent,
     DataTableComponent,
+    FinTableCellDirective,
+    CategoryBadgeComponent,
     OverlayComponent,
     IconComponent,
     UiSelectComponent,
@@ -65,7 +69,6 @@ const KPI_HEIGHT = 120;
     CdkDropList,
     FlowItemComponent,
   ],
-  providers: [DashboardLayoutService],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
@@ -644,8 +647,8 @@ export class DashboardComponent extends DashboardKpis {
   readonly columns = computed(() => [
     { key: 'date', label: this.i18n.t('dashboard.detail.date') },
     { key: 'description', label: this.i18n.t('dashboard.table.description') },
-    { key: 'category', label: this.i18n.t('dashboard.detail.category') },
-    { key: 'account', label: this.i18n.t('dashboard.detail.account') },
+    { key: 'category', label: this.i18n.t('dashboard.detail.category'), facet: true },
+    { key: 'account', label: this.i18n.t('dashboard.detail.account'), facet: true },
     { key: 'amount', label: this.i18n.t('dashboard.chart.amountAxis') },
   ]);
   readonly rows = computed(() =>

@@ -10,6 +10,7 @@ export interface ApiPreference {
   density: string;
   baseCurrency: string;
   customThemeJson: string | null;
+  dashboardLayoutJson: string | null;
   updatedAt: string;
 }
 
@@ -28,8 +29,16 @@ export class PreferencesApi {
     return this.transport.request<ApiPreference>({ method: 'GET', path: API_ROUTES.preferences });
   }
 
-  updatePreferences(request: Omit<ApiPreference, 'userId' | 'updatedAt'>) {
+  updatePreferences(request: Omit<ApiPreference, 'userId' | 'updatedAt' | 'dashboardLayoutJson'>) {
     return this.transport.request<ApiPreference>({ method: 'PUT', path: API_ROUTES.preferences, body: request });
+  }
+
+  saveDashboardLayout(layoutJson: string | null) {
+    return this.transport.request<ApiPreference>({
+      method: 'PUT',
+      path: `${API_ROUTES.preferences}/dashboard-layout`,
+      body: { layoutJson },
+    });
   }
 
   featureFlags() {

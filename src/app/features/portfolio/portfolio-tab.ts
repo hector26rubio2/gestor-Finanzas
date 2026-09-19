@@ -22,9 +22,9 @@ export class PortfolioTabComponent {
 
   readonly investmentColumns = computed(() => [
     { key: 'name', label: this.i18n.t('portfolio.column.name') },
-    { key: 'type', label: this.i18n.t('portfolio.column.type') },
-    { key: 'institution', label: this.i18n.t('portfolio.column.institution') },
-    { key: 'risk', label: this.i18n.t('portfolio.column.risk') },
+    { key: 'type', label: this.i18n.t('portfolio.column.type'), facet: true },
+    { key: 'institution', label: this.i18n.t('portfolio.column.institution'), facet: true },
+    { key: 'risk', label: this.i18n.t('portfolio.column.risk'), facet: true },
     { key: 'cost', label: this.i18n.t('portfolio.column.cost') },
     { key: 'value', label: this.i18n.t('portfolio.column.value') },
     { key: 'return', label: this.i18n.t('portfolio.column.return') },

@@ -48,7 +48,7 @@ import { AdminStore } from '../admin.store';
           </button>
           <div class="flex gap-2">
             <button hlmBtn variant="outline" [disabled]="store.saving()" (click)="store.descartar()">
-              {{ i18n.t('admin.save.discard') }}
+              <fin-icon name="close" /> {{ i18n.t('admin.save.discard') }}
             </button>
             <button hlmBtn [disabled]="store.saving() || !store.dirty()" (click)="store.guardar()">
               {{ saveLabel() }}

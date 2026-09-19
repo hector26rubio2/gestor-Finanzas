@@ -40,7 +40,7 @@
     }
     <footer class="flex justify-end gap-2.5 border-t border-border pt-[18px]">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
-        {{ i18n.t('form.actions.cancel') }}</button
+        <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       >@if (model['kind']) {
       <button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
         {{ actions.isRunning(saveActionKey) ? i18n.t('form.movement.actions.saving') :
