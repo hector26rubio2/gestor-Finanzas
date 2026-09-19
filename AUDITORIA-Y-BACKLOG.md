@@ -53,10 +53,10 @@ Resultados de verificación:
 
 ### P1 — Accesibilidad e idiomas
 
-- [ ] Select reutilizable: Lighthouse detecta que el nombre accesible del trigger excluye la opción visible. Incluir etiqueta y valor sin duplicación y probar navegación por teclado/lector.
+- [x] Select reutilizable (corregido el 18-sep-2026: el nombre es «etiqueta: valor», con prueba; falta probar con lector de pantalla): Lighthouse detecta que el nombre accesible del trigger excluye la opción visible. Incluir etiqueta y valor sin duplicación y probar navegación por teclado/lector.
 - [ ] Revisar nombres accesibles de Sheet/Dialog, foco, contraste, zoom al 200 % y límite responsive de 768 px.
-- [ ] Revisar fallbacks literales como «Sin descripción», «Cambio» y «Cuota única», observados en pantalla con idioma portugués. No traducir nombres/descripciones escritos por usuarios.
-- [ ] Sustituir el doble símbolo «+» del botón móvil por un único icono con nombre accesible localizado.
+- [x] Fallbacks «Sin descripción»/«Sin categoría» de remote-bootstrap ya usan i18n (18-sep-2026); no se encontraron «Cambio» ni «Cuota única» en el código del cliente, así que si aparecen vienen del API. Revisar fallbacks literales como «Sin descripción», «Cambio» y «Cuota única», observados en pantalla con idioma portugués. No traducir nombres/descripciones escritos por usuarios.
+- [x] Corregido el 18-sep-2026 (un icono, aria-label localizado). Sustituir el doble símbolo «+» del botón móvil por un único icono con nombre accesible localizado.
 
 ### P2 — Migración visual selectiva a Spartan
 
@@ -64,7 +64,7 @@ Resultados de verificación:
 - [ ] Popover/Combobox para filtros con búsqueda; Sheet para filtros móviles; chips de filtros activos y acción de limpiar. Conservar valores, permisos, fechas, moneda y estado de consulta.
 - [ ] Alert Dialog: hecho para reversar movimiento y desactivar cuenta (`ConfirmDialogComponent`, 18-sep-2026); faltan otras acciones destructivas (p. ej. eliminar rol en Administración). Alert Dialog para acciones destructivas, con estados pendientes y error recuperable.
 - [ ] Table estilizada sobre el modelo actual: conservar ordenación, paginación remota, selección y celdas personalizadas. No sustituir la tabla con una maqueta que pierda estas funciones.
-- [ ] Skeletons con dimensiones estables y estados vacíos coherentes en cuentas y tarjetas.
+- [ ] Skeletons: `fin-skeleton` ya usa `hlm-skeleton` y se muestra al paginar Movimientos (18-sep-2026); faltan cuentas y tarjetas y estados vacíos. Skeletons con dimensiones estables y estados vacíos coherentes en cuentas y tarjetas.
 - [ ] Notificaciones: `store.toast.set()` ya se muestra con ngx-sonner y el banner propio desapareció (18-sep-2026); falta migrar los sitios a `AsyncActionService` para tener estado pendiente. Unificar notificaciones pendientes/éxito/error sobre AsyncAction/ngx-sonner; probar rechazo, doble clic, cancelación y navegación durante la petición.
 
 ### P2 — Organización del código
