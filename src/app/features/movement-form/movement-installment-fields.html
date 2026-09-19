@@ -1,13 +1,14 @@
 <fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
-  <input type="number" name="installmentTotal" min="1" [(ngModel)]="model['installmentTotal']" />
+  <input hlmInput type="number" name="installmentTotal" min="1" [(ngModel)]="model['installmentTotal']" />
 </fin-field>
 @if (currentEditable) {
 <fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
-  <input type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
+  <input hlmInput type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
 }
 <fin-field [label]="i18n.t('form.movement.field.purchaseApr')">
   <input
+    hlmInput
     type="number"
     name="purchaseApr"
     min="0"
@@ -17,7 +18,7 @@
   />
 </fin-field>
 @if (isOverridden() && cardApr() !== undefined) { @let tasaTarjeta = cardApr()!;
-<button type="button" class="text-reset" (click)="useCardApr()">
+<button hlmBtn variant="link" size="xs" type="button" (click)="useCardApr()">
   {{ i18n.t('form.movement.purchaseApr.useCardDefault', { rate: tasaTarjeta }) }}
 </button>
 }

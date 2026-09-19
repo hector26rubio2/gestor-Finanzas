@@ -1,3 +1,4 @@
+import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
@@ -35,6 +36,7 @@ import { AsyncActionService } from '../../core/async-action.service';
   selector: 'fin-movement-form',
   standalone: true,
   imports: [
+    HlmButton,
     FormsModule,
     OverlayComponent,
     MovementKindSelectorComponent,
@@ -49,7 +51,6 @@ import { AsyncActionService } from '../../core/async-action.service';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movement-form.html',
-  styleUrl: './movement-form.css',
 })
 export class MovementFormComponent {
   readonly store = inject(AppStore);

@@ -1,19 +1,22 @@
-<section class="report-toolbar" [attr.aria-label]="i18n.t('reports.filtersAriaLabel')">
-  <label
+<section
+  class="flex items-end justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
+  [attr.aria-label]="i18n.t('reports.filtersAriaLabel')"
+>
+  <label class="grid w-40 gap-[3px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('reports.periodLabel') }}<fin-select
       [ngModel]="reportPeriod()"
       (ngModelChange)="reportPeriod.set($event)"
       [options]="reportPeriodOptions()"
       [ariaLabel]="i18n.t('reports.periodSelectAriaLabel')"
   /></label>
-  <p>{{ i18n.t('reports.traceabilityNote') }}</p>
+  <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.traceabilityNote') }}</p>
   @if (can(P.reportes.exportar)) {
-  <button type="button" class="export-action" (click)="exportReport()">
+  <button hlmBtn variant="outline" type="button" (click)="exportReport()">
     <fin-icon name="download" /> {{ i18n.t('reports.exportButton') }}
   </button>
   }
 </section>
-<section class="kpis mini report-kpis">
+<fin-kpi-grid>
   <fin-kpi
     [label]="i18n.t('reports.kpi.net.label')"
     icon="trendUp"
@@ -39,105 +42,155 @@
     [value]="topCategory().name"
     [hint]="store.money(topCategory().value)"
   />
-</section>
-<section class="report-grid">
+</fin-kpi-grid>
+<section class="grid auto-rows-max grid-cols-[1.2fr_0.8fr] gap-3.5 overflow-auto max-[700px]:grid-cols-1">
   @if (can(P.reportes.comparativo.ver)) {
-  <div class="chart">
-    <h2>{{ i18n.t('reports.incomeExpense.title') }}</h2>
-    <p class="chart-description">{{ i18n.t('reports.incomeExpense.description') }}</p>
-    <div class="chart-legend">
-      <span class="income-key">{{ i18n.t('reports.legend.income') }}</span
-      ><span class="expense-key">{{ i18n.t('reports.legend.expense') }}</span>
+  <div hlmCard class="min-h-[250px] gap-0 p-5">
+    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
+    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
+    <div class="flex flex-wrap items-center gap-[13px] text-[0.72rem] text-muted-foreground">
+      <span
+        class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-primary before:content-['']"
+        >{{ i18n.t('reports.legend.income') }}</span
+      ><span
+        class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-destructive before:content-['']"
+        >{{ i18n.t('reports.legend.expense') }}</span
+      >
     </div>
-    <div class="paired-bars" role="img" [attr.aria-label]="i18n.t('reports.incomeExpense.ariaLabel')">
+    <div
+      class="flex h-[190px] items-stretch gap-3 border-b border-border px-2 pt-7 max-[700px]:overflow-x-auto"
+      role="img"
+      [attr.aria-label]="i18n.t('reports.incomeExpense.ariaLabel')"
+    >
       @for (v of reportSeries(); track v.month) {
-      <div>
-        <span class="pair"
-          ><i [style.height.%]="v.incomePercent"><em>{{ compactMoney(v.income) }}</em></i
-          ><i [style.height.%]="v.expensePercent"><em>{{ compactMoney(v.expense) }}</em></i></span
-        ><b>{{ v.month }}</b>
+      <div class="grid min-w-[34px] flex-1 grid-rows-[1fr_22px] gap-[5px] text-center max-[700px]:flex-[0_0_54px]">
+        <span class="flex h-full items-end justify-center gap-[5px]"
+          ><i class="relative min-h-0.5 w-[min(18px,40%)] rounded-t-[5px] bg-primary" [style.height.%]="v.incomePercent"
+            ><em
+              class="absolute -top-[22px] left-1/2 -translate-x-1/2 text-[0.72rem] not-italic whitespace-nowrap text-muted-foreground"
+              >{{ compactMoney(v.income) }}</em
+            ></i
+          ><i
+            class="relative min-h-0.5 w-[min(18px,40%)] rounded-t-[5px] bg-destructive"
+            [style.height.%]="v.expensePercent"
+            ><em
+              class="absolute -top-[22px] left-1/2 -translate-x-1/2 text-[0.72rem] not-italic whitespace-nowrap text-muted-foreground"
+              >{{ compactMoney(v.expense) }}</em
+            ></i
+          ></span
+        ><b class="text-[0.72rem] text-muted-foreground">{{ v.month }}</b>
       </div>
       }
     </div>
-    <small class="chart-unit">{{ i18n.t('reports.incomeExpense.unitNote') }}</small>
+    <small class="mt-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.unitNote') }}</small>
   </div>
   } @if (can(P.reportes.categorias.ver)) {
-  <div class="chart">
-    <h2>{{ i18n.t('reports.categories.title') }}</h2>
-    <p class="chart-description">{{ i18n.t('reports.categories.description') }}</p>
-    <div class="category-report">
-      <div class="donut">
+  <div hlmCard class="min-h-[250px] gap-0 p-5">
+    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.categories.title') }}</h2>
+    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
+    <div class="grid grid-cols-[minmax(145px,0.8fr)_1.2fr] items-center gap-3 max-[700px]:grid-cols-1">
+      <div
+        class="mx-auto my-[30px] grid size-[170px] place-items-center rounded-full bg-[radial-gradient(circle,var(--surface)_0_46%,transparent_47%),conic-gradient(var(--accent)_0_35%,var(--danger)_35%_58%,var(--warning)_58%_78%,var(--line)_78%)]"
+      >
         <b>{{ store.money(reportExpenses()) }}</b>
       </div>
-      <ul>
+      <ul class="grid gap-2">
         @for (category of reportCategories(); track category.name) {
-        <li>
-          <i [style.background]="category.color"></i><span>{{ category.name }}</span
-          ><b>{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
+        <li class="grid grid-cols-[9px_1fr_auto] items-center gap-[7px] text-[0.72rem]">
+          <i class="size-2 rounded-full" [style.background]="category.color"></i><span>{{ category.name }}</span
+          ><b class="whitespace-nowrap">{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
         </li>
         }
       </ul>
     </div>
   </div>
   } @if (can(P.reportes.tendencia.ver)) {
-  <div class="chart full">
-    <h2>{{ i18n.t('reports.trend.title') }}</h2>
-    <p class="chart-description">{{ i18n.t('reports.trend.description') }}</p>
-    <div class="report-line" role="img" [attr.aria-label]="i18n.t('reports.trend.ariaLabel')">
-      <span class="axis-y"
-        ><b>{{ compactMoney(reportNetRange()) }}</b><em>$0</em><b>-{{ compactMoney(reportNetRange()) }}</b></span
-      ><svg viewBox="0 0 600 160" preserveAspectRatio="none">
-        <line class="zero" x1="0" y1="80" x2="600" y2="80" />
-        <polyline [attr.points]="reportNetPoints()" />
+  <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
+    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.trend.title') }}</h2>
+    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
+    <div
+      class="grid min-h-[205px] grid-cols-[70px_minmax(0,1fr)] grid-rows-[170px_auto]"
+      role="img"
+      [attr.aria-label]="i18n.t('reports.trend.ariaLabel')"
+    >
+      <span
+        class="flex flex-col items-end justify-between pt-[3px] pr-2.5 pb-[7px] text-[0.72rem] text-muted-foreground"
+        ><b>{{ compactMoney(reportNetRange()) }}</b><em class="not-italic">$0</em
+        ><b>-{{ compactMoney(reportNetRange()) }}</b></span
+      ><svg class="h-40 w-full overflow-visible" viewBox="0 0 600 160" preserveAspectRatio="none">
+        <line
+          class="stroke-border"
+          x1="0"
+          y1="80"
+          x2="600"
+          y2="80"
+          stroke-dasharray="5 4"
+          vector-effect="non-scaling-stroke"
+        />
+        <polyline
+          class="stroke-primary"
+          fill="none"
+          stroke-width="3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          vector-effect="non-scaling-stroke"
+          [attr.points]="reportNetPoints()"
+        />
       </svg>
-      <div class="axis-x">
+      <div class="col-start-2 flex justify-between gap-1 text-[0.72rem] text-muted-foreground">
         @for (v of reportSeries(); track v.month) {
-        <span>{{ v.month }}<small>{{ compactMoney(v.net) }}</small></span>
+        <span class="grid gap-0.5 text-center"
+          >{{ v.month }}<small class="text-[0.72rem] text-foreground">{{ compactMoney(v.net) }}</small></span
+        >
         }
       </div>
     </div>
-    <small class="chart-unit">{{ i18n.t('reports.trend.unitNote') }}</small>
+    <small class="mt-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.unitNote') }}</small>
   </div>
   } @if (can(P.reportes.deuda.ver)) {
-  <div class="chart">
-    <h2>{{ i18n.t('reports.debtHealth.title') }}</h2>
-    <dl class="report-facts">
+  <div hlmCard class="min-h-[250px] gap-0 p-5">
+    <h2 class="mb-3 text-base">{{ i18n.t('reports.debtHealth.title') }}</h2>
+    <dl
+      class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
+    >
       <div>
-        <dt>{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
-        <dd>34 %</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
+        <dd class="font-bold">34 %</dd>
       </div>
       <div>
-        <dt>{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
-        <dd>5 sep</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
+        <dd class="font-bold">5 sep</dd>
       </div>
       <div>
-        <dt>{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
-        <dd>{{ store.money(184000) }}</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
+        <dd class="font-bold">{{ store.money(184000) }}</dd>
       </div>
     </dl>
   </div>
   } @if (can(P.reportes.patrimonio.ver)) {
-  <div class="chart">
-    <h2>{{ i18n.t('reports.netWorth.title') }}</h2>
-    <dl class="report-facts">
+  <div hlmCard class="min-h-[250px] gap-0 p-5">
+    <h2 class="mb-3 text-base">{{ i18n.t('reports.netWorth.title') }}</h2>
+    <dl
+      class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
+    >
       <div>
-        <dt>{{ i18n.t('reports.netWorth.liquidAssets.label') }}</dt>
-        <dd>{{ store.money(store.available()) }}</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.liquidAssets.label') }}</dt>
+        <dd class="font-bold">{{ store.money(store.available()) }}</dd>
       </div>
       <div>
-        <dt>{{ i18n.t('reports.netWorth.investments.label') }}</dt>
-        <dd>{{ store.money(investmentValue()) }}</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.investments.label') }}</dt>
+        <dd class="font-bold">{{ store.money(investmentValue()) }}</dd>
       </div>
       <div>
-        <dt>{{ i18n.t('reports.netWorth.debt.label') }}</dt>
-        <dd>{{ store.money(store.debt()) }}</dd>
+        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.debt.label') }}</dt>
+        <dd class="font-bold">{{ store.money(store.debt()) }}</dd>
       </div>
     </dl>
   </div>
   } @if (can(P.reportes.hallazgos.ver)) {
-  <div class="chart full">
-    <h2>{{ i18n.t('reports.insights.title') }}</h2>
-    <ul class="insights">
+  <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
+    <h2 class="mb-3 text-base">{{ i18n.t('reports.insights.title') }}</h2>
+    <ul class="grid gap-3 text-muted-foreground">
       <li>{{ i18n.t('reports.insights.item1') }}</li>
       <li>{{ i18n.t('reports.insights.item2') }}</li>
       <li>{{ i18n.t('reports.insights.item3') }}</li>

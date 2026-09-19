@@ -1,3 +1,5 @@
+import { DateFieldComponent } from '../../ui/date-field/date-field';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
@@ -11,7 +13,7 @@ import { FieldComponent } from '../../ui/field';
 @Component({
   selector: 'fin-movement-core-fields',
   standalone: true,
-  imports: [FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
+  imports: [DateFieldComponent, HlmInput, FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
   templateUrl: './movement-core-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

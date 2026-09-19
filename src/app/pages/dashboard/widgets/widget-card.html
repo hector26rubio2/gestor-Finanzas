@@ -1,7 +1,7 @@
-<header>
+<header class="mb-4 flex flex-wrap items-end justify-between gap-x-5 gap-y-2.5">
   <div>
-    <span>{{ kicker() }}</span>
-    <h2>{{ title() }}</h2>
+    <span class="text-[0.72rem] font-bold tracking-[0.12em] text-primary">{{ kicker() }}</span>
+    <h2 class="my-1 text-base">{{ title() }}</h2>
   </div>
   <ng-content select="[headerExtra]" />
   <ng-content select="[actions]" />

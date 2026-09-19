@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { HlmButton } from '@spartan-ng/helm/button';
 
 export interface MovementKindOption {
   value: string;
@@ -8,9 +9,8 @@ export interface MovementKindOption {
 /** Fila de botones para elegir gasto, ingreso o transferencia. */
 @Component({
   selector: 'fin-movement-kind-selector',
-  standalone: true,
+  imports: [HlmButton],
   templateUrl: './movement-kind-selector.html',
-  styleUrl: './movement-kind-selector.css',
 })
 export class MovementKindSelectorComponent {
   @Input({ required: true }) kind!: string;

@@ -1,21 +1,28 @@
-<section class="notice-list">
+<section class="grid overflow-auto rounded-lg border border-border bg-card">
   @for (n of store.data().notifications; track n.id) {
-  <article [class.unread]="!n.read">
+  <article class="flex items-center gap-3.5 border-b border-border px-4.5 py-4 last:border-b-0">
     <span
-      class="notice-state"
+      class="size-2.5 flex-none rounded-full border-[1.5px]"
+      [class]="n.read ? 'border-input' : 'border-primary bg-primary'"
       [attr.aria-label]="n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread')"
     ></span>
-    <div class="notice-body">
-      <h2>{{ n.title }}</h2>
-      <p>{{ n.detail }}</p>
+    <div class="min-w-0">
+      <h2 class="text-sm" [class]="n.read ? 'font-medium text-muted-foreground' : 'font-bold text-foreground'">
+        {{ n.title }}
+      </h2>
+      <p class="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">{{ n.detail }}</p>
     </div>
     @if (n.id === 'notice-purchase') {
-    <button class="primary" (click)="reviewNotification(n.id)">{{ i18n.t('notifications.reviewButton') }}</button>
+    <button hlmBtn class="ms-auto flex-none" (click)="reviewNotification(n.id)">
+      {{ i18n.t('notifications.reviewButton') }}
+    </button>
     } @else if (can(P.notificaciones.editar)) {
-    <button class="quiet" (click)="mark(n.id)">{{ i18n.t('notifications.markReadButton') }}</button>
+    <button hlmBtn variant="ghost" class="ms-auto flex-none" (click)="mark(n.id)">
+      {{ i18n.t('notifications.markReadButton') }}
+    </button>
     }
   </article>
   } @empty {
-  <p class="empty-note">{{ i18n.t('notifications.empty') }}</p>
+  <p class="p-4 text-sm text-muted-foreground">{{ i18n.t('notifications.empty') }}</p>
   }
 </section>

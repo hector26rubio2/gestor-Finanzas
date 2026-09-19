@@ -2,6 +2,8 @@ import { Location } from '@angular/common';
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmLabel } from '@spartan-ng/helm/label';
 import { applyTheme, AppStore, Preferences } from '../../core/store';
 import { RemoteBootstrap } from '../../core/remote-bootstrap';
 import { IconComponent } from '../../ui/icon';
@@ -11,11 +13,9 @@ import { FinanceApiClient } from '../../core/api-client';
 import { safeReturnPath } from '../../core/return-url';
 import { firstValueFrom } from 'rxjs';
 @Component({
-  standalone: true,
-  imports: [FormsModule, IconComponent, UiSelectComponent],
+  imports: [FormsModule, HlmButton, HlmLabel, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
-  styleUrl: './login.css',
 })
 export class LoginComponent {
   readonly store = inject(AppStore);

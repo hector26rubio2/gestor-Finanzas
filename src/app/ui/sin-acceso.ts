@@ -12,10 +12,13 @@ import { I18nService } from '../core/i18n';
  */
 @Component({
   selector: 'fin-sin-acceso',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './sin-acceso.html',
-  styleUrl: './sin-acceso.css',
+  template: `
+    <section class="grid justify-items-start gap-2 rounded-lg border border-border bg-card p-7" role="status">
+      <h2 class="text-[1.05rem] font-semibold">{{ i18n.t('sinAcceso.title') }}</h2>
+      <p class="max-w-[60ch] text-muted-foreground">{{ i18n.t('sinAcceso.detail') }}</p>
+    </section>
+  `,
 })
 export class SinAccesoComponent {
   readonly i18n = inject(I18nService);

@@ -1,18 +1,30 @@
-<div class="color-scale">
-  <div class="color-scale-value">
-    <strong>{{ value() }}</strong>
-    <small>{{ label() }}</small>
+<div class="grid flex-1 content-center justify-items-center gap-3.5 px-1 py-1.5">
+  <div class="text-center">
+    <strong class="font-display text-[1.9rem] text-foreground">{{ value() }}</strong>
+    <small class="block text-[0.78rem] text-muted-foreground">{{ label() }}</small>
   </div>
-  <div class="color-scale-track">
-    <i class="color-scale-pointer" [style.left.%]="pointerPercent()"></i>
-    <i class="color-scale-meta" [style.left.%]="metaPercent()"></i>
+  <div
+    class="relative h-3.5 w-full rounded-full bg-[linear-gradient(90deg,var(--danger),var(--warning)_50%,var(--success)_100%)]"
+  >
+    <i
+      class="absolute -top-2 left-0 size-0 -translate-x-1/2 border-x-[7px] border-t-[11px] border-x-transparent border-t-foreground"
+      [style.left.%]="pointerPercent()"
+    ></i>
+    <i
+      class="absolute -top-[3px] left-0 h-5 w-0.5 -translate-x-1/2 bg-card opacity-80"
+      [style.left.%]="metaPercent()"
+    ></i>
   </div>
-  <div class="color-scale-ends">
+  <div class="flex w-full justify-between text-[0.72rem] text-muted-foreground">
     <span>{{ min() }}</span>
     <span>{{ target() }}</span>
     <span>{{ max() }}</span>
   </div>
-  <span class="status-pill" [style.color]="statusColor()" [style.border-color]="statusColor()">
+  <span
+    class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
+    [style.color]="statusColor()"
+    [style.border-color]="statusColor()"
+  >
     {{ statusLabel() }}
   </span>
 </div>

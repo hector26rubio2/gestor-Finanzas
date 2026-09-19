@@ -1,3 +1,6 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { BankCardComponent } from '../../ui/bank-card/bank-card';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import { HeaderActionsService } from '../../shared/header-actions.service';
@@ -43,9 +46,11 @@ const paginasConMeta = [
 const SIN_DATO = '—';
 
 @Component({
-  standalone: true,
   imports: [
     CommonModule,
+    HlmButton,
+    HlmInput,
+    BankCardComponent,
     FormsModule,
     RouterOutlet,
     OverlayComponent,
@@ -59,7 +64,6 @@ const SIN_DATO = '—';
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
-  styleUrl: './workspace.css',
 })
 export class WorkspaceComponent {
   readonly Math = Math;

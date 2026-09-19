@@ -1,5 +1,9 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmCard } from '@spartan-ng/helm/card';
+import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { toCsv, downloadCsv } from '../../core/csv';
 import { IconComponent } from '../../ui/icon';
 import { KpiComponent } from '../../ui/kpi/kpi';
@@ -13,11 +17,10 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-reports-tab',
-  standalone: true,
-  imports: [FormsModule, IconComponent, KpiComponent, UiSelectComponent],
+  imports: [FormsModule, HlmButton, HlmCard, IconComponent, KpiComponent, KpiGridComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports-tab.html',
-  styleUrl: './reports-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(AppStore);

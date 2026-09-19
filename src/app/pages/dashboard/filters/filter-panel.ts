@@ -1,3 +1,7 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmPopoverImports } from '@spartan-ng/helm/popover';
+import { IconComponent } from '../../../ui/icon';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
@@ -14,10 +18,18 @@ export type Scale = 'day' | 'week' | 'month' | 'year';
  */
 @Component({
   selector: 'fin-filter-panel',
-  standalone: true,
-  imports: [FormsModule, UiSelectComponent, BrnCollapsible, BrnCollapsibleContent, BrnCollapsibleTrigger],
+  imports: [
+    HlmButton,
+    HlmInput,
+    HlmPopoverImports,
+    FormsModule,
+    IconComponent,
+    UiSelectComponent,
+    BrnCollapsible,
+    BrnCollapsibleContent,
+    BrnCollapsibleTrigger,
+  ],
   templateUrl: './filter-panel.html',
-  styleUrl: './filter-panel.css',
   host: { style: 'display: contents' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -44,6 +56,10 @@ export class FilterPanelComponent {
   readonly filtersExpanded = signal(true);
 
   readonly i18n = inject(I18nService);
+
+  onPickerState(state: 'open' | 'closed'): void {
+    if ((state === 'open') !== this.periodPickerOpen()) this.togglePeriodPicker.emit();
+  }
 
   @Output() readonly clear = new EventEmitter<void>();
   @Output() readonly scaleChange = new EventEmitter<Scale>();

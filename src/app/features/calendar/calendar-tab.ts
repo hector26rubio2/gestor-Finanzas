@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api-client';
 import { P } from '../../core/permissions';
 import { CAPABILITIES, AppStore } from '../../core/store';
@@ -9,10 +11,10 @@ import { MovementsBookService } from '../../shared/movements/movements-book.serv
 
 @Component({
   selector: 'app-calendar-tab',
-  standalone: true,
+  imports: [HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendar-tab.html',
-  styleUrl: './calendar-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class CalendarTabComponent implements OnInit {
   readonly store = inject(AppStore);
@@ -21,6 +23,14 @@ export class CalendarTabComponent implements OnInit {
   private api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
   readonly P = P;
+
+  dayClass(day: { iso: string; current: boolean }): string {
+    const classes: string[] = [];
+    classes.push(this.calendarView() === 'day' ? 'p-[18px]' : 'p-[7px]');
+    if (day.iso === this.store.selectedCalendarDate()) classes.push('shadow-[inset_0_0_0_2px_var(--color-primary)]');
+    if (!day.current) classes.push('opacity-50');
+    return classes.join(' ');
+  }
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }

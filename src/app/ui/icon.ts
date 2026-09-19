@@ -73,10 +73,22 @@ export type IconName = keyof typeof TRAZOS;
  */
 @Component({
   selector: 'fin-icon',
-  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './icon.html',
-  styleUrl: './icon.css',
+  host: { class: 'inline-flex size-[var(--icon-size,1.15em)] flex-none' },
+  template: `
+    <svg
+      class="size-full [stroke-width:var(--icon-stroke,1.7)]"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path [attr.d]="trazo()" />
+    </svg>
+  `,
 })
 export class IconComponent {
   readonly name = input.required<string>();

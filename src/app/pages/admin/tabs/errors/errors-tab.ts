@@ -52,6 +52,7 @@ import { AdminStore } from '../../admin.store';
           @for (error of store.errors(); track error.id) {
             <li>
               <button
+                data-slot="error-row"
                 type="button"
                 class="flex w-full items-center gap-3 px-4 py-3 text-start hover:bg-accent/60"
                 (click)="selected.set(error)"

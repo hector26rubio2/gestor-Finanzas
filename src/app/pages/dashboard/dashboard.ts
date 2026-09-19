@@ -1,3 +1,5 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -117,8 +119,9 @@ const GENERIC_TYPES: readonly GenericWidgetType[] = [
 const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 'stacked100', 'matrix'];
 
 @Component({
-  standalone: true,
   imports: [
+    HlmButton,
+    HlmInput,
     FormsModule,
     RouterLink,
     ChartComponent,
@@ -140,7 +143,6 @@ const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 's
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css',
 })
 export class DashboardComponent {
   readonly P = P;

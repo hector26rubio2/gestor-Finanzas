@@ -1,78 +1,53 @@
-<section class="settings-grid">
-  <article class="wide">
-    <h2>{{ i18n.t('preferences.appearance.title') }}</h2>
-    <p>{{ i18n.t('preferences.appearance.description') }}</p>
-    <label
+<section class="grid auto-rows-max grid-cols-2 gap-3.5 overflow-auto max-[700px]:grid-cols-1">
+  <article hlmCard class="col-span-full gap-0 p-[22px] max-[700px]:col-auto">
+    <h2 class="text-base">{{ i18n.t('preferences.appearance.title') }}</h2>
+    <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.appearance.description') }}</p>
+    <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
       >{{ i18n.t('preferences.themeName.label') }}<input
+        hlmInput
         [disabled]="!canCustomize()"
         [ngModel]="store.preferences().name"
         (ngModelChange)="setThemeValue('name', $event)"
     /></label>
-    <div class="theme-picks">
+    <div class="mt-3.5 flex flex-wrap gap-2.5">
       @for (theme of themes(); track theme.id) {
       <button
+        hlmBtn
+        variant="outline"
+        class="grid h-auto gap-2 p-[11px] aria-pressed:border-primary aria-pressed:ring-2 aria-pressed:ring-accent"
         [attr.aria-pressed]="store.preferences().theme === theme.id"
         [disabled]="!can(P.preferencias.editar)"
         (click)="setTheme(theme.id)"
       >
-        <i [style.background]="theme.preview"></i>{{ theme.label }}
+        <i class="h-[45px] w-[100px] rounded-[7px] border border-border" [style.background]="theme.preview"></i>{{
+        theme.label }}
       </button>
       }
     </div>
-    <div class="custom-controls">
-      <label
-        >{{ i18n.t('preferences.accent.label') }}<input
+    <div class="mt-[18px] grid grid-cols-3 gap-3 max-[700px]:grid-cols-1">
+      @for (color of colorControls; track color.key) {
+      <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
+        >{{ i18n.t(color.label) }}<input
+          class="min-h-10 w-full rounded-md border border-border bg-card"
           type="color"
           [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().accent"
-          (ngModelChange)="setAccent($event)"
+          [ngModel]="store.preferences()[color.key]"
+          (ngModelChange)="setColor(color.key, $event)"
       /></label>
-      <label
-        >{{ i18n.t('preferences.primary.label') }}<input
-          type="color"
-          [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().primary"
-          (ngModelChange)="setThemeValue('primary', $event)"
-      /></label>
-      <label
-        >{{ i18n.t('preferences.secondary.label') }}<input
-          type="color"
-          [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().secondary"
-          (ngModelChange)="setThemeValue('secondary', $event)"
-      /></label>
-      <label
-        >{{ i18n.t('preferences.text.label') }}<input
-          type="color"
-          [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().text"
-          (ngModelChange)="setThemeValue('text', $event)"
-      /></label>
-      <label
-        >{{ i18n.t('preferences.surface.label') }}<input
-          type="color"
-          [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().surface"
-          (ngModelChange)="setThemeValue('surface', $event)"
-      /></label>
-      <label
-        >{{ i18n.t('preferences.border.label') }}<input
-          type="color"
-          [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().border"
-          (ngModelChange)="setThemeValue('border', $event)"
-      /></label>
-      <label
+      }
+      <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.density.label') }}<fin-select
+          class="w-full"
           [disabled]="!can(P.preferencias.editar)"
           [ngModel]="store.preferences().density"
           [options]="densityOptions()"
           [ariaLabel]="i18n.t('preferences.density.label')"
           (ngModelChange)="setDensity($event)"
       /></label>
-      <label
+      <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.radius.label') }}
         <input
+          class="w-full accent-primary"
           type="range"
           min="4"
           max="24"
@@ -83,40 +58,59 @@
       >
     </div>
     @if (!canCustomize()) {
-    <p role="note">{{ i18n.t('preferences.customizeRestricted') }}</p>
+    <p class="text-[0.8rem] text-muted-foreground" role="note">{{ i18n.t('preferences.customizeRestricted') }}</p>
     }
-    <section class="theme-preview" [attr.aria-label]="i18n.t('preferences.preview.ariaLabel')">
-      <div class="preview-nav">
+    <section
+      class="mt-[18px] grid min-h-[230px] grid-cols-[150px_1fr] overflow-hidden rounded-lg border border-border bg-background text-foreground"
+      [attr.aria-label]="i18n.t('preferences.preview.ariaLabel')"
+    >
+      <div class="grid content-start gap-[15px] bg-sidebar p-4 text-xs">
         <b><fin-icon name="dashboard" /> Finanzas</b><span>Dashboard</span
         ><span>{{ i18n.t('preferences.preview.movements') }}</span>
       </div>
-      <div class="preview-body">
+      <div class="p-[18px]">
         <small>{{ i18n.t('preferences.preview.label') }}</small>
-        <h3>{{ store.preferences().name }}</h3>
-        <div class="preview-kpis">
+        <h3 class="mt-1 mb-3.5">{{ store.preferences().name }}</h3>
+        <div
+          class="grid grid-cols-2 gap-2 [&>span]:grid [&>span]:rounded-lg [&>span]:border [&>span]:border-border [&>span]:bg-card [&>span]:p-2.5"
+        >
           <span><small>{{ i18n.t('preferences.preview.balance') }}</small><b>$12,4 M</b></span
           ><span><small>{{ i18n.t('preferences.preview.expenses') }}</small><b>$3,1 M</b></span>
         </div>
-        <div class="preview-chart"><i></i><i></i><i></i><i></i></div>
-        <button>{{ i18n.t('preferences.preview.actionButton') }}</button>
+        <div class="my-3 flex h-[70px] items-end gap-2">
+          <i class="h-[35%] flex-1 rounded-t-[5px] bg-primary"></i>
+          <i class="h-[70%] flex-1 rounded-t-[5px] bg-destructive"></i>
+          <i class="h-1/2 flex-1 rounded-t-[5px] bg-primary"></i>
+          <i class="h-[85%] flex-1 rounded-t-[5px] bg-destructive"></i>
+        </div>
+        <button hlmBtn>{{ i18n.t('preferences.preview.actionButton') }}</button>
       </div>
     </section>
-    <button type="button" [disabled]="!canCustomize()" (click)="saveCustomTheme()">
+    <button
+      hlmBtn
+      variant="outline"
+      class="mt-3.5 self-start"
+      type="button"
+      [disabled]="!canCustomize()"
+      (click)="saveCustomTheme()"
+    >
       {{ i18n.t('preferences.saveThemeButton') }}
     </button>
   </article>
-  <article>
-    <h2>{{ i18n.t('preferences.typographyLanguage.title') }}</h2>
-    <label
+  <article hlmCard class="gap-0 p-[22px]">
+    <h2 class="text-base">{{ i18n.t('preferences.typographyLanguage.title') }}</h2>
+    <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
       >{{ i18n.t('preferences.font.label') }}<fin-select
+        class="w-full"
         [options]="fontOptions"
         [ngModel]="store.preferences().font"
         [disabled]="!can(P.preferencias.editar)"
         (ngModelChange)="setFont($event)"
         [ariaLabel]="i18n.t('preferences.font.label')"
     /></label>
-    <label
+    <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
       >{{ i18n.t('preferences.language.label') }}<fin-select
+        class="w-full"
         [options]="languageOptions"
         [ngModel]="store.preferences().locale"
         [disabled]="!can(P.preferencias.editar)"
@@ -125,18 +119,23 @@
     /></label>
   </article>
   @if (can(P.organizacion.miembros.listar)) {
-  <article class="wide">
-    <h2>{{ i18n.t('preferences.members.title') }}</h2>
-    <p>{{ i18n.t('preferences.members.description') }}</p>
+  <article hlmCard class="col-span-full gap-0 p-[22px] max-[700px]:col-auto">
+    <h2 class="text-base">{{ i18n.t('preferences.members.title') }}</h2>
+    <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.members.description') }}</p>
     @if (miembros().length) {
-    <ul class="member-list">
+    <ul class="my-3 grid divide-y divide-border rounded-xl border border-border">
       @for (miembro of miembros(); track miembro.membershipId) {
-      <li>
-        <span>
+      <li class="flex items-center justify-between gap-3.5 px-3.5 py-3">
+        <span class="grid min-w-0">
           <b>{{ miembro.displayName }}</b>
-          <small>{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small>
+          <small class="text-muted-foreground [overflow-wrap:anywhere]"
+            >{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small
+          >
         </span>
-        <em [class.pendiente]="miembro.status === 'Invited'">
+        <em
+          class="text-xs whitespace-nowrap not-italic"
+          [class]="miembro.status === 'Invited' ? 'font-semibold text-warning' : 'text-muted-foreground'"
+        >
           {{ miembro.status === 'Invited' ? i18n.t('preferences.members.status.invited') :
           i18n.t('preferences.members.status.active') }}
         </em>
@@ -144,11 +143,15 @@
       }
     </ul>
     } @else {
-    <p class="empty-note">{{ i18n.t('preferences.members.empty') }}</p>
+    <p class="text-[0.85rem] text-muted-foreground">{{ i18n.t('preferences.members.empty') }}</p>
     } @if (can(P.organizacion.miembros.crear)) {
-    <form class="invitar" (submit)="invitar($event)">
-      <label
+    <form
+      class="grid grid-cols-[1.4fr_1.2fr_1fr_auto] items-end gap-2.5 max-[700px]:grid-cols-1"
+      (submit)="invitar($event)"
+    >
+      <label hlmLabel class="grid items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.invite.emailLabel') }}<input
+          hlmInput
           name="email"
           type="email"
           inputmode="email"
@@ -157,35 +160,38 @@
           [placeholder]="i18n.t('preferences.invite.emailPlaceholder')"
           required
       /></label>
-      <label
+      <label hlmLabel class="grid items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.invite.nameLabel') }}<input
+          hlmInput
           name="nombre"
           [(ngModel)]="nombreInvitado"
           autocomplete="name"
           [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
       /></label>
-      <label
+      <label hlmLabel class="grid items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.invite.roleLabel') }}<fin-select
           name="rol"
           [(ngModel)]="rolInvitado"
           [options]="roleOptions()"
           [ariaLabel]="i18n.t('preferences.invite.roleAriaLabel')"
       /></label>
-      <button class="primary" type="submit" [disabled]="!rolesDisponibles().length">
+      <button hlmBtn type="submit" [disabled]="!rolesDisponibles().length">
         {{ i18n.t('preferences.invite.submitButton') }}
       </button>
     </form>
     @if (errorDeInvitacion()) {
-    <p class="api-error" role="alert">{{ errorDeInvitacion() }}</p>
+    <p class="mt-2 text-[0.8rem] text-destructive" role="alert">{{ errorDeInvitacion() }}</p>
     } }
   </article>
   }
-  <article>
-    <h2>{{ i18n.t('preferences.localData.title') }}</h2>
-    <p>{{ i18n.t('preferences.localData.description') }}</p>
-    <button [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
-      {{ i18n.t('preferences.localData.resetButton') }}
-    </button>
-    <button (click)="logout()">{{ i18n.t('preferences.logoutButton') }}</button>
+  <article hlmCard class="gap-0 p-[22px]">
+    <h2 class="text-base">{{ i18n.t('preferences.localData.title') }}</h2>
+    <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.localData.description') }}</p>
+    <div class="mt-3.5 flex flex-wrap gap-2.5">
+      <button hlmBtn variant="outline" [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
+        {{ i18n.t('preferences.localData.resetButton') }}
+      </button>
+      <button hlmBtn variant="outline" (click)="logout()">{{ i18n.t('preferences.logoutButton') }}</button>
+    </div>
   </article>
 </section>

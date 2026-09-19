@@ -1,3 +1,6 @@
+import { DateFieldComponent } from '../../ui/date-field/date-field';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
@@ -11,10 +14,18 @@ import { FieldComponent } from '../../ui/field';
 @Component({
   selector: 'fin-management-form',
   standalone: true,
-  imports: [FormsModule, OverlayComponent, UiSelectComponent, NumericInputDirective, FieldComponent],
+  imports: [
+    DateFieldComponent,
+    HlmButton,
+    HlmInput,
+    FormsModule,
+    OverlayComponent,
+    UiSelectComponent,
+    NumericInputDirective,
+    FieldComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './management-form.html',
-  styleUrl: './management-form.css',
 })
 export class ManagementFormComponent {
   private readonly capabilities = inject(CAPABILITIES);

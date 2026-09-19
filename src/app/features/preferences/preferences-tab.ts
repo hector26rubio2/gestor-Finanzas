@@ -1,6 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmCard } from '@spartan-ng/helm/card';
+import { HlmInput } from '@spartan-ng/helm/input';
+import { HlmLabel } from '@spartan-ng/helm/label';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api-client';
 import { IconComponent } from '../../ui/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select';
@@ -11,11 +16,10 @@ import { I18nService } from '../../core/i18n';
 
 @Component({
   selector: 'app-preferences-tab',
-  standalone: true,
-  imports: [FormsModule, IconComponent, UiSelectComponent],
+  imports: [FormsModule, HlmButton, HlmCard, HlmInput, HlmLabel, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './preferences-tab.html',
-  styleUrl: './preferences-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class PreferencesTabComponent implements OnInit {
   readonly store = inject(AppStore);
@@ -24,6 +28,21 @@ export class PreferencesTabComponent implements OnInit {
   private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
   readonly P = P;
+  readonly colorControls: readonly {
+    key: 'accent' | 'primary' | 'secondary' | 'text' | 'surface' | 'border';
+    label: string;
+  }[] = [
+    { key: 'accent', label: 'preferences.accent.label' },
+    { key: 'primary', label: 'preferences.primary.label' },
+    { key: 'secondary', label: 'preferences.secondary.label' },
+    { key: 'text', label: 'preferences.text.label' },
+    { key: 'surface', label: 'preferences.surface.label' },
+    { key: 'border', label: 'preferences.border.label' },
+  ];
+  setColor(key: 'accent' | 'primary' | 'secondary' | 'text' | 'surface' | 'border', value: string): void {
+    if (key === 'accent') this.setAccent(value);
+    else this.setThemeValue(key, value);
+  }
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }

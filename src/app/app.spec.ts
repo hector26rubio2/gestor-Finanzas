@@ -47,7 +47,7 @@ describe('AppComponent y la pantalla de entrada', () => {
     expect(fixture.componentInstance.enLogin()).toBe(true);
     // Sin esto se veía la barra lateral y la superior alrededor del formulario.
     expect(fixture.nativeElement.querySelector('aside')).toBeNull();
-    expect(fixture.nativeElement.querySelector('.topbar')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-slot="topbar"]')).toBeNull();
   });
 
   it('fuera del login el armazón vuelve', async () => {

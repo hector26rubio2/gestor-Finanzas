@@ -1,3 +1,5 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
@@ -15,10 +17,8 @@ export type GoalKey = 'goalMin' | 'goalTarget' | 'goalMax';
  */
 @Component({
   selector: 'fin-widget-controls',
-  standalone: true,
-  imports: [FormsModule, IconComponent, UiSelectComponent, NumericInputDirective],
+  imports: [HlmButton, HlmInput, FormsModule, IconComponent, UiSelectComponent, NumericInputDirective],
   templateUrl: './widget-controls.html',
-  styleUrl: './widget-controls.css',
   host: { style: 'display: contents' },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -1,86 +1,135 @@
-<nav class="tabs" role="tablist" [attr.aria-label]="i18n.t('planning.tabsAriaLabel')">
-  @for (tab of visiblePlanningTabs(); track tab) {
-  <button
-    type="button"
-    role="tab"
-    [attr.aria-selected]="planningTab() === tab"
-    [class.active]="planningTab() === tab"
-    (click)="planningTab.set(tab)"
+<hlm-tabs [tab]="planningTab()" (tabActivated)="planningTab.set($any($event))">
+  <hlm-tabs-list
+    variant="line"
+    class="w-full justify-start overflow-x-auto border-b border-border"
+    [attr.aria-label]="i18n.t('planning.tabsAriaLabel')"
   >
-    {{ tabLabel(tab) }}
-  </button>
-  }
-</nav>
-@if (!visiblePlanningTabs().length) {
-<p class="empty-note">{{ i18n.t('planning.noAccess') }}</p>
-} @if (visiblePlanningTabs().length) {
-<section
-  class="scenario-planner"
-  role="tabpanel"
-  [attr.aria-label]="i18n.t('planning.ariaLabel', { tab: tabLabel(planningTab()) })"
->
-  <aside class="planner-controls">
-    <header>
-      <span>{{ i18n.t('planning.parametersLabel') }}</span>
-      <h2>{{ planningCopy().parameterTitle }}</h2>
-      <p>{{ planningCopy().helper }}</p>
-    </header>
-    <label
-      >{{ planningCopy().amountLabel }}<input
-        type="range"
-        [min]="planningCopy().min"
-        [max]="planningCopy().max"
-        [step]="planningCopy().step"
-        [ngModel]="monthly()"
-        (ngModelChange)="monthly.set(+$event)"
-      /><b>{{ store.money(monthly()) }}</b><small>{{ planningCopy().rangeHint }}</small></label
-    ><label>{{ i18n.t('planning.targetDateLabel') }}<input type="date" [(ngModel)]="targetDate" /></label>
-    <div class="planner-note">
-      <b>{{ i18n.t('planning.assumptionLabel') }}</b><span>{{ planningCopy().assumption }}</span>
-    </div>
-  </aside>
-  <div class="planner-results">
-    <section class="planner-kpis" [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')">
-      @for (metric of planningMetrics(); track metric.label) {
-      <article>
-        <span>{{ metric.label }}</span><strong>{{ metric.value }}</strong><small>{{ metric.hint }}</small>
-      </article>
-      }
-    </section>
-    <article class="projection-card">
-      <header>
-        <div>
-          <span>{{ i18n.t('planning.projectionLabel') }}</span>
-          <h2>{{ planningCopy().chartTitle }}</h2>
-          <p>{{ planningCopy().chartDescription }}</p>
-        </div>
-        <div class="chart-legend">
-          <span class="current-key">{{ planningCopy().currentLabel }}</span
-          ><span class="proposal-key">{{ planningCopy().proposedLabel }}</span>
-        </div>
-      </header>
-      <div class="projection-plot" role="img" [attr.aria-label]="planningCopy().chartDescription">
-        <div class="y-labels">
-          <span>{{ compactMoney(planningChartMax()) }}</span><span>{{ compactMoney(planningChartMax() / 2) }}</span
-          ><span>$0</span>
-        </div>
-        <svg viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-          <g class="grid-lines">
-            <line x1="0" y1="10" x2="600" y2="10" />
-            <line x1="0" y1="110" x2="600" y2="110" />
-            <line x1="0" y1="210" x2="600" y2="210" />
-          </g>
-          <polyline class="current-line" [attr.points]="planningCurrentPoints()" />
-          <polyline class="proposal-line" [attr.points]="planningProposedPoints()" />
-        </svg>
-        <div class="x-labels">
-          <span>{{ i18n.t('planning.xAxis.today') }}</span><span>{{ i18n.t('planning.xAxis.month3') }}</span
-          ><span>{{ i18n.t('planning.xAxis.month6') }}</span><span>{{ i18n.t('planning.xAxis.month9') }}</span
-          ><span>{{ i18n.t('planning.xAxis.month12') }}</span>
-        </div>
-      </div>
-    </article>
-    <p class="planner-disclaimer">{{ i18n.t('planning.disclaimer') }}</p>
+    @for (tab of visiblePlanningTabs(); track tab) {
+    <button [hlmTabsTrigger]="tab" class="flex-none px-3.5 py-2.5">{{ tabLabel(tab) }}</button>
+    }
+  </hlm-tabs-list>
+  @for (tab of visiblePlanningTabs(); track tab) {
+  <div [hlmTabsContent]="tab" class="flex flex-1 flex-col">
+    @if (planningTab() === tab) {
+    <ng-container *ngTemplateOutlet="panel" />
+    }
   </div>
-</section>
+  }
+</hlm-tabs>
+@if (!visiblePlanningTabs().length) {
+<p class="text-[0.85rem] text-muted-foreground">{{ i18n.t('planning.noAccess') }}</p>
 }
+<ng-template #panel>
+  <section
+    class="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-3.5 max-[1100px]:grid-cols-1"
+    [attr.aria-label]="i18n.t('planning.ariaLabel', { tab: tabLabel(planningTab()) })"
+  >
+    <aside
+      class="flex flex-col gap-5 rounded-lg border border-border bg-card p-5 max-[1100px]:grid max-[1100px]:grid-cols-[1.2fr_1fr_1fr] max-[1100px]:items-start max-[700px]:flex"
+    >
+      <header>
+        <span class="text-[0.72rem] font-bold tracking-widest text-primary"
+          >{{ i18n.t('planning.parametersLabel') }}</span
+        >
+        <h2 class="mt-1 mb-1.5 text-[1.05rem]">{{ planningCopy().parameterTitle }}</h2>
+        <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().helper }}</p>
+      </header>
+      <label class="grid gap-2 text-[0.72rem] text-muted-foreground"
+        >{{ planningCopy().amountLabel }}<input
+          class="accent-primary"
+          type="range"
+          [min]="planningCopy().min"
+          [max]="planningCopy().max"
+          [step]="planningCopy().step"
+          [ngModel]="monthly()"
+          (ngModelChange)="monthly.set(+$event)"
+        /><b class="text-[1.25rem] text-foreground">{{ store.money(monthly()) }}</b
+        ><small class="leading-snug">{{ planningCopy().rangeHint }}</small></label
+      ><label class="grid gap-2 text-[0.72rem] text-muted-foreground"
+        >{{ i18n.t('planning.targetDateLabel') }}<fin-date-field [(ngModel)]="targetDate"
+      /></label>
+      <div class="grid gap-[5px] rounded-[10px] bg-accent p-3 text-[0.72rem] leading-snug max-[1100px]:col-span-full">
+        <b>{{ i18n.t('planning.assumptionLabel') }}</b
+        ><span class="font-normal text-muted-foreground">{{ planningCopy().assumption }}</span>
+      </div>
+    </aside>
+    <div class="grid min-w-0 grid-rows-[auto_minmax(320px,1fr)_auto] gap-3">
+      <section
+        class="grid grid-cols-3 gap-2.5 max-[700px]:grid-cols-1"
+        [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')"
+      >
+        @for (metric of planningMetrics(); track metric.label) {
+        <article class="grid min-w-0 gap-[5px] rounded-lg border border-border bg-card p-3.5">
+          <span>{{ metric.label }}</span
+          ><strong class="overflow-hidden text-[1.2rem] text-ellipsis whitespace-nowrap">{{ metric.value }}</strong
+          ><small class="text-muted-foreground">{{ metric.hint }}</small>
+        </article>
+        }
+      </section>
+      <article class="flex min-h-0 flex-col rounded-lg border border-border bg-card p-[18px]">
+        <header class="flex items-start justify-between gap-[18px] max-[700px]:grid">
+          <div>
+            <span class="text-[0.72rem] font-bold tracking-widest text-primary"
+              >{{ i18n.t('planning.projectionLabel') }}</span
+            >
+            <h2 class="mt-1 mb-1.5 text-[1.05rem]">{{ planningCopy().chartTitle }}</h2>
+            <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().chartDescription }}</p>
+          </div>
+          <div class="flex flex-wrap items-center gap-[13px] text-[0.72rem] text-muted-foreground">
+            <span
+              class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-destructive before:content-['']"
+              >{{ planningCopy().currentLabel }}</span
+            ><span
+              class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-primary before:content-['']"
+              >{{ planningCopy().proposedLabel }}</span
+            >
+          </div>
+        </header>
+        <div
+          class="mt-[15px] grid min-h-[220px] flex-1 grid-cols-[62px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_24px] max-[700px]:grid-cols-[48px_minmax(0,1fr)]"
+          role="img"
+          [attr.aria-label]="planningCopy().chartDescription"
+        >
+          <div
+            class="flex flex-col items-end justify-between pt-0.5 pr-[9px] pb-1 text-[0.72rem] text-muted-foreground"
+          >
+            <span>{{ compactMoney(planningChartMax()) }}</span><span>{{ compactMoney(planningChartMax() / 2) }}</span
+            ><span>$0</span>
+          </div>
+          <svg class="size-full overflow-visible" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
+            <g class="stroke-border" stroke-width="1">
+              <line x1="0" y1="10" x2="600" y2="10" vector-effect="non-scaling-stroke" />
+              <line x1="0" y1="110" x2="600" y2="110" vector-effect="non-scaling-stroke" />
+              <line x1="0" y1="210" x2="600" y2="210" vector-effect="non-scaling-stroke" />
+            </g>
+            <polyline
+              class="stroke-destructive"
+              fill="none"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-dasharray="7 5"
+              vector-effect="non-scaling-stroke"
+              [attr.points]="planningCurrentPoints()"
+            />
+            <polyline
+              class="stroke-primary"
+              fill="none"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              vector-effect="non-scaling-stroke"
+              [attr.points]="planningProposedPoints()"
+            />
+          </svg>
+          <div class="col-start-2 flex justify-between text-[0.72rem] text-muted-foreground">
+            <span>{{ i18n.t('planning.xAxis.today') }}</span><span>{{ i18n.t('planning.xAxis.month3') }}</span
+            ><span>{{ i18n.t('planning.xAxis.month6') }}</span><span>{{ i18n.t('planning.xAxis.month9') }}</span
+            ><span>{{ i18n.t('planning.xAxis.month12') }}</span>
+          </div>
+        </div>
+      </article>
+      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
+    </div>
+  </section>
+</ng-template>

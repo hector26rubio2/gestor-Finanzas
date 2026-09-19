@@ -1,5 +1,5 @@
 <fin-field [label]="i18n.t('form.movement.field.date')">
-  <input type="date" name="date" [(ngModel)]="model['date']" required />
+  <fin-date-field name="date" [(ngModel)]="model['date']" required />
 </fin-field>
 <fin-field [label]="sourceAccountLabel()">
   <fin-select
@@ -20,8 +20,8 @@
 </fin-field>
 }
 <fin-field [label]="i18n.t('form.movement.field.description')" [full]="true">
-  <input type="text" name="description" [(ngModel)]="model['description']" required />
+  <input hlmInput type="text" name="description" [(ngModel)]="model['description']" required />
 </fin-field>
 <fin-field [label]="i18n.t('form.field.amount')">
-  <input type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
+  <input hlmInput type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
 </fin-field>

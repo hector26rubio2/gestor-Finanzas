@@ -1,3 +1,7 @@
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
+import { HlmTextarea } from '@spartan-ng/helm/textarea';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -20,11 +24,20 @@ const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
 
 @Component({
   selector: 'app-bug-report',
-  standalone: true,
-  imports: [CommonModule, FormsModule, FieldComponent, IconComponent, UiSelectComponent, OverlayComponent],
+  imports: [
+    HlmButton,
+    HlmCheckbox,
+    HlmTextarea,
+    HlmInput,
+    CommonModule,
+    FormsModule,
+    FieldComponent,
+    IconComponent,
+    UiSelectComponent,
+    OverlayComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './bug-report.html',
-  styleUrl: './bug-report.css',
 })
 export class BugReportButtonComponent {
   private readonly store = inject(AppStore);

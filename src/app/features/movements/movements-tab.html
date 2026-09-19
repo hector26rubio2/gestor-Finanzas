@@ -1,52 +1,62 @@
 <button
+  hlmBtn
+  variant="outline"
   type="button"
-  class="filters-toggle"
+  class="mb-2.5 hidden h-11 w-full justify-start max-[700px]:flex"
   [attr.aria-expanded]="filtersOpen()"
   aria-controls="panel-filtros"
   (click)="filtersOpen.update((open) => !open)"
 >
   {{ i18n.t('movements.filters.toggle') }} @if (activeFilterCount()) {
-  <i>{{ activeFilterCount() }}</i>
+  <span
+    class="inline-grid h-[22px] min-w-[22px] place-items-center rounded-full bg-primary px-1.5 text-xs text-primary-foreground"
+    >{{ activeFilterCount() }}</span
+  >
   }
 </button>
-<section class="filters" id="panel-filtros" [class.collapsed]="!filtersOpen()">
-  <label
+<section
+  id="panel-filtros"
+  class="grid grid-cols-[minmax(190px,1.35fr)_repeat(5,minmax(120px,0.75fr))_auto] gap-2.5 rounded-lg border border-border bg-card p-3 max-[1500px]:grid-cols-[repeat(4,minmax(130px,1fr))] max-[700px]:grid-cols-1"
+  [class]="filtersOpen() ? '' : 'max-[700px]:hidden'"
+>
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.search.label') }}<input
+      hlmInput
       #searchInput
       [attr.aria-label]="i18n.t('movements.filters.search.ariaLabel')"
       [attr.placeholder]="i18n.t('movements.filters.search.placeholder')"
       [ngModel]="store.query()"
       (ngModelChange)="store.query.set($event); loadMovementPage(1)"
   /></label>
-  <label
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.period.label') }}<fin-select
       [ngModel]="store.period()"
       (ngModelChange)="store.period.set($event); loadMovementPage(1)"
       [options]="periodOptions()"
       [ariaLabel]="i18n.t('movements.filters.period.label')"
   /></label>
-  <label
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.account.label') }}<fin-select
       [ngModel]="store.accountFilter()"
       [options]="movementAccountOptions()"
       [ariaLabel]="i18n.t('movements.filters.account.label')"
       (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
   /></label>
-  <label
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.accountType.label') }}<fin-select
       [ngModel]="book.movementAccountType()"
       (ngModelChange)="book.movementAccountType.set($event)"
       [options]="book.accountTypeOptions()"
       [ariaLabel]="i18n.t('movements.filters.accountType.label')"
   /></label>
-  <label
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.category.label') }}<fin-select
       [ngModel]="book.movementCategory()"
       (ngModelChange)="book.movementCategory.set($event)"
       [options]="movementCategoryOptions()"
       [ariaLabel]="i18n.t('movements.filters.category.label')"
   /></label>
-  <label
+  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
     >{{ i18n.t('movements.filters.operation.label') }}<fin-select
       [ngModel]="book.movementOperation()"
       (ngModelChange)="book.movementOperation.set($event)"
@@ -54,10 +64,19 @@
       [ariaLabel]="i18n.t('movements.filters.operation.label')"
   /></label>
   @if (hasActiveFilters()) {
-  <button type="button" class="quiet-reset" (click)="clearFilters()">{{ i18n.t('movements.filters.reset') }}</button>
+  <button
+    hlmBtn
+    variant="outline"
+    size="lg"
+    type="button"
+    class="self-end text-muted-foreground"
+    (click)="clearFilters()"
+  >
+    {{ i18n.t('movements.filters.reset') }}
+  </button>
   }
 </section>
-<section class="kpis mini">
+<fin-kpi-grid>
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
     icon="trendUp"
@@ -78,10 +97,10 @@
     [value]="store.movements().length.toString()"
     [hint]="i18n.t('movements.kpi.records.hint')"
   />
-</section>
-<section class="table-zone" [attr.aria-busy]="book.movementsLoading()">
+</fin-kpi-grid>
+<fin-table-zone class="relative" [attr.aria-busy]="book.movementsLoading()">
   @if (book.movementsLoading()) {
-  <fin-skeleton class="table-loading" />
+  <fin-skeleton class="absolute inset-0 z-[2] overflow-hidden opacity-90" />
   }
   <fin-table
     urlKey="pagina"
@@ -94,4 +113,4 @@
     (pageChange)="loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
   ></fin-table>
-</section>
+</fin-table-zone>

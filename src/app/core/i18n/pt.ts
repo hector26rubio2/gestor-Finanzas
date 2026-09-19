@@ -1241,4 +1241,5 @@ export default {
   'admin.toast.renameOrganizationFailedReason': 'Não foi possível renomear a organização: {reason}',
   'admin.users.drawer.pendingMove':
     'Será movida ao salvar. Papéis, permissões e funções são editados depois, na nova organização.',
+  'date.placeholder': 'Escolher data',
 } as const;

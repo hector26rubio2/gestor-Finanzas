@@ -13,7 +13,12 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { toCsv, downloadCsv } from '../../core/csv';
+import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
+import { TableZoneComponent } from '../../ui/table-zone/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { SkeletonComponent } from '../../ui/skeleton/skeleton';
 import { KpiComponent } from '../../ui/kpi/kpi';
@@ -26,11 +31,21 @@ import { HeaderActionsService } from '../../shared/header-actions.service';
 
 @Component({
   selector: 'app-movements-tab',
-  standalone: true,
-  imports: [CommonModule, FormsModule, DataTableComponent, KpiComponent, UiSelectComponent, SkeletonComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    HlmButton,
+    HlmInput,
+    DataTableComponent,
+    KpiComponent,
+    KpiGridComponent,
+    TableZoneComponent,
+    UiSelectComponent,
+    SkeletonComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movements-tab.html',
-  styleUrl: './movements-tab.css',
+  host: { class: TAB_PAGE_HOST_CLASS },
 })
 export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly store = inject(AppStore);
@@ -53,13 +68,27 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
     this.headerActions.exportMovements.set(null);
   }
 
-  readonly periodOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: this.i18n.t('movements.filters.period.all') },
-    { value: '2026-08', label: this.i18n.t('movements.filters.period.aug2026') },
-    { value: '2026-07', label: this.i18n.t('movements.filters.period.jul2026') },
-    { value: '2026-06', label: this.i18n.t('movements.filters.period.jun2026') },
-    { value: '2026-05', label: this.i18n.t('movements.filters.period.may2026') },
-  ]);
+  readonly periodOptions = computed<readonly UiOption[]>(() => {
+    const formatter = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long', year: 'numeric' });
+    const label = (year: number, month: number) => {
+      const text = formatter.format(new Date(year, month, 1, 12));
+      return text.charAt(0).toLocaleUpperCase() + text.slice(1);
+    };
+    const now = new Date();
+    const months: UiOption[] = Array.from({ length: 12 }, (_, offset) => {
+      const date = new Date(now.getFullYear(), now.getMonth() - offset, 1, 12);
+      return {
+        value: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
+        label: label(date.getFullYear(), date.getMonth()),
+      };
+    });
+    const selected = this.store.period();
+    if (selected !== 'all' && !months.some((option) => option.value === selected)) {
+      const [year, month] = selected.split('-').map(Number);
+      months.push({ value: selected, label: label(year, month - 1) });
+    }
+    return [{ value: 'all', label: this.i18n.t('movements.filters.period.all') }, ...months];
+  });
   readonly movementAccountOptions = computed<readonly UiOption[]>(() => [
     { value: 'all', label: this.i18n.t('movements.filters.account.all') },
     ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),

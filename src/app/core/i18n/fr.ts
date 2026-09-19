@@ -1250,4 +1250,5 @@ export default {
   'admin.toast.renameOrganizationFailedReason': "Impossible de renommer l'organisation : {reason}",
   'admin.users.drawer.pendingMove':
     "Sera déplacée à l'enregistrement. Ses rôles, permissions et fonctions se modifient ensuite, dans la nouvelle organisation.",
+  'date.placeholder': 'Choisir une date',
 } as const;
