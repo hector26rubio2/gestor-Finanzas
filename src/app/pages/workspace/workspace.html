@@ -22,9 +22,7 @@
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
       </button>
       } @if (page() === 'reports' && can(P.reportes.exportar)) {
-      <button (click)="exportReport()">
-        <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
-      </button>
+      <button (click)="exportReport()"><fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}</button>
       } @if (page() === 'movements' && can(P.movimientos.exportar)) {
       <button class="secondary-action" (click)="exportMovements()">
         <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
@@ -133,7 +131,7 @@
       } @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
       <button (click)="shareSelected()">{{ i18n.t('workspace.actions.registerSharedPurchase') }}</button>
       } @if (can(P.movimientos.deshabilitar)) {
-      <button class="danger-action" (click)="reverseSelected()">{{ i18n.t('workspace.actions.reverse') }}</button>
+      <button class="danger-action" (click)="askReverse()">{{ i18n.t('workspace.actions.reverse') }}</button>
       } } @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
       <button class="action" (click)="issueSelectedSettlement()">
         {{ i18n.t('workspace.actions.issueSettlement') }}
@@ -146,7 +144,7 @@
       && can(P.cuentas.editar)) {
       <button (click)="editSelectedAccount()">{{ i18n.t('workspace.actions.editAccount') }}</button>
       } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
-      <button class="danger-action" (click)="deactivateSelectedAccount()">
+      <button class="danger-action" (click)="askDeactivateAccount()">
         {{ i18n.t('workspace.actions.deactivateAccount') }}
       </button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
@@ -209,3 +207,12 @@
     }
   </section></ng-template
 >
+<fin-confirm-dialog
+  [open]="pendingConfirm() !== null"
+  [title]="i18n.t(confirmPrefix() + '.title')"
+  [description]="i18n.t(confirmPrefix() + '.description')"
+  [confirmLabel]="i18n.t(confirmPrefix() + '.action')"
+  [cancelLabel]="i18n.t('workspace.confirm.cancel')"
+  (confirmed)="confirmPending()"
+  (dismissed)="dismissPending()"
+/>

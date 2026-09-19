@@ -445,6 +445,13 @@ export default {
   'workspace.messages.accountDeactivatedLocal': 'Account deactivated; history is preserved',
   'workspace.messages.accountDeactivated': 'Account deactivated. Its transactions remain in the history.',
   'workspace.messages.accountDeactivateFailed': "The account couldn't be deactivated.",
+  'workspace.confirm.cancel': 'Cancel',
+  'workspace.confirm.reverse.title': 'Reverse this transaction?',
+  'workspace.confirm.reverse.description': 'A reversal linked to the original transaction will be recorded, and it will stop affecting your balances.',
+  'workspace.confirm.reverse.action': 'Reverse transaction',
+  'workspace.confirm.deactivateAccount.title': 'Deactivate this account?',
+  'workspace.confirm.deactivateAccount.description': "The account will stop being shown and can't be used in new transactions.",
+  'workspace.confirm.deactivateAccount.action': 'Deactivate account',
   'sinSeccion.withSession.title': "Your access doesn't open any section",
   'sinSeccion.withSession.detail':
     "The session started fine, but none of the screens are enabled for you: either you don't have permission, or the feature is turned off in this workspace. Ask whoever manages your workspace for what you need.",

@@ -195,6 +195,13 @@ export default {
   'workspace.messages.accountDeactivatedLocal': 'Cuenta desactivada; el histórico se conserva',
   'workspace.messages.accountDeactivated': 'Cuenta desactivada. Sus movimientos permanecen en el historial.',
   'workspace.messages.accountDeactivateFailed': 'No se pudo desactivar la cuenta.',
+  'workspace.confirm.cancel': 'Cancelar',
+  'workspace.confirm.reverse.title': '¿Reversar este movimiento?',
+  'workspace.confirm.reverse.description': 'Se registrará una reversión enlazada al movimiento original y dejará de afectar tus saldos.',
+  'workspace.confirm.reverse.action': 'Reversar movimiento',
+  'workspace.confirm.deactivateAccount.title': '¿Desactivar esta cuenta?',
+  'workspace.confirm.deactivateAccount.description': 'La cuenta dejará de mostrarse y no podrá usarse en movimientos nuevos.',
+  'workspace.confirm.deactivateAccount.action': 'Desactivar cuenta',
 
   // sin-seccion
   'sinSeccion.withSession.title': 'Tu acceso no abre ninguna sección',
