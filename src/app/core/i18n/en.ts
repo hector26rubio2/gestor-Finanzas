@@ -659,8 +659,9 @@ export default {
   'admin.users.drawer.organizationDetail': 'Only an administrator can move it from here.',
   'admin.users.drawer.confirmMoveOrganization':
     'Move this person to "{name}"? They lose their current roles and start with the Beta floor.',
-  'admin.users.drawer.rolesTitle': 'Assigned roles',
-  'admin.users.drawer.rolesHint': 'Roles add capabilities to the organization membership.',
+  'admin.users.drawer.rolesTitle': 'Assigned role',
+  'admin.users.drawer.rolesHint':
+    'Each person has a single role in the organization; choosing another replaces the current one.',
   'admin.users.drawer.featuresTitle': 'Features',
   'admin.users.drawer.featuresDetail': 'Modules visible in the side menu',
   'admin.users.drawer.featuresHint':
