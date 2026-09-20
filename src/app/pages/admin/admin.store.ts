@@ -550,6 +550,27 @@ export class AdminStore {
     }
   }
 
+  async eliminarOrganizacion(organization: ApiAdminOrganization): Promise<void> {
+    try {
+      await firstValueFrom(this.api.deleteAdminOrganization(organization.id));
+      this.organizations.update((items) => items.filter((item) => item.id !== organization.id));
+      this.rolesByOrganization.update((known) =>
+        Object.fromEntries(Object.entries(known).filter(([id]) => id !== organization.id)),
+      );
+      this.membersByOrganization.update((known) =>
+        Object.fromEntries(Object.entries(known).filter(([id]) => id !== organization.id)),
+      );
+      this.app.toast.set(this.i18n.t('admin.organizations.delete.done', { name: organization.name }));
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : '';
+      this.app.toast.set(
+        reason
+          ? this.i18n.t('admin.organizations.delete.failedReason', { reason })
+          : this.i18n.t('admin.toast.loadFailed'),
+      );
+    }
+  }
+
   async consolidarOrganizaciones(): Promise<void> {
     try {
       const result = await firstValueFrom(this.api.consolidateAdminOrganizations());

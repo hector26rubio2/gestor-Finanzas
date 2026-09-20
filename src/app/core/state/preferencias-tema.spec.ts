@@ -42,14 +42,19 @@ describe('persistPreferences', () => {
     expect(api.updatePreferences.mock.calls[0][0]).toMatchObject({ customThemeJson: null });
   });
 
-  it('manda la paleta propia cuando la sesión puede definirla', async () => {
+  it('manda solo los colores que la persona cambió cuando la sesión puede definirlos', async () => {
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar, P.preferencias.tema.editar]) as never);
 
     await store.persistPreferences();
+    expect(JSON.parse(api.updatePreferences.mock.calls[0][0].customThemeJson!)).toEqual({});
 
-    const enviado = api.updatePreferences.mock.calls[0][0];
-    expect(enviado.customThemeJson).toBeTypeOf('string');
-    expect(JSON.parse(enviado.customThemeJson!)).toMatchObject({ accent: store.preferences().accent });
+    store.preferences.update((value) => ({ ...value, surface: '#101010', accent: '#ff0000' }));
+    await store.persistPreferences();
+
+    expect(JSON.parse(api.updatePreferences.mock.calls[1][0].customThemeJson!)).toEqual({
+      accent: '#ff0000',
+      surface: '#101010',
+    });
   });
 });

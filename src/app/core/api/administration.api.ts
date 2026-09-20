@@ -348,6 +348,10 @@ export class AdministrationApi {
     });
   }
 
+  deleteAdminOrganization(id: string) {
+    return this.transport.request<void>({ method: 'DELETE', path: API_ROUTES.adminOrganizationDelete(id) });
+  }
+
   consolidateAdminOrganizations() {
     return this.transport.request<ApiConsolidationResult>({
       method: 'POST',

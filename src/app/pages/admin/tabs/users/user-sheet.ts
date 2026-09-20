@@ -11,6 +11,7 @@ import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
+import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
 
 @Component({
   selector: 'app-user-sheet',
@@ -120,8 +121,12 @@ export class UserSheetComponent {
 
   readonly effectiveGroups = computed(() => {
     const granted = new Set(this.effective());
+    const organizationId = this.organizationId();
+    const flags = organizationId ? this.store.organizationFlagsOf(organizationId) : undefined;
+    const off = new Set((flags ?? []).filter((flag) => !flag.isEnabled).map((flag) => flag.key));
     return this.store
       .permissionGroups()
+      .filter((group) => !off.has(RESOURCE_FEATURE[group.name] ?? ''))
       .map((group) => ({ name: group.name, items: group.items.filter((item) => granted.has(item.code)) }))
       .filter((group) => group.items.length);
   });
@@ -129,7 +134,10 @@ export class UserSheetComponent {
   constructor() {
     effect(() => {
       const organizationId = this.organizationId();
-      if (organizationId) void this.store.cargarRolesDe(organizationId);
+      if (organizationId) {
+        void this.store.cargarRolesDe(organizationId);
+        void this.store.cargarBanderasDe(organizationId);
+      }
     });
   }
 

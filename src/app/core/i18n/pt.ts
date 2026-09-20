@@ -1378,4 +1378,11 @@ export default {
   'admin.organizations.consolidate.done': 'Pronto: {users} pessoas movidas e {organizations} organizações arquivadas.',
   'admin.organizations.consolidate.failedReason': 'Não foi possível consolidar: {reason}',
   'admin.organizations.showArchived': 'Mostrar arquivadas',
+  'admin.organizations.delete.action': 'Excluir definitivamente {name}',
+  'admin.organizations.delete.title': 'Excluir {name} para sempre?',
+  'admin.organizations.delete.description':
+    'A organização e tudo dela são apagados: contas, movimentos, funções e auditoria. Só é possível se estiver arquivada e sem membros. Não pode ser desfeito.',
+  'admin.organizations.delete.confirm': 'Excluir',
+  'admin.organizations.delete.done': 'Organização {name} excluída.',
+  'admin.organizations.delete.failedReason': 'Não foi possível excluir: {reason}',
 } as const;

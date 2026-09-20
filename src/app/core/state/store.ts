@@ -12,6 +12,7 @@ import { DEMO_CATEGORIES } from './demo-categories';
 import { PREFERENCES } from './theme';
 
 export { applyTheme, PREFERENCES } from './theme';
+import { paletteOverrides } from './theme';
 export type { Preferences } from './theme';
 export { navigation } from './navigation';
 
@@ -268,18 +269,7 @@ export class AppStore {
         font: value.font,
         density: value.density,
         baseCurrency: 'COP',
-        customThemeJson: puedeTemaPropio
-          ? JSON.stringify({
-              name: value.name,
-              accent: value.accent,
-              primary: value.primary,
-              secondary: value.secondary,
-              text: value.text,
-              surface: value.surface,
-              border: value.border,
-              radius: value.radius,
-            })
-          : null,
+        customThemeJson: puedeTemaPropio ? JSON.stringify(paletteOverrides(value)) : null,
       }),
     );
   }

@@ -17,7 +17,7 @@ import { AdminLabels } from '../admin-labels';
 import { AdminStore } from '../admin.store';
 import { BulkChange, PermissionGroup, PermissionPickerComponent } from './permission-picker';
 
-const RESOURCE_FEATURE: Readonly<Record<string, string>> = {
+export const RESOURCE_FEATURE: Readonly<Record<string, string>> = {
   dashboard: 'dashboard',
   movimientos: 'movements',
   calendario: 'calendar',
