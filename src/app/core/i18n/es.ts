@@ -667,8 +667,8 @@ export default {
   'admin.users.drawer.organizationDetail': 'Solo un administrador puede moverla de aquí.',
   'admin.users.drawer.confirmMoveOrganization':
     '¿Mover a esta persona a "{name}"? Pierde sus roles actuales y entra con el piso Beta.',
-  'admin.users.drawer.rolesTitle': 'Roles asignados',
-  'admin.users.drawer.rolesHint': 'Los roles suman capacidades a la membresía de la organización.',
+  'admin.users.drawer.rolesTitle': 'Rol asignado',
+  'admin.users.drawer.rolesHint': 'Cada persona tiene un solo rol en la organización; elegir otro reemplaza al actual.',
   'admin.users.drawer.featuresTitle': 'Funcionalidades',
   'admin.users.drawer.featuresDetail': 'Módulos visibles en el menú lateral',
   'admin.users.drawer.featuresHint':

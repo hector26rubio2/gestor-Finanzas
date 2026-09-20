@@ -407,11 +407,10 @@ export class AdminStore {
     this.put({ kind: 'userActive', userId: user.id, value }, value === user.isActive);
   }
 
-  toggleUserRole(user: ApiAdminUser, roleId: string): void {
+  setUserRole(user: ApiAdminUser, roleId: string): void {
     const organizationId = this.userOrganizationId(user);
     if (!organizationId || this.hasPendingMove(user)) return;
-    const actuales = this.userRoleIds(user);
-    const roleIds = actuales.includes(roleId) ? actuales.filter((id) => id !== roleId) : [...actuales, roleId];
+    const roleIds = [roleId];
     const base = this.membership(user, organizationId)?.roles.map((role) => role.id) ?? [];
     this.put({ kind: 'userRoles', userId: user.id, organizationId, roleIds }, sameIds(roleIds, base));
   }

@@ -659,8 +659,8 @@ export default {
   'admin.users.drawer.organizationDetail': 'Só um administrador pode movê-la daqui.',
   'admin.users.drawer.confirmMoveOrganization':
     'Mover esta pessoa para "{name}"? Ela perde suas funções atuais e entra com o piso Beta.',
-  'admin.users.drawer.rolesTitle': 'Funções atribuídas',
-  'admin.users.drawer.rolesHint': 'As funções somam capacidades à associação da organização.',
+  'admin.users.drawer.rolesTitle': 'Função atribuída',
+  'admin.users.drawer.rolesHint': 'Cada pessoa tem uma única função na organização; escolher outra substitui a atual.',
   'admin.users.drawer.featuresTitle': 'Funcionalidades',
   'admin.users.drawer.featuresDetail': 'Módulos visíveis no menu lateral',
   'admin.users.drawer.featuresHint':

@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
+import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { ApiAdminUser } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
@@ -15,7 +16,15 @@ import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
 
 @Component({
   selector: 'app-user-sheet',
-  imports: [FormsModule, HlmBadge, IconComponent, OptionRowComponent, SheetPanelComponent, UiSelectComponent],
+  imports: [
+    FormsModule,
+    HlmBadge,
+    HlmRadioGroupImports,
+    IconComponent,
+    OptionRowComponent,
+    SheetPanelComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
@@ -54,17 +63,35 @@ import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
         <section class="flex flex-col gap-1">
           <h3 class="text-sm font-semibold">{{ i18n.t('admin.users.drawer.rolesTitle') }}</h3>
           <p class="text-xs text-muted-foreground">{{ i18n.t('admin.users.drawer.rolesHint') }}</p>
-          @for (role of roles(); track role.id) {
-            <fin-option-row
-              kind="checkbox"
-              [label]="role.name"
-              [description]="role.description || ''"
-              [checked]="store.userRoleIds(u).includes(role.id)"
-              [changed]="rolesChanged(u)"
-              [disabled]="store.hasPendingMove(u) || !role.isActive"
-              (toggled)="store.toggleUserRole(u, role.id)"
-            />
-          } @empty {
+          <hlm-radio-group
+            class="gap-1"
+            [name]="'role-' + u.id"
+            [value]="selectedRoleId(u)"
+            [disabled]="store.hasPendingMove(u)"
+            (valueChange)="pickRole(u, $event)"
+          >
+            @for (role of roles(); track role.id) {
+              <label
+                class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-accent/60 has-[[data-disabled]]:opacity-60"
+              >
+                <span class="flex min-w-0 flex-col gap-0.5">
+                  <span class="flex items-center gap-2 text-sm font-medium">
+                    {{ role.name }}
+                    @if (rolesChanged(u) && selectedRoleId(u) === role.id) {
+                      <span hlmBadge variant="secondary">{{ i18n.t('admin.common.unsaved') }}</span>
+                    }
+                  </span>
+                  @if (role.description) {
+                    <small class="truncate text-xs text-muted-foreground">{{ role.description }}</small>
+                  }
+                </span>
+                <hlm-radio [value]="role.id" [disabled]="!role.isActive" [attr.aria-label]="role.name">
+                  <hlm-radio-indicator indicator />
+                </hlm-radio>
+              </label>
+            }
+          </hlm-radio-group>
+          @if (!roles().length) {
             <p class="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
               {{ i18n.t('admin.users.drawer.noRoles') }}
             </p>
@@ -139,6 +166,14 @@ export class UserSheetComponent {
         void this.store.cargarBanderasDe(organizationId);
       }
     });
+  }
+
+  selectedRoleId(user: ApiAdminUser): string | null {
+    return this.store.userRoleIds(user)[0] ?? null;
+  }
+
+  pickRole(user: ApiAdminUser, roleId: unknown): void {
+    if (typeof roleId === 'string') this.store.setUserRole(user, roleId);
   }
 
   rolesChanged(user: ApiAdminUser): boolean {

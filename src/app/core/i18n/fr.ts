@@ -664,8 +664,9 @@ export default {
   'admin.users.drawer.organizationDetail': "Seul un administrateur peut la déplacer d'ici.",
   'admin.users.drawer.confirmMoveOrganization':
     'Déplacer cette personne vers "{name}" ? Elle perd ses rôles actuels et repart avec le niveau Beta.',
-  'admin.users.drawer.rolesTitle': 'Rôles attribués',
-  'admin.users.drawer.rolesHint': "Les rôles ajoutent des permissions à l'appartenance à l'organisation.",
+  'admin.users.drawer.rolesTitle': 'Rôle attribué',
+  'admin.users.drawer.rolesHint':
+    "Chaque personne a un seul rôle dans l'organisation ; en choisir un autre remplace l'actuel.",
   'admin.users.drawer.featuresTitle': 'Fonctionnalités',
   'admin.users.drawer.featuresDetail': 'Modules visibles dans le menu latéral',
   'admin.users.drawer.featuresHint':

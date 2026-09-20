@@ -110,7 +110,7 @@ describe('AdminStore', () => {
     const daniel = store.users()[0];
 
     store.setUserActive(daniel, false);
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
     store.setRoleActive(store.roles()[0], false);
 
     expect(api.setAdminUserActive).not.toHaveBeenCalled();
@@ -123,12 +123,12 @@ describe('AdminStore', () => {
     const store = create();
     const daniel = store.users()[0];
     store.setUserActive(daniel, false);
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
 
     await store.guardar();
 
     expect(api.setAdminUserActive).toHaveBeenCalledWith('u1', false);
-    expect(api.assignAdminUserRoles).toHaveBeenCalledWith('u1', 'o1', ['r1', 'r2']);
+    expect(api.assignAdminUserRoles).toHaveBeenCalledWith('u1', 'o1', ['r2']);
     expect(api.adminUsers).toHaveBeenCalledTimes(1);
     expect(pollSession).toHaveBeenCalledTimes(1);
     expect(store.dirty()).toBe(false);
@@ -140,7 +140,7 @@ describe('AdminStore', () => {
     const daniel = store.users()[0];
     api.setAdminUserActive.mockReturnValueOnce(throwError(() => new Error('sin permiso')));
     store.setUserActive(daniel, false);
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
 
     await store.guardar();
 
@@ -184,7 +184,7 @@ describe('AdminStore', () => {
     const store = create();
     const daniel = store.users()[0];
     store.setUserActive(daniel, false);
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
     store.setFlag('calendar', 'o1', daniel.id, false);
 
     store.setUserOrganization(daniel, 'o2');
@@ -196,7 +196,7 @@ describe('AdminStore', () => {
         .sort(),
     ).toEqual(['userActive', 'userOrganization']);
     expect(store.hasPendingMove(daniel)).toBe(true);
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
     expect(store.count()).toBe(2);
   });
 
@@ -204,11 +204,22 @@ describe('AdminStore', () => {
     const store = create();
     const daniel = store.users()[0];
     expect(store.effectivePermissions(daniel)).toEqual(['movimientos.ver']);
+    store.roles.set([role(), role({ id: 'r2', name: 'Beta', permissions: ['cuentas.ver'] })]);
 
-    store.toggleUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r2');
 
     expect(store.count()).toBe(1);
-    expect(store.effectivePermissions(daniel)).toContain('movimientos.ver');
+    expect(store.effectivePermissions(daniel)).toEqual(['cuentas.ver']);
+  });
+
+  it('elegir un rol reemplaza al anterior en vez de sumarse', () => {
+    const store = create();
+    const daniel = store.users()[0];
+
+    store.setUserRole(daniel, 'r2');
+    store.setUserRole(daniel, 'r3');
+
+    expect(store.userRoleIds(daniel)).toEqual(['r3']);
   });
 
   it('guardar un rol manda solo permisos del catálogo', async () => {
