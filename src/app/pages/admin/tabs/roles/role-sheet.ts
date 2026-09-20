@@ -40,6 +40,7 @@ import { PermissionSectionsComponent } from '../../permission-picker/permission-
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
+      [wide]="true"
       [open]="open()"
       [title]="role() ? i18n.t('admin.roles.drawer.editTitle') : i18n.t('admin.roles.actions.create')"
       [subtitle]="i18n.t('admin.roles.drawer.subtitle')"

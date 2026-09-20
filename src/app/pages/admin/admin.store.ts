@@ -60,12 +60,12 @@ export class AdminStore {
   readonly audit = signal<readonly ApiAuditEvent[]>([]);
   readonly auditPage = signal(1);
   readonly auditTotal = signal(0);
-  readonly auditSize = 25;
+  readonly auditSize = signal(25);
   readonly auditFilter = signal<ApiAuditFilter>({});
   readonly errors = signal<readonly ApiClientError[]>([]);
   readonly errorsPage = signal(1);
   readonly errorsTotal = signal(0);
-  readonly errorsSize = 25;
+  readonly errorsSize = signal(25);
   readonly errorsStatus = signal('');
   private readonly membersByOrganization = signal<Readonly<Record<string, readonly ApiOrganizationMember[]>>>({});
   private readonly flagsByOrganization = signal<Readonly<Record<string, readonly ApiAdminOrganizationFlag[]>>>({});
@@ -121,10 +121,10 @@ export class AdminStore {
         ? firstValueFrom(this.api.adminOrganizations(1, 100))
         : vacio<ApiAdminOrganization>(),
       puede(P.administracion.auditoria.listar)
-        ? firstValueFrom(this.api.superAdminAudit(1, this.auditSize, this.auditFilter()))
+        ? firstValueFrom(this.api.superAdminAudit(1, this.auditSize(), this.auditFilter()))
         : vacio<ApiAuditEvent>(),
       puede(P.administracion.errores.listar)
-        ? firstValueFrom(this.api.adminErrors(1, this.errorsSize, serverStatus(this.errorsStatus())))
+        ? firstValueFrom(this.api.adminErrors(1, this.errorsSize(), serverStatus(this.errorsStatus())))
         : vacio<ApiClientError>(),
       puede(P.administracion.banderas.listar) ? firstValueFrom(this.api.adminFeatureFlags()) : Promise.resolve([]),
       puede(P.administracion.capacidades.listar)
@@ -208,7 +208,7 @@ export class AdminStore {
     if (!this.caps.allows(P.administracion.auditoria.listar)) return;
     try {
       this.auditFilter.set(filter);
-      this.aplicarAuditoria(await firstValueFrom(this.api.superAdminAudit(page, this.auditSize, filter)));
+      this.aplicarAuditoria(await firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)));
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
     }
@@ -218,7 +218,7 @@ export class AdminStore {
     if (!this.caps.allows(P.administracion.errores.listar)) return;
     try {
       this.errorsStatus.set(status);
-      this.aplicarErrores(await firstValueFrom(this.api.adminErrors(page, this.errorsSize, serverStatus(status))));
+      this.aplicarErrores(await firstValueFrom(this.api.adminErrors(page, this.errorsSize(), serverStatus(status))));
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
     }
@@ -581,7 +581,7 @@ export class AdminStore {
       this.app.toast.set(
         this.i18n.t('admin.organizations.consolidate.done', {
           users: result.movedUsers,
-          organizations: result.archivedOrganizations,
+          organizations: result.deletedOrganizations,
         }),
       );
     } catch (error) {

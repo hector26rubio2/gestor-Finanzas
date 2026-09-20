@@ -21,10 +21,14 @@ const routes = [
   'settings',
 ];
 const viewports = [
+  { width: 360, height: 780 },
   { width: 390, height: 844 },
+  { width: 412, height: 915, label: 's26-ultra' },
   { width: 768, height: 1024 },
+  { width: 820, height: 1180, label: 'ipad-air' },
   { width: 1024, height: 768 },
   { width: 1440, height: 900 },
+  { width: 3440, height: 1440, label: 'ultrawide' },
   // A 720x450 CSS viewport exercises the layout available when a 1440x900
   // desktop viewport is viewed at 200% browser zoom.
   { width: 720, height: 450, label: 'zoom-200' },

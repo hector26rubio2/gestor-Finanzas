@@ -27,6 +27,7 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
     IconComponent,
     UiSelectComponent,
   ],
+  host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.sinDatos()) {

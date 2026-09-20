@@ -1381,13 +1381,13 @@ export default {
   'admin.flags.blockedByGlobal': 'Bloqueada: la global está apagada',
   'admin.flags.hierarchyNote':
     'La bandera global manda: si está apagada, ninguna organización puede tenerla. Con la global encendida, cada organización puede apagarla y volver a encenderla, y sus roles dejan de ver esa sección.',
-  'admin.organizations.consolidate.action': 'Consolidar en la general',
-  'admin.organizations.consolidate.title': '¿Consolidar en la organización general?',
+  'admin.organizations.consolidate.action': 'Dejar solo la general',
+  'admin.organizations.consolidate.title': '¿Mover a todos a la general y borrar las demás?',
   'admin.organizations.consolidate.description':
-    'Todas las personas pasan a la organización predeterminada y las demás organizaciones se archivan. No se borra ningún dato: puedes verlas con «Mostrar archivadas».',
-  'admin.organizations.consolidate.confirm': 'Consolidar',
+    'Todas las personas pasan a la organización predeterminada y las demás organizaciones se borran para siempre con sus cuentas, movimientos, roles y auditoría. No se puede deshacer.',
+  'admin.organizations.consolidate.confirm': 'Mover y borrar',
   'admin.organizations.consolidate.done':
-    'Listo: {users} personas movidas y {organizations} organizaciones archivadas.',
+    'Listo: {users} personas movidas y {organizations} organizaciones eliminadas.',
   'admin.organizations.consolidate.failedReason': 'No se pudo consolidar: {reason}',
   'admin.organizations.showArchived': 'Mostrar archivadas',
   'admin.organizations.delete.action': 'Eliminar definitivamente {name}',
@@ -1397,4 +1397,9 @@ export default {
   'admin.organizations.delete.confirm': 'Eliminar',
   'admin.organizations.delete.done': 'Organización {name} eliminada.',
   'admin.organizations.delete.failedReason': 'No se pudo eliminar: {reason}',
+  'admin.errors.column.source': 'Origen',
+  'admin.errors.column.message': 'Reporte',
+  'admin.errors.column.occurrences': 'Veces',
+  'admin.errors.column.status': 'Estado',
+  'admin.errors.drawer.screenshotExpand': 'Ampliar la captura',
 } as const;

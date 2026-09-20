@@ -54,6 +54,7 @@ export interface TableColumn {
   sortKey?: string;
   facet?: boolean;
   hideable?: boolean;
+  hidden?: boolean;
 }
 
 type Row = Record<string, any>;
@@ -262,6 +263,17 @@ export class DataTableComponent {
     if (inject(Router, { optional: true })) {
       sincronizarPaginaConLaUrl(() => this.urlKey(), this.page);
     }
+    let visibilityApplied = false;
+    effect(() => {
+      const columns = this.columns();
+      untracked(() => {
+        if (visibilityApplied || !columns.length) return;
+        visibilityApplied = true;
+        const hidden = columns.filter((column) => column.hidden);
+        if (hidden.length)
+          this.table.setColumnVisibility(Object.fromEntries(hidden.map((column) => [column.key, false])));
+      });
+    });
     let primerCalculo = true;
     effect(() => {
       this.totalCount();

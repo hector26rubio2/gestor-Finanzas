@@ -117,6 +117,11 @@
 }
 
 @layer base {
+  button[role='switch'],
+  button[role='checkbox'],
+  button[role='radio'] {
+    padding: 0;
+  }
   *,
   ::before,
   ::after {

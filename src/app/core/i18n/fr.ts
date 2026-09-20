@@ -1380,13 +1380,13 @@ export default {
   'admin.flags.blockedByGlobal': 'Bloqué : le drapeau global est désactivé',
   'admin.flags.hierarchyNote':
     "Le drapeau global prime : s'il est désactivé, aucune organisation ne peut l'avoir. Avec le global activé, chaque organisation peut le désactiver et le réactiver, et ses rôles ne voient plus cette section.",
-  'admin.organizations.consolidate.action': 'Consolider dans la générale',
-  'admin.organizations.consolidate.title': "Consolider dans l'organisation générale ?",
+  'admin.organizations.consolidate.action': 'Ne garder que la générale',
+  'admin.organizations.consolidate.title': 'Tout déplacer vers la générale et supprimer les autres ?',
   'admin.organizations.consolidate.description':
-    "Tout le monde passe à l'organisation par défaut et les autres sont archivées. Aucune donnée n'est supprimée : elles restent visibles avec « Afficher les archivées ».",
-  'admin.organizations.consolidate.confirm': 'Consolider',
+    "Tout le monde passe à l'organisation par défaut et les autres sont supprimées pour toujours avec leurs comptes, mouvements, rôles et audit. Irréversible.",
+  'admin.organizations.consolidate.confirm': 'Déplacer et supprimer',
   'admin.organizations.consolidate.done':
-    'Terminé : {users} personnes déplacées et {organizations} organisations archivées.',
+    'Terminé : {users} personnes déplacées et {organizations} organisations supprimées.',
   'admin.organizations.consolidate.failedReason': 'Impossible de consolider : {reason}',
   'admin.organizations.showArchived': 'Afficher les archivées',
   'admin.organizations.delete.action': 'Supprimer définitivement {name}',
@@ -1396,4 +1396,9 @@ export default {
   'admin.organizations.delete.confirm': 'Supprimer',
   'admin.organizations.delete.done': 'Organisation {name} supprimée.',
   'admin.organizations.delete.failedReason': 'Suppression impossible : {reason}',
+  'admin.errors.column.source': 'Origine',
+  'admin.errors.column.message': 'Rapport',
+  'admin.errors.column.occurrences': 'Fois',
+  'admin.errors.column.status': 'État',
+  'admin.errors.drawer.screenshotExpand': 'Agrandir la capture',
 } as const;
