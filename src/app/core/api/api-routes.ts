@@ -26,6 +26,7 @@ export const API_ROUTES = {
   adminOrganizations: '/api/v1/superadmin/organizations',
   adminErrors: '/api/v1/superadmin/errors',
   bugReports: '/api/v1/bug-reports',
+  clientErrors: '/api/v1/client-errors',
   superAdminCapabilities: '/api/v1/superadmin/capabilities',
   superAdminPermissions: '/api/v1/superadmin/permissions',
   superAdminFeatureFlags: '/api/v1/superadmin/feature-flags',
