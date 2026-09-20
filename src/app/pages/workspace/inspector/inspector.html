@@ -14,7 +14,7 @@
     >
       @if (isAccountInspector() && selectedAccount(); as a) {
       <fin-bank-card
-        class="flex-[0_0_260px] max-w-[260px] max-[700px]:w-full max-[700px]:max-w-[320px]"
+        class="flex-[0_0_260px] max-w-[260px] self-center max-[700px]:w-full max-[700px]:max-w-[320px]"
         [color]="a.color ?? 'var(--accent)'"
         [typeLabel]="a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ? i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash')"
         [numberLabel]="a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour')"
