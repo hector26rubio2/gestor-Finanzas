@@ -1379,4 +1379,11 @@ export default {
   'admin.organizations.consolidate.done': 'Done: {users} people moved and {organizations} organizations archived.',
   'admin.organizations.consolidate.failedReason': 'Could not consolidate: {reason}',
   'admin.organizations.showArchived': 'Show archived',
+  'admin.organizations.delete.action': 'Permanently delete {name}',
+  'admin.organizations.delete.title': 'Delete {name} forever?',
+  'admin.organizations.delete.description':
+    'The organization and everything in it is deleted: accounts, movements, roles and audit trail. Only possible if it is archived and has no members. This cannot be undone.',
+  'admin.organizations.delete.confirm': 'Delete',
+  'admin.organizations.delete.done': 'Organization {name} deleted.',
+  'admin.organizations.delete.failedReason': 'Could not delete: {reason}',
 } as const;

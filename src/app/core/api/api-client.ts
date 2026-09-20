@@ -206,6 +206,9 @@ export class FinanceApiClient {
   adminUsers(page = 1, size = 25, search = '') {
     return this.administrationApi.adminUsers(page, size, search);
   }
+  deleteAdminOrganization(id: string) {
+    return this.administrationApi.deleteAdminOrganization(id);
+  }
   consolidateAdminOrganizations() {
     return this.administrationApi.consolidateAdminOrganizations();
   }

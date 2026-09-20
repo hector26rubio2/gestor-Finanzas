@@ -1389,4 +1389,11 @@ export default {
     'Terminé : {users} personnes déplacées et {organizations} organisations archivées.',
   'admin.organizations.consolidate.failedReason': 'Impossible de consolider : {reason}',
   'admin.organizations.showArchived': 'Afficher les archivées',
+  'admin.organizations.delete.action': 'Supprimer définitivement {name}',
+  'admin.organizations.delete.title': 'Supprimer {name} pour toujours ?',
+  'admin.organizations.delete.description':
+    "L'organisation et tout son contenu sont supprimés : comptes, mouvements, rôles et audit. Possible seulement si elle est archivée et sans membres. Irréversible.",
+  'admin.organizations.delete.confirm': 'Supprimer',
+  'admin.organizations.delete.done': 'Organisation {name} supprimée.',
+  'admin.organizations.delete.failedReason': 'Suppression impossible : {reason}',
 } as const;

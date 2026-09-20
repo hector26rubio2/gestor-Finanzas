@@ -11,6 +11,7 @@ import { IconComponent } from '../../ui/icon/icon';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { P } from '../../core/session/permissions';
 import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
+import { DEFAULT_PALETTE, clearPaletteOverrides } from '../../core/state/theme';
 import { applyTheme, CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 
@@ -145,7 +146,18 @@ export class PreferencesTabComponent implements OnInit {
   }
 
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
-    this.store.preferences.update((p) => ({ ...p, theme }));
+    this.store.preferences.update((p) => ({
+      ...p,
+      theme,
+      accent: DEFAULT_PALETTE.accent,
+      primary: DEFAULT_PALETTE.primary,
+      secondary: DEFAULT_PALETTE.secondary,
+      text: DEFAULT_PALETTE.text,
+      surface: DEFAULT_PALETTE.surface,
+      border: DEFAULT_PALETTE.border,
+    }));
+    clearPaletteOverrides();
+    document.documentElement.style.setProperty('--radius', `${this.store.preferences().radius}px`);
     applyTheme(theme);
     this.persistPreferences();
   }

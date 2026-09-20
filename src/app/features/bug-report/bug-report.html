@@ -26,7 +26,9 @@
     <a hlmBtn [href]="url" target="_blank" rel="noopener"
       ><fin-icon name="flag" /> {{ i18n.t('bugReport.success.githubLink') }} ↗</a
     >
-    } @else {
+    @if (githubDetail(); as detail) {
+    <p class="text-[0.8rem] text-muted-foreground" role="status">{{ detail }}</p>
+    } } @else {
     <p class="text-[0.85rem] text-muted-foreground" role="status">
       {{ i18n.t('bugReport.success.githubPending') }} @if (githubDetail(); as detail) {
       <span class="mt-1 block text-[0.8rem]">{{ detail }}</span>

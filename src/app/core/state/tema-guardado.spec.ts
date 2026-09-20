@@ -1,5 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from './theme';
+import {
+  DEFAULT_PALETTE,
+  applyStoredAppearance,
+  clearAppearanceOverrides,
+  paletteOverrides,
+  parsePalette,
+} from './theme';
 
 const root = document.documentElement;
 
@@ -56,5 +62,33 @@ describe('restaurar la apariencia guardada', () => {
     expect(parsePalette('no es json')).toBeNull();
     expect(parsePalette('[1]')).toBeNull();
     expect(parsePalette(null)).toBeNull();
+  });
+
+  it('una paleta guardada con los valores por defecto no pisa el tema oscuro', () => {
+    const guardada = parsePalette(
+      JSON.stringify({
+        name: 'Mi tema indigo',
+        accent: '#4F46E5',
+        primary: '#4f46e5',
+        secondary: '#d97706',
+        text: '#1e2130',
+        surface: '#ffffff',
+        border: '#e4e7ec',
+        radius: 16,
+      }),
+    );
+
+    applyStoredAppearance({ theme: 'dark', font: 'Inter', density: 'comfortable' }, guardada);
+
+    expect(root.dataset['theme']).toBe('dark');
+    for (const variable of ['--accent', '--secondary', '--text', '--surface', '--line', '--radius']) {
+      expect(root.style.getPropertyValue(variable)).toBe('');
+    }
+  });
+
+  it('solo se guardan los colores que la persona cambió', () => {
+    const base = { ...DEFAULT_PALETTE, name: DEFAULT_PALETTE.name };
+    expect(paletteOverrides(base)).toEqual({});
+    expect(paletteOverrides({ ...base, surface: '#101010', radius: 8 })).toEqual({ surface: '#101010', radius: 8 });
   });
 });

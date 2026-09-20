@@ -52,6 +52,15 @@ import { OrganizationSheetComponent } from './organization-sheet';
         (confirmed)="consolidate()"
         (dismissed)="confirmingConsolidation.set(false)"
       />
+      <fin-confirm-dialog
+        [open]="!!deleting()"
+        [title]="i18n.t('admin.organizations.delete.title', { name: deleting()?.name ?? '' })"
+        [description]="i18n.t('admin.organizations.delete.description')"
+        [confirmLabel]="i18n.t('admin.organizations.delete.confirm')"
+        [cancelLabel]="i18n.t('admin.common.cancel')"
+        (confirmed)="confirmDelete()"
+        (dismissed)="deleting.set(null)"
+      />
       <app-admin-panel
         [title]="i18n.t('admin.organizations.title')"
         [subtitle]="i18n.t('admin.organizations.subtitle')"
@@ -149,9 +158,25 @@ import { OrganizationSheetComponent } from './organization-sheet';
                     </span>
                   </td>
                   <td hlmTd class="px-5 text-end">
-                    <button hlmBtn variant="outline" size="sm" (click)="managingId.set(org.id)">
-                      {{ i18n.t('admin.organizations.manage') }}
-                    </button>
+                    <span class="inline-flex items-center gap-2">
+                      @if (canDelete(org)) {
+                        <button
+                          hlmBtn
+                          variant="ghost"
+                          size="icon-sm"
+                          type="button"
+                          class="text-destructive"
+                          [attr.aria-label]="i18n.t('admin.organizations.delete.action', { name: org.name })"
+                          [attr.title]="i18n.t('admin.organizations.delete.action', { name: org.name })"
+                          (click)="deleting.set(org)"
+                        >
+                          <fin-icon name="trash" />
+                        </button>
+                      }
+                      <button hlmBtn variant="outline" size="sm" (click)="managingId.set(org.id)">
+                        {{ i18n.t('admin.organizations.manage') }}
+                      </button>
+                    </span>
                   </td>
                 </tr>
               } @empty {
@@ -200,6 +225,7 @@ export class OrganizationsTabComponent {
 
   readonly creating = signal(false);
   readonly showArchived = signal(false);
+  readonly deleting = signal<ApiAdminOrganization | null>(null);
   readonly confirmingConsolidation = signal(false);
   readonly search = signal('');
   readonly name = signal('');
@@ -224,6 +250,16 @@ export class OrganizationsTabComponent {
       this.store.organizations().filter((org) => org.isActive).length > 1 &&
       this.store.organizations().some((org) => org.isDefault),
   );
+
+  canDelete(org: ApiAdminOrganization): boolean {
+    return this.caps.allows(P.administracion.organizaciones.editar) && !org.isActive && !org.isDefault;
+  }
+
+  async confirmDelete(): Promise<void> {
+    const organization = this.deleting();
+    this.deleting.set(null);
+    if (organization) await this.store.eliminarOrganizacion(organization);
+  }
 
   async consolidate(): Promise<void> {
     this.confirmingConsolidation.set(false);

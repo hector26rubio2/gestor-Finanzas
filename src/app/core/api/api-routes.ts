@@ -47,6 +47,7 @@ export const API_ROUTES = {
   adminErrorGithubIssue: (id: string) => `/api/v1/superadmin/errors/${id}/github-issue`,
   adminErrorScreenshot: (id: string) => `/api/v1/superadmin/errors/${encodeURIComponent(id)}/screenshot`,
   adminOrganization: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}`,
+  adminOrganizationDelete: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}`,
   adminOrganizationsConsolidate: '/api/v1/superadmin/organizations/consolidate',
   adminOrganizationDefault: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/default`,
   adminOrganizationMembers: (id: string) => `/api/v1/superadmin/organizations/${encodeURIComponent(id)}/members`,
