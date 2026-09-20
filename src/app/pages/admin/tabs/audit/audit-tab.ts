@@ -118,7 +118,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             </ng-template>
             <ng-template finCell="entity" let-row>
               {{ row.entity }}
-              <small class="block text-xs text-muted-foreground">{{ row.raw.entityId || '—' }}</small>
+              <small class="block text-xs text-muted-foreground">{{ entityDetail(row.raw) }}</small>
             </ng-template>
             <ng-template finCell="trace" let-row>
               <button
@@ -164,7 +164,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.column.entity') }}</dt>
-            <dd>{{ labels.auditEntity(event.entityType) }} / {{ event.entityId || '—' }}</dd>
+            <dd>{{ labels.auditEntity(event.entityType) }} / {{ entityDetail(event) }}</dd>
           </div>
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.common.traceId') }}</dt>
@@ -269,6 +269,15 @@ export class AuditTabComponent {
 
   actorName(event: ApiAuditEvent): string {
     return event.actorUserId ? this.store.userName(event.actorUserId) : this.i18n.t('admin.audit.systemActor');
+  }
+
+  entityDetail(event: ApiAuditEvent): string {
+    const id = event.entityId;
+    if (!id) return '—';
+    const type = event.entityType.toLowerCase();
+    if (type === 'user') return this.store.userName(id);
+    if (type === 'organization') return this.store.organizations().find((org) => org.id === id)?.name ?? id;
+    return id;
   }
 
   changes(event: ApiAuditEvent): string {

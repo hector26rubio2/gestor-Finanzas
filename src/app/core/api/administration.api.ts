@@ -441,6 +441,14 @@ export class AdministrationApi {
     });
   }
 
+  reportClientError(payload: { source: 'web'; fingerprint: string; message: string; contextJson: string }) {
+    return this.transport.request<ApiClientError>({
+      method: 'POST',
+      path: API_ROUTES.clientErrors,
+      body: payload,
+    });
+  }
+
   /** URL directa (fuera del transporte JSON) para pintar la captura en un `<img>`; va por cookie de sesión. */
   screenshotUrl(id: string): string {
     return `${this.runtime.apiBaseUrl ?? ''}${API_ROUTES.adminErrorScreenshot(id)}`;
