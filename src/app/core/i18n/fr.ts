@@ -1396,4 +1396,9 @@ export default {
   'admin.organizations.delete.confirm': 'Supprimer',
   'admin.organizations.delete.done': 'Organisation {name} supprimée.',
   'admin.organizations.delete.failedReason': 'Suppression impossible : {reason}',
+  'admin.errors.column.source': 'Origine',
+  'admin.errors.column.message': 'Rapport',
+  'admin.errors.column.occurrences': 'Fois',
+  'admin.errors.column.status': 'État',
+  'admin.errors.drawer.screenshotExpand': 'Agrandir la capture',
 } as const;

@@ -1385,4 +1385,9 @@ export default {
   'admin.organizations.delete.confirm': 'Excluir',
   'admin.organizations.delete.done': 'Organização {name} excluída.',
   'admin.organizations.delete.failedReason': 'Não foi possível excluir: {reason}',
+  'admin.errors.column.source': 'Origem',
+  'admin.errors.column.message': 'Relatório',
+  'admin.errors.column.occurrences': 'Vezes',
+  'admin.errors.column.status': 'Estado',
+  'admin.errors.drawer.screenshotExpand': 'Ampliar a captura',
 } as const;

@@ -4,33 +4,36 @@ import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
-import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ApiAuditEvent, ApiAuditFilter } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
+import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
+import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
 import { IconComponent } from '../../../../ui/icon/icon';
-import { PagerComponent } from '../../../../ui/pager/pager';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
+import { AdminGridComponent } from '../../panel/admin-grid';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso } from './audit-catalog';
 
 @Component({
   selector: 'app-admin-audit-tab',
   imports: [
+    AdminGridComponent,
+    DataTableComponent,
+    FinTableCellDirective,
     DateFieldComponent,
     FormsModule,
     HlmButton,
     HlmInput,
     HlmLabel,
-    HlmTableImports,
     EmptyStateComponent,
     IconComponent,
-    PagerComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
+  host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.sinDatos()) {
@@ -95,80 +98,48 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             </div>
           }
         </header>
-        <div hlmTableContainer>
-          <table hlmTable [attr.aria-label]="i18n.t('admin.audit.title')">
-            <thead hlmTHead>
-              <tr hlmTr>
-                <th hlmTh>{{ i18n.t('admin.audit.column.date') }}</th>
-                <th hlmTh>{{ i18n.t('admin.audit.column.actor') }}</th>
-                <th hlmTh>{{ i18n.t('admin.audit.column.affected') }}</th>
-                <th hlmTh>{{ i18n.t('admin.audit.column.action') }}</th>
-                <th hlmTh>{{ i18n.t('admin.audit.column.entity') }}</th>
-                <th hlmTh>{{ i18n.t('admin.common.traceId') }}</th>
-                <th hlmTh class="w-12">
-                  <span class="sr-only">{{ i18n.t('admin.common.actions') }}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody hlmTBody>
-              @for (event of store.audit(); track event.id) {
-                <tr hlmTr>
-                  <td hlmTd class="whitespace-nowrap">{{ labels.dateTime(event.createdAt) }}</td>
-                  <td hlmTd>{{ actorName(event) }}</td>
-                  <td hlmTd>{{ event.userId ? store.userName(event.userId) : '—' }}</td>
-                  <td hlmTd>
-                    <b class="text-sm">{{ labels.auditAction(event.action) }}</b>
-                    <small class="block text-xs text-muted-foreground">{{ event.action }}</small>
-                  </td>
-                  <td hlmTd>
-                    {{ labels.auditEntity(event.entityType) }}
-                    <small class="block text-xs text-muted-foreground">{{ event.entityId || '—' }}</small>
-                  </td>
-                  <td hlmTd>
-                    <button
-                      hlmBtn
-                      variant="outline"
-                      size="xs"
-                      type="button"
-                      class="font-mono"
-                      [attr.title]="i18n.t('admin.audit.trace.filterBy')"
-                      [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + event.traceId"
-                      (click)="filterByTrace(event.traceId)"
-                    >
-                      <fin-icon name="filter" /> {{ event.traceId.slice(0, 12) }}
-                    </button>
-                  </td>
-                  <td hlmTd>
-                    <button
-                      hlmBtn
-                      variant="ghost"
-                      size="icon-sm"
-                      [attr.aria-label]="i18n.t('admin.audit.detail') + ': ' + event.action"
-                      (click)="selected.set(event)"
-                    >
-                      <fin-icon name="next" />
-                    </button>
-                  </td>
-                </tr>
-              } @empty {
-                <tr hlmTr>
-                  <td hlmTd colspan="7" class="py-8 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-        <fin-pager
-          class="p-4"
-          [page]="store.auditPage()"
-          [size]="store.auditSize"
-          [total]="store.auditTotal()"
-          [summary]="i18n.t('admin.audit.countLabel', { count: store.auditTotal() })"
-          (pageChange)="store.cargarAuditoria($event)"
-        />
+        <app-admin-grid
+          class="[height:max(22rem,calc(100dvh-26rem))]! max-[700px]:[height:min(34rem,calc(100dvh-12rem))]!"
+        >
+          <fin-table
+            [columns]="columns()"
+            [rows]="rows()"
+            [totalRows]="store.auditTotal()"
+            [remotePage]="store.auditPage()"
+            [pageSize]="store.auditSize()"
+            [tableLabel]="i18n.t('admin.audit.title')"
+            (rowSelected)="selected.set($event['raw'])"
+            (pageSizeChange)="store.auditSize.set($event)"
+            (pageChange)="store.cargarAuditoria($event)"
+          >
+            <ng-template finCell="action" let-row>
+              <b class="text-sm">{{ row.action }}</b>
+              <small class="block text-xs text-muted-foreground">{{ row.raw.action }}</small>
+            </ng-template>
+            <ng-template finCell="entity" let-row>
+              {{ row.entity }}
+              <small class="block text-xs text-muted-foreground">{{ row.raw.entityId || '—' }}</small>
+            </ng-template>
+            <ng-template finCell="trace" let-row>
+              <button
+                hlmBtn
+                variant="outline"
+                size="xs"
+                type="button"
+                class="font-mono"
+                [attr.title]="i18n.t('admin.audit.trace.filterBy')"
+                [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + row.raw.traceId"
+                (click)="$event.stopPropagation(); filterByTrace(row.raw.traceId)"
+              >
+                <fin-icon name="filter" /> {{ row.raw.traceId.slice(0, 12) }}
+              </button>
+            </ng-template>
+          </fin-table>
+        </app-admin-grid>
       </section>
     }
     <fin-sheet-panel
+      [wide]="true"
       [open]="!!selected()"
       [title]="selected() ? labels.auditAction(selected()!.action) : ''"
       [subtitle]="labels.dateTimeLong(selected()?.createdAt)"
@@ -232,6 +203,28 @@ export class AuditTabComponent {
   readonly from = signal('');
   readonly to = signal('');
   readonly selected = signal<ApiAuditEvent | null>(null);
+
+  readonly columns = computed<TableColumn[]>(() => [
+    { key: 'date', label: this.i18n.t('admin.audit.column.date') },
+    { key: 'actor', label: this.i18n.t('admin.audit.column.actor') },
+    { key: 'affected', label: this.i18n.t('admin.audit.column.affected') },
+    { key: 'action', label: this.i18n.t('admin.audit.column.action') },
+    { key: 'entity', label: this.i18n.t('admin.audit.column.entity') },
+    { key: 'trace', label: this.i18n.t('admin.common.traceId'), sortable: false },
+  ]);
+
+  readonly rows = computed(() =>
+    this.store.audit().map((event) => ({
+      id: event.id,
+      date: this.labels.dateTime(event.createdAt),
+      actor: this.actorName(event),
+      affected: event.userId ? this.store.userName(event.userId) : '—',
+      action: this.labels.auditAction(event.action),
+      entity: this.labels.auditEntity(event.entityType),
+      trace: event.traceId,
+      raw: event,
+    })),
+  );
 
   readonly actionOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('admin.audit.action.all') },

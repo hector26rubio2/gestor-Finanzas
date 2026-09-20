@@ -9,7 +9,11 @@ import { HlmSheetImports } from '@spartan-ng/helm/sheet';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (stateChanged)="onStateChanged($event)">
-      <hlm-sheet-content *hlmSheetPortal="let ctx" class="w-full gap-0 p-0 data-[side=right]:sm:max-w-xl">
+      <hlm-sheet-content
+        *hlmSheetPortal="let ctx"
+        class="w-full gap-0 p-0"
+        [class]="wide() ? 'data-[side=right]:sm:max-w-3xl' : 'data-[side=right]:sm:max-w-xl'"
+      >
         <hlm-sheet-header class="border-b border-border pe-14">
           <h2 hlmSheetTitle>{{ title() }}</h2>
           @if (subtitle()) {
@@ -35,6 +39,7 @@ export class SheetPanelComponent {
   readonly title = input.required<string>();
   readonly subtitle = input('');
   readonly footer = input(false);
+  readonly wide = input(false);
   readonly closed = output<void>();
 
   protected onStateChanged(state: 'open' | 'closed'): void {

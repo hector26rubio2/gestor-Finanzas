@@ -8,12 +8,15 @@ import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../../../core/state/store';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
+import { HlmDialogImports } from '@spartan-ng/helm/dialog';
+import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
+import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
 import { IconComponent } from '../../../../ui/icon/icon';
-import { PagerComponent } from '../../../../ui/pager/pager';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
+import { AdminGridComponent } from '../../panel/admin-grid';
 
 @Component({
   selector: 'app-admin-errors-tab',
@@ -21,12 +24,16 @@ import { AdminStore } from '../../admin.store';
     FormsModule,
     HlmBadge,
     HlmButton,
+    AdminGridComponent,
+    DataTableComponent,
+    FinTableCellDirective,
+    HlmDialogImports,
     EmptyStateComponent,
     IconComponent,
-    PagerComponent,
     SheetPanelComponent,
     UiSelectComponent,
   ],
+  host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.sinDatos()) {
@@ -46,46 +53,41 @@ import { AdminStore } from '../../admin.store';
             [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
           />
         </header>
-        <ul class="divide-y divide-border">
-          @for (error of store.errors(); track error.id) {
-            <li>
-              <button
-                hlmBtn
-                variant="ghost"
-                data-slot="error-row"
-                type="button"
-                class="h-auto w-full justify-start gap-3 rounded-none px-4 py-3 text-start font-normal whitespace-normal"
-                (click)="selected.set(error)"
-              >
-                <span hlmBadge variant="outline">{{ error.source }}</span>
-                <span class="flex min-w-0 flex-1 flex-col">
-                  <b class="truncate text-sm">{{ error.message }}</b>
-                  <small class="truncate text-xs text-muted-foreground">
-                    {{ error.version }} · {{ labels.dateTime(error.lastSeenAt) }} ·
-                    {{ i18n.t('admin.errors.affectedUsersLabel', { count: error.affectedUsers }) }}
-                  </small>
-                </span>
-                <strong class="text-sm">{{ error.occurrences }}×</strong>
-                <span hlmBadge [variant]="error.status === 'resolved' ? 'secondary' : 'destructive'">
-                  {{ labels.errorState(error.status) }}
-                </span>
-                <fin-icon name="next" />
-              </button>
-            </li>
-          } @empty {
-            <li class="px-4 py-8 text-center text-sm text-muted-foreground">{{ i18n.t('table.empty') }}</li>
-          }
-        </ul>
-        <fin-pager
-          class="p-4"
-          [page]="store.errorsPage()"
-          [size]="store.errorsSize"
-          [total]="store.errorsTotal()"
-          (pageChange)="store.cargarErrores($event)"
-        />
+        <app-admin-grid>
+          <fin-table
+            [columns]="columns()"
+            [rows]="rows()"
+            [totalRows]="store.errorsTotal()"
+            [remotePage]="store.errorsPage()"
+            [pageSize]="store.errorsSize()"
+            [tableLabel]="i18n.t('admin.errors.title')"
+            (rowSelected)="selected.set($event['raw'])"
+            (pageSizeChange)="store.errorsSize.set($event)"
+            (pageChange)="store.cargarErrores($event)"
+          >
+            <ng-template finCell="source" let-row>
+              <span hlmBadge variant="outline">{{ row.raw.source }}</span>
+            </ng-template>
+            <ng-template finCell="message" let-row>
+              <span class="flex min-w-0 flex-col">
+                <b class="truncate text-sm">{{ row.raw.title || row.raw.message }}</b>
+                <small class="truncate text-xs text-muted-foreground">
+                  {{ row.raw.version }} ·
+                  {{ i18n.t('admin.errors.affectedUsersLabel', { count: row.raw.affectedUsers }) }}
+                </small>
+              </span>
+            </ng-template>
+            <ng-template finCell="status" let-row>
+              <span hlmBadge [variant]="row.raw.status === 'resolved' ? 'secondary' : 'destructive'">{{
+                row.status
+              }}</span>
+            </ng-template>
+          </fin-table>
+        </app-admin-grid>
       </section>
     }
     <fin-sheet-panel
+      [wide]="true"
       [open]="!!selectedError()"
       [title]="i18n.t('admin.errors.drawer.title')"
       [subtitle]="selectedError()?.fingerprint ?? ''"
@@ -105,11 +107,36 @@ import { AdminStore } from '../../admin.store';
           </p>
         }
         @if (error.hasScreenshot) {
-          <img
-            class="max-w-full rounded-lg border border-border"
-            [src]="api.screenshotUrl(error.id)"
-            [alt]="i18n.t('admin.errors.drawer.screenshotAlt')"
-          />
+          <button
+            type="button"
+            class="group relative w-fit overflow-hidden rounded-lg border border-border bg-muted outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+            [attr.aria-label]="i18n.t('admin.errors.drawer.screenshotExpand')"
+            (click)="zoomed.set(true)"
+          >
+            <img
+              class="h-32 w-auto max-w-[16rem] object-cover object-top"
+              [src]="api.screenshotUrl(error.id)"
+              [alt]="i18n.t('admin.errors.drawer.screenshotAlt')"
+            />
+            <span
+              class="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1 bg-background/80 py-1 text-xs opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+            >
+              <fin-icon name="search" class="[--icon-size:13px]" /> {{ i18n.t('admin.errors.drawer.screenshotExpand') }}
+            </span>
+          </button>
+          <hlm-dialog [state]="zoomed() ? 'open' : 'closed'" (stateChanged)="onZoomState($event)">
+            <hlm-dialog-content
+              *hlmDialogPortal="let ctx"
+              class="w-[min(96vw,1200px)] max-w-none gap-2 p-3 sm:max-w-none"
+            >
+              <h2 hlmDialogTitle class="sr-only">{{ i18n.t('admin.errors.drawer.screenshotAlt') }}</h2>
+              <img
+                class="max-h-[80dvh] w-full rounded-md object-contain"
+                [src]="api.screenshotUrl(error.id)"
+                [alt]="i18n.t('admin.errors.drawer.screenshotAlt')"
+              />
+            </hlm-dialog-content>
+          </hlm-dialog>
         }
         <dl class="grid grid-cols-2 gap-3 text-sm">
           <div>
@@ -165,6 +192,27 @@ export class ErrorsTabComponent {
   readonly P = P;
 
   readonly selected = signal<ApiClientError | null>(null);
+  readonly zoomed = signal(false);
+
+  readonly columns = computed<TableColumn[]>(() => [
+    { key: 'source', label: this.i18n.t('admin.errors.column.source') },
+    { key: 'message', label: this.i18n.t('admin.errors.column.message') },
+    { key: 'occurrences', label: this.i18n.t('admin.errors.column.occurrences') },
+    { key: 'status', label: this.i18n.t('admin.errors.column.status') },
+    { key: 'lastSeen', label: this.i18n.t('admin.errors.drawer.lastSeen') },
+  ]);
+
+  readonly rows = computed(() =>
+    this.store.errors().map((error) => ({
+      id: error.id,
+      source: error.source,
+      message: `${error.title ?? ''} ${error.message}`,
+      occurrences: `${error.occurrences}×`,
+      status: this.labels.errorState(error.status),
+      lastSeen: this.labels.dateTime(error.lastSeenAt),
+      raw: error,
+    })),
+  );
   readonly creatingIssue = signal(false);
   readonly selectedError = computed(
     () => this.store.errors().find((error) => error.id === this.selected()?.id) ?? this.selected(),
@@ -179,6 +227,10 @@ export class ErrorsTabComponent {
     { value: '', label: this.i18n.t('admin.errors.status.all') },
     ...this.stateOptions(),
   ]);
+
+  onZoomState(state: 'open' | 'closed'): void {
+    if (state === 'closed') this.zoomed.set(false);
+  }
 
   async createIssue(error: ApiClientError): Promise<void> {
     this.creatingIssue.set(true);

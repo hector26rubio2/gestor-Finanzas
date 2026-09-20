@@ -5,16 +5,18 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
-import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ApiAdminOrganization } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../../../core/state/store';
 import { ConfirmDialogComponent } from '../../../../ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
+import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
+import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
 import { AdminStore } from '../../admin.store';
+import { AdminGridComponent } from '../../panel/admin-grid';
 import { AdminPanelComponent } from '../../panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
 
@@ -27,14 +29,17 @@ import { OrganizationSheetComponent } from './organization-sheet';
     HlmInput,
     HlmLabel,
     HlmSwitch,
-    HlmTableImports,
+    AdminGridComponent,
     AdminPanelComponent,
+    DataTableComponent,
+    FinTableCellDirective,
     EmptyStateComponent,
     IconComponent,
     OrganizationSheetComponent,
     SheetPanelComponent,
     ConfirmDialogComponent,
   ],
+  host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (store.sinDatos()) {
@@ -66,20 +71,6 @@ import { OrganizationSheetComponent } from './organization-sheet';
         [subtitle]="i18n.t('admin.organizations.subtitle')"
       >
         <div panelActions class="flex flex-wrap items-center gap-2">
-          <label class="relative">
-            <fin-icon
-              name="search"
-              class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              hlmInput
-              class="w-64 ps-9"
-              [ngModel]="search()"
-              (ngModelChange)="search.set($event)"
-              [placeholder]="i18n.t('admin.organizations.searchPlaceholder')"
-              [attr.aria-label]="i18n.t('admin.organizations.searchPlaceholder')"
-            />
-          </label>
           @if (canConsolidate()) {
             <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
               <fin-icon name="layers" /> {{ i18n.t('admin.organizations.consolidate.action') }}
@@ -99,94 +90,70 @@ import { OrganizationSheetComponent } from './organization-sheet';
             </button>
           }
         </div>
-        <div hlmTableContainer>
-          <table hlmTable [attr.aria-label]="i18n.t('admin.organizations.title')">
-            <thead hlmTHead class="bg-muted/40">
-              <tr hlmTr>
-                <th hlmTh class="h-11 px-5">{{ i18n.t('admin.organizations.column.organization') }}</th>
-                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.currency') }}</th>
-                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.members') }}</th>
-                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.roles') }}</th>
-                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.default') }}</th>
-                <th hlmTh class="px-4">{{ i18n.t('admin.organizations.column.active') }}</th>
-                <th hlmTh class="w-32 px-5">
-                  <span class="sr-only">{{ i18n.t('admin.common.actions') }}</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody hlmTBody>
-              @for (org of visibleOrganizations(); track org.id) {
-                <tr hlmTr [class.opacity-60]="!store.isOrganizationActive(org)">
-                  <td hlmTd class="px-5 py-3">
-                    <div class="flex items-center gap-3">
-                      <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
-                        <fin-icon name="organization" />
-                      </span>
-                      <span class="flex min-w-0 flex-col">
-                        <b class="text-sm">{{ org.name }}</b>
-                        <small class="text-xs text-muted-foreground">{{ org.slug }}</small>
-                      </span>
-                    </div>
-                  </td>
-                  <td hlmTd class="px-4">{{ org.baseCurrency }}</td>
-                  <td hlmTd class="px-4 tabular-nums">{{ org.memberCount }}</td>
-                  <td hlmTd class="px-4 tabular-nums">{{ store.roleCountOf(org.id) }}</td>
-                  <td hlmTd class="px-4">
-                    @if (store.isDefaultOrganization(org)) {
-                      <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
-                    } @else if (canMakeDefault(org)) {
-                      <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(org)">
-                        {{ i18n.t('admin.organizations.makeDefault') }}
-                      </button>
-                    }
-                  </td>
-                  <td hlmTd class="px-4">
-                    <span class="flex items-center gap-2">
-                      @if (caps.allows(P.administracion.organizaciones.editar)) {
-                        <hlm-switch
-                          [checked]="store.isOrganizationActive(org)"
-                          [disabled]="store.isDefaultOrganization(org)"
-                          [aria-label]="i18n.t('admin.organizations.activeToggle', { name: org.name })"
-                          (checkedChange)="store.setOrganizationActive(org, $event)"
-                        />
-                      }
-                      <span class="text-xs text-muted-foreground">{{
-                        store.isOrganizationActive(org)
-                          ? i18n.t('admin.users.state.active')
-                          : i18n.t('admin.organizations.inactiveBadge')
-                      }}</span>
-                    </span>
-                  </td>
-                  <td hlmTd class="px-5 text-end">
-                    <span class="inline-flex items-center gap-2">
-                      @if (canDelete(org)) {
-                        <button
-                          hlmBtn
-                          variant="ghost"
-                          size="icon-sm"
-                          type="button"
-                          class="text-destructive"
-                          [attr.aria-label]="i18n.t('admin.organizations.delete.action', { name: org.name })"
-                          [attr.title]="i18n.t('admin.organizations.delete.action', { name: org.name })"
-                          (click)="deleting.set(org)"
-                        >
-                          <fin-icon name="trash" />
-                        </button>
-                      }
-                      <button hlmBtn variant="outline" size="sm" (click)="managingId.set(org.id)">
-                        {{ i18n.t('admin.organizations.manage') }}
-                      </button>
-                    </span>
-                  </td>
-                </tr>
-              } @empty {
-                <tr hlmTr>
-                  <td hlmTd colspan="7" class="py-10 text-center text-muted-foreground">{{ i18n.t('table.empty') }}</td>
-                </tr>
+        <app-admin-grid>
+          <fin-table
+            [columns]="columns()"
+            [rows]="rows()"
+            [selectable]="false"
+            [pageSize]="15"
+            [tableLabel]="i18n.t('admin.organizations.title')"
+          >
+            <ng-template finCell="organization" let-row>
+              <div class="flex items-center gap-3">
+                <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
+                  <fin-icon name="organization" />
+                </span>
+                <span class="flex min-w-0 flex-col">
+                  <b class="text-sm">{{ row.raw.name }}</b>
+                  <small class="text-xs text-muted-foreground">{{ row.raw.slug }}</small>
+                </span>
+              </div>
+            </ng-template>
+            <ng-template finCell="default" let-row>
+              @if (store.isDefaultOrganization(row.raw)) {
+                <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
+              } @else if (canMakeDefault(row.raw)) {
+                <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(row.raw)">
+                  {{ i18n.t('admin.organizations.makeDefault') }}
+                </button>
               }
-            </tbody>
-          </table>
-        </div>
+            </ng-template>
+            <ng-template finCell="active" let-row>
+              <span class="flex items-center gap-2">
+                @if (caps.allows(P.administracion.organizaciones.editar)) {
+                  <hlm-switch
+                    [checked]="store.isOrganizationActive(row.raw)"
+                    [disabled]="store.isDefaultOrganization(row.raw)"
+                    [aria-label]="i18n.t('admin.organizations.activeToggle', { name: row.raw.name })"
+                    (checkedChange)="store.setOrganizationActive(row.raw, $event)"
+                  />
+                }
+                <span class="text-xs text-muted-foreground">{{ row.active }}</span>
+              </span>
+            </ng-template>
+            <ng-template finCell="actions" let-row>
+              <span class="inline-flex items-center gap-2">
+                @if (canDelete(row.raw)) {
+                  <button
+                    hlmBtn
+                    variant="ghost"
+                    size="icon-sm"
+                    type="button"
+                    class="text-destructive"
+                    [attr.aria-label]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
+                    [attr.title]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
+                    (click)="deleting.set(row.raw)"
+                  >
+                    <fin-icon name="trash" />
+                  </button>
+                }
+                <button hlmBtn variant="outline" size="sm" (click)="managingId.set(row.raw.id)">
+                  {{ i18n.t('admin.organizations.manage') }}
+                </button>
+              </span>
+            </ng-template>
+          </fin-table>
+        </app-admin-grid>
       </app-admin-panel>
     }
     <app-organization-sheet [organization]="managing()" (closed)="managingId.set(null)" />
@@ -236,13 +203,35 @@ export class OrganizationsTabComponent {
     () => this.store.organizations().find((org) => org.id === this.managingId()) ?? null,
   );
 
-  readonly visibleOrganizations = computed(() => {
-    const term = this.search().trim().toLowerCase();
-    return this.store
-      .organizations()
-      .filter((org) => this.showArchived() || this.store.isOrganizationActive(org))
-      .filter((org) => !term || `${org.name} ${org.slug}`.toLowerCase().includes(term));
-  });
+  readonly visibleOrganizations = computed(() =>
+    this.store.organizations().filter((org) => this.showArchived() || this.store.isOrganizationActive(org)),
+  );
+
+  readonly columns = computed<TableColumn[]>(() => [
+    { key: 'organization', label: this.i18n.t('admin.organizations.column.organization') },
+    { key: 'currency', label: this.i18n.t('admin.organizations.column.currency'), facet: true },
+    { key: 'members', label: this.i18n.t('admin.organizations.column.members') },
+    { key: 'roles', label: this.i18n.t('admin.organizations.column.roles'), essential: false },
+    { key: 'default', label: this.i18n.t('admin.organizations.column.default'), sortKey: 'defaultSort' },
+    { key: 'active', label: this.i18n.t('admin.organizations.column.active'), facet: true },
+    { key: 'actions', label: this.i18n.t('admin.common.actions'), sortable: false, hideable: false },
+  ]);
+
+  readonly rows = computed(() =>
+    this.visibleOrganizations().map((org) => ({
+      id: org.id,
+      organization: `${org.name} ${org.slug}`,
+      currency: org.baseCurrency,
+      members: org.memberCount,
+      roles: this.store.roleCountOf(org.id),
+      default: this.store.isDefaultOrganization(org) ? this.i18n.t('admin.organizations.defaultBadge') : '',
+      defaultSort: this.store.isDefaultOrganization(org) ? '0' : '1',
+      active: this.store.isOrganizationActive(org)
+        ? this.i18n.t('admin.users.state.active')
+        : this.i18n.t('admin.organizations.inactiveBadge'),
+      raw: org,
+    })),
+  );
 
   readonly canConsolidate = computed(
     () =>
