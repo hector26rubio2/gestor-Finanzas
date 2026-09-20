@@ -72,7 +72,8 @@ import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
           >
             @for (role of roles(); track role.id) {
               <label
-                class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-accent/60 has-[[data-disabled]]:opacity-60"
+                class="flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-accent/60"
+                [class.opacity-60]="!role.isActive"
               >
                 <span class="flex min-w-0 flex-col gap-0.5">
                   <span class="flex items-center gap-2 text-sm font-medium">
