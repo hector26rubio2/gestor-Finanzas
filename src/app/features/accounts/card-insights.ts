@@ -76,7 +76,10 @@ export function mostUsedCard(
   return usage[0] ?? null;
 }
 
-export function mostOverextendedCard(cards: readonly Account[], debtOf: (card: Account) => number): CardUtilization | null {
+export function mostOverextendedCard(
+  cards: readonly Account[],
+  debtOf: (card: Account) => number,
+): CardUtilization | null {
   const utilization = cards
     .filter((card) => (card.limit ?? 0) > 0)
     .map((card) => {

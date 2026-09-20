@@ -24,7 +24,8 @@ export function longestInstallmentDebt(movements: readonly Movement[]): LongestI
     if (total <= 1 || movement.installmentCurrent === undefined) continue;
     const key = `${movement.accountId}|${movement.description}|${total}`;
     const known = latestByPurchase.get(key);
-    if (!known || (movement.installmentCurrent ?? 0) > (known.installmentCurrent ?? 0)) latestByPurchase.set(key, movement);
+    if (!known || (movement.installmentCurrent ?? 0) > (known.installmentCurrent ?? 0))
+      latestByPurchase.set(key, movement);
   }
   const debts = [...latestByPurchase.values()]
     .map((movement) => ({
