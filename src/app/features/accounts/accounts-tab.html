@@ -19,6 +19,29 @@
     [value]="store.data().accounts.length.toString()"
     [hint]="i18n.t('accounts.kpi.count.hint')"
   />
+  @let due = nextDue();
+  <fin-kpi
+    [label]="i18n.t('accounts.kpi.nextDue.label')"
+    icon="calendar"
+    tone="danger"
+    [value]="due ? due.account.name : i18n.t('accounts.kpi.none')"
+    [hint]="due ? i18n.t('accounts.kpi.nextDue.hint', { days: due.days, date: due.date }) : i18n.t('accounts.kpi.nextDue.empty')"
+  />
+  @let used = mostUsed();
+  <fin-kpi
+    [label]="i18n.t('accounts.kpi.mostUsed.label')"
+    icon="accounts"
+    [value]="used ? used.account.name : i18n.t('accounts.kpi.none')"
+    [hint]="used ? i18n.t('accounts.kpi.mostUsed.hint', { count: used.movements }) : i18n.t('accounts.kpi.mostUsed.empty')"
+  />
+  @let over = mostOverextended();
+  <fin-kpi
+    [label]="i18n.t('accounts.kpi.overextended.label')"
+    icon="warning"
+    [tone]="over && over.percent > healthyPercent ? 'danger' : 'success'"
+    [value]="over ? over.account.name + ' · ' + over.percent + '%'  : i18n.t('accounts.kpi.none')"
+    [hint]="over ? i18n.t(over.overHealthyPoints > 0 ? 'accounts.kpi.overextended.above' : 'accounts.kpi.overextended.below', { points: over.overHealthyPoints < 0 ? -over.overHealthyPoints : over.overHealthyPoints, healthy: healthyPercent }) : i18n.t('accounts.kpi.overextended.empty')"
+  />
 </fin-kpi-grid>
 <section
   class="grid grid-cols-[minmax(220px,1fr)_minmax(170px,240px)_auto] items-end gap-2.5 rounded-xl border border-border bg-card px-3 py-[11px] max-[700px]:grid-cols-1"

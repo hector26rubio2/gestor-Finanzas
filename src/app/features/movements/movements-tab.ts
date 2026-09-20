@@ -23,6 +23,7 @@ import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { SkeletonComponent } from '../../ui/skeleton/skeleton';
 import { KpiComponent } from '../../ui/kpi/kpi';
+import { longestInstallmentDebt, recurringExpenseCount, topSpendingCategory } from './movement-insights';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
@@ -57,6 +58,9 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly headerActions = inject(HeaderActionsService);
   readonly P = P;
+  readonly recurringExpenses = computed(() => recurringExpenseCount(this.store.movements()));
+  readonly longestDebt = computed(() => longestInstallmentDebt(this.store.data().movements));
+  readonly topCategory = computed(() => topSpendingCategory(this.store.movements()));
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }

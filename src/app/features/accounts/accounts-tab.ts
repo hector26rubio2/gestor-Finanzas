@@ -11,6 +11,15 @@ import { UiSelectComponent } from '../../ui/select/select';
 import { AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
+import { Account } from '../../core/state/demo-data';
+import { todayIso } from '../../core/utils/dates';
+import {
+  HEALTHY_UTILIZATION_PERCENT,
+  creditCards,
+  mostOverextendedCard,
+  mostUsedCard,
+  nextCardDue,
+} from './card-insights';
 
 @Component({
   selector: 'app-accounts-tab',
@@ -33,6 +42,14 @@ export class AccountsTabComponent {
   readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
+
+  private readonly referenceDate = computed(() => (this.store.runtime.mode === 'demo' ? '2026-08-31' : todayIso()));
+  private readonly cards = computed(() => creditCards(this.store.data().accounts));
+  private readonly debtOf = (card: Account) => Math.max(0, -this.store.balance(card));
+  readonly nextDue = computed(() => nextCardDue(this.cards(), this.debtOf, this.referenceDate()));
+  readonly mostUsed = computed(() => mostUsedCard(this.cards(), this.store.data().movements, this.referenceDate()));
+  readonly mostOverextended = computed(() => mostOverextendedCard(this.cards(), this.debtOf));
+  readonly healthyPercent = HEALTHY_UTILIZATION_PERCENT;
 
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');

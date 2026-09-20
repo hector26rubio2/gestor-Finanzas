@@ -97,6 +97,28 @@
     [value]="store.movements().length.toString()"
     [hint]="i18n.t('movements.kpi.records.hint')"
   />
+  <fin-kpi
+    [label]="i18n.t('movements.kpi.recurring.label')"
+    icon="calendar"
+    [value]="recurringExpenses().toString()"
+    [hint]="i18n.t('movements.kpi.recurring.hint')"
+  />
+  @let debt = longestDebt();
+  <fin-kpi
+    [label]="i18n.t('movements.kpi.installments.label')"
+    icon="clock"
+    tone="danger"
+    [value]="debt ? i18n.t('movements.kpi.installments.value', { count: debt.remaining }) : i18n.t('movements.kpi.none')"
+    [hint]="debt ? i18n.t('movements.kpi.installments.hint', { name: debt.description, total: debt.total }) : i18n.t('movements.kpi.installments.empty')"
+  />
+  @let top = topCategory();
+  <fin-kpi
+    [label]="i18n.t('movements.kpi.topCategory.label')"
+    icon="trendDown"
+    tone="danger"
+    [value]="top ? top.category : i18n.t('movements.kpi.none')"
+    [hint]="top ? store.money(top.amount) : i18n.t('movements.kpi.topCategory.empty')"
+  />
 </fin-kpi-grid>
 <fin-table-zone class="relative" [attr.aria-busy]="book.movementsLoading()">
   @if (book.movementsLoading()) {
