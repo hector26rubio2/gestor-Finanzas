@@ -581,7 +581,7 @@ export class AdminStore {
       this.app.toast.set(
         this.i18n.t('admin.organizations.consolidate.done', {
           users: result.movedUsers,
-          organizations: result.archivedOrganizations,
+          organizations: result.deletedOrganizations,
         }),
       );
     } catch (error) {

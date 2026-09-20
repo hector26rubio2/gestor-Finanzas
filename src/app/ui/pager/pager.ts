@@ -6,7 +6,7 @@ import { I18nService } from '../../core/i18n';
   selector: 'fin-pager',
   imports: [HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex items-center justify-between gap-3 text-sm text-muted-foreground' },
+  host: { class: 'flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground' },
   template: `
     <span>{{ summary() }}</span>
     @if (pages() > 1) {

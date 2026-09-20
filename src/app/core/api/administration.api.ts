@@ -95,6 +95,7 @@ export interface ApiConsolidationResult {
   targetOrganizationId: string;
   movedUsers: number;
   archivedOrganizations: number;
+  deletedOrganizations: number;
 }
 
 export interface ApiAdminOrganizationFlag {
@@ -356,6 +357,7 @@ export class AdministrationApi {
     return this.transport.request<ApiConsolidationResult>({
       method: 'POST',
       path: API_ROUTES.adminOrganizationsConsolidate,
+      params: { deleteOthers: 'true' },
     });
   }
 

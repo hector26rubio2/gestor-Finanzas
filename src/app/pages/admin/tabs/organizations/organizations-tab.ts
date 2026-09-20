@@ -247,7 +247,7 @@ export class OrganizationsTabComponent {
   readonly canConsolidate = computed(
     () =>
       this.caps.allows(P.administracion.organizaciones.editar) &&
-      this.store.organizations().filter((org) => org.isActive).length > 1 &&
+      this.store.organizations().length > 1 &&
       this.store.organizations().some((org) => org.isDefault),
   );
 

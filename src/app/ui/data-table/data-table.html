@@ -195,7 +195,7 @@
 </div>
 @if (showFooter()) {
 <footer
-  class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground max-[520px]:sticky max-[520px]:bottom-0 max-[520px]:grid max-[520px]:justify-items-center max-[520px]:gap-3 max-[520px]:bg-card max-[520px]:px-3 max-[520px]:py-3.5"
+  class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground max-[520px]:grid max-[520px]:justify-items-center max-[520px]:gap-3 max-[520px]:px-2 max-[520px]:py-3.5"
 >
   <span [id]="rangeId" aria-live="polite"
     >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }} @if (multiSelect() &&
@@ -211,12 +211,13 @@
       (ngModelChange)="setSizeValue($event)"
     />
   </label>
-  <div class="flex items-center gap-2.5 max-[520px]:flex-wrap max-[520px]:justify-center max-[520px]:gap-2">
+  <div class="flex items-center gap-2.5 max-[520px]:w-full max-[520px]:justify-center max-[520px]:gap-1.5">
     <button
       hlmBtn
       variant="outline"
       size="icon-sm"
       type="button"
+      class="max-[380px]:hidden"
       [attr.aria-label]="i18n.t('table.page.first')"
       [disabled]="currentPage() === 0"
       (click)="setPage(0)"
@@ -235,7 +236,7 @@
     >
       <fin-icon name="previous" />
     </button>
-    <label class="flex items-center gap-2.5">
+    <label class="flex items-center gap-2.5 max-[520px]:gap-1.5">
       {{ i18n.t('table.page.label') }}
       <fin-select
         class="w-[84px]"
@@ -263,6 +264,7 @@
       variant="outline"
       size="icon-sm"
       type="button"
+      class="max-[380px]:hidden"
       [attr.aria-label]="i18n.t('table.page.last')"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(pageCount() - 1)"

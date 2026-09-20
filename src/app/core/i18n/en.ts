@@ -1371,12 +1371,12 @@ export default {
   'admin.flags.blockedByGlobal': 'Blocked: the global flag is off',
   'admin.flags.hierarchyNote':
     'The global flag rules: when off, no organization can have it. With the global on, each organization can turn it off and back on, and its roles stop seeing that section.',
-  'admin.organizations.consolidate.action': 'Consolidate into the general one',
-  'admin.organizations.consolidate.title': 'Consolidate into the general organization?',
+  'admin.organizations.consolidate.action': 'Keep only the general one',
+  'admin.organizations.consolidate.title': 'Move everyone to the general one and delete the rest?',
   'admin.organizations.consolidate.description':
-    'Everyone moves to the default organization and the rest are archived. No data is deleted: you can see them with "Show archived".',
-  'admin.organizations.consolidate.confirm': 'Consolidate',
-  'admin.organizations.consolidate.done': 'Done: {users} people moved and {organizations} organizations archived.',
+    'Everyone moves to the default organization and the rest are deleted forever with their accounts, movements, roles and audit trail. This cannot be undone.',
+  'admin.organizations.consolidate.confirm': 'Move and delete',
+  'admin.organizations.consolidate.done': 'Done: {users} people moved and {organizations} organizations deleted.',
   'admin.organizations.consolidate.failedReason': 'Could not consolidate: {reason}',
   'admin.organizations.showArchived': 'Show archived',
   'admin.organizations.delete.action': 'Permanently delete {name}',

@@ -1370,12 +1370,12 @@ export default {
   'admin.flags.blockedByGlobal': 'Bloqueada: a global está desligada',
   'admin.flags.hierarchyNote':
     'A bandeira global manda: se estiver desligada, nenhuma organização pode tê-la. Com a global ligada, cada organização pode desligá-la e ligá-la de novo, e suas funções deixam de ver essa seção.',
-  'admin.organizations.consolidate.action': 'Consolidar na geral',
-  'admin.organizations.consolidate.title': 'Consolidar na organização geral?',
+  'admin.organizations.consolidate.action': 'Manter só a geral',
+  'admin.organizations.consolidate.title': 'Mover todos para a geral e apagar as demais?',
   'admin.organizations.consolidate.description':
-    'Todas as pessoas passam para a organização padrão e as demais são arquivadas. Nenhum dado é apagado: você pode vê-las com "Mostrar arquivadas".',
-  'admin.organizations.consolidate.confirm': 'Consolidar',
-  'admin.organizations.consolidate.done': 'Pronto: {users} pessoas movidas e {organizations} organizações arquivadas.',
+    'Todas as pessoas passam para a organização padrão e as demais são apagadas para sempre com contas, movimentos, funções e auditoria. Não pode ser desfeito.',
+  'admin.organizations.consolidate.confirm': 'Mover e apagar',
+  'admin.organizations.consolidate.done': 'Pronto: {users} pessoas movidas e {organizations} organizações excluídas.',
   'admin.organizations.consolidate.failedReason': 'Não foi possível consolidar: {reason}',
   'admin.organizations.showArchived': 'Mostrar arquivadas',
   'admin.organizations.delete.action': 'Excluir definitivamente {name}',
