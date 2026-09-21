@@ -1,0 +1,20 @@
+diff --git a/fesm2022/ngx-sonner.mjs b/fesm2022/ngx-sonner.mjs
+index 56d73300743880662adcc5bb27fc171633435c55..0a0e2cf3dad6775da150e80362cbe4233e60671d 100644
+--- a/fesm2022/ngx-sonner.mjs
++++ b/fesm2022/ngx-sonner.mjs
+@@ -1112,6 +1112,7 @@ class NgxSonnerToaster {
+               track toast.id
+             ) {
+               <ngx-sonner-toast
++                role="listitem"
+                 [index]="$index"
+                 [toast]="toast"
+                 [invert]="invert()"
+@@ -1182,6 +1183,7 @@ i0.ɵɵngDeclareClassMetadata({ minVersion: "12.0.0", version: "19.0.3", ngImpor
+               track toast.id
+             ) {
+               <ngx-sonner-toast
++                role="listitem"
+                 [index]="$index"
+                 [toast]="toast"
+                 [invert]="invert()"
