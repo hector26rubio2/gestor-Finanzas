@@ -46,6 +46,11 @@ jobs:
         env:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
         run: pnpm test:permisos
+      - name: Accesibilidad
+        timeout-minutes: 10
+        env:
+          PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+        run: pnpm test:a11y
       - name: Escribir config de API desde la variable del repositorio
         if: ${{ vars.API_BASE_URL != '' }}
         env:
