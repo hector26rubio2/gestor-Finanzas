@@ -60,6 +60,9 @@
     "onlyBuiltDependencies": [
       "@parcel/watcher",
       "esbuild"
-    ]
+    ],
+    "patchedDependencies": {
+      "ngx-sonner@3.1.0": "patches/ngx-sonner@3.1.0.patch"
+    }
   }
 }

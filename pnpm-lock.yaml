@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  ngx-sonner@3.1.0:
+    hash: ec32878864481e8ed31d0e2a6a90cd0d77c0bd5a4a3c4137f8df853b9be99636
+    path: patches/ngx-sonner@3.1.0.patch
+
 importers:
 
   .:
@@ -40,7 +45,7 @@ importers:
         version: 19.1.5(c4e82396361e8622fe1445cc1affe170)
       ngx-sonner:
         specifier: ^3.1.0
-        version: 3.1.0(@angular/common@22.1.5(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))
+        version: 3.1.0(patch_hash=ec32878864481e8ed31d0e2a6a90cd0d77c0bd5a4a3c4137f8df853b9be99636)(@angular/common@22.1.5(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))
       rxjs:
         specifier: ~7.8.2
         version: 7.8.2
@@ -8886,7 +8891,7 @@ snapshots:
       rxjs: 7.8.2
       tslib: 2.8.1
 
-  ngx-sonner@3.1.0(@angular/common@22.1.5(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3)):
+  ngx-sonner@3.1.0(patch_hash=ec32878864481e8ed31d0e2a6a90cd0d77c0bd5a4a3c4137f8df853b9be99636)(@angular/common@22.1.5(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2))(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3)):
     dependencies:
       '@angular/common': 22.1.5(@angular/core@22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3))(rxjs@7.8.2)
       '@angular/core': 22.1.5(@angular/compiler@22.1.5)(rxjs@7.8.2)(zone.js@0.16.3)
