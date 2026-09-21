@@ -6,6 +6,8 @@ import { UiOption } from '../../ui/select/select';
 import { KpiFormula } from './dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
 
+const VARIACION_MAXIMA_LEGIBLE = 999;
+
 export abstract class DashboardKpis extends DashboardVisuals {
   abstract readonly range: Signal<{ start: string; end: string }>;
 
@@ -14,7 +16,8 @@ export abstract class DashboardKpis extends DashboardVisuals {
     const ultimo = serie[serie.length - 1];
     const anterior = serie[serie.length - 2];
     if (!anterior) return null;
-    return ((ultimo - anterior) / Math.abs(anterior)) * 100;
+    const cambio = ((ultimo - anterior) / Math.abs(anterior)) * 100;
+    return Math.abs(cambio) > VARIACION_MAXIMA_LEGIBLE ? null : cambio;
   }
 
   /**

@@ -17,6 +17,12 @@ export type Scale = 'day' | 'week' | 'month' | 'year';
  * vivia entero en dashboard.html; quien filtra que decide el padre, esto solo
  * dibuja el estado que ya se le paso.
  */
+function pantallaEstrecha(): boolean {
+  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
+    ? window.matchMedia('(max-width: 780px)').matches
+    : false;
+}
+
 @Component({
   selector: 'fin-filter-panel',
   imports: [
@@ -55,7 +61,7 @@ export class FilterPanelComponent {
   readonly categorySelectOptions = input<readonly UiOption[]>([]);
   readonly periodLabel = input('');
   readonly movementsCount = input(0);
-  readonly filtersExpanded = signal(true);
+  readonly filtersExpanded = signal(!pantallaEstrecha());
 
   readonly i18n = inject(I18nService);
 
