@@ -27,6 +27,11 @@ if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'function'
   } as unknown as typeof ResizeObserver;
 }
 
+if (typeof window !== 'undefined') {
+  window.requestIdleCallback = (() => 0) as unknown as typeof window.requestIdleCallback;
+  window.cancelIdleCallback = (() => undefined) as unknown as typeof window.cancelIdleCallback;
+}
+
 if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
   Element.prototype.scrollIntoView = () => undefined;
 }
