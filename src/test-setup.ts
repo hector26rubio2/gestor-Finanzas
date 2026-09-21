@@ -1,3 +1,8 @@
+import { preloadCatalog } from './app/core/i18n';
+import es from './app/core/i18n/es';
+
+preloadCatalog('es', es);
+
 // ngx-sonner consulta matchMedia al construir su toaster. JSDOM no lo implementa,
 // aunque los navegadores soportados sí; mantener el shim aquí evita contaminar el
 // runtime de producción y permite que los tests del armazón monten el componente real.
@@ -20,6 +25,11 @@ if (typeof window !== 'undefined' && typeof window.ResizeObserver !== 'function'
     unobserve(): void {}
     disconnect(): void {}
   } as unknown as typeof ResizeObserver;
+}
+
+if (typeof window !== 'undefined') {
+  window.requestIdleCallback = (() => 0) as unknown as typeof window.requestIdleCallback;
+  window.cancelIdleCallback = (() => undefined) as unknown as typeof window.cancelIdleCallback;
 }
 
 if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {

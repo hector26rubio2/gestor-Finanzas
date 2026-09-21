@@ -3,7 +3,6 @@ import { DateFieldComponent } from '../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { P } from '../../core/session/permissions';
@@ -14,7 +13,7 @@ import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/ut
 
 @Component({
   selector: 'app-planning-tab',
-  imports: [DateFieldComponent, FormsModule, NgTemplateOutlet, HlmInput, HlmTabsImports],
+  imports: [DateFieldComponent, FormsModule, NgTemplateOutlet, HlmTabsImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './planning-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },

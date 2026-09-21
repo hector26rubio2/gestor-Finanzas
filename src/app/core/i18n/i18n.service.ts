@@ -1,35 +1,62 @@
 import { Injectable, signal } from '@angular/core';
-import es from './es';
 
 type Messages = Record<string, string>;
 
-/**
- * Catálogo cargado por idioma. Solo español forma parte del paquete inicial; los demás
- * se descargan cuando la persona los elige.
- */
+const catalogLoaders: Record<string, () => Promise<{ default: Messages }>> = {
+  es: () => import('./es'),
+  en: () => import('./en'),
+  pt: () => import('./pt'),
+  fr: () => import('./fr'),
+};
+
+const FALLBACK_LANGUAGE = 'en';
+
+const preloaded = new Map<string, Messages>();
+let preloadedLanguage = '';
+
+export function preloadCatalog(language: string, messages: Messages): void {
+  preloaded.set(language, messages);
+  preloadedLanguage = language;
+}
+
 @Injectable({ providedIn: 'root' })
 export class I18nService {
-  private readonly messages = signal<Messages>(es);
-  private loaded = 'es';
+  private readonly messages = signal<Messages>(preloaded.get(preloadedLanguage) ?? {});
+  private loaded = preloadedLanguage;
+  private loading: Promise<void> | null = null;
 
   async load(locale: string): Promise<void> {
+    const language = this.languageOf(locale);
+    if (language === this.loaded) return this.loading ?? Promise.resolve();
+    const ready = preloaded.get(language);
+    if (ready) {
+      this.useCatalog(language, ready);
+      return;
+    }
+    this.loading = this.downloadCatalog(language);
+    return this.loading;
+  }
+
+  t(key: string, params?: Record<string, string | number>): string {
+    const message = this.messages()[key] ?? key;
+    if (!params) return message;
+    return message.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
+  }
+
+  private languageOf(locale: string): string {
     const language = locale.split('-')[0].toLowerCase();
-    if (language === this.loaded) return;
-    const loaders: Record<string, () => Promise<{ default: Messages }>> = {
-      en: () => import('./en'),
-      pt: () => import('./pt'),
-      fr: () => import('./fr'),
-    };
-    const catalog = language === 'es' ? es : (await (loaders[language] ?? loaders['en'])()).default;
+    return language in catalogLoaders ? language : FALLBACK_LANGUAGE;
+  }
+
+  private async downloadCatalog(language: string): Promise<void> {
+    const catalog = (await catalogLoaders[language]()).default;
+    this.loading = null;
+    this.useCatalog(language, catalog);
+  }
+
+  private useCatalog(language: string, catalog: Messages): void {
     this.messages.set(catalog);
     this.loaded = language;
     document.documentElement.lang = language;
-  }
-
-  /** `params` sustituye marcadores `{nombre}` dentro del mensaje. */
-  t(key: string, params?: Record<string, string | number>): string {
-    const message = this.messages()[key] ?? es[key as keyof typeof es] ?? key;
-    if (!params) return message;
-    return message.replace(/\{(\w+)\}/g, (match, name) => (name in params ? String(params[name]) : match));
   }
 }

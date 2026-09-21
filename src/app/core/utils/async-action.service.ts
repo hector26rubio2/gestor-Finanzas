@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { toast } from 'ngx-sonner';
+import { notifier } from '../notifications/notifier';
 
 export interface AsyncActionMessages<T> {
   loading: string;
@@ -40,7 +40,7 @@ export class AsyncActionService {
       });
 
     this.pending.set(key, operation);
-    toast.promise(operation, messages);
+    void notifier().then((toast) => toast.promise(operation, messages));
     return operation;
   }
 }
