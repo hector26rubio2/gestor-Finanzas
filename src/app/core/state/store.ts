@@ -1,7 +1,7 @@
 import { todayIso } from '../utils/dates';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { toast as sonner } from 'ngx-sonner';
+import { notifier } from '../notifications/notifier';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
 import { ApiCategory, FinanceApiClient } from '../api/api-client';
 import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from '../utils/money';
@@ -101,7 +101,7 @@ export class AppStore {
     const message = signal('');
     const write = message.set.bind(message);
     message.set = (value: string) => {
-      if (value) sonner(value);
+      if (value) void notifier().then((sonner) => sonner(value));
       write(value);
     };
     return message;

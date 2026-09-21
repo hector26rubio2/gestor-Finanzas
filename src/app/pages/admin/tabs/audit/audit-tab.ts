@@ -2,7 +2,6 @@ import { DateFieldComponent } from '../../../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiAuditEvent, ApiAuditFilter } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
@@ -26,7 +25,6 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
     DateFieldComponent,
     FormsModule,
     HlmButton,
-    HlmInput,
     HlmLabel,
     EmptyStateComponent,
     IconComponent,

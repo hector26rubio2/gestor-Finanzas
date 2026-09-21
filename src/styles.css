@@ -206,6 +206,20 @@
   textarea::placeholder {
     color: color-mix(in srgb, var(--muted) 78%, transparent);
   }
+  .nav-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent;
+  }
+  .nav-scroll::-webkit-scrollbar {
+    width: 8px;
+  }
+  .nav-scroll::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--muted) 45%, transparent);
+  }
+  .nav-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,

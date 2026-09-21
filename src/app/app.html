@@ -1,4 +1,6 @@
+@defer (on idle) {
 <ngx-sonner-toaster position="top-right" theme="system" richColors closeButton />
+}
 <ng-template #cargando>
   <div
     class="grid min-h-dvh content-center justify-items-center gap-2.5 bg-background p-6 text-foreground"
@@ -106,7 +108,7 @@
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
-      <ng-scrollbar hlm orientation="vertical" class="min-h-0 flex-1" [attr.aria-label]="i18n.t('shell.primaryNav')">
+      <div class="nav-scroll min-h-0 flex-1 overflow-y-auto">
         <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
           @for (group of groups(); track group) {
           <div hlmSidebarGroup class="p-0">
@@ -180,7 +182,7 @@
           </div>
           }
         </nav>
-      </ng-scrollbar>
+      </div>
     </aside>
   </hlm-sidebar>
   <div class="flex min-h-dvh min-w-0 flex-1 flex-col">

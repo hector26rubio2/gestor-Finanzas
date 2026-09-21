@@ -41,8 +41,6 @@ import {
   HlmSidebarMenuSubButton,
   HlmSidebarMenuSubItem,
 } from '@spartan-ng/helm/sidebar';
-import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
-import { NgScrollbar } from 'ngx-scrollbar';
 import { ADMIN_TABS } from './pages/admin/admin-tabs';
 import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -100,8 +98,6 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
     HlmSidebarMenuSub,
     HlmSidebarMenuSubButton,
     HlmSidebarMenuSubItem,
-    HlmScrollAreaImports,
-    NgScrollbar,
     RouterOutlet,
     RouterLink,
     RouterLinkActive,
