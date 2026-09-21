@@ -6,6 +6,12 @@
   <ng-content select="[headerExtra]" />
   <ng-content select="[actions]" />
 </header>
-<div class="flex min-h-0 flex-1 flex-col" [class.overflow-auto]="fill()">
+<div
+  class="flex min-h-0 flex-1 flex-col"
+  [class.overflow-auto]="fill()"
+  [attr.tabindex]="fill() ? 0 : null"
+  [attr.role]="fill() ? 'region' : null"
+  [attr.aria-label]="fill() ? title() : null"
+>
   <ng-content />
 </div>
