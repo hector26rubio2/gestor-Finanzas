@@ -279,10 +279,29 @@ export abstract class DashboardKpis extends DashboardVisuals {
     'liquidityMonths',
     'daysToDeplete',
   ];
+  private readonly iconoPorFormula: Partial<Record<KpiFormula, IconName>> = {
+    amount: 'wallet',
+    income: 'cash',
+    dailyIncome: 'cash',
+    expense: 'cart',
+    dailyExpense: 'cart',
+    count: 'movements',
+    average: 'movements',
+    savingsRate: 'savings',
+    expenseShare: 'percent',
+    expenseConcentration: 'percent',
+    fixedExpenseShare: 'percent',
+    installmentExpenseShare: 'percent',
+    debtToIncome: 'percent',
+    creditUtilization: 'percent',
+    liquidityMonths: 'clock',
+    daysToDeplete: 'clock',
+    avgPaymentDelay: 'clock',
+    mostUsedCard: 'accounts',
+  };
+
   kpiIcon(formula: KpiFormula): IconName {
-    if (this.formulasDeIngreso.includes(formula)) return 'trendUp';
-    if (this.formulasDeGasto.includes(formula)) return 'trendDown';
-    return 'movements';
+    return this.iconoPorFormula[formula] ?? 'movements';
   }
   kpiTone(formula: KpiFormula): 'accent' | 'success' | 'danger' {
     if (this.formulasDeIngreso.includes(formula)) return 'success';
