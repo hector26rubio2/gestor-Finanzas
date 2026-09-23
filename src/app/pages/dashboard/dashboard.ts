@@ -152,7 +152,7 @@ export class DashboardComponent extends DashboardKpis {
       items.push({
         key: 'balance',
         label: this.i18n.t('dashboard.kpi.balance.label'),
-        icon: 'trendUp',
+        icon: 'wallet',
         tone: 'accent',
         value: this.store.money(this.net()),
         hint: this.periodLabel(),
@@ -165,7 +165,7 @@ export class DashboardComponent extends DashboardKpis {
       items.push({
         key: 'ingresos',
         label: this.i18n.t('dashboard.kpi.income.label'),
-        icon: 'trendUp',
+        icon: 'cash',
         tone: 'success',
         value: this.store.money(this.income()),
         hint: this.i18n.t('dashboard.kpi.defaultHint'),
@@ -178,7 +178,7 @@ export class DashboardComponent extends DashboardKpis {
       items.push({
         key: 'gastos',
         label: this.i18n.t('dashboard.kpi.expense.label'),
-        icon: 'trendDown',
+        icon: 'cart',
         tone: 'danger',
         value: this.store.money(this.expense()),
         hint: this.i18n.t('dashboard.kpi.defaultHint'),
@@ -634,7 +634,7 @@ export class DashboardComponent extends DashboardKpis {
   readonly hasFilters = computed(
     () =>
       this.scale() !== 'month' ||
-      this.anchor() !== '2026-08-31' ||
+      this.anchor() !== this.anclaPorDefecto ||
       this.accountId() !== 'all' ||
       this.accountType() !== 'all' ||
       this.globalCategory() !== 'all' ||
@@ -675,7 +675,7 @@ export class DashboardComponent extends DashboardKpis {
   }
   reset() {
     this.scale.set('month');
-    this.anchor.set('2026-08-31');
+    this.anchor.set(this.anclaPorDefecto);
     this.accountId.set('all');
     this.accountType.set('all');
     this.globalCategory.set('all');

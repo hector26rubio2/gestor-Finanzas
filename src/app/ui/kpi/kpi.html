@@ -4,26 +4,32 @@
 </span>
 }
 <div class="flex min-w-0 flex-1 flex-col">
-  <span class="truncate text-[0.78rem] text-muted-foreground" [attr.title]="label()">{{ label() }}</span>
+  <div class="flex min-w-0 items-start gap-2">
+    <span class="line-clamp-2 min-w-0 flex-1 text-[0.78rem] leading-snug text-muted-foreground" [attr.title]="label()"
+      >{{ label() }}</span
+    >
+    @if (delta() !== null) {
+    <span
+      class="mt-0.5 flex-none rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
+      [class]="deltaClass()"
+      [attr.title]="deltaTitulo()"
+    >
+      {{ flecha() }} {{ deltaTexto() }}
+    </span>
+    }
+  </div>
   <strong
-    class="text-[clamp(1.1rem,1.4vw,1.4rem)] leading-tight font-semibold tracking-[-0.03em] overflow-hidden text-ellipsis whitespace-nowrap tabular-nums"
+    class="text-[clamp(1rem,8cqi,1.4rem)] leading-tight font-semibold tracking-[-0.03em] overflow-hidden text-ellipsis whitespace-nowrap tabular-nums"
+    [attr.title]="value()"
     >{{ value() }}</strong
   >
   @if (hint()) {
   <span class="truncate text-[0.72rem] text-muted-foreground" [attr.title]="hint()">{{ hint() }}</span>
   }
 </div>
-@if (delta() !== null || hasSeries()) {
-<div class="hidden flex-none flex-col items-end gap-1 @min-[13rem]:flex">
-  @if (delta() !== null) {
-  <span
-    class="rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
-    [class]="deltaClass()"
-    [attr.title]="deltaTitulo()"
-  >
-    {{ flecha() }} {{ deltaTexto() }}
-  </span>
-  } @if (hasSeries()) { @defer (on viewport) {
+@if (hasSeries()) {
+<div class="hidden flex-none flex-col items-end gap-1 @min-[19rem]:flex">
+  @defer (on viewport) {
   <fin-chart
     class="block w-20"
     [option]="chispaOption()"
@@ -32,7 +38,7 @@
   />
   } @placeholder {
   <span class="block h-[26px] w-20"></span>
-  } }
+  }
 </div>
 } } @else { @if (icon() || delta() !== null) {
 <div class="flex items-center" [class.justify-center]="bare()">
