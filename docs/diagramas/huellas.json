@@ -27,10 +27,10 @@
       "front:src/app/features/portfolio/portfolio-tab.ts": "1a7c4b55c9c8264a",
       "front:src/app/features/preferences/preferences-tab.ts": "89cc548620b5e76c",
       "front:src/app/features/reports/reports-tab.ts": "a8be6b9268e830d9",
-      "front:src/app/pages/dashboard/dashboard.ts": "c05d85b17c88be1c",
+      "front:src/app/pages/dashboard/dashboard.ts": "fc95dfc05017d168",
       "front:src/app/routes.ts": "0d56ce1ccdf85a0a"
     },
-    "sellado": "2026-09-26T20:15:17.405Z"
+    "sellado": "2026-09-26T20:35:15.982Z"
   },
   "armazon": {
     "spec": "60a533fefe225f98",
