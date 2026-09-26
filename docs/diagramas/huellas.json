@@ -198,10 +198,10 @@
       "api:src/Finanzas.Infrastructure/Integrations/IssueBodyBuilder.cs": "661caf43a65c740d",
       "front:src/app/core/telemetry/error-report.ts": "11ca8210d9190190",
       "front:src/app/core/telemetry/error-reporter.ts": "353c8a00ac33b742",
-      "front:src/app/features/bug-report/bug-report.ts": "966e9338f5c7da26",
+      "front:src/app/features/bug-report/bug-report.ts": "29f245964ad1e287",
       "front:src/app/pages/admin/tabs/errors/errors-tab.ts": "edd8f2ab27171e4b"
     },
-    "sellado": "2026-09-26T00:42:50.623Z"
+    "sellado": "2026-09-26T20:49:25.184Z"
   },
   "entrega-web": {
     "spec": "60ac7d31375e3848",
