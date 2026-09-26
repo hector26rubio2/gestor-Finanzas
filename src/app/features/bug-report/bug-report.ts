@@ -210,12 +210,25 @@ export class BugReportButtonComponent {
     this.capturingScreenshot.set(true);
     try {
       const { domToJpeg } = await import('modern-screenshot');
-      const dataUrl = await domToJpeg(document.documentElement, {
-        scale: 0.5,
-        quality: 0.55,
-        backgroundColor: getComputedStyle(document.body).backgroundColor,
-        filter: (node) => !(node instanceof HTMLElement && node.classList.contains('cdk-overlay-container')),
-      });
+      const densidad = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+      const intentos = [
+        { scale: densidad, quality: 0.92 },
+        { scale: Math.max(1, densidad * 0.75), quality: 0.85 },
+        { scale: 1, quality: 0.8 },
+        { scale: 0.8, quality: 0.75 },
+      ];
+      let dataUrl = '';
+      for (const intento of intentos) {
+        dataUrl = await domToJpeg(document.documentElement, {
+          ...intento,
+          width: window.innerWidth,
+          height: window.innerHeight,
+          style: { transform: `translate(${-window.scrollX}px, ${-window.scrollY}px)` },
+          backgroundColor: getComputedStyle(document.body).backgroundColor,
+          filter: (node) => !(node instanceof HTMLElement && node.classList.contains('cdk-overlay-container')),
+        });
+        if (dataUrl.length - dataUrl.indexOf(',') - 1 <= MAX_SCREENSHOT_BASE64_CHARS) break;
+      }
       const base64Length = dataUrl.length - dataUrl.indexOf(',') - 1;
       if (base64Length > MAX_SCREENSHOT_BASE64_CHARS) {
         this.screenshotTooLarge.set(true);
@@ -251,7 +264,8 @@ export class BugReportButtonComponent {
       platform: navigator.platform,
       language: navigator.language,
       viewport: `${window.innerWidth}x${window.innerHeight}`,
-      screen: `${screen.width}x${screen.height}`,
+      screen: `${screen.width}x${screen.height} @${window.devicePixelRatio || 1}x`,
+      pixelRatio: window.devicePixelRatio || 1,
       url: this.router.url,
       timestamp: new Date().toISOString(),
       appVersion: APP_VERSION,
