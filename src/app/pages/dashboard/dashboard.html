@@ -74,7 +74,7 @@
     (move)="layout.moveKpi($event.id, $event.direction)"
     (drop)="layout.dropKpi($event.from, $event.to)"
     [canRemove]="customizing() && caps.allows(P.dashboard.widget.deshabilitar)"
-    [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length > 0"
+    [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear)"
     (removeKpi)="removeKpi($event)"
     (openCreator)="openKpiCreator()"
     (rangesChange)="layout.saveRanges($event.id, $event.ranges)"
@@ -454,11 +454,30 @@
       <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
         <input hlmInput name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
       </fin-field>
+      <fin-field [label]="i18n.t('dashboard.kpiForm.filter.dimension')">
+        <fin-select
+          name="kpiFilterDimension"
+          [ngModel]="newKpiDimension()"
+          (ngModelChange)="newKpiDimension.set($event); newKpiFilterValue = ''"
+          [options]="filterDimensionOptions()"
+          [ariaLabel]="i18n.t('dashboard.kpiForm.filter.dimension')"
+        />
+      </fin-field>
+      @if (newKpiDimension() !== 'none') {
+      <fin-field [label]="i18n.t('dashboard.kpiForm.filter.value')">
+        <fin-select
+          name="kpiFilterValue"
+          [(ngModel)]="newKpiFilterValue"
+          [options]="filterValueOptions()"
+          [ariaLabel]="i18n.t('dashboard.kpiForm.filter.value')"
+        />
+      </fin-field>
+      }
       <fin-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
         <fin-select
           name="kpiMeasure"
           [(ngModel)]="newKpiFormula"
-          [options]="availableKpiFormulaOptions()"
+          [options]="creatorFormulaOptions()"
           [ariaLabel]="i18n.t('dashboard.kpiForm.measure.ariaLabel')"
         />
       </fin-field>

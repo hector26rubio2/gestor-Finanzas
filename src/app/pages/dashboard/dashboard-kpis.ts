@@ -5,11 +5,35 @@ import { P } from '../../core/session/permissions';
 import { sumBy } from '../../core/utils/money';
 import { IconName } from '../../ui/icon/icon';
 import { UiOption } from '../../ui/select/select';
-import { KpiFormula } from './dashboard.model';
+import { Dimension, KpiFormula } from './dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
-import { DashboardLayoutService, KpiDefinition } from './layout/dashboard-layout.service';
+import { DashboardLayoutService, KpiDefinition, KpiFilter } from './layout/dashboard-layout.service';
 import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from './kpis/kpi-ranges';
 import { CUSTOM_KPI_PREFIX } from './kpis/kpi-strip/kpi-strip';
+
+export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [
+  'amount',
+  'income',
+  'expense',
+  'count',
+  'average',
+  'savingsRate',
+  'expenseShare',
+  'dailyExpense',
+  'dailyIncome',
+];
+
+export const DIMENSIONES_DE_FILTRO: readonly Dimension[] = [
+  'category',
+  'account',
+  'kind',
+  'person',
+  'recurring',
+  'installments',
+];
+
+const claveDeKpi = (formula: KpiFormula, filtro?: KpiFilter) =>
+  filtro ? `${formula}|${filtro.dimension}|${filtro.value}` : formula;
 
 const FORMULAS_DE_FOTO: readonly KpiFormula[] = [
   'liquidityMonths',
@@ -93,6 +117,43 @@ export abstract class DashboardKpis extends DashboardVisuals {
   readonly kpiCreatorOpen = signal(false);
   newKpiLabel = '';
   newKpiFormula: KpiFormula = 'income';
+  readonly newKpiDimension = signal<Dimension | 'none'>('none');
+  newKpiFilterValue = '';
+  readonly filterDimensionOptions = computed<readonly UiOption[]>(() => [
+    { value: 'none', label: this.i18n.t('dashboard.kpiForm.filter.none') },
+    ...DIMENSIONES_DE_FILTRO.map((dimension) => ({
+      value: dimension,
+      label: this.i18n.t(`dashboard.dimension.${dimension}`),
+    })),
+  ]);
+  readonly filterValueOptions = computed<readonly UiOption[]>(() => {
+    const dimension = this.newKpiDimension();
+    if (dimension === 'none') return [];
+    const valores = new Set(this.store.data().movements.map((m) => this.dimensionKey(m, dimension).label));
+    return [...valores].sort((a, b) => a.localeCompare(b)).map((valor) => ({ value: valor, label: valor }));
+  });
+  readonly usedKpiKeys = computed(
+    () =>
+      new Set(
+        this.customKpis()
+          .filter((kpi) => kpi.filter)
+          .map((kpi) => claveDeKpi(kpi.formula, kpi.filter)),
+      ),
+  );
+  readonly filterableFormulaOptions = computed<readonly UiOption[]>(() => {
+    const dimension = this.newKpiDimension();
+    const valor = this.newKpiFilterValue;
+    return this.kpiFormulaOptions().filter(
+      (opcion) =>
+        FORMULAS_FILTRABLES.includes(opcion.value as KpiFormula) &&
+        (dimension === 'none' ||
+          !valor ||
+          !this.usedKpiKeys().has(claveDeKpi(opcion.value as KpiFormula, { dimension, value: valor }))),
+    );
+  });
+  readonly creatorFormulaOptions = computed<readonly UiOption[]>(() =>
+    this.newKpiDimension() === 'none' ? this.availableKpiFormulaOptions() : this.filterableFormulaOptions(),
+  );
   readonly kpiFormulaOptions = computed<readonly UiOption[]>(() => [
     ...this.measureOptions(),
     { value: 'savingsRate', label: this.i18n.t('dashboard.kpiFormula.savingsRate') },
@@ -111,7 +172,11 @@ export abstract class DashboardKpis extends DashboardVisuals {
   ]);
   /** Lo que ya ocupa un cupo en la franja -fijo o creado a mano- para no ofrecerlo dos veces. */
   readonly usedKpiFormulas = computed<Set<KpiFormula>>(() => {
-    const usados = new Set<KpiFormula>(this.customKpis().map((k) => k.formula));
+    const usados = new Set<KpiFormula>(
+      this.customKpis()
+        .filter((k) => !k.filter)
+        .map((k) => k.formula),
+    );
     if (this.caps.allows(P.dashboard.kpi.balance)) usados.add('amount');
     if (this.caps.allows(P.dashboard.kpi.ingresos)) usados.add('income');
     if (this.caps.allows(P.dashboard.kpi.gastos)) usados.add('expense');
@@ -259,9 +324,58 @@ export abstract class DashboardKpis extends DashboardVisuals {
     const valores = historia.map(porPunto);
     return valores.every((valor) => valor === null) ? [] : valores.map((valor) => valor ?? 0);
   }
-  kpiStatusFor(id: string, formula: KpiFormula) {
+  private cumpleFiltro(m: Movement, filtro: KpiFilter): boolean {
+    return this.dimensionKey(m, filtro.dimension).label === filtro.value;
+  }
+  private valorSobre(formula: KpiFormula, movs: readonly Movement[], dias: number): number {
+    const economicos = movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
+    const ingreso = sumBy(
+      economicos.filter((m) => m.kind === 'income'),
+      (m) => Math.max(0, m.amount),
+    );
+    const gasto = sumBy(
+      economicos.filter((m) => m.kind === 'expense'),
+      (m) => -Math.min(0, m.amount),
+    );
+    if (formula === 'income') return ingreso;
+    if (formula === 'expense') return gasto;
+    if (formula === 'savingsRate') return ingreso > 0 ? ((ingreso - gasto) / ingreso) * 100 : 0;
+    if (formula === 'expenseShare') return ingreso > 0 ? (gasto / ingreso) * 100 : 0;
+    if (formula === 'dailyExpense') return gasto / dias;
+    if (formula === 'dailyIncome') return ingreso / dias;
+    if (formula === 'amount' || formula === 'count' || formula === 'average') return this.measureValue(movs, formula);
+    return 0;
+  }
+  private diasDe(rango: { start: string; end: string }): number {
+    const inicio = new Date(`${rango.start}T00:00:00Z`).getTime();
+    const fin = new Date(`${rango.end}T00:00:00Z`).getTime();
+    return Math.max(1, Math.round((fin - inicio) / 86_400_000) + 1);
+  }
+  kpiValueDe(kpi: KpiDefinition): number {
+    const filtro = kpi.filter;
+    if (!filtro) return this.kpiValue(kpi.formula);
+    return this.valorSobre(
+      kpi.formula,
+      this.movements().filter((m) => this.cumpleFiltro(m, filtro)),
+      this.diasDelPeriodo(),
+    );
+  }
+  kpiSeriesDe(kpi: KpiDefinition): number[] {
+    const filtro = kpi.filter;
+    if (!filtro) return this.kpiSeriesFor(kpi.formula);
+    const historia = this.historial();
+    if (historia.some((punto) => !punto.movs)) return [];
+    return historia.map((punto) =>
+      this.valorSobre(
+        kpi.formula,
+        (punto.movs ?? []).filter((m) => this.cumpleFiltro(m, filtro)),
+        this.diasDe(punto.rango),
+      ),
+    );
+  }
+  kpiStatusFor(id: string, formula: KpiFormula, valor = this.kpiValue(formula)) {
     if (formula === 'mostUsedCard') return null;
-    return estadoDe(this.kpiValue(formula), this.rangosDe(id, formula));
+    return estadoDe(valor, this.rangosDe(id, formula));
   }
   kpiProgressFor(formula: KpiFormula): number | null {
     const porcentajes: readonly KpiFormula[] = [
@@ -375,12 +489,24 @@ export abstract class DashboardKpis extends DashboardVisuals {
     event.preventDefault();
     if (!this.caps.allows(P.dashboard.widget.crear)) return;
     const label = this.newKpiLabel.trim();
-    if (!label || this.usedKpiFormulas().has(this.newKpiFormula)) return;
+    const dimension = this.newKpiDimension();
+    const filtro: KpiFilter | undefined =
+      dimension !== 'none' && this.newKpiFilterValue ? { dimension, value: this.newKpiFilterValue } : undefined;
+    if (!label || (dimension !== 'none' && !filtro)) return;
+    if (
+      filtro
+        ? this.usedKpiKeys().has(claveDeKpi(this.newKpiFormula, filtro))
+        : this.usedKpiFormulas().has(this.newKpiFormula)
+    )
+      return;
+    if (filtro && !FORMULAS_FILTRABLES.includes(this.newKpiFormula)) return;
     this.kpiLayout.saveDefinitions([
       ...this.customKpis(),
-      { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula },
+      { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula, ...(filtro ? { filter: filtro } : {}) },
     ]);
     this.newKpiLabel = '';
+    this.newKpiDimension.set('none');
+    this.newKpiFilterValue = '';
     this.kpiCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.indicatorAdded', { label }));
   }
@@ -391,21 +517,28 @@ export abstract class DashboardKpis extends DashboardVisuals {
 
   /** Los indicadores propios normalizados a la misma forma que `fixedKpiItems`. */
   readonly customKpiItems = computed(() =>
-    this.customKpis().map((kpi) => ({
-      id: kpi.id,
-      label: kpi.label,
-      icon: this.kpiIcon(kpi.formula),
-      tone: this.kpiTone(kpi.formula),
-      value: this.kpiFormatValue(kpi.formula, this.kpiValue(kpi.formula)),
-      hint: this.kpiHintFor(kpi.formula),
-      series: this.kpiSeriesFor(kpi.formula),
-      delta: this.kpiTrend(kpi.formula),
-      subirEsBueno: this.kpiSubirEsBueno(kpi.formula),
-      progress: this.kpiProgressFor(kpi.formula),
-      status: this.kpiStatusFor(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula),
-      caption: this.kpiSeriesFor(kpi.formula).length > 1 ? this.historiaEtiqueta() : '',
-      formula: kpi.formula,
-      ranges: this.rangosDe(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula),
-    })),
+    this.customKpis().map((kpi) => {
+      const valor = this.kpiValueDe(kpi);
+      const serie = this.kpiSeriesDe(kpi);
+      const filtro = kpi.filter;
+      return {
+        id: kpi.id,
+        label: kpi.label,
+        icon: this.kpiIcon(kpi.formula),
+        tone: this.kpiTone(kpi.formula),
+        value: this.kpiFormatValue(kpi.formula, valor),
+        hint: filtro
+          ? `${this.i18n.t(`dashboard.dimension.${filtro.dimension}`)}: ${filtro.value}`
+          : this.kpiHintFor(kpi.formula),
+        series: serie,
+        delta: this.variacion(serie),
+        subirEsBueno: this.kpiSubirEsBueno(kpi.formula),
+        progress: filtro ? null : this.kpiProgressFor(kpi.formula),
+        status: this.kpiStatusFor(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula, valor),
+        caption: serie.length > 1 ? this.historiaEtiqueta() : '',
+        formula: kpi.formula,
+        ranges: this.rangosDe(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula),
+      };
+    }),
   );
 }

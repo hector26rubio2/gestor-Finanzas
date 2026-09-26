@@ -13,7 +13,7 @@ import {
   withCols,
   withHeight,
 } from './dashboard-layout';
-import { KpiFormula } from '../dashboard.model';
+import { Dimension, KpiFormula } from '../dashboard.model';
 import { KpiRanges, esRangoValido } from '../kpis/kpi-ranges';
 
 export interface FlowResize {
@@ -21,10 +21,16 @@ export interface FlowResize {
   readonly height?: number;
 }
 
+export interface KpiFilter {
+  readonly dimension: Dimension;
+  readonly value: string;
+}
+
 export interface KpiDefinition {
   readonly id: string;
   readonly label: string;
   readonly formula: KpiFormula;
+  readonly filter?: KpiFilter;
 }
 
 interface StoredLayout {

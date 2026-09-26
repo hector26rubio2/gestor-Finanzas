@@ -420,7 +420,6 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'funnel', label: this.i18n.t('dashboard.widgetType.funnel') },
     { value: 'waterfall', label: this.i18n.t('dashboard.widgetType.waterfall') },
     { value: 'matrix', label: this.i18n.t('dashboard.widgetType.matrix') },
-    { value: 'card', label: this.i18n.t('dashboard.widgetType.card') },
     { value: 'indicator', label: this.i18n.t('dashboard.widgetType.indicator') },
     { value: 'colorScale', label: this.i18n.t('dashboard.widgetType.colorScale') },
     { value: 'statusBars', label: this.i18n.t('dashboard.widgetType.statusBars') },

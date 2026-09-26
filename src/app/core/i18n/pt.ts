@@ -1528,4 +1528,7 @@ export default {
   'pager.ariaLabel': 'Paginação',
   'admin.flags.countLabel': '{count} funções',
   'shell.searchShort': 'Buscar',
+  'dashboard.kpiForm.filter.dimension': "Medir só sobre…",
+  'dashboard.kpiForm.filter.value': "Valor",
+  'dashboard.kpiForm.filter.none': "Tudo (sem filtro)",
 } as const;

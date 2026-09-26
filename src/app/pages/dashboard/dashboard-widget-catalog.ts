@@ -162,14 +162,6 @@ export function buildWidgetCatalog(i18n: I18nService): Widget[] {
       wide: true,
     },
     {
-      id: 'g-card',
-      title: i18n.t('dashboard.widget.gallery.card.title'),
-      kicker: i18n.t('dashboard.widget.gallery.kicker'),
-      type: 'card',
-      measure: 'income',
-      wide: false,
-    },
-    {
       id: 'g-matrix',
       title: i18n.t('dashboard.widget.gallery.matrix.title'),
       kicker: i18n.t('dashboard.widget.gallery.kicker'),

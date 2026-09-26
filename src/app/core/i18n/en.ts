@@ -1528,4 +1528,7 @@ export default {
   'pager.ariaLabel': 'Pagination',
   'admin.flags.countLabel': '{count} features',
   'shell.searchShort': 'Search',
+  'dashboard.kpiForm.filter.dimension': "Measure only on…",
+  'dashboard.kpiForm.filter.value': "Value",
+  'dashboard.kpiForm.filter.none': "Everything (no filter)",
 } as const;
