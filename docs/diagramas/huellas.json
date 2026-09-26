@@ -4,7 +4,7 @@
     "archivos": {
       "api:Dockerfile": "8b80a4f53cd4abb7",
       "api:render.yaml": "f62e8f0da5a09276",
-      "api:src/Finanzas.Host/Program.cs": "6d699c9b918187f0",
+      "api:src/Finanzas.Host/Program.cs": "5e60884a48aa4d7a",
       "api:src/Finanzas.Infrastructure/Integrations/GitHubIssueService.cs": "ba16ea4cadb47f25",
       "api:src/Finanzas.Infrastructure/Integrations/IssueBodyBuilder.cs": "661caf43a65c740d",
       "front:.github/workflows/ci.yml": "18ca2ae00c9cb921",
@@ -12,7 +12,7 @@
       "front:public/config.js": "73ba7cc928a3651a",
       "front:src/app/core/api/api-routes.ts": "4572f073df965da4"
     },
-    "sellado": "2026-09-26T02:24:09.793Z"
+    "sellado": "2026-09-26T20:30:13.710Z"
   },
   "areas": {
     "spec": "abba60b5d24f62d7",
@@ -49,10 +49,10 @@
       "api:src/Finanzas.Application/DemoFinanceStore.cs": "62faedc80d60349b",
       "api:src/Finanzas.Application/Mediator.cs": "182cb7ccd3159658",
       "api:src/Finanzas.Host/FinanceEndpoints.cs": "3301af2ce7e1cf36",
-      "api:src/Finanzas.Host/Program.cs": "6d699c9b918187f0",
+      "api:src/Finanzas.Host/Program.cs": "5e60884a48aa4d7a",
       "api:src/Finanzas.Infrastructure/DependencyInjection.cs": "6904309ec02673af"
     },
-    "sellado": "2026-09-26T02:24:09.801Z"
+    "sellado": "2026-09-26T20:30:14.720Z"
   },
   "peticion": {
     "spec": "38b105b77b183d8a",
