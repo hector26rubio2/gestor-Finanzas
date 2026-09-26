@@ -298,13 +298,17 @@ describe('cuentas: un tipo por permiso', () => {
     preparar([P.cuentas.ver, P.cuentas.crear, P.cuentas.ahorro.crear]);
     const componente = TestBed.createComponent(AccountFormComponent).componentInstance;
 
-    expect(componente.accountTypes().map((t) => t.value)).toEqual(['savings']);
+    // Con `cuentas.ahorro.crear` el backend también acepta una cuenta corriente
+    // (AccountsEndpoints.cs:74), y con `cuentas.crear` acepta «otra»: ocultarlas aquí
+    // dejaría fuera cuentas que el servidor sí crea.
+    expect(componente.accountTypes().map((t) => t.value)).toEqual(['savings', 'checking', 'other']);
   });
 
   it('la tarjeta se concede aparte de la cuenta de ahorro', () => {
     preparar([P.cuentas.ver, P.cuentas.crear, P.cuentas.tarjetas.crear]);
     const componente = TestBed.createComponent(AccountFormComponent).componentInstance;
 
-    expect(componente.accountTypes().map((t) => t.value)).toEqual(['credit']);
+    // El efectivo y la billetera piden `cuentas.efectivo.crear`, que no está concedido.
+    expect(componente.accountTypes().map((t) => t.value)).toEqual(['other', 'credit']);
   });
 });

@@ -25,6 +25,11 @@ const FEATURE_KEYS: ReadonlySet<string> = new Set([
   'reports',
   'notifications',
   'settings',
+  'movements.cashAdvance',
+  'people.history',
+  'settings.categories',
+  'admin.permissionCatalog',
+  'auth.password',
 ]);
 const RESOURCE_KEYS: ReadonlySet<string> = new Set([
   'dashboard',

@@ -7,14 +7,19 @@ import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
+import { sumBy } from '../../core/utils/money';
 import { SIN_DATO } from '../../shared/utils/placeholders';
+import { ChartCardComponent } from '../../ui/chart/chart-card';
+import { ChartThemeService } from '../../ui/chart/chart-theme';
+import { compactMoney } from '../../shared/utils/chart-math';
+import { barrasHorizontales } from '../../ui/chart/opciones';
 
 @Component({
   selector: 'app-people-tab',
-  imports: [DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
+  imports: [ChartCardComponent, DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './people-tab.html',
-  host: { class: TAB_PAGE_HOST_CLASS },
+  host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })
 export class PeopleTabComponent {
   readonly store = inject(AppStore);
@@ -50,12 +55,37 @@ export class PeopleTabComponent {
             }),
     })),
   );
-  readonly peopleOwed = computed(() => this.store.data().people.reduce((s, p) => s + p.owed, 0));
-  readonly peopleOwing = computed(() => this.store.data().people.reduce((s, p) => s + p.owing, 0));
+  private readonly temaGrafica = inject(ChartThemeService);
+  private readonly conSaldo = computed(() =>
+    [...this.store.data().people]
+      .filter((p) => p.owed > 0 || p.owing > 0)
+      .sort((a, b) => b.owed + b.owing - (a.owed + a.owing))
+      .slice(0, 8),
+  );
+  readonly hasBalances = computed(() => this.conSaldo().length > 0);
+  readonly balancesOption = computed(() => {
+    const palette = this.temaGrafica.palette();
+    const personas = this.conSaldo();
+    return barrasHorizontales(
+      palette,
+      personas.map((p) => p.name),
+      [
+        { nombre: this.i18n.t('people.column.owed'), valores: personas.map((p) => p.owed), color: palette.success },
+        { nombre: this.i18n.t('people.column.owing'), valores: personas.map((p) => p.owing), color: palette.danger },
+      ],
+      (valor) => this.store.money(valor),
+      (valor) => compactMoney(valor, this.store.preferences().locale),
+    );
+  });
+  readonly peopleOwed = computed(() => sumBy(this.store.data().people, (p) => p.owed));
+  readonly peopleOwing = computed(() => sumBy(this.store.data().people, (p) => p.owing));
   readonly slowestPayer = computed(() => {
-    const person = [...this.store.data().people].sort(
-      (a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0),
-    )[0];
-    return { name: person?.name ?? this.i18n.t('people.noData'), days: person?.averagePaymentDays ?? 0 };
+    const conDatos = this.store.data().people.filter((p) => p.averagePaymentDays != null);
+    const person = [...conDatos].sort((a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0))[0];
+    return {
+      name: person?.name ?? this.i18n.t('people.noData'),
+      days: person?.averagePaymentDays ?? 0,
+      hintKey: `people.kpi.slowest.hint.${this.store.runtime.mode}`,
+    };
   });
 }

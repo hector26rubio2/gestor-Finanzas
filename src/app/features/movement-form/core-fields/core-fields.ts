@@ -1,6 +1,6 @@
 import { DateFieldComponent } from '../../../ui/date-field/date-field';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
 import { P } from '../../../core/session/permissions';
@@ -13,6 +13,7 @@ import { FieldComponent } from '../../../ui/field/field';
 @Component({
   selector: 'fin-movement-core-fields',
   imports: [DateFieldComponent, HlmInput, FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './core-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
@@ -27,11 +28,7 @@ export class MovementCoreFieldsComponent {
   readonly i18n = inject(I18nService);
 
   private accountTypeLabel(type: string): string {
-    return type === 'credit'
-      ? this.i18n.t('form.account.type.credit')
-      : type === 'savings'
-        ? this.i18n.t('form.account.type.savings')
-        : this.i18n.t('form.account.type.cash');
+    return this.i18n.t(`form.account.type.${type}`);
   }
 
   /**

@@ -1,5 +1,5 @@
 @defer (on idle) {
-<ngx-sonner-toaster position="top-right" theme="system" richColors closeButton />
+<hlm-toaster position="top-right" theme="system" richColors closeButton />
 }
 <ng-template #cargando>
   <div
@@ -206,8 +206,17 @@
         ><fin-icon name="organization" class="[--icon-size:18px]" /> {{ espacioActivo() }}</span
       >
       <div class="ms-auto flex items-center gap-[9px]">
-        <button hlmBtn variant="outline" size="icon" [attr.aria-label]="i18n.t('shell.search')" (click)="openSearch()">
-          <fin-icon name="search" class="[--icon-size:18px]" /></button
+        <button
+          hlmBtn
+          variant="outline"
+          class="gap-2 px-2.5 text-muted-foreground"
+          [attr.aria-label]="i18n.t('shell.search')"
+          [attr.aria-keyshortcuts]="'Control+K'"
+          (click)="paleta.abrir()"
+        >
+          <fin-icon name="search" class="[--icon-size:18px]" />
+          <span class="max-[780px]:hidden">{{ i18n.t('shell.searchShort') }}</span>
+          <kbd hlmKbdGroup class="max-[780px]:hidden"><kbd hlmKbd>Ctrl</kbd><kbd hlmKbd>K</kbd></kbd></button
         ><a
           hlmBtn
           variant="outline"
@@ -252,4 +261,6 @@
 <app-bug-report />
 } } @placeholder {
 <ng-container *ngTemplateOutlet="cargando" />
+} } @if (paleta.solicitada()) { @defer {
+<fin-command-palette />
 } }

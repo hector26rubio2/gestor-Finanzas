@@ -21,6 +21,7 @@ export const MovementKind = {
   cardPayment: 21,
   cardInterest: 22,
   cardFee: 23,
+  cardCashAdvance: 24,
   investmentContribution: 30,
   investmentWithdrawal: 31,
   investmentBuy: 32,

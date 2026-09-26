@@ -1,0 +1,180 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Compras compartidas, deudas y liquidación",
+    "output": "compras-compartidas.html",
+    "viewBox": [
+      1080,
+      560
+    ],
+    "quality_profile": "showcase",
+    "animation": "trace",
+    "views": [
+      {
+        "id": "reparto",
+        "label": "Reparto",
+        "focus": [
+          "compra",
+          "reparto",
+          "obligacion"
+        ],
+        "note": "Una compra con tarjeta se reparte entre personas y cada parte queda como deuda."
+      },
+      {
+        "id": "cobro",
+        "label": "Cobro",
+        "focus": [
+          "obligacion",
+          "posiciones",
+          "personas",
+          "liquidacion"
+        ],
+        "note": "Las posiciones dicen quién debe cuánto y la liquidación cierra el periodo."
+      }
+    ]
+  },
+  "stages": [
+    {
+      "label": "Tarjeta"
+    },
+    {
+      "label": "Reparto"
+    },
+    {
+      "label": "Deuda"
+    },
+    {
+      "label": "Posición"
+    },
+    {
+      "label": "Cierre"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "compra",
+      "type": "frontend",
+      "label": "Compra",
+      "sublabel": "con tarjeta",
+      "stage": 0,
+      "row": 1,
+      "tag": "CardPurchase"
+    },
+    {
+      "id": "reparto",
+      "type": "backend",
+      "label": "Reparto",
+      "sublabel": "completo, % o importe",
+      "stage": 1,
+      "row": 1,
+      "tag": "redondeo"
+    },
+    {
+      "id": "obligacion",
+      "type": "database",
+      "label": "Obligación",
+      "sublabel": "por persona",
+      "stage": 2,
+      "row": 1,
+      "tag": "con interés"
+    },
+    {
+      "id": "posiciones",
+      "type": "backend",
+      "label": "Posiciones",
+      "sublabel": "debt-positions",
+      "stage": 3,
+      "row": 1
+    },
+    {
+      "id": "personas",
+      "type": "frontend",
+      "label": "Personas",
+      "sublabel": "quién debe cuánto",
+      "stage": 4,
+      "row": 0
+    },
+    {
+      "id": "liquidacion",
+      "type": "security",
+      "label": "Liquidación",
+      "sublabel": "corte del periodo",
+      "stage": 4,
+      "row": 2,
+      "tag": "cuadra"
+    }
+  ],
+  "flows": [
+    {
+      "id": "total",
+      "from": "compra",
+      "to": "reparto",
+      "label": "total y moneda",
+      "classification": "movimiento",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": 44
+    },
+    {
+      "id": "partes",
+      "from": "reparto",
+      "to": "obligacion",
+      "label": "parte de cada uno",
+      "classification": "deuda",
+      "variant": "emphasis",
+      "route": "straight",
+      "labelDy": 44
+    },
+    {
+      "id": "saldo",
+      "from": "obligacion",
+      "to": "posiciones",
+      "label": "saldo e interés",
+      "classification": "agregado",
+      "route": "straight",
+      "labelDy": 44
+    },
+    {
+      "id": "vista",
+      "from": "posiciones",
+      "to": "personas",
+      "label": "deudas vivas",
+      "classification": "lectura"
+    },
+    {
+      "id": "cierre",
+      "from": "posiciones",
+      "to": "liquidacion",
+      "label": "cargos y pagos",
+      "classification": "cierre",
+      "variant": "security"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Repartir",
+      "items": [
+        "Cada parte es completa, porcentaje o importe",
+        "El redondeo se asigna a una parte"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Deber",
+      "items": [
+        "Cada parte vive como obligación",
+        "El interés sigue su política"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Liquidar",
+      "items": [
+        "Cargos, intereses, pagos y ajustes",
+        "El inspector lista compras y liquidaciones"
+      ]
+    }
+  ]
+}

@@ -16,7 +16,7 @@
       <fin-bank-card
         class="flex-[0_0_260px] max-w-[260px] self-center max-[700px]:w-full max-[700px]:max-w-[320px]"
         [color]="a.color ?? 'var(--accent)'"
-        [typeLabel]="a.type === 'credit' ? i18n.t('accounts.cards.type.credit') : a.type === 'savings' ? i18n.t('accounts.cards.type.savings') : i18n.t('accounts.cards.type.cash')"
+        [typeLabel]="typeCardLabel(a.type)"
         [numberLabel]="a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour')"
         [name]="a.name"
         [balanceLabel]="a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel')"
@@ -67,7 +67,47 @@
       }
       <small class="text-muted-foreground">{{ i18n.t('workspace.statement.estimateNote') }}</small>
     </section>
-    } @if (can(P.cuentas.historial.ver)) {
+    } @if (store.inspector()?.type === 'person') { @if (personPurchases(); as compras) {
+    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.purchases.title')">
+      <h3>{{ i18n.t('workspace.person.purchases.title') }}</h3>
+      @for (compra of compras; track compra.id) {
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-[0.86rem]">
+        <span class="min-w-0"
+          ><b class="block truncate">{{ compra.description }}</b
+          ><small class="text-muted-foreground">{{ compra.date }}</small></span
+        >
+        <span class="text-end"
+          ><b class="block">{{ store.money(compra.share) }}</b
+          ><small class="text-muted-foreground"
+            >{{ i18n.t('workspace.person.purchases.ofTotal', { total: store.money(compra.total) }) }}</small
+          ></span
+        >
+      </div>
+      } @empty {
+      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('workspace.person.purchases.empty') }}</p>
+      }
+    </section>
+    } @if (personSettlements(); as liquidaciones) {
+    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.settlements.title')">
+      <h3>{{ i18n.t('workspace.person.settlements.title') }}</h3>
+      @for (liquidacion of liquidaciones; track liquidacion.id) {
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-[0.86rem]">
+        <span class="min-w-0"
+          ><b class="block">{{ liquidacion.period.start }} → {{ liquidacion.period.end }}</b
+          ><small class="text-muted-foreground"
+            >{{ i18n.t('workspace.person.settlements.issued', { date: liquidacion.issuedAt.slice(0, 10) }) }}</small
+          ></span
+        >
+        <span class="text-end"
+          ><b class="block">{{ store.money(parseMoney(liquidacion.closingBalance)) }}</b
+          ><small class="text-muted-foreground">{{ i18n.t('workspace.person.settlements.closing') }}</small></span
+        >
+      </div>
+      } @empty {
+      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('workspace.person.settlements.empty') }}</p>
+      }
+    </section>
+    } } @if (can(P.cuentas.historial.ver)) {
     <h3>{{ i18n.t('workspace.history.title') }}</h3>
     <ol>
       @for (h of store.history(); track $index) {
@@ -86,7 +126,7 @@
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
         {{ i18n.t('workspace.actions.registerSharedPurchase') }}
       </button>
-      } @if (can(P.movimientos.deshabilitar)) {
+      } @if (canReverseSelected()) {
       <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askReverse()">
         {{ i18n.t('workspace.actions.reverse') }}
       </button>
@@ -94,12 +134,20 @@
       <button hlmBtn class="h-[42px] flex-1" (click)="issueSelectedSettlement()">
         {{ i18n.t('workspace.actions.issueSettlement') }}
       </button>
+      } @if (store.inspector()?.type === 'person' && can(P.personas.editar)) {
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedPerson()">
+        <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
+      </button>
+      } @if (store.inspector()?.type === 'investment' && can(P.patrimonio.inversiones.editar)) {
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedInvestment()">
+        <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
+      </button>
       } @if (store.inspector()?.type === 'card' && !store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
       <button hlmBtn class="h-[42px] flex-1" (click)="store.cardPaymentMode.set(true)">
         {{ i18n.t('workspace.actions.registerPayment') }}
       </button>
       } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') && !store.cardPaymentMode()
-      && can(P.cuentas.editar)) {
+      && canEditSelectedAccount()) {
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedAccount()">
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.editAccount') }}
       </button>

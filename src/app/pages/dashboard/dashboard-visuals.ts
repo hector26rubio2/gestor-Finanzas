@@ -153,7 +153,7 @@ export abstract class DashboardVisuals {
       itemStyle: { color, opacity: 0.75 },
       data: puntos
         .filter((m) => m.amount > 0 === entra)
-        .map((m) => ({ value: [m.date, Math.abs(m.amount)], name: m.description })),
+        .map((m) => ({ value: [m.date, Math.abs(m.amount)], name: m.description, id: m.id })),
     });
     return {
       grid: { top: 28, right: 18, bottom: 40, left: 62 },
@@ -398,18 +398,22 @@ export abstract class DashboardVisuals {
   });
 
   /** En cuántos rangos de importe cae cada movimiento del periodo, sin distinguir ingreso de gasto. */
-  readonly histogramaOption = computed<ChartOption>(() => {
-    const palette = this.temaGrafica.palette();
+  readonly cubetasDelHistograma = computed(() => {
     const montos = this.movements()
       .map((m) => Math.abs(m.amount))
       .filter((v) => v > 0);
-    if (!montos.length) return { series: [] };
-    const max = Math.max(...montos);
+    const max = Math.max(0, ...montos);
     const cubetas = 8;
     const ancho = max / cubetas || 1;
     const conteo = Array.from({ length: cubetas }, () => 0);
     for (const valor of montos) conteo[Math.min(cubetas - 1, Math.floor(valor / ancho))]++;
     const etiquetas = conteo.map((_, i) => `${cifraCorta(i * ancho)}–${cifraCorta((i + 1) * ancho)}`);
+    return { montos, ancho, conteo, etiquetas, cubetas };
+  });
+  readonly histogramaOption = computed<ChartOption>(() => {
+    const palette = this.temaGrafica.palette();
+    const { montos, conteo, etiquetas } = this.cubetasDelHistograma();
+    if (!montos.length) return { series: [] };
     return {
       ...ejesDeIntervalo(palette, etiquetas),
       tooltip: {
@@ -556,14 +560,17 @@ export abstract class DashboardVisuals {
         ordenCategorias.push(c.key);
       }
       series.add(s.label);
-      const clave = c.key + ' ' + s.label;
+      const clave = c.key + '\u0000' + s.label;
       const filas = celdas.get(clave) ?? [];
       filas.push(m);
       celdas.set(clave, filas);
     }
     const nombresSeries = [...series].sort();
     const totalCategoria = (categoria: string) =>
-      nombresSeries.reduce((s, nombre) => s + this.measureValue(celdas.get(categoria + ' ' + nombre) ?? [], measure), 0);
+      nombresSeries.reduce(
+        (s, nombre) => s + this.measureValue(celdas.get(categoria + '\u0000' + nombre) ?? [], measure),
+        0,
+      );
     const categorias =
       dim === 'date'
         ? [...ordenCategorias].sort()
@@ -572,7 +579,7 @@ export abstract class DashboardVisuals {
       categories: categorias.map((c) => etiquetaCategoria.get(c) ?? c),
       series: nombresSeries.map((nombre) => ({
         name: nombre,
-        data: categorias.map((c) => this.measureValue(celdas.get(c + ' ' + nombre) ?? [], measure)),
+        data: categorias.map((c) => this.measureValue(celdas.get(c + '\u0000' + nombre) ?? [], measure)),
       })),
     };
   }

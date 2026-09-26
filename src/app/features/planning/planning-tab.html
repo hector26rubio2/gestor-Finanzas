@@ -35,14 +35,14 @@
         <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().helper }}</p>
       </header>
       <label class="grid gap-2 text-[0.72rem] text-muted-foreground"
-        >{{ planningCopy().amountLabel }}<input
-          class="accent-primary"
-          type="range"
+        >{{ planningCopy().amountLabel }}<hlm-slider
+          class="my-2"
           [min]="planningCopy().min"
           [max]="planningCopy().max"
           [step]="planningCopy().step"
-          [ngModel]="monthly()"
-          (ngModelChange)="monthly.set(+$event)"
+          [value]="[monthly()]"
+          [aria-label]="planningCopy().amountLabel"
+          (valueChange)="monthly.set($event[0])"
         /><b class="text-[1.25rem] text-foreground">{{ store.money(monthly()) }}</b
         ><small class="leading-snug">{{ planningCopy().rangeHint }}</small></label
       ><label class="grid gap-2 text-[0.72rem] text-muted-foreground"
@@ -75,59 +75,13 @@
             <h2 class="mt-1 mb-1.5 text-[1.05rem]">{{ planningCopy().chartTitle }}</h2>
             <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().chartDescription }}</p>
           </div>
-          <div class="flex flex-wrap items-center gap-[13px] text-[0.72rem] text-muted-foreground">
-            <span
-              class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-destructive before:content-['']"
-              >{{ planningCopy().currentLabel }}</span
-            ><span
-              class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-primary before:content-['']"
-              >{{ planningCopy().proposedLabel }}</span
-            >
-          </div>
         </header>
-        <div
-          class="mt-[15px] grid min-h-[220px] flex-1 grid-cols-[62px_minmax(0,1fr)] grid-rows-[minmax(0,1fr)_24px] max-[700px]:grid-cols-[48px_minmax(0,1fr)]"
-          role="img"
-          [attr.aria-label]="planningCopy().chartDescription"
-        >
-          <div
-            class="flex flex-col items-end justify-between pt-0.5 pr-[9px] pb-1 text-[0.72rem] text-muted-foreground"
-          >
-            <span>{{ compactMoney(planningChartMax()) }}</span><span>{{ compactMoney(planningChartMax() / 2) }}</span
-            ><span>$0</span>
-          </div>
-          <svg class="size-full overflow-visible" viewBox="0 0 600 220" preserveAspectRatio="none" aria-hidden="true">
-            <g class="stroke-border" stroke-width="1">
-              <line x1="0" y1="10" x2="600" y2="10" vector-effect="non-scaling-stroke" />
-              <line x1="0" y1="110" x2="600" y2="110" vector-effect="non-scaling-stroke" />
-              <line x1="0" y1="210" x2="600" y2="210" vector-effect="non-scaling-stroke" />
-            </g>
-            <polyline
-              class="stroke-destructive"
-              fill="none"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-dasharray="7 5"
-              vector-effect="non-scaling-stroke"
-              [attr.points]="planningCurrentPoints()"
-            />
-            <polyline
-              class="stroke-primary"
-              fill="none"
-              stroke-width="3"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              vector-effect="non-scaling-stroke"
-              [attr.points]="planningProposedPoints()"
-            />
-          </svg>
-          <div class="col-start-2 flex justify-between text-[0.72rem] text-muted-foreground">
-            <span>{{ i18n.t('planning.xAxis.today') }}</span><span>{{ i18n.t('planning.xAxis.month3') }}</span
-            ><span>{{ i18n.t('planning.xAxis.month6') }}</span><span>{{ i18n.t('planning.xAxis.month9') }}</span
-            ><span>{{ i18n.t('planning.xAxis.month12') }}</span>
-          </div>
-        </div>
+        <fin-chart
+          class="mt-[15px]"
+          [option]="planningChartOption()"
+          [height]="240"
+          [ariaLabel]="planningCopy().chartDescription"
+        />
       </article>
       <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
     </div>

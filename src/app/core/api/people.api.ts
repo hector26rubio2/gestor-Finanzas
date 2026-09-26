@@ -39,6 +39,20 @@ export class PeopleApi {
     return this.transport.request<ApiCounterparty>({ method: 'POST', path: API_ROUTES.people, body: request });
   }
 
+  updatePerson(
+    id: string,
+    request: {
+      displayName: string;
+      alias: string | null;
+      email: string | null;
+      phone: string | null;
+      notes: string | null;
+      isActive: boolean;
+    },
+  ) {
+    return this.transport.request<ApiCounterparty>({ method: 'PUT', path: API_ROUTES.person(id), body: request });
+  }
+
   debts() {
     return this.transport.request<readonly ApiDebtPosition[]>({ method: 'GET', path: API_ROUTES.debts });
   }

@@ -46,14 +46,15 @@
       /></label>
       <label hlmLabel class="mt-3.5 flex flex-col items-start gap-[5px] text-[0.72rem] text-muted-foreground"
         >{{ i18n.t('preferences.radius.label') }}
-        <input
-          class="w-full accent-primary"
-          type="range"
-          min="4"
-          max="24"
+        <hlm-slider
+          class="my-2 w-full"
+          [min]="4"
+          [max]="24"
+          [step]="1"
           [disabled]="!canCustomize()"
-          [ngModel]="store.preferences().radius"
-          (ngModelChange)="setRadius($event)"
+          [value]="[store.preferences().radius]"
+          [aria-label]="i18n.t('preferences.radius.label')"
+          (valueChange)="setRadius($event[0])"
         /><b>{{ store.preferences().radius }} px</b></label
       >
     </div>
@@ -182,6 +183,49 @@
     @if (errorDeInvitacion()) {
     <p class="mt-2 text-[0.8rem] text-destructive" role="alert">{{ errorDeInvitacion() }}</p>
     } }
+  </article>
+  } @if (can(P.cuentas.categorias.listar) && features.enabled('settings.categories')) {
+  <article hlmCard class="col-span-full gap-0 p-[22px] max-[700px]:col-auto">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <h2 class="text-base">{{ i18n.t('preferences.categories.title') }}</h2>
+        <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.categories.description') }}</p>
+      </div>
+      @if (can(P.cuentas.categorias.crear)) {
+      <button hlmBtn variant="outline" (click)="store.form.set({ kind: 'category' })">
+        <fin-icon name="plus" /> {{ i18n.t('preferences.categories.newButton') }}
+      </button>
+      }
+    </div>
+    @for (grupo of categoryGroups(); track grupo.type) {
+    <h3 class="mt-4 text-[0.72rem] font-semibold tracking-wide text-muted-foreground uppercase">{{ grupo.label }}</h3>
+    <ul class="mt-2 grid grid-cols-[repeat(auto-fill,minmax(220px,1fr))] gap-2">
+      @for (category of grupo.items; track category.id) {
+      <li class="flex items-center gap-2.5 rounded-md border border-border px-3 py-2">
+        <span
+          class="grid size-7 flex-none place-items-center rounded-full text-[0.85rem]"
+          [style.background]="category.color"
+          aria-hidden="true"
+          ><fin-category-icon class="text-white" [icon]="category.icon"
+        /></span>
+        <span class="min-w-0 flex-1 truncate text-[0.86rem]">{{ category.name }}</span>
+        @if (can(P.cuentas.categorias.editar)) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          [attr.aria-label]="i18n.t('preferences.categories.editAria', { name: category.name })"
+          (click)="store.form.set({ kind: 'category', targetId: category.id })"
+        >
+          <fin-icon name="edit" />
+        </button>
+        }
+      </li>
+      }
+    </ul>
+    } @empty {
+    <p class="mt-3 text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.categories.empty') }}</p>
+    }
   </article>
   }
   <article hlmCard class="gap-0 p-[22px]">

@@ -1,4 +1,4 @@
-import { Component, Input, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
 import { P } from '../../../core/session/permissions';
@@ -14,6 +14,7 @@ import { FieldComponent } from '../../../ui/field/field';
 @Component({
   selector: 'fin-movement-loan-fields',
   imports: [FormsModule, UiSelectComponent, FieldComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './loan-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

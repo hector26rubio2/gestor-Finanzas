@@ -1,23 +1,42 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
-import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
+import { I18nService } from '../../core/i18n';
+import { P } from '../../core/session/permissions';
+import type { Account, Movement } from '../../core/state/demo-data';
+import { CAPABILITIES, AppStore } from '../../core/state/store';
+import { sincronizarConLaUrl } from '../../core/state/url-state';
+import { downloadCsv, toCsv } from '../../core/utils/csv';
+import { todayIso } from '../../core/utils/dates';
+import { sumBy } from '../../core/utils/money';
+import { HeaderActionsService } from '../../shared/header-actions.service';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { toCsv, downloadCsv } from '../../core/utils/csv';
+import { compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
+import { SIN_DATO } from '../../shared/utils/placeholders';
+import { ChartComponent } from '../../ui/chart/chart';
+import { ChartThemeService } from '../../ui/chart/chart-theme';
+import { anillo, barrasAgrupadas, lineaConCero, medidor } from '../../ui/chart/opciones';
 import { IconComponent } from '../../ui/icon/icon';
 import { KpiComponent } from '../../ui/kpi/kpi';
+import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
-import { HeaderActionsService } from '../../shared/header-actions.service';
+import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '../accounts/card-insights';
+
+const esEconomico = (movement: Movement) => !movement.movementSubtype && movement.kind !== 'payment';
 
 @Component({
   selector: 'app-reports-tab',
-  imports: [FormsModule, HlmButton, HlmCard, IconComponent, KpiComponent, KpiGridComponent, UiSelectComponent],
+  imports: [
+    FormsModule,
+    HlmButton,
+    HlmCard,
+    ChartComponent,
+    IconComponent,
+    KpiComponent,
+    KpiGridComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -26,16 +45,19 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly headerActions = inject(HeaderActionsService);
+  private readonly temaGrafica = inject(ChartThemeService);
   readonly i18n = inject(I18nService);
   readonly P = P;
+  readonly sinDato = SIN_DATO;
+
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
 
-  /** El boton de exportar de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
   ngOnInit(): void {
     this.headerActions.exportReport.set(() => this.exportReport());
   }
+
   ngOnDestroy(): void {
     this.headerActions.exportReport.set(null);
   }
@@ -49,94 +71,213 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   private readonly urlDeReportes = sincronizarConLaUrl('meses', this.reportPeriod, '6', (v) =>
     ['3', '6', '12'].includes(v),
   );
-  readonly reportMovements = computed(() => {
-    const periods = [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
+
+  private readonly periodos = computed(() =>
+    [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
       .sort()
-      .slice(-Number(this.reportPeriod()));
-    return this.store.data().movements.filter((movement) => periods.includes(movement.date.slice(0, 7)));
+      .slice(-Number(this.reportPeriod())),
+  );
+  readonly reportMovements = computed(() => {
+    const periodos = new Set(this.periodos());
+    return this.store.data().movements.filter((movement) => periodos.has(movement.date.slice(0, 7)));
   });
+  private readonly economicos = computed(() => this.reportMovements().filter(esEconomico));
+  private readonly gastos = computed(() => this.economicos().filter((movement) => movement.amount < 0));
+
   readonly reportIncome = computed(() =>
-    this.reportMovements()
-      .filter((movement) => movement.amount > 0)
-      .reduce((sum, movement) => sum + movement.amount, 0),
+    sumBy(
+      this.economicos().filter((movement) => movement.amount > 0),
+      (movement) => movement.amount,
+    ),
   );
-  readonly reportExpenses = computed(
-    () =>
-      -this.reportMovements()
-        .filter((movement) => movement.amount < 0)
-        .reduce((sum, movement) => sum + movement.amount, 0),
-  );
+  readonly reportExpenses = computed(() => -sumBy(this.gastos(), (movement) => movement.amount));
   readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
   readonly reportSavingsRate = computed(() =>
     this.reportIncome() ? `${Math.round((this.reportNet() / this.reportIncome()) * 100)} %` : '0 %',
   );
   readonly reportAverageExpense = computed(() => this.reportExpenses() / Number(this.reportPeriod()));
+
+  private readonly nombreDeMes = computed(() => {
+    const formato = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'short', timeZone: 'UTC' });
+    return (mes: string) => formato.format(new Date(`${mes}-01T00:00:00Z`)).replace('.', '');
+  });
+
   readonly reportSeries = computed(() => {
-    const grouped = new Map<string, { income: number; expense: number }>();
-    for (const movement of this.reportMovements()) {
-      const month = movement.date.slice(0, 7);
-      const values = grouped.get(month) ?? { income: 0, expense: 0 };
-      if (movement.amount >= 0) values.income += movement.amount;
-      else values.expense -= movement.amount;
-      grouped.set(month, values);
+    const agrupados = new Map<string, { income: number; expense: number }>();
+    for (const movement of this.economicos()) {
+      const mes = movement.date.slice(0, 7);
+      const valores = agrupados.get(mes) ?? { income: 0, expense: 0 };
+      if (movement.amount >= 0) valores.income += movement.amount;
+      else valores.expense -= movement.amount;
+      agrupados.set(mes, valores);
     }
-    const maximum = Math.max(1, ...[...grouped.values()].flatMap((value) => [value.income, value.expense]));
-    return [...grouped.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([month, values]) => ({
-        month: new Intl.DateTimeFormat('es-CO', { month: 'short', timeZone: 'UTC' })
-          .format(new Date(`${month}-01T00:00:00Z`))
-          .replace('.', ''),
-        income: values.income,
-        expense: values.expense,
-        net: values.income - values.expense,
-        incomePercent: Math.round((values.income / maximum) * 100),
-        expensePercent: Math.round((values.expense / maximum) * 100),
+    const nombre = this.nombreDeMes();
+    return [...agrupados.entries()]
+      .sort(([izquierda], [derecha]) => izquierda.localeCompare(derecha))
+      .map(([mes, valores]) => ({
+        key: mes,
+        month: nombre(mes),
+        income: valores.income,
+        expense: valores.expense,
+        net: valores.income - valores.expense,
       }));
   });
+
   readonly reportCategories = computed(() => {
-    const totals = new Map<string, number>();
-    for (const movement of this.reportMovements()) {
-      if (movement.amount < 0) totals.set(movement.category, (totals.get(movement.category) ?? 0) - movement.amount);
-    }
-    const palette = ['#0f766e', '#2563eb', '#e76f51', '#8b5cf6', '#d97706', '#64748b'];
-    const total = [...totals.values()].reduce((sum, value) => sum + value, 0);
-    return [...totals.entries()]
-      .sort(([, left], [, right]) => right - left)
+    const totales = new Map<string, number>();
+    for (const movement of this.gastos())
+      totales.set(movement.category, (totales.get(movement.category) ?? 0) - movement.amount);
+    const total = sumBy([...totales.values()], (valor) => valor);
+    return [...totales.entries()]
+      .sort(([, izquierda], [, derecha]) => derecha - izquierda)
       .slice(0, 6)
-      .map(([name, value], index) => ({
-        name,
-        color: palette[index % palette.length],
-        percent: total ? Math.round((value / total) * 100) : 0,
-        value,
-      }));
+      .map(([name, value]) => ({ name, value, percent: total ? Math.round((value / total) * 100) : 0 }));
   });
-  readonly reportNetRange = computed(() => Math.max(1, ...this.reportSeries().map((point) => Math.abs(point.net))));
-  readonly reportNetPoints = computed(() =>
-    chartPoints(
-      this.reportSeries().map((point) => point.net + this.reportNetRange()),
-      this.reportNetRange() * 2,
-      600,
-      160,
-    ),
-  );
+
   readonly topCategory = computed(() => {
-    const values = new Map<string, number>();
-    this.reportMovements()
-      .filter((movement) => movement.amount < 0)
-      .forEach((movement) => values.set(movement.category, (values.get(movement.category) ?? 0) - movement.amount));
-    const top = [...values.entries()].sort((a, b) => b[1] - a[1])[0];
-    return { name: top?.[0] ?? 'Sin datos', value: top?.[1] ?? 0 };
+    const primera = this.reportCategories()[0];
+    return { name: primera?.name ?? this.i18n.t('people.noData'), value: primera?.value ?? 0 };
   });
-  /** Mismo calculo que Patrimonio: se repite aqui porque el widget de salud de deuda lo necesita. */
-  readonly investmentValue = computed(() => this.store.data().investments.reduce((s, i) => s + i.value, 0));
+
+  readonly investmentValue = computed(() => sumBy(this.store.data().investments, (inversion) => inversion.value));
+
   compactMoney(value: number): string {
     return formatCompactMoney(value, this.store.preferences().locale);
   }
-  /**
-   * Exporta el periodo del informe: una fila por mes con ingresos, gastos y neto, y
-   * debajo el reparto por categoria. Es lo que protege `reportes.exportar`.
-   */
+
+  private readonly dinero = (valor: number) => this.store.money(valor);
+  private readonly compacto = (valor: number) => this.compactMoney(valor);
+
+  readonly incomeExpenseOption = computed(() => {
+    const palette = this.temaGrafica.palette();
+    const serie = this.reportSeries();
+    return barrasAgrupadas(
+      palette,
+      serie.map((punto) => punto.month),
+      [
+        {
+          nombre: this.i18n.t('reports.legend.income'),
+          valores: serie.map((punto) => punto.income),
+          color: palette.success,
+        },
+        {
+          nombre: this.i18n.t('reports.legend.expense'),
+          valores: serie.map((punto) => punto.expense),
+          color: palette.danger,
+        },
+      ],
+      this.dinero,
+      this.compacto,
+    );
+  });
+
+  readonly categoriesOption = computed(() =>
+    anillo(
+      this.temaGrafica.palette(),
+      this.reportCategories().map((categoria) => ({ nombre: categoria.name, valor: categoria.value })),
+      this.dinero,
+      { valor: this.compactMoney(this.reportExpenses()), etiqueta: this.i18n.t('reports.categories.totalLabel') },
+    ),
+  );
+
+  readonly trendOption = computed(() => {
+    const palette = this.temaGrafica.palette();
+    const serie = this.reportSeries();
+    return lineaConCero(
+      palette,
+      serie.map((punto) => punto.month),
+      [
+        {
+          nombre: this.i18n.t('reports.trend.series'),
+          valores: serie.map((punto) => punto.net),
+          color: palette.accent,
+        },
+      ],
+      this.dinero,
+      this.compacto,
+    );
+  });
+
+  private readonly tarjetas = computed(() => creditCards(this.store.data().accounts));
+  private readonly deudaDe = (tarjeta: Account) => Math.max(0, -this.store.balance(tarjeta));
+
+  readonly utilization = computed(() => {
+    const cupo = sumBy(this.tarjetas(), (tarjeta) => tarjeta.limit ?? 0);
+    return cupo > 0 ? (sumBy(this.tarjetas(), this.deudaDe) / cupo) * 100 : null;
+  });
+  readonly utilizationOption = computed(() =>
+    medidor(
+      this.temaGrafica.palette(),
+      this.utilization() ?? 0,
+      this.i18n.t('reports.debtHealth.utilization.label'),
+      HEALTHY_UTILIZATION_PERCENT,
+    ),
+  );
+  readonly nextDue = computed(() => {
+    const proximo = nextCardDue(this.tarjetas(), this.deudaDe, todayIso());
+    if (!proximo) return null;
+    const fecha = new Intl.DateTimeFormat(this.store.preferences().locale, { day: 'numeric', month: 'short' }).format(
+      new Date(proximo.date),
+    );
+    return { fecha, tarjeta: proximo.account.name };
+  });
+  readonly estimatedInterest = computed(() => {
+    const conTasa = this.tarjetas().filter((tarjeta) => tarjeta.annualRate !== undefined);
+    if (!conTasa.length) return null;
+    return sumBy(conTasa, (tarjeta) => (this.deudaDe(tarjeta) * (tarjeta.annualRate ?? 0)) / 100 / 12);
+  });
+
+  readonly insights = computed(() => {
+    const t = (clave: string, parametros?: Record<string, string | number>) => this.i18n.t(clave, parametros);
+    const total = this.reportExpenses();
+    const lista: string[] = [];
+    if (total > 0) {
+      const fijos = -sumBy(
+        this.gastos().filter((movement) => !!movement.recurring),
+        (movement) => movement.amount,
+      );
+      lista.push(t('reports.insights.variableShare', { percent: Math.round(((total - fijos) / total) * 100) }));
+    } else {
+      lista.push(t('reports.insights.noExpenses'));
+    }
+    const subida = this.mayorSubida();
+    lista.push(
+      subida
+        ? t('reports.insights.categoryUp', { name: subida.nombre, percent: subida.porcentaje })
+        : t('reports.insights.noCategoryUp'),
+    );
+    const sinCategoria = this.gastos().filter(
+      (movement) => !movement.category || movement.category === t('movements.fallback.noCategory'),
+    ).length;
+    lista.push(
+      sinCategoria
+        ? t('reports.insights.uncategorized', { count: sinCategoria })
+        : t('reports.insights.allCategorized'),
+    );
+    return lista;
+  });
+
+  private mayorSubida(): { nombre: string; porcentaje: number } | null {
+    const periodos = this.periodos();
+    if (periodos.length < 2) return null;
+    const [anterior, actual] = periodos.slice(-2);
+    const porMes = (mes: string) => {
+      const totales = new Map<string, number>();
+      for (const movement of this.gastos().filter((m) => m.date.startsWith(mes)))
+        totales.set(movement.category, (totales.get(movement.category) ?? 0) - movement.amount);
+      return totales;
+    };
+    const antes = porMes(anterior);
+    let mejor: { nombre: string; porcentaje: number } | null = null;
+    for (const [nombre, valor] of porMes(actual)) {
+      const previo = antes.get(nombre) ?? 0;
+      if (previo <= 0 || valor <= previo) continue;
+      const porcentaje = Math.round(((valor - previo) / previo) * 100);
+      if (!mejor || porcentaje > mejor.porcentaje) mejor = { nombre, porcentaje };
+    }
+    return mejor;
+  }
+
   exportReport(): void {
     const SALTO = '\r\n';
     if (!this.can(P.reportes.exportar)) return;

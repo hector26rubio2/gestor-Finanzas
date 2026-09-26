@@ -3,17 +3,22 @@ import { DateFieldComponent } from '../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { chartPoints, compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
+import { sumBy } from '../../core/utils/money';
+import { compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
+import { ChartComponent } from '../../ui/chart/chart';
+import { ChartThemeService } from '../../ui/chart/chart-theme';
+import { lineaConCero } from '../../ui/chart/opciones';
 
 @Component({
   selector: 'app-planning-tab',
-  imports: [DateFieldComponent, FormsModule, NgTemplateOutlet, HlmTabsImports],
+  imports: [ChartComponent, DateFieldComponent, FormsModule, NgTemplateOutlet, HlmSliderImports, HlmTabsImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './planning-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -65,7 +70,7 @@ export class PlanningTabComponent {
   readonly proposedInterest = computed(() => Math.round(this.store.debt() * 0.018 * this.proposedMonths()));
   readonly estimatedSavings = computed(() => Math.max(0, this.currentInterest() - this.proposedInterest()));
   /** Mismo calculo que Patrimonio: se repite aqui porque el escenario de inversion lo necesita. */
-  readonly investmentValue = computed(() => this.store.data().investments.reduce((s, i) => s + i.value, 0));
+  readonly investmentValue = computed(() => sumBy(this.store.data().investments, (i) => i.value));
   compactMoney(value: number): string {
     return formatCompactMoney(value, this.store.preferences().locale);
   }
@@ -204,25 +209,33 @@ export class PlanningTabComponent {
       }
     });
   });
-  readonly planningChartMax = computed(() =>
-    Math.max(1, ...this.planningSeries().flatMap((point) => [point.current, point.proposed])),
-  );
-  readonly planningCurrentPoints = computed(() =>
-    chartPoints(
-      this.planningSeries().map((point) => point.current),
-      this.planningChartMax(),
-      600,
-      220,
-    ),
-  );
-  readonly planningProposedPoints = computed(() =>
-    chartPoints(
-      this.planningSeries().map((point) => point.proposed),
-      this.planningChartMax(),
-      600,
-      220,
-    ),
-  );
+  private readonly temaGrafica = inject(ChartThemeService);
+  readonly planningChartOption = computed(() => {
+    const palette = this.temaGrafica.palette();
+    const serie = this.planningSeries();
+    const copia = this.planningCopy();
+    return lineaConCero(
+      palette,
+      serie.map((_, mes) =>
+        mes === 0 ? this.i18n.t('planning.xAxis.today') : this.i18n.t('planning.xAxis.month', { n: mes }),
+      ),
+      [
+        {
+          nombre: copia.proposedLabel,
+          valores: serie.map((punto) => Math.round(punto.proposed)),
+          color: palette.accent,
+        },
+        {
+          nombre: copia.currentLabel,
+          valores: serie.map((punto) => Math.round(punto.current)),
+          color: palette.danger,
+          discontinua: true,
+        },
+      ],
+      (valor) => this.store.money(valor),
+      (valor) => this.compactMoney(valor),
+    );
+  });
   readonly planningMetrics = computed(() => {
     const current = this.planningCurrent();
     const proposed = this.planningProposed();

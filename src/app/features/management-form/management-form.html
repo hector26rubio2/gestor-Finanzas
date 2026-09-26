@@ -8,6 +8,7 @@
       <fin-select
         name="categoryType"
         [(ngModel)]="categoryType"
+        [disabled]="!!editingId"
         [options]="categoryTypeOptions()"
         [ariaLabel]="i18n.t('form.management.field.categoryTypeAria')"
       />
@@ -16,7 +17,11 @@
       <input name="color" type="color" [(ngModel)]="color" />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.icon')">
-      <input hlmInput name="icon" [(ngModel)]="icon" required />
+      @defer (on idle) {
+      <fin-icon-picker [(value)]="icon" [color]="color" [label]="i18n.t('form.management.field.icon')" />
+      } @placeholder {
+      <span class="block h-9 rounded-md border border-border"></span>
+      }
     </fin-field>
     } @if (kind() === 'person') {
     <fin-field [label]="i18n.t('form.management.field.email')">
@@ -43,6 +48,7 @@
       <fin-select
         name="currency"
         [(ngModel)]="currency"
+        [disabled]="!!editingId"
         [options]="currencyOptions()"
         [ariaLabel]="i18n.t('form.management.field.currencyAria')"
       />

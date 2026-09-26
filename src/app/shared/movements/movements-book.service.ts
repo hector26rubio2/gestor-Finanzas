@@ -6,7 +6,19 @@ import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { parseMoney } from '../../core/utils/money';
 import { classifyFamily, signOf } from '../../core/utils/movement-kinds';
+import { TABLE_ALL_FIELDS, TableFilter } from '../../ui/data-table/data-table';
+import { monthRange } from '../../core/api/shared-api-types';
 import { I18nService } from '../../core/i18n';
+import type { Account } from '../../core/state/demo-data';
+
+const ACCOUNT_TYPE_LABEL_KEYS: Record<Account['type'], string> = {
+  savings: 'movements.filters.accountType.savings',
+  checking: 'movements.filters.accountType.checking',
+  cash: 'movements.filters.accountType.cash',
+  wallet: 'movements.filters.accountType.wallet',
+  other: 'movements.filters.accountType.other',
+  credit: 'movements.filters.accountType.credit',
+};
 
 /**
  * Movimientos ya filtrados y con formato de fila, mas su paginacion remota.
@@ -28,15 +40,14 @@ export class MovementsBookService {
   }
   private movementRequest = 0;
 
-  readonly movementAccountType = signal<'all' | 'savings' | 'credit' | 'cash'>('all');
-  readonly movementCategory = signal('all');
-  readonly movementOperation = signal('all');
+  readonly pinned = signal<readonly TableFilter[]>([]);
   readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
   readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
     { value: 'all', label: this.i18n.t('movements.filters.accountType.all') },
-    { value: 'savings', label: this.i18n.t('movements.filters.accountType.savings') },
-    { value: 'credit', label: this.i18n.t('movements.filters.accountType.credit') },
-    { value: 'cash', label: this.i18n.t('movements.filters.accountType.cash') },
+    ...Object.entries(ACCOUNT_TYPE_LABEL_KEYS).map(([value, key]) => ({
+      value,
+      label: this.i18n.t(key),
+    })),
   ]);
   /**
    * `essential: false` manda la columna al detalle plegable de la fila en movil (ver
@@ -46,38 +57,91 @@ export class MovementsBookService {
    * resto queda a un toque de distancia.
    */
   readonly movementColumns = computed(() => [
-    { key: 'date', label: this.i18n.t('movements.column.date') },
+    { key: 'date', label: this.i18n.t('movements.column.date'), filter: 'date' as const, rawKey: 'dateIso' },
     { key: 'description', label: this.i18n.t('movements.column.description') },
     { key: 'amount', label: this.i18n.t('movements.column.amount') },
-    { key: 'account', label: this.i18n.t('movements.column.account') },
-    { key: 'effect', label: this.i18n.t('movements.column.effect'), essential: false },
+    {
+      key: 'account',
+      label: this.i18n.t('movements.column.account'),
+      options: this.store.data().accounts.map((account) => account.name),
+    },
+    {
+      key: 'effect',
+      label: this.i18n.t('movements.column.effect'),
+      essential: false,
+      options: ['debit', 'credit', 'pending'].map((clave) => this.i18n.t(`movements.column.effect.${clave}`)),
+    },
     { key: 'currency', label: this.i18n.t('movements.column.currency'), essential: false },
     { key: 'financing', label: this.i18n.t('movements.column.financing'), essential: false },
     { key: 'responsibility', label: this.i18n.t('movements.column.responsibility'), essential: false },
     { key: 'recurrence', label: this.i18n.t('movements.column.recurrence'), essential: false },
   ]);
-  readonly filteredMovementData = computed(() =>
-    this.store.movements().filter((m) => {
-      const account = this.store.account(m.accountId);
-      const accountType = this.movementAccountType();
-      const category = this.movementCategory();
-      const operation = this.movementOperation();
-      return (
-        (accountType === 'all' || account?.type === accountType) &&
-        (category === 'all' || m.category === category) &&
-        (operation === 'all' ||
-          (operation === 'transfer' && m.movementSubtype === 'transfer') ||
-          (operation === 'advance' && m.movementSubtype === 'advance') ||
-          (operation === m.kind && !m.movementSubtype) ||
-          (operation === 'loan' && !!m.loanRole) ||
-          (operation === 'recurring' && !!m.recurring))
-      );
-    }),
-  );
+  private valoresDe(...campos: string[]): string[] {
+    return this.pinned()
+      .filter((filtro) => campos.includes(filtro.field))
+      .map((filtro) => filtro.value.trim())
+      .filter(Boolean);
+  }
+
+  private rangoDe(valor: string): { start: string; end: string } | null {
+    const iso = /^(\d{4})(?:-(\d{2}))?(?:-(\d{2}))?$/.exec(valor);
+    const local = /^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(valor);
+    if (local) {
+      const dia = `${local[3]}-${local[2].padStart(2, '0')}-${local[1].padStart(2, '0')}`;
+      return { start: dia, end: dia };
+    }
+    if (!iso) return null;
+    if (iso[3]) return { start: valor, end: valor };
+    return monthRange(iso[2] ? `${iso[1]}-${iso[2]}` : iso[1]);
+  }
+
+  private filtroDelServidor(): Record<string, unknown> {
+    const filtro: Record<string, unknown> = {};
+    const textos = this.valoresDe(
+      TABLE_ALL_FIELDS,
+      'description',
+      'currency',
+      'financing',
+      'responsibility',
+      'recurrence',
+    );
+    if (textos.length) filtro['text'] = textos.join(' ');
+    const importes = this.valoresDe('amount')
+      .map((valor) => Number(valor.replace(/[^\d,]/g, '').replace(',', '.')))
+      .filter((valor) => Number.isFinite(valor) && valor > 0);
+    if (importes.length) {
+      filtro['minAmountBase'] = String(Math.min(...importes));
+      filtro['maxAmountBase'] = String(Math.max(...importes));
+    }
+    const rangos = this.valoresDe('date')
+      .map((valor) => this.rangoDe(valor))
+      .filter((rango) => rango !== null);
+    if (rangos.length) {
+      const periodo = this.store.period();
+      const base = periodo === 'all' ? null : monthRange(periodo);
+      const inicio = [base?.start ?? '', ...rangos.map((rango) => rango.start)].sort().at(-1)!;
+      const fin = [base?.end ?? '9999-12-31', ...rangos.map((rango) => rango.end)].sort()[0];
+      filtro['range'] = { start: inicio, end: fin };
+    }
+    const nombres = this.valoresDe('account').map((valor) => valor.toLocaleLowerCase());
+    if (nombres.length) {
+      const cuentas = this.store
+        .data()
+        .accounts.filter((cuenta) => nombres.some((nombre) => cuenta.name.toLocaleLowerCase().includes(nombre)));
+      filtro['accounts'] = cuentas.filter((cuenta) => cuenta.type !== 'credit').map((cuenta) => cuenta.id);
+      filtro['cards'] = cuentas.filter((cuenta) => cuenta.type === 'credit').map((cuenta) => cuenta.id);
+      if (!cuentas.length) filtro['accounts'] = ['00000000-0000-0000-0000-000000000000'];
+    }
+    const debito = this.i18n.t('movements.column.effect.debit').toLocaleLowerCase();
+    const flujos = this.valoresDe('effect').map((valor) => (debito.includes(valor.toLocaleLowerCase()) ? 2 : 1));
+    if (flujos.length) filtro['flows'] = [...new Set(flujos)];
+    return filtro;
+  }
   readonly movementRows = computed(() =>
-    this.filteredMovementData().map((m) => ({
+    this.store.movements().map((m) => ({
       id: m.id,
       date: this.formatDate(m.date),
+      dateIso: m.date,
       description: m.description,
       account: this.store.account(m.accountId)?.name,
       effect:
@@ -145,6 +209,7 @@ export class MovementsBookService {
           search: this.store.query() || undefined,
           accountId: this.store.accountFilter() === 'all' ? undefined : this.store.accountFilter(),
           period: period === 'all' ? undefined : period,
+          filter: this.filtroDelServidor(),
         }),
       );
       if (request !== this.movementRequest) return;

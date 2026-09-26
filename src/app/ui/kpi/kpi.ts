@@ -5,6 +5,15 @@ import { ChartComponent } from '../chart/chart';
 import { ChartThemeService } from '../chart/chart-theme';
 import { KpiGridContext } from '../kpi-grid/kpi-grid';
 
+function suavizar(serie: readonly number[], puntos: number): number[] {
+  if (serie.length <= puntos) return [...serie];
+  const tramo = serie.length / puntos;
+  return Array.from({ length: puntos }, (_, indice) => {
+    const parte = serie.slice(Math.floor(indice * tramo), Math.floor((indice + 1) * tramo));
+    return parte.reduce((suma, valor) => suma + valor, 0) / Math.max(parte.length, 1);
+  });
+}
+
 @Component({
   selector: 'fin-kpi',
   imports: [ChartComponent, IconComponent],
@@ -35,6 +44,9 @@ export class KpiComponent {
   readonly series = input<readonly number[]>([]);
   /** Variacion en tanto por ciento frente al intervalo anterior; `null` la oculta. */
   readonly delta = input<number | null>(null);
+  readonly progress = input<number | null>(null);
+  readonly status = input<'good' | 'warn' | 'bad' | null>(null);
+  readonly caption = input('');
   /**
    * Si subir es una buena noticia. En ingresos si; en gastos, no. Sin esto la tarjeta
    * pintaria de verde un mes en el que se gasto un tercio mas.
@@ -45,18 +57,33 @@ export class KpiComponent {
 
   readonly hostClass = computed(() => {
     if (this.layoutRow())
-      return '@container flex min-h-[84px] min-w-0 items-center gap-3 rounded-lg border border-border bg-card px-4 py-3 text-foreground';
+      return '@container relative isolate flex min-h-[104px] min-w-0 flex-col justify-start gap-1 overflow-hidden rounded-lg border border-border bg-card px-4 pt-3 pb-4 text-foreground';
     const base = 'flex min-w-0 flex-col justify-center gap-1.5 text-foreground';
     if (this.bare()) return `${base} min-h-0 flex-1 items-center border-0 bg-transparent p-0 text-center`;
     const shape =
       this.compact() || this.grid?.compact() ? 'min-h-[50px] px-3.5 py-2.5' : 'min-h-[100px] px-5 py-[18px]';
     return `${base} ${shape} rounded-lg border border-border bg-card`;
   });
+  private readonly toneEfectivo = computed(() => {
+    const estado = this.status();
+    if (estado === 'good') return 'success';
+    if (estado === 'warn') return 'warning';
+    if (estado === 'bad') return 'danger';
+    return this.tone();
+  });
   readonly chipClass = computed(() => {
-    const tone = this.tone();
+    const tone = this.toneEfectivo();
+    if (tone === 'warning') return 'bg-warning/15 text-warning';
     if (tone === 'success') return 'bg-success/15 text-success';
     if (tone === 'danger') return 'bg-destructive/15 text-destructive';
     return 'bg-accent text-primary';
+  });
+  readonly progressClass = computed(() => {
+    const tone = this.toneEfectivo();
+    if (tone === 'warning') return 'bg-warning';
+    if (tone === 'success') return 'bg-success/70';
+    if (tone === 'danger') return 'bg-destructive/70';
+    return 'bg-primary/70';
   });
   readonly deltaClass = computed(() => {
     if (this.mejora()) return 'bg-accent text-primary';
@@ -98,10 +125,23 @@ export class KpiComponent {
 
   readonly chispaOption = computed(() => {
     const palette = this.tema.palette();
-    const color = this.empeora() ? palette.danger : palette.accent;
-    const valores = [...this.series()];
+    const estado = this.status();
+    const color =
+      estado === 'bad'
+        ? palette.danger
+        : estado === 'warn'
+          ? palette.warn
+          : estado === 'good'
+            ? palette.success
+            : this.empeora()
+              ? palette.danger
+              : this.mejora()
+                ? palette.success
+                : palette.accent;
+    const fondo = this.layoutRow();
+    const valores = fondo ? suavizar(this.series(), 14) : [...this.series()];
     return {
-      grid: { top: 4, right: 2, bottom: 2, left: 2 },
+      grid: fondo ? { top: 6, right: 0, bottom: 0, left: 0 } : { top: 4, right: 2, bottom: 2, left: 2 },
       xAxis: {
         type: 'category' as const,
         show: true,
@@ -111,16 +151,38 @@ export class KpiComponent {
         axisTick: { show: false },
         data: valores.map((_, i) => i),
       },
-      yAxis: { type: 'value' as const, show: false, min: Math.min(...valores), max: Math.max(...valores, 1) },
+      yAxis: fondo
+        ? {
+            type: 'value' as const,
+            show: false,
+            min: Math.min(0, ...valores),
+            max: Math.max(...valores, 0) * 1.15 || 1,
+          }
+        : { type: 'value' as const, show: false, min: Math.min(...valores), max: Math.max(...valores, 1) },
       tooltip: { show: false },
       series: [
         {
           type: 'line' as const,
           data: valores,
-          smooth: 0.3,
+          smooth: fondo ? 0.45 : 0.3,
           showSymbol: false,
-          lineStyle: { width: 1.8, color },
-          areaStyle: { color: `color-mix(in srgb, ${color} 16%, transparent)` },
+          lineStyle: {
+            width: fondo ? 1.5 : 1.8,
+            color: fondo ? `color-mix(in srgb, ${color} 55%, transparent)` : color,
+          },
+          areaStyle: {
+            color: {
+              type: 'linear' as const,
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: `color-mix(in srgb, ${color} ${fondo ? 22 : 16}%, transparent)` },
+                { offset: 1, color: `color-mix(in srgb, ${color} 2%, transparent)` },
+              ],
+            },
+          },
           silent: true,
         },
       ],

@@ -131,8 +131,10 @@ export class ChartComponent implements OnDestroy {
         // del observador de aqui abajo y el de cada refresco de opcion- vuelve a leer el
         // ancho/alto reales del contenedor.
         this.grafica = echarts.init(lienzo, undefined, { renderer: 'canvas', width: 'auto', height: 'auto' });
-        this.grafica.on('click', (evento: { name?: string }) => {
-          if (evento.name) this.pick.emit(evento.name);
+        this.grafica.on('click', (evento: { name?: string; data?: unknown }) => {
+          const id = (evento.data as { id?: string } | undefined)?.id;
+          const elegido = id ?? evento.name;
+          if (elegido) this.pick.emit(elegido);
         });
         // `ResizeObserver` falta en jsdom y en webviews viejas; sin el la grafica no vuelve
         // a medir el contenedor tras el montaje inicial.

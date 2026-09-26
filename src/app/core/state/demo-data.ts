@@ -1,4 +1,5 @@
 import { P } from '../session/permissions';
+import { sumBy } from '../utils/money';
 /** All amounts are signed COP values. Fixtures never touch a remote service. */
 export interface Movement {
   id: string;
@@ -40,7 +41,12 @@ export interface Movement {
 export interface Account {
   id: string;
   name: string;
-  type: 'savings' | 'credit' | 'cash';
+  /**
+   * Los cinco tipos del contrato (`AccountKindDto`) más la tarjeta. Antes solo había
+   * `savings | credit | cash` y una cuenta corriente, una billetera o una «otra» llegaba
+   * aquí convertida en ahorro.
+   */
+  type: 'savings' | 'checking' | 'cash' | 'wallet' | 'other' | 'credit';
   currency: string;
   openingBalance: number;
   limit?: number;
@@ -169,6 +175,11 @@ export const demoUsers = [
       P.movimientos.prestamos.crear,
       P.movimientos.creditos.crear,
       P.movimientos.pagos.crear,
+      P.movimientos.transferencias.deshabilitar,
+      P.movimientos.prestamos.deshabilitar,
+      P.movimientos.creditos.deshabilitar,
+      P.movimientos.avances.deshabilitar,
+      P.movimientos.pagos.deshabilitar,
       P.cuentas.ver,
       P.cuentas.crear,
       P.cuentas.ahorro.crear,
@@ -287,10 +298,9 @@ export const demoUsers = [
 export function accountBalance(account: Account, movements: Movement[]): number {
   return (
     account.openingBalance +
-    movements.reduce(
-      (total, movement) =>
-        total + (movement.accountId === account.id && movement.status === 'confirmed' ? movement.amount : 0),
-      0,
+    sumBy(
+      movements.filter((movement) => movement.accountId === account.id && movement.status === 'confirmed'),
+      (movement) => movement.amount,
     )
   );
 }

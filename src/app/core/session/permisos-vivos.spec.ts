@@ -13,17 +13,10 @@ import { P } from './permissions';
  */
 const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'sesion.ver': 'La sesión misma. No hay control que ocultar.',
-  'sesion.monedas.listar': 'Catálogo de monedas: alimenta selectores, no se decide aquí.',
   'organizacion.auditoria.listar': 'La auditoría por organización no tiene pantalla propia.',
   'organizacion.banderas.listar':
     'Los valores efectivos se cargan para toda sesión; este permiso solo conserva compatibilidad del contrato.',
   'organizacion.banderas.editar': 'Igual que la anterior.',
-  'personas.compras.listar': 'El endpoint existe y ninguna vista lo consume.',
-  'personas.liquidaciones.listar': 'El endpoint existe y ninguna vista lo consume.',
-  'cuentas.categorias.editar': 'No hay interfaz de edición de categoría.',
-  'cuentas.tarjetas.editar': 'No hay interfaz de edición de tarjeta.',
-  'personas.editar': 'No hay interfaz de edición de persona.',
-  'patrimonio.inversiones.editar': 'No hay interfaz de valoración.',
   'dashboard.widget.editar': 'Concesión paraguas: la pantalla mira las cuatro acciones concretas.',
   'movimientos.detalle.ver': 'El inspector usa la fila ya cargada, no pide el detalle.',
   'cuentas.extracto.ver': 'El extracto se estima con lo que ya hay en pantalla.',
@@ -62,8 +55,8 @@ describe('cada permiso sirve para algo', () => {
     .join('\n');
   const comprobados = new Set(comprobables.match(/P\.[A-Za-zÁÉÍÓÚáéíóúñÑ]+(?:\.[A-Za-z]+)*/g) ?? []);
 
-  it('el catálogo del cliente tiene los 107 códigos', () => {
-    expect(declarados).toHaveLength(107);
+  it('el catálogo del cliente tiene los 113 códigos', () => {
+    expect(declarados).toHaveLength(113);
   });
 
   it('ninguno se puede marcar sin que nada lo mire', () => {

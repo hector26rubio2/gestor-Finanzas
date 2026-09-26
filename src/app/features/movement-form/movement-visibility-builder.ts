@@ -37,7 +37,11 @@ export class MovementVisibilityBuilder {
     private readonly kind: string,
     private readonly account: Account | undefined,
     private readonly isEditing: boolean,
+    private readonly operationType: string = 'normal',
   ) {}
+  private get isPlainExpense(): boolean {
+    return this.kind === 'expense' && this.operationType === 'normal';
+  }
 
   private get isCreditAccount(): boolean {
     return this.account?.type === 'credit';
@@ -61,7 +65,7 @@ export class MovementVisibilityBuilder {
   }
 
   withRecurrence(): this {
-    this.result = { ...this.result, showRecurrence: this.kind === 'expense' };
+    this.result = { ...this.result, showRecurrence: this.isPlainExpense };
     return this;
   }
 
@@ -71,7 +75,7 @@ export class MovementVisibilityBuilder {
    * 5 de 12, eso solo tiene sentido al revisar una compra que ya existe.
    */
   withInstallments(): this {
-    const showInstallments = this.kind === 'expense' && this.isCreditAccount;
+    const showInstallments = this.isPlainExpense && this.isCreditAccount;
     this.result = {
       ...this.result,
       showInstallments,

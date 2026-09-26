@@ -13,19 +13,46 @@ import {
   withCols,
   withHeight,
 } from './dashboard-layout';
+import { Dimension, KpiFormula } from '../dashboard.model';
+import { KpiRanges, esRangoValido } from '../kpis/kpi-ranges';
 
 export interface FlowResize {
   readonly cols?: number;
   readonly height?: number;
 }
 
+export interface KpiFilter {
+  readonly dimension: Dimension;
+  readonly value: string;
+}
+
+export interface KpiDefinition {
+  readonly id: string;
+  readonly label: string;
+  readonly formula: KpiFormula;
+  readonly filter?: KpiFilter;
+}
+
 interface StoredLayout {
   readonly version: 2;
   readonly widgets: readonly FlowItem[];
   readonly kpis: readonly FlowItem[];
+  readonly definitions?: readonly KpiDefinition[];
+  readonly ranges?: Readonly<Record<string, KpiRanges | null>>;
 }
 
 const EMPTY: StoredLayout = { version: 2, widgets: [], kpis: [] };
+
+function isDefinition(value: unknown): value is KpiDefinition {
+  const item = value as KpiDefinition;
+  return !!item && typeof item.id === 'string' && typeof item.label === 'string' && typeof item.formula === 'string';
+}
+
+function rangosValidos(value: unknown): boolean {
+  if (value === undefined) return true;
+  if (!value || typeof value !== 'object') return false;
+  return Object.values(value).every((rango) => rango === null || esRangoValido(rango));
+}
 
 function isFlowItem(value: unknown): value is FlowItem {
   const item = value as FlowItem;
@@ -44,6 +71,8 @@ function parse(raw: string | null | undefined): StoredLayout | null {
   try {
     const parsed = JSON.parse(raw) as StoredLayout;
     if (parsed.version !== 2 || !parsed.widgets?.every(isFlowItem) || !parsed.kpis?.every(isFlowItem)) return null;
+    if (parsed.definitions !== undefined && !parsed.definitions.every(isDefinition)) return null;
+    if (!rangosValidos(parsed.ranges)) return null;
     return parsed;
   } catch {
     return null;
@@ -82,7 +111,15 @@ export class DashboardLayoutService {
 
   readonly widgetFlow = computed(() => reconcileFlow(this.stored().widgets, this.widgetDefaults()));
   readonly kpiFlow = computed(() => reconcileFlow(this.stored().kpis, this.kpiDefaults()));
-  readonly customized = computed(() => this.stored().widgets.length > 0 || this.stored().kpis.length > 0);
+  readonly customized = computed(
+    () =>
+      this.stored().widgets.length > 0 ||
+      this.stored().kpis.length > 0 ||
+      this.stored().definitions !== undefined ||
+      Object.keys(this.stored().ranges ?? {}).length > 0,
+  );
+  readonly definitions = computed(() => this.stored().definitions ?? null);
+  readonly ranges = computed(() => this.stored().ranges ?? {});
 
   constructor() {
     effect(() => {
@@ -144,14 +181,25 @@ export class DashboardLayoutService {
     this.scheduleSave(EMPTY);
   }
 
+  saveDefinitions(definitions: readonly KpiDefinition[]): void {
+    this.commit({ ...this.stored(), definitions });
+  }
+
+  saveRanges(id: string, rangos: KpiRanges | null | undefined): void {
+    const resto: Record<string, KpiRanges | null> = { ...(this.stored().ranges ?? {}) };
+    if (rangos === undefined) delete resto[id];
+    else resto[id] = rangos;
+    this.commit({ ...this.stored(), ranges: resto });
+  }
+
   private commitWidgets(widgets: readonly FlowItem[]): void {
     if (widgets === this.widgetFlow()) return;
-    this.commit({ version: 2, widgets, kpis: this.kpiFlow() });
+    this.commit({ ...this.stored(), version: 2, widgets, kpis: this.kpiFlow() });
   }
 
   private commitKpis(kpis: readonly FlowItem[]): void {
     if (kpis === this.kpiFlow()) return;
-    this.commit({ version: 2, widgets: this.widgetFlow(), kpis });
+    this.commit({ ...this.stored(), version: 2, widgets: this.widgetFlow(), kpis });
   }
 
   private commit(next: StoredLayout): void {

@@ -37,6 +37,21 @@ export class CardsApi {
     return this.transport.request<ApiCard>({ method: 'POST', path: API_ROUTES.cards, body: request });
   }
 
+  updateCard(
+    id: string,
+    request: {
+      name: string;
+      creditLimit: ApiMoney;
+      cycle: { statementDay: number; paymentDueDay: number };
+      terms: unknown;
+      issuer: string | null;
+      lastFour: string | null;
+      isActive: boolean;
+    },
+  ) {
+    return this.transport.request<ApiCard>({ method: 'PUT', path: API_ROUTES.card(id), body: request });
+  }
+
   cardStatus(id: string, asOf?: string) {
     return this.transport.request<unknown>({ method: 'GET', path: API_ROUTES.cardStatus(id), params: { asOf } });
   }

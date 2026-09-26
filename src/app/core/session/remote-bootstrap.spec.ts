@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiRequestError, FinanceApiClient } from '../api/api-client';
+import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '../utils/money';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
@@ -451,5 +452,111 @@ describe('RemoteBootstrap', () => {
     expect(window.location.search).not.toContain('authError');
     expect(window.location.search).toContain('foo=bar');
     window.history.pushState(null, '', '/');
+  });
+
+  it('un 401 durante el refresco cierra la sesión en lugar de ignorarse', async () => {
+    // El sondeo cada 60 s, el foco de la ventana y el canal en vivo llaman a
+    // cargarSesion(). Si el 401 cayera en el catch que descarta los errores
+    // transitorios, el estado seguiría en «ready» y `user()` seguiría poblado: el
+    // guard dejaría pasar y la pantalla presentaría datos de hace una hora como
+    // vigentes, mientras toda escritura posterior fallaba sin volver al login.
+    let caducada = false;
+    const api = {
+      ...apiCon(() => session),
+      session: vi.fn(() =>
+        caducada ? throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' })) : of(session),
+      ),
+    };
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+    await bootstrap.initialize();
+    expect(store.remoteState()).toBe('ready');
+    expect(store.user()).not.toBeNull();
+
+    caducada = true;
+    await bootstrap.pollSession();
+
+    expect(store.remoteState()).toBe('anonymous');
+    expect(store.user()).toBeNull();
+  });
+
+  it('un error transitorio durante el refresco no cierra la sesión', async () => {
+    // El resto de errores siguen siendo transitorios: un 500 puntual o una caída
+    // de red no deben expulsar a nadie, el próximo ciclo reintenta.
+    let caida = false;
+    const api = {
+      ...apiCon(() => session),
+      session: vi.fn(() => (caida ? throwError(() => new Error('red caída')) : of(session))),
+    };
+    const bootstrap = montar(api);
+    const store = TestBed.inject(AppStore);
+    await bootstrap.initialize();
+
+    caida = true;
+    await bootstrap.pollSession();
+
+    expect(store.remoteState()).toBe('ready');
+    expect(store.user()).not.toBeNull();
+  });
+
+  describe('moneda base y catálogo de monedas', () => {
+    // Ambas son estado del módulo, compartido por todo el proceso de pruebas: sin
+    // devolverlas, una prueba en USD dejaría el resto del archivo formateando en USD.
+    afterEach(() => {
+      baseCurrency.set(BASE_CURRENCY);
+      currencyCatalog.set(LOCAL_CURRENCIES);
+    });
+
+    it('toma la moneda base de la sesión en vez de dejar la de compilación', async () => {
+      const sesionEnUsd = { ...session, organization: { ...session.organization, baseCurrency: 'USD' } };
+
+      await montar(apiCon(() => sesionEnUsd)).initialize();
+
+      expect(TestBed.inject(AppStore).baseCurrency()).toBe('USD');
+    });
+
+    it('ignora una moneda base que no sea un código de tres letras', async () => {
+      const sesionRara = { ...session, organization: { ...session.organization, baseCurrency: 'US' } };
+
+      await montar(apiCon(() => sesionRara)).initialize();
+
+      expect(TestBed.inject(AppStore).baseCurrency()).toBe(BASE_CURRENCY);
+    });
+
+    it('pide el catálogo de monedas solo cuando su permiso está concedido', async () => {
+      const conMonedas = { ...session, permissions: [...session.permissions, P.sesion.monedas.listar] };
+      const currencies = vi.fn(() => of([{ code: 'USD', minorUnits: 2, isBase: false }]));
+      const api = apiCon(() => conMonedas, { currencies });
+
+      await montar(api).initialize();
+
+      expect(currencies).toHaveBeenCalledOnce();
+      expect(
+        TestBed.inject(AppStore)
+          .currencyCatalog()
+          .map((moneda) => moneda.code),
+      ).toContain('USD');
+    });
+
+    it('sin el permiso el catálogo no se pide', async () => {
+      const currencies = vi.fn(() => of([]));
+      const api = apiCon(() => session, { currencies });
+
+      await montar(api).initialize();
+
+      expect(currencies).not.toHaveBeenCalled();
+    });
+
+    it('un catálogo que no llega no impide que la sesión arranque', async () => {
+      const conMonedas = { ...session, permissions: [...session.permissions, P.sesion.monedas.listar] };
+      const currencies = vi.fn(() => throwError(() => new Error('sin red')));
+      const api = apiCon(() => conMonedas, { currencies });
+
+      await montar(api).initialize();
+
+      // Con degradación la sesión sigue lista y siguen mandando las monedas locales.
+      expect(TestBed.inject(AppStore).remoteState()).toBe('ready');
+      expect(currencyCatalog()).toEqual(LOCAL_CURRENCIES);
+    });
   });
 });

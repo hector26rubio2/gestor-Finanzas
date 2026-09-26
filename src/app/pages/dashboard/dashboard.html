@@ -50,6 +50,8 @@
     [periodLabel]="periodLabel()"
     [movementsCount]="movements().length"
     (clear)="reset()"
+    [selectionLabel]="seleccionEtiqueta()"
+    (clearSelection)="seleccion.set(null)"
     (scaleChange)="scale.set($event)"
     (shiftPeriod)="shiftPeriod($event)"
     (togglePeriodPicker)="periodPickerOpen.update((v) => !v)"
@@ -72,9 +74,10 @@
     (move)="layout.moveKpi($event.id, $event.direction)"
     (drop)="layout.dropKpi($event.from, $event.to)"
     [canRemove]="customizing() && caps.allows(P.dashboard.widget.deshabilitar)"
-    [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear) && availableKpiFormulaOptions().length > 0"
+    [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear)"
     (removeKpi)="removeKpi($event)"
     (openCreator)="openKpiCreator()"
+    (rangesChange)="layout.saveRanges($event.id, $event.ranges)"
   />
   }
   <section
@@ -144,6 +147,7 @@
         } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
         <fin-chart
           [option]="flujoOption()"
+          (pick)="alPulsarDimension('date', $event)"
           height="fill"
           [ariaLabel]="
               i18n.t('dashboard.widget.flow.ariaLabel', {
@@ -158,21 +162,22 @@
         } } @case ('categories') {
         <fin-category-list
           [items]="categoryDistribution()"
-          [selected]="localCategory()"
+          [selected]="globalCategory()"
           [emptyText]="i18n.t('dashboard.widget.categories.empty')"
           [ariaLabel]="i18n.t('dashboard.category.list.ariaLabel')"
-          (pick)="localCategory.set($event)"
+          (pick)="alternarCategoria($event)"
         />
         } @case ('accounts') {
         <fin-account-list
           [items]="accountDistribution()"
           [selected]="accountId()"
           [emptyText]="i18n.t('dashboard.widget.accounts.empty')"
-          (pick)="accountId.set($event)"
+          (pick)="alternarCuenta($event)"
         />
         } @case ('trend') { @if (timeline().length) {
         <fin-chart
           [option]="tendenciaOption()"
+          (pick)="alPulsarDimension('date', $event)"
           height="fill"
           [ariaLabel]="
               i18n.t('dashboard.widget.trend.ariaLabel', { total: store.money(expense()) })
@@ -183,6 +188,7 @@
         } } @case ('scatter') { @if (movements().length) {
         <fin-chart
           [option]="dispersionOption()"
+          (pick)="alPulsarMovimiento($event)"
           height="fill"
           [ariaLabel]="i18n.t('dashboard.widget.scatter.ariaLabel')"
         />
@@ -192,7 +198,7 @@
         <fin-chart
           [option]="anilloOption()"
           height="fill"
-          (pick)="localCategory.set($event)"
+          (pick)="alternarCategoria($event)"
           [ariaLabel]="i18n.t('dashboard.widget.donut.ariaLabel', { total: store.money(expense()) })"
         />
         } @else {
@@ -200,6 +206,7 @@
         } } @case ('stacked') { @if (timeline().length) {
         <fin-chart
           [option]="apiladoOption()"
+          (pick)="alPulsarDimension('date', $event)"
           height="fill"
           [ariaLabel]="i18n.t('dashboard.widget.stacked.ariaLabel')"
         />
@@ -230,6 +237,7 @@
         } } @case ('histogram') { @if (movements().length) {
         <fin-chart
           [option]="histogramaOption()"
+          (pick)="alPulsarHistograma($event)"
           height="fill"
           [ariaLabel]="i18n.t('dashboard.widget.histogram.ariaLabel')"
         />
@@ -311,7 +319,12 @@
         <fin-status-bars [rows]="statusBarsRows(widget)" [emptyText]="i18n.t('dashboard.widget.empty.generic')" />
         } @default { @if (movements().length) {
         <div class="flex min-h-0 flex-1 flex-col justify-center">
-          <fin-chart [option]="widgetOption(widget)" height="fill" [ariaLabel]="widget.title" />
+          <fin-chart
+            [option]="widgetOption(widget)"
+            height="fill"
+            [ariaLabel]="widget.title"
+            (pick)="alPulsarPunto(widget, $event)"
+          />
         </div>
         } @else {
         <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
@@ -441,11 +454,30 @@
       <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
         <input hlmInput name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
       </fin-field>
+      <fin-field [label]="i18n.t('dashboard.kpiForm.filter.dimension')">
+        <fin-select
+          name="kpiFilterDimension"
+          [ngModel]="newKpiDimension()"
+          (ngModelChange)="newKpiDimension.set($event); newKpiFilterValue = ''"
+          [options]="filterDimensionOptions()"
+          [ariaLabel]="i18n.t('dashboard.kpiForm.filter.dimension')"
+        />
+      </fin-field>
+      @if (newKpiDimension() !== 'none') {
+      <fin-field [label]="i18n.t('dashboard.kpiForm.filter.value')">
+        <fin-select
+          name="kpiFilterValue"
+          [(ngModel)]="newKpiFilterValue"
+          [options]="filterValueOptions()"
+          [ariaLabel]="i18n.t('dashboard.kpiForm.filter.value')"
+        />
+      </fin-field>
+      }
       <fin-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
         <fin-select
           name="kpiMeasure"
           [(ngModel)]="newKpiFormula"
-          [options]="availableKpiFormulaOptions()"
+          [options]="creatorFormulaOptions()"
           [ariaLabel]="i18n.t('dashboard.kpiForm.measure.ariaLabel')"
         />
       </fin-field>

@@ -9,11 +9,60 @@
  * redondeada a la precisión de la moneda.
  */
 
-/** Moneda base del espacio de trabajo. El backend publica COP con cero decimales. */
+import { signal } from '@angular/core';
+
+/** Moneda base del espacio de trabajo mientras no hay sesión. El backend publica COP con cero decimales. */
 export const BASE_CURRENCY = 'COP';
+
+/**
+ * Moneda base vigente, la que el backend usa para calcular los importes de la organización.
+ *
+ * Arranca en el valor de compilación y la escribe la sesión con
+ * `session.organization.baseCurrency` (ver `remote-bootstrap.aplicarSesion`). Es la única
+ * fuente: `money()`, `sumBy()` y `decimalsFor()` leen de aquí, así que cambiar de
+ * organización no deja etiquetas ni sumas viejas a mitad de pantalla.
+ */
+export const baseCurrency = signal(BASE_CURRENCY);
+
+/** Una moneda del catálogo: código ISO 4217 y decimales que publica el servidor. */
+export interface CurrencyOption {
+  readonly code: string;
+  readonly minorUnits: number;
+}
+
+/**
+ * Catálogo de referencia, igual al que devuelve `GET /api/v1/currencies`. Existe para que
+ * el modo demo y la pantalla de organización tengan monedas que ofrecer antes de que
+ * nadie haya entrado en la API.
+ */
+export const LOCAL_CURRENCIES: readonly CurrencyOption[] = [
+  { code: 'COP', minorUnits: 0 },
+  { code: 'USD', minorUnits: 2 },
+  { code: 'EUR', minorUnits: 2 },
+];
 
 /** Espejo de `GET /api/v1/currencies`. COP usa 0 decimales por uso cotidiano, no los 2 de ISO 4217. */
 const DECIMALS_BY_CURRENCY: Readonly<Record<string, number>> = { COP: 0, USD: 2, EUR: 2 };
+
+/** Catálogo vigente. Lo sustituye el servidor al arrancar la sesión. */
+export const currencyCatalog = signal<readonly CurrencyOption[]>(LOCAL_CURRENCIES);
+
+/**
+ * Publica el catálogo que trae el servidor.
+ *
+ * Un catálogo vacío o mal formado no borra lo que ya se sabía: sin monedas conocidas
+ * habría que adivinar los decimales de COP y las sumas volverían a redondear centavos
+ * en silencio. Prefiero conservar el anterior antes que quedar sin ninguno.
+ */
+export function setCurrencyCatalog(currencies: readonly CurrencyOption[]): void {
+  const validas = currencies
+    .map((currency) => ({ code: currency.code.trim().toUpperCase(), minorUnits: currency.minorUnits }))
+    .filter(
+      (currency) => currency.code.length === 3 && Number.isInteger(currency.minorUnits) && currency.minorUnits >= 0,
+    );
+  if (validas.length === 0) return;
+  currencyCatalog.set(validas);
+}
 
 const DECIMAL_PATTERN = /^[+-]?\d+(?:\.\d+)?$/;
 
@@ -23,15 +72,23 @@ export interface MoneyLike {
 }
 
 export function decimalsFor(currency: string | null | undefined): number {
-  if (!currency) return DECIMALS_BY_CURRENCY[BASE_CURRENCY];
-  return DECIMALS_BY_CURRENCY[currency.trim().toUpperCase()] ?? 2;
+  // Sin moneda explícita se usa la base del espacio de trabajo: es la moneda en la que
+  // viven los importes que no traen la suya propia.
+  const codigo = (currency ?? '').trim().toUpperCase() || baseCurrency().trim().toUpperCase();
+  const publicada = currencyCatalog().find((option) => option.code === codigo);
+  if (publicada) return publicada.minorUnits;
+  if (DECIMALS_BY_CURRENCY[codigo] !== undefined) return DECIMALS_BY_CURRENCY[codigo];
+  // ISO 4217: la norma deja dos decimales a casi todo el mundo —JPY, KRW y CLP son la
+  // excepción—, así que sin dato del servidor se pinta con dos y no se inventa cero. El
+  // catálogo público es quien corrige la excepción en cuanto llega.
+  return 2;
 }
 
 /**
  * Convierte una cadena decimal invariante en unidades menores enteras.
  * Redondea media unidad hacia arriba en valor absoluto, como el backend.
  */
-export function toMinor(amount: string | null | undefined, currency: string = BASE_CURRENCY): number {
+export function toMinor(amount: string | null | undefined, currency: string = baseCurrency()): number {
   if (amount === null || amount === undefined) return 0;
   const text = amount.trim();
   if (text.length === 0) return 0;
@@ -52,13 +109,13 @@ export function toMinor(amount: string | null | undefined, currency: string = BA
 }
 
 /** Devuelve unidades mayores desde unidades menores. Es la única división del módulo. */
-export function fromMinor(minor: number, currency: string = BASE_CURRENCY): number {
+export function fromMinor(minor: number, currency: string = baseCurrency()): number {
   const decimals = decimalsFor(currency);
   return decimals === 0 ? minor : minor / 10 ** decimals;
 }
 
 /** Lleva unidades mayores a menores sin arrastrar el error del literal flotante. */
-export function minorOf(value: number, currency: string = BASE_CURRENCY): number {
+export function minorOf(value: number, currency: string = baseCurrency()): number {
   if (!Number.isFinite(value)) return 0;
   return Math.round(value * 10 ** decimalsFor(currency));
 }
@@ -67,7 +124,7 @@ export function minorOf(value: number, currency: string = BASE_CURRENCY): number
  * Parseo del contrato a unidades mayores, ya redondeado a la precisión de la
  * moneda. Es el único punto por el que un importe de la API entra a la vista.
  */
-export function parseAmount(amount: string | null | undefined, currency: string = BASE_CURRENCY): number {
+export function parseAmount(amount: string | null | undefined, currency: string = baseCurrency()): number {
   return fromMinor(toMinor(amount, currency), currency);
 }
 
@@ -88,14 +145,14 @@ export function parseRate(rate: string | null | undefined): number {
 }
 
 /** Suma exacta: acumula en unidades menores y divide una sola vez. */
-export function sumAmounts(values: Iterable<number>, currency: string = BASE_CURRENCY): number {
+export function sumAmounts(values: Iterable<number>, currency: string = baseCurrency()): number {
   let total = 0;
   for (const value of values) total += minorOf(value, currency);
   return fromMinor(total, currency);
 }
 
 /** Suma exacta sobre una colección, con selector. Reemplaza a `reduce` sobre importes. */
-export function sumBy<T>(items: Iterable<T>, selector: (item: T) => number, currency: string = BASE_CURRENCY): number {
+export function sumBy<T>(items: Iterable<T>, selector: (item: T) => number, currency: string = baseCurrency()): number {
   let total = 0;
   for (const item of items) total += minorOf(selector(item), currency);
   return fromMinor(total, currency);

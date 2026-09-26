@@ -549,6 +549,17 @@ export class AdminStore {
     }
   }
 
+  async guardarDescripcionDePermiso(code: string, descripcion: string): Promise<void> {
+    try {
+      await firstValueFrom(this.api.setPermissionDescription(code, descripcion.trim() || null));
+      this.permissionCatalog.set(await firstValueFrom(this.api.superAdminPermissions()));
+      this.app.toast.set(this.i18n.t('admin.permissions.catalog.saved'));
+    } catch (error) {
+      this.app.toast.set(error instanceof Error ? error.message : this.i18n.t('admin.permissions.catalog.failed'));
+      throw error;
+    }
+  }
+
   async eliminarOrganizacion(organization: ApiAdminOrganization): Promise<void> {
     try {
       await firstValueFrom(this.api.deleteAdminOrganization(organization.id));

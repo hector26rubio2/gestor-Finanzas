@@ -1,9 +1,14 @@
 name: CI
 
 # El flujo de despliegue solo compilaba: un fallo de lint, de formato o una
-# prueba rota llegaba a Pages sin que nadie lo viera.
+# prueba rota llegaba a Pages sin que nadie lo viera. Y un push a una rama que
+# no abre PR no se verificaba en absoluto: ahora cualquier rama se comprueba
+# al subir (main queda fuera porque deploy.yml ya ejecuta estas mismas puertas).
 on:
   pull_request:
+  push:
+    branches-ignore:
+      - main
   workflow_dispatch:
 
 concurrency:

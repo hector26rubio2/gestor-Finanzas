@@ -1,0 +1,239 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Entrar con Google y levantar la sesión",
+    "output": "entrar-con-google.html",
+    "viewBox": [
+      1080,
+      600
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "identidad",
+        "label": "Identidad",
+        "focus": [
+          "persona",
+          "cliente",
+          "host",
+          "google"
+        ],
+        "note": "El cliente nunca habla con Google: manda a la persona al Host. Si el servidor habilita contraseña, el mismo Host valida usuario y clave."
+      },
+      {
+        "id": "arranque",
+        "label": "Arranque de datos",
+        "focus": [
+          "cliente",
+          "host",
+          "postgres"
+        ],
+        "note": "Con la cookie puesta, el cliente pide la sesión y solo los catálogos que sus permisos autorizan."
+      }
+    ],
+    "animation": "trace"
+  },
+  "participants": [
+    {
+      "id": "persona",
+      "type": "external",
+      "label": "Persona",
+      "sublabel": "navegador"
+    },
+    {
+      "id": "cliente",
+      "type": "frontend",
+      "label": "Cliente",
+      "sublabel": "Angular 22",
+      "brand": "angular"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Host",
+      "sublabel": "APIs mínimas"
+    },
+    {
+      "id": "google",
+      "type": "security",
+      "label": "Google",
+      "sublabel": "OpenID Connect"
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "datos del espacio",
+      "brand": "postgresql"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 335,
+      "label": "Identidad"
+    },
+    {
+      "from": 345,
+      "to": 455,
+      "label": "Sesión y permisos"
+    },
+    {
+      "from": 465,
+      "to": 515,
+      "label": "Primera pantalla"
+    }
+  ],
+  "messages": [
+    {
+      "id": "abrir",
+      "from": "persona",
+      "to": "cliente",
+      "y": 170,
+      "label": "abre la aplicación",
+      "variant": "default"
+    },
+    {
+      "id": "pedir-sesion",
+      "from": "cliente",
+      "to": "host",
+      "y": 200,
+      "label": "GET /api/v1/session",
+      "variant": "emphasis"
+    },
+    {
+      "id": "sin-sesion",
+      "from": "host",
+      "to": "cliente",
+      "y": 230,
+      "label": "401 sin sesión",
+      "variant": "return"
+    },
+    {
+      "id": "ir-a-google",
+      "from": "cliente",
+      "to": "host",
+      "y": 260,
+      "label": "GET /auth/google/login",
+      "variant": "default"
+    },
+    {
+      "id": "oidc",
+      "from": "host",
+      "to": "google",
+      "y": 290,
+      "label": "OpenID Connect con PKCE",
+      "variant": "security"
+    },
+    {
+      "id": "codigo",
+      "from": "google",
+      "to": "host",
+      "y": 320,
+      "label": "devuelve el código",
+      "variant": "return"
+    },
+    {
+      "id": "cookie",
+      "from": "host",
+      "to": "cliente",
+      "y": 350,
+      "label": "cookie __Host y token CSRF",
+      "variant": "security"
+    },
+    {
+      "id": "sesion-ok",
+      "from": "cliente",
+      "to": "host",
+      "y": 380,
+      "label": "GET /api/v1/session",
+      "variant": "emphasis"
+    },
+    {
+      "id": "permisos",
+      "from": "host",
+      "to": "postgres",
+      "y": 410,
+      "label": "roles y permisos del miembro",
+      "variant": "default"
+    },
+    {
+      "id": "sesion-json",
+      "from": "host",
+      "to": "cliente",
+      "y": 440,
+      "label": "sesión con sus permisos",
+      "variant": "return"
+    },
+    {
+      "id": "catalogos",
+      "from": "cliente",
+      "to": "host",
+      "y": 470,
+      "label": "catálogos que el permiso autoriza",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pintar",
+      "from": "cliente",
+      "to": "persona",
+      "y": 500,
+      "label": "primera pantalla permitida",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "cliente",
+      "from": 195,
+      "to": 515,
+      "type": "frontend"
+    },
+    {
+      "participant": "host",
+      "from": 197,
+      "to": 475,
+      "type": "backend"
+    },
+    {
+      "participant": "google",
+      "from": 285,
+      "to": 335,
+      "type": "security"
+    },
+    {
+      "participant": "postgres",
+      "from": 405,
+      "to": 425,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Identidad",
+      "items": [
+        "El cliente nunca ve credenciales de Google",
+        "Con contraseña habilitada, el Host emite la misma cookie"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Permisos",
+      "items": [
+        "La sesión trae los permisos como códigos",
+        "Solo se piden los catálogos autorizados"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Después",
+      "items": [
+        "Si cambian los roles, el canal obliga a releer",
+        "Sin secciones, una pantalla lo explica"
+      ]
+    }
+  ]
+}

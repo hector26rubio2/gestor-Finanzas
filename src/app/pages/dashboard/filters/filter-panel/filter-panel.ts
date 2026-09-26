@@ -1,41 +1,40 @@
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { IconComponent } from '../../../../ui/icon/icon';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../../../core/i18n';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
-import { BrnCollapsible, BrnCollapsibleContent, BrnCollapsibleTrigger } from '@spartan-ng/brain/collapsible';
 
 export type Scale = 'day' | 'week' | 'month' | 'year';
 
-/**
- * Panel de filtros del dashboard: escala de periodo, navegador de periodo con su
- * menu de año/mes/semana/dia, y los tres selects de cuenta/tipo/categoria. Antes
- * vivia entero en dashboard.html; quien filtra que decide el padre, esto solo
- * dibuja el estado que ya se le paso.
- */
-function pantallaEstrecha(): boolean {
-  return typeof window !== 'undefined' && typeof window.matchMedia === 'function'
-    ? window.matchMedia('(max-width: 780px)').matches
-    : false;
+type FiltroClave = 'account' | 'accountType' | 'category';
+
+interface FiltroDelPanel {
+  key: FiltroClave;
+  label: string;
+  ariaLabel: string;
+  value: string;
+  selected: string;
+  options: readonly UiOption[];
 }
+
+const ANIOS_ATRAS = 15;
 
 @Component({
   selector: 'fin-filter-panel',
   imports: [
     HlmButton,
+    HlmDropdownMenuImports,
     HlmInput,
     HlmPopoverImports,
     HlmToggleGroupImports,
     FormsModule,
     IconComponent,
     UiSelectComponent,
-    BrnCollapsible,
-    BrnCollapsibleContent,
-    BrnCollapsibleTrigger,
   ],
   templateUrl: './filter-panel.html',
   host: { style: 'display: contents' },
@@ -61,9 +60,36 @@ export class FilterPanelComponent {
   readonly categorySelectOptions = input<readonly UiOption[]>([]);
   readonly periodLabel = input('');
   readonly movementsCount = input(0);
-  readonly filtersExpanded = signal(!pantallaEstrecha());
+  readonly selectionLabel = input('');
 
   readonly i18n = inject(I18nService);
+
+  readonly yearOptions = computed<readonly UiOption[]>(() => {
+    const actual = new Date().getFullYear();
+    const elegido = Number(this.anchorYear()) || actual;
+    const desde = Math.min(elegido, actual - ANIOS_ATRAS);
+    const hasta = Math.max(elegido, actual + 1);
+    return Array.from({ length: hasta - desde + 1 }, (_, indice) => {
+      const anio = String(hasta - indice);
+      return { value: anio, label: anio };
+    });
+  });
+
+  readonly filtros = computed<readonly FiltroDelPanel[]>(() => {
+    const armar = (key: FiltroClave, clave: string, value: string, opciones: readonly UiOption[]): FiltroDelPanel => ({
+      key,
+      label: this.i18n.t(`dashboard.filters.${clave}.label`),
+      ariaLabel: this.i18n.t(`dashboard.filters.${clave}.ariaLabel`),
+      value,
+      selected: opciones.find((opcion) => opcion.value === value)?.label ?? value,
+      options: opciones.filter((opcion) => opcion.value !== 'all'),
+    });
+    return [
+      armar('account', 'account', this.accountId(), this.accountSelectOptions()),
+      armar('accountType', 'accountType', this.accountType(), this.accountTypeOptions()),
+      armar('category', 'category', this.globalCategory(), this.categorySelectOptions()),
+    ];
+  });
 
   onScale(value: unknown): void {
     if (typeof value === 'string' && value !== this.scale()) this.scaleChange.emit(value as Scale);
@@ -73,7 +99,14 @@ export class FilterPanelComponent {
     if ((state === 'open') !== this.periodPickerOpen()) this.togglePeriodPicker.emit();
   }
 
+  cambiar(clave: FiltroClave, valor: string): void {
+    if (clave === 'account') this.accountIdChange.emit(valor);
+    else if (clave === 'accountType') this.accountTypeChange.emit(valor);
+    else this.globalCategoryChange.emit(valor);
+  }
+
   @Output() readonly clear = new EventEmitter<void>();
+  @Output() readonly clearSelection = new EventEmitter<void>();
   @Output() readonly scaleChange = new EventEmitter<Scale>();
   @Output() readonly shiftPeriod = new EventEmitter<number>();
   @Output() readonly togglePeriodPicker = new EventEmitter<void>();

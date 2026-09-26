@@ -1,23 +1,65 @@
-import { Signal, computed, signal } from '@angular/core';
-import { accountBalance, Movement } from '../../core/state/demo-data';
+import { Signal, computed, inject, signal } from '@angular/core';
+import { Movement } from '../../core/state/demo-data';
+import { PuntoDeFlujo, variacion } from '../../shared/historia/historia';
 import { P } from '../../core/session/permissions';
+import { sumBy } from '../../core/utils/money';
 import { IconName } from '../../ui/icon/icon';
 import { UiOption } from '../../ui/select/select';
-import { KpiFormula } from './dashboard.model';
+import { Dimension, KpiFormula } from './dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
+import { DashboardLayoutService, KpiDefinition, KpiFilter } from './layout/dashboard-layout.service';
+import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from './kpis/kpi-ranges';
+import { CUSTOM_KPI_PREFIX } from './kpis/kpi-strip/kpi-strip';
 
-const VARIACION_MAXIMA_LEGIBLE = 999;
+export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [
+  'amount',
+  'income',
+  'expense',
+  'count',
+  'average',
+  'savingsRate',
+  'expenseShare',
+  'dailyExpense',
+  'dailyIncome',
+];
+
+export const DIMENSIONES_DE_FILTRO: readonly Dimension[] = [
+  'category',
+  'account',
+  'kind',
+  'person',
+  'recurring',
+  'installments',
+];
+
+const claveDeKpi = (formula: KpiFormula, filtro?: KpiFilter) =>
+  filtro ? `${formula}|${filtro.dimension}|${filtro.value}` : formula;
+
+const FORMULAS_DE_FOTO: readonly KpiFormula[] = [
+  'liquidityMonths',
+  'debtToIncome',
+  'daysToDeplete',
+  'avgPaymentDelay',
+  'creditUtilization',
+  'mostUsedCard',
+];
 
 export abstract class DashboardKpis extends DashboardVisuals {
   abstract readonly range: Signal<{ start: string; end: string }>;
+  abstract readonly historial: Signal<readonly PuntoDeFlujo[]>;
+  abstract readonly historiaEtiqueta: Signal<string>;
+  abstract readonly income: Signal<number>;
+  abstract readonly expense: Signal<number>;
+  protected readonly kpiLayout = inject(DashboardLayoutService);
+
+  rangosDe(id: string, formula: KpiFormula): KpiRanges | null {
+    const guardados = this.kpiLayout.ranges();
+    if (id in guardados) return guardados[id];
+    return RANGOS_POR_DEFECTO[formula] ?? null;
+  }
 
   variacion(serie: readonly number[]): number | null {
-    if (serie.length < 2) return null;
-    const ultimo = serie[serie.length - 1];
-    const anterior = serie[serie.length - 2];
-    if (!anterior) return null;
-    const cambio = ((ultimo - anterior) / Math.abs(anterior)) * 100;
-    return Math.abs(cambio) > VARIACION_MAXIMA_LEGIBLE ? null : cambio;
+    return variacion(serie);
   }
 
   /**
@@ -35,7 +77,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
    * criterio que la "GALERÍA" de widgets: que el usuario de prueba vea de entrada todo lo
    * que existe, sin tener que abrir "Crear indicador" catorce veces.
    */
-  readonly customKpis = signal<{ id: string; label: string; formula: KpiFormula }[]>([
+  private readonly kpisSembrados: readonly KpiDefinition[] = [
     { id: 'k-average', label: this.i18n.t('dashboard.measure.average'), formula: 'average' },
     { id: 'k-savingsRate', label: this.i18n.t('dashboard.kpiFormula.savingsRate'), formula: 'savingsRate' },
     { id: 'k-expenseShare', label: this.i18n.t('dashboard.kpiFormula.expenseShare'), formula: 'expenseShare' },
@@ -70,10 +112,48 @@ export abstract class DashboardKpis extends DashboardVisuals {
       formula: 'creditUtilization',
     },
     { id: 'k-mostUsedCard', label: this.i18n.t('dashboard.kpiFormula.mostUsedCard'), formula: 'mostUsedCard' },
-  ]);
+  ];
+  readonly customKpis = computed(() => this.kpiLayout.definitions() ?? this.kpisSembrados);
   readonly kpiCreatorOpen = signal(false);
   newKpiLabel = '';
   newKpiFormula: KpiFormula = 'income';
+  readonly newKpiDimension = signal<Dimension | 'none'>('none');
+  newKpiFilterValue = '';
+  readonly filterDimensionOptions = computed<readonly UiOption[]>(() => [
+    { value: 'none', label: this.i18n.t('dashboard.kpiForm.filter.none') },
+    ...DIMENSIONES_DE_FILTRO.map((dimension) => ({
+      value: dimension,
+      label: this.i18n.t(`dashboard.dimension.${dimension}`),
+    })),
+  ]);
+  readonly filterValueOptions = computed<readonly UiOption[]>(() => {
+    const dimension = this.newKpiDimension();
+    if (dimension === 'none') return [];
+    const valores = new Set(this.store.data().movements.map((m) => this.dimensionKey(m, dimension).label));
+    return [...valores].sort((a, b) => a.localeCompare(b)).map((valor) => ({ value: valor, label: valor }));
+  });
+  readonly usedKpiKeys = computed(
+    () =>
+      new Set(
+        this.customKpis()
+          .filter((kpi) => kpi.filter)
+          .map((kpi) => claveDeKpi(kpi.formula, kpi.filter)),
+      ),
+  );
+  readonly filterableFormulaOptions = computed<readonly UiOption[]>(() => {
+    const dimension = this.newKpiDimension();
+    const valor = this.newKpiFilterValue;
+    return this.kpiFormulaOptions().filter(
+      (opcion) =>
+        FORMULAS_FILTRABLES.includes(opcion.value as KpiFormula) &&
+        (dimension === 'none' ||
+          !valor ||
+          !this.usedKpiKeys().has(claveDeKpi(opcion.value as KpiFormula, { dimension, value: valor }))),
+    );
+  });
+  readonly creatorFormulaOptions = computed<readonly UiOption[]>(() =>
+    this.newKpiDimension() === 'none' ? this.availableKpiFormulaOptions() : this.filterableFormulaOptions(),
+  );
   readonly kpiFormulaOptions = computed<readonly UiOption[]>(() => [
     ...this.measureOptions(),
     { value: 'savingsRate', label: this.i18n.t('dashboard.kpiFormula.savingsRate') },
@@ -92,7 +172,11 @@ export abstract class DashboardKpis extends DashboardVisuals {
   ]);
   /** Lo que ya ocupa un cupo en la franja -fijo o creado a mano- para no ofrecerlo dos veces. */
   readonly usedKpiFormulas = computed<Set<KpiFormula>>(() => {
-    const usados = new Set<KpiFormula>(this.customKpis().map((k) => k.formula));
+    const usados = new Set<KpiFormula>(
+      this.customKpis()
+        .filter((k) => !k.filter)
+        .map((k) => k.formula),
+    );
     if (this.caps.allows(P.dashboard.kpi.balance)) usados.add('amount');
     if (this.caps.allows(P.dashboard.kpi.ingresos)) usados.add('income');
     if (this.caps.allows(P.dashboard.kpi.gastos)) usados.add('expense');
@@ -113,29 +197,34 @@ export abstract class DashboardKpis extends DashboardVisuals {
    * es una foto de ahora mismo, no la suma de lo que paso en un rango.
    */
   protected disponibleLiquido(): number {
-    const movimientos = this.store.data().movements;
-    return this.store
-      .data()
-      .accounts.filter((a) => a.type === 'savings' || a.type === 'cash')
-      .reduce((s, a) => s + accountBalance(a, movimientos), 0);
+    return sumBy(
+      this.store
+        .data()
+        // Todo lo que no es tarjeta: una cuenta corriente, una billetera u otra también son
+        // dinero a mano, y antes quedaban fuera por estar agrupadas como ahorro.
+        .accounts.filter((a) => a.type !== 'credit'),
+      (a) => this.store.balance(a),
+    );
   }
   /** Deuda de tarjetas: solo el lado negativo del saldo -una tarjeta a favor no es deuda. */
   protected deudaTarjetas(): number {
-    const movimientos = this.store.data().movements;
-    return this.store
-      .data()
-      .accounts.filter((a) => a.type === 'credit')
-      .reduce((s, a) => s + Math.max(0, -accountBalance(a, movimientos)), 0);
+    return sumBy(
+      this.store.data().accounts.filter((a) => a.type === 'credit'),
+      (a) => Math.max(0, -this.store.balance(a)),
+    );
   }
   protected cupoTotalTarjetas(): number {
-    return this.store
-      .data()
-      .accounts.filter((a) => a.type === 'credit')
-      .reduce((s, a) => s + (a.limit ?? 0), 0);
+    return sumBy(
+      this.store.data().accounts.filter((a) => a.type === 'credit'),
+      (a) => a.limit ?? 0,
+    );
   }
   /** Suma de gasto (importe negativo) de los movimientos del periodo que cumplen la condición. */
   protected gastoFiltrado(movs: readonly Movement[], cumple: (m: Movement) => boolean): number {
-    return movs.filter((m) => m.amount < 0 && cumple(m)).reduce((s, m) => s - m.amount, 0);
+    return sumBy(
+      movs.filter((m) => m.amount < 0 && cumple(m)),
+      (m) => -m.amount,
+    );
   }
   /** Tarjeta de crédito con más movimientos en el periodo -"cuál se usa más", no cuánta deuda tiene. */
   protected tarjetaMasUsada(): { name: string; count: number } | null {
@@ -152,19 +241,20 @@ export abstract class DashboardKpis extends DashboardVisuals {
   }
   kpiValue(formula: KpiFormula): number {
     const movs = this.movements();
+    const economicos = movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
     if (formula === 'savingsRate' || formula === 'expenseShare') {
-      const ingreso = this.measureValue(movs, 'income');
+      const ingreso = this.income();
       if (ingreso <= 0) return 0;
-      const gasto = this.measureValue(movs, 'expense');
+      const gasto = this.expense();
       const ahorro = ((ingreso - gasto) / ingreso) * 100;
       return formula === 'savingsRate' ? ahorro : 100 - ahorro;
     }
     if (formula === 'dailyExpense' || formula === 'dailyIncome') {
-      const total = this.measureValue(movs, formula === 'dailyExpense' ? 'expense' : 'income');
+      const total = formula === 'dailyExpense' ? this.expense() : this.income();
       return total / this.diasDelPeriodo();
     }
     if (formula === 'liquidityMonths' || formula === 'daysToDeplete') {
-      const gastoDiario = this.measureValue(movs, 'expense') / this.diasDelPeriodo();
+      const gastoDiario = this.expense() / this.diasDelPeriodo();
       if (gastoDiario <= 0) return 0;
       return formula === 'liquidityMonths'
         ? this.disponibleLiquido() / (gastoDiario * 30)
@@ -172,7 +262,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
     }
     if (formula === 'expenseConcentration') return this.categoryDistribution()[0]?.percent ?? 0;
     if (formula === 'debtToIncome') {
-      const ingreso = this.measureValue(movs, 'income');
+      const ingreso = this.income();
       return ingreso > 0 ? (this.deudaTarjetas() / ingreso) * 100 : 0;
     }
     if (formula === 'avgPaymentDelay') {
@@ -181,12 +271,12 @@ export abstract class DashboardKpis extends DashboardVisuals {
       return personas.reduce((s, p) => s + (p.averagePaymentDays ?? 0), 0) / personas.length;
     }
     if (formula === 'fixedExpenseShare' || formula === 'installmentExpenseShare') {
-      const totalGasto = this.measureValue(movs, 'expense');
+      const totalGasto = this.expense();
       if (totalGasto <= 0) return 0;
       const parcial =
         formula === 'fixedExpenseShare'
-          ? this.gastoFiltrado(movs, (m) => !!m.recurring)
-          : this.gastoFiltrado(movs, (m) => (m.installmentTotal ?? 1) > 1);
+          ? this.gastoFiltrado(economicos, (m) => !!m.recurring)
+          : this.gastoFiltrado(economicos, (m) => (m.installmentTotal ?? 1) > 1);
       return (parcial / totalGasto) * 100;
     }
     if (formula === 'creditUtilization') {
@@ -197,30 +287,108 @@ export abstract class DashboardKpis extends DashboardVisuals {
     return this.measureValue(movs, formula);
   }
   kpiSeriesFor(formula: KpiFormula): number[] {
-    if (formula === 'savingsRate' || formula === 'expenseShare') {
-      return this.timeline().map((p) => {
-        if (p.income <= 0) return 0;
-        const ahorro = ((p.income - p.expense) / p.income) * 100;
-        return formula === 'savingsRate' ? ahorro : 100 - ahorro;
-      });
-    }
-    if (formula === 'dailyExpense') return this.timeline().map((p) => p.expense);
-    if (formula === 'dailyIncome') return this.timeline().map((p) => p.income);
-    // Liquidez, deuda y puntualidad son una foto del momento, no un flujo del periodo: no
-    // hay una serie honesta que dibujarles, así que sin minigráfica ni variación.
-    if (
-      formula === 'liquidityMonths' ||
-      formula === 'expenseConcentration' ||
-      formula === 'debtToIncome' ||
-      formula === 'daysToDeplete' ||
-      formula === 'avgPaymentDelay' ||
-      formula === 'fixedExpenseShare' ||
-      formula === 'installmentExpenseShare' ||
-      formula === 'creditUtilization' ||
-      formula === 'mostUsedCard'
-    )
-      return [];
-    return this.aggregate({ dimension: 'date', measure: formula }).map((a) => a.value);
+    if (FORMULAS_DE_FOTO.includes(formula)) return [];
+    const historia = this.historial();
+    const dias = (p: PuntoDeFlujo) =>
+      Math.max(
+        1,
+        Math.round(
+          (new Date(`${p.rango.end}T00:00:00Z`).getTime() - new Date(`${p.rango.start}T00:00:00Z`).getTime()) /
+            86_400_000,
+        ) + 1,
+      );
+    const porPunto = (p: PuntoDeFlujo): number | null => {
+      if (formula === 'amount') return p.net;
+      if (formula === 'income') return p.income;
+      if (formula === 'expense') return p.expense;
+      if (formula === 'savingsRate') return p.income > 0 ? ((p.income - p.expense) / p.income) * 100 : null;
+      if (formula === 'expenseShare') return p.income > 0 ? (p.expense / p.income) * 100 : null;
+      if (formula === 'dailyExpense') return p.expense / dias(p);
+      if (formula === 'dailyIncome') return p.income / dias(p);
+      if (!p.movs) return null;
+      if (formula === 'count' || formula === 'average') return this.measureValue(p.movs, formula);
+      const economicos = p.movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
+      const gasto = this.measureValue(economicos, 'expense');
+      if (gasto <= 0) return 0;
+      if (formula === 'fixedExpenseShare') return (this.gastoFiltrado(economicos, (m) => !!m.recurring) / gasto) * 100;
+      if (formula === 'installmentExpenseShare')
+        return (this.gastoFiltrado(economicos, (m) => (m.installmentTotal ?? 1) > 1) / gasto) * 100;
+      if (formula === 'expenseConcentration') {
+        const porCategoria = new Map<string, number>();
+        for (const m of economicos)
+          if (m.amount < 0) porCategoria.set(m.category, (porCategoria.get(m.category) ?? 0) - m.amount);
+        return (Math.max(0, ...porCategoria.values()) / gasto) * 100;
+      }
+      return null;
+    };
+    const valores = historia.map(porPunto);
+    return valores.every((valor) => valor === null) ? [] : valores.map((valor) => valor ?? 0);
+  }
+  private cumpleFiltro(m: Movement, filtro: KpiFilter): boolean {
+    return this.dimensionKey(m, filtro.dimension).label === filtro.value;
+  }
+  private valorSobre(formula: KpiFormula, movs: readonly Movement[], dias: number): number {
+    const economicos = movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
+    const ingreso = sumBy(
+      economicos.filter((m) => m.kind === 'income'),
+      (m) => Math.max(0, m.amount),
+    );
+    const gasto = sumBy(
+      economicos.filter((m) => m.kind === 'expense'),
+      (m) => -Math.min(0, m.amount),
+    );
+    if (formula === 'income') return ingreso;
+    if (formula === 'expense') return gasto;
+    if (formula === 'savingsRate') return ingreso > 0 ? ((ingreso - gasto) / ingreso) * 100 : 0;
+    if (formula === 'expenseShare') return ingreso > 0 ? (gasto / ingreso) * 100 : 0;
+    if (formula === 'dailyExpense') return gasto / dias;
+    if (formula === 'dailyIncome') return ingreso / dias;
+    if (formula === 'amount' || formula === 'count' || formula === 'average') return this.measureValue(movs, formula);
+    return 0;
+  }
+  private diasDe(rango: { start: string; end: string }): number {
+    const inicio = new Date(`${rango.start}T00:00:00Z`).getTime();
+    const fin = new Date(`${rango.end}T00:00:00Z`).getTime();
+    return Math.max(1, Math.round((fin - inicio) / 86_400_000) + 1);
+  }
+  kpiValueDe(kpi: KpiDefinition): number {
+    const filtro = kpi.filter;
+    if (!filtro) return this.kpiValue(kpi.formula);
+    return this.valorSobre(
+      kpi.formula,
+      this.movements().filter((m) => this.cumpleFiltro(m, filtro)),
+      this.diasDelPeriodo(),
+    );
+  }
+  kpiSeriesDe(kpi: KpiDefinition): number[] {
+    const filtro = kpi.filter;
+    if (!filtro) return this.kpiSeriesFor(kpi.formula);
+    const historia = this.historial();
+    if (historia.some((punto) => !punto.movs)) return [];
+    return historia.map((punto) =>
+      this.valorSobre(
+        kpi.formula,
+        (punto.movs ?? []).filter((m) => this.cumpleFiltro(m, filtro)),
+        this.diasDe(punto.rango),
+      ),
+    );
+  }
+  kpiStatusFor(id: string, formula: KpiFormula, valor = this.kpiValue(formula)) {
+    if (formula === 'mostUsedCard') return null;
+    return estadoDe(valor, this.rangosDe(id, formula));
+  }
+  kpiProgressFor(formula: KpiFormula): number | null {
+    const porcentajes: readonly KpiFormula[] = [
+      'savingsRate',
+      'expenseShare',
+      'debtToIncome',
+      'expenseConcentration',
+      'fixedExpenseShare',
+      'installmentExpenseShare',
+      'creditUtilization',
+    ];
+    if (!porcentajes.includes(formula)) return null;
+    return Math.max(0, Math.min(100, this.kpiValue(formula)));
   }
   kpiTrend(formula: KpiFormula): number | null {
     return this.variacion(this.kpiSeriesFor(formula));
@@ -321,29 +489,56 @@ export abstract class DashboardKpis extends DashboardVisuals {
     event.preventDefault();
     if (!this.caps.allows(P.dashboard.widget.crear)) return;
     const label = this.newKpiLabel.trim();
-    if (!label || this.usedKpiFormulas().has(this.newKpiFormula)) return;
-    this.customKpis.update((items) => [...items, { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula }]);
+    const dimension = this.newKpiDimension();
+    const filtro: KpiFilter | undefined =
+      dimension !== 'none' && this.newKpiFilterValue ? { dimension, value: this.newKpiFilterValue } : undefined;
+    if (!label || (dimension !== 'none' && !filtro)) return;
+    if (
+      filtro
+        ? this.usedKpiKeys().has(claveDeKpi(this.newKpiFormula, filtro))
+        : this.usedKpiFormulas().has(this.newKpiFormula)
+    )
+      return;
+    if (filtro && !FORMULAS_FILTRABLES.includes(this.newKpiFormula)) return;
+    this.kpiLayout.saveDefinitions([
+      ...this.customKpis(),
+      { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula, ...(filtro ? { filter: filtro } : {}) },
+    ]);
     this.newKpiLabel = '';
+    this.newKpiDimension.set('none');
+    this.newKpiFilterValue = '';
     this.kpiCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.indicatorAdded', { label }));
   }
   removeKpi(id: string) {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
-    this.customKpis.update((items) => items.filter((k) => k.id !== id));
+    this.kpiLayout.saveDefinitions(this.customKpis().filter((k) => k.id !== id));
   }
 
   /** Los indicadores propios normalizados a la misma forma que `fixedKpiItems`. */
   readonly customKpiItems = computed(() =>
-    this.customKpis().map((kpi) => ({
-      id: kpi.id,
-      label: kpi.label,
-      icon: this.kpiIcon(kpi.formula),
-      tone: this.kpiTone(kpi.formula),
-      value: this.kpiFormatValue(kpi.formula, this.kpiValue(kpi.formula)),
-      hint: this.kpiHintFor(kpi.formula),
-      series: this.kpiSeriesFor(kpi.formula),
-      delta: this.kpiTrend(kpi.formula),
-      subirEsBueno: this.kpiSubirEsBueno(kpi.formula),
-    })),
+    this.customKpis().map((kpi) => {
+      const valor = this.kpiValueDe(kpi);
+      const serie = this.kpiSeriesDe(kpi);
+      const filtro = kpi.filter;
+      return {
+        id: kpi.id,
+        label: kpi.label,
+        icon: this.kpiIcon(kpi.formula),
+        tone: this.kpiTone(kpi.formula),
+        value: this.kpiFormatValue(kpi.formula, valor),
+        hint: filtro
+          ? `${this.i18n.t(`dashboard.dimension.${filtro.dimension}`)}: ${filtro.value}`
+          : this.kpiHintFor(kpi.formula),
+        series: serie,
+        delta: this.variacion(serie),
+        subirEsBueno: this.kpiSubirEsBueno(kpi.formula),
+        progress: filtro ? null : this.kpiProgressFor(kpi.formula),
+        status: this.kpiStatusFor(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula, valor),
+        caption: serie.length > 1 ? this.historiaEtiqueta() : '',
+        formula: kpi.formula,
+        ranges: this.rangosDe(CUSTOM_KPI_PREFIX + kpi.id, kpi.formula),
+      };
+    }),
   );
 }

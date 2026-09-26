@@ -40,6 +40,22 @@ export class ApiRequestError extends Error {
 }
 
 /**
+ * Límite de tiempo de cada petición.
+ *
+ * Sin él, una llamada que no responde dejaba la acción clavada en «cargando»
+ * para siempre (AsyncActionService) y la pantalla esperando datos que ya no
+ * llegarían: en una red inestable eso es un fallo silencioso. Al cortar, el
+ * backend-XHR entrega `TimeoutError` (y el fetch, `AbortError`), que
+ * `toRequestError` traduce a un mensaje que sí se le puede enseñar a alguien.
+ */
+const REQUEST_TIMEOUT_MS = 30_000;
+
+/** El corte por tiempo viaja como excepción de plataforma, no como problem-details. */
+function isTimeoutCause(cause: unknown): boolean {
+  return cause instanceof DOMException && (cause.name === 'TimeoutError' || cause.name === 'AbortError');
+}
+
+/**
  * Transporte HTTP con token CSRF cacheado.
  *
  * Antes se pedía un token nuevo antes de cada escritura y el servidor rotaba la
@@ -75,6 +91,7 @@ export class HttpApiTransport implements ApiTransport {
         headers,
         context: new HttpContext(),
         withCredentials: true,
+        timeout: REQUEST_TIMEOUT_MS,
       });
     };
 
@@ -96,6 +113,15 @@ export class HttpApiTransport implements ApiTransport {
   }
 
   private toRequestError(error: HttpErrorResponse): ApiRequestError {
+    // Un corte por tiempo no llega con problem-details: llega como status 0 con la
+    // excepción de la plataforma. Sin traducirlo, el mensaje era «La API respondió
+    // 0.», que no explica nada y queda fijado en pantalla hasta el próximo intento.
+    if (error.status === 0 && isTimeoutCause(error.error)) {
+      return new ApiRequestError(error.status, {
+        code: 'transport.timeout',
+        detail: this.i18n.t('errors.timeout'),
+      });
+    }
     const problem = (error.error ?? {}) as ApiProblem;
     const denied = error.status === 403 && (!problem.code || problem.code === 'authorization.denied');
     return new ApiRequestError(
@@ -116,7 +142,10 @@ export class HttpApiTransport implements ApiTransport {
     if (this.csrfInFlight) return this.csrfInFlight;
 
     this.csrfInFlight = this.http
-      .get<{ token: string }>(`${this.config.apiBaseUrl}${API_ROUTES.csrf}`, { withCredentials: true })
+      .get<{ token: string }>(`${this.config.apiBaseUrl}${API_ROUTES.csrf}`, {
+        withCredentials: true,
+        timeout: REQUEST_TIMEOUT_MS,
+      })
       .pipe(
         switchMap(({ token }) => {
           this.csrfToken = token;

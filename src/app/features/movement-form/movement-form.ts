@@ -1,11 +1,10 @@
-import { todayIso } from '../../core/utils/dates';
 import { IconComponent } from '../../ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/session/permissions';
-import { CAPABILITIES, CapabilitiesProvider, AppStore } from '../../core/state/store';
+import { CAPABILITIES, CapabilitiesProvider, AppStore, FEATURES } from '../../core/state/store';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { MovementCategoryFieldComponent } from './category-field/category-field';
 import { MovementCoreFieldsComponent } from './core-fields/core-fields';
@@ -18,6 +17,43 @@ import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-v
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { FieldComponent } from '../../ui/field/field';
 import { AsyncActionService } from '../../core/utils/async-action.service';
+import { Movement } from '../../core/state/demo-data';
+
+const MOVEMENT_KINDS = ['', 'income', 'expense', 'payment'] as const;
+const MOVEMENT_OPERATION_TYPES = ['normal', 'transfer', 'advance', 'loan', 'credit'] as const;
+
+export type MovementKind = (typeof MOVEMENT_KINDS)[number];
+export type MovementOperationType = (typeof MOVEMENT_OPERATION_TYPES)[number];
+export type MovementEffectiveKind = MovementKind | 'transfer' | 'advance';
+
+export type MovementFormModel = {
+  [clave: string]: unknown;
+  kind: MovementKind;
+  operationType: MovementOperationType;
+  date: string;
+  description: string;
+  accountId: string;
+  targetId: string;
+  category: string;
+  person: string;
+  amount: number;
+  id?: string;
+  notificationId?: string;
+  ownership: Movement['ownership'];
+  recurring: string;
+  recurrence: Movement['recurrence'];
+  installmentCurrent: number;
+  installmentTotal: number;
+  purchaseApr?: number;
+  originalCurrency: Movement['originalCurrency'];
+  originalAmount: number;
+  exchangeRate: number;
+};
+
+const isMovementKind = (value: string): value is MovementKind => MOVEMENT_KINDS.some((kind) => kind === value);
+
+const isMovementOperationType = (value: string): value is MovementOperationType =>
+  MOVEMENT_OPERATION_TYPES.some((operationType) => operationType === value);
 
 /**
  * Formulario de movimiento, partido en un componente por grupo de campos.
@@ -57,6 +93,7 @@ import { AsyncActionService } from '../../core/utils/async-action.service';
 export class MovementFormComponent {
   readonly store = inject(AppStore);
   private readonly capabilities: CapabilitiesProvider = inject(CAPABILITIES);
+  private readonly features = inject(FEATURES);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly actions = inject(AsyncActionService);
@@ -90,7 +127,9 @@ export class MovementFormComponent {
       ...(kind === 'expense' && this.capabilities.allows(P.movimientos.transferencias.crear)
         ? [{ value: 'transfer', label: this.i18n.t('form.movement.operationType.transfer') }]
         : []),
-      ...(kind === 'expense' && this.capabilities.allows(P.movimientos.avances.crear)
+      ...(kind === 'expense' &&
+      this.capabilities.allows(P.movimientos.avances.crear) &&
+      this.features.enabled('movements.cashAdvance')
         ? [{ value: 'advance', label: this.i18n.t('form.movement.operationType.advance') }]
         : []),
       ...(this.capabilities.allows(P.movimientos.prestamos.crear)
@@ -103,12 +142,12 @@ export class MovementFormComponent {
   }
 
   /** La operación real que se envía a guardar: gasto/ingreso normal, o transferencia/avance. */
-  effectiveKind(): string {
-    const operationType = this.model['operationType'];
-    return operationType === 'transfer' || operationType === 'advance' ? operationType : this.model['kind'];
+  effectiveKind(): MovementEffectiveKind {
+    const operationType = this.model.operationType;
+    return operationType === 'transfer' || operationType === 'advance' ? operationType : this.model.kind;
   }
 
-  model: Record<string, any> = {};
+  model: MovementFormModel;
 
   readonly title = computed(() =>
     this.store.form()?.notificationId
@@ -122,8 +161,8 @@ export class MovementFormComponent {
     const context = this.store.form()!;
     const m = context.movement;
     this.model = {
-      kind: context.kind,
-      date: m?.date ?? (this.store.runtime.mode === 'demo' ? '2026-08-31' : todayIso()),
+      kind: isMovementKind(context.kind) ? context.kind : '',
+      date: m?.date ?? this.store.hoy(),
       accountId: context.accountId ?? m?.accountId ?? '',
       targetId: context.targetId ?? '',
       description: m?.description ?? '',
@@ -156,22 +195,25 @@ export class MovementFormComponent {
     };
   }
 
-  setKind(kind: string) {
-    this.model['kind'] = kind;
+  setKind(value: string) {
+    if (!isMovementKind(value)) return;
+    this.model.kind = value;
     // Transferencia y avance solo existen bajo Gasto: si se cambia a Ingreso con uno
     // de los dos elegido, ya no aplica y se vuelve al tipo normal.
-    if (kind !== 'expense' && (this.model['operationType'] === 'transfer' || this.model['operationType'] === 'advance'))
-      this.model['operationType'] = 'normal';
-    this.store.form.update((v) => (v ? { ...v, kind } : v));
+    if (value !== 'expense' && (this.model.operationType === 'transfer' || this.model.operationType === 'advance'))
+      this.model.operationType = 'normal';
+    this.store.form.update((v) => (v ? { ...v, kind: value } : v));
   }
 
-  setOperationType(operationType: string) {
-    this.model['operationType'] = operationType;
+  setOperationType(value: string) {
+    if (!isMovementOperationType(value)) return;
+    this.model.operationType = value;
     // Cada tipo trae sus propios campos; limpiar los de los demas evita mandar a
     // guardar un `loanRole`/`targetId` que ya no se ve ni se pudo revisar.
-    if (operationType !== 'loan') this.model['loanRole'] = '';
-    if (operationType !== 'credit') this.model['loanProduct'] = '';
-    if (operationType !== 'transfer' && operationType !== 'advance') this.model['targetId'] = '';
+    if (value !== 'loan') this.model['loanRole'] = '';
+    if (value !== 'credit') this.model['loanProduct'] = '';
+    if (value !== 'transfer' && value !== 'advance') this.model.targetId = '';
+    if (value !== 'normal') this.model['recurring'] = 'false';
   }
 
   /**
@@ -183,7 +225,9 @@ export class MovementFormComponent {
   visibility(): MovementFieldVisibility {
     const account = this.store.account(this.model['accountId']);
     const isEditing = !!this.model['id'];
-    return new MovementVisibilityBuilder(this.effectiveKind(), account, isEditing).withAll().build();
+    return new MovementVisibilityBuilder(this.effectiveKind(), account, isEditing, this.model.operationType)
+      .withAll()
+      .build();
   }
 
   async submit() {
@@ -221,7 +265,7 @@ export class MovementFormComponent {
         throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
       if (kind === 'income' && source?.type === 'credit')
         throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-      await this.actions.run(this.saveActionKey, () => this.store.save({ ...this.model, kind } as any), {
+      await this.actions.run(this.saveActionKey, () => this.store.save({ ...this.model, kind }), {
         loading: this.i18n.t('form.movement.toast.loading'),
         success: this.i18n.t('form.movement.toast.success'),
         error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),

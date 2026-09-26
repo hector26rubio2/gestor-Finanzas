@@ -29,6 +29,9 @@ export type GenericWidgetType =
 export type WidgetType = FixedWidgetType | GenericWidgetType;
 /** Eje / agrupación disponible para un widget genérico. */
 export type Dimension = 'category' | 'account' | 'date' | 'kind' | 'person' | 'recurring' | 'installments';
+export type Seleccion =
+  | { readonly tipo: 'dimension'; readonly dimension: Dimension; readonly label: string }
+  | { readonly tipo: 'importe'; readonly min: number; readonly max: number; readonly label: string };
 /** Qué se mide dentro de cada grupo de la dimensión. */
 export type Measure = 'amount' | 'expense' | 'income' | 'count' | 'average';
 /**

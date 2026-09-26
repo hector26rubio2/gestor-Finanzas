@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
-import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
 import { CAPABILITIES } from '../../../../core/state/store';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
+import { PagerComponent } from '../../../../ui/pager/pager';
+import { SearchFieldComponent } from '../../../../ui/search-field/search-field';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminLabels } from '../../admin-labels';
@@ -19,11 +20,12 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
   imports: [
     FormsModule,
     HlmBadge,
-    HlmInput,
     HlmSwitch,
     HlmTableImports,
     AdminPanelComponent,
     EmptyStateComponent,
+    PagerComponent,
+    SearchFieldComponent,
     IconComponent,
     UiSelectComponent,
   ],
@@ -35,20 +37,13 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
     } @else {
       <app-admin-panel [title]="i18n.t('admin.flags.title')" [subtitle]="i18n.t('admin.flags.hierarchyNote')">
         <div panelActions class="flex flex-wrap items-center gap-2">
-          <label class="relative">
-            <fin-icon
-              name="search"
-              class="pointer-events-none absolute start-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-            />
-            <input
-              hlmInput
-              class="w-64 ps-9"
-              [ngModel]="search()"
-              (ngModelChange)="search.set($event)"
-              [placeholder]="i18n.t('admin.flags.searchPlaceholder')"
-              [attr.aria-label]="i18n.t('admin.flags.searchPlaceholder')"
-            />
-          </label>
+          <fin-search-field
+            class="w-64"
+            [value]="search()"
+            (valueChange)="buscar($event)"
+            [placeholder]="i18n.t('admin.flags.searchPlaceholder')"
+            [ariaLabel]="i18n.t('admin.flags.searchPlaceholder')"
+          />
           <fin-select
             class="w-64"
             [ngModel]="organizationId()"
@@ -73,7 +68,7 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
               </tr>
             </thead>
             <tbody hlmTBody>
-              @for (row of rows(); track row.key) {
+              @for (row of paginaActual(); track row.key) {
                 <tr hlmTr>
                   <td hlmTd class="px-5 py-3">
                     <div class="flex items-center gap-3">
@@ -132,6 +127,14 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
             </tbody>
           </table>
         </div>
+        <fin-pager
+          class="border-t border-border px-5 py-3"
+          [page]="pagina()"
+          [size]="tamano"
+          [total]="rows().length"
+          [summary]="i18n.t('admin.flags.countLabel', { count: rows().length })"
+          (pageChange)="pagina.set($event)"
+        />
       </app-admin-panel>
     }
   `,
@@ -143,6 +146,8 @@ export class FlagsTabComponent {
   private readonly caps = inject(CAPABILITIES);
 
   readonly search = signal('');
+  readonly pagina = signal(1);
+  readonly tamano = 10;
   readonly selectedOrganizationId = signal('');
 
   readonly organizationOptions = computed<readonly UiOption[]>(() => this.store.organizationOptions());
@@ -158,6 +163,17 @@ export class FlagsTabComponent {
       .platformFlags()
       .filter((flag) => !term || `${flag.key} ${this.labels.feature(flag.key)}`.toLowerCase().includes(term));
   });
+
+  readonly paginaActual = computed(() => {
+    const inicio =
+      (Math.min(this.pagina(), Math.max(1, Math.ceil(this.rows().length / this.tamano))) - 1) * this.tamano;
+    return this.rows().slice(inicio, inicio + this.tamano);
+  });
+
+  buscar(valor: string): void {
+    this.search.set(valor);
+    this.pagina.set(1);
+  }
 
   constructor() {
     effect(() => {
