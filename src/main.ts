@@ -1,5 +1,6 @@
 import { bootstrapApplication } from '@angular/platform-browser';
-import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { cifradoInterceptor, escriturasInterceptor } from './app/core/http/interceptores';
 import { inject, provideAppInitializer } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { AppComponent } from './app/app';
@@ -18,7 +19,7 @@ patchConsole();
 bootstrapApplication(AppComponent, {
   providers: [
     provideRouter(routes),
-    provideHttpClient(),
+    provideHttpClient(withInterceptors([escriturasInterceptor, cifradoInterceptor])),
     { provide: API_TRANSPORT, useClass: HttpApiTransport },
     provideAppInitializer(() => inject(I18nService).load(inject(PREFERENCES)().locale)),
     provideAppInitializer(() => inject(ErrorReporter).start()),

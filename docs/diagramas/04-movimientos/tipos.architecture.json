@@ -271,8 +271,8 @@
       "dot": "rose",
       "title": "Permisos",
       "items": [
-        "Crear: uno por tipo de operación",
-        "Editar y deshabilitar: comunes a todos",
+        "Crear y reversar: uno por familia",
+        "Editar: común a todos",
         "Recurrencia y cuotas solo en gasto normal"
       ]
     }

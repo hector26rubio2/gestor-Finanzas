@@ -10,6 +10,7 @@ import type { ApiSharedPurchase } from '../../../core/api/purchases.api';
 import type { ApiSettlement } from '../../../core/api/settlements.api';
 import { parseMoney } from '../../../core/utils/money';
 import { I18nService } from '../../../core/i18n';
+import { PERMISO_DE_REVERSO, familiaDeMovimiento } from '../../../core/session/familia-de-movimiento';
 import { P } from '../../../core/session/permissions';
 import { permisoParaEditarCuenta } from '../../../features/account-form/account-form';
 import type { Account, Movement } from '../../../core/state/demo-data';
@@ -49,6 +50,12 @@ export class InspectorComponent {
   private readonly api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
 
+  readonly canReverseSelected = computed(() => {
+    const movimiento = this.selectedMovement();
+    if (!movimiento || !this.can(P.movimientos.deshabilitar)) return false;
+    const familia = familiaDeMovimiento(movimiento, this.store.account(movimiento.accountId)?.type);
+    return !familia || this.can(PERMISO_DE_REVERSO[familia]);
+  });
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }

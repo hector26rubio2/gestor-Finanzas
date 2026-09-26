@@ -1,7 +1,6 @@
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
-import { Observable, catchError, of, shareReplay, switchMap, tap, throwError } from 'rxjs';
-import { ApiWritesBus } from '../api/api-writes';
+import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
 import { I18nService } from '../i18n/i18n.service';
 import { RUNTIME_CONFIG } from '../session/runtime';
 import { API_ROUTES } from '../api/api-routes';
@@ -71,7 +70,6 @@ export class HttpApiTransport implements ApiTransport {
   private readonly http = inject(HttpClient);
   private readonly config = inject(RUNTIME_CONFIG);
   private readonly i18n = inject(I18nService);
-  private readonly escrituras = inject(ApiWritesBus);
   private csrfToken: string | null = null;
   private csrfInFlight: Observable<string> | null = null;
 
@@ -111,12 +109,7 @@ export class HttpApiTransport implements ApiTransport {
         )
       : send();
 
-    return response$.pipe(
-      tap(() => {
-        if (unsafe) this.escrituras.notify();
-      }),
-      catchError((error: HttpErrorResponse) => throwError(() => this.toRequestError(error))),
-    );
+    return response$.pipe(catchError((error: HttpErrorResponse) => throwError(() => this.toRequestError(error))));
   }
 
   private toRequestError(error: HttpErrorResponse): ApiRequestError {

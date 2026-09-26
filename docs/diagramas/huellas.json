@@ -4,7 +4,7 @@
     "archivos": {
       "api:Dockerfile": "8b80a4f53cd4abb7",
       "api:render.yaml": "f62e8f0da5a09276",
-      "api:src/Finanzas.Host/Program.cs": "5e60884a48aa4d7a",
+      "api:src/Finanzas.Host/Program.cs": "a1d34579b87d8e42",
       "api:src/Finanzas.Infrastructure/Integrations/GitHubIssueService.cs": "ba16ea4cadb47f25",
       "api:src/Finanzas.Infrastructure/Integrations/IssueBodyBuilder.cs": "661caf43a65c740d",
       "front:.github/workflows/ci.yml": "18ca2ae00c9cb921",
@@ -12,7 +12,7 @@
       "front:public/config.js": "73ba7cc928a3651a",
       "front:src/app/core/api/api-routes.ts": "4572f073df965da4"
     },
-    "sellado": "2026-09-26T20:30:13.710Z"
+    "sellado": "2026-09-26T21:35:37.786Z"
   },
   "areas": {
     "spec": "abba60b5d24f62d7",
@@ -44,15 +44,15 @@
     "sellado": "2026-09-26T20:15:18.455Z"
   },
   "capas": {
-    "spec": "ff71894462d0e264",
+    "spec": "1db77d5efc9c9592",
     "archivos": {
       "api:src/Finanzas.Application/DemoFinanceStore.cs": "62faedc80d60349b",
       "api:src/Finanzas.Application/Mediator.cs": "182cb7ccd3159658",
       "api:src/Finanzas.Host/FinanceEndpoints.cs": "3301af2ce7e1cf36",
-      "api:src/Finanzas.Host/Program.cs": "5e60884a48aa4d7a",
+      "api:src/Finanzas.Host/Program.cs": "a1d34579b87d8e42",
       "api:src/Finanzas.Infrastructure/DependencyInjection.cs": "6904309ec02673af"
     },
-    "sellado": "2026-09-26T20:30:14.720Z"
+    "sellado": "2026-09-26T21:35:55.404Z"
   },
   "peticion": {
     "spec": "38b105b77b183d8a",
@@ -103,7 +103,7 @@
     "spec": "ebc14b0bc946af50",
     "archivos": {
       "api:src/Finanzas.Application/Ledger/LedgerUseCases.cs": "0ab21d507c2c39a2",
-      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "c847dd753cd849e1",
+      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "ce666c4fef9a06dd",
       "api:src/Finanzas.Infrastructure/Persistence/Queries/Ledger/LedgerReadStore.cs": "2d74b6c0e54e2fa3",
       "front:src/app/features/movement-form/category-field/category-field.ts": "4babb99ecd7c59ff",
       "front:src/app/features/movement-form/core-fields/core-fields.ts": "6114121757023fa2",
@@ -119,7 +119,7 @@
       "front:src/app/features/movements/movements-tab.ts": "f522044db050e87e",
       "front:src/app/features/reports/reports-tab.ts": "a8be6b9268e830d9"
     },
-    "sellado": "2026-09-26T20:15:22.869Z"
+    "sellado": "2026-09-26T21:35:38.854Z"
   },
   "ciclo-de-movimiento": {
     "spec": "ae18c1d446a1d4df",
@@ -130,9 +130,9 @@
       "api:src/Finanzas.Domain/Ledger/MovementKindSpec.cs": "14f4f73606862f2d",
       "api:src/Finanzas.Domain/Ledger/MovementLinks.cs": "845536b8fcc72901",
       "api:src/Finanzas.Domain/Ledger/Operation.cs": "f4dc2e7a89c6d8d9",
-      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "c847dd753cd849e1"
+      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "ce666c4fef9a06dd"
     },
-    "sellado": "2026-09-26T02:24:09.803Z"
+    "sellado": "2026-09-26T21:35:40.076Z"
   },
   "recurrencias": {
     "spec": "5fd5cbd017c4ba9e",
@@ -235,15 +235,15 @@
     "sellado": "2026-09-26T20:38:27.713Z"
   },
   "tipos-de-movimiento": {
-    "spec": "26504ab39d219787",
+    "spec": "77d78c84afba7cc9",
     "archivos": {
-      "api:src/Finanzas.Contracts/Identity/PermissionCodes.cs": "6c7daf23ceaeeeba",
+      "api:src/Finanzas.Contracts/Identity/PermissionCodes.cs": "a3681121c8f7ec2c",
       "api:src/Finanzas.Domain/Ledger/MovementKindSpec.cs": "14f4f73606862f2d",
       "api:src/Finanzas.Domain/Ledger/Operation.cs": "f4dc2e7a89c6d8d9",
-      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "c847dd753cd849e1",
+      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "ce666c4fef9a06dd",
       "front:src/app/features/movement-form/movement-form.ts": "59f880fff33253ae",
       "front:src/app/features/movement-form/movement-visibility-builder.ts": "02dc667dd17df477"
     },
-    "sellado": "2026-09-26T20:39:43.753Z"
+    "sellado": "2026-09-26T21:35:36.776Z"
   }
 }

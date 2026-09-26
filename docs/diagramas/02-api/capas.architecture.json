@@ -225,7 +225,7 @@
       "id": "rest",
       "from": "cliente",
       "to": "host",
-      "label": "REST con cookie y CSRF",
+      "label": "cookie, CSRF y cifrado",
       "variant": "emphasis"
     },
     {

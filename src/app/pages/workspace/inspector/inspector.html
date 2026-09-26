@@ -126,7 +126,7 @@
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
         {{ i18n.t('workspace.actions.registerSharedPurchase') }}
       </button>
-      } @if (can(P.movimientos.deshabilitar)) {
+      } @if (canReverseSelected()) {
       <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askReverse()">
         {{ i18n.t('workspace.actions.reverse') }}
       </button>
