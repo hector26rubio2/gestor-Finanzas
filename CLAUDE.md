@@ -45,26 +45,26 @@ This repository is listed under GitNexus **group(s): finanzas** (see `~/.gitnexu
 | Rename / extract / split / refactor | `.claude/skills/gitnexus-refactoring/SKILL.md` |
 | Tools, resources, schema reference | `.claude/skills/gitnexus-guide/SKILL.md` |
 | Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus-cli/SKILL.md` |
-| Work in the Cluster_172 area | `.claude/skills/gitnexus-area-cluster-172/SKILL.md` |
-| Work in the Admin area | `.claude/skills/gitnexus-area-admin/SKILL.md` |
+| Work in the Cluster_182 area | `.claude/skills/gitnexus-area-cluster-182/SKILL.md` |
 | Work in the Dashboard area | `.claude/skills/gitnexus-area-dashboard/SKILL.md` |
 | Work in the State area | `.claude/skills/gitnexus-area-state/SKILL.md` |
+| Work in the Admin area | `.claude/skills/gitnexus-area-admin/SKILL.md` |
 | Work in the Api area | `.claude/skills/gitnexus-area-api/SKILL.md` |
 | Work in the Scripts area | `.claude/skills/gitnexus-area-scripts/SKILL.md` |
 | Work in the Session area | `.claude/skills/gitnexus-area-session/SKILL.md` |
-| Work in the Layout area | `.claude/skills/gitnexus-area-layout/SKILL.md` |
 | Work in the Movements area | `.claude/skills/gitnexus-area-movements/SKILL.md` |
+| Work in the Layout area | `.claude/skills/gitnexus-area-layout/SKILL.md` |
+| Work in the Cluster_38 area | `.claude/skills/gitnexus-area-cluster-38/SKILL.md` |
 | Work in the Atlas area | `.claude/skills/gitnexus-area-atlas/SKILL.md` |
-| Work in the Cluster_35 area | `.claude/skills/gitnexus-area-cluster-35/SKILL.md` |
-| Work in the Bug-report area | `.claude/skills/gitnexus-area-bug-report/SKILL.md` |
 | Work in the Data-table area | `.claude/skills/gitnexus-area-data-table/SKILL.md` |
-| Work in the Planning area | `.claude/skills/gitnexus-area-planning/SKILL.md` |
-| Work in the Management-form area | `.claude/skills/gitnexus-area-management-form/SKILL.md` |
-| Work in the Preferences area | `.claude/skills/gitnexus-area-preferences/SKILL.md` |
-| Work in the Select area | `.claude/skills/gitnexus-area-select/SKILL.md` |
+| Work in the Bug-report area | `.claude/skills/gitnexus-area-bug-report/SKILL.md` |
 | Work in the Movement-form area | `.claude/skills/gitnexus-area-movement-form/SKILL.md` |
+| Work in the Select area | `.claude/skills/gitnexus-area-select/SKILL.md` |
+| Work in the Reports area | `.claude/skills/gitnexus-area-reports/SKILL.md` |
+| Work in the Preferences area | `.claude/skills/gitnexus-area-preferences/SKILL.md` |
+| Work in the Chart area | `.claude/skills/gitnexus-area-chart/SKILL.md` |
+| Work in the Notifications area | `.claude/skills/gitnexus-area-notifications/SKILL.md` |
 | Work in the Telemetry area | `.claude/skills/gitnexus-area-telemetry/SKILL.md` |
-| Work in the Http area | `.claude/skills/gitnexus-area-http/SKILL.md` |
 
 <!-- gitnexus:end -->
 

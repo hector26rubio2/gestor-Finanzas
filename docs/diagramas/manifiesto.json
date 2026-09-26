@@ -286,6 +286,45 @@
           "render.yaml"
         ]
       }
+    },
+    {
+      "id": "tipos-de-movimiento",
+      "area": "04-movimientos",
+      "tipo": "architecture",
+      "spec": "04-movimientos/tipos.architecture.json",
+      "html": "04-movimientos/tipos.html",
+      "cuenta": "Cada tipo de movimiento, su endpoint, su efecto y el permiso que exige",
+      "fuentes": {
+        "api": [
+          "src/Finanzas.Domain/Ledger/MovementKindSpec.cs",
+          "src/Finanzas.Domain/Ledger/Operation.cs",
+          "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+          "src/Finanzas.Contracts/Identity/PermissionCodes.cs"
+        ],
+        "front": [
+          "src/app/features/movement-form/movement-visibility-builder.ts",
+          "src/app/features/movement-form/movement-form.ts"
+        ]
+      },
+      "evidencia": "api"
+    },
+    {
+      "id": "multitenancy",
+      "area": "07-administracion",
+      "tipo": "architecture",
+      "spec": "07-administracion/multitenancy.architecture.json",
+      "html": "07-administracion/multitenancy.html",
+      "cuenta": "Organizaciones, roles, membresías y datos propios que viajan al mover a una persona",
+      "fuentes": {
+        "api": [
+          "src/Finanzas.Infrastructure/Persistence/SuperAdminService.cs",
+          "src/Finanzas.Infrastructure/Persistence/FinanzasDbContext.cs",
+          "src/Finanzas.Infrastructure/Persistence/CapabilityResolution.cs",
+          "src/Finanzas.Infrastructure/Persistence/SystemRolesBackfill.cs",
+          "src/Finanzas.Infrastructure/Persistence/EntityConfigurations.cs"
+        ]
+      },
+      "evidencia": "api"
     }
   ]
 }

@@ -1,5 +1,5 @@
 {
-  "generado": "2026-09-26T05:45:09.480Z",
+  "generado": "2026-09-26T20:45:23.297Z",
   "resumen": {
     "conectados": 79,
     "sinUsoEnWeb": 0,
@@ -127,7 +127,7 @@
       "web": [
         {
           "archivo": "src/app/core/http/api-http-client.ts",
-          "linea": 145,
+          "linea": 152,
           "funcion": "csrf",
           "via": "API_ROUTES.csrf"
         },
@@ -439,7 +439,7 @@
       "web": [
         {
           "archivo": "src/app/core/session/remote-bootstrap.ts",
-          "linea": 348,
+          "linea": 350,
           "funcion": "escucharCambiosDeAcceso",
           "via": "EventSource"
         }
@@ -547,7 +547,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 149,
+          "linea": 150,
           "funcion": "createMovement",
           "via": "API_ROUTES.movements"
         }
@@ -565,7 +565,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 145,
+          "linea": 146,
           "funcion": "movement",
           "via": "API_ROUTES.movement"
         }
@@ -583,7 +583,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 155,
+          "linea": 156,
           "funcion": "reclassifyMovement",
           "via": "API_ROUTES.movementClassification"
         }
@@ -601,7 +601,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 163,
+          "linea": 164,
           "funcion": "reverseMovement",
           "via": "API_ROUTES.movementReversal"
         }
@@ -691,7 +691,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 173,
+          "linea": 174,
           "funcion": "createCardPayment",
           "via": "API_ROUTES.cardPayments"
         }
@@ -709,7 +709,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 177,
+          "linea": 178,
           "funcion": "createCashAdvance",
           "via": "API_ROUTES.cashAdvances"
         }
@@ -727,7 +727,7 @@
       "web": [
         {
           "archivo": "src/app/core/api/ledger.api.ts",
-          "linea": 169,
+          "linea": 170,
           "funcion": "createTransfer",
           "via": "API_ROUTES.transfers"
         }
