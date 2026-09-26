@@ -164,7 +164,7 @@
     "spec": "fa60c5602faf14d0",
     "archivos": {
       "api:src/Finanzas.Host/SuperAdminEndpoints.cs": "98b83b24d31be836",
-      "api:src/Finanzas.Infrastructure/Persistence/SuperAdminService.cs": "3ae3098c473b8ebb",
+      "api:src/Finanzas.Infrastructure/Persistence/SuperAdminService.cs": "b28d98fd0bb7643e",
       "api:src/Finanzas.Infrastructure/Persistence/SuperAdminService.Organizations.cs": "3203fc92814b9396",
       "front:src/app/pages/admin/admin-changes.ts": "bc7203d70e5478f3",
       "front:src/app/pages/admin/admin-labels.ts": "7d60b817cbf56dff",
@@ -189,7 +189,7 @@
       "front:src/app/pages/admin/tabs/users/user-sheet.ts": "2785a7abfeed6e24",
       "front:src/app/pages/admin/tabs/users/users-tab.ts": "f947aaffb061d7d0"
     },
-    "sellado": "2026-09-26T20:15:23.874Z"
+    "sellado": "2026-09-26T20:25:34.324Z"
   },
   "errores": {
     "spec": "362f9e811d12fc79",
