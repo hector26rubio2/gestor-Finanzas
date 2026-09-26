@@ -20,7 +20,7 @@ export interface ApiCategoryTotal {
 export interface ApiDashboard {
   period: { income: ApiMoney; expense: ApiMoney; net: ApiMoney; period: { start: string; end: string } };
   accounts: readonly { account: ApiLinkRef; balance: ApiMoney; asOf: string }[];
-  cards: readonly unknown[];
+  cards: readonly { card: ApiLinkRef; debt: ApiMoney; availableCredit: ApiMoney; asOf: string }[];
   topCategories: readonly ApiCategoryTotal[];
   /** Un punto por día del periodo. El cliente agrupa; no suma importes. */
   series: readonly ApiPeriodPoint[];

@@ -2,8 +2,8 @@ import { I18nService } from '../i18n';
 import { Account, DemoData, Movement } from '../state/demo-data';
 import type { AppStore } from '../state/store';
 import {
+  accountKindToViewType,
   ApiAccount,
-  ApiAccountKind,
   ApiCard,
   ApiDebtPosition,
   ApiInvestment,
@@ -12,7 +12,7 @@ import {
   ApiSession,
 } from '../api/api-client';
 import { parseAmount, parseMoney, parseRate } from '../utils/money';
-import { classifyFamily, MovementKindCatalog, signOf } from '../utils/movement-kinds';
+import { classifyFamily, MovementKind, MovementKindCatalog, signOf } from '../utils/movement-kinds';
 
 export function toViewUser(session: ApiSession): AppStore['users'][number] & { photoUrl?: string } {
   return {
@@ -39,7 +39,10 @@ export function toViewData(
     ...accounts.map((account) => ({
       id: account.id,
       name: account.name,
-      type: account.kind === ApiAccountKind.cash ? ('cash' as const) : ('savings' as const),
+      // El tipo de vista sale del `kind` del contrato: cash/checking/savings/wallet/other
+      // se conservan en lugar de colapsarlos en ahorro, que era como una cuenta corriente
+      // acababa etiquetada y agrupada.
+      type: accountKindToViewType(account.kind),
       currency: account.currency,
       openingBalance: 0,
       lastFour: account.lastFour ?? undefined,
@@ -116,7 +119,9 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     description: source.description ?? i18n.t('movements.fallback.noDescription'),
     accountId,
     category: source.linkNames['category']?.name ?? i18n.t('movements.fallback.noCategory'),
-    ...classifyFamily(family, amount),
+    ...(source.kind === MovementKind.cardCashAdvance
+      ? { kind: amount < 0 ? ('expense' as const) : ('income' as const), movementSubtype: 'advance' as const }
+      : classifyFamily(family, amount)),
     amount,
     status: 'confirmed',
     person: source.linkNames['counterparty']?.name,

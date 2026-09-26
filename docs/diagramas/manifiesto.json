@@ -1,0 +1,291 @@
+{
+  "diagramas": [
+    {
+      "id": "sistema",
+      "area": "00-mapa",
+      "tipo": "architecture",
+      "spec": "00-mapa/sistema.architecture.json",
+      "html": "00-mapa/sistema.html",
+      "cuenta": "Piezas del sistema: cliente, API, base, Google, CI y GitHub Issues",
+      "fuentes": {
+        "front": [
+          ".github/workflows/*.yml",
+          "public/config.js",
+          "src/app/core/api/api-routes.ts"
+        ],
+        "api": [
+          "render.yaml",
+          "Dockerfile",
+          "src/Finanzas.Host/Program.cs",
+          "src/Finanzas.Infrastructure/Integrations/*.cs"
+        ]
+      }
+    },
+    {
+      "id": "areas",
+      "area": "00-mapa",
+      "tipo": "architecture",
+      "spec": "00-mapa/areas.architecture.json",
+      "html": "00-mapa/areas.html",
+      "evidencia": "front",
+      "cuenta": "Secciones de la aplicación y qué datos comparten",
+      "fuentes": {
+        "front": [
+          "src/app/routes.ts",
+          "src/app/core/state/navigation.ts",
+          "src/app/features/*/*-tab.ts",
+          "src/app/pages/dashboard/dashboard.ts"
+        ]
+      }
+    },
+    {
+      "id": "armazon",
+      "area": "01-frontend",
+      "tipo": "architecture",
+      "spec": "01-frontend/armazon.architecture.json",
+      "html": "01-frontend/armazon.html",
+      "evidencia": "front",
+      "cuenta": "Armazón del cliente Angular: guard, AppStore y arranque remoto",
+      "fuentes": {
+        "front": [
+          "src/app/app.ts",
+          "src/app/routes.ts",
+          "src/app/core/state/store.ts",
+          "src/app/core/session/remote-bootstrap.ts",
+          "src/app/core/session/runtime.ts"
+        ]
+      }
+    },
+    {
+      "id": "capas",
+      "area": "02-api",
+      "tipo": "architecture",
+      "spec": "02-api/capas.architecture.json",
+      "html": "02-api/capas.html",
+      "evidencia": "api",
+      "cuenta": "Capas de la API: Host, Application, Infrastructure y almacenes",
+      "fuentes": {
+        "api": [
+          "src/Finanzas.Host/Program.cs",
+          "src/Finanzas.Host/FinanceEndpoints.cs",
+          "src/Finanzas.Application/Mediator.cs",
+          "src/Finanzas.Application/DemoFinanceStore.cs",
+          "src/Finanzas.Infrastructure/DependencyInjection.cs"
+        ]
+      }
+    },
+    {
+      "id": "peticion",
+      "area": "02-api",
+      "tipo": "sequence",
+      "spec": "02-api/peticion.sequence.json",
+      "html": "02-api/peticion.html",
+      "cuenta": "Una escritura por dentro: puertas del Host, tubería del mediador y auditoría",
+      "fuentes": {
+        "api": [
+          "src/Finanzas.Host/Security.cs",
+          "src/Finanzas.Host/CsrfProtectionMiddleware.cs",
+          "src/Finanzas.Host/RateLimiting.cs",
+          "src/Finanzas.Host/FinanceExceptionHandler.cs",
+          "src/Finanzas.Application/Pipeline.cs",
+          "src/Finanzas.Infrastructure/Persistence/AuditTrail.cs"
+        ]
+      }
+    },
+    {
+      "id": "entrar-con-google",
+      "area": "03-sesion",
+      "tipo": "sequence",
+      "spec": "03-sesion/entrar-con-google.sequence.json",
+      "html": "03-sesion/entrar-con-google.html",
+      "cuenta": "Login con Google, cookie, CSRF, permisos y primera pantalla",
+      "fuentes": {
+        "front": [
+          "src/app/core/session/remote-bootstrap.ts",
+          "src/app/core/session/remote-slices.ts",
+          "src/app/core/api/session.api.ts",
+          "src/app/pages/login/login.ts"
+        ],
+        "api": [
+          "src/Finanzas.Host/Security.cs",
+          "src/Finanzas.Host/Endpoints/IdentityEndpoints.cs",
+          "src/Finanzas.Infrastructure/Persistence/SessionCapabilityResolver.cs",
+          "src/Finanzas.Infrastructure/Persistence/ExternalAccountProvisioner.cs"
+        ]
+      }
+    },
+    {
+      "id": "estados-de-sesion",
+      "area": "03-sesion",
+      "tipo": "lifecycle",
+      "spec": "03-sesion/estados.lifecycle.json",
+      "html": "03-sesion/estados.html",
+      "cuenta": "Estados de la sesión en el cliente y cuándo decide el guard",
+      "fuentes": {
+        "front": [
+          "src/app/routes.ts",
+          "src/app/core/session/remote-bootstrap.ts",
+          "src/app/pages/sin-seccion/*.ts"
+        ]
+      }
+    },
+    {
+      "id": "permisos-en-vivo",
+      "area": "03-sesion",
+      "tipo": "sequence",
+      "spec": "03-sesion/permisos-en-vivo.sequence.json",
+      "html": "03-sesion/permisos-en-vivo.html",
+      "cuenta": "Un cambio de rol llega por SSE y el cliente relee sin recargar",
+      "fuentes": {
+        "front": [
+          "src/app/core/session/remote-bootstrap.ts",
+          "src/app/core/session/remote-slices.ts"
+        ],
+        "api": [
+          "src/Finanzas.Infrastructure/Persistence/AccessNotifier.cs",
+          "src/Finanzas.Host/Endpoints/IdentityEndpoints.cs"
+        ]
+      }
+    },
+    {
+      "id": "registro-de-movimientos",
+      "area": "04-movimientos",
+      "tipo": "dataflow",
+      "spec": "04-movimientos/registro.dataflow.json",
+      "html": "04-movimientos/registro.html",
+      "cuenta": "Un movimiento de la captura al tablero y los reportes",
+      "fuentes": {
+        "front": [
+          "src/app/features/movement-form/**/*.ts",
+          "src/app/features/movements/*.ts",
+          "src/app/features/reports/*.ts"
+        ],
+        "api": [
+          "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+          "src/Finanzas.Application/Ledger/*.cs",
+          "src/Finanzas.Infrastructure/Persistence/Queries/Ledger/*.cs"
+        ]
+      }
+    },
+    {
+      "id": "ciclo-de-movimiento",
+      "area": "04-movimientos",
+      "tipo": "lifecycle",
+      "spec": "04-movimientos/ciclo.lifecycle.json",
+      "html": "04-movimientos/ciclo.html",
+      "cuenta": "Alta, rechazo, reclasificación y reversión de un movimiento",
+      "fuentes": {
+        "api": [
+          "src/Finanzas.Domain/Ledger/*.cs",
+          "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs"
+        ]
+      }
+    },
+    {
+      "id": "recurrencias",
+      "area": "05-planificacion",
+      "tipo": "sequence",
+      "spec": "05-planificacion/recurrencias.sequence.json",
+      "html": "05-planificacion/recurrencias.html",
+      "cuenta": "Calendario proyectado y materialización de una recurrencia",
+      "fuentes": {
+        "front": [
+          "src/app/features/calendar/*.ts"
+        ],
+        "api": [
+          "src/Finanzas.Domain/Recurrences/*.cs",
+          "src/Finanzas.Application/Recurrences/*.cs",
+          "src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs"
+        ]
+      }
+    },
+    {
+      "id": "compras-compartidas",
+      "area": "06-personas",
+      "tipo": "dataflow",
+      "spec": "06-personas/compras-compartidas.dataflow.json",
+      "html": "06-personas/compras-compartidas.html",
+      "cuenta": "Compra con tarjeta repartida, deudas por persona y liquidación",
+      "fuentes": {
+        "front": [
+          "src/app/features/people/*.ts"
+        ],
+        "api": [
+          "src/Finanzas.Domain/Purchases/*.cs",
+          "src/Finanzas.Domain/Obligations/*.cs",
+          "src/Finanzas.Domain/Settlements/*.cs",
+          "src/Finanzas.Application/Purchases/*.cs",
+          "src/Finanzas.Application/Settlements/*.cs",
+          "src/Finanzas.Application/People/*.cs"
+        ]
+      }
+    },
+    {
+      "id": "administracion",
+      "area": "07-administracion",
+      "tipo": "architecture",
+      "spec": "07-administracion/panel.architecture.json",
+      "html": "07-administracion/panel.html",
+      "evidencia": "api",
+      "cuenta": "Panel de superadmin, permisos por acción, auditoría y avisos",
+      "fuentes": {
+        "front": [
+          "src/app/pages/admin/**/*.ts"
+        ],
+        "api": [
+          "src/Finanzas.Host/SuperAdminEndpoints.cs",
+          "src/Finanzas.Infrastructure/Persistence/SuperAdminService*.cs"
+        ]
+      }
+    },
+    {
+      "id": "errores",
+      "area": "08-soporte",
+      "tipo": "workflow",
+      "spec": "08-soporte/errores.workflow.json",
+      "html": "08-soporte/errores.html",
+      "cuenta": "Errores automáticos y reportes de fallos hasta GitHub y su resolución",
+      "fuentes": {
+        "front": [
+          "src/app/core/telemetry/*.ts",
+          "src/app/features/bug-report/*.ts",
+          "src/app/pages/admin/tabs/errors/**/*.ts"
+        ],
+        "api": [
+          "src/Finanzas.Infrastructure/Integrations/*.cs"
+        ]
+      }
+    },
+    {
+      "id": "entrega-web",
+      "area": "09-entrega",
+      "tipo": "workflow",
+      "spec": "09-entrega/web.workflow.json",
+      "html": "09-entrega/web.html",
+      "cuenta": "CI y publicación del cliente en GitHub Pages",
+      "fuentes": {
+        "front": [
+          ".github/workflows/*.yml",
+          "scripts/visual-test.mjs",
+          "scripts/permisos-por-seccion.mjs",
+          "scripts/accesibilidad.mjs"
+        ]
+      }
+    },
+    {
+      "id": "entrega-api",
+      "area": "09-entrega",
+      "tipo": "workflow",
+      "spec": "09-entrega/api.workflow.json",
+      "html": "09-entrega/api.html",
+      "cuenta": "CI de la API y despliegue en Render",
+      "fuentes": {
+        "api": [
+          ".github/workflows/*.yml",
+          "Dockerfile",
+          "render.yaml"
+        ]
+      }
+    }
+  ]
+}

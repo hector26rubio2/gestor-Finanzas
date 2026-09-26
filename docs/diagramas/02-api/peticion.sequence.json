@@ -1,0 +1,227 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Una escritura dentro de la API",
+    "output": "peticion.html",
+    "viewBox": [
+      1080,
+      600
+    ],
+    "column_fit": "spread",
+    "quality_profile": "showcase",
+    "animation": "trace",
+    "views": [
+      {
+        "id": "puertas",
+        "label": "Puertas del Host",
+        "focus": [
+          "cliente",
+          "host"
+        ],
+        "note": "Antes de despachar, el Host exige CSRF, organización activa y el permiso del endpoint."
+      },
+      {
+        "id": "tuberia",
+        "label": "Tubería y datos",
+        "focus": [
+          "host",
+          "mediador",
+          "almacen",
+          "postgres"
+        ],
+        "note": "El mediador valida y deja bitácora; el almacén guarda el dato y su auditoría juntos."
+      }
+    ]
+  },
+  "participants": [
+    {
+      "id": "cliente",
+      "type": "frontend",
+      "label": "Cliente",
+      "sublabel": "Angular 22",
+      "brand": "angular"
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Host",
+      "sublabel": "endpoint y filtros"
+    },
+    {
+      "id": "mediador",
+      "type": "backend",
+      "label": "Mediador",
+      "sublabel": "validación y bitácora"
+    },
+    {
+      "id": "almacen",
+      "type": "backend",
+      "label": "Almacén",
+      "sublabel": "EF Core"
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "espacio de la organización",
+      "brand": "postgresql"
+    }
+  ],
+  "segments": [
+    {
+      "from": 150,
+      "to": 245,
+      "label": "Puertas"
+    },
+    {
+      "from": 255,
+      "to": 305,
+      "label": "Tubería"
+    },
+    {
+      "from": 315,
+      "to": 395,
+      "label": "Caso de uso"
+    },
+    {
+      "from": 405,
+      "to": 455,
+      "label": "Respuesta"
+    }
+  ],
+  "messages": [
+    {
+      "id": "envia",
+      "from": "cliente",
+      "to": "host",
+      "y": 170,
+      "label": "POST /api/v1/movements",
+      "variant": "emphasis"
+    },
+    {
+      "id": "rechaza",
+      "from": "host",
+      "to": "cliente",
+      "y": 200,
+      "label": "403 sin CSRF, organización o permiso",
+      "variant": "security"
+    },
+    {
+      "id": "despacha",
+      "from": "host",
+      "to": "mediador",
+      "y": 230,
+      "label": "CreateMovementCommand",
+      "variant": "default"
+    },
+    {
+      "id": "invalida",
+      "from": "mediador",
+      "to": "host",
+      "y": 260,
+      "label": "400 request.invalid si no valida",
+      "variant": "return"
+    },
+    {
+      "id": "caso",
+      "from": "mediador",
+      "to": "almacen",
+      "y": 290,
+      "label": "handler del caso de uso",
+      "variant": "default"
+    },
+    {
+      "id": "guarda",
+      "from": "almacen",
+      "to": "postgres",
+      "y": 320,
+      "label": "movimiento y auditoría juntos",
+      "variant": "emphasis"
+    },
+    {
+      "id": "fila",
+      "from": "postgres",
+      "to": "almacen",
+      "y": 350,
+      "label": "fila guardada",
+      "variant": "return"
+    },
+    {
+      "id": "dto",
+      "from": "almacen",
+      "to": "mediador",
+      "y": 380,
+      "label": "MovementDto",
+      "variant": "return"
+    },
+    {
+      "id": "bitacora",
+      "from": "mediador",
+      "to": "host",
+      "y": 410,
+      "label": "resuelto, con su tiempo",
+      "variant": "return"
+    },
+    {
+      "id": "creado",
+      "from": "host",
+      "to": "cliente",
+      "y": 440,
+      "label": "201 Created",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "host",
+      "from": 195,
+      "to": 465,
+      "type": "backend"
+    },
+    {
+      "participant": "mediador",
+      "from": 225,
+      "to": 445,
+      "type": "backend"
+    },
+    {
+      "participant": "almacen",
+      "from": 285,
+      "to": 415,
+      "type": "backend"
+    },
+    {
+      "participant": "postgres",
+      "from": 315,
+      "to": 365,
+      "type": "database"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Puertas",
+      "items": [
+        "Límite de peticiones por minuto",
+        "CSRF, organización activa y permiso"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Tubería",
+      "items": [
+        "Validar corta antes del dominio",
+        "La bitácora anota caso y tiempo"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Errores",
+      "items": [
+        "Todo error sale como ProblemDetails",
+        "Cada uno lleva su código estable"
+      ]
+    }
+  ]
+}

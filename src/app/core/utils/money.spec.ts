@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it } from 'vitest';
 import {
+  BASE_CURRENCY,
+  baseCurrency,
+  currencyCatalog,
   decimalsFor,
   formatAmount,
   fromMinor,
+  LOCAL_CURRENCIES,
   parseAmount,
   parseMoney,
   parseRate,
+  setCurrencyCatalog,
   sumAmounts,
   sumBy,
   toMinor,
@@ -85,5 +90,42 @@ describe('money', () => {
 
   it('no rompe el formato ante un valor no finito', () => {
     expect(formatAmount(Number.NaN, 'COP', 'es-CO')).toContain('0');
+  });
+
+  // Moneda base y catálogo son estado del módulo, compartido por todo el proceso de
+  // pruebas: sin devolverlos, una prueba que cambia la base dejaría las siguientes en USD.
+  afterEach(() => {
+    baseCurrency.set(BASE_CURRENCY);
+    currencyCatalog.set(LOCAL_CURRENCIES);
+  });
+
+  it('la moneda base que trae el servidor gobierna decimales y sumas por defecto', () => {
+    setCurrencyCatalog([
+      { code: 'cop', minorUnits: 0 },
+      { code: 'USD', minorUnits: 2 },
+    ]);
+    baseCurrency.set('USD');
+    // Sin moneda explícita manda la base: con COP fijo, los centavos de una organización
+    // en USD se redondeaban a enteros en cada suma y cada etiqueta.
+    expect(decimalsFor(null)).toBe(2);
+    expect(toMinor('1234.5')).toBe(123450);
+    expect(sumBy([{ importe: 19.99 }], (m) => m.importe)).toBe(19.99);
+    expect(formatAmount(1234.5, 'USD', 'es-CO')).toContain('1.234,50');
+
+    baseCurrency.set('COP');
+    expect(decimalsFor(null)).toBe(0);
+    expect(toMinor('1234.5')).toBe(1235);
+  });
+
+  it('lee los decimales del catálogo del servidor y no se deja vaciar', () => {
+    // Sin catálogo, ISO 4217 manda: dos decimales y cero inventado.
+    expect(decimalsFor('JPY')).toBe(2);
+    setCurrencyCatalog([{ code: 'JPY', minorUnits: 0 }, ...LOCAL_CURRENCIES]);
+    expect(decimalsFor('jpy')).toBe(0);
+    expect(toMinor('1000.4', 'JPY')).toBe(1000);
+    // Un catálogo vacío no borra el anterior: sin monedas conocidas, COP volvería a tener centavos.
+    setCurrencyCatalog([]);
+    expect(decimalsFor('JPY')).toBe(0);
+    expect(currencyCatalog().some((option) => option.code === 'COP')).toBe(true);
   });
 });

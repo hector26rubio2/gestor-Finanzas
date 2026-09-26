@@ -11,6 +11,8 @@ export interface ApiInvestment {
   costBasis: ApiMoney;
   marketValue: ApiMoney | null;
   isActive: boolean;
+  risk?: number;
+  symbol?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -34,5 +36,12 @@ export class InvestmentsApi {
     institution?: string | null;
   }) {
     return this.transport.request<ApiInvestment>({ method: 'POST', path: API_ROUTES.investments, body: request });
+  }
+
+  updateInvestment(
+    id: string,
+    request: { name: string; instrumentType: string; risk: number; symbol: string | null; isActive: boolean },
+  ) {
+    return this.transport.request<ApiInvestment>({ method: 'PUT', path: API_ROUTES.investment(id), body: request });
   }
 }

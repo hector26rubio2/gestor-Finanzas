@@ -63,6 +63,7 @@ import {
   lucideUsers,
   lucideUtensils,
   lucideWallet,
+  lucidePalette,
   lucideX,
 } from '@ng-icons/lucide';
 
@@ -81,6 +82,7 @@ const ICONOS = {
   trendUp: 'lucideTrendingUp',
   trendDown: 'lucideTrendingDown',
   wallet: 'lucideWallet',
+  palette: 'lucidePalette',
   clock: 'lucideClock',
   percent: 'lucidePercent',
   tag: 'lucideTag',
@@ -199,6 +201,7 @@ const REGISTRO = {
   lucideUsers,
   lucideUtensils,
   lucideWallet,
+  lucidePalette,
   lucideX,
 };
 

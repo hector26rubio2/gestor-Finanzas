@@ -3,8 +3,15 @@ import { computed, inject, Injectable, InjectionToken, Injector, signal } from '
 import { firstValueFrom } from 'rxjs';
 import { notifier } from '../notifications/notifier';
 import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
-import { ApiCategory, FinanceApiClient } from '../api/api-client';
-import { BASE_CURRENCY, formatAmount, parseMoney, sumBy } from '../utils/money';
+import { ApiCategory, FinanceApiClient, viewTypeToAccountKind } from '../api/api-client';
+import {
+  baseCurrency as monedaBase,
+  currencyCatalog as catalogoDeMonedas,
+  formatAmount,
+  parseMoney,
+  sumBy,
+} from '../utils/money';
+import { I18nService } from '../i18n';
 import { P } from '../session/permissions';
 import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '../utils/movement-kinds';
 import { RUNTIME_CONFIG } from '../session/runtime';
@@ -50,12 +57,49 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
   },
 });
 const DEMO_SESSION_KEY = 'finanzas.demo.perfil';
+const DEMO_HOY = '2026-08-31';
+
+/**
+ * Canal de avisos efímeros que va al toaster de Spartan.
+ *
+ * Antes era un `signal` al que se le reescribía `.set` para publicar el aviso: un parche
+ * sobre la API pública de `WritableSignal` que una actualización de Angular puede romper
+ * en tiempo de ejecución sin que los tipos digan nada. Aquí el canal es un objeto con su
+ * propio `set()`, de la misma forma que ya usan los llamadores (`store.toast.set(...)`),
+ * y sus estados viven en signals de verdad.
+ */
+class CanalDeAvisos {
+  /** Último aviso escrito, o `''` cuando no hay. */
+  readonly texto = signal('');
+  /**
+   * Contador de avisos emitidos. Permite reaccionar aunque el texto se repita: dos avisos
+   * idénticos seguidos sí se muestran dos veces, y un lector que solo mirara `texto`
+   * pensaría que la segunda escritura no ocurrió.
+   */
+  readonly revision = signal(0);
+
+  set(value: string): void {
+    if (value) void notifier().then((sonner) => sonner(value));
+    this.texto.set(value);
+    this.revision.update((contador) => contador + 1);
+  }
+
+  update(fn: (value: string) => string): void {
+    this.set(fn(this.texto()));
+  }
+}
 
 @Injectable({ providedIn: 'root' })
 export class AppStore {
   readonly runtime = inject(RUNTIME_CONFIG);
   private provider = inject(DATA_PROVIDER);
   private injector = inject(Injector);
+  /**
+   * Los mensajes que salen de aquí (`throw` de validación) se pintan en el formulario tal
+   * cual, así que pasan por el mismo catálogo que ya usan las plantillas: en en/fr/pt se
+   * leían en español antes de este cambio.
+   */
+  private readonly i18n = inject(I18nService);
   readonly data = signal(this.provider.load());
   readonly users = demoUsers;
   /**
@@ -92,20 +136,12 @@ export class AppStore {
   readonly period = signal('all');
   readonly accountFilter = signal('all');
   /**
-   * Último aviso. Escribirlo lo muestra en ngx-sonner, el mismo sistema que usa
+   * Último aviso. Escribirlo lo muestra en el toaster de Spartan, el mismo sistema que usa
    * AsyncActionService: antes convivían este banner propio y los toasts de sonner. Se
-   * conserva el signal para que los llamadores existentes (`toast.set(...)`) y las
-   * pruebas que lo leen sigan funcionando; `''` solo limpia el valor.
+   * conserva la forma `toast.set(...)` para que los llamadores existentes y las pruebas
+   * que lo lean sigan funcionando; `''` solo limpia el valor.
    */
-  readonly toast = (() => {
-    const message = signal('');
-    const write = message.set.bind(message);
-    message.set = (value: string) => {
-      if (value) void notifier().then((sonner) => sonner(value));
-      write(value);
-    };
-    return message;
-  })();
+  readonly toast = new CanalDeAvisos();
   readonly form = signal<{
     kind: string;
     accountId?: string;
@@ -129,8 +165,14 @@ export class AppStore {
   readonly inspector = signal<{ type: string; id: string; previous?: { type: string; id: string } } | null>(null);
   /** Dia de vuelta cuando el inspector de un movimiento se abrio desde una agenda diaria. */
   readonly calendarReturnDate = signal<string | null>(null);
-  /** Dia seleccionado en el calendario. El inspector de dia lo usa de resguardo. */
-  readonly selectedCalendarDate = signal(this.runtime.mode === 'demo' ? '2026-08-18' : todayIso());
+  /**
+   * Dia seleccionado en el calendario. El inspector de dia lo usa de resguardo.
+   *
+   * Arranca en hoy también en demo: la fecha escrita en el codigo (`'2026-08-18'`) era
+   * «hoy» el dia que se escribio y dejo de serlo, abriendo el calendario en un dia que ya
+   * no significaba nada.
+   */
+  readonly selectedCalendarDate = signal(todayIso());
   /** El inspector de una tarjeta muestra el extracto o la simulacion de un abono. */
   readonly cardPaymentMode = signal(false);
   readonly movements = computed(() =>
@@ -159,7 +201,8 @@ export class AppStore {
   );
   readonly unread = computed(() => this.data().notifications.filter((n) => !n.read).length);
   readonly history = signal<{ date: string; action: string }[]>([
-    { date: '2026-08-31', action: 'Información financiera inicial cargada' },
+    // Hoy, no una fecha escrita a mano: en el historial el orden es el mensaje.
+    { date: todayIso(), action: 'Información financiera inicial cargada' },
   ]);
   readonly debt = computed(() =>
     sumBy(
@@ -174,21 +217,41 @@ export class AppStore {
     ),
   );
   /**
+   * Moneda base del espacio de trabajo: la que trae la sesión
+   * (`session.organization.baseCurrency`) y en la que el backend calcula. Es la misma
+   * señal que `decimalsFor()` y `sumBy()` leen dentro de `money.ts`, así que no puede
+   * haber dos opiniones distintas sobre la moneda.
+   */
+  readonly baseCurrency = monedaBase;
+  /**
+   * Catálogo de monedas de `GET /api/v1/currencies`, con los decimales que publica el
+   * servidor. Lo carga `remote-bootstrap` al entrar; mientras no llega, el local.
+   */
+  readonly currencyCatalog = catalogoDeMonedas;
+  /**
    * Formato con código de moneda explícito: `$` a secas es ambiguo en Colombia y
    * esta aplicación muestra COP, USD y EUR en la misma pantalla.
+   *
+   * Sin moneda explícita etiqueta en la base de la organización. Antes era `COP` de
+   * compilación, de modo que una organización en USD se veía «COP» con cero decimales.
    */
-  money(value: number, currency = BASE_CURRENCY) {
+  money(value: number, currency = this.baseCurrency()) {
     return formatAmount(value, currency, this.preferences().locale);
   }
   account(id: string) {
     return this.data().accounts.find((a) => a.id === id);
   }
+  readonly saldosDelServidor = signal<ReadonlyMap<string, number> | null>(null);
+  hoy(): string {
+    return this.runtime.mode === 'demo' ? DEMO_HOY : todayIso();
+  }
   balance(account: Account) {
-    return accountBalance(account, this.data().movements);
+    return this.saldosDelServidor()?.get(account.id) ?? accountBalance(account, this.data().movements);
   }
   /** Movimientos de un dia. Lo usan el calendario y el inspector de dia. */
   dayMoves(date: string | number) {
-    const iso = typeof date === 'number' ? `2026-08-${String(date).padStart(2, '0')}` : date;
+    // La rama numerica es un dia del mes: va al mes en curso, no a un mes escrito a mano.
+    const iso = typeof date === 'number' ? `${todayIso().slice(0, 7)}-${String(date).padStart(2, '0')}` : date;
     return this.data().movements.filter((movement) => movement.date === iso);
   }
   /**
@@ -268,7 +331,10 @@ export class AppStore {
         theme: value.theme,
         font: value.font,
         density: value.density,
-        baseCurrency: 'COP',
+        // La moneda que se guarda es la que ya está usando la organización, no un `COP`
+        // fijo: el backend guarda este valor como preferencia por usuario y no cambia la
+        // organización, así que escribir otra cosa solo desincronizaba la preferencia.
+        baseCurrency: this.baseCurrency(),
         customThemeJson: puedeTemaPropio ? JSON.stringify(paletteOverrides(value)) : null,
       }),
     );
@@ -296,13 +362,14 @@ export class AppStore {
     originalAmount?: number;
     exchangeRate?: number;
   }) {
-    if (!Number.isFinite(input.amount) || input.amount <= 0) throw new Error('Introduce un importe positivo.');
-    if (!this.account(input.accountId)) throw new Error('Selecciona una cuenta válida.');
+    if (!Number.isFinite(input.amount) || input.amount <= 0)
+      throw new Error(this.i18n.t('form.movement.error.amountPositive'));
+    if (!this.account(input.accountId)) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
     if (
       (input.kind === 'payment' || input.kind === 'transfer' || input.kind === 'advance') &&
       (!input.targetId || input.targetId === input.accountId || !this.account(input.targetId))
     )
-      throw new Error('Selecciona una cuenta destino diferente.');
+      throw new Error(this.i18n.t('form.movement.error.targetDifferent'));
     if (this.runtime.mode === 'api') {
       if (input.id) {
         const category = this.categories().find((item) => item.name === input.category);
@@ -325,31 +392,38 @@ export class AppStore {
         return;
       }
       const account = this.account(input.accountId);
-      if (!account) throw new Error('Selecciona una cuenta válida.');
+      if (!account) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
       if (input.kind === 'transfer' || input.kind === 'advance' || input.kind === 'payment') {
         const amount = { amount: String(input.amount), currency: account.currency };
         const idempotencyKey = crypto.randomUUID();
-        // El avance usa el mismo movimiento de traslado que una transferencia — solo
-        // cambia qué cuentas se dejan elegir como origen y destino, ya decidido antes
-        // de llegar aquí — así que pide el mismo endpoint.
+        const client = this.injector.get(FinanceApiClient);
         const operation = await firstValueFrom(
           input.kind === 'payment'
-            ? this.injector.get(FinanceApiClient).createCardPayment({
+            ? client.createCardPayment({
                 date: input.date,
                 amount,
                 account: input.accountId,
-                card: input.targetId,
+                card: input.targetId!,
                 description: input.description,
                 idempotencyKey,
               })
-            : this.injector.get(FinanceApiClient).createTransfer({
-                date: input.date,
-                amount,
-                sourceAccount: input.accountId,
-                destinationAccount: input.targetId,
-                description: input.description,
-                idempotencyKey,
-              }),
+            : input.kind === 'advance'
+              ? client.createCashAdvance({
+                  date: input.date,
+                  amount,
+                  card: input.accountId,
+                  account: input.targetId!,
+                  description: input.description,
+                  idempotencyKey,
+                })
+              : client.createTransfer({
+                  date: input.date,
+                  amount,
+                  sourceAccount: input.accountId,
+                  destinationAccount: input.targetId!,
+                  description: input.description,
+                  idempotencyKey,
+                }),
         );
         // Transferencia y avance no son su propia clase de movimiento: la pata que sale
         // es un gasto y la que entra un ingreso, con `movementSubtype` como única marca
@@ -384,6 +458,13 @@ export class AppStore {
       }
       const isIncome = input.kind === 'income';
       const isCard = account.type === 'credit';
+      // El formulario guarda categoría y persona por nombre —es lo que ve y elige
+      // quien lo usa—, pero el backend solo acepta enlaces por id. Sin resolverlos
+      // aquí, el POST se enviaba sin `category` ni `counterparty`: la copia
+      // optimista sí los mostraba y, al recargar, el movimiento reaparecía «Sin
+      // categoría» y sin persona, sin forma de recuperarlo desde la interfaz.
+      const categoria = this.categories().find((item) => item.name === input.category);
+      const persona = this.data().people.find((item) => item.name === input.person);
       const created = await firstValueFrom(
         this.injector.get(FinanceApiClient).createMovement({
           date: input.date,
@@ -394,7 +475,11 @@ export class AppStore {
             amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
             currency: input.originalCurrency ?? account.currency,
           },
-          links: isCard ? { card: input.accountId } : { account: input.accountId },
+          links: {
+            ...(isCard ? { card: input.accountId } : { account: input.accountId }),
+            ...(categoria ? { category: categoria.id } : {}),
+            ...(persona ? { counterparty: persona.id } : {}),
+          },
           rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
           rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
           description: input.description,
@@ -408,12 +493,15 @@ export class AppStore {
         date: created.date,
         description: created.description ?? input.description,
         accountId: input.accountId,
-        category: input.category,
+        // Lo que vale es lo que guardó el servidor: su nombre de categoría y de
+        // persona es el que sobrevive a la recarga, y el enlace de contraparte es
+        // lo que decide si el movimiento es un préstamo («prestado») o propio.
+        category: created.linkNames['category']?.name ?? input.category,
         kind: input.kind as Movement['kind'],
         amount: parseMoney(created.amount.base) * sign,
         status: 'confirmed',
-        person: input.person,
-        ownership: input.person ? 'loaned' : (input.ownership ?? 'own'),
+        person: created.linkNames['counterparty']?.name ?? input.person,
+        ownership: created.links['counterparty'] ? 'loaned' : 'own',
         recurring: input.recurring === true || input.recurring === 'true',
         loanRole: input.loanRole,
         loanProduct: input.loanProduct,
@@ -495,10 +583,10 @@ export class AppStore {
     credit?: { limit: number; cutDay: number; dueDay: number },
   ) {
     if (this.runtime.mode === 'api') {
-      if (opening < 0) throw new Error('El saldo inicial remoto debe ser cero o positivo.');
+      if (opening < 0) throw new Error(this.i18n.t('form.account.error.openingNegative'));
       const client = this.injector.get(FinanceApiClient);
       if (type === 'credit') {
-        if (!credit || credit.limit <= 0) throw new Error('Introduce un cupo válido para la tarjeta.');
+        if (!credit || credit.limit <= 0) throw new Error(this.i18n.t('form.account.error.creditLimit'));
         const created = await firstValueFrom(
           client.createCard({
             name,
@@ -538,7 +626,10 @@ export class AppStore {
         this.log('Tarjeta creada en la API', false);
         return;
       }
-      const accountRequest = { name, kind: type === 'cash' ? 1 : 3, currency, lastFour: '0000' };
+      // El `kind` del contrato sale del tipo de vista. Antes eran dos números escritos a
+      // mano (`cash ? 1 : 3`), de modo que una cuenta corriente, una billetera u otra se
+      // abrian como ahorro sin que nadie lo pidiera.
+      const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: '0000' };
       const openingResult =
         opening === 0
           ? null
@@ -609,7 +700,9 @@ export class AppStore {
               ...d.movements,
               {
                 id: crypto.randomUUID(),
-                date: '2026-08-31',
+                // Hoy, como hace la rama remota con `date: new Date()...`: el movimiento
+                // de apertura es un hecho de ahora, no de la ultima fecha escrita en el codigo.
+                date: todayIso(),
                 description: 'Saldo de apertura · ' + name,
                 accountId: id,
                 category: 'Apertura',
@@ -677,6 +770,154 @@ export class AppStore {
     this.form.set(null);
     this.log(`Persona ${name} creada`);
   }
+  async updateAccount(
+    account: Account,
+    changes: { name: string; lastFour?: string; credit?: { limit: number; cutDay: number; dueDay: number } },
+  ) {
+    const name = changes.name.trim();
+    if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+    const lastFour = changes.lastFour?.trim() || undefined;
+    if (lastFour && !/^\d{4}$/.test(lastFour)) throw new Error(this.i18n.t('form.account.error.lastFour'));
+    const credito = account.type === 'credit' ? changes.credit : undefined;
+    if (account.type === 'credit' && (!credito || credito.limit <= 0))
+      throw new Error(this.i18n.t('form.account.error.creditLimit'));
+    if (this.runtime.mode === 'api') {
+      const client = this.injector.get(FinanceApiClient);
+      if (credito) {
+        const actual = (await firstValueFrom(client.cards())).find((card) => card.id === account.id);
+        if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+        await firstValueFrom(
+          client.updateCard(account.id, {
+            name,
+            creditLimit: { amount: String(credito.limit), currency: actual.currency },
+            cycle: { statementDay: credito.cutDay, paymentDueDay: credito.dueDay },
+            terms: actual.terms,
+            issuer: actual.issuer,
+            lastFour: lastFour ?? null,
+            isActive: actual.isActive,
+          }),
+        );
+      } else {
+        const actual = (await firstValueFrom(client.accounts())).find((item) => item.id === account.id);
+        if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+        await firstValueFrom(
+          client.updateAccount(account.id, {
+            name,
+            institution: actual.institution,
+            lastFour: lastFour ?? null,
+            isDefault: actual.isDefault,
+            isActive: actual.isActive,
+          }),
+        );
+      }
+    }
+    const actualizada: Account = {
+      ...account,
+      name,
+      lastFour,
+      ...(credito ? { limit: credito.limit, cutDay: credito.cutDay, dueDay: credito.dueDay } : {}),
+    };
+    this.data.update((data) => ({
+      ...data,
+      accounts: data.accounts.map((item) => (item.id === account.id ? actualizada : item)),
+    }));
+    this.form.set(null);
+    this.log(`${account.type === 'credit' ? 'Tarjeta' : 'Cuenta'} ${name} actualizada`, false);
+  }
+  async updateCategory(id: string, changes: { name: string; color: string; icon: string }) {
+    const name = changes.name.trim();
+    if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+    const actual = this.categories().find((category) => category.id === id);
+    if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+    const guardada =
+      this.runtime.mode === 'api'
+        ? await firstValueFrom(
+            this.injector.get(FinanceApiClient).updateCategory(id, {
+              name,
+              color: changes.color,
+              icon: changes.icon,
+              parent: actual.parent,
+              isActive: actual.isActive,
+            }),
+          )
+        : { ...actual, name, color: changes.color, icon: changes.icon };
+    this.categories.update((items) => items.map((item) => (item.id === id ? guardada : item)));
+    if (actual.name !== guardada.name)
+      this.data.update((data) => ({
+        ...data,
+        movements: data.movements.map((movement) =>
+          movement.category === actual.name ? { ...movement, category: guardada.name } : movement,
+        ),
+      }));
+    this.form.set(null);
+    this.log(`Categoría ${guardada.name} actualizada`);
+  }
+  async updatePerson(
+    id: string,
+    changes: { name: string; email?: string; relationship?: import('./demo-data').Person['relationship'] },
+  ) {
+    const name = changes.name.trim();
+    if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+    const actual = this.data().people.find((person) => person.id === id);
+    if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+    const email = changes.email?.trim() || undefined;
+    if (this.runtime.mode === 'api') {
+      const client = this.injector.get(FinanceApiClient);
+      const remota = (await firstValueFrom(client.people())).find((person) => person.id === id);
+      if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
+      await firstValueFrom(
+        client.updatePerson(id, {
+          displayName: name,
+          alias: remota.alias,
+          email: email ?? null,
+          phone: remota.phone,
+          notes: remota.notes,
+          isActive: remota.isActive,
+        }),
+      );
+    }
+    this.data.update((data) => ({
+      ...data,
+      people: data.people.map((person) =>
+        person.id === id
+          ? { ...person, name, email, relationship: changes.relationship ?? person.relationship }
+          : person,
+      ),
+      movements: data.movements.map((movement) =>
+        movement.person === actual.name ? { ...movement, person: name } : movement,
+      ),
+    }));
+    this.form.set(null);
+    this.log(`Persona ${name} actualizada`);
+  }
+  async updateInvestment(id: string, changes: { name: string; instrumentType: string }) {
+    const name = changes.name.trim();
+    if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+    if (!this.data().investments.some((investment) => investment.id === id))
+      throw new Error(this.i18n.t('form.error.notFound'));
+    if (this.runtime.mode === 'api') {
+      const client = this.injector.get(FinanceApiClient);
+      const remota = (await firstValueFrom(client.investments())).find((investment) => investment.id === id);
+      if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
+      await firstValueFrom(
+        client.updateInvestment(id, {
+          name,
+          instrumentType: changes.instrumentType,
+          risk: remota.risk ?? 2,
+          symbol: remota.symbol ?? null,
+          isActive: remota.isActive,
+        }),
+      );
+    }
+    this.data.update((data) => ({
+      ...data,
+      investments: data.investments.map((investment) =>
+        investment.id === id ? { ...investment, name, type: changes.instrumentType } : investment,
+      ),
+    }));
+    this.form.set(null);
+    this.log(`Inversión ${name} actualizada`);
+  }
   async createInvestment(name: string, instrumentType: string, currency: string) {
     if (this.runtime.mode === 'api') {
       const created = await firstValueFrom(
@@ -726,7 +967,7 @@ export class AppStore {
   async createRecurrence(name: string, amount: number, accountId: string, frequency: number, start: string) {
     if (this.runtime.mode === 'api') {
       const account = this.account(accountId);
-      if (!account) throw new Error('Selecciona una cuenta válida.');
+      if (!account) throw new Error(this.i18n.t('form.recurrence.error.accountInvalid'));
       await firstValueFrom(
         this.injector.get(FinanceApiClient).createRecurrence({
           name,

@@ -5,6 +5,8 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
+import { CategoryIconComponent } from '../../ui/category-icon/category-icon';
+import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
 import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api/api-client';
 import { IconComponent } from '../../ui/icon/icon';
@@ -12,12 +14,22 @@ import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { P } from '../../core/session/permissions';
 import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
 import { DEFAULT_PALETTE, clearPaletteOverrides } from '../../core/state/theme';
-import { applyTheme, CAPABILITIES, AppStore } from '../../core/state/store';
+import { applyTheme, CAPABILITIES, AppStore, FEATURES } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
 
 @Component({
   selector: 'app-preferences-tab',
-  imports: [FormsModule, HlmButton, HlmCard, HlmInput, HlmLabel, IconComponent, UiSelectComponent],
+  imports: [
+    CategoryIconComponent,
+    FormsModule,
+    HlmButton,
+    HlmCard,
+    HlmInput,
+    HlmLabel,
+    HlmSliderImports,
+    IconComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './preferences-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -25,6 +37,7 @@ import { I18nService } from '../../core/i18n';
 export class PreferencesTabComponent implements OnInit {
   readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
+  readonly features = inject(FEATURES);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
@@ -44,6 +57,22 @@ export class PreferencesTabComponent implements OnInit {
     if (key === 'accent') this.setAccent(value);
     else this.setThemeValue(key, value);
   }
+  readonly categoryGroups = computed(() =>
+    [
+      { type: 2, label: this.i18n.t('preferences.categories.expense') },
+      { type: 1, label: this.i18n.t('preferences.categories.income') },
+    ]
+      .map((grupo) => ({
+        ...grupo,
+        items: this.store
+          .categories()
+          .filter((category) => category.type === grupo.type && category.isActive)
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name)),
+      }))
+      .filter((grupo) => grupo.items.length),
+  );
+
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }

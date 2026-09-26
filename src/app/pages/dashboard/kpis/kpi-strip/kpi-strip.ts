@@ -16,6 +16,8 @@ import { KpiComponent } from '../../../../ui/kpi/kpi';
 import { FlowItem, KPI_MIN_COLS } from '../../layout/dashboard-layout';
 import { FlowResize } from '../../layout/dashboard-layout.service';
 import { FlowItemComponent } from '../../layout/flow-item/flow-item';
+import { KpiRanges, KpiStatus } from '../kpi-ranges';
+import { KpiRangesEditorComponent } from '../kpi-ranges-editor/kpi-ranges-editor';
 
 export interface KpiCardConfig {
   key?: string;
@@ -27,6 +29,10 @@ export interface KpiCardConfig {
   series: readonly number[];
   delta: number | null;
   subirEsBueno: boolean;
+  progress?: number | null;
+  status?: KpiStatus | null;
+  caption?: string;
+  ranges?: KpiRanges | null;
 }
 
 export interface CustomKpiCardConfig extends KpiCardConfig {
@@ -48,7 +54,7 @@ export const CUSTOM_KPI_PREFIX = 'custom:';
 
 @Component({
   selector: 'fin-kpi-strip',
-  imports: [HlmButton, CdkDropList, FlowItemComponent, KpiComponent, IconComponent],
+  imports: [HlmButton, CdkDropList, FlowItemComponent, KpiComponent, IconComponent, KpiRangesEditorComponent],
   templateUrl: './kpi-strip.html',
   host: { style: 'display: contents' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -68,6 +74,7 @@ export class KpiStripComponent {
   readonly drop = output<{ from: number; to: number }>();
   @Output() readonly removeKpi = new EventEmitter<string>();
   @Output() readonly openCreator = new EventEmitter<void>();
+  readonly rangesChange = output<{ id: string; ranges: KpiRanges | null | undefined }>();
 
   private readonly cards = computed(() => {
     const map = new Map<string, { card: KpiCardConfig; customId: string | null }>();

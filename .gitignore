@@ -11,3 +11,5 @@ Thumbs.db
 .agents/
 .claude/
 skills-lock.json
+
+docs/diagramas/.verificacion/

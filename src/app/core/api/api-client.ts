@@ -4,7 +4,13 @@ import { AdministrationApi } from './administration.api';
 import { CardsApi } from './cards.api';
 import { CategoriesApi } from './categories.api';
 import { InvestmentsApi } from './investments.api';
-import { LedgerApi } from './ledger.api';
+import {
+  CreateCardPaymentBody,
+  CreateCashAdvanceBody,
+  CreateMovementBody,
+  CreateTransferBody,
+  LedgerApi,
+} from './ledger.api';
 import { NotificationsApi } from './notifications.api';
 import { ObligationsApi } from './obligations.api';
 import { PeopleApi } from './people.api';
@@ -24,24 +30,23 @@ export type { ApiRequest, ApiTransport, ApiProblem } from '../http/api-http-clie
 
 // Tabla de rutas y tipos compartidos, movidos a core/api/.
 export { API_ROUTES } from './api-routes';
-export { MOVEMENT_REPOSITORY } from './shared-api-types';
-export type {
-  ApiPage,
-  MovementQuery,
-  ApiMoney,
-  ApiMovementSummary,
-  ApiLinkRef,
-  ApiConvertedMoney,
-  MovementRepository,
-} from './shared-api-types';
+export type { ApiPage, MovementQuery, ApiMoney, ApiLinkRef, ApiConvertedMoney } from './shared-api-types';
 
 // DTOs y clientes por recurso: uno por feature, igual que en el backend.
 export { SessionApi } from './session.api';
-export type { ApiUser, ApiOrganization, ApiSession } from './session.api';
-export { AccountsApi, ApiAccountKind } from './accounts.api';
-export type { ApiAccount, ApiAccountOpening } from './accounts.api';
+export type { ApiUser, ApiOrganization, ApiSession, ApiCurrency, ApiAuthMethods } from './session.api';
+export { AccountsApi, ApiAccountKind, accountKindToViewType, viewTypeToAccountKind } from './accounts.api';
+export type { ApiAccount, ApiAccountOpening, AccountViewType, AccountKindViewType } from './accounts.api';
 export { LedgerApi } from './ledger.api';
-export type { ApiMovement, ApiOperation } from './ledger.api';
+export type {
+  ApiMovement,
+  ApiOperation,
+  CreateMovementBody,
+  CreateMovementLinks,
+  CreateTransferBody,
+  CreateCardPaymentBody,
+  CreateCashAdvanceBody,
+} from './ledger.api';
 export { CardsApi } from './cards.api';
 export type { ApiCard } from './cards.api';
 export { CategoriesApi } from './categories.api';
@@ -101,6 +106,9 @@ export class FinanceApiClient {
   session() {
     return this.sessionApi.session();
   }
+  currencies() {
+    return this.sessionApi.currencies();
+  }
   movementKinds() {
     return this.ledgerApi.movementKinds();
   }
@@ -109,6 +117,12 @@ export class FinanceApiClient {
   }
   logout() {
     return this.sessionApi.logout();
+  }
+  authMethods() {
+    return this.sessionApi.authMethods();
+  }
+  loginWithPassword(userName: string, password: string) {
+    return this.sessionApi.loginWithPassword(userName, password);
   }
   createAccount(...args: Parameters<AccountsApi['createAccount']>) {
     return this.accountsApi.createAccount(...args);
@@ -125,6 +139,9 @@ export class FinanceApiClient {
   createCard(...args: Parameters<CardsApi['createCard']>) {
     return this.cardsApi.createCard(...args);
   }
+  updateCard(...args: Parameters<CardsApi['updateCard']>) {
+    return this.cardsApi.updateCard(...args);
+  }
   cardStatus(id: string, asOf?: string) {
     return this.cardsApi.cardStatus(id, asOf);
   }
@@ -134,11 +151,17 @@ export class FinanceApiClient {
   createCategory(...args: Parameters<CategoriesApi['createCategory']>) {
     return this.categoriesApi.createCategory(...args);
   }
+  updateCategory(...args: Parameters<CategoriesApi['updateCategory']>) {
+    return this.categoriesApi.updateCategory(...args);
+  }
   people() {
     return this.peopleApi.people();
   }
   createPerson(...args: Parameters<PeopleApi['createPerson']>) {
     return this.peopleApi.createPerson(...args);
+  }
+  updatePerson(...args: Parameters<PeopleApi['updatePerson']>) {
+    return this.peopleApi.updatePerson(...args);
   }
   debts() {
     return this.peopleApi.debts();
@@ -152,6 +175,9 @@ export class FinanceApiClient {
   createInvestment(...args: Parameters<InvestmentsApi['createInvestment']>) {
     return this.investmentsApi.createInvestment(...args);
   }
+  updateInvestment(...args: Parameters<InvestmentsApi['updateInvestment']>) {
+    return this.investmentsApi.updateInvestment(...args);
+  }
   dashboard(from?: string, to?: string) {
     return this.reportingApi.dashboard(from, to);
   }
@@ -161,7 +187,7 @@ export class FinanceApiClient {
   movement(id: string) {
     return this.ledgerApi.movement(id);
   }
-  createMovement(request: unknown) {
+  createMovement(request: CreateMovementBody) {
     return this.ledgerApi.createMovement(request);
   }
   reclassifyMovement(...args: Parameters<LedgerApi['reclassifyMovement']>) {
@@ -173,11 +199,14 @@ export class FinanceApiClient {
   updateAccount(...args: Parameters<AccountsApi['updateAccount']>) {
     return this.accountsApi.updateAccount(...args);
   }
-  createTransfer(request: unknown) {
+  createTransfer(request: CreateTransferBody) {
     return this.ledgerApi.createTransfer(request);
   }
-  createCardPayment(request: unknown) {
+  createCardPayment(request: CreateCardPaymentBody) {
     return this.ledgerApi.createCardPayment(request);
+  }
+  createCashAdvance(request: CreateCashAdvanceBody) {
+    return this.ledgerApi.createCashAdvance(request);
   }
   preferences() {
     return this.preferencesApi.preferences();
@@ -241,6 +270,9 @@ export class FinanceApiClient {
   }
   superAdminPermissions() {
     return this.administrationApi.superAdminPermissions();
+  }
+  setPermissionDescription(code: string, description: string | null) {
+    return this.administrationApi.setPermissionDescription(code, description);
   }
   superAdminCapabilities() {
     return this.administrationApi.superAdminCapabilities();

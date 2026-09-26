@@ -24,4 +24,11 @@ export class CategoriesApi {
   createCategory(request: { name: string; type: number; color: string; icon: string; parent?: string | null }) {
     return this.transport.request<ApiCategory>({ method: 'POST', path: API_ROUTES.categories, body: request });
   }
+
+  updateCategory(
+    id: string,
+    request: { name: string; color: string; icon: string; parent: string | null; isActive: boolean },
+  ) {
+    return this.transport.request<ApiCategory>({ method: 'PUT', path: API_ROUTES.category(id), body: request });
+  }
 }

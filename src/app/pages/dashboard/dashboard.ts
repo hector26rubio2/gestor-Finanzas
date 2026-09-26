@@ -6,19 +6,15 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
-import {} from '../../core/state/demo-data';
-import {} from '../../core/i18n';
 import { parseMoney, sumBy } from '../../core/utils/money';
 import { P } from '../../core/session/permissions';
 import { sincronizarConLaUrl } from '../../core/state/url-state';
-import {} from '../../core/state/store';
 import { IconComponent, IconName } from '../../ui/icon/icon';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { ChartComponent } from '../../ui/chart/chart';
-import {} from '../../ui/chart/chart-theme';
 import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
 import { FieldComponent } from '../../ui/field/field';
 import { CategoryBadgeComponent } from '../../ui/category-badge/category-badge';
@@ -35,12 +31,61 @@ import { DashboardLayoutService } from './layout/dashboard-layout.service';
 import { FlowDefault, WIDGET_MIN_COLS } from './layout/dashboard-layout';
 import { FlowItemComponent } from './layout/flow-item/flow-item';
 
-import { Scale, WidgetType, Dimension, Measure, Widget, GENERIC_TYPES, TWO_DIMENSION_TYPES } from './dashboard.model';
+import {
+  Scale,
+  WidgetType,
+  Dimension,
+  Measure,
+  Seleccion,
+  Widget,
+  GENERIC_TYPES,
+  TWO_DIMENSION_TYPES,
+} from './dashboard.model';
 import { DashboardKpis } from './dashboard-kpis';
+import type { Movement } from '../../core/state/demo-data';
+import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo } from '../../shared/historia/historia';
+import { KpiRanges, KpiStatus, estadoDe } from './kpis/kpi-ranges';
+
+type KpiStatusValue = KpiStatus | null;
 import { buildWidgetCatalog } from './dashboard-widget-catalog';
-import {} from './dashboard-chart-style';
 
 const KPI_HEIGHT = 120;
+
+function isoDe(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+function rangoDe(ancla: string, escala: Scale): { start: string; end: string } {
+  const a = new Date(`${ancla}T12:00:00`);
+  let start: Date, end: Date;
+  if (escala === 'day') {
+    start = new Date(a);
+    end = new Date(a);
+  } else if (escala === 'week') {
+    const offset = (a.getDay() + 6) % 7;
+    start = new Date(a);
+    start.setDate(a.getDate() - offset);
+    end = new Date(start);
+    end.setDate(start.getDate() + 6);
+  } else if (escala === 'month') {
+    start = new Date(a.getFullYear(), a.getMonth(), 1, 12);
+    end = new Date(a.getFullYear(), a.getMonth() + 1, 0, 12);
+  } else {
+    start = new Date(a.getFullYear(), 0, 1, 12);
+    end = new Date(a.getFullYear(), 11, 31, 12);
+  }
+  return { start: isoDe(start), end: isoDe(end) };
+}
+
+function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
+  const date = new Date(`${ancla}T12:00:00`);
+  if (escala === 'year') date.setFullYear(date.getFullYear() + pasos);
+  else if (escala === 'month') {
+    date.setDate(1);
+    date.setMonth(date.getMonth() + pasos);
+  } else date.setDate(date.getDate() + pasos * (escala === 'week' ? 7 : 1));
+  return isoDe(date);
+}
 
 @Component({
   imports: [
@@ -97,7 +142,7 @@ export class DashboardComponent extends DashboardKpis {
 
   private disenoPorDefecto(widget: Widget): FlowDefault {
     const full = (widget.wide || widget.type === 'table') && widget.type !== 'indicator';
-    const heights: Partial<Record<WidgetType, number>> = { table: 520, card: 140, gauge: 340, heatmap: 300 };
+    const heights: Partial<Record<WidgetType, number>> = { table: 520, card: 190, gauge: 340, heatmap: 300 };
     return { id: widget.id, cols: full ? 12 : 6, height: heights[widget.type] ?? 360 };
   }
 
@@ -135,6 +180,9 @@ export class DashboardComponent extends DashboardKpis {
       series: readonly number[];
       delta: number | null;
       subirEsBueno: boolean;
+      status: KpiStatusValue;
+      caption: string;
+      ranges: KpiRanges | null;
     }[]
   >(() => {
     const items: {
@@ -147,7 +195,20 @@ export class DashboardComponent extends DashboardKpis {
       series: readonly number[];
       delta: number | null;
       subirEsBueno: boolean;
+      status: KpiStatusValue;
+      caption: string;
+      ranges: KpiRanges | null;
     }[] = [];
+    const fijo = (key: string, formula: 'amount' | 'income' | 'expense' | 'count', valor: number) => {
+      const serie = this.kpiSeriesFor(formula);
+      return {
+        series: serie,
+        delta: this.variacion(serie),
+        status: estadoDe(valor, this.rangosDe(FIXED_KPI_PREFIX + key, formula)),
+        ranges: this.rangosDe(FIXED_KPI_PREFIX + key, formula),
+        caption: serie.length > 1 ? this.historiaEtiqueta() : '',
+      };
+    };
     if (this.caps.allows(P.dashboard.kpi.balance)) {
       items.push({
         key: 'balance',
@@ -156,8 +217,7 @@ export class DashboardComponent extends DashboardKpis {
         tone: 'accent',
         value: this.store.money(this.net()),
         hint: this.periodLabel(),
-        series: this.serieNeta(),
-        delta: this.variacion(this.serieNeta()),
+        ...fijo('balance', 'amount', this.net()),
         subirEsBueno: true,
       });
     }
@@ -169,8 +229,7 @@ export class DashboardComponent extends DashboardKpis {
         tone: 'success',
         value: this.store.money(this.income()),
         hint: this.i18n.t('dashboard.kpi.defaultHint'),
-        series: this.serieIngresos(),
-        delta: this.variacion(this.serieIngresos()),
+        ...fijo('ingresos', 'income', this.income()),
         subirEsBueno: true,
       });
     }
@@ -182,8 +241,7 @@ export class DashboardComponent extends DashboardKpis {
         tone: 'danger',
         value: this.store.money(this.expense()),
         hint: this.i18n.t('dashboard.kpi.defaultHint'),
-        series: this.serieGastos(),
-        delta: this.variacion(this.serieGastos()),
+        ...fijo('gastos', 'expense', this.expense()),
         subirEsBueno: false,
       });
     }
@@ -195,8 +253,7 @@ export class DashboardComponent extends DashboardKpis {
         tone: 'accent',
         value: this.movements().length.toLocaleString(),
         hint: this.i18n.t('dashboard.kpi.count.hint'),
-        series: [],
-        delta: null,
+        ...fijo('recuento', 'count', this.movements().length),
         subirEsBueno: true,
       });
     }
@@ -229,7 +286,7 @@ export class DashboardComponent extends DashboardKpis {
   );
 
   readonly scale = signal<Scale>('month');
-  private readonly anclaPorDefecto = this.store.runtime.mode === 'demo' ? '2026-08-31' : this.iso(new Date());
+  private readonly anclaPorDefecto = this.store.hoy();
   readonly anchor = signal(this.anclaPorDefecto);
   /**
    * Saltar de año a golpe de "‹"/"›" es razonable entre meses vecinos, pero no para ir de
@@ -438,26 +495,46 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'all', label: this.i18n.t('dashboard.filters.allLocal') },
     ...this.localOptions().map((category) => ({ value: category, label: category })),
   ]);
-  readonly range = computed(() => {
-    const a = new Date(`${this.anchor()}T12:00:00`);
-    let start: Date, end: Date;
-    if (this.scale() === 'day') {
-      start = new Date(a);
-      end = new Date(a);
-    } else if (this.scale() === 'week') {
-      const offset = (a.getDay() + 6) % 7;
-      start = new Date(a);
-      start.setDate(a.getDate() - offset);
-      end = new Date(start);
-      end.setDate(start.getDate() + 6);
-    } else if (this.scale() === 'month') {
-      start = new Date(a.getFullYear(), a.getMonth(), 1, 12);
-      end = new Date(a.getFullYear(), a.getMonth() + 1, 0, 12);
-    } else {
-      start = new Date(a.getFullYear(), 0, 1, 12);
-      end = new Date(a.getFullYear(), 11, 31, 12);
+  readonly range = computed(() => rangoDe(this.anchor(), this.scale()));
+  readonly rangosHistoricos = computed(() =>
+    Array.from({ length: PERIODOS_DE_HISTORIA }, (_, indice) =>
+      rangoDe(desplazarAncla(this.anchor(), this.scale(), indice - PERIODOS_DE_HISTORIA + 1), this.scale()),
+    ),
+  );
+  readonly historiaEtiqueta = computed(() =>
+    this.i18n.t(`kpi.history.${this.scale()}`, { count: PERIODOS_DE_HISTORIA }),
+  );
+  readonly seleccion = signal<Seleccion | null>(null);
+  private cumpleSeleccion(m: Movement, conFecha: boolean): boolean {
+    const seleccion = this.seleccion();
+    if (!seleccion) return true;
+    if (seleccion.tipo === 'importe') {
+      const valor = Math.abs(m.amount);
+      return valor >= seleccion.min && valor <= seleccion.max;
     }
-    return { start: this.iso(start), end: this.iso(end) };
+    if (seleccion.dimension === 'date' && !conFecha) return true;
+    return this.dimensionKey(m, seleccion.dimension).label === seleccion.label;
+  }
+  private seleccionSoloDeFecha(): boolean {
+    const seleccion = this.seleccion();
+    return !seleccion || (seleccion.tipo === 'dimension' && seleccion.dimension === 'date');
+  }
+  private coincideConFiltros(m: Movement): boolean {
+    const cuenta = this.store.account(m.accountId);
+    return (
+      (this.accountId() === 'all' || m.accountId === this.accountId()) &&
+      (this.accountType() === 'all' || cuenta?.type === this.accountType()) &&
+      (this.globalCategory() === 'all' || m.category === this.globalCategory()) &&
+      this.cumpleSeleccion(m, false)
+    );
+  }
+  readonly historial = crearHistoriaDeFlujo(this.rangosHistoricos, {
+    incluir: (m) => this.coincideConFiltros(m),
+    usarServidor: () =>
+      this.accountId() === 'all' &&
+      this.accountType() === 'all' &&
+      this.globalCategory() === 'all' &&
+      this.seleccionSoloDeFecha(),
   });
   readonly periodLabel = computed(() => {
     const f = (v: string) =>
@@ -519,7 +596,9 @@ export class DashboardComponent extends DashboardKpis {
     ].sort(),
   );
   readonly movements = computed(() =>
-    this.base().filter((m) => this.globalCategory() === 'all' || m.category === this.globalCategory()),
+    this.base().filter(
+      (m) => (this.globalCategory() === 'all' || m.category === this.globalCategory()) && this.cumpleSeleccion(m, true),
+    ),
   );
   readonly income = computed(() => {
     const remoto = this.remoteAplicable();
@@ -598,7 +677,7 @@ export class DashboardComponent extends DashboardKpis {
         (this.localCategory() === 'all' || m.category === this.localCategory())
       )
         totals.set(m.category, (totals.get(m.category) ?? 0) - m.amount);
-    const total = [...totals.values()].reduce((s, v) => s + v, 0),
+    const total = sumBy([...totals.values()], (value) => value),
       colors = ['#4f46e5', '#e11d48', '#d97706', '#0ea5e9', '#0d9488', '#64748b'];
     return [...totals]
       .sort((a, b) => b[1] - a[1])
@@ -614,16 +693,16 @@ export class DashboardComponent extends DashboardKpis {
       .map((a) => ({
         ...a,
         typeLabel: this.typeLabel(a.type),
-        amount: -this.movements()
-          .filter((m) => m.accountId === a.id && m.kind === 'expense' && !m.movementSubtype && m.amount < 0)
-          .reduce((s, m) => s + m.amount, 0),
+        amount: -sumBy(
+          this.movements().filter(
+            (m) => m.accountId === a.id && m.kind === 'expense' && !m.movementSubtype && m.amount < 0,
+          ),
+          (m) => m.amount,
+        ),
       }))
       .filter((a) => a.amount > 0)
       .sort((a, b) => b.amount - a.amount),
   );
-  readonly serieIngresos = computed(() => this.timeline().map((p) => p.income));
-  readonly serieGastos = computed(() => this.timeline().map((p) => p.expense));
-  readonly serieNeta = computed(() => this.timeline().map((p) => p.income - p.expense));
 
   /**
    * Variacion del ultimo intervalo frente al anterior, en tanto por ciento.
@@ -638,7 +717,8 @@ export class DashboardComponent extends DashboardKpis {
       this.accountId() !== 'all' ||
       this.accountType() !== 'all' ||
       this.globalCategory() !== 'all' ||
-      this.localCategory() !== 'all',
+      this.localCategory() !== 'all' ||
+      this.seleccion() !== null,
   );
   readonly selectedMovement = computed(() => {
     const s = this.store.inspector();
@@ -669,6 +749,44 @@ export class DashboardComponent extends DashboardKpis {
     if (this.accountId() !== 'all' && !this.accountOptions().some((a) => a.id === this.accountId()))
       this.accountId.set('all');
   }
+  alternarCategoria(nombre: string) {
+    this.globalCategory.set(this.globalCategory() === nombre ? 'all' : nombre);
+  }
+  alternarCuenta(id: string) {
+    this.accountId.set(this.accountId() === id ? 'all' : id);
+  }
+  alPulsarPunto(widget: Widget, nombre: string) {
+    this.alPulsarDimension(widget.dimension ?? 'category', nombre);
+  }
+  alPulsarDimension(dimension: Dimension, nombre: string) {
+    if (dimension === 'category') return this.alternarCategoria(nombre);
+    if (dimension === 'account') {
+      const cuenta = this.store.data().accounts.find((a) => a.name === nombre);
+      if (cuenta) this.alternarCuenta(cuenta.id);
+      return;
+    }
+    const actual = this.seleccion();
+    const misma = actual?.tipo === 'dimension' && actual.dimension === dimension && actual.label === nombre;
+    this.seleccion.set(misma ? null : { tipo: 'dimension', dimension, label: nombre });
+  }
+  alPulsarHistograma(nombre: string) {
+    if (this.seleccion()?.tipo === 'importe') return this.seleccion.set(null);
+    const { etiquetas, ancho, cubetas } = this.cubetasDelHistograma();
+    const indice = etiquetas.indexOf(nombre);
+    if (indice < 0) return;
+    const max = indice === cubetas - 1 ? Number.POSITIVE_INFINITY : (indice + 1) * ancho;
+    this.seleccion.set({ tipo: 'importe', min: indice * ancho, max, label: nombre });
+  }
+  alPulsarMovimiento(nombre: string) {
+    const movimiento = this.movements().find((m) => m.id === nombre);
+    if (movimiento) this.inspect({ id: movimiento.id });
+  }
+  readonly seleccionEtiqueta = computed(() => {
+    const seleccion = this.seleccion();
+    if (!seleccion) return '';
+    if (seleccion.tipo === 'importe') return `${this.i18n.t('dashboard.selection.amount')}: ${seleccion.label}`;
+    return `${this.i18n.t(`dashboard.dimension.${seleccion.dimension}`)}: ${seleccion.label}`;
+  });
   promoteCategory() {
     this.globalCategory.set(this.localCategory());
     this.store.log(this.i18n.t('dashboard.log.filterApplied', { value: this.localCategory() }));
@@ -680,6 +798,7 @@ export class DashboardComponent extends DashboardKpis {
     this.accountType.set('all');
     this.globalCategory.set('all');
     this.localCategory.set('all');
+    this.seleccion.set(null);
   }
   hide(id: string) {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
@@ -781,11 +900,7 @@ export class DashboardComponent extends DashboardKpis {
     { key: 'value', label: this.i18n.t('dashboard.table.value') },
   ]);
   shiftPeriod(direction: number) {
-    const date = new Date(`${this.anchor()}T12:00:00`);
-    if (this.scale() === 'year') date.setFullYear(date.getFullYear() + direction);
-    else if (this.scale() === 'month') date.setMonth(date.getMonth() + direction);
-    else date.setDate(date.getDate() + direction * (this.scale() === 'week' ? 7 : 1));
-    this.anchor.set(this.iso(date));
+    this.anchor.set(desplazarAncla(this.anchor(), this.scale(), direction));
   }
   inspect(row: Record<string, unknown>) {
     if (!this.caps.allows(P.dashboard.detalle.ver)) return;

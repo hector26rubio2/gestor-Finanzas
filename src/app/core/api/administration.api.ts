@@ -298,6 +298,14 @@ export class AdministrationApi {
     });
   }
 
+  setPermissionDescription(code: string, description: string | null) {
+    return this.transport.request<void>({
+      method: 'PUT',
+      path: API_ROUTES.superAdminPermission(code),
+      body: { description },
+    });
+  }
+
   superAdminCapabilities() {
     return this.transport.request<readonly ApiCapabilityDescriptor[]>({
       method: 'GET',

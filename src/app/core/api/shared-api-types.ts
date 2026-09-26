@@ -1,5 +1,11 @@
-import { InjectionToken } from '@angular/core';
-import { Observable } from 'rxjs';
+/*
+ * Fichero de tipos compartidos por los clientes de recurso. Aquí vivían
+ * `ApiMovementSummary` y `MovementRepository`/`MOVEMENT_REPOSITORY`: estaban declarados y
+ * exportados, pero nadie los usaba, y su contrato no coincidía con el real
+ * (`occurredOn`/`money`/`kind: string` frente a `date`/`amount`/enum numérico). Código
+ * muerto que engaña a quien lo lea, así que se retiró: el resumen de movimiento real es
+ * `ApiMovement`, en `ledger.api.ts`, y las consultas pasan por `MovementQuery` de aquí.
+ */
 
 export interface ApiPage<T> {
   items: readonly T[];
@@ -16,24 +22,13 @@ export interface MovementQuery {
   period?: string;
   accountId?: string;
   search?: string;
+  filter?: Readonly<Record<string, unknown>>;
 }
 
 /** API-facing money never uses JavaScript floating point. */
 export interface ApiMoney {
   amount: string;
   currency: string;
-}
-
-export interface ApiMovementSummary {
-  id: string;
-  occurredOn: string;
-  description: string;
-  accountId: string;
-  kind: string;
-  flow: string;
-  effect: string;
-  money: ApiMoney;
-  status: string;
 }
 
 export interface ApiLinkRef {
@@ -48,13 +43,8 @@ export interface ApiConvertedMoney {
   rateAsOf: string;
 }
 
-export interface MovementRepository {
-  list(query: MovementQuery): Observable<ApiPage<ApiMovementSummary>>;
-}
-
-export const MOVEMENT_REPOSITORY = new InjectionToken<MovementRepository>('MOVEMENT_REPOSITORY');
-
 export function monthRange(period: string): { start: string; end: string } {
+  if (/^\d{4}$/.test(period)) return { start: `${period}-01-01`, end: `${period}-12-31` };
   const match = /^(\d{4})-(\d{2})$/.exec(period);
   if (!match) throw new Error('El periodo debe usar el formato AAAA-MM.');
   const year = Number(match[1]);

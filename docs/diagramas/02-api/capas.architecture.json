@@ -1,0 +1,320 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "API Finanzas: capas, sesión y datos",
+    "output": "capas.html",
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "peticion",
+        "label": "Camino de una petición",
+        "focus": [
+          "cliente",
+          "host",
+          "aplicacion",
+          "infraestructura",
+          "postgres"
+        ],
+        "note": "El Host autoriza por permiso, la Application despacha el caso de uso y la Infrastructure toca PostgreSQL."
+      },
+      {
+        "id": "identidad",
+        "label": "Identidad y avisos",
+        "focus": [
+          "cliente",
+          "host",
+          "google",
+          "eventos"
+        ],
+        "note": "Google resuelve la identidad contra el Host; el canal de accesos obliga a releer la sesión cuando cambian los permisos."
+      },
+      {
+        "id": "sin-base",
+        "label": "Arranque sin base de datos",
+        "focus": [
+          "aplicacion",
+          "demostracion",
+          "infraestructura"
+        ],
+        "note": "Sin cadena de conexión monta el almacén de demostración, y lo que necesita la base responde 503 en vez de reventar."
+      }
+    ],
+    "animation": "trace",
+    "repository": {
+      "url": "https://github.com/hector26rubio2/v2-api-finanzas",
+      "revision": "2d482d5f12592a20a267ece5d9a87c79f6564ad3"
+    }
+  },
+  "components": [
+    {
+      "id": "cliente",
+      "type": "external",
+      "label": "Cliente Angular",
+      "sublabel": "GitHub Pages",
+      "pos": [
+        40,
+        300
+      ],
+      "size": [
+        170,
+        60
+      ],
+      "brand": "angular"
+    },
+    {
+      "id": "google",
+      "type": "security",
+      "label": "Google",
+      "sublabel": "OpenID Connect",
+      "pos": [
+        390,
+        110
+      ],
+      "size": [
+        170,
+        60
+      ]
+    },
+    {
+      "id": "host",
+      "type": "backend",
+      "label": "Finanzas.Host",
+      "sublabel": "APIs mínimas y permisos",
+      "pos": [
+        390,
+        300
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Host/Program.cs"
+        },
+        {
+          "path": "src/Finanzas.Host/FinanceEndpoints.cs"
+        },
+        {
+          "path": "src/Finanzas.Host/Security.cs"
+        }
+      ]
+    },
+    {
+      "id": "aplicacion",
+      "type": "backend",
+      "label": "Finanzas.Application",
+      "sublabel": "mediador y tubería",
+      "pos": [
+        750,
+        300
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Application/Mediator.cs"
+        },
+        {
+          "path": "src/Finanzas.Application/Pipeline.cs"
+        }
+      ]
+    },
+    {
+      "id": "infraestructura",
+      "type": "backend",
+      "label": "Finanzas.Infrastructure",
+      "sublabel": "EF Core",
+      "pos": [
+        1090,
+        300
+      ],
+      "size": [
+        190,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Infrastructure/DependencyInjection.cs"
+        },
+        {
+          "path": "src/Finanzas.Infrastructure/Persistence/FinanzasDbContext.cs"
+        }
+      ]
+    },
+    {
+      "id": "postgres",
+      "type": "database",
+      "label": "PostgreSQL",
+      "sublabel": "un espacio por organización",
+      "pos": [
+        1090,
+        540
+      ],
+      "size": [
+        190,
+        60
+      ],
+      "brand": "postgresql"
+    },
+    {
+      "id": "demostracion",
+      "type": "backend",
+      "label": "Almacén de demostración",
+      "sublabel": "datos en memoria",
+      "pos": [
+        750,
+        540
+      ],
+      "size": [
+        190,
+        60
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Application/DemoFinanceStore.cs"
+        }
+      ]
+    },
+    {
+      "id": "eventos",
+      "type": "messagebus",
+      "label": "Canal de accesos",
+      "sublabel": "SSE /api/v1/events",
+      "pos": [
+        390,
+        540
+      ],
+      "size": [
+        180,
+        60
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Infrastructure/Persistence/AccessNotifier.cs"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Render",
+      "wraps": [
+        "host",
+        "aplicacion",
+        "infraestructura",
+        "postgres",
+        "demostracion",
+        "eventos"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Cookie __Host-Finanzas-Session + X-CSRF-Token",
+      "wraps": [
+        "host"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "rest",
+      "from": "cliente",
+      "to": "host",
+      "label": "REST con cookie y CSRF",
+      "variant": "emphasis"
+    },
+    {
+      "id": "oidc",
+      "from": "host",
+      "to": "google",
+      "label": "OpenID Connect con PKCE",
+      "variant": "security",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDy": -70
+    },
+    {
+      "id": "casos",
+      "from": "host",
+      "to": "aplicacion",
+      "label": "despacha el caso de uso"
+    },
+    {
+      "id": "persistencia",
+      "from": "aplicacion",
+      "to": "infraestructura",
+      "label": "lee y escribe"
+    },
+    {
+      "id": "sql",
+      "from": "infraestructura",
+      "to": "postgres",
+      "label": "SQL con EF Core",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 80
+    },
+    {
+      "id": "sin-base",
+      "from": "aplicacion",
+      "to": "demostracion",
+      "label": "sin cadena de conexión",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 80
+    },
+    {
+      "id": "publica",
+      "from": "host",
+      "to": "eventos",
+      "label": "publica cambios de acceso",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 80
+    },
+    {
+      "id": "avisa",
+      "from": "eventos",
+      "to": "cliente",
+      "label": "avisa por SSE: relee la sesión",
+      "variant": "dashed",
+      "fromSide": "left",
+      "toSide": "bottom"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "Capas",
+      "items": [
+        "Host expone las APIs mínimas y exige el permiso de cada endpoint",
+        "Application despacha por mediador con su tubería",
+        "Infrastructure aísla EF Core y PostgreSQL"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Sesión y permisos",
+      "items": [
+        "Google resuelve la identidad; el Host emite la cookie",
+        "Los permisos viajan como claims y se revalidan en cada petición",
+        "Cambiar un rol avisa por el canal de accesos"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Sin base de datos",
+      "items": [
+        "Sin cadena de conexión arranca el almacén de demostración",
+        "La administración responde 503 persistence.unavailable",
+        "El catálogo de banderas es el mismo en los dos almacenes"
+      ]
+    }
+  ]
+}

@@ -1,16 +1,20 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { IconComponent } from '../../../ui/icon/icon';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { FinanceApiClient } from '../../../core/api/api-client';
+import type { ApiSharedPurchase } from '../../../core/api/purchases.api';
+import type { ApiSettlement } from '../../../core/api/settlements.api';
+import { parseMoney } from '../../../core/utils/money';
 import { I18nService } from '../../../core/i18n';
 import { P } from '../../../core/session/permissions';
+import { permisoParaEditarCuenta } from '../../../features/account-form/account-form';
 import type { Account, Movement } from '../../../core/state/demo-data';
-import { CAPABILITIES, AppStore } from '../../../core/state/store';
-import { formatReturnRate } from '../../../core/utils/money';
+import { CAPABILITIES, AppStore, FEATURES } from '../../../core/state/store';
+import { formatReturnRate, sumBy } from '../../../core/utils/money';
 import { SIN_DATO } from '../../../shared/utils/placeholders';
 import { MovementsBookService } from '../../../shared/movements/movements-book.service';
 import { BankCardComponent } from '../../../ui/bank-card/bank-card';
@@ -39,7 +43,9 @@ export class InspectorComponent {
   readonly i18n = inject(I18nService);
   readonly store = inject(AppStore);
   readonly P = P;
+  readonly parseMoney = parseMoney;
   private readonly capabilities = inject(CAPABILITIES);
+  private readonly features = inject(FEATURES);
   private readonly api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
 
@@ -58,8 +64,7 @@ export class InspectorComponent {
   readonly cardDebt = computed(() => {
     const account = this.selectedAccount();
     return account
-      ? Math.max(0, -this.store.balance(account)) ||
-          this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount), 0)
+      ? Math.max(0, -this.store.balance(account)) || sumBy(this.cardPurchases(), (m) => Math.abs(m.amount))
       : 0;
   });
   readonly paymentAllocation = computed(() => {
@@ -78,7 +83,7 @@ export class InspectorComponent {
       };
     });
   });
-  readonly appliedPayment = computed(() => this.paymentAllocation().reduce((sum, row) => sum + row.applied, 0));
+  readonly appliedPayment = computed(() => sumBy(this.paymentAllocation(), (row) => row.applied));
   /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `table`. */
   readonly paymentAllocationRows = computed(() =>
     this.paymentAllocation().map((row) => ({
@@ -95,11 +100,9 @@ export class InspectorComponent {
     { key: 'applied', label: this.i18n.t('workspace.cardPayment.table.applied') },
     { key: 'after', label: this.i18n.t('workspace.cardPayment.table.balanceAfter') },
   ]);
-  readonly cardStatementPurchases = computed(() =>
-    this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount), 0),
-  );
+  readonly cardStatementPurchases = computed(() => sumBy(this.cardPurchases(), (m) => Math.abs(m.amount)));
   readonly nextInstallments = computed(() =>
-    this.cardPurchases().reduce((sum, m) => sum + Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1), 0),
+    sumBy(this.cardPurchases(), (m) => Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1)),
   );
   /**
    * Interes del proximo corte, compra por compra, con la tasa propia de cada una o —a
@@ -125,7 +128,7 @@ export class InspectorComponent {
         : null;
     });
     if (intereses.every((x) => x === null)) return null;
-    return Math.round(intereses.reduce((sum: number, x) => sum + (x ?? 0), 0));
+    return Math.round(sumBy(intereses, (x) => x ?? 0));
   });
   readonly cardStatementTotal = computed(() =>
     Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
@@ -167,6 +170,9 @@ export class InspectorComponent {
   displayBalance(account: Account): number {
     const value = this.store.balance(account);
     return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
+  }
+  typeCardLabel(type: Account['type']): string {
+    return this.i18n.t(`accounts.cards.type.${type}`);
   }
   readonly selectedPerson = computed(() => this.store.data().people.find((p) => p.id === this.store.inspector()?.id));
   readonly selectedInvestment = computed(() =>
@@ -417,9 +423,70 @@ export class InspectorComponent {
         }),
       );
       this.store.toast.set(this.i18n.t('workspace.messages.settlementIssued', { name: person.name }));
+      void this.cargarHistorialDePersona(person.id);
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.settlementFailed'));
     }
+  }
+  readonly personPurchases = signal<
+    readonly { id: string; date: string; description: string; share: number; total: number }[] | null
+  >(null);
+  readonly personSettlements = signal<readonly ApiSettlement[] | null>(null);
+  private readonly cargaDePersona = effect(() => {
+    const person = this.store.inspector()?.type === 'person' ? this.selectedPerson() : undefined;
+    untracked(() => void this.cargarHistorialDePersona(person?.id ?? null));
+  });
+
+  private async cargarHistorialDePersona(personId: string | null): Promise<void> {
+    this.personPurchases.set(null);
+    this.personSettlements.set(null);
+    if (!personId || this.store.runtime.mode !== 'api' || !this.features.enabled('people.history')) return;
+    const [compras, liquidaciones] = await Promise.allSettled([
+      this.can(P.personas.compras.listar) ? firstValueFrom(this.api.sharedPurchases()) : Promise.resolve(null),
+      this.can(P.personas.liquidaciones.listar) ? firstValueFrom(this.api.settlements()) : Promise.resolve(null),
+    ]);
+    if (this.selectedPerson()?.id !== personId) return;
+    if (compras.status === 'fulfilled' && compras.value)
+      this.personPurchases.set(this.comprasDe(personId, compras.value));
+    if (liquidaciones.status === 'fulfilled' && liquidaciones.value)
+      this.personSettlements.set(
+        liquidaciones.value
+          .filter((settlement) => settlement.counterparty.id === personId)
+          .slice()
+          .sort((a, b) => b.issuedAt.localeCompare(a.issuedAt)),
+      );
+  }
+
+  private comprasDe(personId: string, compras: readonly ApiSharedPurchase[]) {
+    return compras
+      .flatMap((compra) => {
+        const parte = compra.allocation.shares.find((share) => share.share.counterparty.id === personId);
+        return parte
+          ? [
+              {
+                id: compra.id,
+                date: compra.date,
+                description: compra.description ?? compra.card.name,
+                share: parseMoney(parte.amount),
+                total: parseMoney(compra.total),
+              },
+            ]
+          : [];
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  canEditSelectedAccount(): boolean {
+    const account = this.selectedAccount();
+    return !!account && this.can(permisoParaEditarCuenta(account.type));
+  }
+  editSelectedPerson(): void {
+    const person = this.selectedPerson();
+    if (person) this.store.form.set({ kind: 'person', targetId: person.id });
+  }
+  editSelectedInvestment(): void {
+    const investment = this.selectedInvestment();
+    if (investment) this.store.form.set({ kind: 'investment', targetId: investment.id });
   }
   /** Abre el mismo formulario de alta, precargado con la cuenta o tarjeta elegida. */
   editSelectedAccount(): void {

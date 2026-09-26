@@ -23,19 +23,30 @@
         [series]="entry.card.series"
         [delta]="entry.card.delta"
         [subirEsBueno]="entry.card.subirEsBueno"
+        [progress]="entry.card.progress ?? null"
+        [status]="entry.card.status ?? null"
+        [caption]="entry.card.caption ?? ''"
       />
-      @if (entry.customId && canRemove()) {
-      <button
-        hlmBtn
-        variant="ghost"
-        size="icon-xs"
-        type="button"
-        class="absolute top-2 right-2"
-        [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
-        (click)="removeKpi.emit(entry.customId)"
-      >
-        <fin-icon name="close" />
-      </button>
+      @if (resizable()) {
+      <div class="absolute top-2 right-2 z-20 flex items-center gap-0.5 rounded-md bg-card/90">
+        <fin-kpi-ranges-editor
+          [label]="entry.card.label"
+          [ranges]="entry.card.ranges ?? null"
+          (change)="rangesChange.emit({ id: item.id, ranges: $event })"
+        />
+        @if (entry.customId && canRemove()) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-xs"
+          type="button"
+          [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
+          (click)="removeKpi.emit(entry.customId)"
+        >
+          <fin-icon name="close" />
+        </button>
+        }
+      </div>
       }
     </fin-flow-item>
     } }

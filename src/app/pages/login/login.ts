@@ -1,9 +1,13 @@
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
+import { ApiAuthMethods, FinanceApiClient } from '../../core/api/api-client';
+import { ApiRequestError } from '../../core/http/api-http-client';
 import { applyTheme, AppStore, Preferences } from '../../core/state/store';
 import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
 import { IconComponent } from '../../ui/icon/icon';
@@ -11,7 +15,7 @@ import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { I18nService } from '../../core/i18n';
 import { safeReturnPath } from '../../core/session/return-url';
 @Component({
-  imports: [FormsModule, HlmButton, HlmLabel, IconComponent, UiSelectComponent],
+  imports: [FormsModule, HlmButton, HlmInput, HlmLabel, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
 })
@@ -21,7 +25,54 @@ export class LoginComponent {
   private route = inject(ActivatedRoute);
   private remote = inject(RemoteBootstrap);
   private location = inject(Location);
+  private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
+  readonly methods = signal<ApiAuthMethods | null>(null);
+  readonly showGoogle = computed(() => this.methods()?.google ?? true);
+  readonly showPassword = computed(() => this.methods()?.password ?? false);
+  readonly passwordError = signal('');
+  readonly signingIn = signal(false);
+  userName = '';
+  password = '';
+
+  constructor() {
+    if (this.store.runtime.mode === 'api') void this.loadMethods();
+  }
+
+  private async loadMethods(): Promise<void> {
+    try {
+      this.methods.set(await firstValueFrom(this.api.authMethods()));
+    } catch {
+      this.methods.set(null);
+    }
+  }
+
+  async loginWithPassword(): Promise<void> {
+    if (this.signingIn()) return;
+    this.passwordError.set('');
+    if (!this.userName.trim() || !this.password) {
+      this.passwordError.set(this.i18n.t('login.password.required'));
+      return;
+    }
+    this.signingIn.set(true);
+    try {
+      await firstValueFrom(this.api.loginWithPassword(this.userName.trim(), this.password));
+      this.password = '';
+      window.location.assign(`${window.location.origin}${this.location.prepareExternalUrl(this.returnPath())}`);
+    } catch (error) {
+      this.password = '';
+      this.passwordError.set(this.passwordErrorMessage(error));
+      this.signingIn.set(false);
+    }
+  }
+
+  private passwordErrorMessage(error: unknown): string {
+    const status = error instanceof ApiRequestError ? error.status : 0;
+    if (status === 401) return this.i18n.t('login.password.invalid');
+    if (status === 429) return this.i18n.t('login.password.tooMany');
+    if (status === 404 || status === 503) return this.i18n.t('login.password.unavailable');
+    return this.i18n.t('login.password.failed');
+  }
   selectedLocale = this.store.preferences().locale;
   selectedTheme = this.store.preferences().theme;
   readonly languages: readonly UiOption[] = [

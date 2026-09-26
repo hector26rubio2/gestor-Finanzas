@@ -1,0 +1,1555 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Atlas de Finanzas</title>
+    <link rel="icon" href="data:," />
+    <style>
+      :root {
+        --fondo: #f6f7f9;
+        --panel: #ffffff;
+        --panel-2: #f0f2f5;
+        --borde: #e2e5ea;
+        --texto: #16181d;
+        --suave: #5b6270;
+        --tenue: #8a91a0;
+        --acento: #0f766e;
+        --acento-suave: #ccfbf1;
+        --web: #0d9488;
+        --api: #7c3aed;
+        --ok: #15803d;
+        --ok-suave: #dcfce7;
+        --aviso: #b45309;
+        --aviso-suave: #fef3c7;
+        --error: #be123c;
+        --error-suave: #ffe4e6;
+        --sombra: 0 1px 2px rgb(16 24 40 / 6%), 0 4px 16px rgb(16 24 40 / 6%);
+        --radio: 10px;
+        --mono: ui-monospace, 'SF Mono', 'Cascadia Code', Consolas, monospace;
+        color-scheme: light;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme='light']) {
+          --fondo: #0d1015;
+          --panel: #151a21;
+          --panel-2: #1c222b;
+          --borde: #2a313c;
+          --texto: #e8ebf0;
+          --suave: #a7afbd;
+          --tenue: #778092;
+          --acento: #2dd4bf;
+          --acento-suave: #123b37;
+          --web: #2dd4bf;
+          --api: #a78bfa;
+          --ok: #4ade80;
+          --ok-suave: #12311f;
+          --aviso: #fbbf24;
+          --aviso-suave: #3a2c0c;
+          --error: #fb7185;
+          --error-suave: #3b1520;
+          --sombra: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 20px rgb(0 0 0 / 35%);
+          color-scheme: dark;
+        }
+      }
+      :root[data-theme='dark'] {
+        --fondo: #0d1015;
+        --panel: #151a21;
+        --panel-2: #1c222b;
+        --borde: #2a313c;
+        --texto: #e8ebf0;
+        --suave: #a7afbd;
+        --tenue: #778092;
+        --acento: #2dd4bf;
+        --acento-suave: #123b37;
+        --web: #2dd4bf;
+        --api: #a78bfa;
+        --ok: #4ade80;
+        --ok-suave: #12311f;
+        --aviso: #fbbf24;
+        --aviso-suave: #3a2c0c;
+        --error: #fb7185;
+        --error-suave: #3b1520;
+        --sombra: 0 1px 2px rgb(0 0 0 / 40%), 0 6px 20px rgb(0 0 0 / 35%);
+        color-scheme: dark;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+      }
+      body {
+        background: var(--fondo);
+        color: var(--texto);
+        font:
+          14px/1.45 system-ui,
+          -apple-system,
+          'Segoe UI',
+          Roboto,
+          sans-serif;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        overflow: hidden;
+      }
+      a {
+        color: var(--acento);
+        text-decoration: none;
+      }
+      a:hover {
+        text-decoration: underline;
+      }
+      button {
+        font: inherit;
+        color: inherit;
+      }
+      :focus-visible {
+        outline: 2px solid var(--acento);
+        outline-offset: 2px;
+      }
+      .barra {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 10px 16px;
+        background: var(--panel);
+        border-bottom: 1px solid var(--borde);
+        min-width: 0;
+      }
+      .marca {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 650;
+        white-space: nowrap;
+      }
+      .marca svg {
+        color: var(--acento);
+      }
+      .pestanas {
+        display: flex;
+        gap: 2px;
+        background: var(--panel-2);
+        border-radius: 9px;
+        padding: 3px;
+      }
+      .pestanas button {
+        border: 0;
+        background: transparent;
+        padding: 6px 12px;
+        border-radius: 7px;
+        cursor: pointer;
+        color: var(--suave);
+        white-space: nowrap;
+      }
+      .pestanas button[aria-selected='true'] {
+        background: var(--panel);
+        color: var(--texto);
+        box-shadow: var(--sombra);
+      }
+      .pestanas kbd {
+        font: 11px var(--mono);
+        color: var(--tenue);
+        margin-left: 6px;
+      }
+      .buscador {
+        margin-left: auto;
+        position: relative;
+        flex: 0 1 300px;
+        min-width: 120px;
+      }
+      .buscador input {
+        width: 100%;
+        padding: 7px 10px 7px 30px;
+        border: 1px solid var(--borde);
+        border-radius: 8px;
+        background: var(--panel-2);
+        color: var(--texto);
+        font: inherit;
+      }
+      .buscador svg {
+        position: absolute;
+        left: 9px;
+        top: 50%;
+        translate: 0 -50%;
+        color: var(--tenue);
+      }
+      .icono {
+        border: 1px solid var(--borde);
+        background: var(--panel);
+        border-radius: 8px;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        flex: none;
+      }
+      main {
+        min-height: 0;
+        position: relative;
+      }
+      .vista {
+        position: absolute;
+        inset: 0;
+        display: none;
+      }
+      .vista.activa {
+        display: grid;
+      }
+      #vista-diagramas {
+        grid-template-columns: 290px 1fr;
+      }
+      .indice {
+        border-right: 1px solid var(--borde);
+        background: var(--panel);
+        overflow: auto;
+        padding: 10px 8px 24px;
+      }
+      .area {
+        margin-top: 10px;
+      }
+      .area h3 {
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--tenue);
+        margin: 0 8px 4px;
+        font-weight: 600;
+      }
+      .item {
+        display: grid;
+        grid-template-columns: 8px 1fr auto;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        text-align: left;
+        border: 0;
+        background: transparent;
+        padding: 7px 8px;
+        border-radius: 7px;
+        cursor: pointer;
+      }
+      .item:hover {
+        background: var(--panel-2);
+      }
+      .item[aria-current='true'] {
+        background: var(--acento-suave);
+      }
+      .item .nombre {
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        line-height: 1.3;
+      }
+      .punto {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--ok);
+      }
+      .punto.viejo {
+        background: var(--aviso);
+      }
+      .tipo {
+        font: 10.5px var(--mono);
+        color: var(--tenue);
+      }
+      .visor {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-width: 0;
+        min-height: 0;
+      }
+      .visor-cab {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 8px 12px;
+        padding: 10px 16px;
+        border-bottom: 1px solid var(--borde);
+        background: var(--panel);
+      }
+      .visor-cab h1 {
+        font-size: 15px;
+        margin: 0;
+        font-weight: 650;
+      }
+      .visor-cab p {
+        margin: 0;
+        color: var(--suave);
+        flex-basis: 100%;
+        font-size: 13px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: var(--panel-2);
+        border: 1px solid var(--borde);
+        font-size: 12px;
+        color: var(--suave);
+        white-space: nowrap;
+      }
+      .chip.ok {
+        background: var(--ok-suave);
+        color: var(--ok);
+        border-color: transparent;
+      }
+      .chip.aviso {
+        background: var(--aviso-suave);
+        color: var(--aviso);
+        border-color: transparent;
+      }
+      .chip.error {
+        background: var(--error-suave);
+        color: var(--error);
+        border-color: transparent;
+      }
+      button.chip {
+        cursor: pointer;
+      }
+      button.chip:hover {
+        border-color: var(--acento);
+      }
+      .acciones {
+        margin-left: auto;
+        display: flex;
+        gap: 6px;
+      }
+      .boton {
+        border: 1px solid var(--borde);
+        background: var(--panel);
+        padding: 5px 10px;
+        border-radius: 7px;
+        cursor: pointer;
+        font-size: 13px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        white-space: nowrap;
+      }
+      .boton:hover {
+        border-color: var(--acento);
+      }
+      .boton.primario {
+        background: var(--acento);
+        border-color: var(--acento);
+        color: var(--panel);
+      }
+      .modulos-diagrama {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        flex-basis: 100%;
+      }
+      iframe {
+        border: 0;
+        width: 100%;
+        height: 100%;
+        background: var(--fondo);
+      }
+      .fuentes {
+        position: absolute;
+        right: 16px;
+        top: 108px;
+        width: min(460px, calc(100% - 32px));
+        max-height: 60vh;
+        overflow: auto;
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio);
+        box-shadow: var(--sombra);
+        padding: 12px;
+        z-index: 5;
+      }
+      .fuentes[hidden] {
+        display: none;
+      }
+      .fuentes h4 {
+        margin: 0 0 6px;
+        font-size: 12px;
+        color: var(--tenue);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .fuentes ul,
+      .detalle ul {
+        list-style: none;
+        margin: 0 0 10px;
+        padding: 0;
+      }
+      .fuentes li,
+      .detalle li {
+        padding: 3px 0;
+        font: 12.5px var(--mono);
+        overflow-wrap: anywhere;
+      }
+      #vista-grafo {
+        grid-template-columns: 1fr 360px;
+      }
+      .lienzo {
+        position: relative;
+        min-width: 0;
+        min-height: 0;
+        overflow: hidden;
+      }
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        cursor: grab;
+        touch-action: none;
+      }
+      canvas.arrastrando {
+        cursor: grabbing;
+      }
+      .controles {
+        position: absolute;
+        left: 12px;
+        top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+        background: color-mix(in srgb, var(--panel) 92%, transparent);
+        border: 1px solid var(--borde);
+        padding: 8px 10px;
+        border-radius: var(--radio);
+        box-shadow: var(--sombra);
+        max-width: calc(100% - 24px);
+      }
+      .controles label {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--suave);
+        font-size: 12.5px;
+      }
+      .segmentado {
+        display: inline-flex;
+        border: 1px solid var(--borde);
+        border-radius: 7px;
+        overflow: hidden;
+      }
+      .segmentado button {
+        border: 0;
+        background: var(--panel);
+        padding: 4px 9px;
+        cursor: pointer;
+        font-size: 12.5px;
+        color: var(--suave);
+      }
+      .segmentado button[aria-pressed='true'] {
+        background: var(--acento-suave);
+        color: var(--texto);
+      }
+      .leyenda {
+        position: absolute;
+        left: 12px;
+        bottom: 12px;
+        display: flex;
+        gap: 12px;
+        font-size: 12px;
+        color: var(--suave);
+        background: color-mix(in srgb, var(--panel) 90%, transparent);
+        padding: 6px 10px;
+        border-radius: 8px;
+        border: 1px solid var(--borde);
+      }
+      .leyenda i {
+        display: inline-block;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        margin-right: 5px;
+        vertical-align: -1px;
+      }
+      .detalle {
+        border-left: 1px solid var(--borde);
+        background: var(--panel);
+        overflow: auto;
+        padding: 16px;
+      }
+      .detalle h2 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        overflow-wrap: anywhere;
+      }
+      .detalle h4 {
+        margin: 16px 0 6px;
+        font-size: 11px;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--tenue);
+      }
+      .cifras {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .cifra {
+        background: var(--panel-2);
+        border-radius: 8px;
+        padding: 8px 10px;
+      }
+      .cifra b {
+        display: block;
+        font-size: 18px;
+      }
+      .cifra span {
+        color: var(--suave);
+        font-size: 12px;
+      }
+      .vacio {
+        color: var(--suave);
+      }
+      .vacio p {
+        margin: 0 0 10px;
+      }
+      #vista-contratos,
+      #vista-salud {
+        overflow: auto;
+        padding: 16px;
+        align-content: start;
+        gap: 14px;
+      }
+      .tarjetas {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+        gap: 10px;
+      }
+      .tarjeta {
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio);
+        padding: 12px 14px;
+        text-align: left;
+        cursor: pointer;
+      }
+      .tarjeta[aria-pressed='true'] {
+        border-color: var(--acento);
+        box-shadow: 0 0 0 1px var(--acento);
+      }
+      .tarjeta b {
+        display: block;
+        font-size: 22px;
+      }
+      .tarjeta span {
+        color: var(--suave);
+        font-size: 12.5px;
+      }
+      .tabla-caja {
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio);
+        overflow: auto;
+      }
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 13px;
+      }
+      th,
+      td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--borde);
+        vertical-align: top;
+      }
+      th {
+        position: sticky;
+        top: 0;
+        background: var(--panel-2);
+        font-size: 11.5px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--suave);
+        font-weight: 600;
+        z-index: 1;
+      }
+      td code,
+      .mono {
+        font: 12.5px var(--mono);
+        overflow-wrap: anywhere;
+      }
+      .metodo {
+        font: 600 11.5px var(--mono);
+        padding: 2px 6px;
+        border-radius: 5px;
+        background: var(--panel-2);
+      }
+      .metodo.GET {
+        color: var(--ok);
+      }
+      .metodo.POST {
+        color: var(--acento);
+      }
+      .metodo.PUT {
+        color: var(--aviso);
+      }
+      .metodo.DELETE {
+        color: var(--error);
+      }
+      .seccion {
+        background: var(--panel);
+        border: 1px solid var(--borde);
+        border-radius: var(--radio);
+        padding: 14px 16px;
+      }
+      .seccion h2 {
+        margin: 0 0 10px;
+        font-size: 15px;
+      }
+      pre {
+        background: var(--panel-2);
+        border-radius: 8px;
+        padding: 10px 12px;
+        overflow: auto;
+        font: 12.5px var(--mono);
+        margin: 0;
+      }
+      .rejilla-salud {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 14px;
+      }
+      .sr {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+      }
+      @media (max-width: 900px) {
+        body {
+          overflow: auto;
+        }
+        .barra {
+          flex-wrap: wrap;
+        }
+        .pestanas {
+          order: 3;
+          width: 100%;
+          overflow-x: auto;
+        }
+        .pestanas kbd {
+          display: none;
+        }
+        .buscador {
+          flex: 1 1 120px;
+          min-width: 0;
+        }
+        .visor {
+          min-height: 85vh;
+        }
+        iframe {
+          min-height: 75vh;
+        }
+        body {
+          display: block;
+        }
+        .vista {
+          position: relative;
+          inset: auto;
+        }
+        #vista-diagramas,
+        #vista-grafo {
+          grid-template-columns: 1fr;
+          grid-template-rows: auto auto;
+        }
+        #vista-grafo {
+          grid-template-rows: 60vh auto;
+        }
+        .indice {
+          max-height: 34vh;
+          border-right: 0;
+          border-bottom: 1px solid var(--borde);
+        }
+        .detalle {
+          border-left: 0;
+          border-top: 1px solid var(--borde);
+        }
+        .acciones {
+          margin-left: 0;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="barra">
+      <div class="marca">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <circle cx="5" cy="6" r="2.5" />
+          <circle cx="19" cy="6" r="2.5" />
+          <circle cx="12" cy="18" r="2.5" />
+          <path d="M7.2 7.3 10.6 16M16.8 7.3 13.4 16M7.5 6h9" />
+        </svg>
+        Atlas de Finanzas
+      </div>
+      <nav class="pestanas" role="tablist" aria-label="Vistas">
+        <button role="tab" data-vista="diagramas" id="tab-diagramas">Diagramas<kbd>1</kbd></button>
+        <button role="tab" data-vista="grafo" id="tab-grafo">Grafo de código<kbd>2</kbd></button>
+        <button role="tab" data-vista="contratos" id="tab-contratos">Contratos web ↔ API<kbd>3</kbd></button>
+        <button role="tab" data-vista="salud" id="tab-salud">Salud<kbd>4</kbd></button>
+      </nav>
+      <label class="buscador">
+        <span class="sr">Buscar</span>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.4"
+          aria-hidden="true"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="m20 20-3.5-3.5" />
+        </svg>
+        <input id="buscar" type="search" placeholder="Buscar  /" autocomplete="off" />
+      </label>
+      <button class="icono" id="tema" type="button" aria-label="Cambiar tema" title="Cambiar tema">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          aria-hidden="true"
+        >
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
+        </svg>
+      </button>
+    </header>
+    <main>
+      <section class="vista" id="vista-diagramas" role="tabpanel" aria-labelledby="tab-diagramas">
+        <nav class="indice" id="indice" aria-label="Diagramas por área"></nav>
+        <div class="visor">
+          <div class="visor-cab" id="visor-cab"></div>
+          <iframe id="marco" title="Diagrama"></iframe>
+        </div>
+        <div class="fuentes" id="fuentes" hidden></div>
+      </section>
+      <section class="vista" id="vista-grafo" role="tabpanel" aria-labelledby="tab-grafo">
+        <div class="lienzo">
+          <canvas id="lienzo" aria-label="Grafo de módulos del código"></canvas>
+          <div class="controles">
+            <div class="segmentado" role="group" aria-label="Repositorio">
+              <button data-repo="ambos" aria-pressed="true">Ambos</button>
+              <button data-repo="web" aria-pressed="false">Web</button>
+              <button data-repo="api" aria-pressed="false">API</button>
+            </div>
+            <label
+              >Llamadas mín. <input id="minimo" type="range" min="1" max="20" value="1" />
+              <b id="minimo-valor">1</b></label
+            >
+            <label><input id="etiquetas" type="checkbox" checked /> Nombres</label>
+            <button class="boton" id="reordenar" type="button">Reordenar</button>
+          </div>
+          <div class="leyenda">
+            <span><i style="background: var(--web)"></i>Web</span>
+            <span><i style="background: var(--api)"></i>API</span>
+            <span><i style="background: transparent; border: 2px solid var(--texto)"></i>Tiene diagrama</span>
+          </div>
+        </div>
+        <aside class="detalle" id="detalle" aria-live="polite"></aside>
+      </section>
+      <section class="vista" id="vista-contratos" role="tabpanel" aria-labelledby="tab-contratos"></section>
+      <section class="vista" id="vista-salud" role="tabpanel" aria-labelledby="tab-salud"></section>
+    </main>
+    <script id="atlas-datos" type="application/json">
+      __ATLAS__
+    </script>
+    <script>
+      const ATLAS = JSON.parse(document.getElementById('atlas-datos').textContent);
+      const $ = (selector, raiz = document) => raiz.querySelector(selector);
+      const $$ = (selector, raiz = document) => [...raiz.querySelectorAll(selector)];
+      const TIPOS = {
+        architecture: 'Arquitectura',
+        sequence: 'Secuencia',
+        workflow: 'Flujo',
+        dataflow: 'Datos',
+        lifecycle: 'Ciclo de vida',
+      };
+      const SITUACION = {
+        'al-dia': ['ok', 'Al día'],
+        'codigo-cambio': ['aviso', 'El código cambió'],
+        'sin-generar': ['aviso', 'Spec sin generar'],
+        'sin-sellar': ['aviso', 'Sin sellar'],
+      };
+      const ESTADO_CONTRATO = {
+        conectado: ['ok', 'Conectados', 'La web llama a un endpoint que existe', 'Conectado'],
+        'sin-uso-en-web': [
+          'aviso',
+          'Sin uso en la web',
+          'Endpoint del API que ninguna pantalla llama',
+          'Sin uso en la web',
+        ],
+        'sin-pantalla': [
+          'aviso',
+          'Sin pantalla',
+          'La capa de API del cliente lo llama, pero ninguna pantalla usa ese método',
+          'Sin pantalla',
+        ],
+        'sin-endpoint': ['error', 'Sin endpoint', 'La web llama a una ruta que el API no expone', 'Sin endpoint'],
+        'metodo-desconocido': ['aviso', 'Método dudoso', 'No se pudo deducir el verbo HTTP', 'Método dudoso'],
+      };
+      const REPO_WEB = { front: 'web', api: 'api' };
+      const estado = {
+        vista: 'diagramas',
+        diagrama: null,
+        modulo: null,
+        repo: 'ambos',
+        filtroContrato: null,
+        texto: '',
+      };
+
+      const escapar = (texto) =>
+        String(texto ?? '').replace(
+          /[&<>"']/g,
+          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
+        );
+      const enlaceCodigo = (repo, ruta, linea) => {
+        const base = ATLAS.repos[repo]?.url;
+        if (!base) return escapar(ruta);
+        const destino = `${base}/blob/main/${ruta}${linea ? `#L${linea}` : ''}`;
+        return `<a href="${escapar(destino)}" target="_blank" rel="noopener">${escapar(ruta)}${linea ? `:${linea}` : ''}</a>`;
+      };
+      const guardar = (clave, valor) => {
+        try {
+          localStorage.setItem(clave, valor);
+        } catch {}
+      };
+      const leer = (clave) => {
+        try {
+          return localStorage.getItem(clave);
+        } catch {
+          return null;
+        }
+      };
+
+      const modulos = Object.values(ATLAS.grafo.repos).flatMap((repo) => repo.modulos);
+      const moduloPorId = new Map(modulos.map((m) => [m.id, m]));
+      const moduloDeArchivo = new Map();
+      for (const m of modulos) for (const archivo of m.archivos) moduloDeArchivo.set(`${m.repo}:${archivo.ruta}`, m.id);
+      const archivoClave = (repo, ruta) => `${REPO_WEB[repo] ?? repo}:${ruta}`;
+      const modulosDeDiagrama = new Map(
+        ATLAS.diagramas.map((d) => [
+          d.id,
+          [...new Set(d.fuentes.map((f) => moduloDeArchivo.get(archivoClave(f.repo, f.ruta))).filter(Boolean))],
+        ]),
+      );
+      const diagramasDeModulo = new Map();
+      for (const [id, lista] of modulosDeDiagrama)
+        for (const m of lista) diagramasDeModulo.set(m, [...(diagramasDeModulo.get(m) ?? []), id]);
+      const contratosDeModulo = new Map();
+      ATLAS.contratos.contratos.forEach((c, i) => {
+        const tocados = new Set();
+        if (c.api) tocados.add(moduloDeArchivo.get(`api:${c.api.archivo}`));
+        for (const w of c.web) tocados.add(moduloDeArchivo.get(`web:${w.archivo}`));
+        for (const m of tocados) if (m) contratosDeModulo.set(m, [...(contratosDeModulo.get(m) ?? []), i]);
+      });
+      const diagramaPorId = new Map(ATLAS.diagramas.map((d) => [d.id, d]));
+
+      function irA(ruta) {
+        if (location.hash !== ruta) location.hash = ruta;
+        else aplicarRuta();
+      }
+
+      function aplicarRuta() {
+        const [, vista = 'diagramas', id] = location.hash.split('/');
+        estado.vista = ['diagramas', 'grafo', 'contratos', 'salud'].includes(vista) ? vista : 'diagramas';
+        if (estado.vista === 'diagramas')
+          estado.diagrama = diagramaPorId.has(id) ? id : (estado.diagrama ?? ATLAS.diagramas[0]?.id);
+        if (estado.vista === 'grafo')
+          estado.modulo = id && moduloPorId.has(decodeURIComponent(id)) ? decodeURIComponent(id) : null;
+        if (estado.vista === 'contratos') estado.filtroContrato = id ? decodeURIComponent(id) : null;
+        for (const boton of $$('.pestanas button'))
+          boton.setAttribute('aria-selected', String(boton.dataset.vista === estado.vista));
+        for (const panel of $$('.vista')) panel.classList.toggle('activa', panel.id === `vista-${estado.vista}`);
+        if (estado.vista === 'diagramas') pintarDiagramas();
+        if (estado.vista === 'grafo') grafo.mostrar();
+        if (estado.vista === 'contratos') pintarContratos();
+        if (estado.vista === 'salud') pintarSalud();
+      }
+
+      function coincide(...campos) {
+        const texto = estado.texto.trim().toLowerCase();
+        return (
+          !texto ||
+          campos.some((campo) =>
+            String(campo ?? '')
+              .toLowerCase()
+              .includes(texto),
+          )
+        );
+      }
+
+      function pintarIndice() {
+        const html = ATLAS.areas
+          .map((area) => {
+            const items = ATLAS.diagramas.filter(
+              (d) => d.area === area.id && coincide(d.titulo, d.cuenta, d.id, d.tipo, ...d.fuentes.map((f) => f.ruta)),
+            );
+            if (!items.length) return '';
+            return `<div class="area"><h3>${escapar(area.nombre)}</h3>${items
+              .map(
+                (
+                  d,
+                ) => `<button class="item" data-id="${escapar(d.id)}" aria-current="${d.id === estado.diagrama}" title="${escapar(d.cuenta)}">
+                  <span class="punto ${d.situacion === 'al-dia' ? '' : 'viejo'}" aria-label="${escapar(SITUACION[d.situacion]?.[1])}"></span>
+                  <span class="nombre">${escapar(d.titulo)}</span>
+                  <span class="tipo">${escapar(TIPOS[d.tipo] ?? d.tipo)}</span>
+                </button>`,
+              )
+              .join('')}</div>`;
+          })
+          .join('');
+        $('#indice').innerHTML = html || '<p class="vacio" style="padding: 8px">Nada coincide con la búsqueda.</p>';
+      }
+
+      function pintarDiagramas() {
+        pintarIndice();
+        const d = diagramaPorId.get(estado.diagrama);
+        if (!d) return;
+        const [clase, texto] = SITUACION[d.situacion] ?? ['aviso', d.situacion];
+        const lista = ATLAS.diagramas;
+        const indice = lista.indexOf(d);
+        const modulosTocados = modulosDeDiagrama.get(d.id) ?? [];
+        $('#visor-cab').innerHTML = `
+          <h1>${escapar(d.titulo)}</h1>
+          <span class="chip">${escapar(TIPOS[d.tipo] ?? d.tipo)}</span>
+          <span class="chip ${clase}">${escapar(texto)}</span>
+          ${d.vistas.length ? `<span class="chip" title="${escapar(d.vistas.join(' · '))}">${d.vistas.length} vistas guiadas</span>` : ''}
+          <div class="acciones">
+            <button class="boton" data-paso="-1" ${indice <= 0 ? 'disabled' : ''} title="Anterior  [">◀</button>
+            <button class="boton" data-paso="1" ${indice >= lista.length - 1 ? 'disabled' : ''} title="Siguiente  ]">▶</button>
+            <button class="boton" id="ver-fuentes" aria-expanded="false">Código · ${d.fuentes.length}</button>
+            <a class="boton" href="${escapar(d.html)}" target="_blank" rel="noopener">Abrir aparte ↗</a>
+          </div>
+          <p>${escapar(d.cuenta)}</p>
+          ${
+            modulosTocados.length
+              ? `<div class="modulos-diagrama">${modulosTocados
+                  .map(
+                    (m) =>
+                      `<button class="chip" data-modulo="${escapar(m)}" title="Ver en el grafo">${escapar(m.replace(':', ' · '))}</button>`,
+                  )
+                  .join('')}</div>`
+              : ''
+          }`;
+        const porRepo = {};
+        for (const f of d.fuentes) (porRepo[f.repo] ??= []).push(f.ruta);
+        $('#fuentes').innerHTML = Object.entries(porRepo)
+          .map(
+            ([repo, rutas]) =>
+              `<h4>${repo === 'front' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas'}</h4><ul>${rutas
+                .map((ruta) => `<li>${enlaceCodigo(repo, ruta)}</li>`)
+                .join('')}</ul>`,
+          )
+          .join('');
+        $('#fuentes').hidden = true;
+        const marco = $('#marco');
+        if (marco.dataset.id !== d.id) {
+          marco.dataset.id = d.id;
+          marco.src = d.html;
+          marco.title = d.titulo;
+        }
+        guardar('atlas-diagrama', d.id);
+      }
+
+      function mover(paso) {
+        const lista = ATLAS.diagramas;
+        const indice = lista.findIndex((d) => d.id === estado.diagrama);
+        const siguiente = lista[Math.min(lista.length - 1, Math.max(0, indice + paso))];
+        if (siguiente) irA(`#/diagramas/${siguiente.id}`);
+      }
+
+      function pintarContratos() {
+        const { resumen, contratos } = ATLAS.contratos;
+        const cuenta = {
+          conectado: resumen.conectados,
+          'sin-uso-en-web': resumen.sinUsoEnWeb,
+          'sin-pantalla': resumen.sinPantalla ?? 0,
+          'sin-endpoint': resumen.sinEndpoint,
+          'metodo-desconocido': resumen.metodoDesconocido,
+        };
+        const filtro = estado.filtroContrato;
+        const filtroModulo = filtro?.startsWith('modulo:') ? filtro.slice(7) : null;
+        const indicesModulo = filtroModulo ? new Set(contratosDeModulo.get(filtroModulo) ?? []) : null;
+        const filas = contratos.filter(
+          (c, i) =>
+            (!filtro || filtroModulo || c.estado === filtro) &&
+            (!indicesModulo || indicesModulo.has(i)) &&
+            coincide(c.ruta, c.metodo, c.permiso, c.api?.archivo, ...c.web.map((w) => `${w.archivo} ${w.funcion}`)),
+        );
+        $('#vista-contratos').innerHTML = `
+          <div class="tarjetas">
+            ${Object.entries(ESTADO_CONTRATO)
+              .map(
+                ([
+                  clave,
+                  [clase, titulo, ayuda],
+                ]) => `<button class="tarjeta" data-filtro="${clave}" aria-pressed="${filtro === clave}" title="${escapar(ayuda)}">
+                  <b style="color: var(--${clase === 'ok' ? 'ok' : clase === 'error' ? 'error' : 'aviso'})">${cuenta[clave] ?? 0}</b>
+                  <span>${escapar(titulo)}</span></button>`,
+              )
+              .join('')}
+          </div>
+          ${
+            filtroModulo
+              ? `<div><span class="chip">Módulo ${escapar(filtroModulo.replace(':', ' · '))}</span> <button class="boton" data-filtro="">Quitar filtro</button></div>`
+              : ''
+          }
+          <div class="tabla-caja"><table>
+            <thead><tr><th>Método</th><th>Ruta</th><th>Permiso</th><th>Endpoint en el API</th><th>Quién lo llama en la web</th><th>Estado</th></tr></thead>
+            <tbody>${
+              filas
+                .map((c) => {
+                  const [clase, , , titulo] = ESTADO_CONTRATO[c.estado] ?? ['aviso', '', '', c.estado];
+                  return `<tr>
+                    <td><span class="metodo ${escapar(c.metodo)}">${escapar(c.metodo)}</span></td>
+                    <td><code>${escapar(c.ruta)}</code></td>
+                    <td class="mono">${escapar(c.permiso ?? '—')}</td>
+                    <td class="mono">${c.api ? enlaceCodigo('api', c.api.archivo, c.api.linea) : '—'}</td>
+                    <td class="mono">${
+                      c.web.length
+                        ? c.web
+                            .map(
+                              (w) =>
+                                `${enlaceCodigo('front', w.archivo, w.linea)}${w.funcion ? ` · ${escapar(w.funcion)}()` : ''}`,
+                            )
+                            .join('<br>')
+                        : '—'
+                    }</td>
+                    <td><span class="chip ${clase}">${escapar(titulo)}</span></td></tr>`;
+                })
+                .join('') || '<tr><td colspan="6" class="vacio">Nada coincide.</td></tr>'
+            }</tbody></table></div>
+          <p class="vacio">Sacado del código: <code>API_ROUTES</code> y los verbos de <code>transport.request</code> en la web contra los <code>Map*</code> y <code>MapGroup</code> del API. Generado ${escapar(new Date(ATLAS.contratos.generado).toLocaleString())}.</p>`;
+      }
+
+      function fecha(valor) {
+        return valor ? new Date(valor).toLocaleString() : '—';
+      }
+
+      function pintarSalud() {
+        const viejos = ATLAS.diagramas.filter((d) => d.situacion !== 'al-dia');
+        const repos = Object.values(ATLAS.grafo.repos);
+        $('#vista-salud').innerHTML = `
+          <div class="tarjetas">
+            <div class="tarjeta"><b style="color: var(--${viejos.length ? 'aviso' : 'ok'})">${ATLAS.diagramas.length - viejos.length}/${ATLAS.diagramas.length}</b><span>Diagramas al día</span></div>
+            ${repos
+              .map(
+                (
+                  r,
+                ) => `<div class="tarjeta"><b>${(r.stats?.nodes ?? 0).toLocaleString()}</b><span>Nodos en el grafo · ${escapar(r.nombre)}</span></div>
+                <div class="tarjeta"><b>${r.procesosTotales}</b><span>Flujos de ejecución · ${escapar(r.nombre)}</span></div>`,
+              )
+              .join('')}
+            <div class="tarjeta"><b>${ATLAS.contratos.resumen.conectados}</b><span>Contratos web ↔ API conectados</span></div>
+          </div>
+          <div class="rejilla-salud">
+            <div class="seccion"><h2>Diagramas</h2><div class="tabla-caja"><table>
+              <thead><tr><th>Diagrama</th><th>Estado</th><th>Sellado</th></tr></thead>
+              <tbody>${ATLAS.diagramas
+                .map((d) => {
+                  const [clase, texto] = SITUACION[d.situacion] ?? ['aviso', d.situacion];
+                  return `<tr><td><a href="#/diagramas/${escapar(d.id)}">${escapar(d.titulo)}</a></td><td><span class="chip ${clase}">${escapar(texto)}</span></td><td class="mono">${escapar(fecha(d.sellado))}</td></tr>`;
+                })
+                .join('')}</tbody></table></div></div>
+            <div class="seccion"><h2>Índices de GitNexus</h2><div class="tabla-caja"><table>
+              <thead><tr><th>Repo</th><th>Commit</th><th>Indexado</th><th>Aristas</th><th>Clusters</th></tr></thead>
+              <tbody>${repos
+                .map(
+                  (r) =>
+                    `<tr><td>${escapar(r.nombre)}</td><td class="mono">${escapar(r.commit?.slice(0, 7) ?? '—')}</td><td class="mono">${escapar(fecha(r.indexado))}</td><td>${(r.stats?.edges ?? 0).toLocaleString()}</td><td>${r.stats?.communities ?? '—'}</td></tr>`,
+                )
+                .join('')}</tbody></table></div>
+              <h2 style="margin-top: 16px">Mantenerlo vivo</h2>
+              <pre>pnpm diagramas estado --detalle
+pnpm diagramas generar --pendientes
+pnpm diagramas atlas
+pnpm diagramas explorar</pre>
+              <p class="vacio" style="margin-top: 10px"><code>atlas</code> reindexa con GitNexus, vuelve a sacar el grafo y los contratos y regenera esta página. <code>explorar</code> levanta <code>gitnexus serve</code> y abre la interfaz web de GitNexus con el grafo completo símbolo por símbolo.</p>
+            </div>
+          </div>
+          <p class="vacio">Atlas generado ${escapar(fecha(ATLAS.generado))}.</p>`;
+      }
+
+      const grafo = (() => {
+        const lienzo = $('#lienzo');
+        const ctx = lienzo.getContext('2d');
+        let nodos = [];
+        let aristas = [];
+        let vista = { x: 0, y: 0, k: 1 };
+        let encima = null;
+        let arrastre = null;
+        let listo = false;
+        let cuadro = 0;
+        let enfocado = null;
+        const colores = {};
+
+        function leerColores() {
+          const css = getComputedStyle(document.documentElement);
+          for (const nombre of ['web', 'api', 'texto', 'suave', 'tenue', 'borde', 'panel', 'acento', 'fondo'])
+            colores[nombre] = css.getPropertyValue(`--${nombre}`).trim();
+        }
+
+        function construir() {
+          const minimo = Number($('#minimo').value);
+          const visibles = modulos.filter((m) => estado.repo === 'ambos' || m.repo === estado.repo);
+          const previos = new Map(nodos.map((n) => [n.id, n]));
+          nodos = visibles.map((m, i) => {
+            const previo = previos.get(m.id);
+            const angulo = (i / visibles.length) * Math.PI * 2;
+            const centro = m.repo === 'web' ? -520 : 520;
+            return {
+              id: m.id,
+              m,
+              r: 6 + Math.sqrt(Math.max(m.simbolos, 1)) * 1.7,
+              x: previo?.x ?? centro + Math.cos(angulo) * 180,
+              y: previo?.y ?? Math.sin(angulo) * 180,
+              vx: 0,
+              vy: 0,
+              cubierto: diagramasDeModulo.has(m.id),
+            };
+          });
+          const indice = new Map(nodos.map((n) => [n.id, n]));
+          aristas = Object.values(ATLAS.grafo.repos)
+            .flatMap((r) => r.enlaces)
+            .filter((e) => e.llamadas >= minimo && indice.has(e.de) && indice.has(e.a))
+            .map((e) => ({ de: indice.get(e.de), a: indice.get(e.a), llamadas: e.llamadas }));
+        }
+
+        function simular(pasos) {
+          for (let paso = 0; paso < pasos; paso += 1) {
+            const alfa = 1 - paso / pasos;
+            for (let i = 0; i < nodos.length; i += 1) {
+              const a = nodos[i];
+              for (let j = i + 1; j < nodos.length; j += 1) {
+                const b = nodos[j];
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let d2 = dx * dx + dy * dy || 0.01;
+                const minima = a.r + b.r + 34;
+                const fuerza = (9000 * (0.3 + alfa)) / d2 + (d2 < minima * minima ? 1.2 : 0);
+                const d = Math.sqrt(d2);
+                dx /= d;
+                dy /= d;
+                a.vx -= dx * fuerza;
+                a.vy -= dy * fuerza;
+                b.vx += dx * fuerza;
+                b.vy += dy * fuerza;
+              }
+            }
+            for (const e of aristas) {
+              const dx = e.a.x - e.de.x;
+              const dy = e.a.y - e.de.y;
+              const d = Math.sqrt(dx * dx + dy * dy) || 1;
+              const objetivo = 150 + e.de.r + e.a.r;
+              const fuerza = ((d - objetivo) / d) * 0.012 * Math.min(3, 1 + Math.log10(e.llamadas));
+              e.de.vx += dx * fuerza;
+              e.de.vy += dy * fuerza;
+              e.a.vx -= dx * fuerza;
+              e.a.vy -= dy * fuerza;
+            }
+            for (const n of nodos) {
+              const centro = estado.repo === 'ambos' ? (n.m.repo === 'web' ? -520 : 520) : 0;
+              n.vx += (centro - n.x) * 0.005;
+              n.vy += -n.y * 0.005;
+              if (n === arrastre?.nodo) continue;
+              n.x += n.vx * 0.5;
+              n.y += n.vy * 0.5;
+              n.vx *= 0.6;
+              n.vy *= 0.6;
+            }
+          }
+        }
+
+        function encuadrar(grupo = nodos, tope = 2) {
+          if (!grupo.length) return;
+          const { width, height } = lienzo.getBoundingClientRect();
+          const xs = grupo.map((n) => n.x);
+          const ys = grupo.map((n) => n.y);
+          const ancho = Math.max(...xs) - Math.min(...xs) + 160;
+          const alto = Math.max(...ys) - Math.min(...ys) + 160;
+          vista.k = Math.min(tope, Math.min(width / ancho, height / alto));
+          vista.x = width / 2 - ((Math.max(...xs) + Math.min(...xs)) / 2) * vista.k;
+          vista.y = height / 2 - ((Math.max(...ys) + Math.min(...ys)) / 2) * vista.k;
+        }
+
+        function vecinos(id) {
+          const conjunto = new Set([id]);
+          for (const e of aristas) {
+            if (e.de.id === id) conjunto.add(e.a.id);
+            if (e.a.id === id) conjunto.add(e.de.id);
+          }
+          return conjunto;
+        }
+
+        function dibujar() {
+          cuadro = 0;
+          const dpr = window.devicePixelRatio || 1;
+          const { width, height } = lienzo.getBoundingClientRect();
+          if (lienzo.width !== Math.round(width * dpr) || lienzo.height !== Math.round(height * dpr)) {
+            lienzo.width = Math.round(width * dpr);
+            lienzo.height = Math.round(height * dpr);
+          }
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, width, height);
+          ctx.translate(vista.x, vista.y);
+          ctx.scale(vista.k, vista.k);
+          const foco = estado.modulo ?? encima?.id ?? null;
+          const cercanos = foco ? vecinos(foco) : null;
+          const texto = estado.texto.trim().toLowerCase();
+          const buscado = (n) =>
+            texto &&
+            (n.m.nombre.toLowerCase().includes(texto) ||
+              n.m.archivos.some((a) => a.ruta.toLowerCase().includes(texto)));
+          for (const e of aristas) {
+            const activa = !foco || e.de.id === foco || e.a.id === foco;
+            ctx.globalAlpha = activa ? (foco ? 0.85 : 0.35) : 0.06;
+            ctx.strokeStyle = activa && foco ? colores.acento : colores.tenue;
+            ctx.lineWidth = Math.min(6, 0.6 + Math.log2(e.llamadas)) / Math.sqrt(vista.k);
+            const dx = e.a.x - e.de.x;
+            const dy = e.a.y - e.de.y;
+            const d = Math.sqrt(dx * dx + dy * dy) || 1;
+            const x2 = e.a.x - (dx / d) * (e.a.r + 3);
+            const y2 = e.a.y - (dy / d) * (e.a.r + 3);
+            ctx.beginPath();
+            ctx.moveTo(e.de.x, e.de.y);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            if (activa && (foco || vista.k > 0.9)) {
+              const punta = 7 / Math.sqrt(vista.k);
+              const ang = Math.atan2(dy, dx);
+              ctx.fillStyle = ctx.strokeStyle;
+              ctx.beginPath();
+              ctx.moveTo(x2, y2);
+              ctx.lineTo(x2 - punta * Math.cos(ang - 0.4), y2 - punta * Math.sin(ang - 0.4));
+              ctx.lineTo(x2 - punta * Math.cos(ang + 0.4), y2 - punta * Math.sin(ang + 0.4));
+              ctx.fill();
+            }
+          }
+          const nombres = $('#etiquetas').checked;
+          for (const n of nodos) {
+            const atenuado = cercanos && !cercanos.has(n.id);
+            ctx.globalAlpha = atenuado ? 0.15 : 1;
+            ctx.fillStyle = n.m.repo === 'web' ? colores.web : colores.api;
+            ctx.beginPath();
+            ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+            ctx.fill();
+            if (n.cubierto) {
+              ctx.lineWidth = 2.5 / Math.sqrt(vista.k);
+              ctx.strokeStyle = colores.texto;
+              ctx.stroke();
+            }
+            if (n.id === estado.modulo || buscado(n)) {
+              ctx.lineWidth = 3 / Math.sqrt(vista.k);
+              ctx.strokeStyle = colores.acento;
+              ctx.beginPath();
+              ctx.arc(n.x, n.y, n.r + 5, 0, Math.PI * 2);
+              ctx.stroke();
+            }
+            const legible = n.r * vista.k > 13 || vista.k > 1.35;
+            const destacado = n.id === foco || (cercanos && cercanos.has(n.id)) || buscado(n);
+            if (nombres && !atenuado && (legible || destacado)) {
+              const tam = Math.max(10, 12 / Math.sqrt(vista.k));
+              ctx.font = `${n.id === foco ? 600 : 500} ${tam}px system-ui, sans-serif`;
+              ctx.textAlign = 'center';
+              ctx.lineWidth = 3.5 / vista.k;
+              ctx.strokeStyle = colores.fondo;
+              ctx.strokeText(n.m.nombre, n.x, n.y + n.r + tam + 1);
+              ctx.fillStyle = colores.texto;
+              ctx.fillText(n.m.nombre, n.x, n.y + n.r + tam + 1);
+            }
+          }
+          ctx.globalAlpha = 1;
+        }
+
+        function pedirDibujo() {
+          if (!cuadro) cuadro = requestAnimationFrame(dibujar);
+        }
+
+        function aMundo(evento) {
+          const caja = lienzo.getBoundingClientRect();
+          return {
+            x: (evento.clientX - caja.left - vista.x) / vista.k,
+            y: (evento.clientY - caja.top - vista.y) / vista.k,
+          };
+        }
+
+        function nodoEn(evento) {
+          const p = aMundo(evento);
+          let mejor = null;
+          for (const n of nodos) {
+            const d = Math.hypot(n.x - p.x, n.y - p.y);
+            if (d <= n.r + 4 && (!mejor || d < mejor.d)) mejor = { n, d };
+          }
+          return mejor?.n ?? null;
+        }
+
+        lienzo.addEventListener('pointerdown', (evento) => {
+          const nodo = nodoEn(evento);
+          arrastre = { nodo, x: evento.clientX, y: evento.clientY, vx: vista.x, vy: vista.y, movido: false };
+          lienzo.setPointerCapture(evento.pointerId);
+          lienzo.classList.add('arrastrando');
+        });
+        lienzo.addEventListener('pointermove', (evento) => {
+          if (!arrastre) {
+            const nodo = nodoEn(evento);
+            if (nodo !== encima) {
+              encima = nodo;
+              lienzo.title = nodo
+                ? `${nodo.m.nombre} · ${nodo.m.simbolos} símbolos · ${nodo.m.archivos.length} archivos`
+                : '';
+              lienzo.style.cursor = nodo ? 'pointer' : '';
+              pedirDibujo();
+            }
+            return;
+          }
+          const dx = evento.clientX - arrastre.x;
+          const dy = evento.clientY - arrastre.y;
+          if (Math.abs(dx) + Math.abs(dy) > 3) arrastre.movido = true;
+          if (arrastre.nodo) {
+            const p = aMundo(evento);
+            arrastre.nodo.x = p.x;
+            arrastre.nodo.y = p.y;
+          } else {
+            vista.x = arrastre.vx + dx;
+            vista.y = arrastre.vy + dy;
+          }
+          pedirDibujo();
+        });
+        lienzo.addEventListener('pointerup', () => {
+          lienzo.classList.remove('arrastrando');
+          if (arrastre && !arrastre.movido)
+            irA(arrastre.nodo ? `#/grafo/${encodeURIComponent(arrastre.nodo.id)}` : '#/grafo');
+          arrastre = null;
+        });
+        lienzo.addEventListener(
+          'wheel',
+          (evento) => {
+            evento.preventDefault();
+            const caja = lienzo.getBoundingClientRect();
+            const mx = evento.clientX - caja.left;
+            const my = evento.clientY - caja.top;
+            const factor = Math.exp(-evento.deltaY * 0.0015);
+            const k = Math.min(4, Math.max(0.2, vista.k * factor));
+            vista.x = mx - ((mx - vista.x) * k) / vista.k;
+            vista.y = my - ((my - vista.y) * k) / vista.k;
+            vista.k = k;
+            pedirDibujo();
+          },
+          { passive: false },
+        );
+        new ResizeObserver(() => listo && pedirDibujo()).observe(lienzo);
+
+        function rehacer(reiniciar) {
+          if (reiniciar) nodos = [];
+          construir();
+          simular(420);
+          encuadrar();
+          pedirDibujo();
+        }
+
+        for (const boton of $$('[data-repo]'))
+          boton.addEventListener('click', () => {
+            estado.repo = boton.dataset.repo;
+            for (const otro of $$('[data-repo]')) otro.setAttribute('aria-pressed', String(otro === boton));
+            rehacer(true);
+          });
+        $('#minimo').addEventListener('input', () => {
+          $('#minimo-valor').textContent = $('#minimo').value;
+          rehacer(false);
+        });
+        $('#etiquetas').addEventListener('change', pedirDibujo);
+        $('#reordenar').addEventListener('click', () => rehacer(true));
+
+        function pintarDetalle() {
+          const m = moduloPorId.get(estado.modulo);
+          if (!m) {
+            const totales = Object.values(ATLAS.grafo.repos);
+            $('#detalle').innerHTML = `<h2>Grafo de módulos</h2>
+              <div class="vacio"><p>Cada círculo es un módulo del código; su tamaño es la cantidad de símbolos. Las flechas son llamadas entre módulos según el grafo de GitNexus.</p>
+              <p>Haz clic en un módulo para ver sus archivos, sus flujos de ejecución, qué diagramas lo explican y qué contratos del API toca. Arrastra para mover, rueda para acercar.</p></div>
+              <div class="cifras">${totales
+                .map(
+                  (
+                    r,
+                  ) => `<div class="cifra"><b>${r.modulos.length}</b><span>módulos · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>
+                  <div class="cifra"><b>${r.enlaces.length}</b><span>relaciones · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>`,
+                )
+                .join('')}</div>
+              <h4>Módulos más grandes</h4>
+              <ul>${[...modulos]
+                .sort((a, b) => b.simbolos - a.simbolos)
+                .slice(0, 12)
+                .map(
+                  (x) =>
+                    `<li><a href="#/grafo/${encodeURIComponent(x.id)}">${escapar(x.id.replace(':', ' · '))}</a> · ${x.simbolos}</li>`,
+                )
+                .join('')}</ul>`;
+            return;
+          }
+          const repo = m.repo === 'web' ? 'front' : 'api';
+          const entrantes = aristas.filter((e) => e.a.id === m.id).sort((a, b) => b.llamadas - a.llamadas);
+          const salientes = aristas.filter((e) => e.de.id === m.id).sort((a, b) => b.llamadas - a.llamadas);
+          const diagramas = diagramasDeModulo.get(m.id) ?? [];
+          const contratos = contratosDeModulo.get(m.id) ?? [];
+          $('#detalle').innerHTML = `
+            <span class="chip">${m.repo === 'web' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas'}</span>
+            <h2 style="margin-top: 8px">${escapar(m.nombre)}</h2>
+            <div class="cifras">
+              <div class="cifra"><b>${m.simbolos}</b><span>símbolos</span></div>
+              <div class="cifra"><b>${m.archivos.length}</b><span>archivos</span></div>
+              <div class="cifra"><b>${m.clusters}</b><span>clusters</span></div>
+              <div class="cifra"><b>${m.procesosTotales}</b><span>flujos</span></div>
+            </div>
+            <h4>Diagramas que lo explican</h4>
+            ${
+              diagramas.length
+                ? `<ul>${diagramas.map((id) => `<li><a href="#/diagramas/${escapar(id)}">${escapar(diagramaPorId.get(id)?.titulo ?? id)}</a></li>`).join('')}</ul>`
+                : '<p class="vacio">Ningún diagrama vigila este módulo todavía.</p>'
+            }
+            ${contratos.length ? `<h4>Contratos web ↔ API</h4><p><a href="#/contratos/${encodeURIComponent(`modulo:${m.id}`)}">${contratos.length} rutas tocan este módulo →</a></p>` : ''}
+            <h4>Llama a</h4>
+            ${
+              salientes.length
+                ? `<ul>${salientes
+                    .slice(0, 10)
+                    .map(
+                      (e) =>
+                        `<li><a href="#/grafo/${encodeURIComponent(e.a.id)}">${escapar(e.a.m.nombre)}</a> · ${e.llamadas}</li>`,
+                    )
+                    .join('')}</ul>`
+                : '<p class="vacio">—</p>'
+            }
+            <h4>Lo llaman</h4>
+            ${
+              entrantes.length
+                ? `<ul>${entrantes
+                    .slice(0, 10)
+                    .map(
+                      (e) =>
+                        `<li><a href="#/grafo/${encodeURIComponent(e.de.id)}">${escapar(e.de.m.nombre)}</a> · ${e.llamadas}</li>`,
+                    )
+                    .join('')}</ul>`
+                : '<p class="vacio">—</p>'
+            }
+            <h4>Flujos de ejecución</h4>
+            ${m.procesos.length ? `<ul>${m.procesos.map((p) => `<li title="${escapar(p.tipo)}">${escapar(p.label)} · ${p.pasos} pasos</li>`).join('')}</ul>` : '<p class="vacio">—</p>'}
+            <h4>Archivos</h4>
+            <ul>${m.archivos
+              .slice(0, 25)
+              .map((a) => `<li>${enlaceCodigo(repo, a.ruta)} · ${a.simbolos}</li>`)
+              .join('')}</ul>
+            ${m.archivos.length > 25 ? `<p class="vacio">… y ${m.archivos.length - 25} más</p>` : ''}`;
+        }
+
+        return {
+          mostrar() {
+            leerColores();
+            if (!listo) {
+              listo = true;
+              rehacer(true);
+            }
+            if (estado.modulo !== enfocado) {
+              enfocado = estado.modulo;
+              const grupo = estado.modulo ? nodos.filter((n) => vecinos(estado.modulo).has(n.id)) : nodos;
+              encuadrar(grupo, estado.modulo ? 1.8 : 2);
+            }
+            pintarDetalle();
+            pedirDibujo();
+          },
+          refrescar() {
+            if (!listo) return;
+            leerColores();
+            pedirDibujo();
+          },
+        };
+      })();
+
+      document.addEventListener('click', (evento) => {
+        const objetivo = evento.target.closest('button, a');
+        if (!objetivo) {
+          if (!evento.target.closest('#fuentes')) $('#fuentes').hidden = true;
+          return;
+        }
+        if (objetivo.matches('.pestanas button')) irA(`#/${objetivo.dataset.vista}`);
+        else if (objetivo.matches('.item')) irA(`#/diagramas/${objetivo.dataset.id}`);
+        else if (objetivo.dataset.paso) mover(Number(objetivo.dataset.paso));
+        else if (objetivo.dataset.modulo) irA(`#/grafo/${encodeURIComponent(objetivo.dataset.modulo)}`);
+        else if (objetivo.dataset.filtro !== undefined)
+          irA(
+            objetivo.dataset.filtro && objetivo.dataset.filtro !== estado.filtroContrato
+              ? `#/contratos/${objetivo.dataset.filtro}`
+              : '#/contratos',
+          );
+        else if (objetivo.id === 'ver-fuentes') {
+          const panel = $('#fuentes');
+          panel.hidden = !panel.hidden;
+          objetivo.setAttribute('aria-expanded', String(!panel.hidden));
+        }
+      });
+
+      $('#buscar').addEventListener('input', (evento) => {
+        estado.texto = evento.target.value;
+        if (estado.vista === 'diagramas') pintarIndice();
+        if (estado.vista === 'contratos') pintarContratos();
+        if (estado.vista === 'grafo') grafo.refrescar();
+      });
+
+      document.addEventListener('keydown', (evento) => {
+        const escribiendo = evento.target.matches('input, textarea, select');
+        if (evento.key === 'Escape') {
+          $('#fuentes').hidden = true;
+          if (escribiendo) evento.target.blur();
+          else if (estado.vista === 'grafo') irA('#/grafo');
+          return;
+        }
+        if (escribiendo || evento.ctrlKey || evento.metaKey || evento.altKey) return;
+        if (evento.key === '/') {
+          evento.preventDefault();
+          $('#buscar').focus();
+        } else if (['1', '2', '3', '4'].includes(evento.key))
+          irA(`#/${['diagramas', 'grafo', 'contratos', 'salud'][Number(evento.key) - 1]}`);
+        else if (evento.key === ']' && estado.vista === 'diagramas') mover(1);
+        else if (evento.key === '[' && estado.vista === 'diagramas') mover(-1);
+      });
+
+      const temaGuardado = leer('atlas-tema');
+      if (temaGuardado) document.documentElement.dataset.theme = temaGuardado;
+      $('#tema').addEventListener('click', () => {
+        const oscuro =
+          document.documentElement.dataset.theme === 'dark' ||
+          (!document.documentElement.dataset.theme && matchMedia('(prefers-color-scheme: dark)').matches);
+        document.documentElement.dataset.theme = oscuro ? 'light' : 'dark';
+        guardar('atlas-tema', document.documentElement.dataset.theme);
+        grafo.refrescar();
+      });
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => grafo.refrescar());
+
+      estado.diagrama = diagramaPorId.has(leer('atlas-diagrama')) ? leer('atlas-diagrama') : ATLAS.diagramas[0]?.id;
+      window.addEventListener('hashchange', aplicarRuta);
+      aplicarRuta();
+    </script>
+  </body>
+</html>

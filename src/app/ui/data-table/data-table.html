@@ -1,12 +1,46 @@
 @if (showToolbar()) {
 <div class="flex shrink-0 flex-wrap items-center gap-2 border-b border-border p-3" role="search">
+  @if (searchIsDate()) {
+  <fin-date-field
+    class="w-full min-w-48 max-w-xs flex-1"
+    [ngModel]="null"
+    (ngModelChange)="pin($event)"
+    [placeholder]="i18n.t('table.search.pickDate')"
+  />
+  } @else if (suggestible()) {
+  <label class="sr-only" [for]="rangeId + '-buscar'"
+    >{{ i18n.t('table.search.ariaLabel', { label: tableLabel() }) }}</label
+  >
+  <hlm-autocomplete
+    class="w-full min-w-48 max-w-xs flex-1"
+    [search]="searchText()"
+    (searchChange)="setSearchText($event)"
+    (valueChange)="pin($event)"
+  >
+    <hlm-autocomplete-input
+      [inputId]="rangeId + '-buscar'"
+      [placeholder]="i18n.t('table.search.pinPlaceholder')"
+      (keydown.enter)="pinSearch()"
+    />
+    <hlm-autocomplete-content *hlmAutocompletePortal>
+      <hlm-autocomplete-empty>{{ i18n.t('table.filter.noValues') }}</hlm-autocomplete-empty>
+      <div hlmAutocompleteList>
+        @for (sugerencia of suggestions(); track sugerencia) {
+        <hlm-autocomplete-item [value]="sugerencia">{{ sugerencia }}</hlm-autocomplete-item>
+        }
+      </div>
+    </hlm-autocomplete-content>
+  </hlm-autocomplete>
+  } @else {
   <fin-search-field
     class="w-full min-w-48 max-w-xs flex-1"
     [value]="searchText()"
     (valueChange)="setSearchText($event)"
-    [placeholder]="i18n.t('table.search.placeholder')"
+    (keydown.enter)="pinSearch()"
+    [placeholder]="i18n.t('table.search.pinPlaceholder')"
     [ariaLabel]="i18n.t('table.search.ariaLabel', { label: tableLabel() })"
   />
+  }
   <fin-select
     class="w-44"
     [options]="fieldOptions()"
@@ -14,7 +48,28 @@
     (ngModelChange)="setSearchField($event)"
     [ariaLabel]="i18n.t('table.search.field')"
   />
-  @for (facet of facetColumns(); track facet.key) { @let selected = facetSelection(facet.key);
+  <ng-content select="[finTableTools]" />
+  @for (condicion of pinned(); track condicion.id) {
+  <span
+    class="inline-flex h-9 max-w-72 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background ps-2.5 pe-1 text-sm font-medium shadow-xs dark:border-input dark:bg-input/30"
+    data-testid="table-pinned-filter"
+  >
+    <fin-icon name="filter" />
+    <span class="text-muted-foreground">{{ pinnedLabel(condicion.field) }}:</span>
+    <span class="truncate">{{ pinnedText(condicion) }}</span>
+    <button
+      hlmBtn
+      variant="ghost"
+      size="icon-sm"
+      type="button"
+      class="size-7"
+      [attr.aria-label]="i18n.t('filters.remove', { label: pinnedLabel(condicion.field) + ' ' + condicion.value })"
+      (click)="unpin(condicion.id)"
+    >
+      <fin-icon name="close" />
+    </button>
+  </span>
+  } @for (facet of facetColumns(); track facet.key) { @let selected = facetSelection(facet.key);
   <button
     hlmBtn
     variant="outline"

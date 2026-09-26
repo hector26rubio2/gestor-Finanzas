@@ -1,0 +1,1566 @@
+{
+  "generado": "2026-09-26T05:45:09.480Z",
+  "resumen": {
+    "conectados": 79,
+    "sinUsoEnWeb": 0,
+    "sinPantalla": 7,
+    "sinEndpoint": 0,
+    "metodoDesconocido": 0
+  },
+  "contratos": [
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/accounts",
+      "permiso": "CuentasVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AccountsEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/accounts.api.ts",
+          "linea": 78,
+          "funcion": "accounts",
+          "via": "API_ROUTES.accounts"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/accounts",
+      "permiso": "CuentasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AccountsEndpoints.cs",
+        "linea": 15
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/accounts.api.ts",
+          "linea": 91,
+          "funcion": "createAccount",
+          "via": "API_ROUTES.accounts"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/accounts/{id:guid}",
+      "permiso": "CuentasEditar | CuentasDeshabilitar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AccountsEndpoints.cs",
+        "linea": 24
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/accounts.api.ts",
+          "linea": 128,
+          "funcion": "updateAccount",
+          "via": "API_ROUTES.account"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/accounts/with-opening",
+      "permiso": "CuentasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AccountsEndpoints.cs",
+        "linea": 29
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/accounts.api.ts",
+          "linea": 113,
+          "funcion": "createAccountWithOpening",
+          "via": "API_ROUTES.accountsWithOpening"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/admin/audit",
+      "permiso": "OrganizacionAuditoriaListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AdministrationEndpoints.cs",
+        "linea": 15
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 209,
+          "funcion": "audit",
+          "via": "API_ROUTES.audit"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/admin/feature-flags/{key}",
+      "permiso": "OrganizacionBanderasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/AdministrationEndpoints.cs",
+        "linea": 23
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 218,
+          "funcion": "updateFeatureFlag",
+          "via": "API_ROUTES.adminFeatureFlag"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/csrf",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Security.cs",
+        "linea": 290
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/http/api-http-client.ts",
+          "linea": 145,
+          "funcion": "csrf",
+          "via": "API_ROUTES.csrf"
+        },
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 74,
+          "funcion": "csrf",
+          "via": "API_ROUTES.csrf"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/google",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Security.cs",
+        "linea": 305
+      },
+      "web": [
+        {
+          "archivo": "src/app/pages/login/login.ts",
+          "linea": 119,
+          "funcion": "googleLoginUrl",
+          "via": "literal"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/login",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/PasswordLogin.cs",
+        "linea": 44
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 88,
+          "funcion": "loginWithPassword",
+          "via": "API_ROUTES.passwordLogin"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/auth/logout",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Security.cs",
+        "linea": 318
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 78,
+          "funcion": "logout",
+          "via": "API_ROUTES.logout"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/auth/methods",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/PasswordLogin.cs",
+        "linea": 38
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 82,
+          "funcion": "authMethods",
+          "via": "API_ROUTES.authMethods"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/bug-reports",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 216
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 447,
+          "funcion": "reportBug",
+          "via": "API_ROUTES.bugReports"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/calendar/projected",
+      "permiso": "CalendarioVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs",
+        "linea": 15
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/recurrences.api.ts",
+          "linea": 57,
+          "funcion": "projectedCalendar",
+          "via": "API_ROUTES.projectedCalendar"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/cards",
+      "permiso": "CuentasTarjetasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CardsEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/cards.api.ts",
+          "linea": 25,
+          "funcion": "cards",
+          "via": "API_ROUTES.cards"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/cards",
+      "permiso": "CuentasTarjetasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CardsEndpoints.cs",
+        "linea": 21
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/cards.api.ts",
+          "linea": 37,
+          "funcion": "createCard",
+          "via": "API_ROUTES.cards"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/cards/{id:guid}",
+      "permiso": "CuentasTarjetasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CardsEndpoints.cs",
+        "linea": 28
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/cards.api.ts",
+          "linea": 52,
+          "funcion": "updateCard",
+          "via": "API_ROUTES.card"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/cards/{id:guid}/status",
+      "permiso": "CuentasExtractoVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CardsEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/cards.api.ts",
+          "linea": 56,
+          "funcion": "cardStatus",
+          "via": "API_ROUTES.cardStatus"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/categories",
+      "permiso": "CuentasCategoriasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CategoriesEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/categories.api.ts",
+          "linea": 21,
+          "funcion": "categories",
+          "via": "API_ROUTES.categories"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/categories",
+      "permiso": "CuentasCategoriasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CategoriesEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/categories.api.ts",
+          "linea": 25,
+          "funcion": "createCategory",
+          "via": "API_ROUTES.categories"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/categories/{id:guid}",
+      "permiso": "CuentasCategoriasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CategoriesEndpoints.cs",
+        "linea": 21
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/categories.api.ts",
+          "linea": 32,
+          "funcion": "updateCategory",
+          "via": "API_ROUTES.category"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/client-errors",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 236
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 455,
+          "funcion": "reportClientError",
+          "via": "API_ROUTES.clientErrors"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/currencies",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/CatalogEndpoints.cs",
+        "linea": 9
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 70,
+          "funcion": "currencies",
+          "via": "API_ROUTES.currencies"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/dashboard",
+      "permiso": "DashboardVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/ReportingEndpoints.cs",
+        "linea": 10
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/reporting.api.ts",
+          "linea": 35,
+          "funcion": "dashboard",
+          "via": "API_ROUTES.dashboard"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/events",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/OrganizationEndpoints.cs",
+        "linea": 24
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/session/remote-bootstrap.ts",
+          "linea": 348,
+          "funcion": "escucharCambiosDeAcceso",
+          "via": "EventSource"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/feature-flags",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PreferencesEndpoints.cs",
+        "linea": 32
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/preferences.api.ts",
+          "linea": 45,
+          "funcion": "featureFlags",
+          "via": "API_ROUTES.featureFlags"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/investments",
+      "permiso": "PatrimonioVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/InvestmentsEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/investments.api.ts",
+          "linea": 25,
+          "funcion": "investments",
+          "via": "API_ROUTES.investments"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/investments",
+      "permiso": "PatrimonioInversionesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/InvestmentsEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/investments.api.ts",
+          "linea": 38,
+          "funcion": "createInvestment",
+          "via": "API_ROUTES.investments"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/investments/{id:guid}",
+      "permiso": "PatrimonioInversionesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/InvestmentsEndpoints.cs",
+        "linea": 21
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/investments.api.ts",
+          "linea": 45,
+          "funcion": "updateInvestment",
+          "via": "API_ROUTES.investment"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/movement-kinds",
+      "permiso": "MovimientosClasesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 75
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 123,
+          "funcion": "movementKinds",
+          "via": "API_ROUTES.movementKinds"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/movements",
+      "permiso": "MovimientosCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 33
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 149,
+          "funcion": "createMovement",
+          "via": "API_ROUTES.movements"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/movements/{id:guid}",
+      "permiso": "MovimientosDetalleVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 26
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 145,
+          "funcion": "movement",
+          "via": "API_ROUTES.movement"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/movements/{id:guid}/classification",
+      "permiso": "MovimientosEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 45
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 155,
+          "funcion": "reclassifyMovement",
+          "via": "API_ROUTES.movementClassification"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/movements/{id:guid}/reversal",
+      "permiso": "MovimientosDeshabilitar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 50
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 163,
+          "funcion": "reverseMovement",
+          "via": "API_ROUTES.movementReversal"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/movements/search",
+      "permiso": "MovimientosVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 130,
+          "funcion": "movements",
+          "via": "API_ROUTES.movementSearch"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/notifications",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/NotificationsEndpoints.cs",
+        "linea": 11
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/notifications.api.ts",
+          "linea": 21,
+          "funcion": "notifications",
+          "via": "API_ROUTES.notifications"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/notifications/{id:guid}/read",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/NotificationsEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/notifications.api.ts",
+          "linea": 29,
+          "funcion": "markNotificationRead",
+          "via": "API_ROUTES.notificationRead"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/obligations",
+      "permiso": "PersonasObligacionesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/ObligationsEndpoints.cs",
+        "linea": 10
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/obligations.api.ts",
+          "linea": 10,
+          "funcion": "obligations",
+          "via": "API_ROUTES.obligations"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/operations/card-payments",
+      "permiso": "MovimientosPagosCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 63
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 173,
+          "funcion": "createCardPayment",
+          "via": "API_ROUTES.cardPayments"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/operations/cash-advances",
+      "permiso": "MovimientosAvancesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 69
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 177,
+          "funcion": "createCashAdvance",
+          "via": "API_ROUTES.cashAdvances"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/operations/transfers",
+      "permiso": "MovimientosTransferenciasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
+        "linea": 55
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/ledger.api.ts",
+          "linea": 169,
+          "funcion": "createTransfer",
+          "via": "API_ROUTES.transfers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/organization/members",
+      "permiso": "OrganizacionMiembrosListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/OrganizationEndpoints.cs",
+        "linea": 65
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 239,
+          "funcion": "organizationMembers",
+          "via": "API_ROUTES.organizationMembers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/organization/members",
+      "permiso": "OrganizacionMiembrosCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/OrganizationEndpoints.cs",
+        "linea": 71
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 247,
+          "funcion": "inviteOrganizationMember",
+          "via": "API_ROUTES.organizationMembers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/people",
+      "permiso": "PersonasVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PeopleEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/people.api.ts",
+          "linea": 29,
+          "funcion": "people",
+          "via": "API_ROUTES.people"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/people",
+      "permiso": "PersonasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PeopleEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/people.api.ts",
+          "linea": 39,
+          "funcion": "createPerson",
+          "via": "API_ROUTES.people"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/people/{id:guid}",
+      "permiso": "PersonasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PeopleEndpoints.cs",
+        "linea": 20
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/people.api.ts",
+          "linea": 53,
+          "funcion": "updatePerson",
+          "via": "API_ROUTES.person"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/people/debt-positions",
+      "permiso": "PersonasDeudasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PeopleEndpoints.cs",
+        "linea": 25
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/people.api.ts",
+          "linea": 57,
+          "funcion": "debts",
+          "via": "API_ROUTES.debts"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/preferences",
+      "permiso": "PreferenciasVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PreferencesEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/preferences.api.ts",
+          "linea": 29,
+          "funcion": "preferences",
+          "via": "API_ROUTES.preferences"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/preferences",
+      "permiso": "PreferenciasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PreferencesEndpoints.cs",
+        "linea": 16
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/preferences.api.ts",
+          "linea": 33,
+          "funcion": "updatePreferences",
+          "via": "API_ROUTES.preferences"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/preferences/dashboard-layout",
+      "permiso": "DashboardVer",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PreferencesEndpoints.cs",
+        "linea": 26
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/preferences.api.ts",
+          "linea": 39,
+          "funcion": "saveDashboardLayout",
+          "via": "API_ROUTES.preferences"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/recurrences",
+      "permiso": "CalendarioRecurrenciasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs",
+        "linea": 13
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/recurrences.api.ts",
+          "linea": 47,
+          "funcion": "recurrences",
+          "via": "API_ROUTES.recurrences"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/recurrences",
+      "permiso": "CalendarioRecurrenciasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs",
+        "linea": 20
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/recurrences.api.ts",
+          "linea": 51,
+          "funcion": "createRecurrence",
+          "via": "API_ROUTES.recurrences"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/recurrences/{id:guid}/materializations",
+      "permiso": "CalendarioProyeccionesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs",
+        "linea": 27
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/recurrences.api.ts",
+          "linea": 68,
+          "funcion": "materializeRecurrence",
+          "via": "API_ROUTES.recurrenceMaterializations"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/session",
+      "permiso": null,
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/IdentityEndpoints.cs",
+        "linea": 11
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/session.api.ts",
+          "linea": 60,
+          "funcion": "session",
+          "via": "API_ROUTES.session"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/settlements",
+      "permiso": "PersonasLiquidacionesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/SettlementsEndpoints.cs",
+        "linea": 12
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/settlements.api.ts",
+          "linea": 25,
+          "funcion": "settlements",
+          "via": "API_ROUTES.settlements"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/settlements",
+      "permiso": "PersonasLiquidacionesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/SettlementsEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/settlements.api.ts",
+          "linea": 34,
+          "funcion": "issueSettlement",
+          "via": "API_ROUTES.settlements"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/shared-purchases",
+      "permiso": "PersonasComprasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PurchasesEndpoints.cs",
+        "linea": 12
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/purchases.api.ts",
+          "linea": 25,
+          "funcion": "sharedPurchases",
+          "via": "API_ROUTES.sharedPurchases"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/shared-purchases",
+      "permiso": "PersonasComprasCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/Endpoints/PurchasesEndpoints.cs",
+        "linea": 14
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/purchases.api.ts",
+          "linea": 38,
+          "funcion": "createSharedPurchase",
+          "via": "API_ROUTES.sharedPurchases"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/audit",
+      "permiso": "AdministracionAuditoriaListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 185
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 347,
+          "funcion": "superAdminAudit",
+          "via": "API_ROUTES.superAdminAudit"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/capabilities",
+      "permiso": "AdministracionCapacidadesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 41
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 312,
+          "funcion": "superAdminCapabilities",
+          "via": "API_ROUTES.superAdminCapabilities"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/errors",
+      "permiso": "AdministracionErroresListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 190
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 431,
+          "funcion": "adminErrors",
+          "via": "API_ROUTES.adminErrors"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/errors/{id:guid}",
+      "permiso": "AdministracionErroresEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 195
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 439,
+          "funcion": "updateAdminError",
+          "via": "API_ROUTES.adminError"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/superadmin/errors/{id:guid}/github-issue",
+      "permiso": "AdministracionErroresEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 209
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 468,
+          "funcion": "createErrorGithubIssue",
+          "via": "API_ROUTES.adminErrorGithubIssue"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/errors/{id:guid}/screenshot",
+      "permiso": "AdministracionErroresListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 202
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 462,
+          "funcion": "screenshotUrl",
+          "via": "API_ROUTES.adminErrorScreenshot"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/feature-flags",
+      "permiso": "AdministracionBanderasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 171
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 327,
+          "funcion": "adminFeatureFlags",
+          "via": "API_ROUTES.superAdminFeatureFlags"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/feature-flags/{key}",
+      "permiso": "AdministracionBanderasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 176
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 337,
+          "funcion": "updateAdminFeatureFlag",
+          "via": "API_ROUTES.superAdminFeatureFlag"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/organizations",
+      "permiso": "AdministracionOrganizacionesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 57
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 263,
+          "funcion": "adminOrganizations",
+          "via": "API_ROUTES.adminOrganizations"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/superadmin/organizations",
+      "permiso": "AdministracionOrganizacionesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 62
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 271,
+          "funcion": "createAdminOrganization",
+          "via": "API_ROUTES.adminOrganizations"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}",
+      "permiso": "AdministracionOrganizacionesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 86
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 361,
+          "funcion": "deleteAdminOrganization",
+          "via": "API_ROUTES.adminOrganizationDelete"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}",
+      "permiso": "AdministracionOrganizacionesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 67
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 355,
+          "funcion": "updateAdminOrganization",
+          "via": "API_ROUTES.adminOrganization"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}/default",
+      "permiso": "AdministracionOrganizacionesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 74
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 375,
+          "funcion": "setDefaultAdminOrganization",
+          "via": "API_ROUTES.adminOrganizationDefault"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}/feature-flags",
+      "permiso": "AdministracionBanderasListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 107
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 399,
+          "funcion": "adminOrganizationFlags",
+          "via": "API_ROUTES.adminOrganizationFlags"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}/feature-flags/{key}",
+      "permiso": "AdministracionBanderasEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 114
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 406,
+          "funcion": "setAdminOrganizationFlag",
+          "via": "API_ROUTES.adminOrganizationFlag"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}/members",
+      "permiso": "AdministracionOrganizacionesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 93
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 383,
+          "funcion": "adminOrganizationMembers",
+          "via": "API_ROUTES.adminOrganizationMembers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/superadmin/organizations/{id:guid}/members",
+      "permiso": "AdministracionUsuariosOrganizacionEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 100
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 391,
+          "funcion": "addAdminOrganizationMember",
+          "via": "API_ROUTES.adminOrganizationMembers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/superadmin/organizations/consolidate",
+      "permiso": "AdministracionOrganizacionesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 81
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 367,
+          "funcion": "consolidateAdminOrganizations",
+          "via": "API_ROUTES.adminOrganizationsConsolidate"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/permissions",
+      "permiso": "AdministracionCapacidadesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 45
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 297,
+          "funcion": "superAdminPermissions",
+          "via": "API_ROUTES.superAdminPermissions"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/permissions/{code}",
+      "permiso": "AdministracionCapacidadesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 50
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 304,
+          "funcion": "setPermissionDescription",
+          "via": "API_ROUTES.superAdminPermission"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/roles",
+      "permiso": "AdministracionRolesListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 132
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 255,
+          "funcion": "adminRoles",
+          "via": "API_ROUTES.adminRoles"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "POST",
+      "ruta": "/api/v1/superadmin/roles",
+      "permiso": "AdministracionRolesCrear",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 137
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 423,
+          "funcion": "saveAdminRole",
+          "via": "API_ROUTES.adminRoles"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "DELETE",
+      "ruta": "/api/v1/superadmin/roles/{id:guid}",
+      "permiso": "AdministracionRolesEliminar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 149
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 286,
+          "funcion": "deleteAdminRole",
+          "via": "API_ROUTES.adminRole"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/roles/{id:guid}",
+      "permiso": "AdministracionRolesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 142
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 423,
+          "funcion": "saveAdminRole",
+          "via": "API_ROUTES.adminRole"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/roles/{id:guid}/active",
+      "permiso": "AdministracionRolesEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 156
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 290,
+          "funcion": "setAdminRoleActive",
+          "via": "API_ROUTES.adminRoleActive"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "GET",
+      "ruta": "/api/v1/superadmin/users",
+      "permiso": "AdministracionUsuariosListar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 29
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 226,
+          "funcion": "adminUsers",
+          "via": "API_ROUTES.adminUsers"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/users/{id:guid}/active",
+      "permiso": "AdministracionUsuariosDeshabilitar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 34
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 232,
+          "funcion": "setAdminUserActive",
+          "via": "API_ROUTES.adminUserActive"
+        }
+      ],
+      "estado": "conectado"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/users/{id:guid}/organization",
+      "permiso": "AdministracionUsuariosOrganizacionEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 125
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 280,
+          "funcion": "moveAdminUserOrganization",
+          "via": "API_ROUTES.adminUserOrganization"
+        }
+      ],
+      "estado": "sin-pantalla"
+    },
+    {
+      "metodo": "PUT",
+      "ruta": "/api/v1/superadmin/users/{id:guid}/roles",
+      "permiso": "AdministracionUsuariosEditar",
+      "api": {
+        "archivo": "src/Finanzas.Host/SuperAdminEndpoints.cs",
+        "linea": 163
+      },
+      "web": [
+        {
+          "archivo": "src/app/core/api/administration.api.ts",
+          "linea": 319,
+          "funcion": "assignAdminUserRoles",
+          "via": "API_ROUTES.adminUserRoles"
+        }
+      ],
+      "estado": "conectado"
+    }
+  ]
+}

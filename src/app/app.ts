@@ -18,8 +18,11 @@ import { RemoteBootstrap } from './core/session/remote-bootstrap';
 import { IconComponent } from './ui/icon/icon';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/state/store';
 import { BugReportButtonComponent } from './features/bug-report/bug-report';
+import { CommandPaletteComponent } from './shared/command-palette/command-palette';
+import { CommandPaletteService } from './shared/command-palette/command-palette.service';
 import { MovementFormComponent } from './features/movement-form/movement-form';
-import { NgxSonnerToaster } from 'ngx-sonner';
+import { HlmToaster } from '@spartan-ng/helm/sonner';
+import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import {
   HlmDropdownMenu,
   HlmDropdownMenuItem,
@@ -81,6 +84,7 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
 @Component({
   selector: 'app-root',
   imports: [
+    CommandPaletteComponent,
     NgTemplateOutlet,
     HlmAvatar,
     HlmAvatarFallback,
@@ -104,7 +108,8 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
     MovementFormComponent,
     IconComponent,
     BugReportButtonComponent,
-    NgxSonnerToaster,
+    HlmToaster,
+    HlmKbdImports,
     HlmSidebar,
     HlmSidebarWrapper,
     HlmSidebarMenuButton,
@@ -120,6 +125,7 @@ export class AppComponent {
   readonly store = inject(AppStore);
   readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
+  readonly paleta = inject(CommandPaletteService);
   readonly P = P;
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -263,8 +269,12 @@ export class AppComponent {
       .join('')
       .toUpperCase();
   }
-  openSearch(): void {
-    void this.router.navigate(['/movements'], { queryParams: { focus: 'search' } });
+  @HostListener('document:keydown', ['$event'])
+  atajoDeBusqueda(evento: KeyboardEvent): void {
+    if ((evento.ctrlKey || evento.metaKey) && evento.key.toLowerCase() === 'k') {
+      evento.preventDefault();
+      this.paleta.alternar();
+    }
   }
   @HostListener('document:keydown.escape')
   closeMobileMenu(): void {

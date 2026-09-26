@@ -5,7 +5,7 @@ import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { ApiAdminRole } from '../../../../core/api/administration.api';
 import { I18nService } from '../../../../core/i18n';
 import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../../../core/state/store';
+import { CAPABILITIES, AppStore, FEATURES } from '../../../../core/state/store';
 import { ConfirmDialogComponent } from '../../../../ui/confirm-dialog/confirm-dialog';
 import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
 import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
@@ -15,6 +15,7 @@ import { PagerComponent } from '../../../../ui/pager/pager';
 import { AdminStore } from '../../admin.store';
 import { AdminGridComponent } from '../../panel/admin-grid';
 import { AdminPanelComponent } from '../../panel/admin-panel';
+import { PermissionCatalogComponent } from './permission-catalog';
 import { RoleSheetComponent } from './role-sheet';
 
 @Component({
@@ -32,6 +33,7 @@ import { RoleSheetComponent } from './role-sheet';
     IconComponent,
     PagerComponent,
     RoleSheetComponent,
+    PermissionCatalogComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -132,6 +134,13 @@ import { RoleSheetComponent } from './role-sheet';
           />
         }
       </app-admin-panel>
+      @if (
+        caps.allows(P.administracion.capacidades.listar) &&
+        features.enabled('admin.permissionCatalog') &&
+        store.permissionCatalog().length
+      ) {
+        <app-admin-permission-catalog />
+      }
     }
     <app-role-sheet [role]="editing()" [creating]="creating()" (closed)="closeSheet()" />
     <fin-confirm-dialog
@@ -149,6 +158,7 @@ export class RolesTabComponent {
   readonly store = inject(AdminStore);
   readonly i18n = inject(I18nService);
   readonly caps = inject(CAPABILITIES);
+  readonly features = inject(FEATURES);
   private readonly app = inject(AppStore);
   readonly P = P;
 

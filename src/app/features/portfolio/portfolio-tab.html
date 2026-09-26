@@ -26,7 +26,21 @@
     [hint]="i18n.t('portfolio.kpi.gain.hint')"
   />
 </fin-kpi-grid>
-<fin-table-zone>
+<section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
+  <fin-chart-card
+    [title]="i18n.t('portfolio.chart.distribution')"
+    [option]="distributionOption()"
+    [hasData]="hasInvestments()"
+    [empty]="i18n.t('portfolio.chart.empty')"
+  />
+  <fin-chart-card
+    [title]="i18n.t('portfolio.chart.costValue')"
+    [option]="costValueOption()"
+    [hasData]="hasInvestments()"
+    [empty]="i18n.t('portfolio.chart.empty')"
+  />
+</section>
+<fin-table-zone class="min-h-[360px]">
   <fin-table
     [columns]="investmentColumns()"
     [rows]="investmentRows()"

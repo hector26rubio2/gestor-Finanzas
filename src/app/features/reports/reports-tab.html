@@ -48,123 +48,66 @@
   <div hlmCard class="min-h-[250px] gap-0 p-5">
     <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
     <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
-    <div class="flex flex-wrap items-center gap-[13px] text-[0.72rem] text-muted-foreground">
-      <span
-        class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-primary before:content-['']"
-        >{{ i18n.t('reports.legend.income') }}</span
-      ><span
-        class="inline-flex items-center before:mr-1.5 before:inline-block before:size-[9px] before:rounded-full before:bg-destructive before:content-['']"
-        >{{ i18n.t('reports.legend.expense') }}</span
-      >
-    </div>
-    <div
-      class="flex h-[190px] items-stretch gap-3 border-b border-border px-2 pt-7 max-[700px]:overflow-x-auto"
-      role="img"
-      tabindex="0"
-      [attr.aria-label]="i18n.t('reports.incomeExpense.ariaLabel')"
-    >
-      @for (v of reportSeries(); track v.month) {
-      <div class="grid min-w-[34px] flex-1 grid-rows-[1fr_22px] gap-[5px] text-center max-[700px]:flex-[0_0_54px]">
-        <span class="flex h-full items-end justify-center gap-[5px]"
-          ><i class="relative min-h-0.5 w-[min(18px,40%)] rounded-t-[5px] bg-primary" [style.height.%]="v.incomePercent"
-            ><em
-              class="absolute -top-[22px] left-1/2 -translate-x-1/2 text-[0.72rem] not-italic whitespace-nowrap text-muted-foreground"
-              >{{ compactMoney(v.income) }}</em
-            ></i
-          ><i
-            class="relative min-h-0.5 w-[min(18px,40%)] rounded-t-[5px] bg-destructive"
-            [style.height.%]="v.expensePercent"
-            ><em
-              class="absolute -top-[22px] left-1/2 -translate-x-1/2 text-[0.72rem] not-italic whitespace-nowrap text-muted-foreground"
-              >{{ compactMoney(v.expense) }}</em
-            ></i
-          ></span
-        ><b class="text-[0.72rem] text-muted-foreground">{{ v.month }}</b>
-      </div>
-      }
-    </div>
-    <small class="mt-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.unitNote') }}</small>
+    @if (reportSeries().length) {
+    <fin-chart
+      [option]="incomeExpenseOption()"
+      [height]="240"
+      [ariaLabel]="i18n.t('reports.incomeExpense.ariaLabel')"
+    />
+    } @else {
+    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+    }
   </div>
   } @if (can(P.reportes.categorias.ver)) {
   <div hlmCard class="min-h-[250px] gap-0 p-5">
     <h2 class="mb-[5px] text-base">{{ i18n.t('reports.categories.title') }}</h2>
     <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
-    <div class="grid grid-cols-[minmax(145px,0.8fr)_1.2fr] items-center gap-3 max-[700px]:grid-cols-1">
-      <div
-        class="mx-auto my-[30px] grid size-[170px] place-items-center rounded-full bg-[radial-gradient(circle,var(--surface)_0_46%,transparent_47%),conic-gradient(var(--accent)_0_35%,var(--danger)_35%_58%,var(--warning)_58%_78%,var(--line)_78%)]"
-      >
-        <b>{{ store.money(reportExpenses()) }}</b>
-      </div>
-      <ul class="grid gap-2">
-        @for (category of reportCategories(); track category.name) {
-        <li class="grid grid-cols-[9px_1fr_auto] items-center gap-[7px] text-[0.72rem]">
-          <i class="size-2 rounded-full" [style.background]="category.color"></i><span>{{ category.name }}</span
-          ><b class="whitespace-nowrap">{{ category.percent }} % · {{ compactMoney(category.value) }}</b>
-        </li>
-        }
-      </ul>
-    </div>
+    @if (reportCategories().length) {
+    <fin-chart [option]="categoriesOption()" [height]="240" [ariaLabel]="i18n.t('reports.categories.title')" />
+    } @else {
+    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+    }
   </div>
   } @if (can(P.reportes.tendencia.ver)) {
   <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
     <h2 class="mb-[5px] text-base">{{ i18n.t('reports.trend.title') }}</h2>
     <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
-    <div
-      class="grid min-h-[205px] grid-cols-[70px_minmax(0,1fr)] grid-rows-[170px_auto]"
-      role="img"
-      [attr.aria-label]="i18n.t('reports.trend.ariaLabel')"
-    >
-      <span
-        class="flex flex-col items-end justify-between pt-[3px] pr-2.5 pb-[7px] text-[0.72rem] text-muted-foreground"
-        ><b>{{ compactMoney(reportNetRange()) }}</b><em class="not-italic">$0</em
-        ><b>-{{ compactMoney(reportNetRange()) }}</b></span
-      ><svg class="h-40 w-full overflow-visible" viewBox="0 0 600 160" preserveAspectRatio="none">
-        <line
-          class="stroke-border"
-          x1="0"
-          y1="80"
-          x2="600"
-          y2="80"
-          stroke-dasharray="5 4"
-          vector-effect="non-scaling-stroke"
-        />
-        <polyline
-          class="stroke-primary"
-          fill="none"
-          stroke-width="3"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-          vector-effect="non-scaling-stroke"
-          [attr.points]="reportNetPoints()"
-        />
-      </svg>
-      <div class="col-start-2 flex justify-between gap-1 text-[0.72rem] text-muted-foreground">
-        @for (v of reportSeries(); track v.month) {
-        <span class="grid gap-0.5 text-center"
-          >{{ v.month }}<small class="text-[0.72rem] text-foreground">{{ compactMoney(v.net) }}</small></span
-        >
-        }
-      </div>
-    </div>
-    <small class="mt-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.unitNote') }}</small>
+    @if (reportSeries().length) {
+    <fin-chart [option]="trendOption()" [height]="220" [ariaLabel]="i18n.t('reports.trend.ariaLabel')" />
+    } @else {
+    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+    }
   </div>
   } @if (can(P.reportes.deuda.ver)) {
   <div hlmCard class="min-h-[250px] gap-0 p-5">
     <h2 class="mb-3 text-base">{{ i18n.t('reports.debtHealth.title') }}</h2>
+    @if (utilization() !== null) {
+    <fin-chart
+      [option]="utilizationOption()"
+      [height]="170"
+      [ariaLabel]="i18n.t('reports.debtHealth.utilization.label')"
+    />
+    }
     <dl
       class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
     >
+      @if (utilization() === null) {
       <div>
         <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
-        <dd class="font-bold">34 %</dd>
+        <dd class="font-bold">{{ sinDato }}</dd>
       </div>
+      }
       <div>
         <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
-        <dd class="font-bold">5 sep</dd>
+        <dd class="text-end font-bold">
+          @if (nextDue(); as proximo) { {{ proximo.fecha }}
+          <small class="block font-normal text-muted-foreground">{{ proximo.tarjeta }}</small>
+          } @else { {{ sinDato }} }
+        </dd>
       </div>
       <div>
         <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
-        <dd class="font-bold">{{ store.money(184000) }}</dd>
+        <dd class="font-bold">{{ estimatedInterest() === null ? sinDato : store.money(estimatedInterest() ?? 0) }}</dd>
       </div>
     </dl>
   </div>
@@ -189,12 +132,12 @@
     </dl>
   </div>
   } @if (can(P.reportes.hallazgos.ver)) {
-  <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
+  <div hlmCard class="col-span-full min-h-[180px] gap-0 p-5 max-[700px]:col-auto">
     <h2 class="mb-3 text-base">{{ i18n.t('reports.insights.title') }}</h2>
     <ul class="grid gap-3 text-muted-foreground">
-      <li>{{ i18n.t('reports.insights.item1') }}</li>
-      <li>{{ i18n.t('reports.insights.item2') }}</li>
-      <li>{{ i18n.t('reports.insights.item3') }}</li>
+      @for (hallazgo of insights(); track $index) {
+      <li>{{ hallazgo }}</li>
+      }
     </ul>
   </div>
   }

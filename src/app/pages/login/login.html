@@ -35,15 +35,88 @@
       } @else if (store.remoteState() === 'loading') {
       <p class="leading-[1.65] text-muted-foreground" role="status">{{ i18n.t('login.connecting') }}</p>
       } @else if (store.remoteState() === 'anonymous') {
-      <p class="leading-[1.65] text-muted-foreground">{{ i18n.t('login.signInToContinue') }}</p>
+      <p class="leading-[1.65] text-muted-foreground">
+        {{ i18n.t(showPassword() ? 'login.signInToContinueAny' : 'login.signInToContinue') }}
+      </p>
+      @if (showGoogle()) {
       <a hlmBtn class="api-login mt-3 h-[45px] w-full" [href]="googleLoginUrl()"
         ><b class="mr-2.5 rounded-[5px] bg-white px-[7px] py-1 text-[#356]">G</b> {{ i18n.t('login.google') }}</a
       >
-      } @else {
+      } @if (showPassword()) { @if (showGoogle()) {
+      <p class="my-4 flex items-center gap-3 text-[0.76rem] text-muted-foreground">
+        <span class="h-px flex-1 bg-border"></span>{{ i18n.t('login.password.or') }}<span
+          class="h-px flex-1 bg-border"
+        ></span>
+      </p>
+      }
+      <form class="grid gap-3" (ngSubmit)="loginWithPassword()">
+        <label hlmLabel class="grid gap-1.5 text-[0.76rem] text-muted-foreground"
+          >{{ i18n.t('login.password.user') }}<input
+            hlmInput
+            name="userName"
+            autocomplete="username"
+            [(ngModel)]="userName"
+            [disabled]="signingIn()"
+            required
+        /></label>
+        <label hlmLabel class="grid gap-1.5 text-[0.76rem] text-muted-foreground"
+          >{{ i18n.t('login.password.password') }}<input
+            hlmInput
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            [(ngModel)]="password"
+            [disabled]="signingIn()"
+            required
+        /></label>
+        @if (passwordError()) {
+        <p class="text-[0.8rem] text-destructive" role="alert">{{ passwordError() }}</p>
+        }
+        <button hlmBtn type="submit" variant="outline" class="h-[45px] w-full" [disabled]="signingIn()">
+          {{ signingIn() ? i18n.t('login.password.signingIn') : i18n.t('login.password.submit') }}
+        </button>
+      </form>
+      } } @else {
       <p class="leading-[1.65] text-destructive" role="alert">{{ store.remoteError() }}</p>
+      @if (showGoogle()) {
       <a hlmBtn class="api-login mt-3 h-[45px] w-full" [href]="googleLoginUrl()"
         ><b class="mr-2.5 rounded-[5px] bg-white px-[7px] py-1 text-[#356]">G</b> {{ i18n.t('login.google') }}</a
       >
+      } @if (showPassword()) { @if (showGoogle()) {
+      <p class="my-4 flex items-center gap-3 text-[0.76rem] text-muted-foreground">
+        <span class="h-px flex-1 bg-border"></span>{{ i18n.t('login.password.or') }}<span
+          class="h-px flex-1 bg-border"
+        ></span>
+      </p>
+      }
+      <form class="grid gap-3" (ngSubmit)="loginWithPassword()">
+        <label hlmLabel class="grid gap-1.5 text-[0.76rem] text-muted-foreground"
+          >{{ i18n.t('login.password.user') }}<input
+            hlmInput
+            name="userName"
+            autocomplete="username"
+            [(ngModel)]="userName"
+            [disabled]="signingIn()"
+            required
+        /></label>
+        <label hlmLabel class="grid gap-1.5 text-[0.76rem] text-muted-foreground"
+          >{{ i18n.t('login.password.password') }}<input
+            hlmInput
+            name="password"
+            type="password"
+            autocomplete="current-password"
+            [(ngModel)]="password"
+            [disabled]="signingIn()"
+            required
+        /></label>
+        @if (passwordError()) {
+        <p class="text-[0.8rem] text-destructive" role="alert">{{ passwordError() }}</p>
+        }
+        <button hlmBtn type="submit" variant="outline" class="h-[45px] w-full" [disabled]="signingIn()">
+          {{ signingIn() ? i18n.t('login.password.signingIn') : i18n.t('login.password.submit') }}
+        </button>
+      </form>
+      }
       <button hlmBtn variant="outline" class="mt-3 h-[45px] w-full" (click)="retry()">
         <fin-icon name="undo" /> {{ i18n.t('login.retry') }}
       </button>

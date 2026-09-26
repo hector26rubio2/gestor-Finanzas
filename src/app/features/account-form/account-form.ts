@@ -2,6 +2,8 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { AccountViewType } from '../../core/api/api-client';
+import { Account } from '../../core/state/demo-data';
 import { I18nService } from '../../core/i18n';
 import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
@@ -14,6 +16,24 @@ import { AsyncActionService } from '../../core/utils/async-action.service';
 
 /** Componentes de un abono, en el orden en que se le aplican a la deuda. */
 export type PriorityItem = 'fees' | 'interest' | 'capital';
+
+/**
+ * Permiso que exige el backend para abrir una cuenta de este tipo.
+ *
+ * Replica `FaltaPermisoDeTipoDeCuenta` de `AccountsEndpoints.cs:70-79`, donde el tipo
+ * viaja en el cuerpo y la política de la ruta no puede verlo: sin esta regla, la
+ * interfaz ofrecería cuentas que el servidor rechaza con 403 y el error llegaría tarde.
+ */
+export function permisoParaEditarCuenta(tipo: AccountViewType): string {
+  return tipo === 'credit' ? P.cuentas.tarjetas.editar : P.cuentas.editar;
+}
+
+export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
+  if (tipo === 'credit') return P.cuentas.tarjetas.crear;
+  if (tipo === 'savings' || tipo === 'checking') return P.cuentas.ahorro.crear;
+  if (tipo === 'cash' || tipo === 'wallet') return P.cuentas.efectivo.crear;
+  return P.cuentas.crear;
+}
 
 @Component({
   selector: 'fin-account-form',
@@ -36,15 +56,20 @@ export class AccountFormComponent {
   readonly error = signal('');
   name = 'Ahorro principal';
 
-  /** Un tipo de cuenta por permiso: se puede dar el ahorro y retener la tarjeta. */
+  /**
+   * Un tipo de cuenta por permiso: se puede dar el ahorro y retener la tarjeta.
+   * El permiso de cada uno sale de `permisoParaTipoDeCuenta`, la regla del backend.
+   */
   readonly accountTypes = computed(() =>
-    [
-      { value: 'savings' as const, label: this.i18n.t('form.account.type.savings'), permiso: P.cuentas.ahorro.crear },
-      { value: 'cash' as const, label: this.i18n.t('form.account.type.cash'), permiso: P.cuentas.efectivo.crear },
-      { value: 'credit' as const, label: this.i18n.t('form.account.type.credit'), permiso: P.cuentas.tarjetas.crear },
-    ].filter((option) => this.capabilities.allows(option.permiso)),
+    (['savings', 'checking', 'cash', 'wallet', 'other', 'credit'] as const)
+      .map((value) => ({
+        value,
+        label: this.i18n.t(`form.account.type.${value}`),
+        permiso: permisoParaTipoDeCuenta(value),
+      }))
+      .filter((option) => this.capabilities.allows(option.permiso)),
   );
-  type: 'savings' | 'cash' | 'credit' = 'savings';
+  type: AccountViewType = 'savings';
   currency = 'COP';
   readonly currencyOptions = computed<readonly UiOption[]>(() => [
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
@@ -96,18 +121,39 @@ export class AccountFormComponent {
   minimumPayment = 50000;
   private store = inject(AppStore);
   readonly actions = inject(AsyncActionService);
-  readonly saveActionKey = 'account:create';
+  readonly editing = this.store.form()?.account ?? null;
+  readonly saveActionKey = this.editing ? `account:update:${this.editing.id}` : 'account:create';
+  lastFour = '';
+  readonly title = computed(() =>
+    this.i18n.t(
+      this.editing
+        ? this.editing.type === 'credit'
+          ? 'form.account.title.editCard'
+          : 'form.account.title.edit'
+        : 'form.account.title.create',
+    ),
+  );
+  readonly typeLabel = computed(() => (this.editing ? this.i18n.t(`form.account.type.${this.editing.type}`) : ''));
+
+  constructor() {
+    const account = this.editing;
+    if (!account) return;
+    this.name = account.name;
+    this.type = account.type;
+    this.currency = account.currency;
+    this.lastFour = account.lastFour ?? '';
+    if (account.limit !== undefined) this.limit = account.limit;
+    if (account.cutDay !== undefined) this.cutDay = account.cutDay;
+    if (account.dueDay !== undefined) this.dueDay = account.dueDay;
+  }
+
   closed = () => this.store.form.set(null);
   async save() {
+    if (this.editing) return this.saveChanges(this.editing);
     try {
       this.error.set('');
       // Una tarjeta la crea quien administra tarjetas; una cuenta, quien administra cuentas.
-      const permiso =
-        this.type === 'credit'
-          ? P.cuentas.tarjetas.crear
-          : this.type === 'cash'
-            ? P.cuentas.efectivo.crear
-            : P.cuentas.ahorro.crear;
+      const permiso = permisoParaTipoDeCuenta(this.type);
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
       await this.actions.run(
         this.saveActionKey,
@@ -127,6 +173,30 @@ export class AccountFormComponent {
         {
           loading: this.i18n.t('form.account.toast.loading'),
           success: this.i18n.t('form.account.toast.success'),
+          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed')),
+        },
+      );
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed'));
+    }
+  }
+
+  private async saveChanges(account: Account) {
+    try {
+      this.error.set('');
+      if (!this.capabilities.allows(permisoParaEditarCuenta(account.type)))
+        throw new Error(this.i18n.t('form.account.error.forbidden'));
+      await this.actions.run(
+        this.saveActionKey,
+        () =>
+          this.store.updateAccount(account, {
+            name: this.name,
+            lastFour: this.lastFour,
+            credit: { limit: Number(this.limit), cutDay: Number(this.cutDay), dueDay: Number(this.dueDay) },
+          }),
+        {
+          loading: this.i18n.t('form.account.toast.updating'),
+          success: this.i18n.t('form.account.toast.updated'),
           error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed')),
         },
       );

@@ -15,10 +15,14 @@ import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-
 import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
 import { IconComponent } from '../../../../ui/icon/icon';
 import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
+import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
 import { AdminStore } from '../../admin.store';
 import { AdminGridComponent } from '../../panel/admin-grid';
 import { AdminPanelComponent } from '../../panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
+
+/** Código de moneda ISO 4217: tres letras, que es lo que el backend exige en el cuerpo. */
+const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
 
 @Component({
   selector: 'app-admin-organizations-tab',
@@ -38,6 +42,7 @@ import { OrganizationSheetComponent } from './organization-sheet';
     OrganizationSheetComponent,
     SheetPanelComponent,
     ConfirmDialogComponent,
+    UiSelectComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -170,13 +175,22 @@ import { OrganizationSheetComponent } from './organization-sheet';
       </label>
       <label hlmLabel class="flex items-start flex-col gap-1.5">
         {{ i18n.t('admin.organizations.drawer.currencyLabel') }}
-        <input hlmInput maxlength="3" [ngModel]="currency()" (ngModelChange)="currency.set($event.toUpperCase())" />
+        <fin-select
+          name="moneda"
+          [ngModel]="currency()"
+          (ngModelChange)="currency.set($event)"
+          [options]="currencyOptions()"
+          [ariaLabel]="i18n.t('admin.organizations.drawer.currencyLabel')"
+        />
+        @if (!monedaValida()) {
+          <small class="text-destructive" role="alert">{{ i18n.t('admin.organizations.error.currencyInvalid') }}</small>
+        }
       </label>
       <div sheetFooter class="flex gap-2">
         <button hlmBtn variant="outline" (click)="creating.set(false)">
           <fin-icon name="close" /> {{ i18n.t('admin.common.cancel') }}
         </button>
-        <button hlmBtn [disabled]="saving() || !name().trim()" (click)="create()">
+        <button hlmBtn [disabled]="saving() || !name().trim() || !monedaValida()" (click)="create()">
           <fin-icon name="check" /> {{ i18n.t('admin.roles.drawer.save') }}
         </button>
       </div>
@@ -197,6 +211,17 @@ export class OrganizationsTabComponent {
   readonly search = signal('');
   readonly name = signal('');
   readonly currency = signal('COP');
+  /**
+   * Monedas que se pueden elegir: las que publica la API y, mientras no llegue el
+   * catálogo, las locales. Antes era un `<input maxlength="3">` libre, donde cabía
+   * cualquier cosa —incluso letras de más— y el cuerpo llegaba al backend con un código
+   * que este rechazaba.
+   */
+  readonly currencyOptions = computed<readonly UiOption[]>(() =>
+    this.app.currencyCatalog().map((moneda) => ({ value: moneda.code, label: moneda.code })),
+  );
+  /** Tres letras mayúsculas, que es todo lo que el backend acepta como moneda. */
+  readonly monedaValida = computed(() => CODIGO_DE_MONEDA.test(this.currency().trim().toUpperCase()));
   readonly saving = signal(false);
   readonly managingId = signal<string | null>(null);
   readonly managing = computed<ApiAdminOrganization | null>(
@@ -260,9 +285,16 @@ export class OrganizationsTabComponent {
   }
 
   async create(): Promise<void> {
+    const currency = this.currency().trim().toUpperCase();
+    // Red de seguridad por si el catálogo no cubre la moneda elegida: mejor avisar aquí
+    // que mandar un cuerpo que el backend rechaza con 400 sin explicación.
+    if (!CODIGO_DE_MONEDA.test(currency)) {
+      this.app.toast.set(this.i18n.t('admin.organizations.error.currencyInvalid'));
+      return;
+    }
     this.saving.set(true);
     try {
-      await this.store.crearOrganizacion({ name: this.name().trim(), baseCurrency: this.currency() });
+      await this.store.crearOrganizacion({ name: this.name().trim(), baseCurrency: currency });
       this.name.set('');
       this.creating.set(false);
     } catch (error) {

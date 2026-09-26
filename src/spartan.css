@@ -11,7 +11,7 @@
 @source './app';
 
 @custom-variant data-active (&:is([data-active='true'], [data-state='active']));
-@custom-variant data-checked (&:is([data-checked='true'], [data-state='checked']));
+@custom-variant data-checked (&:is([data-checked]:not([data-checked='false']), [data-state='checked']));
 @custom-variant data-unchecked (&:is([data-unchecked='true'], [data-state='unchecked']));
 @custom-variant data-pressed (&:is([data-pressed='true'], [data-state='on']));
 @custom-variant data-vertical (&[data-orientation='vertical']);

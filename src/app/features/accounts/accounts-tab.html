@@ -5,6 +5,9 @@
     tone="success"
     [value]="store.money(store.available())"
     [hint]="i18n.t('accounts.kpi.available.hint')"
+    [series]="availableSeries()"
+    [delta]="variacion(availableSeries())"
+    [caption]="availableSeries().length > 1 ? historiaEtiqueta() : ''"
   />
   <fin-kpi
     [label]="i18n.t('accounts.kpi.debt.label')"
@@ -12,6 +15,10 @@
     tone="danger"
     [value]="store.money(store.debt())"
     [hint]="i18n.t('accounts.kpi.debt.hint')"
+    [series]="debtSeries()"
+    [delta]="variacion(debtSeries())"
+    [caption]="debtSeries().length > 1 ? historiaEtiqueta() : ''"
+    [subirEsBueno]="false"
   />
   <fin-kpi
     [label]="i18n.t('accounts.kpi.count.label')"
@@ -39,79 +46,89 @@
     [label]="i18n.t('accounts.kpi.overextended.label')"
     icon="warning"
     [tone]="over && over.percent > healthyPercent ? 'danger' : 'success'"
+    [status]="overextendedStatus()"
+    [progress]="over ? over.percent : null"
     [value]="over ? over.account.name + ' · ' + over.percent + '%'  : i18n.t('accounts.kpi.none')"
     [hint]="over ? i18n.t(over.overHealthyPoints > 0 ? 'accounts.kpi.overextended.above' : 'accounts.kpi.overextended.below', { points: over.overHealthyPoints < 0 ? -over.overHealthyPoints : over.overHealthyPoints, healthy: healthyPercent }) : i18n.t('accounts.kpi.overextended.empty')"
   />
 </fin-kpi-grid>
 <section
-  class="grid grid-cols-[minmax(220px,1fr)_minmax(170px,240px)_auto] items-end gap-2.5 rounded-xl border border-border bg-card px-3 py-[11px] max-[700px]:grid-cols-1"
+  class="flex shrink-0 flex-wrap items-center gap-2 rounded-lg border border-border bg-card px-3 py-2.5"
   [attr.aria-label]="i18n.t('accounts.filters.ariaLabel')"
 >
-  <label class="grid gap-[5px] text-[0.72rem] text-muted-foreground"
-    ><span>{{ i18n.t('accounts.filters.search.label') }}</span>
-    <fin-search-field
-      [value]="accountQuery()"
-      (valueChange)="setAccountQuery($event)"
-      [placeholder]="i18n.t('accounts.filters.search.placeholder')"
-      [ariaLabel]="i18n.t('accounts.filters.search.label')"
-    />
-  </label>
-  <label class="grid gap-[5px] text-[0.72rem] text-muted-foreground"
-    ><span>{{ i18n.t('accounts.filters.type.label') }}</span
-    ><fin-select
-      [ngModel]="accountType()"
-      (ngModelChange)="setAccountType($event)"
-      [options]="book.accountTypeOptions()"
-      [ariaLabel]="i18n.t('accounts.filters.type.label')"
-  /></label>
-  <span class="self-center text-[0.72rem] whitespace-nowrap text-muted-foreground"
+  <fin-search-field
+    class="w-full max-w-xs min-w-48 flex-1"
+    [value]="accountQuery()"
+    (valueChange)="setAccountQuery($event)"
+    [placeholder]="i18n.t('accounts.filters.search.placeholder')"
+    [ariaLabel]="i18n.t('accounts.filters.search.label')"
+  />
+  <fin-select
+    class="w-48"
+    [ngModel]="accountType()"
+    (ngModelChange)="setAccountType($event)"
+    [options]="book.accountTypeOptions()"
+    [ariaLabel]="i18n.t('accounts.filters.type.label')"
+  />
+  <span class="ms-auto text-[0.72rem] whitespace-nowrap text-muted-foreground" role="status"
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
-<div
-  class="flex flex-nowrap gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]"
-  role="tablist"
-  tabindex="0"
+<hlm-toggle-group
+  type="single"
+  variant="outline"
+  size="sm"
+  spacing="2"
+  class="shrink-0 flex-nowrap overflow-x-auto pb-1 [scrollbar-width:thin]"
   [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
+  [value]="selectedAccountFilter()"
 >
   <button
-    hlmBtn
-    variant="outline"
-    size="sm"
+    hlmToggleGroupItem
     type="button"
-    role="tab"
-    class="flex-none rounded-full text-[0.78rem] data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:text-primary"
-    [attr.data-active]="selectedAccountFilter() === 'all'"
-    [attr.aria-selected]="selectedAccountFilter() === 'all'"
+    value="all"
+    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
     (click)="filterByAccount('all')"
   >
     {{ i18n.t('accounts.cards.allChip') }}
   </button>
   @for (a of filteredAccounts(); track a.id) {
   <button
-    hlmBtn
-    variant="outline"
-    size="sm"
+    hlmToggleGroupItem
     type="button"
-    role="tab"
-    class="flex-none rounded-full text-[0.78rem] data-[active=true]:border-primary data-[active=true]:bg-accent data-[active=true]:text-primary"
-    [attr.data-active]="selectedAccountFilter() === a.id"
-    [attr.aria-selected]="selectedAccountFilter() === a.id"
+    [value]="a.id"
+    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
     (click)="selectAccount(a.id, a.type)"
   >
     {{ a.name }}
   </button>
   }
-</div>
-<fin-table-zone>
+</hlm-toggle-group>
+<section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
+  <fin-chart-card
+    [title]="i18n.t('accounts.chart.balancesTitle')"
+    [option]="balancesOption()"
+    [hasData]="cuentasConDatos()"
+    [empty]="i18n.t('accounts.chart.empty')"
+  />
+  <fin-chart-card
+    [title]="i18n.t('accounts.chart.cardsTitle')"
+    [option]="cardsOption()"
+    [hasData]="tarjetasConDatos()"
+    [empty]="i18n.t('accounts.chart.noCards')"
+  />
+</section>
+<fin-table-zone class="min-h-[360px]">
   <fin-table
     [columns]="book.movementColumns()"
-    [rows]="accountMovementRows()"
+    [rows]="book.movementRows()"
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
     [remotePage]="store.remoteMovementPage()"
     (pageSizeChange)="book.changeMovementPageSize($event)"
     (pageChange)="book.loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
+    [toolbar]="true"
+    (pinnedChange)="book.pinned.set($event); book.loadMovementPage(1)"
   />
 </fin-table-zone>

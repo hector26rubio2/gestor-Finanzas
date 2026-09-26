@@ -1,107 +1,43 @@
-<button
-  hlmBtn
-  variant="outline"
-  type="button"
-  class="mb-2.5 hidden h-11 w-full justify-start max-[700px]:flex"
-  [attr.aria-expanded]="filtersOpen()"
-  aria-controls="panel-filtros"
-  (click)="filtersOpen.update((open) => !open)"
->
-  {{ i18n.t('movements.filters.toggle') }} @if (activeFilterCount()) {
-  <span
-    class="inline-grid h-[22px] min-w-[22px] place-items-center rounded-full bg-primary px-1.5 text-xs text-primary-foreground"
-    >{{ activeFilterCount() }}</span
-  >
-  }
-</button>
-<section
-  id="panel-filtros"
-  class="grid grid-cols-[minmax(190px,1.35fr)_repeat(5,minmax(120px,0.75fr))_auto] gap-2.5 rounded-lg border border-border bg-card p-3 max-[1180px]:grid-cols-[repeat(auto-fit,minmax(140px,1fr))] max-[700px]:grid-cols-1"
-  [class]="filtersOpen() ? '' : 'max-[700px]:hidden'"
->
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.search.label') }}<input
-      hlmInput
-      #searchInput
-      [attr.aria-label]="i18n.t('movements.filters.search.ariaLabel')"
-      [attr.placeholder]="i18n.t('movements.filters.search.placeholder')"
-      [ngModel]="store.query()"
-      (ngModelChange)="store.query.set($event); loadMovementPage(1)"
-  /></label>
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.period.label') }}<fin-select
-      [ngModel]="store.period()"
-      (ngModelChange)="store.period.set($event); loadMovementPage(1)"
-      [options]="periodOptions()"
-      [ariaLabel]="i18n.t('movements.filters.period.label')"
-  /></label>
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.account.label') }}<fin-select
-      [ngModel]="store.accountFilter()"
-      [options]="movementAccountOptions()"
-      [ariaLabel]="i18n.t('movements.filters.account.label')"
-      (ngModelChange)="store.accountFilter.set($event); loadMovementPage(1)"
-  /></label>
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.accountType.label') }}<fin-select
-      [ngModel]="book.movementAccountType()"
-      (ngModelChange)="book.movementAccountType.set($event)"
-      [options]="book.accountTypeOptions()"
-      [ariaLabel]="i18n.t('movements.filters.accountType.label')"
-  /></label>
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.category.label') }}<fin-select
-      [ngModel]="book.movementCategory()"
-      (ngModelChange)="book.movementCategory.set($event)"
-      [options]="movementCategoryOptions()"
-      [ariaLabel]="i18n.t('movements.filters.category.label')"
-  /></label>
-  <label class="flex flex-col gap-[5px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('movements.filters.operation.label') }}<fin-select
-      [ngModel]="book.movementOperation()"
-      (ngModelChange)="book.movementOperation.set($event)"
-      [options]="movementOperationOptions()"
-      [ariaLabel]="i18n.t('movements.filters.operation.label')"
-  /></label>
-  @if (hasActiveFilters()) {
-  <button
-    hlmBtn
-    variant="outline"
-    size="lg"
-    type="button"
-    class="self-end text-muted-foreground"
-    (click)="clearFilters()"
-  >
-    <fin-icon name="undo" /> {{ i18n.t('movements.filters.reset') }}
-  </button>
-  }
-</section>
 <fin-kpi-grid>
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
     icon="trendUp"
     tone="success"
-    [value]="store.money(store.income())"
-    [hint]="i18n.t('movements.kpi.selectionHint')"
+    [value]="store.money(ingresosMostrados())"
+    [hint]="i18n.t(hintDe('income'))"
+    [series]="incomeSeries()"
+    [delta]="variacion(incomeSeries())"
+    [caption]="incomeSeries().length > 1 ? historiaEtiqueta() : ''"
   />
   <fin-kpi
     [label]="i18n.t('movements.kpi.expense.label')"
     icon="trendDown"
     tone="danger"
-    [value]="store.money(store.expense())"
-    [hint]="i18n.t('movements.kpi.selectionHint')"
+    [value]="store.money(gastosMostrados())"
+    [hint]="i18n.t(hintDe('expense'))"
+    [series]="expenseSeries()"
+    [delta]="variacion(expenseSeries())"
+    [caption]="expenseSeries().length > 1 ? historiaEtiqueta() : ''"
+    [subirEsBueno]="false"
   />
   <fin-kpi
     [label]="i18n.t('movements.kpi.records.label')"
     icon="movements"
-    [value]="store.movements().length.toString()"
-    [hint]="i18n.t('movements.kpi.records.hint')"
+    [value]="registrosMostrados().toLocaleString()"
+    [hint]="i18n.t(hintDe('records'))"
+    [series]="recordsSeries()"
+    [delta]="variacion(recordsSeries())"
+    [caption]="recordsSeries().length > 1 ? historiaEtiqueta() : ''"
   />
   <fin-kpi
     [label]="i18n.t('movements.kpi.recurring.label')"
     icon="calendar"
     [value]="recurringExpenses().toString()"
-    [hint]="i18n.t('movements.kpi.recurring.hint')"
+    [hint]="i18n.t(hintDe('recurring'))"
+    [series]="recurringSeries()"
+    [delta]="variacion(recurringSeries())"
+    [caption]="recurringSeries().length > 1 ? historiaEtiqueta() : ''"
+    [subirEsBueno]="false"
   />
   @let debt = longestDebt();
   <fin-kpi
@@ -109,7 +45,11 @@
     icon="clock"
     tone="danger"
     [value]="debt ? i18n.t('movements.kpi.installments.value', { count: debt.remaining }) : i18n.t('movements.kpi.none')"
-    [hint]="debt ? i18n.t('movements.kpi.installments.hint', { name: debt.description, total: debt.total }) : i18n.t('movements.kpi.installments.empty')"
+    [hint]="debt ? i18n.t(hintDe('installments'), { name: debt.description, total: debt.total }) : i18n.t('movements.kpi.installments.empty')"
+    [series]="installmentsSeries()"
+    [delta]="variacion(installmentsSeries())"
+    [caption]="installmentsSeries().length > 1 ? historiaEtiqueta() : ''"
+    [subirEsBueno]="false"
   />
   @let top = topCategory();
   <fin-kpi
@@ -117,7 +57,7 @@
     icon="trendDown"
     tone="danger"
     [value]="top ? top.category : i18n.t('movements.kpi.none')"
-    [hint]="top ? store.money(top.amount) : i18n.t('movements.kpi.topCategory.empty')"
+    [hint]="top ? i18n.t(hintDe('topCategory'), { amount: store.money(top.amount) }) : i18n.t('movements.kpi.topCategory.empty')"
   />
 </fin-kpi-grid>
 <fin-table-zone class="relative" [attr.aria-busy]="book.movementsLoading()">
@@ -134,5 +74,25 @@
     (pageSizeChange)="changeMovementPageSize($event)"
     (pageChange)="loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
-  ></fin-table>
+    [toolbar]="true"
+    (pinnedChange)="book.pinned.set($event); loadMovementPage(1)"
+  >
+    <span finTableTools class="flex items-center gap-2">
+      <fin-select
+        class="w-36"
+        [ngModel]="periodYear()"
+        (ngModelChange)="setPeriodYear($event)"
+        [options]="yearOptions()"
+        [ariaLabel]="i18n.t('movements.filters.period.year')"
+      />
+      <fin-select
+        class="w-36"
+        [ngModel]="periodMonth()"
+        (ngModelChange)="setPeriodMonth($event)"
+        [options]="monthOptions()"
+        [disabled]="periodYear() === 'all'"
+        [ariaLabel]="i18n.t('movements.filters.period.month')"
+      />
+    </span>
+  </fin-table>
 </fin-table-zone>

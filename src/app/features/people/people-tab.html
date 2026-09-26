@@ -26,9 +26,17 @@
     [label]="i18n.t('people.kpi.slowest.label')"
     icon="clock"
     [value]="slowestPayer().name"
-    [hint]="i18n.t('people.kpi.slowest.hint', { days: slowestPayer().days })"
+    [hint]="i18n.t(slowestPayer().hintKey, { days: slowestPayer().days })"
   />
 </fin-kpi-grid>
-<fin-table-zone>
+<fin-chart-card
+  class="shrink-0"
+  [title]="i18n.t('people.chart.balances')"
+  [description]="i18n.t('people.chart.balancesHint')"
+  [option]="balancesOption()"
+  [hasData]="hasBalances()"
+  [empty]="i18n.t('people.chart.empty')"
+/>
+<fin-table-zone class="min-h-[360px]">
   <fin-table [columns]="peopleColumns()" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
 </fin-table-zone>

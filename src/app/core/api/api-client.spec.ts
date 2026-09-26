@@ -199,4 +199,30 @@ describe('FinanceApiClient', () => {
     request.flush({ occurrence: '2026-09-08', operation: null, movements: ['movement-1'] });
     expect((await promise).movements).toEqual(['movement-1']);
   });
+
+  it('limita cada petición en el tiempo y explica el corte en palabras claras', async () => {
+    const promise = firstValueFrom(api.createPerson({ displayName: 'Ana' }));
+
+    const csrf = http.expectOne('https://api.example.test/api/v1/auth/csrf');
+    expect(csrf.request.timeout).toBe(30_000);
+    csrf.flush({ token: 'csrf' });
+
+    const request = http.expectOne('https://api.example.test/api/v1/people');
+    // Sin límite, una llamada que no responde dejaba la acción clavada en «cargando».
+    expect(request.request.timeout).toBe(30_000);
+    // Así entrega el corte el backend: status 0 con la excepción de la plataforma.
+    // `flush` con este cuerpo simula exactamente el `HttpErrorResponse` real.
+    request.flush(new DOMException('Request timed out', 'TimeoutError'), {
+      status: 0,
+      statusText: 'Request timeout',
+    });
+
+    // El mensaje es el que se enseña en el toast y en el error del formulario, así
+    // que no puede ser «La API respondió 0.».
+    await expect(promise).rejects.toMatchObject({
+      status: 0,
+      message: expect.stringContaining('tiempo'),
+      problem: { code: 'transport.timeout' },
+    });
+  });
 });

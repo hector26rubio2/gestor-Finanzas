@@ -1,4 +1,3 @@
-import { IconComponent } from '../../ui/icon/icon';
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
@@ -6,16 +5,12 @@ import {
   ElementRef,
   OnDestroy,
   OnInit,
-  ViewChild,
   computed,
   inject,
-  signal,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmInput } from '@spartan-ng/helm/input';
 import { toCsv, downloadCsv } from '../../core/utils/csv';
 import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
 import { TableZoneComponent } from '../../ui/table-zone/table-zone';
@@ -28,17 +23,47 @@ import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { P } from '../../core/session/permissions';
 import { CAPABILITIES, AppStore } from '../../core/state/store';
 import { I18nService } from '../../core/i18n';
+import type { Movement } from '../../core/state/demo-data';
+import { sumBy } from '../../core/utils/money';
+import { monthRange } from '../../core/api/shared-api-types';
+import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, rangosMensuales, variacion } from '../../shared/historia/historia';
 import { MovementsBookService } from '../../shared/movements/movements-book.service';
 import { HeaderActionsService } from '../../shared/header-actions.service';
+
+/** KPI de esta cesta cuya pista cambia según de dónde salen sus datos. */
+export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'installments' | 'topCategory';
+
+/** Pista en demo: los datos cargados son la selección completa, así que no hay que matizar. */
+const PISTA_DEMO: Record<MovementsKpi, string> = {
+  income: 'movements.kpi.selectionHint',
+  expense: 'movements.kpi.selectionHint',
+  records: 'movements.kpi.records.hint',
+  recurring: 'movements.kpi.recurring.hint',
+  installments: 'movements.kpi.installments.hint',
+  topCategory: 'movements.kpi.topCategory.hint',
+};
+
+/**
+ * Clave de la pista de un KPI, según el modo de carga.
+ *
+ * Hallazgo 4, decisión: **no** se piden totales al reporting, se matiza la pista. El
+ * endpoint `GET /api/v1/dashboard` solo acepta `from`/`to`, y los filtros de esta pestaña
+ * —búsqueda, periodo, cuenta, tipo de cuenta, categoría y operación— no se pueden
+ * reproducir allí: un total del servidor calcularía con unos filtros distintos y no
+ * cuadraría con la tabla de abajo, que es justo el engaño que había. Además, en modo API
+ * los KPI suman la página cargada (25 filas), no el periodo entero, así que la pista lo
+ * dice con claridad. En demo los datos cargados son la selección completa y la pista
+ * original sigue siendo cierta, por eso no cambia.
+ */
+export function movementsKpiHintKey(mode: string, kpi: MovementsKpi): string {
+  return mode === 'api' ? `movements.kpi.page.${kpi}.hint` : PISTA_DEMO[kpi];
+}
 
 @Component({
   selector: 'app-movements-tab',
   imports: [
-    IconComponent,
     CommonModule,
     FormsModule,
-    HlmButton,
-    HlmInput,
     DataTableComponent,
     KpiComponent,
     KpiGridComponent,
@@ -61,10 +86,53 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly recurringExpenses = computed(() => recurringExpenseCount(this.store.movements()));
   readonly longestDebt = computed(() => longestInstallmentDebt(this.store.data().movements));
   readonly topCategory = computed(() => topSpendingCategory(this.store.movements()));
+  private readonly rangos = computed(() => rangosMensuales(PERIODOS_DE_HISTORIA, this.store.hoy()));
+  private readonly historia = crearHistoriaDeFlujo(this.rangos);
+  private readonly rangoDelPeriodo = computed(() => {
+    const periodo = this.store.period();
+    return [periodo === 'all' ? { start: '2000-01-01', end: this.store.hoy() } : monthRange(periodo)];
+  });
+  private readonly totalDelPeriodo = crearHistoriaDeFlujo(this.rangoDelPeriodo);
+  readonly totalesDelServidor = computed(() => {
+    const sinFiltros = this.store.accountFilter() === 'all' && !this.book.pinned().length;
+    const punto = this.totalDelPeriodo()[0];
+    return this.store.runtime.mode === 'api' && sinFiltros && punto && !punto.movs ? punto : null;
+  });
+  readonly ingresosMostrados = computed(() => this.totalesDelServidor()?.income ?? this.store.income());
+  readonly gastosMostrados = computed(() => this.totalesDelServidor()?.expense ?? this.store.expense());
+  readonly registrosMostrados = computed(() =>
+    this.store.runtime.mode === 'api' ? this.store.remoteMovementTotal() : this.store.movements().length,
+  );
+  readonly historiaEtiqueta = computed(() => this.i18n.t('kpi.history.month', { count: PERIODOS_DE_HISTORIA }));
+  readonly variacion = variacion;
+  private serieLocal(valor: (movs: readonly Movement[]) => number): number[] {
+    const historia = this.historia();
+    return historia.every((punto) => punto.movs) ? historia.map((punto) => valor(punto.movs ?? [])) : [];
+  }
+  readonly incomeSeries = computed(() => this.historia().map((punto) => punto.income));
+  readonly expenseSeries = computed(() => this.historia().map((punto) => punto.expense));
+  readonly recordsSeries = computed(() => this.serieLocal((movs) => movs.length));
+  readonly recurringSeries = computed(() =>
+    this.serieLocal((movs) => movs.filter((m) => !!m.recurring && m.kind === 'expense').length),
+  );
+  readonly installmentsSeries = computed(() =>
+    this.serieLocal((movs) =>
+      sumBy(
+        movs.filter((m) => !!m.installmentTotal),
+        (m) => Math.abs(m.amount),
+      ),
+    ),
+  );
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
-  @ViewChild('searchInput') private searchInput?: ElementRef<HTMLInputElement>;
+  /** Pista de un KPI: en modo API dice que el dato es de la página cargada. */
+  hintDe(kpi: MovementsKpi): string {
+    if (this.totalesDelServidor() && (kpi === 'income' || kpi === 'expense')) return 'movements.kpi.selectionHint';
+    if (kpi === 'records') return 'movements.kpi.selectionHint';
+    return movementsKpiHintKey(this.store.runtime.mode, kpi);
+  }
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
   /** El boton de exportar de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
   ngOnInit(): void {
@@ -72,73 +140,54 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.headerActions.exportMovements.set(null);
+    if (this.book.pinned().length) {
+      this.book.pinned.set([]);
+      void this.book.loadMovementPage(1);
+    }
   }
 
-  readonly periodOptions = computed<readonly UiOption[]>(() => {
-    const formatter = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long', year: 'numeric' });
-    const label = (year: number, month: number) => {
-      const text = formatter.format(new Date(year, month, 1, 12));
-      return text.charAt(0).toLocaleUpperCase() + text.slice(1);
-    };
-    const now = new Date();
-    const months: UiOption[] = Array.from({ length: 12 }, (_, offset) => {
-      const date = new Date(now.getFullYear(), now.getMonth() - offset, 1, 12);
+  readonly periodYear = computed(() => (this.store.period() === 'all' ? 'all' : this.store.period().slice(0, 4)));
+  readonly periodMonth = computed(() => this.store.period().slice(5, 7) || 'all');
+  readonly yearOptions = computed<readonly UiOption[]>(() => {
+    const actual = new Date().getFullYear();
+    const conDatos = this.store
+      .data()
+      .movements.map((m) => Number(m.date.slice(0, 4)))
+      .filter(Boolean);
+    const primero = Math.min(actual - 10, ...conDatos);
+    const anios = Array.from({ length: actual - primero + 1 }, (_, indice) => String(actual - indice));
+    return [
+      { value: 'all', label: this.i18n.t('movements.filters.period.allYears') },
+      ...anios.map((anio) => ({ value: anio, label: anio })),
+    ];
+  });
+  readonly monthOptions = computed<readonly UiOption[]>(() => {
+    const formatter = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long' });
+    const meses = Array.from({ length: 12 }, (_, indice) => {
+      const texto = formatter.format(new Date(2000, indice, 1, 12));
       return {
-        value: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`,
-        label: label(date.getFullYear(), date.getMonth()),
+        value: String(indice + 1).padStart(2, '0'),
+        label: texto.charAt(0).toLocaleUpperCase() + texto.slice(1),
       };
     });
-    const selected = this.store.period();
-    if (selected !== 'all' && !months.some((option) => option.value === selected)) {
-      const [year, month] = selected.split('-').map(Number);
-      months.push({ value: selected, label: label(year, month - 1) });
-    }
-    return [{ value: 'all', label: this.i18n.t('movements.filters.period.all') }, ...months];
+    return [{ value: 'all', label: this.i18n.t('movements.filters.period.wholeYear') }, ...meses];
   });
-  readonly movementAccountOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: this.i18n.t('movements.filters.account.all') },
-    ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
-  ]);
-  readonly movementCategoryOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: this.i18n.t('movements.filters.category.all') },
-    ...this.book.movementCategories().map((category) => ({ value: category, label: category })),
-  ]);
-  readonly movementOperationOptions = computed<readonly UiOption[]>(() => [
-    { value: 'all', label: this.i18n.t('movements.filters.operation.all') },
-    { value: 'income', label: this.i18n.t('movements.filters.operation.income') },
-    { value: 'expense', label: this.i18n.t('movements.filters.operation.expense') },
-    { value: 'transfer', label: this.i18n.t('movements.filters.operation.transfer') },
-    { value: 'advance', label: this.i18n.t('movements.filters.operation.advance') },
-    { value: 'loan', label: this.i18n.t('movements.filters.operation.loan') },
-    { value: 'recurring', label: this.i18n.t('movements.filters.operation.recurring') },
-  ]);
-  /** En pantallas estrechas los filtros arrancan plegados: primero el dinero. */
-  readonly filtersOpen = signal(typeof window === 'undefined' || window.innerWidth > 700);
-  readonly activeFilterCount = computed(
-    () =>
-      [
-        this.store.query() !== '',
-        this.store.period() !== 'all',
-        this.store.accountFilter() !== 'all',
-        this.book.movementAccountType() !== 'all',
-        this.book.movementCategory() !== 'all',
-        this.book.movementOperation() !== 'all',
-      ].filter(Boolean).length,
-  );
-  /** El boton de restablecer solo aparece cuando hay algo que restablecer. */
-  readonly hasActiveFilters = computed(
-    () =>
-      this.store.query() !== '' ||
-      this.store.period() !== 'all' ||
-      this.store.accountFilter() !== 'all' ||
-      this.book.movementAccountType() !== 'all' ||
-      this.book.movementCategory() !== 'all' ||
-      this.book.movementOperation() !== 'all',
-  );
 
+  setPeriodYear(anio: string): void {
+    const mes = this.periodMonth();
+    this.store.period.set(anio === 'all' ? 'all' : mes === 'all' ? anio : `${anio}-${mes}`);
+    this.loadMovementPage(1);
+  }
+
+  setPeriodMonth(mes: string): void {
+    const anio = this.periodYear();
+    if (anio === 'all') return;
+    this.store.period.set(mes === 'all' ? anio : `${anio}-${mes}`);
+    this.loadMovementPage(1);
+  }
   ngAfterViewInit(): void {
     if (this.route.snapshot.queryParamMap.get('focus') === 'search')
-      queueMicrotask(() => this.searchInput?.nativeElement.focus());
+      queueMicrotask(() => this.host.nativeElement.querySelector<HTMLInputElement>('[role=search] input')?.focus());
   }
 
   loadMovementPage(page: number): void {
@@ -146,15 +195,6 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   changeMovementPageSize(size: number): void {
     this.book.changeMovementPageSize(size);
-  }
-  clearFilters(): void {
-    this.store.query.set('');
-    this.store.period.set('all');
-    this.store.accountFilter.set('all');
-    this.book.movementAccountType.set('all');
-    this.book.movementCategory.set('all');
-    this.book.movementOperation.set('all');
-    void this.book.loadMovementPage(1);
   }
   /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
   exportMovements(): void {

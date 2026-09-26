@@ -1,5 +1,37 @@
-<fin-overlay [title]="i18n.t('form.account.title.create')" mode="modal" (closed)="closed()"
+<fin-overlay [title]="title()" mode="modal" (closed)="closed()"
   ><form class="grid grid-cols-2 gap-[18px] max-[500px]:grid-cols-1" (ngSubmit)="save()">
+    @if (editing) {
+    <fin-field [label]="i18n.t('form.account.field.type')">
+      <input hlmInput name="typeLabel" [value]="typeLabel()" disabled />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.field.name')">
+      <input hlmInput name="name" [(ngModel)]="name" required />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.field.currency')">
+      <input hlmInput name="currencyLabel" [value]="currency" disabled />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.lastFour')">
+      <input
+        hlmInput
+        name="lastFour"
+        [(ngModel)]="lastFour"
+        inputmode="numeric"
+        maxlength="4"
+        pattern="[0-9]{4}"
+        autocomplete="off"
+      />
+    </fin-field>
+    @if (type === 'credit') {
+    <fin-field [label]="i18n.t('form.account.field.limit')">
+      <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.cutDay')">
+      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.dueDay')">
+      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
+    </fin-field>
+    } } @else {
     <fin-field [label]="i18n.t('form.account.field.type')">
       <fin-select
         name="type"
@@ -103,15 +135,16 @@
     <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
       {{ i18n.t('form.account.hint.opening') }}
     </p>
-    @if (error()) {
+    } @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }
     <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="closed()">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       ><button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
-        {{ actions.isRunning(saveActionKey) ? i18n.t('form.account.actions.creating') :
-        i18n.t('form.account.actions.create') }}
+        @if (editing) { {{ actions.isRunning(saveActionKey) ? i18n.t('form.account.actions.saving') :
+        i18n.t('form.actions.save') }} } @else { {{ actions.isRunning(saveActionKey) ?
+        i18n.t('form.account.actions.creating') : i18n.t('form.account.actions.create') }} }
       </button>
     </footer>
   </form></fin-overlay

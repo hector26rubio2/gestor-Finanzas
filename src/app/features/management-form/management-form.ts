@@ -1,5 +1,6 @@
 import { DateFieldComponent } from '../../ui/date-field/date-field';
 import { IconComponent } from '../../ui/icon/icon';
+import { IconPickerComponent } from '../../ui/icon-picker/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
@@ -15,6 +16,7 @@ import { FieldComponent } from '../../ui/field/field';
 @Component({
   selector: 'fin-management-form',
   imports: [
+    IconPickerComponent,
     IconComponent,
     DateFieldComponent,
     HlmButton,
@@ -34,18 +36,25 @@ export class ManagementFormComponent {
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
-  readonly title = computed(
-    () =>
-      ({
-        category: this.i18n.t('form.management.title.category'),
-        person: this.i18n.t('form.management.title.person'),
-        investment: this.i18n.t('form.management.title.investment'),
-        recurrence: this.i18n.t('form.management.title.recurrence'),
-      })[this.kind()] ?? this.i18n.t('form.management.title.default'),
-  );
+  readonly editingId = this.store.form()?.targetId ?? null;
+  readonly title = computed(() => {
+    const titulos: Record<string, string> = this.editingId
+      ? {
+          category: this.i18n.t('form.management.title.editCategory'),
+          person: this.i18n.t('form.management.title.editPerson'),
+          investment: this.i18n.t('form.management.title.editInvestment'),
+        }
+      : {
+          category: this.i18n.t('form.management.title.category'),
+          person: this.i18n.t('form.management.title.person'),
+          investment: this.i18n.t('form.management.title.investment'),
+          recurrence: this.i18n.t('form.management.title.recurrence'),
+        };
+    return titulos[this.kind()] ?? this.i18n.t('form.management.title.default');
+  });
   name = '';
   color = '#4f46e5';
-  icon = '●';
+  icon = 'tag';
   categoryType: 'income' | 'expense' = 'expense';
   readonly categoryTypeOptions = computed<readonly UiOption[]>(() => [
     { value: 'expense', label: this.i18n.t('form.management.categoryType.expense') },
@@ -86,7 +95,37 @@ export class ManagementFormComponent {
   accountId = '';
   frequency = '3';
   start = new Date().toISOString().slice(0, 10);
+
+  constructor() {
+    const id = this.editingId;
+    if (!id) return;
+    const kind = this.kind();
+    if (kind === 'category') {
+      const category = this.store.categories().find((item) => item.id === id);
+      if (!category) return;
+      this.name = category.name;
+      this.color = category.color;
+      this.icon = category.icon;
+      this.categoryType = category.type === 1 ? 'income' : 'expense';
+    }
+    if (kind === 'person') {
+      const person = this.store.data().people.find((item) => item.id === id);
+      if (!person) return;
+      this.name = person.name;
+      this.email = person.email ?? '';
+      this.relationship = person.relationship ?? 'Otro';
+    }
+    if (kind === 'investment') {
+      const investment = this.store.data().investments.find((item) => item.id === id);
+      if (!investment) return;
+      this.name = investment.name;
+      this.instrument = investment.type;
+      this.currency = investment.currency;
+    }
+  }
+
   async save() {
+    if (this.editingId) return this.saveChanges(this.editingId);
     try {
       this.error.set('');
       const permisos: Record<string, string> = {
@@ -110,6 +149,28 @@ export class ManagementFormComponent {
           Number(this.frequency),
           this.start,
         );
+    } catch (error) {
+      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
+    }
+  }
+
+  private async saveChanges(id: string) {
+    try {
+      this.error.set('');
+      const permisos: Record<string, string> = {
+        category: P.cuentas.categorias.editar,
+        person: P.personas.editar,
+        investment: P.patrimonio.inversiones.editar,
+      };
+      const permiso = permisos[this.kind()];
+      if (!permiso || !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
+      if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+      if (this.kind() === 'category')
+        await this.store.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
+      if (this.kind() === 'person')
+        await this.store.updatePerson(id, { name: this.name, email: this.email, relationship: this.relationship });
+      if (this.kind() === 'investment')
+        await this.store.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }

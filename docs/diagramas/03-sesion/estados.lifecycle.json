@@ -1,0 +1,163 @@
+{
+  "schema_version": 1,
+  "diagram_type": "lifecycle",
+  "meta": {
+    "title": "Estados de la sesión en el cliente",
+    "output": "estados.html",
+    "viewBox": [
+      1080,
+      566
+    ],
+    "quality_profile": "showcase",
+    "views": [
+      {
+        "id": "camino",
+        "label": "Camino normal",
+        "focus": [
+          "cargando",
+          "anonima",
+          "lista",
+          "seccion"
+        ],
+        "note": "Mientras la sesión se resuelve nadie decide rutas; con permisos y banderas se abre la primera sección."
+      },
+      {
+        "id": "sin-salida",
+        "label": "Cuando no hay dónde entrar",
+        "focus": [
+          "lista",
+          "sin_seccion"
+        ],
+        "note": "Con sesión válida y ninguna sección abierta, una pantalla lo explica en vez de rebotar en bucle."
+      },
+      {
+        "id": "fallo",
+        "label": "Fallo y reintento",
+        "focus": [
+          "seccion",
+          "error"
+        ],
+        "note": "Si una petición falla, el estado pasa a error y la pantalla lo dice en vez de quedarse girando."
+      }
+    ],
+    "animation": "trace"
+  },
+  "lanes": [
+    {
+      "id": "main",
+      "label": "Sesión"
+    },
+    {
+      "id": "espera",
+      "label": "Sin sección"
+    },
+    {
+      "id": "fallos",
+      "label": "Fallo"
+    }
+  ],
+  "states": [
+    {
+      "id": "cargando",
+      "type": "start",
+      "label": "Cargando",
+      "sublabel": "resuelve la sesión",
+      "lane": "main",
+      "col": 0,
+      "step": "01",
+      "tag": "no decide rutas"
+    },
+    {
+      "id": "anonima",
+      "type": "waiting",
+      "label": "Anónima",
+      "sublabel": "401 sin cookie",
+      "lane": "main",
+      "col": 1,
+      "step": "02",
+      "tag": "pide entrar"
+    },
+    {
+      "id": "lista",
+      "type": "active",
+      "label": "Sesión lista",
+      "sublabel": "permisos y banderas",
+      "lane": "main",
+      "col": 2,
+      "step": "03"
+    },
+    {
+      "id": "seccion",
+      "type": "success",
+      "label": "Sección abierta",
+      "sublabel": "la persona trabaja",
+      "lane": "main",
+      "col": 3,
+      "step": "04"
+    },
+    {
+      "id": "sin_seccion",
+      "type": "waiting",
+      "label": "Sin sección",
+      "sublabel": "ninguna abierta",
+      "lane": "espera",
+      "col": 0,
+      "tag": "lo explica"
+    },
+    {
+      "id": "error",
+      "type": "failure",
+      "label": "Error",
+      "sublabel": "una petición falla",
+      "lane": "fallos",
+      "col": 1,
+      "tag": "reintentable"
+    }
+  ],
+  "transitions": [
+    {
+      "id": "sin-secciones",
+      "from": "lista",
+      "to": "sin_seccion",
+      "label": "ninguna sección abierta",
+      "route": "drop"
+    },
+    {
+      "id": "falla",
+      "from": "seccion",
+      "to": "error",
+      "label": "la API no responde",
+      "variant": "security",
+      "route": "drop"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Mientras carga",
+      "items": [
+        "El guard espera a que la sesión se resuelva",
+        "Así no cierra rutas que sí están abiertas",
+        "Al recargar vuelve a la misma vista"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Ya dentro",
+      "items": [
+        "Un permiso por sección abre menú y entrada",
+        "Si cambian los roles, el canal obliga a releer",
+        "Los permisos finos deciden qué se ve dentro"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Cuando no",
+      "items": [
+        "Sin cookie se ofrece entrar con Google",
+        "Sin secciones, una pantalla lo explica",
+        "Un fallo de arranque no deja la pestaña girando"
+      ]
+    }
+  ]
+}

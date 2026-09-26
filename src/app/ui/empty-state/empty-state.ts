@@ -1,21 +1,27 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon/icon';
+import { IconComponent, IconName } from '../icon/icon';
 
 @Component({
   selector: 'fin-empty',
-  imports: [IconComponent],
+  imports: [HlmEmptyImports, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'flex min-h-[180px] flex-col items-center justify-center p-6 text-center text-foreground' },
+  host: { class: 'block' },
   template: `
-    <fin-icon name="dashboard" class="text-3xl text-primary" />
-    <h3 class="mb-2 mt-3 text-base font-semibold">{{ title() }}</h3>
-    <p class="mb-4 max-w-[420px] text-sm leading-relaxed text-muted-foreground">{{ detail() }}</p>
-    <ng-content />
+    <div hlmEmpty class="min-h-[180px]">
+      <div hlmEmptyHeader>
+        <div hlmEmptyMedia variant="icon"><fin-icon [name]="icon()" /></div>
+        <div hlmEmptyTitle>{{ title() }}</div>
+        <p hlmEmptyDescription>{{ detail() }}</p>
+      </div>
+      <div hlmEmptyContent><ng-content /></div>
+    </div>
   `,
 })
 export class EmptyStateComponent {
   readonly i18n = inject(I18nService);
+  readonly icon = input<IconName>('dashboard');
   readonly title = input(this.i18n.t('emptyState.defaultTitle'));
   readonly detail = input(this.i18n.t('emptyState.defaultDetail'));
 }

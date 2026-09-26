@@ -19,6 +19,7 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
+import { HlmAutocompleteImports } from '@spartan-ng/helm/autocomplete';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import {
   ColumnDef,
@@ -43,6 +44,7 @@ import { I18nService } from '../../core/i18n';
 import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
 import { IconComponent, IconName } from '../icon/icon';
 import { SearchFieldComponent } from '../search-field/search-field';
+import { DateFieldComponent } from '../date-field/date-field';
 import { UiOption, UiSelectComponent } from '../select/select';
 import { FinTableCellDirective } from './table-cell.directive';
 
@@ -55,9 +57,18 @@ export interface TableColumn {
   facet?: boolean;
   hideable?: boolean;
   hidden?: boolean;
+  filter?: 'date';
+  rawKey?: string;
+  options?: readonly string[];
 }
 
 type Row = Record<string, any>;
+
+export interface TableFilter {
+  id: string;
+  field: string;
+  value: string;
+}
 
 interface SearchQuery {
   field: string;
@@ -65,7 +76,8 @@ interface SearchQuery {
 }
 
 const SELECT_COLUMN = '__select';
-const ALL_FIELDS = '__all';
+export const TABLE_ALL_FIELDS = '__all';
+const ALL_FIELDS = TABLE_ALL_FIELDS;
 
 const searchFilter = (
   row: { getAllCells: () => { column: { id: string } }[]; getValue: (id: string) => unknown },
@@ -115,6 +127,8 @@ const features = tableFeatures({
 @Component({
   selector: 'fin-table',
   imports: [
+    HlmAutocompleteImports,
+    DateFieldComponent,
     FormsModule,
     NgTemplateOutlet,
     HlmBadgeImports,
@@ -156,11 +170,37 @@ export class DataTableComponent {
   @Output() readonly selectionChange = new EventEmitter<Row[]>();
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
+  @Output() readonly pinnedChange = new EventEmitter<readonly TableFilter[]>();
 
   readonly page = signal(0);
   private readonly selectedSize = signal<number | null>(null);
   readonly searchField = signal(ALL_FIELDS);
   readonly searchText = signal('');
+  readonly pinned = signal<readonly TableFilter[]>([]);
+  private pinnedId = 0;
+  private readonly pinnedRows = computed(() => {
+    const condiciones = this.pinned();
+    if (!condiciones.length || this.remote()) return this.rows();
+    const porCampo = new Map<string, string[]>();
+    for (const condicion of condiciones)
+      porCampo.set(condicion.field, [...(porCampo.get(condicion.field) ?? []), condicion.value.toLocaleLowerCase()]);
+    const claves = this.columns().map((column) => column.key);
+    const texto = (row: Row, clave: string) => String(row[clave] ?? '').toLocaleLowerCase();
+    const coincide = (row: Row, campo: string, valor: string) => {
+      const columna = this.columnOf(campo);
+      if (columna?.filter === 'date') return texto(row, columna.rawKey ?? campo).startsWith(valor);
+      return texto(row, campo).includes(valor);
+    };
+    return this.rows().filter((row) =>
+      [...porCampo.entries()].every(([campo, valores]) =>
+        valores.some((valor) =>
+          campo === ALL_FIELDS
+            ? claves.some((clave) => texto(row, clave).includes(valor))
+            : coincide(row, campo, valor),
+        ),
+      ),
+    );
+  });
 
   readonly remote = computed(() => this.totalRows() !== null);
   readonly size = computed(() => Math.max(1, this.selectedSize() ?? this.pageSize()));
@@ -194,7 +234,7 @@ export class DataTableComponent {
   readonly table = injectTable(() => ({
     features,
     columns: this.columnDefs(),
-    data: this.rows(),
+    data: this.pinnedRows(),
     manualPagination: this.remote(),
     rowCount: this.totalRows() ?? undefined,
     autoResetPageIndex: false,
@@ -241,6 +281,7 @@ export class DataTableComponent {
   readonly hasFilters = computed(
     () =>
       this.searchText().trim() !== '' ||
+      this.pinned().length > 0 ||
       this.facetColumns().some(
         (column) => (this.table.getColumn(column.key)?.getFilterValue() as unknown[] | undefined)?.length,
       ),
@@ -303,6 +344,68 @@ export class DataTableComponent {
     this.applySearch();
   }
 
+  readonly searchColumn = computed(() => this.columnOf(this.searchField()) ?? null);
+  readonly searchIsDate = computed(() => this.searchColumn()?.filter === 'date');
+  private readonly knownValues = computed<readonly string[]>(() => {
+    const columna = this.searchColumn();
+    if (!columna || columna.filter === 'date') return [];
+    if (columna.options) return columna.options;
+    const valores = [
+      ...new Set(
+        this.rows()
+          .map((row) => this.display(row[columna.key]))
+          .filter(Boolean),
+      ),
+    ];
+    return valores.length <= 40 ? valores.sort((a, b) => a.localeCompare(b)) : [];
+  });
+  readonly suggestible = computed(() => this.knownValues().length > 0);
+  readonly suggestions = computed(() => {
+    const buscado = this.searchText().trim().toLocaleLowerCase();
+    const fijados = new Set(
+      this.pinned()
+        .filter((filtro) => filtro.field === this.searchField())
+        .map((filtro) => filtro.value),
+    );
+    return this.knownValues()
+      .filter((valor) => !fijados.has(valor) && (!buscado || valor.toLocaleLowerCase().includes(buscado)))
+      .slice(0, 12);
+  });
+
+  pinSearch(): void {
+    this.pin(this.searchText());
+  }
+
+  pin(value: string | null | undefined): void {
+    const text = String(value ?? '').trim();
+    const field = this.searchField();
+    if (!text || this.pinned().some((filtro) => filtro.field === field && filtro.value === text)) return;
+    this.pinned.update((lista) => [...lista, { id: `p${++this.pinnedId}`, field, value: text }]);
+    this.setSearchText('');
+    this.pinnedChange.emit(this.pinned());
+  }
+
+  pinnedText(filtro: TableFilter): string {
+    if (this.columnOf(filtro.field)?.filter !== 'date') return filtro.value;
+    const fecha = new Date(`${filtro.value}T12:00:00Z`);
+    if (Number.isNaN(fecha.getTime())) return filtro.value;
+    return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+      dateStyle: 'medium',
+      timeZone: 'UTC',
+    }).format(fecha);
+  }
+
+  unpin(id: string): void {
+    this.pinned.update((lista) => lista.filter((condicion) => condicion.id !== id));
+    this.page.set(0);
+    this.pinnedChange.emit(this.pinned());
+  }
+
+  pinnedLabel(field: string): string {
+    if (field === ALL_FIELDS) return this.i18n.t('table.search.allFields');
+    return this.columns().find((column) => column.key === field)?.label ?? field;
+  }
+
   setSearchField(field: string): void {
     this.searchField.set(field);
     this.applySearch();
@@ -336,6 +439,10 @@ export class DataTableComponent {
 
   clearFilters(): void {
     this.searchText.set('');
+    if (this.pinned().length) {
+      this.pinned.set([]);
+      this.pinnedChange.emit([]);
+    }
     this.table.setGlobalFilter(undefined);
     this.table.resetColumnFilters(true);
     this.page.set(0);

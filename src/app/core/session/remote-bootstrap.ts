@@ -1,14 +1,17 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
-import { ApiRequestError, ApiSession, FinanceApiClient } from '../api/api-client';
+import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '../api/api-client';
 import { MovementKindCatalog } from '../utils/movement-kinds';
 import { Router } from '@angular/router';
 import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
 import { toViewData, toViewUser } from './remote-mappers';
 import { AppStore } from '../state/store';
 import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '../state/theme';
+import { setCurrencyCatalog } from '../utils/money';
+import { P } from './permissions';
 import { I18nService } from '../i18n/i18n.service';
 import { DashboardLayoutService } from '../../pages/dashboard/layout/dashboard-layout.service';
+import { SaldosService } from './saldos.service';
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
@@ -17,6 +20,7 @@ export class RemoteBootstrap {
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly layout = inject(DashboardLayoutService);
+  private readonly saldos = inject(SaldosService);
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
 
@@ -79,9 +83,7 @@ export class RemoteBootstrap {
       // Sin permisos el menu sale vacio y ninguna ruta abre. Antes eso ocurria en
       // silencio y parecia una aplicacion rota; ahora se dice lo que pasa.
       if (!session.permissions?.length) {
-        this.store.remoteError.set(
-          'La sesión no trae permisos. Pide a quien administra que revise tus roles o tu membresía.',
-        );
+        this.store.remoteError.set(this.i18n.t('session.error.noPermissions'));
         this.store.remoteState.set('error');
         this.store.user.set(null);
         return;
@@ -95,6 +97,7 @@ export class RemoteBootstrap {
       // capacidades, que un rol granular deja vacía: conceder «ver movimientos» y nada más
       // ponía la entrada en el menú y luego no pedía los movimientos.
       const claves = SLICES.filter((clave) => this.permisos.has(PERMISO_DE[clave]));
+      const sinCatalogo = of<readonly ApiCurrency[] | null>(null);
       const result = await firstValueFrom(
         forkJoin({
           datos: this.pedirRebanadas(claves),
@@ -102,9 +105,18 @@ export class RemoteBootstrap {
           // necesita para decidir qué rutas puede ofrecer. Sin ellos no hay menú.
           featureFlags: this.api.featureFlags(),
           notifications: this.api.notifications().pipe(catchError(() => of([]))),
+          // El catálogo de monedas solo si su permiso está concedido, y con degradación:
+          // una lista que no llega no impide que la sesión arranque, y se siguen usando
+          // las monedas locales hasta el próximo intento.
+          monedas: this.permisos.has(P.sesion.monedas.listar)
+            ? this.api.currencies().pipe(catchError(() => sinCatalogo))
+            : sinCatalogo,
         }),
       );
       this.raw = { ...emptyRaw(), ...result.datos, notifications: result.notifications };
+      // El catálogo entra antes que los importes: los decimales de cada moneda deciden
+      // cómo se parsean, y parsear con la tabla local equivale a suponer COP.
+      if (result.monedas?.length) setCurrencyCatalog(result.monedas);
       this.aplicarDatos();
       this.aplicarSesion(session, result.featureFlags);
       this.store.remoteState.set('ready');
@@ -236,6 +248,13 @@ export class RemoteBootstrap {
       mismaLista(actual.capabilities, user.capabilities);
     if (!igual) this.store.user.set(user);
 
+    // La moneda base de la organización viene en la sesión y antes se descartaba aquí,
+    // junto al resto de la ficha: la UI seguía etiquetando y sumando en COP aunque el
+    // backend calculase en USD. Solo se acepta un código de tres letras, que es lo que el
+    // backend exige también en `PUT /preferences`.
+    const monedaBase = session.organization.baseCurrency?.trim().toUpperCase();
+    if (monedaBase?.length === 3 && monedaBase !== this.store.baseCurrency()) this.store.baseCurrency.set(monedaBase);
+
     const organization = { id: session.organization.id, name: session.organization.name };
     const org = this.store.organization();
     if (!org || org.id !== organization.id || org.name !== organization.name) this.store.organization.set(organization);
@@ -280,7 +299,17 @@ export class RemoteBootstrap {
       this.permisos = ahora;
       if (concedidas.length || retiradas.length) this.aplicarDatos();
       this.aplicarSesion(session, flags);
-    } catch {
+    } catch (error) {
+      // La cookie pudo caducar justo durante el refresco (sondeo, foco o canal en
+      // vivo). Si el 401 se ignorara como cualquier otro error transitorio, el
+      // estado seguiría en «ready» y `user()` seguiría poblado: el guard dejaría
+      // pasar y la pantalla presentaría datos de hace una hora como vigentes.
+      // Pasando a «anonymous», el guard existente manda al login.
+      if (error instanceof ApiRequestError && error.status === 401) {
+        this.store.user.set(null);
+        this.store.remoteState.set('anonymous');
+        return;
+      }
       /* los errores transitorios se ignoran; el próximo ciclo reintenta */
     } finally {
       this.refrescando = false;

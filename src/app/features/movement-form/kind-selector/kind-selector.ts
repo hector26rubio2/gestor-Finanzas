@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { IconComponent, IconName } from '../../../ui/icon/icon';
 
@@ -12,6 +12,7 @@ const KIND_ICONS: Readonly<Record<string, IconName>> = { expense: 'trendDown', i
 @Component({
   selector: 'fin-movement-kind-selector',
   imports: [HlmTabsImports, IconComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kind-selector.html',
 })
 export class MovementKindSelectorComponent {

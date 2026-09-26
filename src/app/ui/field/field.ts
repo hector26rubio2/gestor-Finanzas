@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { HlmFieldImports } from '@spartan-ng/helm/field';
 
 @Component({
   selector: 'fin-field',
+  imports: [HlmFieldImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
-    <label class="flex flex-col gap-[7px] text-[0.76rem] text-muted-foreground" [class.col-span-full]="full()">
-      {{ label() }}
+    <label hlmField class="gap-2" [class.col-span-full]="full()">
+      <span hlmFieldLabel class="text-[0.78rem] font-medium text-muted-foreground">{{ label() }}</span>
       <ng-content />
     </label>
   `,

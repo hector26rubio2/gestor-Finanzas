@@ -152,7 +152,7 @@ export const P = {
       editar: 'administracion.roles.editar',
       eliminar: 'administracion.roles.eliminar',
     },
-    capacidades: { listar: 'administracion.capacidades.listar' },
+    capacidades: { listar: 'administracion.capacidades.listar', editar: 'administracion.capacidades.editar' },
     banderas: { listar: 'administracion.banderas.listar', editar: 'administracion.banderas.editar' },
     auditoria: { listar: 'administracion.auditoria.listar' },
     errores: { listar: 'administracion.errores.listar', editar: 'administracion.errores.editar' },

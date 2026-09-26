@@ -1,0 +1,226 @@
+{
+  "sistema": {
+    "spec": "7ad4a462f0e80777",
+    "archivos": {
+      "api:Dockerfile": "8b80a4f53cd4abb7",
+      "api:render.yaml": "f62e8f0da5a09276",
+      "api:src/Finanzas.Host/Program.cs": "6d699c9b918187f0",
+      "api:src/Finanzas.Infrastructure/Integrations/GitHubIssueService.cs": "ba16ea4cadb47f25",
+      "api:src/Finanzas.Infrastructure/Integrations/IssueBodyBuilder.cs": "661caf43a65c740d",
+      "front:.github/workflows/ci.yml": "18ca2ae00c9cb921",
+      "front:.github/workflows/deploy.yml": "f48db4a4a01a6cb6",
+      "front:public/config.js": "73ba7cc928a3651a",
+      "front:src/app/core/api/api-routes.ts": "4572f073df965da4"
+    },
+    "sellado": "2026-09-26T02:24:09.793Z"
+  },
+  "areas": {
+    "spec": "abba60b5d24f62d7",
+    "archivos": {
+      "front:src/app/core/state/navigation.ts": "bb792ca531b645b9",
+      "front:src/app/features/accounts/accounts-tab.ts": "990d75844d769d58",
+      "front:src/app/features/calendar/calendar-tab.ts": "2b591721aec05a26",
+      "front:src/app/features/movements/movements-tab.ts": "f522044db050e87e",
+      "front:src/app/features/notifications/notifications-tab.ts": "5003e2391f44a849",
+      "front:src/app/features/people/people-tab.ts": "59cb5ca6b35353c7",
+      "front:src/app/features/planning/planning-tab.ts": "a375945d6bc7cff3",
+      "front:src/app/features/portfolio/portfolio-tab.ts": "1a7c4b55c9c8264a",
+      "front:src/app/features/preferences/preferences-tab.ts": "89cc548620b5e76c",
+      "front:src/app/features/reports/reports-tab.ts": "a8be6b9268e830d9",
+      "front:src/app/pages/dashboard/dashboard.ts": "c05d85b17c88be1c",
+      "front:src/app/routes.ts": "0d56ce1ccdf85a0a"
+    },
+    "sellado": "2026-09-26T20:15:17.405Z"
+  },
+  "armazon": {
+    "spec": "60a533fefe225f98",
+    "archivos": {
+      "front:src/app/app.ts": "e0788aa2010ee5d3",
+      "front:src/app/core/session/remote-bootstrap.ts": "646dce21d6db9da1",
+      "front:src/app/core/session/runtime.ts": "6bd4633461fbd633",
+      "front:src/app/core/state/store.ts": "75be2d927f6e4bbe",
+      "front:src/app/routes.ts": "0d56ce1ccdf85a0a"
+    },
+    "sellado": "2026-09-26T20:15:18.455Z"
+  },
+  "capas": {
+    "spec": "ff71894462d0e264",
+    "archivos": {
+      "api:src/Finanzas.Application/DemoFinanceStore.cs": "62faedc80d60349b",
+      "api:src/Finanzas.Application/Mediator.cs": "182cb7ccd3159658",
+      "api:src/Finanzas.Host/FinanceEndpoints.cs": "3301af2ce7e1cf36",
+      "api:src/Finanzas.Host/Program.cs": "6d699c9b918187f0",
+      "api:src/Finanzas.Infrastructure/DependencyInjection.cs": "6904309ec02673af"
+    },
+    "sellado": "2026-09-26T02:24:09.801Z"
+  },
+  "peticion": {
+    "spec": "38b105b77b183d8a",
+    "archivos": {
+      "api:src/Finanzas.Application/Pipeline.cs": "2c41b03514edf26c",
+      "api:src/Finanzas.Host/CsrfProtectionMiddleware.cs": "2b4f1d79a8fabd99",
+      "api:src/Finanzas.Host/FinanceExceptionHandler.cs": "d5820296f7fec854",
+      "api:src/Finanzas.Host/RateLimiting.cs": "8ccb498f2aacb2dc",
+      "api:src/Finanzas.Host/Security.cs": "5ca5a0b01b50c84c",
+      "api:src/Finanzas.Infrastructure/Persistence/AuditTrail.cs": "394bf05d9692edf5"
+    },
+    "sellado": "2026-09-26T00:42:25.606Z"
+  },
+  "entrar-con-google": {
+    "spec": "875e6ce36f7ca9c3",
+    "archivos": {
+      "api:src/Finanzas.Host/Endpoints/IdentityEndpoints.cs": "0ceae9aba93c84e4",
+      "api:src/Finanzas.Host/Security.cs": "5ca5a0b01b50c84c",
+      "api:src/Finanzas.Infrastructure/Persistence/ExternalAccountProvisioner.cs": "bffea73750aea386",
+      "api:src/Finanzas.Infrastructure/Persistence/SessionCapabilityResolver.cs": "77e056f2b5ba80b3",
+      "front:src/app/core/api/session.api.ts": "7866798551fc5ec1",
+      "front:src/app/core/session/remote-bootstrap.ts": "646dce21d6db9da1",
+      "front:src/app/core/session/remote-slices.ts": "a6b1c5ffa4ef7c09",
+      "front:src/app/pages/login/login.ts": "9bb9e6dbf5057c52"
+    },
+    "sellado": "2026-09-26T20:15:19.466Z"
+  },
+  "estados-de-sesion": {
+    "spec": "9b95d4c55f28302c",
+    "archivos": {
+      "front:src/app/core/session/remote-bootstrap.ts": "646dce21d6db9da1",
+      "front:src/app/pages/sin-seccion/sin-seccion.ts": "71bcc8edbb253f28",
+      "front:src/app/routes.ts": "0d56ce1ccdf85a0a"
+    },
+    "sellado": "2026-09-26T20:15:20.674Z"
+  },
+  "permisos-en-vivo": {
+    "spec": "30c6be1e224a2f64",
+    "archivos": {
+      "api:src/Finanzas.Host/Endpoints/IdentityEndpoints.cs": "0ceae9aba93c84e4",
+      "api:src/Finanzas.Infrastructure/Persistence/AccessNotifier.cs": "d270793c8e72ecf9",
+      "front:src/app/core/session/remote-bootstrap.ts": "646dce21d6db9da1",
+      "front:src/app/core/session/remote-slices.ts": "a6b1c5ffa4ef7c09"
+    },
+    "sellado": "2026-09-26T20:15:21.813Z"
+  },
+  "registro-de-movimientos": {
+    "spec": "ebc14b0bc946af50",
+    "archivos": {
+      "api:src/Finanzas.Application/Ledger/LedgerUseCases.cs": "0ab21d507c2c39a2",
+      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "c847dd753cd849e1",
+      "api:src/Finanzas.Infrastructure/Persistence/Queries/Ledger/LedgerReadStore.cs": "2d74b6c0e54e2fa3",
+      "front:src/app/features/movement-form/category-field/category-field.ts": "4babb99ecd7c59ff",
+      "front:src/app/features/movement-form/core-fields/core-fields.ts": "6114121757023fa2",
+      "front:src/app/features/movement-form/currency-fields/currency-fields.ts": "400e303209f2f3e2",
+      "front:src/app/features/movement-form/installment-fields/installment-fields.ts": "c1d9b6148acf846d",
+      "front:src/app/features/movement-form/kind-selector/kind-selector.ts": "3b6f23780631f886",
+      "front:src/app/features/movement-form/loan-fields/loan-fields.ts": "696cf808188fb7ab",
+      "front:src/app/features/movement-form/movement-category-options.factory.ts": "9f31775844144f12",
+      "front:src/app/features/movement-form/movement-form.ts": "59f880fff33253ae",
+      "front:src/app/features/movement-form/movement-visibility-builder.ts": "02dc667dd17df477",
+      "front:src/app/features/movement-form/recurrence-fields/recurrence-fields.ts": "660055aa00f9d0dc",
+      "front:src/app/features/movements/movement-insights.ts": "aca0959eddc1ab6e",
+      "front:src/app/features/movements/movements-tab.ts": "f522044db050e87e",
+      "front:src/app/features/reports/reports-tab.ts": "a8be6b9268e830d9"
+    },
+    "sellado": "2026-09-26T20:15:22.869Z"
+  },
+  "ciclo-de-movimiento": {
+    "spec": "ae18c1d446a1d4df",
+    "archivos": {
+      "api:src/Finanzas.Domain/Ledger/LedgerProjections.cs": "fae3b1fd55fe0b4c",
+      "api:src/Finanzas.Domain/Ledger/Movement.cs": "b372b17d18a9d7e1",
+      "api:src/Finanzas.Domain/Ledger/MovementEnums.cs": "e9e1168b21b1367a",
+      "api:src/Finanzas.Domain/Ledger/MovementKindSpec.cs": "14f4f73606862f2d",
+      "api:src/Finanzas.Domain/Ledger/MovementLinks.cs": "845536b8fcc72901",
+      "api:src/Finanzas.Domain/Ledger/Operation.cs": "f4dc2e7a89c6d8d9",
+      "api:src/Finanzas.Host/Endpoints/LedgerEndpoints.cs": "c847dd753cd849e1"
+    },
+    "sellado": "2026-09-26T02:24:09.803Z"
+  },
+  "recurrencias": {
+    "spec": "5fd5cbd017c4ba9e",
+    "archivos": {
+      "api:src/Finanzas.Application/Recurrences/RecurrencesUseCases.cs": "c9015fcc9b077a00",
+      "api:src/Finanzas.Domain/Recurrences/Recurrence.cs": "86b02ec603154dc1",
+      "api:src/Finanzas.Domain/Recurrences/RecurrenceSchedule.cs": "305c69285ecf29d2",
+      "api:src/Finanzas.Host/Endpoints/RecurrencesEndpoints.cs": "b9d13c027823843e",
+      "front:src/app/features/calendar/calendar-tab.ts": "2b591721aec05a26"
+    },
+    "sellado": "2026-09-26T00:42:41.919Z"
+  },
+  "compras-compartidas": {
+    "spec": "2fa0a9cdf7c0467f",
+    "archivos": {
+      "api:src/Finanzas.Application/People/PeopleUseCases.cs": "bb42b13ce761f057",
+      "api:src/Finanzas.Application/Purchases/PurchasesUseCases.cs": "018ad63e20d144cc",
+      "api:src/Finanzas.Application/Settlements/SettlementsUseCases.cs": "cd1c2a4e7c0edf7a",
+      "api:src/Finanzas.Domain/Obligations/InterestPolicy.cs": "2fe0f0b56ce84d18",
+      "api:src/Finanzas.Domain/Obligations/Obligation.cs": "4c07c4c1d68a9bba",
+      "api:src/Finanzas.Domain/Obligations/ObligationEntry.cs": "817c68d164fa7573",
+      "api:src/Finanzas.Domain/Purchases/SharedPurchase.cs": "6141ef9e7ba5ce87",
+      "api:src/Finanzas.Domain/Settlements/Settlement.cs": "53dc3ff304c8785f",
+      "front:src/app/features/people/people-tab.ts": "59cb5ca6b35353c7"
+    },
+    "sellado": "2026-09-26T05:44:59.818Z"
+  },
+  "administracion": {
+    "spec": "fa60c5602faf14d0",
+    "archivos": {
+      "api:src/Finanzas.Host/SuperAdminEndpoints.cs": "98b83b24d31be836",
+      "api:src/Finanzas.Infrastructure/Persistence/SuperAdminService.cs": "3ae3098c473b8ebb",
+      "api:src/Finanzas.Infrastructure/Persistence/SuperAdminService.Organizations.cs": "3203fc92814b9396",
+      "front:src/app/pages/admin/admin-changes.ts": "bc7203d70e5478f3",
+      "front:src/app/pages/admin/admin-labels.ts": "7d60b817cbf56dff",
+      "front:src/app/pages/admin/admin-tabs.ts": "5afda8ed8ae0c079",
+      "front:src/app/pages/admin/admin.store.ts": "da76e8ac2341281b",
+      "front:src/app/pages/admin/admin.ts": "f7184eb0decd83db",
+      "front:src/app/pages/admin/panel/admin-grid.ts": "8b4e407734f3bca2",
+      "front:src/app/pages/admin/panel/admin-panel.ts": "e14dcd95a8813ab6",
+      "front:src/app/pages/admin/permission-picker/permission-picker.ts": "74a4c5d116459ba5",
+      "front:src/app/pages/admin/permission-picker/permission-sections.ts": "0cd4f4cd84c1b7c6",
+      "front:src/app/pages/admin/save-bar/admin-save-bar.ts": "dfb88f8c797d9561",
+      "front:src/app/pages/admin/tabs/audit/audit-catalog.ts": "35ca596d68bc471e",
+      "front:src/app/pages/admin/tabs/audit/audit-tab.ts": "05789ee84c0d4f44",
+      "front:src/app/pages/admin/tabs/errors/errors-tab.ts": "edd8f2ab27171e4b",
+      "front:src/app/pages/admin/tabs/flags/flags-tab.ts": "00e5556ac0fc1180",
+      "front:src/app/pages/admin/tabs/organizations/organization-sheet.ts": "bf9f7fd6b6abc1ed",
+      "front:src/app/pages/admin/tabs/organizations/organizations-tab.ts": "7cc60c42ecfcf6f0",
+      "front:src/app/pages/admin/tabs/roles/permission-catalog.ts": "73d97a76cf12e4d5",
+      "front:src/app/pages/admin/tabs/roles/role-sheet.ts": "bb7927e3fb4c40a4",
+      "front:src/app/pages/admin/tabs/roles/roles-tab.ts": "38c1775647397539",
+      "front:src/app/pages/admin/tabs/summary/summary-tab.ts": "78e77d96f67b0e79",
+      "front:src/app/pages/admin/tabs/users/user-sheet.ts": "2785a7abfeed6e24",
+      "front:src/app/pages/admin/tabs/users/users-tab.ts": "f947aaffb061d7d0"
+    },
+    "sellado": "2026-09-26T20:15:23.874Z"
+  },
+  "errores": {
+    "spec": "362f9e811d12fc79",
+    "archivos": {
+      "api:src/Finanzas.Infrastructure/Integrations/GitHubIssueService.cs": "ba16ea4cadb47f25",
+      "api:src/Finanzas.Infrastructure/Integrations/IssueBodyBuilder.cs": "661caf43a65c740d",
+      "front:src/app/core/telemetry/error-report.ts": "11ca8210d9190190",
+      "front:src/app/core/telemetry/error-reporter.ts": "353c8a00ac33b742",
+      "front:src/app/features/bug-report/bug-report.ts": "966e9338f5c7da26",
+      "front:src/app/pages/admin/tabs/errors/errors-tab.ts": "edd8f2ab27171e4b"
+    },
+    "sellado": "2026-09-26T00:42:50.623Z"
+  },
+  "entrega-web": {
+    "spec": "60ac7d31375e3848",
+    "archivos": {
+      "front:.github/workflows/ci.yml": "18ca2ae00c9cb921",
+      "front:.github/workflows/deploy.yml": "f48db4a4a01a6cb6",
+      "front:scripts/accesibilidad.mjs": "321f2cd624dd75da",
+      "front:scripts/permisos-por-seccion.mjs": "e5bf5587309924e1",
+      "front:scripts/visual-test.mjs": "acad6fd3be7fc165"
+    },
+    "sellado": "2026-09-26T20:15:24.798Z"
+  },
+  "entrega-api": {
+    "spec": "02f713d20aa1fde6",
+    "archivos": {
+      "api:.github/workflows/ci.yml": "439e3caa7461f180",
+      "api:Dockerfile": "8b80a4f53cd4abb7",
+      "api:render.yaml": "f62e8f0da5a09276"
+    },
+    "sellado": "2026-09-26T00:43:13.728Z"
+  }
+}

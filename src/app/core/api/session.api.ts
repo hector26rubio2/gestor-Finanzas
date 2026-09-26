@@ -20,6 +20,11 @@ export interface ApiOrganization {
   createdAt: string;
 }
 
+export interface ApiAuthMethods {
+  google: boolean;
+  password: boolean;
+}
+
 export interface ApiSession {
   user: ApiUser;
   organization: ApiOrganization;
@@ -28,6 +33,13 @@ export interface ApiSession {
   expiresAt: string;
   isSuperAdmin?: boolean;
   permissions?: readonly string[];
+}
+
+/** Espejo de `CurrencyDto`: catálogo de monedas que el backend publica para toda la instancia. */
+export interface ApiCurrency {
+  code: string;
+  minorUnits: number;
+  isBase: boolean;
 }
 
 /*
@@ -48,11 +60,33 @@ export class SessionApi {
     return this.transport.request<ApiSession>({ method: 'GET', path: API_ROUTES.session });
   }
 
+  /**
+   * Catálogo de monedas. El endpoint solo pide sesión autenticada, pero el vocabulario
+   * publica `sesion.monedas.listar` y el resto de la aplicación pregunta por el permiso
+   * antes de pedir nada: aquí se respeta la misma regla, en vez de abrir una petición que
+   * nadie le había concedido a esa sesión.
+   */
+  currencies() {
+    return this.transport.request<readonly ApiCurrency[]>({ method: 'GET', path: API_ROUTES.currencies });
+  }
+
   csrf() {
     return this.transport.request<{ token: string }>({ method: 'GET', path: API_ROUTES.csrf });
   }
 
   logout() {
     return this.transport.request<void>({ method: 'POST', path: API_ROUTES.logout });
+  }
+
+  authMethods() {
+    return this.transport.request<ApiAuthMethods>({ method: 'GET', path: API_ROUTES.authMethods });
+  }
+
+  loginWithPassword(userName: string, password: string) {
+    return this.transport.request<void>({
+      method: 'POST',
+      path: API_ROUTES.passwordLogin,
+      body: { userName, password },
+    });
   }
 }

@@ -1,6 +1,6 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { Component, Input, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '../../../core/i18n';
 import { NumericInputDirective } from '../../../ui/numeric-input/numeric-input.directive';
@@ -15,6 +15,7 @@ import { AppStore } from '../../../core/state/store';
 @Component({
   selector: 'fin-movement-installment-fields',
   imports: [HlmButton, HlmInput, FormsModule, NumericInputDirective, FieldComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './installment-fields.html',
   styles: [
     'button.text-reset { border: 0; background: none; color: var(--accent); padding: 0; font: inherit; cursor: pointer; }',
