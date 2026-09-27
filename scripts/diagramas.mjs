@@ -301,7 +301,9 @@ function avisosAtlas() {
     if (!actual || !indexado || actual === indexado) continue;
     const cambiados = contratosCambiados(bases[clave], indexado);
     if (cambiados.length)
-      avisos.push(`contratos de ${nombre} cambiaron (${cambiados.slice(0, 3).join(', ')}${cambiados.length > 3 ? '…' : ''})`);
+      avisos.push(
+        `contratos de ${nombre} cambiaron (${cambiados.slice(0, 3).join(', ')}${cambiados.length > 3 ? '…' : ''})`,
+      );
   }
   return avisos;
 }
