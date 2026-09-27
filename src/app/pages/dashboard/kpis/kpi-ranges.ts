@@ -1,4 +1,4 @@
-import { KpiFormula } from '../dashboard.model';
+import { KpiFormula } from '@pages/dashboard/dashboard.model';
 
 export type KpiStatus = 'good' | 'warn' | 'bad';
 

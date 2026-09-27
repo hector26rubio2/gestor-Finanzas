@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '@core/api';
+import { FinanceApiClient } from '@core/api/api-client';
 import { AppStore } from './store';
 
 const terminos = {
@@ -198,4 +198,3 @@ describe('ediciones contra la API', () => {
     expect(store.data().investments[0]).toMatchObject({ name: 'CDT 90 días', type: 'Fondo' });
   });
 });
-

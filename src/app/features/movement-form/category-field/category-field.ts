@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
-import { AppStore } from '@core/state';
-import { UiOption, UiSelectComponent } from '@ui/select';
-import { buildCategoryOptions } from '../movement-category-options.factory';
-import { FieldComponent } from '@ui/field';
+import { AppStore } from '@core/state/store';
+import { UiOption, UiSelectComponent } from '@ui/select/select';
+import { buildCategoryOptions } from '@features/movement-form/movement-category-options.factory';
+import { FieldComponent } from '@ui/field/field';
 
 /**
  * Solo se muestra en gasto e ingreso — un traslado no clasifica, es la misma regla

@@ -1,7 +1,16 @@
 import type { ChartOption } from '@ui/chart';
-import { agregar, cruzar, etiquetaDeDimension, valorDeMedida } from '../datos';
-import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '../entorno';
-import { cifraCorta, colores, degradado, ejeCategoria, ejeValor, herramientas, leyenda, zoomDeTiempo } from '../estilo';
+import { agregar, cruzar, etiquetaDeDimension, valorDeMedida } from '@shared/graficas/datos';
+import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
+import {
+  cifraCorta,
+  colores,
+  degradado,
+  ejeCategoria,
+  ejeValor,
+  herramientas,
+  leyenda,
+  zoomDeTiempo,
+} from '@shared/graficas/estilo';
 
 export function linea(pedido: Pedido, area: boolean): ChartOption {
   const { config, movs, entorno } = pedido;

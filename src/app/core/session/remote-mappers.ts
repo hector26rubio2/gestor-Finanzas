@@ -1,7 +1,19 @@
 import { I18nService } from '@core/i18n';
-import { Account, ViewData, Movement, SessionUser } from '@core/state';
-import { accountKindToViewType, ApiAccount, ApiCard, ApiDebtPosition, ApiInvestment, ApiMovement, ApiNotification, ApiSession, COUNTERPARTY_KIND, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
-import { parseAmount, parseMoney, parseRate, CashFlow, classifyFamily, MovementKind, MovementKindCatalog, signOf } from '@core/utils';
+import { Account, ViewData, Movement, SessionUser } from '@core/state/view-model';
+import {
+  accountKindToViewType,
+  ApiAccount,
+  ApiCard,
+  ApiDebtPosition,
+  ApiInvestment,
+  ApiMovement,
+  ApiNotification,
+  ApiSession,
+} from '@core/api/api-client';
+import { parseAmount, parseMoney, parseRate } from '@core/utils/money';
+import { CashFlow, classifyFamily, MovementKind, MovementKindCatalog, signOf } from '@core/utils/movement-kinds';
+import { COUNTERPARTY_KIND } from '@core/api/people.api';
+import { PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api/card-buckets';
 
 export function toViewUser(session: ApiSession): SessionUser {
   return {
@@ -52,6 +64,7 @@ export function toViewData(
       annualRate: tasaAnual(card.terms?.purchaseApr?.rate),
       paymentPriority: completarPrioridad(card.terms?.paymentPriority, PRIORIDAD_EN_PESOS),
       foreignPaymentPriority: completarPrioridad(card.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
+      ...(card.terms?.monthlyFee ? { monthlyFee: parseMoney(card.terms.monthlyFee) } : {}),
       issuerId: card.issuerEntity?.id,
     })),
   ];

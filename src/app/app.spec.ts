@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app';
 import { FinanceApiClient } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
-import { AppStore } from '@core/state';
+import { AppStore, navigation } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
@@ -31,6 +31,10 @@ describe('AppComponent y la pantalla de entrada', () => {
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)) } },
       ],
     });
+    const store = TestBed.inject(AppStore);
+    store.featureFlags.set(Object.fromEntries(navigation.map((entrada) => [entrada.path, true])));
+    store.featureFlagsLoaded.set(true);
+    store.remoteState.set('ready');
     return TestBed.createComponent(AppComponent);
   }
 

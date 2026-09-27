@@ -10,9 +10,9 @@ import { CAPABILITIES } from '@core/state';
 import { OptionRowComponent } from '@ui/option-row';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiSelectComponent } from '@ui/select';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { RESOURCE_FEATURE } from '@pages/admin/permission-picker/permission-sections';
 
 @Component({
   selector: 'app-user-sheet',

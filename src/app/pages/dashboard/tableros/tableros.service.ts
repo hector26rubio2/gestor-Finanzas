@@ -1,15 +1,19 @@
-import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Injectable, computed, effect, inject, signal, untracked, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { type ApiSavedDashboard, type ApiDashboardMember, DashboardsApi } from '@core/api';
-import { P } from '@core/session';
-import { AppStore, CAPABILITIES } from '@core/state';
-import { DashboardLayoutService } from '../layout/dashboard-layout.service';
+import { type ApiSavedDashboard, type ApiDashboardMember, DashboardsApi } from '@core/api/dashboards.api';
+import { P } from '@core/session/permissions';
+import { AppStore, CAPABILITIES } from '@core/state/store';
+import { DashboardLayoutService } from '@pages/dashboard/layout/dashboard-layout.service';
 
 export const TABLERO_PRINCIPAL = 'principal';
 
 @Injectable({ providedIn: 'root' })
 export class TablerosService {
-  private readonly api = inject(DashboardsApi);
+  private readonly injector = inject(Injector);
+
+  private get api(): DashboardsApi {
+    return this.injector.get(DashboardsApi);
+  }
   private readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private readonly layout = inject(DashboardLayoutService);
@@ -18,7 +22,9 @@ export class TablerosService {
   readonly activo = signal<string>(TABLERO_PRINCIPAL);
   readonly miembros = signal<readonly ApiDashboardMember[]>([]);
   readonly propios = computed(() => this.tableros().filter((t) => t.isMine));
-  readonly compartidos = computed(() => this.tableros().filter((t) => !t.isMine));
+  readonly compartidos = computed(() =>
+    this.capabilities.allows(P.dashboard.compartidos.ver) ? this.tableros().filter((t) => !t.isMine) : [],
+  );
   readonly fijados = computed(() => this.propios().filter((t) => t.isPinned));
   readonly tableroActivo = computed(() => this.tableros().find((t) => t.id === this.activo()) ?? null);
   readonly puedeCrear = computed(() => this.disponible() && this.capabilities.allows(P.dashboard.tableros.crear));

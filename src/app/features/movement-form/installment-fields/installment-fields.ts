@@ -3,11 +3,11 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
-import { FieldComponent } from '@ui/field';
-import { AppStore } from '@core/state';
-import { mensualDesdeAnual } from '@shared/utils';
-import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api';
-import { UiSelectComponent, type UiOption } from '@ui/select';
+import { FieldComponent } from '@ui/field/field';
+import { AppStore } from '@core/state/store';
+import { mensualDesdeAnual } from '@shared/utils/tasas';
+import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api/card-buckets';
+import { UiSelectComponent, type UiOption } from '@ui/select/select';
 
 @Component({
   selector: 'fin-movement-installment-fields',

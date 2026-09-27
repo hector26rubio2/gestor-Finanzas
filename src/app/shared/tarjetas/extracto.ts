@@ -11,6 +11,7 @@ export interface CompraPendiente {
   readonly cuotas: number;
   readonly cuotaDelMes: number;
   readonly pendiente: number;
+  readonly tasaAnual?: number;
 }
 
 export interface SaldoPorConcepto {
@@ -56,6 +57,7 @@ export function comprasPendientes(movimientos: readonly Movement[]): CompraPendi
       cuotas,
       cuotaDelMes: redondear(monto / cuotas),
       pendiente: redondear((monto * (cuotas - cuotaActual + 1)) / cuotas),
+      ...(m.purchaseApr !== undefined && m.purchaseApr !== null ? { tasaAnual: m.purchaseApr } : {}),
     };
   });
   let porDescontar = pagos - sumBy(brutas, (c) => Math.max(0, c.cuotaDelMes * (c.cuotaActual - 1)));

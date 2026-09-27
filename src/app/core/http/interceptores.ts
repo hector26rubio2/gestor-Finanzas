@@ -1,9 +1,9 @@
 import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, of, switchMap, tap, throwError } from 'rxjs';
-import { ApiWritesBus } from '@core/api';
-import { RUNTIME_CONFIG } from '@core/session';
-import { AppStore } from '@core/state';
+import { ApiWritesBus } from '@core/api/api-writes';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
+import { AppStore } from '@core/state/store';
 import {
   CABECERA_CIFRADO,
   CODIGO_LLAVE_VIEJA,

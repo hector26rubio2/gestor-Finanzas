@@ -1,4 +1,4 @@
-import { sumBy } from '@core/utils';
+import { sumBy } from '@core/utils/money';
 /** All amounts are signed COP values. Fixtures never touch a remote service. */
 export interface Movement {
   id: string;
@@ -65,6 +65,7 @@ export interface Account {
   issuerId?: string;
   paymentPriority?: readonly number[];
   foreignPaymentPriority?: readonly number[];
+  monthlyFee?: number;
 }
 
 export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';

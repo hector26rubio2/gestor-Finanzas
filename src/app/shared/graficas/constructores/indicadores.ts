@@ -1,7 +1,7 @@
 import type { ChartOption } from '@ui/chart';
-import { agregar, cruzar } from '../datos';
-import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '../entorno';
-import { colores, conAlfa, degradado, herramientas, leyenda } from '../estilo';
+import { agregar, cruzar } from '@shared/graficas/datos';
+import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
+import { colores, conAlfa, degradado, herramientas, leyenda } from '@shared/graficas/estilo';
 
 export function embudo(pedido: Pedido): ChartOption {
   const { config, movs, entorno } = pedido;

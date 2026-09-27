@@ -2,10 +2,10 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '@core/api';
+import { FinanceApiClient } from '@core/api/api-client';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { AppStore } from '@core/state';
+import { AppStore } from '@core/state/store';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**

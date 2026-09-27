@@ -1,14 +1,16 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
-import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api';
-import { MovementKindCatalog, setCurrencyCatalog } from '@core/utils';
+import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
+import { MovementKindCatalog } from '@core/utils/movement-kinds';
 import { Router } from '@angular/router';
 import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
 import { toViewData, toViewUser } from './remote-mappers';
-import { AppStore, applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state';
+import { AppStore } from '@core/state/store';
+import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
+import { setCurrencyCatalog } from '@core/utils/money';
 import { P } from './permissions';
-import { I18nService } from '@core/i18n';
-import { DashboardLayoutService } from '@pages/dashboard';
+import { I18nService } from '@core/i18n/i18n.service';
+import { DashboardLayoutService } from '@pages/dashboard/layout/dashboard-layout.service';
 import { SaldosService } from './saldos.service';
 
 @Injectable({ providedIn: 'root' })

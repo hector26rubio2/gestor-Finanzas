@@ -32,7 +32,6 @@ import { HeaderActionsService } from '@shared/header-actions.service';
 /** KPI de esta cesta cuya pista cambia según de dónde salen sus datos. */
 export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'installments' | 'topCategory';
 
-
 /**
  * Clave de la pista de un KPI, según el modo de carga.
  *
@@ -90,8 +89,7 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   });
   readonly ingresosMostrados = computed(() => this.totalesDelServidor()?.income ?? this.store.income());
   readonly gastosMostrados = computed(() => this.totalesDelServidor()?.expense ?? this.store.expense());
-  readonly registrosMostrados = computed(() =>this.store.remoteMovementTotal(),
-  );
+  readonly registrosMostrados = computed(() => this.store.remoteMovementTotal());
   readonly historiaEtiqueta = computed(() => this.i18n.t('kpi.history.month', { count: PERIODOS_DE_HISTORIA }));
   readonly variacion = variacion;
   private serieLocal(valor: (movs: readonly Movement[]) => number): number[] {

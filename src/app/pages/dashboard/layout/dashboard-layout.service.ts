@@ -1,8 +1,9 @@
-import type { ConfiguracionVisual } from '@shared/graficas';
-import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
+import type { ConfiguracionVisual } from '@shared/graficas/modelo';
+import { Injectable, computed, effect, inject, signal, untracked, Injector } from '@angular/core';
 import { type Observable, firstValueFrom } from 'rxjs';
-import { FinanceApiClient, DashboardsApi } from '@core/api';
-import { AppStore } from '@core/state';
+import { FinanceApiClient } from '@core/api/api-client';
+import { DashboardsApi } from '@core/api/dashboards.api';
+import { AppStore } from '@core/state/store';
 import {
   FlowDefault,
   FlowItem,
@@ -14,8 +15,8 @@ import {
   withCols,
   withHeight,
 } from './dashboard-layout';
-import { Dimension, KpiFormula } from '../dashboard.model';
-import { KpiRanges, esRangoValido } from '../kpis/kpi-ranges';
+import { Dimension, KpiFormula } from '@pages/dashboard/dashboard.model';
+import { KpiRanges, esRangoValido } from '@pages/dashboard/kpis/kpi-ranges';
 
 export interface FlowResize {
   readonly cols?: number;
@@ -129,7 +130,7 @@ export type DestinoDelDiseno =
 export class DashboardLayoutService {
   private readonly store = inject(AppStore);
   private readonly api = inject(FinanceApiClient);
-  private readonly tablerosApi = inject(DashboardsApi);
+  private readonly injector = inject(Injector);
   private hydratedKey: string | null = null;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
   private guardadoPendiente: (() => void) | null = null;
@@ -286,7 +287,9 @@ export class DashboardLayoutService {
     this.guardadoPendiente = () => {
       const peticion: Observable<unknown> | null =
         destino.tipo === 'propio'
-          ? this.tablerosApi.update(destino.id, { name: destino.nombre, layoutJson: json, isPinned: destino.fijado })
+          ? this.injector
+              .get(DashboardsApi)
+              .update(destino.id, { name: destino.nombre, layoutJson: json, isPinned: destino.fijado })
           : destino.tipo === 'principal'
             ? this.api.saveDashboardLayout(json)
             : null;

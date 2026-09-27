@@ -3,12 +3,13 @@ import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
-import { P } from '@core/session';
-import { AppStore, CAPABILITIES, PersonKind } from '@core/state';
-import { FieldComponent } from '@ui/field';
-import { IconComponent } from '@ui/icon';
-import { UiOption, UiSelectComponent } from '@ui/select';
-import { CounterpartyScope } from '../movement-visibility-builder';
+import { P } from '@core/session/permissions';
+import { AppStore, CAPABILITIES } from '@core/state/store';
+import { PersonKind } from '@core/state/view-model';
+import { FieldComponent } from '@ui/field/field';
+import { IconComponent } from '@ui/icon/icon';
+import { UiOption, UiSelectComponent } from '@ui/select/select';
+import { CounterpartyScope } from '@features/movement-form/movement-visibility-builder';
 
 @Component({
   selector: 'fin-movement-counterparty-field',

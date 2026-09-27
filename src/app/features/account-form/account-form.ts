@@ -1,9 +1,27 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  Injector,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AccountViewType, type CardBucket, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, claveDeConcepto, completarPrioridad } from '@core/api';
-import { Account, CAPABILITIES, AppStore } from '@core/state';
+import {
+  AccountViewType,
+  type CardBucket,
+  FinanceApiClient,
+  PRIORIDAD_EN_DOLARES,
+  PRIORIDAD_EN_PESOS,
+  claveDeConcepto,
+  completarPrioridad,
+} from '@core/api';
+import { Account, CAPABILITIES, AppStore, type Movement } from '@core/state';
+import { aplicarAbono, comprasPendientes, saldosPorConcepto, traerMovimientosDeTarjetas } from '@shared/tarjetas';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { OverlayComponent } from '@ui/overlay';
@@ -111,6 +129,38 @@ export class AccountFormComponent {
       return next;
     });
   }
+  esTarjeta(): boolean {
+    return (this.editing?.type ?? this.type) === 'credit';
+  }
+  private readonly injector = inject(Injector);
+  readonly abonoDePrueba = signal(300000);
+  private readonly comprasDeLaTarjeta = signal<readonly Movement[]>([]);
+  private readonly traerCompras = effect(() => {
+    const tarjeta = this.editing;
+    if (!tarjeta || tarjeta.type !== 'credit' || this.store.remoteState() !== 'ready') return;
+    untracked(() => {
+      void traerMovimientosDeTarjetas(this.injector.get(FinanceApiClient), this.i18n, this.store.kindCatalog(), [
+        tarjeta.id,
+      ])
+        .then((lista) => this.comprasDeLaTarjeta.set(lista))
+        .catch(() => this.comprasDeLaTarjeta.set([]));
+    });
+  });
+  readonly vistaPrevia = computed(() => {
+    const prioridad =
+      this.editing?.currency && this.editing.currency !== 'COP' ? this.prioridadEnDolares() : this.prioridadEnPesos();
+    const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta()), prioridad);
+    return aplicarAbono(saldos, this.abonoDePrueba());
+  });
+  dinero(valor: number): string {
+    return this.store.money(valor);
+  }
+  primerosConceptos(): string {
+    return this.paymentPriorityOrder()
+      .slice(0, 6)
+      .map((concepto, i) => `${i + 1}. ${this.etiquetaDeConcepto(concepto)}`)
+      .join(' · ');
+  }
   restablecerPrioridad(): void {
     if (this.monedaDePrioridad() === 'pesos') this.prioridadEnPesos.set([...PRIORIDAD_EN_PESOS]);
     else this.prioridadEnDolares.set([...PRIORIDAD_EN_DOLARES]);
@@ -129,7 +179,7 @@ export class AccountFormComponent {
       .people.filter((persona) => persona.kind === 'institution')
       .map((persona) => ({ value: persona.id, label: persona.name })),
   ]);
-  minimumPayment = 50000;
+  monthlyFee = 0;
   readonly actions = inject(AsyncActionService);
   readonly editing = this.store.form()?.account ?? null;
   readonly saveActionKey = this.editing ? `account:update:${this.editing.id}` : 'account:create';
@@ -157,6 +207,7 @@ export class AccountFormComponent {
     if (account.dueDay !== undefined) this.dueDay = account.dueDay;
     if (account.annualRate !== undefined) this.monthlyRate = mensualDesdeAnual(account.annualRate);
     this.issuerId = account.issuerId ?? '';
+    this.monthlyFee = account.monthlyFee ?? 0;
     this.prioridadEnPesos.set(completarPrioridad(account.paymentPriority, PRIORIDAD_EN_PESOS));
     this.prioridadEnDolares.set(completarPrioridad(account.foreignPaymentPriority, PRIORIDAD_EN_DOLARES));
   }
@@ -186,7 +237,9 @@ export class AccountFormComponent {
               issuerId: this.issuerId,
               paymentPriority: this.prioridadEnPesos(),
               foreignPaymentPriority: this.prioridadEnDolares(),
+              monthlyFee: Number(this.monthlyFee) || 0,
             },
+            this.lastFour,
           ),
         {
           loading: this.i18n.t('form.account.toast.loading'),
@@ -218,6 +271,7 @@ export class AccountFormComponent {
               issuerId: this.issuerId,
               paymentPriority: this.prioridadEnPesos(),
               foreignPaymentPriority: this.prioridadEnDolares(),
+              monthlyFee: Number(this.monthlyFee) || 0,
             },
           }),
         {

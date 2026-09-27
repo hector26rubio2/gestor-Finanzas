@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_TRANSPORT, FinanceApiClient, HttpApiTransport } from './api-client';
-import { RUNTIME_CONFIG } from '@core/session';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 
 describe('FinanceApiClient', () => {
   let api: FinanceApiClient;

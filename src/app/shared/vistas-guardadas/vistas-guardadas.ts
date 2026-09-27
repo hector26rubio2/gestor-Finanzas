@@ -8,18 +8,14 @@ import {
   output,
   signal,
   untracked,
+  Injector,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { firstValueFrom } from 'rxjs';
-import {
-  type ApiSavedDashboard,
-  type ApiDashboardMember,
-  DashboardsApi,
-  type TipoDeVista,
-} from '@core/api';
+import { type ApiSavedDashboard, type ApiDashboardMember, DashboardsApi, type TipoDeVista } from '@core/api';
 import { I18nService } from '@core/i18n';
 import { AppStore, CAPABILITIES } from '@core/state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
@@ -60,7 +56,11 @@ type Panel = 'nuevo' | 'renombrar' | 'compartir' | null;
 })
 export class VistasGuardadasComponent {
   readonly i18n = inject(I18nService);
-  private readonly api = inject(DashboardsApi);
+  private readonly injector = inject(Injector);
+
+  private get api(): DashboardsApi {
+    return this.injector.get(DashboardsApi);
+  }
   private readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
 

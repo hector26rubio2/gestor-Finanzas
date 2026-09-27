@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { RUNTIME_CONFIG } from '@core/session';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 
 export const CABECERA_ACCION = 'X-Finanzas-Accion';
 

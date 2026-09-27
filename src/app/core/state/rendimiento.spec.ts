@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatReturnRate, returnRate } from '@core/utils';
+import { formatReturnRate, returnRate } from '@core/utils/money';
 
 /**
  * El rendimiento se enseñaba dividiendo por el coste sin mirarlo. Con la cartera vacia

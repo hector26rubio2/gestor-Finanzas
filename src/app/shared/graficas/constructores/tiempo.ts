@@ -1,7 +1,7 @@
 import type { ChartOption } from '@ui/chart';
-import { porDia, velas } from '../datos';
-import { Pedido, formatoDe, medidaDe } from '../entorno';
-import { cifraCorta, conAlfa, ejeCategoria, ejeValor, herramientas, zoomDeTiempo } from '../estilo';
+import { porDia, velas } from '@shared/graficas/datos';
+import { Pedido, formatoDe, medidaDe } from '@shared/graficas/entorno';
+import { cifraCorta, conAlfa, ejeCategoria, ejeValor, herramientas, zoomDeTiempo } from '@shared/graficas/estilo';
 
 const nombresDeDias = (locale: string) =>
   Array.from({ length: 7 }, (_, i) =>

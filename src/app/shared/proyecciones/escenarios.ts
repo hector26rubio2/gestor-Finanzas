@@ -1,10 +1,10 @@
 import type { ApiObligation, ApiRecurrence } from '@core/api';
 import type { Account, Movement, Person } from '@core/state';
 import { sumBy } from '@core/utils';
-import { mensualDesdeAnual } from '@shared/utils';
+import { mensualDesdeAnual } from '@shared/utils/tasas';
 import { type Deuda, type Flujo, type Palanca, cuotaFija, proyectar } from './amortizacion';
 import { CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
-import { comprasPendientes, saldosPorConcepto } from '@shared/tarjetas';
+import { type CompraPendiente, comprasPendientes, saldosPorConcepto } from '@shared/tarjetas/extracto';
 
 export const TASA_MENSUAL_SUPUESTA_TARJETA = 2.5;
 export const TASA_MENSUAL_SUPUESTA_CREDITO = 1.5;
@@ -278,17 +278,29 @@ export function deudasDeTarjeta(
   const saldos = saldosPorConcepto(compras, prioridad);
   const pendiente = sumBy(saldos, (s) => s.saldo);
   const escala = pendiente > saldoTotal && pendiente > 0 ? saldoTotal / pendiente : 1;
-  const deudas = saldos.map<DeudaActual>((s) => ({
-    id: `tarjeta:${tarjeta.id}:${s.concepto}`,
-    nombre: `${tarjeta.name} · ${etiqueta(s.concepto)}`,
-    tipo: 'tarjeta',
-    saldo: redondear(s.saldo * escala),
-    tasaMensual: SIN_INTERES_EN.includes(s.concepto) ? 0 : tasaTarjeta,
-    tasaConocida: Boolean(tarjeta.annualRate),
-    cuotas: Math.max(1, ...s.compras.map((c) => c.cuotas - c.cuotaActual + 1)),
-    grupo: `tarjeta:${tarjeta.id}`,
-    prioridad: prioridad.indexOf(s.concepto),
-  }));
+  const tasaDe = (concepto: number, tasaAnual?: number) =>
+    SIN_INTERES_EN.includes(concepto) ? 0 : tasaAnual !== undefined ? mensualDesdeAnual(tasaAnual) : tasaTarjeta;
+  const deudas = saldos.flatMap<DeudaActual>((s) => {
+    const porTasa = new Map<number, CompraPendiente[]>();
+    for (const compra of s.compras) {
+      const tasa = tasaDe(s.concepto, compra.tasaAnual);
+      porTasa.set(tasa, [...(porTasa.get(tasa) ?? []), compra]);
+    }
+    const variasTasas = porTasa.size > 1;
+    return [...porTasa.entries()]
+      .sort(([a], [b]) => b - a)
+      .map(([tasa, compras]) => ({
+        id: `tarjeta:${tarjeta.id}:${s.concepto}:${tasa}`,
+        nombre: `${tarjeta.name} · ${etiqueta(s.concepto)}${variasTasas ? ` · ${tasa} %` : ''}`,
+        tipo: 'tarjeta' as const,
+        saldo: redondear(sumBy(compras, (c) => c.pendiente) * escala),
+        tasaMensual: tasa,
+        tasaConocida: Boolean(tarjeta.annualRate) || compras.every((c) => c.tasaAnual !== undefined),
+        cuotas: Math.max(1, ...compras.map((c) => c.cuotas - c.cuotaActual + 1)),
+        grupo: `tarjeta:${tarjeta.id}`,
+        prioridad: prioridad.indexOf(s.concepto),
+      }));
+  });
   const resto = redondear(saldoTotal - sumBy(deudas, (d) => d.saldo));
   if (resto > 1)
     deudas.push({
@@ -442,4 +454,10 @@ export function tasaPromedioDeInversiones(
   const total = sumBy(conTasa, (i) => i.value);
   if (total <= 0) return respaldo;
   return Math.round((sumBy(conTasa, (i) => i.value * (i.annualRate ?? 0)) / total) * 100) / 100;
+}
+
+export function cuotasDeManejo(cuentas: readonly Account[], etiqueta: (tarjeta: string) => string): LineaDeFlujo[] {
+  return cuentas
+    .filter((c) => c.type === 'credit' && (c.monthlyFee ?? 0) > 0)
+    .map((c) => ({ id: `cuota:${c.id}`, nombre: etiqueta(c.name), tipo: 'gasto' as const, monto: c.monthlyFee ?? 0 }));
 }

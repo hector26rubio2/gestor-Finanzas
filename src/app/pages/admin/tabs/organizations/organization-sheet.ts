@@ -21,8 +21,8 @@ import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { OptionRowComponent } from '@ui/option-row';
 import { SheetPanelComponent } from '@ui/sheet-panel';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
 
 @Component({
   selector: 'app-organization-sheet',

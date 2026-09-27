@@ -1,7 +1,7 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AdminStore } from '../../admin.store';
+import { AdminStore } from '@pages/admin/admin.store';
 import { AdministrationApi } from '@core/api';
 import { RemoteBootstrap, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';

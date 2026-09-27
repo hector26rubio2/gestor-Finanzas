@@ -4,9 +4,9 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
 import { FieldComponent } from '@ui/field';
 import { UiSelectComponent } from '@ui/select';
-import { definicionDe } from '../catalogo';
-import type { ConfiguracionVisual } from '../modelo';
-import { OpcionesDeGraficas } from '../opciones-de-graficas';
+import { definicionDe } from '@shared/graficas/catalogo';
+import type { ConfiguracionVisual } from '@shared/graficas/modelo';
+import { OpcionesDeGraficas } from '@shared/graficas/opciones-de-graficas';
 
 @Component({
   selector: 'fin-configurador-visual',

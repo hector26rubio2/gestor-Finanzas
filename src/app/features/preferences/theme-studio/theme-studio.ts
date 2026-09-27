@@ -8,7 +8,7 @@ import { P } from '@core/session';
 import { AppStore, CAPABILITIES, DEFAULT_PALETTE, StoredPalette, contraste } from '@core/state';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
-import { ThemePreviewComponent } from '../theme-preview/theme-preview';
+import { ThemePreviewComponent } from '@features/preferences/theme-preview/theme-preview';
 
 type ColorKey = 'primary' | 'background' | 'surface' | 'text' | 'border' | 'secondary';
 

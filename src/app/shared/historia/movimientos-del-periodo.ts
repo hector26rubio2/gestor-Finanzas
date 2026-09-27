@@ -61,7 +61,7 @@ export function crearMovimientosDelPeriodo(rango: Signal<Rango | null>): Movimie
   return {
     movimientos,
     cargando: cargando.asReadonly(),
-    completos: computed(() => (remotos()?.completos ?? false)),
+    completos: computed(() => remotos()?.completos ?? false),
   };
 }
 

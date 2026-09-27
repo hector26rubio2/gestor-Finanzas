@@ -7,7 +7,7 @@ import { ApiPermissionDescriptor } from '@core/api';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { AdminLabels } from '../admin-labels';
+import { AdminLabels } from '@pages/admin/admin-labels';
 
 export interface PermissionGroup {
   name: string;

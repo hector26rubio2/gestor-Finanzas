@@ -41,11 +41,11 @@ import {
   tableFeatures,
 } from '@tanstack/angular-table';
 import { I18nService } from '@core/i18n';
-import { sincronizarPaginaConLaUrl } from '@core/state';
-import { IconComponent, IconName } from '@ui/icon';
-import { SearchFieldComponent } from '@ui/search-field';
-import { DateFieldComponent } from '@ui/date-field';
-import { UiOption, UiSelectComponent } from '@ui/select';
+import { sincronizarPaginaConLaUrl } from '@core/state/url-state';
+import { IconComponent, IconName } from '@ui/icon/icon';
+import { SearchFieldComponent } from '@ui/search-field/search-field';
+import { DateFieldComponent } from '@ui/date-field/date-field';
+import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { FinTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {

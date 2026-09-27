@@ -6,7 +6,11 @@ import { FinanceApiClient } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
 import { AccountFormComponent } from '@features/account-form';
-import { MovementFormComponent, MovementInstallmentFieldsComponent, MovementCategoryFieldComponent } from '@features/movement-form';
+import {
+  MovementFormComponent,
+  MovementInstallmentFieldsComponent,
+  MovementCategoryFieldComponent,
+} from '@features/movement-form';
 import { DashboardComponent } from './dashboard';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 

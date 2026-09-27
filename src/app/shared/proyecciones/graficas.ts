@@ -9,7 +9,7 @@ import {
   herramientas,
   leyenda,
   zoomDeTiempo,
-} from '@shared/graficas';
+} from '@shared/graficas/estilo';
 import type { Deuda, Palanca, Proyeccion } from './amortizacion';
 import type { FlujoPorMes, ProyeccionDeInversion } from './escenarios';
 

@@ -7,7 +7,7 @@ import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { KpiRanges } from '../kpi-ranges';
+import { KpiRanges } from '@pages/dashboard/kpis/kpi-ranges';
 
 @Component({
   selector: 'fin-kpi-ranges-editor',

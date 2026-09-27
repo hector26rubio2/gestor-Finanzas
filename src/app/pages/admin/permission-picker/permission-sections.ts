@@ -13,8 +13,8 @@ import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
-import { AdminLabels } from '../admin-labels';
-import { AdminStore } from '../admin.store';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
 import { BulkChange, PermissionGroup, PermissionPickerComponent } from './permission-picker';
 
 export const RESOURCE_FEATURE: Readonly<Record<string, string>> = {

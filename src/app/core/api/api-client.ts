@@ -25,8 +25,8 @@ import { ApiPreference } from './preferences.api';
 import { MovementQuery } from './shared-api-types';
 
 // Transporte HTTP: puertos y adaptador CSRF, movidos a core/http/.
-export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from '@core/http';
-export type { ApiRequest, ApiTransport, ApiProblem } from '@core/http';
+export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from '@core/http/api-http-client';
+export type { ApiRequest, ApiTransport, ApiProblem } from '@core/http/api-http-client';
 
 // Tabla de rutas y tipos compartidos, movidos a core/api/.
 export { API_ROUTES } from './api-routes';

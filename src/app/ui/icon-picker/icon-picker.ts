@@ -4,7 +4,8 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { I18nService } from '@core/i18n';
-import { CategoryIconComponent, ICONOS_DE_CATEGORIA, NOMBRES_DE_ICONO, iconoDeCategoria } from '@ui/category-icon';
+import { CategoryIconComponent } from '@ui/category-icon/category-icon';
+import { ICONOS_DE_CATEGORIA, NOMBRES_DE_ICONO, iconoDeCategoria } from '@ui/category-icon/category-icons';
 
 @Component({
   selector: 'fin-icon-picker',

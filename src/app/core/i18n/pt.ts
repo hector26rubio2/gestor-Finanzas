@@ -283,7 +283,6 @@ export default {
   'form.account.field.dueDay': 'Dia de vencimento',
   'form.account.field.paymentPriority': 'Aplicar primeiro a',
   'form.account.field.paymentPriorityAria': 'Prioridade do pagamento',
-  'form.account.field.minimumPayment': 'Pagamento mínimo',
   'form.account.priorityHint': 'Arraste ou use as setas para definir a ordem de aplicação de um pagamento.',
   'form.account.priorityMoveUp': 'Subir prioridade',
   'form.account.priorityMoveDown': 'Descer prioridade',
@@ -1918,4 +1917,13 @@ export default {
   'accounts.selected.balance': 'Saldo',
   'accounts.selected.detail': 'Ver extrato e detalhes',
   'accounts.selected.payment': 'Registrar pagamento',
+  'form.account.field.monthlyFee': 'Anuidade mensal',
+  'form.account.preview.title': 'Como um pagamento seria aplicado',
+  'form.account.preview.hintEdit': 'Com as compras pendentes deste cartão e a ordem acima.',
+  'form.account.preview.hintCreate':
+    'Quando o cartão tiver compras você verá aqui a divisão de um pagamento de exemplo.',
+  'form.account.preview.amount': 'Pagamento de teste',
+  'form.account.preview.order': 'O pagamento cobre nesta ordem: {order}…',
+  'workspace.statement.monthlyFee': 'Anuidade',
+  'planning.sim.flow.cardFee': 'Anuidade · {name}',
 } as const;

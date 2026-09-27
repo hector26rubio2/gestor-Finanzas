@@ -1,7 +1,7 @@
-import { todayIso, baseCurrency as monedaBase, currencyCatalog as catalogoDeMonedas, formatAmount, parseMoney, sumBy, CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '@core/utils';
+import { todayIso } from '@core/utils/dates';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { notifier } from '@core/notifications';
+import { notifier } from '@core/notifications/notifier';
 import {
   Account,
   accountBalance,
@@ -12,11 +12,23 @@ import {
   Person,
   PersonKind,
 } from './view-model';
-import { ApiCategory, FinanceApiClient, viewTypeToAccountKind, LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION, COUNTERPARTY_KIND, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
+import { ApiCategory, FinanceApiClient, viewTypeToAccountKind } from '@core/api/api-client';
+import {
+  baseCurrency as monedaBase,
+  currencyCatalog as catalogoDeMonedas,
+  formatAmount,
+  parseMoney,
+  sumBy,
+} from '@core/utils/money';
 import { I18nService } from '@core/i18n';
-import { P, RUNTIME_CONFIG } from '@core/session';
+import { P } from '@core/session/permissions';
+import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '@core/utils/movement-kinds';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { PREFERENCES } from './theme';
-import { anualDesdeMensual } from '@shared/utils';
+import { anualDesdeMensual } from '@shared/utils/tasas';
+import { LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION } from '@core/api/obligations.api';
+import { COUNTERPARTY_KIND } from '@core/api/people.api';
+import { PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api/card-buckets';
 
 export { applyTheme, PREFERENCES } from './theme';
 import {
@@ -104,6 +116,7 @@ export interface CondicionesDeTarjeta {
   issuerId?: string;
   paymentPriority?: readonly number[];
   foreignPaymentPriority?: readonly number[];
+  monthlyFee?: number;
 }
 
 function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unknown {
@@ -112,6 +125,9 @@ function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unknown {
     ...terms,
     ...(credito.paymentPriority ? { paymentPriority: credito.paymentPriority } : {}),
     ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
+    ...(credito.monthlyFee !== undefined
+      ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: 'COP' } : null }
+      : {}),
   };
 }
 
@@ -140,8 +156,7 @@ export class AppStore {
    * exponga la foto de la cuenta de Google, el avatar la use sin tocar mas que esa fuente.
    */
   readonly user = signal<SessionUser | null>(null);
-  readonly remoteState = signal<'loading' | 'ready' | 'anonymous' | 'error'>('loading'
-  );
+  readonly remoteState = signal<'loading' | 'ready' | 'anonymous' | 'error'>('loading');
   readonly remoteError = signal('');
   /**
    * Espacio activo y espacios a los que pertenece la sesion.
@@ -635,13 +650,13 @@ export class AppStore {
   async createCounterparty(name: string, kind: PersonKind = 'person', email?: string): Promise<Person> {
     const nombre = name.trim();
     if (!nombre) throw new Error(this.i18n.t('form.error.nameRequired'));
-    const creada: Person =await firstValueFrom(
-            this.injector.get(FinanceApiClient).createPerson({
-              displayName: nombre,
-              email: email || null,
-              kind: kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person,
-            }),
-          ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }));
+    const creada: Person = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createPerson({
+        displayName: nombre,
+        email: email || null,
+        kind: kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person,
+      }),
+    ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }));
     this.data.update((data) => ({ ...data, people: [...data.people, creada] }));
     return creada;
   }
@@ -652,7 +667,10 @@ export class AppStore {
     currency = 'COP',
     exchangeRate?: number,
     credit?: CondicionesDeTarjeta,
+    lastFour?: string,
   ) {
+    const digitos = lastFour?.trim() || undefined;
+    if (digitos && !/^\d{4}$/.test(digitos)) throw new Error(this.i18n.t('form.account.error.lastFour'));
     const anual = credit?.monthlyRate === undefined ? undefined : anualDesdeMensual(credit.monthlyRate);
     const tasaApi = String((anual ?? 0) / 100);
     if (opening < 0) throw new Error(this.i18n.t('form.account.error.openingNegative'));
@@ -675,8 +693,9 @@ export class AppStore {
             gracePeriodDays: 0,
             paymentPriority: credit.paymentPriority ?? null,
             foreignPaymentPriority: credit.foreignPaymentPriority ?? null,
+            monthlyFee: credit.monthlyFee ? { amount: String(credit.monthlyFee), currency } : null,
           },
-          lastFour: '0000',
+          lastFour: digitos ?? null,
           issuerEntity: credit.issuerId || null,
         }),
       );
@@ -698,6 +717,7 @@ export class AppStore {
             issuerId: created.issuerEntity?.id,
             paymentPriority: completarPrioridad(created.terms?.paymentPriority, PRIORIDAD_EN_PESOS),
             foreignPaymentPriority: completarPrioridad(created.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
+            ...(credit.monthlyFee ? { monthlyFee: credit.monthlyFee } : {}),
           },
         ],
       }));
@@ -708,7 +728,7 @@ export class AppStore {
     // El `kind` del contrato sale del tipo de vista. Antes eran dos números escritos a
     // mano (`cash ? 1 : 3`), de modo que una cuenta corriente, una billetera u otra se
     // abrian como ahorro sin que nadie lo pidiera.
-    const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: '0000' };
+    const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: digitos ?? null };
     const openingResult =
       opening === 0
         ? null
@@ -832,6 +852,9 @@ export class AppStore {
             dueDay: credito.dueDay,
             issuerId: credito.issuerId || undefined,
             ...(credito.monthlyRate === undefined ? {} : { annualRate: anualDesdeMensual(credito.monthlyRate) }),
+            ...(credito.paymentPriority ? { paymentPriority: credito.paymentPriority } : {}),
+            ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
+            monthlyFee: credito.monthlyFee || undefined,
           }
         : {}),
     };
@@ -847,15 +870,15 @@ export class AppStore {
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
     const actual = this.categories().find((category) => category.id === id);
     if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-    const guardada =await firstValueFrom(
-            this.injector.get(FinanceApiClient).updateCategory(id, {
-              name,
-              color: changes.color,
-              icon: changes.icon,
-              parent: actual.parent,
-              isActive: actual.isActive,
-            }),
-          );
+    const guardada = await firstValueFrom(
+      this.injector.get(FinanceApiClient).updateCategory(id, {
+        name,
+        color: changes.color,
+        icon: changes.icon,
+        parent: actual.parent,
+        isActive: actual.isActive,
+      }),
+    );
     this.categories.update((items) => items.map((item) => (item.id === id ? guardada : item)));
     if (actual.name !== guardada.name)
       this.data.update((data) => ({

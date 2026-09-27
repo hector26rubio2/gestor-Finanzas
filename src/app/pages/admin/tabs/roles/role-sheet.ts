@@ -20,9 +20,9 @@ import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiSelectComponent } from '@ui/select';
-import { AdminStore } from '../../admin.store';
-import { BulkChange } from '../../permission-picker/permission-picker';
-import { PermissionSectionsComponent } from '../../permission-picker/permission-sections';
+import { AdminStore } from '@pages/admin/admin.store';
+import { BulkChange } from '@pages/admin/permission-picker/permission-picker';
+import { PermissionSectionsComponent } from '@pages/admin/permission-picker/permission-sections';
 
 @Component({
   selector: 'app-role-sheet',

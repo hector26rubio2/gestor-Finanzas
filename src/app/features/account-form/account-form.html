@@ -65,6 +65,17 @@
     <fin-field [label]="i18n.t('form.account.field.opening')">
       <input hlmInput name="opening" [(ngModel)]="opening" type="number" />
     </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.lastFour')">
+      <input
+        hlmInput
+        name="lastFourNew"
+        [(ngModel)]="lastFour"
+        inputmode="numeric"
+        maxlength="4"
+        pattern="[0-9]{4}"
+        autocomplete="off"
+      />
+    </fin-field>
     @if (currency === 'USD') {
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
       <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
@@ -89,6 +100,14 @@
         [options]="issuerOptions()"
         [ariaLabel]="i18n.t('form.account.field.issuer')"
       />
+    </fin-field>
+    }
+    <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
+      {{ i18n.t('form.account.hint.opening') }}
+    </p>
+    } @if (esTarjeta()) {
+    <fin-field [label]="i18n.t('form.account.field.monthlyFee')">
+      <input hlmInput name="monthlyFee" [(ngModel)]="monthlyFee" type="number" min="0" step="1000" />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
       <div class="flex flex-wrap items-center justify-between gap-2">
@@ -152,13 +171,60 @@
       </ol>
       <small class="text-[0.72rem] text-muted-foreground">{{ i18n.t('form.account.priorityHint') }}</small>
     </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.minimumPayment')">
-      <input hlmInput name="minimumPayment" [(ngModel)]="minimumPayment" type="number" min="0" />
-    </fin-field>
-    }
-    <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
-      {{ i18n.t('form.account.hint.opening') }}
-    </p>
+    <section
+      class="col-span-full grid gap-2 rounded-[10px] border border-border p-3"
+      [attr.aria-label]="i18n.t('form.account.preview.title')"
+    >
+      <div class="flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h3 class="text-[0.84rem] font-semibold">{{ i18n.t('form.account.preview.title') }}</h3>
+          <small class="text-[0.72rem] text-muted-foreground"
+            >{{ i18n.t(editing ? 'form.account.preview.hintEdit' : 'form.account.preview.hintCreate') }}</small
+          >
+        </div>
+        @if (editing) {
+        <label class="grid gap-1 text-[0.72rem] text-muted-foreground">
+          {{ i18n.t('form.account.preview.amount') }}
+          <input
+            hlmInput
+            class="w-40"
+            name="abonoDePrueba"
+            type="number"
+            min="0"
+            step="10000"
+            [ngModel]="abonoDePrueba()"
+            (ngModelChange)="abonoDePrueba.set(+$event || 0)"
+          />
+        </label>
+        }
+      </div>
+      @if (editing && vistaPrevia().length) {
+      <table class="w-full text-[0.76rem]">
+        <thead class="text-muted-foreground">
+          <tr>
+            <th class="text-start font-medium">#</th>
+            <th class="text-start font-medium">{{ i18n.t('workspace.cardPayment.table.bucket') }}</th>
+            <th class="text-end font-medium">{{ i18n.t('workspace.cardPayment.table.balanceBefore') }}</th>
+            <th class="text-end font-medium">{{ i18n.t('workspace.cardPayment.table.applied') }}</th>
+            <th class="text-end font-medium">{{ i18n.t('workspace.cardPayment.table.balanceAfter') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of vistaPrevia(); track fila.concepto; let i = $index) {
+          <tr [class.font-semibold]="fila.aplicado > 0">
+            <td>{{ i + 1 }}</td>
+            <td>{{ etiquetaDeConcepto(fila.concepto) }}</td>
+            <td class="text-end">{{ dinero(fila.antes) }}</td>
+            <td class="text-end">{{ dinero(fila.aplicado) }}</td>
+            <td class="text-end">{{ dinero(fila.despues) }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
+      } @else {
+      <p class="text-[0.76rem]">{{ i18n.t('form.account.preview.order', { order: primerosConceptos() }) }}</p>
+      }
+    </section>
     } @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }

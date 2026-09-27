@@ -1,4 +1,4 @@
-import { P } from '@core/session';
+import { P } from '@core/session/permissions';
 import type { AdminTab } from './admin.store';
 
 export interface AdminTabItem {

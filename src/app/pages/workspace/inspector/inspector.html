@@ -67,6 +67,8 @@
         >
         @if (pagoMinimo(); as minimo) {
         <span>{{ i18n.t('workspace.statement.minimumPayment') }} <b>{{ store.money(minimo) }}</b></span>
+        } @if (cuotaDeManejo() > 0) {
+        <span>{{ i18n.t('workspace.statement.monthlyFee') }} <b>{{ store.money(cuotaDeManejo()) }}</b></span>
         }
       </div>
       @if (cardEstimatedInterest() === null) {

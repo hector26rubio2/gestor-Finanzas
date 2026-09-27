@@ -15,9 +15,9 @@ import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data
 import { IconComponent } from '@ui/icon';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
 
 /** Código de moneda ISO 4217: tres letras, que es lo que el backend exige en el cuerpo. */
@@ -64,10 +64,7 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
       (confirmed)="confirmDelete()"
       (dismissed)="deleting.set(null)"
     />
-    <app-admin-panel
-      [title]="i18n.t('admin.organizations.title')"
-      [subtitle]="i18n.t('admin.organizations.subtitle')"
-    >
+    <app-admin-panel [title]="i18n.t('admin.organizations.title')" [subtitle]="i18n.t('admin.organizations.subtitle')">
       <div panelActions class="flex flex-wrap items-center gap-2">
         @if (canConsolidate()) {
           <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
@@ -153,7 +150,7 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
         </fin-table>
       </app-admin-grid>
     </app-admin-panel>
-  
+
     <app-organization-sheet [organization]="managing()" (closed)="managingId.set(null)" />
     <fin-sheet-panel
       [open]="creating()"

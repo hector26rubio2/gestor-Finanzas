@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { AdministrationApi } from '@core/api';
-import { AppStore } from '@core/state';
-import { AccionDeUsuario } from '@core/http';
-import { listenToConsole } from '@core/utils';
+import { AdministrationApi } from '@core/api/administration.api';
+import { AppStore } from '@core/state/store';
+import { AccionDeUsuario } from '@core/http/accion';
+import { listenToConsole } from '@core/utils/console-buffer';
 import { buildReport, fingerprintOf, isIgnoredMessage, ErrorOrigin } from './error-report';
 
 const MAX_REPORTS_PER_WINDOW = 10;

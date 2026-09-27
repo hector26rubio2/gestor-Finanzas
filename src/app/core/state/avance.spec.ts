@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '@core/api';
-import type { ApiMovement } from '@core/api';
+import { FinanceApiClient } from '@core/api/api-client';
+import type { ApiMovement } from '@core/api/ledger.api';
 import { I18nService } from '@core/i18n';
-import { toMovement } from '@core/session';
-import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils';
+import { toMovement } from '@core/session/remote-mappers';
+import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils/movement-kinds';
 import { AppStore } from './store';
 
 function pata(id: string, flow: number, links: Record<string, string>): ApiMovement {

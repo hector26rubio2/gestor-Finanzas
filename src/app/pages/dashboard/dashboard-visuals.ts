@@ -4,7 +4,20 @@ import { I18nService } from '@core/i18n';
 import { UiOption } from '@ui/select';
 import { ChartOption, ChartThemeService } from '@ui/chart';
 import { CategorySlice, Dimension, Measure, Scale, TimelinePoint, Widget } from './dashboard.model';
-import { cifraCorta, conAlfa, degradado, ejesDeIntervalo, ContextoDeDatos, agregar, etiquetaDeDimension, valorDeMedida, TIPOS_DEL_MOTOR, construirVisual, crearContextoDeDatos, etiquetaDeTipoDeMovimiento } from '@shared/graficas';
+import {
+  cifraCorta,
+  conAlfa,
+  degradado,
+  ejesDeIntervalo,
+  ContextoDeDatos,
+  agregar,
+  etiquetaDeDimension,
+  valorDeMedida,
+  TIPOS_DEL_MOTOR,
+  construirVisual,
+  crearContextoDeDatos,
+  etiquetaDeTipoDeMovimiento,
+} from '@shared/graficas';
 import type { Granularidad, TipoVisual } from '@shared/graficas';
 
 export abstract class DashboardVisuals {

@@ -1,7 +1,7 @@
 import type { ChartOption } from '@ui/chart';
-import { agregar, enlaces, etiquetaDeDimension, sinPrefijo } from '../datos';
-import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '../entorno';
-import { cifraCorta, colores, conAlfa, herramientas } from '../estilo';
+import { agregar, enlaces, etiquetaDeDimension, sinPrefijo } from '@shared/graficas/datos';
+import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
+import { cifraCorta, colores, conAlfa, herramientas } from '@shared/graficas/estilo';
 
 export function sankey(pedido: Pedido): ChartOption {
   const { config, movs, entorno } = pedido;

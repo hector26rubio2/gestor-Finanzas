@@ -1,6 +1,20 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { AdministrationApi, ApiAdminFeatureFlag, ApiBugReportResult, ApiAdminOrganization, ApiAdminOrganizationFlag, ApiAdminRole, ApiAdminUser, ApiAuditEvent, ApiAuditFilter, ApiClientError, ApiOrganizationMember, ApiPermissionDescriptor, ApiPage } from '@core/api';
+import {
+  AdministrationApi,
+  ApiAdminFeatureFlag,
+  ApiBugReportResult,
+  ApiAdminOrganization,
+  ApiAdminOrganizationFlag,
+  ApiAdminRole,
+  ApiAdminUser,
+  ApiAuditEvent,
+  ApiAuditFilter,
+  ApiClientError,
+  ApiOrganizationMember,
+  ApiPermissionDescriptor,
+  ApiPage,
+} from '@core/api';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
 import { P, RemoteBootstrap } from '@core/session';

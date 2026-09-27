@@ -48,8 +48,14 @@ import { KpiRanges, KpiStatus, estadoDe } from './kpis/kpi-ranges';
 
 type KpiStatusValue = KpiStatus | null;
 import { buildWidgetCatalog } from './dashboard-widget-catalog';
-import { ConfiguradorVisualComponent, GaleriaVisualComponent, OpcionesDeGraficas, TIPOS_DEL_MOTOR, definicionDe } from '@shared/graficas';
-import type { ConfiguracionVisual, TipoVisual } from '@shared/graficas';
+import {
+  ConfiguradorVisualComponent,
+  GaleriaVisualComponent,
+  OpcionesDeGraficas,
+  TIPOS_DEL_MOTOR,
+  definicionDe,
+} from '@shared/graficas';
+import type { ConfiguracionVisual } from '@shared/graficas';
 
 const KPI_HEIGHT = 120;
 

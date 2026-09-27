@@ -5,7 +5,15 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { FinanceApiClient, ApiWritesBus, CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, claveDeConcepto, completarPrioridad } from '@core/api';
+import {
+  FinanceApiClient,
+  ApiWritesBus,
+  CARD_BUCKET,
+  PRIORIDAD_EN_DOLARES,
+  PRIORIDAD_EN_PESOS,
+  claveDeConcepto,
+  completarPrioridad,
+} from '@core/api';
 import type { ApiSharedPurchase, ApiSettlement } from '@core/api';
 import { parseMoney, formatReturnRate, sumBy } from '@core/utils';
 import { I18nService } from '@core/i18n';
@@ -188,8 +196,9 @@ export class InspectorComponent {
     if (intereses.every((x) => x === null)) return null;
     return Math.round(sumBy(intereses, (x) => x ?? 0));
   });
+  readonly cuotaDeManejo = computed(() => this.selectedAccount()?.monthlyFee ?? 0);
   readonly cardStatementTotal = computed(() =>
-    Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0)),
+    Math.round(this.nextInstallments() + (this.cardEstimatedInterest() ?? 0) + this.cuotaDeManejo()),
   );
   openDayMovement(id: string) {
     this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());

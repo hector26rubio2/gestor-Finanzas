@@ -10,7 +10,31 @@ import { I18nService } from '@core/i18n';
 import { addDaysToIso, addMonthsToIso, sumBy } from '@core/utils';
 import { traerMovimientosDeTarjetas } from '@shared/tarjetas';
 import type { Movement } from '@core/state';
-import { type Deuda, type Palanca, type Proyeccion, cuotaFija, proyectar, type DeudaActual, type OrdenDeAbono, CUOTAS_SUPUESTAS, TASA_MENSUAL_SUPUESTA_TARJETA, cuotaParaTerminarEn, deudasActuales, type AjusteDeLinea, type CambioDeFlujo, flujoPorMes, flujoPromedio, lineasPorCategoria, recurrentesDeFlujo, horizonteDeDeudas, mesesHasta, planDeAbonos, proyectarInversion, tasaPromedioDeInversiones } from '@shared/proyecciones';
+import {
+  type Deuda,
+  type Palanca,
+  type Proyeccion,
+  cuotaFija,
+  proyectar,
+  type DeudaActual,
+  type OrdenDeAbono,
+  CUOTAS_SUPUESTAS,
+  TASA_MENSUAL_SUPUESTA_TARJETA,
+  cuotaParaTerminarEn,
+  deudasActuales,
+  type AjusteDeLinea,
+  type CambioDeFlujo,
+  flujoPorMes,
+  flujoPromedio,
+  cuotasDeManejo,
+  lineasPorCategoria,
+  recurrentesDeFlujo,
+  horizonteDeDeudas,
+  mesesHasta,
+  planDeAbonos,
+  proyectarInversion,
+  tasaPromedioDeInversiones,
+} from '@shared/proyecciones';
 
 export type AjusteDeDeuda = Partial<Pick<Deuda, 'saldo' | 'tasaMensual' | 'cuotas'>>;
 
@@ -114,7 +138,12 @@ export class SimuladorDePlanificacion {
     });
   });
   readonly recorte = signal(0);
-  readonly categorias = computed(() => lineasPorCategoria(this.delPeriodo.movimientos(), this.hoy()));
+  readonly categorias = computed(() => [
+    ...lineasPorCategoria(this.delPeriodo.movimientos(), this.hoy()),
+    ...cuotasDeManejo(this.store.data().accounts, (tarjeta) =>
+      this.i18n.t('planning.sim.flow.cardFee', { name: tarjeta }),
+    ),
+  ]);
   readonly ajustesDeLinea = signal<Readonly<Record<string, AjusteDeLinea>>>({});
   readonly recurrentes = computed(() => recurrentesDeFlujo(this.recurrentesApi(), this.hoy()));
   readonly recurrentesQuitados = signal<ReadonlySet<string>>(new Set());

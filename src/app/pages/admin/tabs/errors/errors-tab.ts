@@ -12,9 +12,9 @@ import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data
 import { IconComponent } from '@ui/icon';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 
 @Component({
   selector: 'app-admin-errors-tab',
@@ -84,7 +84,7 @@ import { AdminGridComponent } from '../../panel/admin-grid';
         </fin-table>
       </app-admin-grid>
     </section>
-  
+
     <fin-sheet-panel
       [wide]="true"
       [open]="!!selectedError()"

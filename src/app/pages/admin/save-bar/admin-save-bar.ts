@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/cor
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
-import { AdminStore } from '../admin.store';
+import { AdminStore } from '@pages/admin/admin.store';
 
 @Component({
   selector: 'app-admin-save-bar',

@@ -2,8 +2,8 @@ import { Injector, Type, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
 import { filter, map, take } from 'rxjs';
-import { safeReturnPath } from '@core/session';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state';
+import { safeReturnPath } from '@core/session/return-url';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 
 /**
  * Deja entrar a una sección, o manda a la primera que sí esté abierta.

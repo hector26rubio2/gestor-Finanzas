@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { notifier } from '@core/notifications';
+import { notifier } from '@core/notifications/notifier';
 
 export interface AsyncActionMessages<T> {
   loading: string;

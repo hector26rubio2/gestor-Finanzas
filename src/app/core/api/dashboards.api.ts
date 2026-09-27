@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '@core/http';
+import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef } from './shared-api-types';
 
@@ -98,7 +98,11 @@ export class DashboardsApi {
   }
 
   update(id: string, request: { name: string; layoutJson: string | null; isPinned: boolean }) {
-    return this.transport.request<ApiSavedDashboard>({ method: 'PUT', path: API_ROUTES.savedDashboard(id), body: request });
+    return this.transport.request<ApiSavedDashboard>({
+      method: 'PUT',
+      path: API_ROUTES.savedDashboard(id),
+      body: request,
+    });
   }
 
   remove(id: string) {

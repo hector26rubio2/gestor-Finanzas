@@ -11,9 +11,9 @@ import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent } from '@ui/icon';
 import { PagerComponent } from '@ui/pager';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { PermissionCatalogComponent } from './permission-catalog';
 import { RoleSheetComponent } from './role-sheet';
 
@@ -137,7 +137,7 @@ import { RoleSheetComponent } from './role-sheet';
     ) {
       <app-admin-permission-catalog />
     }
-  
+
     <app-role-sheet [role]="editing()" [creating]="creating()" (closed)="closeSheet()" />
     <fin-confirm-dialog
       [open]="!!deleting()"

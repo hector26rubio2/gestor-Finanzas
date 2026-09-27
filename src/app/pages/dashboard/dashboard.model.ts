@@ -3,8 +3,8 @@ import type {
   Granularidad,
   Measure as MedidaDelMotor,
   TipoVisual,
-} from '@shared/graficas';
-import { VISUALES } from '@shared/graficas';
+} from '@shared/graficas/modelo';
+import { VISUALES } from '@shared/graficas/catalogo';
 export type Scale = 'day' | 'week' | 'month' | 'year';
 /**
  * Los nueve primeros son fijos: cada uno trae su propia lógica de datos (ingresos vs

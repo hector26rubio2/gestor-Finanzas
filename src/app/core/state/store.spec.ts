@@ -1,13 +1,13 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '@core/api';
-import type { ApiMovement, CreateMovementBody } from '@core/api';
+import { FinanceApiClient } from '@core/api/api-client';
+import type { ApiMovement, CreateMovementBody } from '@core/api/ledger.api';
 import { preloadCatalog } from '@core/i18n';
 import es from '@core/i18n/es';
-import { todayIso, BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '@core/utils';
+import { todayIso } from '@core/utils/dates';
+import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '@core/utils/money';
 import { AppStore } from './store';
-
 
 describe('AppStore en modo API', () => {
   // Respuesta simulada del servidor. Lo que manda al reconstruir la copia
@@ -205,7 +205,4 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     expect(store.selectedCalendarDate()).toBe(todayIso());
     expect(store.history()[0].date).toBe(todayIso());
   });
-
-
-
 });

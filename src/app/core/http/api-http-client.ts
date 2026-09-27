@@ -1,9 +1,9 @@
 import { HttpClient, HttpContext, HttpErrorResponse, HttpHeaders, HttpParams } from '@angular/common/http';
 import { inject, Injectable, InjectionToken } from '@angular/core';
 import { Observable, catchError, of, shareReplay, switchMap, throwError } from 'rxjs';
-import { I18nService } from '@core/i18n';
-import { RUNTIME_CONFIG } from '@core/session';
-import { API_ROUTES } from '@core/api';
+import { I18nService } from '@core/i18n/i18n.service';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
+import { API_ROUTES } from '@core/api/api-routes';
 
 /**
  * Transport boundary for the future API. Feature code depends on repositories,
@@ -78,8 +78,7 @@ export class HttpApiTransport implements ApiTransport {
     for (const [key, value] of Object.entries(request.params ?? {})) {
       if (value !== undefined) params = params.set(key, String(value));
     }
-    if (!this.config.apiBaseUrl)
-      return throwError(() => new Error('El transporte HTTP no está activo en modo demo.'));
+    if (!this.config.apiBaseUrl) return throwError(() => new Error('El transporte HTTP no está activo en modo demo.'));
 
     const unsafe = request.method !== 'GET';
     const send = (csrfToken?: string) => {

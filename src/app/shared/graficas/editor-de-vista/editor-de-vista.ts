@@ -10,12 +10,12 @@ import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { OverlayComponent } from '@ui/overlay';
 import { UiSelectComponent } from '@ui/select';
-import { definicionDe } from '../catalogo';
-import { ConfiguradorVisualComponent } from '../configurador/configurador';
-import { crearEntorno } from '../contexto';
-import { GaleriaVisualComponent } from '../galeria-visual/galeria-visual';
-import type { ConfiguracionVisual, Granularidad } from '../modelo';
-import { construirVisual } from '../visual';
+import { definicionDe } from '@shared/graficas/catalogo';
+import { ConfiguradorVisualComponent } from '@shared/graficas/configurador/configurador';
+import { crearEntorno } from '@shared/graficas/contexto';
+import { GaleriaVisualComponent } from '@shared/graficas/galeria-visual/galeria-visual';
+import type { ConfiguracionVisual, Granularidad } from '@shared/graficas/modelo';
+import { construirVisual } from '@shared/graficas/visual';
 
 export interface VistaEditable {
   readonly id: string;

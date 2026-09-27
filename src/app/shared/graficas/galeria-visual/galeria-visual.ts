@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
 import { I18nService } from '@core/i18n';
-import { OpcionesDeGraficas } from '../opciones-de-graficas';
+import { OpcionesDeGraficas } from '@shared/graficas/opciones-de-graficas';
 
 @Component({
   selector: 'fin-galeria-visual',

@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '@core/http';
+import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
 

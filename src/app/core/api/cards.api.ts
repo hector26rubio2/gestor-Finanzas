@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '@core/http';
+import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
 
@@ -14,6 +14,7 @@ export interface ApiCard {
     purchaseApr?: { rate?: string | number | null } | null;
     paymentPriority?: readonly number[] | null;
     foreignPaymentPriority?: readonly number[] | null;
+    monthlyFee?: ApiMoney | null;
   } | null;
   issuer: string | null;
   lastFour: string | null;

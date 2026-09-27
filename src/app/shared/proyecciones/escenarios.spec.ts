@@ -203,7 +203,14 @@ describe('escenarios de planificación', () => {
   });
 
   it('parte una tarjeta en sus conceptos con la tasa y el orden de prioridad de la tarjeta', () => {
-    const visa: Account = { id: 'visa', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, annualRate: 26.82 };
+    const visa: Account = {
+      id: 'visa',
+      name: 'Visa',
+      type: 'credit',
+      currency: 'COP',
+      openingBalance: 0,
+      annualRate: 26.82,
+    };
     const movimientos = [
       movimiento({ id: 'avance', accountId: 'visa', amount: -500_000, movementSubtype: 'advance' }),
       movimiento({ id: 'tv', accountId: 'visa', amount: -1_200_000, installmentTotal: 12, installmentCurrent: 3 }),
@@ -219,8 +226,26 @@ describe('escenarios de planificación', () => {
   it('el abono respeta la prioridad dentro de una tarjeta y la estrategia entre deudas', () => {
     const deudas = [
       { id: 'credito', nombre: 'Crédito', tipo: 'credito' as const, saldo: 5_000_000, tasaMensual: 1.2, cuotas: 24 },
-      { id: 'v13', nombre: 'Visa avances', tipo: 'tarjeta' as const, saldo: 500_000, tasaMensual: 2, cuotas: 12, grupo: 'visa', prioridad: 12 },
-      { id: 'v5', nombre: 'Visa una cuota', tipo: 'tarjeta' as const, saldo: 200_000, tasaMensual: 0, cuotas: 1, grupo: 'visa', prioridad: 4 },
+      {
+        id: 'v13',
+        nombre: 'Visa avances',
+        tipo: 'tarjeta' as const,
+        saldo: 500_000,
+        tasaMensual: 2,
+        cuotas: 12,
+        grupo: 'visa',
+        prioridad: 12,
+      },
+      {
+        id: 'v5',
+        nombre: 'Visa una cuota',
+        tipo: 'tarjeta' as const,
+        saldo: 200_000,
+        tasaMensual: 0,
+        cuotas: 1,
+        grupo: 'visa',
+        prioridad: 4,
+      },
     ];
     expect(ordenarParaAbono(deudas, 'tasa').map((d) => d.id)).toEqual(['v5', 'v13', 'credito']);
   });

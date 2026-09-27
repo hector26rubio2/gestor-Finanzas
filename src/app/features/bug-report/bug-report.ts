@@ -1,4 +1,4 @@
-import { AccionDeUsuario } from '@core/http';
+import { AccionDeUsuario } from '@core/http/accion';
 import { BrnQuestionnaireImports } from '@spartan-ng/brain/questionnaire';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
@@ -8,13 +8,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { FinanceApiClient } from '@core/api';
-import { ConsoleBufferService, APP_VERSION } from '@core/utils';
+import { FinanceApiClient } from '@core/api/api-client';
+import { ConsoleBufferService } from '@core/utils/console-buffer';
 import { I18nService } from '@core/i18n';
-import { AppStore } from '@core/state';
-import { IconComponent } from '@ui/icon';
-import { UiOption } from '@ui/select';
-import { OverlayComponent } from '@ui/overlay';
+import { AppStore } from '@core/state/store';
+import { APP_VERSION } from '@core/utils/version';
+import { IconComponent } from '@ui/icon/icon';
+import { UiOption } from '@ui/select/select';
+import { OverlayComponent } from '@ui/overlay/overlay';
 
 /** Tope alineado con `MaxScreenshotBase64Length` en el backend (deja margen bajo el límite de 1 MB por petición de Kestrel). */
 const MAX_SCREENSHOT_BASE64_CHARS = 700_000;

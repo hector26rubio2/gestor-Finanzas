@@ -9,10 +9,10 @@ import { EmptyStateComponent } from '@ui/empty-state';
 import { IconComponent } from '@ui/icon';
 import { PagerComponent } from '@ui/pager';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { UserSheetComponent } from './user-sheet';
 
 @Component({
@@ -92,7 +92,7 @@ import { UserSheetComponent } from './user-sheet';
         />
       }
     </app-admin-panel>
-  
+
     <app-user-sheet [user]="selected()" (closed)="selectedId.set(null)" />
   `,
 })

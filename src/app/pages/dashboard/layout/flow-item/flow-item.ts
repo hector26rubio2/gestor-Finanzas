@@ -10,8 +10,8 @@ import {
   clampHeight,
   colsFromWidth,
   rowSpan,
-} from '../dashboard-layout';
-import { FlowResize } from '../dashboard-layout.service';
+} from '@pages/dashboard/layout/dashboard-layout';
+import { FlowResize } from '@pages/dashboard/layout/dashboard-layout.service';
 
 type Axis = 'x' | 'y' | 'xy';
 

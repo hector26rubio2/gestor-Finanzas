@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '@core/http';
-import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '@core/utils';
+import { API_TRANSPORT } from '@core/http/api-http-client';
+import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import { API_ROUTES } from './api-routes';
 import { ApiConvertedMoney, ApiLinkRef, ApiMoney, ApiPage, MovementQuery, monthRange } from './shared-api-types';
 

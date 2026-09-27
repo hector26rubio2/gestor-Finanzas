@@ -21,8 +21,14 @@ import {
   mostUsedCard,
   nextCardDue,
 } from './card-insights';
-import { PERIODOS_DE_HISTORIA, crearHistoriaDeSaldos, rangosMensuales, variacion, crearMovimientosDelPeriodo } from '@shared/historia';
-import { estadoDe } from '@pages/dashboard';
+import {
+  PERIODOS_DE_HISTORIA,
+  crearHistoriaDeSaldos,
+  rangosMensuales,
+  variacion,
+  crearMovimientosDelPeriodo,
+} from '@shared/historia';
+import { estadoDe } from '@pages/dashboard/kpis/kpi-ranges';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { P } from '@core/session';
 import { addDaysToIso } from '@core/utils';

@@ -11,14 +11,17 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { P, safeReturnPath, RemoteBootstrap } from '@core/session';
+import { P } from '@core/session/permissions';
+import { safeReturnPath } from '@core/session/return-url';
 import { I18nService } from '@core/i18n';
-import { IconComponent } from '@ui/icon';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state';
-import { TablerosService } from '@pages/dashboard';
-import { BugReportButtonComponent } from '@features/bug-report';
-import { CommandPaletteComponent, CommandPaletteService } from '@shared/command-palette';
-import { MovementFormComponent } from '@features/movement-form';
+import { RemoteBootstrap } from '@core/session/remote-bootstrap';
+import { IconComponent } from '@ui/icon/icon';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
+import { TablerosService } from '@pages/dashboard/tableros/tableros.service';
+import { BugReportButtonComponent } from '@features/bug-report/bug-report';
+import { CommandPaletteComponent } from '@shared/command-palette/command-palette';
+import { CommandPaletteService } from '@shared/command-palette/command-palette.service';
+import { MovementFormComponent } from '@features/movement-form/movement-form';
 import { HlmToaster } from '@spartan-ng/helm/sonner';
 import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import {
@@ -42,7 +45,7 @@ import {
   HlmSidebarMenuSubButton,
   HlmSidebarMenuSubItem,
 } from '@spartan-ng/helm/sidebar';
-import { ADMIN_TABS } from '@pages/admin';
+import { ADMIN_TABS } from '@pages/admin/admin-tabs';
 import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmProgress, HlmProgressIndicator } from '@spartan-ng/helm/progress';

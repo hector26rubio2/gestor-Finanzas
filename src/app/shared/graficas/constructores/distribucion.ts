@@ -1,6 +1,6 @@
 import type { ChartOption } from '@ui/chart';
-import { agregar, burbujas, cruzar, cubetas, distribucion, etiquetaDeDimension } from '../datos';
-import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '../entorno';
+import { agregar, burbujas, cruzar, cubetas, distribucion, etiquetaDeDimension } from '@shared/graficas/datos';
+import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
 import {
   cifraCorta,
   colores,
@@ -11,7 +11,7 @@ import {
   ejeValor,
   herramientas,
   leyenda,
-} from '../estilo';
+} from '@shared/graficas/estilo';
 
 export function dispersion(pedido: Pedido): ChartOption {
   const { config, movs, entorno } = pedido;

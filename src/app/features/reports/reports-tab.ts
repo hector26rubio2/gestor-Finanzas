@@ -17,7 +17,7 @@ import { IconComponent } from '@ui/icon';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts';
+import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
 const esEconomico = (movement: Movement) => !movement.movementSubtype && movement.kind !== 'payment';
 

@@ -5,10 +5,10 @@ import { I18nService } from '@core/i18n';
 import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent, IconName } from '@ui/icon';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 
 interface SummaryKpi {
   label: string;
@@ -50,10 +50,7 @@ interface SummaryKpi {
         </article>
       }
     </section>
-    <app-admin-panel
-      [title]="i18n.t('admin.summary.users.title')"
-      [subtitle]="i18n.t('admin.summary.users.subtitle')"
-    >
+    <app-admin-panel [title]="i18n.t('admin.summary.users.title')" [subtitle]="i18n.t('admin.summary.users.subtitle')">
       <button panelActions hlmBtn variant="outline" size="sm" (click)="store.tab.set('users')">
         {{ i18n.t('admin.summary.accessControl.manage') }}
       </button>
@@ -137,7 +134,6 @@ interface SummaryKpi {
         </app-admin-grid>
       </app-admin-panel>
     </section>
-  
   `,
 })
 export class SummaryTabComponent {

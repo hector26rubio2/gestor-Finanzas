@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { I18nService } from '@core/i18n';
-import { EmptyStateComponent } from '@ui/empty-state';
+import { EmptyStateComponent } from '@ui/empty-state/empty-state';
 
 @Component({
   selector: 'fin-sin-acceso',

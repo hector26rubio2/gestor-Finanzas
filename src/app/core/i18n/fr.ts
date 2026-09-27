@@ -287,7 +287,6 @@ export default {
   'form.account.field.dueDay': "Jour d'échéance",
   'form.account.field.paymentPriority': "Appliquer d'abord à",
   'form.account.field.paymentPriorityAria': 'Priorité du paiement',
-  'form.account.field.minimumPayment': 'Paiement minimum',
   'form.account.priorityHint': "Glissez ou utilisez les flèches pour définir l'ordre d'application d'un paiement.",
   'form.account.priorityMoveUp': 'Monter la priorité',
   'form.account.priorityMoveDown': 'Descendre la priorité',
@@ -1937,4 +1936,13 @@ export default {
   'accounts.selected.balance': 'Solde',
   'accounts.selected.detail': 'Voir le relevé et le détail',
   'accounts.selected.payment': 'Enregistrer un paiement',
+  'form.account.field.monthlyFee': 'Cotisation mensuelle',
+  'form.account.preview.title': 'Comment un paiement serait appliqué',
+  'form.account.preview.hintEdit': "Avec les achats en attente de cette carte et l'ordre ci-dessus.",
+  'form.account.preview.hintCreate':
+    "Quand la carte aura des achats, vous verrez ici la répartition d'un paiement d'exemple.",
+  'form.account.preview.amount': "Paiement d'essai",
+  'form.account.preview.order': 'Le paiement couvre dans cet ordre : {order}…',
+  'workspace.statement.monthlyFee': 'Cotisation',
+  'planning.sim.flow.cardFee': 'Cotisation · {name}',
 } as const;

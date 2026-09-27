@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
-import { IconComponent } from '@ui/icon';
+import { IconComponent } from '@ui/icon/icon';
 
 const UMBRAL_DE_ARRASTRE = 4;
 

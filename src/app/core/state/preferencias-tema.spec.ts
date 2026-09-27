@@ -1,8 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '@core/api';
-import { P, RUNTIME_CONFIG } from '@core/session';
+import { FinanceApiClient } from '@core/api/api-client';
+import { P } from '@core/session/permissions';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { AppStore } from './store';
 
 describe('persistPreferences', () => {

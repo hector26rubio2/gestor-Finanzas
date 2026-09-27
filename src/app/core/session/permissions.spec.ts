@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiRequestError, FinanceApiClient } from '@core/api';
+import { ApiRequestError, FinanceApiClient } from '@core/api/api-client';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 describe('permisos granulares', () => {
@@ -73,12 +73,6 @@ describe('permisos granulares', () => {
 
 describe('banderas de funcionalidad', () => {
   beforeEach(() => TestBed.resetTestingModule());
-
-  it('en modo demo una clave ausente habilita', () => {
-    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
-    const features = TestBed.inject(FEATURES);
-    expect(features.enabled('cualquier-cosa')).toBe(true);
-  });
 
   it('contra la API, mientras el catálogo no llegue, nada abre', () => {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };

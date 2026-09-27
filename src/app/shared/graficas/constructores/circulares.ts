@@ -1,8 +1,8 @@
 import type { ChartOption } from '@ui/chart';
-import { agregar, jerarquia } from '../datos';
-import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '../entorno';
-import { colores, conAlfa, herramientas, leyenda } from '../estilo';
-import type { Nodo } from '../modelo';
+import { agregar, jerarquia } from '@shared/graficas/datos';
+import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
+import { colores, conAlfa, herramientas, leyenda } from '@shared/graficas/estilo';
+import type { Nodo } from '@shared/graficas/modelo';
 
 export function torta(pedido: Pedido): ChartOption {
   const { config, movs, entorno } = pedido;

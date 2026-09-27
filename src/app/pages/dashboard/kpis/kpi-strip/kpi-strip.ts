@@ -13,11 +13,11 @@ import {
 import { I18nService } from '@core/i18n';
 import { IconComponent, IconName } from '@ui/icon';
 import { KpiComponent } from '@ui/kpi';
-import { FlowItem, KPI_MIN_COLS } from '../../layout/dashboard-layout';
-import { FlowResize } from '../../layout/dashboard-layout.service';
-import { FlowItemComponent } from '../../layout/flow-item/flow-item';
-import { KpiRanges, KpiStatus } from '../kpi-ranges';
-import { KpiRangesEditorComponent } from '../kpi-ranges-editor/kpi-ranges-editor';
+import { FlowItem, KPI_MIN_COLS } from '@pages/dashboard/layout/dashboard-layout';
+import { FlowResize } from '@pages/dashboard/layout/dashboard-layout.service';
+import { FlowItemComponent } from '@pages/dashboard/layout/flow-item/flow-item';
+import { KpiRanges, KpiStatus } from '@pages/dashboard/kpis/kpi-ranges';
+import { KpiRangesEditorComponent } from '@pages/dashboard/kpis/kpi-ranges-editor/kpi-ranges-editor';
 
 export interface KpiCardConfig {
   key?: string;

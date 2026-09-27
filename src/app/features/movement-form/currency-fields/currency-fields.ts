@@ -3,9 +3,9 @@ import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject, 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
-import { TrmApi } from '@core/api';
-import { NumericInputDirective } from '@ui/numeric-input';
-import { FieldComponent } from '@ui/field';
+import { TrmApi } from '@core/api/trm.api';
+import { NumericInputDirective } from '@ui/numeric-input/numeric-input.directive';
+import { FieldComponent } from '@ui/field/field';
 
 /**
  * Solo aparece cuando la cuenta elegida está denominada en dólares — la moneda ya

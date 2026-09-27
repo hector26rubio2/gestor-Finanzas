@@ -1,4 +1,4 @@
-import { Account } from '@core/state';
+import { Account } from '@core/state/view-model';
 
 export type CounterpartyScope = 'person' | 'institution' | 'any';
 

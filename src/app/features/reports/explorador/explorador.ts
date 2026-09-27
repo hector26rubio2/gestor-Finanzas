@@ -4,8 +4,15 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state';
-import { DashboardLayoutService, VistaDeReporte } from '@pages/dashboard';
-import { crearEntorno, granularidadParaRango, EditorDeVistaComponent, VistaEditable, OpcionesDeGraficas, construirVisual } from '@shared/graficas';
+import { DashboardLayoutService, VistaDeReporte } from '@pages/dashboard/layout/dashboard-layout.service';
+import {
+  crearEntorno,
+  granularidadParaRango,
+  EditorDeVistaComponent,
+  VistaEditable,
+  OpcionesDeGraficas,
+  construirVisual,
+} from '@shared/graficas';
 import { crearMovimientosDelPeriodo } from '@shared/historia';
 import { ChartComponent, ChartThemeService } from '@ui/chart';
 import { DateFieldComponent } from '@ui/date-field';

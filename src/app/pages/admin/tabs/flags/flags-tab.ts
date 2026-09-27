@@ -11,9 +11,9 @@ import { PagerComponent } from '@ui/pager';
 import { SearchFieldComponent } from '@ui/search-field';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 
 @Component({
   selector: 'app-admin-flags-tab',
@@ -133,7 +133,6 @@ import { AdminPanelComponent } from '../../panel/admin-panel';
         (pageChange)="pagina.set($event)"
       />
     </app-admin-panel>
-  
   `,
 })
 export class FlagsTabComponent {
