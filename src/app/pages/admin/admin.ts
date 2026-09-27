@@ -5,6 +5,7 @@ import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { ADMIN_TABS, ADMIN_TAB_IDS } from './admin-tabs';
 import { AdminStore } from './admin.store';
+import { ADMIN_STORE_PROVIDERS } from './admin.providers';
 import { AdminSaveBarComponent } from './save-bar/admin-save-bar';
 import { AuditTabComponent } from './tabs/audit/audit-tab';
 import { ErrorsTabComponent } from './tabs/errors/errors-tab';
@@ -27,7 +28,7 @@ import { UsersTabComponent } from './tabs/users/users-tab';
     SummaryTabComponent,
     UsersTabComponent,
   ],
-  providers: [AdminStore],
+  providers: [ADMIN_STORE_PROVIDERS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex w-full min-w-0 flex-col gap-4" data-page="admin">

@@ -62,15 +62,15 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(componente.puedePersonalizar()).toBe(true);
 
     const antes = componente.widgets().map((w) => w.id);
-    componente.move(antes[1], -1);
+    componente.edicion.move(antes[1], -1);
     expect(componente.widgets().map((w) => w.id)[0]).toBe(antes[1]);
 
     const tipoPrevio = componente.widgets()[0].type;
-    componente.changeType(componente.widgets()[0].id, 'heatmap');
+    componente.edicion.changeType(componente.widgets()[0].id, 'heatmap');
     expect(componente.widgets()[0].type).toBe(tipoPrevio);
 
     const cuantos = componente.widgets().length;
-    componente.hide(componente.widgets()[0].id);
+    componente.edicion.hide(componente.widgets()[0].id);
     expect(componente.widgets()).toHaveLength(cuantos);
   });
 
@@ -108,8 +108,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
     const cuantos = componente.widgets().length;
 
-    componente.newWidgetTitle = 'Mi análisis';
-    componente.createWidget(new Event('submit'));
+    componente.agregarWidget({ id: 'propio', title: 'Mi análisis', kicker: '', type: 'bar', wide: true });
     expect(componente.widgets()).toHaveLength(cuantos);
   });
 
@@ -125,9 +124,9 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     const compromisos = componente.widgets().find((w) => w.id === 'commitments')!;
     const { dimension, measure } = compromisos;
 
-    componente.changeDimension(compromisos.id, 'category');
-    componente.changeMeasure(compromisos.id, 'income');
-    componente.changeGoal(compromisos.id, 'goalTarget', '999');
+    componente.edicion.changeDimension(compromisos.id, 'category');
+    componente.edicion.changeMeasure(compromisos.id, 'income');
+    componente.edicion.changeGoal(compromisos.id, 'goalTarget', '999');
 
     const actual = componente.widgets().find((w) => w.id === 'commitments')!;
     expect(actual.dimension).toBe(dimension);
@@ -138,7 +137,7 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
   it('con widget.tipo.editar sí cambian', () => {
     preparar([P.dashboard.ver, P.dashboard.widget.tipo.editar, ...VER_WIDGETS]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
-    componente.changeDimension('commitments', 'category');
+    componente.edicion.changeDimension('commitments', 'category');
     expect(componente.widgets().find((w) => w.id === 'commitments')!.dimension).toBe('category');
   });
 

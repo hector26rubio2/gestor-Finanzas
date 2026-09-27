@@ -23,6 +23,8 @@ import { OptionRowComponent } from '@ui/option-row';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
 
 @Component({
   selector: 'app-organization-sheet',
@@ -146,10 +148,10 @@ import { AdminStore } from '@pages/admin/admin.store';
               <fin-option-row
                 [label]="labels.feature(flag.key)"
                 [description]="flag.key + ' · ' + i18n.t('admin.organizations.flags.source.' + flag.source)"
-                [checked]="store.flagValue(flag.key, org.id, null)"
-                [changed]="store.flagChanged(flag.key, org.id, null)"
+                [checked]="banderas.flagValue(flag.key, org.id, null)"
+                [changed]="banderas.flagChanged(flag.key, org.id, null)"
                 [disabled]="!caps.allows(P.administracion.banderas.editar)"
-                (toggled)="store.setFlag(flag.key, org.id, null, $event)"
+                (toggled)="banderas.setFlag(flag.key, org.id, null, $event)"
               />
             }
           </section>
@@ -160,6 +162,8 @@ import { AdminStore } from '@pages/admin/admin.store';
 })
 export class OrganizationSheetComponent {
   readonly store = inject(AdminStore);
+  private readonly comandos = inject(AdminCommands);
+  readonly banderas = inject(AdminFlagsStore);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
   readonly caps = inject(CAPABILITIES);
@@ -189,7 +193,7 @@ export class OrganizationSheetComponent {
   });
   readonly flags = computed(() => {
     const org = this.organization();
-    return org ? (this.store.organizationFlagsOf(org.id) ?? []) : [];
+    return org ? (this.banderas.organizationFlagsOf(org.id) ?? []) : [];
   });
   readonly nameChanged = computed(
     () => !!this.name().trim() && this.name().trim() !== (this.organization()?.name ?? ''),
@@ -205,7 +209,7 @@ export class OrganizationSheetComponent {
         if (!org) return;
         void this.store.cargarMiembros(org.id);
         void this.store.cargarRolesDe(org.id);
-        void this.store.cargarBanderasDe(org.id);
+        void this.banderas.cargarBanderasDe(org.id);
       });
     });
   }
@@ -237,7 +241,7 @@ export class OrganizationSheetComponent {
   async rename(org: ApiAdminOrganization): Promise<void> {
     this.renaming.set(true);
     try {
-      await this.store.renombrarOrganizacion(org.id, this.name().trim());
+      await this.comandos.renombrarOrganizacion(org.id, this.name().trim());
     } catch (error) {
       const reason = error instanceof Error ? error.message : '';
       this.app.toast.set(

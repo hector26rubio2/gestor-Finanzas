@@ -1,4 +1,4 @@
-import { NgTemplateOutlet } from '@angular/common';
+import { NgOptimizedImage, NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -87,6 +87,7 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
   imports: [
     CommandPaletteComponent,
     NgTemplateOutlet,
+    NgOptimizedImage,
     HlmAvatar,
     HlmAvatarFallback,
     HlmAvatarImage,

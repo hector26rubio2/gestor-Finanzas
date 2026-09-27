@@ -12,6 +12,7 @@ import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 
 @Component({
@@ -79,12 +80,12 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
                 <td hlmTd class="px-4">
                   <span class="flex items-center gap-2">
                     <hlm-switch
-                      [checked]="store.flagValue(row.key, null, null)"
+                      [checked]="banderas.flagValue(row.key, null, null)"
                       [disabled]="!canEdit()"
                       [aria-label]="row.key + ' · ' + i18n.t('admin.flags.audience.global')"
-                      (checkedChange)="store.setFlag(row.key, null, null, $event)"
+                      (checkedChange)="banderas.setFlag(row.key, null, null, $event)"
                     />
-                    @if (store.flagChanged(row.key, null, null)) {
+                    @if (banderas.flagChanged(row.key, null, null)) {
                       <span hlmBadge variant="secondary">{{ i18n.t('admin.common.unsaved') }}</span>
                     }
                   </span>
@@ -93,20 +94,20 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
                   @if (organizationId()) {
                     <span class="flex items-center gap-2">
                       <hlm-switch
-                        [checked]="store.flagValue(row.key, organizationId(), null)"
-                        [disabled]="!canEdit() || !store.globalFlagValue(row.key)"
+                        [checked]="banderas.flagValue(row.key, organizationId(), null)"
+                        [disabled]="!canEdit() || !banderas.globalFlagValue(row.key)"
                         [aria-label]="row.key + ' · ' + organizationName()"
-                        (checkedChange)="store.setFlag(row.key, organizationId(), null, $event)"
+                        (checkedChange)="banderas.setFlag(row.key, organizationId(), null, $event)"
                       />
                       <span class="text-xs text-muted-foreground">
-                        @if (!store.globalFlagValue(row.key)) {
+                        @if (!banderas.globalFlagValue(row.key)) {
                           <fin-icon name="warning" class="[--icon-size:13px]" />
                           {{ i18n.t('admin.flags.blockedByGlobal') }}
                         } @else {
                           {{ sourceLabel(row.key) }}
                         }
                       </span>
-                      @if (store.flagChanged(row.key, organizationId(), null)) {
+                      @if (banderas.flagChanged(row.key, organizationId(), null)) {
                         <span hlmBadge variant="secondary">{{ i18n.t('admin.common.unsaved') }}</span>
                       }
                     </span>
@@ -135,6 +136,7 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 })
 export class FlagsTabComponent {
   readonly store = inject(AdminStore);
+  readonly banderas = inject(AdminFlagsStore);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
   private readonly caps = inject(CAPABILITIES);
@@ -153,7 +155,7 @@ export class FlagsTabComponent {
 
   readonly rows = computed(() => {
     const term = this.search().trim().toLowerCase();
-    return this.store
+    return this.banderas
       .platformFlags()
       .filter((flag) => !term || `${flag.key} ${this.labels.feature(flag.key)}`.toLowerCase().includes(term));
   });
@@ -172,12 +174,12 @@ export class FlagsTabComponent {
   constructor() {
     effect(() => {
       const id = this.organizationId();
-      if (id) untracked(() => void this.store.cargarBanderasDe(id));
+      if (id) untracked(() => void this.banderas.cargarBanderasDe(id));
     });
   }
 
   sourceLabel(key: string): string {
-    const source = this.store.organizationFlagsOf(this.organizationId())?.find((flag) => flag.key === key)?.source;
+    const source = this.banderas.organizationFlagsOf(this.organizationId())?.find((flag) => flag.key === key)?.source;
     return source ? this.i18n.t(`admin.organizations.flags.source.${source}`) : '';
   }
 }

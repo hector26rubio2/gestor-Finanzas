@@ -2,33 +2,26 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import {
   AdministrationApi,
-  ApiAdminFeatureFlag,
-  ApiBugReportResult,
   ApiAdminOrganization,
-  ApiAdminOrganizationFlag,
   ApiAdminRole,
   ApiAdminUser,
-  ApiAuditEvent,
-  ApiAuditFilter,
-  ApiClientError,
   ApiOrganizationMember,
-  ApiPermissionDescriptor,
   ApiPage,
 } from '@core/api';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
 import { P, RemoteBootstrap } from '@core/session';
-import { AdminChange, affectsAccess, changeKey, changeWave, sameIds } from './admin-changes';
+import { AdminChange, sameIds } from './admin-changes';
+import { describeAdminChange } from './admin-change-description';
+import { AdminAuditStore } from './stores/admin-audit.store';
+import { AdminErrorsStore } from './stores/admin-errors.store';
+import { AdminPermissionsStore } from './stores/admin-permissions.store';
+import { AdminDrafts, SaveFailure } from './stores/admin-drafts';
+import { AdminFlagsStore } from './stores/admin-flags.store';
 
 export type AdminTab = 'summary' | 'users' | 'roles' | 'organizations' | 'flags' | 'audit' | 'errors';
 
-export interface SaveFailure {
-  key: string;
-  label: string;
-  reason: string;
-}
-
-const serverStatus = (status: string): string => (status === 'new' ? 'open' : status);
+export type { SaveFailure };
 
 const EMPTY_PAGE = { items: [], page: 1, size: 0, total: 0, totalPages: 0, hasNext: false } as const;
 
@@ -39,6 +32,11 @@ export class AdminStore {
   private readonly app = inject(AppStore);
   private readonly caps = inject(CAPABILITIES);
   private readonly i18n = inject(I18nService);
+  private readonly auditoria = inject(AdminAuditStore);
+  private readonly errores = inject(AdminErrorsStore);
+  private readonly permisos = inject(AdminPermissionsStore);
+  private readonly drafts = inject(AdminDrafts);
+  private readonly banderas = inject(AdminFlagsStore);
 
   readonly tab = signal<AdminTab>('summary');
   private readonly directory = signal<Readonly<Record<string, ApiAdminUser>>>({});
@@ -54,41 +52,17 @@ export class AdminStore {
   readonly rolesOrganizationFilter = signal('');
   private readonly rolesByOrganization = signal<Readonly<Record<string, readonly ApiAdminRole[]>>>({});
   readonly organizations = signal<readonly ApiAdminOrganization[]>([]);
-  readonly flags = signal<readonly ApiAdminFeatureFlag[]>([]);
-  readonly permissionCatalog = signal<readonly ApiPermissionDescriptor[]>([]);
-  readonly audit = signal<readonly ApiAuditEvent[]>([]);
-  readonly auditPage = signal(1);
-  readonly auditTotal = signal(0);
-  readonly auditSize = signal(25);
-  readonly auditFilter = signal<ApiAuditFilter>({});
-  readonly erroresDeLaAccion = signal<readonly ApiClientError[]>([]);
-  readonly errors = signal<readonly ApiClientError[]>([]);
-  readonly errorsPage = signal(1);
-  readonly errorsTotal = signal(0);
-  readonly errorsSize = signal(25);
-  readonly errorsStatus = signal('');
   private readonly membersByOrganization = signal<Readonly<Record<string, readonly ApiOrganizationMember[]>>>({});
-  private readonly flagsByOrganization = signal<Readonly<Record<string, readonly ApiAdminOrganizationFlag[]>>>({});
 
   readonly loading = signal(false);
   readonly loadFailed = signal(false);
 
-  private readonly pending = signal<ReadonlyMap<string, AdminChange>>(new Map());
-  readonly changes = computed(() => [...this.pending().values()]);
-  readonly count = computed(() => this.pending().size);
-  readonly dirty = computed(() => this.pending().size > 0);
-  readonly saving = signal(false);
-  readonly failures = signal<readonly SaveFailure[]>([]);
+  readonly changes = this.drafts.changes;
+  readonly count = this.drafts.count;
+  readonly dirty = this.drafts.dirty;
+  readonly failures = this.drafts.failures;
+  readonly saving = this.drafts.saving;
 
-  readonly permissionGroups = computed(() => {
-    const groups = new Map<string, ApiPermissionDescriptor[]>();
-    for (const permiso of this.permissionCatalog()) {
-      const items = groups.get(permiso.resource) ?? [];
-      items.push(permiso);
-      groups.set(permiso.resource, items);
-    }
-    return [...groups.entries()].map(([name, items]) => ({ name, items }));
-  });
   readonly organizationOptions = computed(() =>
     this.organizations().map((org) => ({
       value: org.id,
@@ -97,12 +71,6 @@ export class AdminStore {
         : org.name,
     })),
   );
-  readonly platformFlags = computed(() => {
-    const rows = new Map<string, ApiAdminFeatureFlag>();
-    for (const flag of this.flags()) if (!flag.organizationId && !flag.userId) rows.set(flag.key, flag);
-    return [...rows.values()].sort((a, b) => a.key.localeCompare(b.key));
-  });
-
   async cargar(): Promise<void> {
     if (!this.caps.allows(P.administracion.ver)) return;
     this.loading.set(true);
@@ -119,25 +87,19 @@ export class AdminStore {
       puede(P.administracion.organizaciones.listar)
         ? firstValueFrom(this.api.adminOrganizations(1, 100))
         : vacio<ApiAdminOrganization>(),
-      puede(P.administracion.auditoria.listar)
-        ? firstValueFrom(this.api.superAdminAudit(1, this.auditSize(), this.auditFilter()))
-        : vacio<ApiAuditEvent>(),
-      puede(P.administracion.errores.listar)
-        ? firstValueFrom(this.api.adminErrors(1, this.errorsSize(), serverStatus(this.errorsStatus())))
-        : vacio<ApiClientError>(),
-      puede(P.administracion.banderas.listar) ? firstValueFrom(this.api.adminFeatureFlags()) : Promise.resolve([]),
-      puede(P.administracion.capacidades.listar)
-        ? firstValueFrom(this.api.superAdminPermissions())
-        : Promise.resolve([]),
+      puede(P.administracion.auditoria.listar) ? this.auditoria.primeraPagina() : vacio<never>(),
+      puede(P.administracion.errores.listar) ? this.errores.primeraPagina() : vacio<never>(),
+      puede(P.administracion.banderas.listar) ? this.banderas.cargarGlobales() : Promise.resolve([]),
+      puede(P.administracion.capacidades.listar) ? this.permisos.cargarCatalogo() : Promise.resolve([]),
     ]);
     const [u, r, o, a, e, f, p] = resultados;
     if (u.status === 'fulfilled') this.aplicarUsuarios(u.value);
     if (r.status === 'fulfilled') this.aplicarRoles(r.value);
     if (o.status === 'fulfilled') this.organizations.set(o.value.items);
-    if (a.status === 'fulfilled') this.aplicarAuditoria(a.value);
-    if (e.status === 'fulfilled') this.aplicarErrores(e.value);
-    if (f.status === 'fulfilled') this.flags.set(f.value);
-    if (p.status === 'fulfilled') this.permissionCatalog.set(p.value);
+    if (a.status === 'fulfilled') this.auditoria.aplicar(a.value);
+    if (e.status === 'fulfilled') this.errores.aplicar(e.value);
+    if (f.status === 'fulfilled') this.banderas.flags.set(f.value);
+    if (p.status === 'fulfilled') this.permisos.catalog.set(p.value);
     this.loadFailed.set(resultados.some((x) => x.status === 'rejected'));
     if (this.loadFailed()) this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
     this.loading.set(false);
@@ -161,28 +123,6 @@ export class AdminStore {
     this.rolesTotal.set(page.total);
   }
 
-  private aplicarAuditoria(page: ApiPage<ApiAuditEvent>): void {
-    this.audit.set(page.items);
-    this.auditPage.set(page.page);
-    this.auditTotal.set(page.total);
-  }
-
-  private aplicarErrores(page: ApiPage<ApiClientError>): void {
-    this.errors.set(
-      page.items.map((error) => ({
-        ...error,
-        status: ((error.status as string) === 'open' ? 'new' : error.status) as ApiClientError['status'],
-        occurrences: error.occurrences ?? 1,
-        affectedUsers: error.affectedUsers ?? 1,
-        version: error.version ?? error.source,
-        traceId: error.traceId ?? null,
-        lastSeenAt: error.lastSeenAt ?? error.createdAt ?? new Date().toISOString(),
-      })),
-    );
-    this.errorsPage.set(page.page);
-    this.errorsTotal.set(page.total);
-  }
-
   async cargarUsuarios(page = this.usersPage(), search = this.userSearch()): Promise<void> {
     if (!this.caps.allows(P.administracion.usuarios.listar)) return;
     try {
@@ -203,36 +143,9 @@ export class AdminStore {
     }
   }
 
-  async cargarAuditoria(page: number, filter: ApiAuditFilter = this.auditFilter()): Promise<void> {
-    if (!this.caps.allows(P.administracion.auditoria.listar)) return;
-    try {
-      this.auditFilter.set(filter);
-      const [auditoria, errores] = await Promise.all([
-        firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)),
-        filter.traceId && this.caps.allows(P.administracion.errores.listar)
-          ? firstValueFrom(this.api.adminErrors(1, 50, '', filter.traceId)).then((pagina) => pagina.items)
-          : Promise.resolve([] as readonly ApiClientError[]),
-      ]);
-      this.aplicarAuditoria(auditoria);
-      this.erroresDeLaAccion.set(errores);
-    } catch {
-      this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
-    }
-  }
-
   verAccion(traceId: string): void {
     this.tab.set('audit');
-    void this.cargarAuditoria(1, { traceId });
-  }
-
-  async cargarErrores(page: number, status = this.errorsStatus()): Promise<void> {
-    if (!this.caps.allows(P.administracion.errores.listar)) return;
-    try {
-      this.errorsStatus.set(status);
-      this.aplicarErrores(await firstValueFrom(this.api.adminErrors(page, this.errorsSize(), serverStatus(status))));
-    } catch {
-      this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
-    }
+    void this.auditoria.cargar(1, { traceId });
   }
 
   rolesOf(organizationId: string | undefined): readonly ApiAdminRole[] {
@@ -277,25 +190,6 @@ export class AdminStore {
     }
   }
 
-  organizationFlagsOf(organizationId: string): readonly ApiAdminOrganizationFlag[] | undefined {
-    return this.flagsByOrganization()[organizationId];
-  }
-
-  async cargarBanderasDe(organizationId: string): Promise<void> {
-    if (!this.caps.allows(P.administracion.banderas.listar)) return;
-    try {
-      const flags = await firstValueFrom(this.api.adminOrganizationFlags(organizationId));
-      this.flagsByOrganization.update((x) => ({ ...x, [organizationId]: flags }));
-    } catch {
-      this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
-    }
-  }
-
-  private draft<K extends AdminChange['kind']>(kind: K, key: string): Extract<AdminChange, { kind: K }> | undefined {
-    const change = this.pending().get(key);
-    return change?.kind === kind ? (change as Extract<AdminChange, { kind: K }>) : undefined;
-  }
-
   userOrganizationId(user: ApiAdminUser): string | undefined {
     return (
       user.memberships?.find((m) => m.status === 'Active')?.organizationId ?? user.memberships?.[0]?.organizationId
@@ -304,12 +198,13 @@ export class AdminStore {
 
   targetOrganizationId(user: ApiAdminUser): string | undefined {
     return (
-      this.draft('userOrganization', `userOrganization:${user.id}`)?.organizationId ?? this.userOrganizationId(user)
+      this.drafts.draft('userOrganization', `userOrganization:${user.id}`)?.organizationId ??
+      this.userOrganizationId(user)
     );
   }
 
   hasPendingMove(user: ApiAdminUser): boolean {
-    return this.pending().has(`userOrganization:${user.id}`);
+    return this.drafts.has(`userOrganization:${user.id}`);
   }
 
   userHasChanges(user: ApiAdminUser): boolean {
@@ -317,14 +212,14 @@ export class AdminStore {
   }
 
   isUserActive(user: ApiAdminUser): boolean {
-    return this.draft('userActive', `userActive:${user.id}`)?.value ?? user.isActive;
+    return this.drafts.draft('userActive', `userActive:${user.id}`)?.value ?? user.isActive;
   }
 
   userRoleIds(user: ApiAdminUser): readonly string[] {
     const organizationId = this.userOrganizationId(user);
     if (!organizationId) return [];
     return (
-      this.draft('userRoles', `userRoles:${user.id}:${organizationId}`)?.roleIds ??
+      this.drafts.draft('userRoles', `userRoles:${user.id}:${organizationId}`)?.roleIds ??
       this.membership(user, organizationId)?.roles.map((role) => role.id) ??
       []
     );
@@ -337,7 +232,7 @@ export class AdminStore {
   effectivePermissions(user: ApiAdminUser): readonly string[] {
     const organizationId = this.userOrganizationId(user);
     if (!organizationId) return [];
-    const draft = this.draft('userRoles', `userRoles:${user.id}:${organizationId}`);
+    const draft = this.drafts.draft('userRoles', `userRoles:${user.id}:${organizationId}`);
     if (draft) {
       const chosen = new Set(draft.roleIds);
       const known = new Map<string, ApiAdminRole>();
@@ -360,62 +255,20 @@ export class AdminStore {
   }
 
   isRoleActive(role: ApiAdminRole): boolean {
-    return this.draft('roleActive', `roleActive:${role.id}`)?.value ?? role.isActive;
+    return this.drafts.draft('roleActive', `roleActive:${role.id}`)?.value ?? role.isActive;
   }
 
   isOrganizationActive(org: ApiAdminOrganization): boolean {
-    return this.draft('organizationActive', `organizationActive:${org.id}`)?.value ?? org.isActive;
+    return this.drafts.draft('organizationActive', `organizationActive:${org.id}`)?.value ?? org.isActive;
   }
 
   isDefaultOrganization(org: ApiAdminOrganization): boolean {
-    const draft = this.draft('organizationDefault', 'organizationDefault');
+    const draft = this.drafts.draft('organizationDefault', 'organizationDefault');
     return draft ? draft.organizationId === org.id : org.isDefault;
   }
 
-  flagValue(key: string, organizationId: string | null, userId: string | null): boolean {
-    const draft = this.draft('flag', `flag:${key}:${organizationId ?? '-'}:${userId ?? '-'}`);
-    if (organizationId && !userId)
-      return this.globalFlagValue(key) && (draft?.value ?? this.flagBase(key, organizationId, null));
-    if (draft) return draft.value;
-    return this.flagBase(key, organizationId, userId);
-  }
-
-  globalFlagValue(key: string): boolean {
-    return this.draft('flag', `flag:${key}:-:-`)?.value ?? this.flagBase(key, null, null);
-  }
-
-  private flagBase(key: string, organizationId: string | null, userId: string | null): boolean {
-    if (organizationId && !userId) {
-      const efectiva = this.flagsByOrganization()[organizationId]?.find((flag) => flag.key === key);
-      if (efectiva) return efectiva.organizationValue ?? true;
-    }
-    const candidatas = this.flags().filter((flag) => flag.key === key);
-    const propia = userId
-      ? candidatas.find((f) => f.userId === userId && f.organizationId === organizationId)
-      : undefined;
-    const deOrganizacion = organizationId
-      ? candidatas.find((f) => !f.userId && f.organizationId === organizationId)
-      : undefined;
-    const global = candidatas.find((f) => !f.userId && !f.organizationId);
-    return (propia ?? deOrganizacion ?? global)?.isEnabled ?? false;
-  }
-
-  flagChanged(key: string, organizationId: string | null, userId: string | null): boolean {
-    return this.pending().has(`flag:${key}:${organizationId ?? '-'}:${userId ?? '-'}`);
-  }
-
-  private put(change: AdminChange, equalsBase: boolean): void {
-    this.pending.update((map) => {
-      const next = new Map(map);
-      if (equalsBase) next.delete(changeKey(change));
-      else next.set(changeKey(change), change);
-      return next;
-    });
-    this.failures.set(this.failures().filter((f) => f.key !== changeKey(change)));
-  }
-
   setUserActive(user: ApiAdminUser, value: boolean): void {
-    this.put({ kind: 'userActive', userId: user.id, value }, value === user.isActive);
+    this.drafts.put({ kind: 'userActive', userId: user.id, value }, value === user.isActive);
   }
 
   setUserRole(user: ApiAdminUser, roleId: string): void {
@@ -423,224 +276,73 @@ export class AdminStore {
     if (!organizationId || this.hasPendingMove(user)) return;
     const roleIds = [roleId];
     const base = this.membership(user, organizationId)?.roles.map((role) => role.id) ?? [];
-    this.put({ kind: 'userRoles', userId: user.id, organizationId, roleIds }, sameIds(roleIds, base));
+    this.drafts.put({ kind: 'userRoles', userId: user.id, organizationId, roleIds }, sameIds(roleIds, base));
   }
 
   setUserOrganization(user: ApiAdminUser, organizationId: string): void {
     const actual = this.userOrganizationId(user);
     if (organizationId === actual) {
-      this.put({ kind: 'userOrganization', userId: user.id, organizationId }, true);
+      this.drafts.put({ kind: 'userOrganization', userId: user.id, organizationId }, true);
       return;
     }
-    this.pending.update((map) => {
-      const next = new Map(map);
-      for (const [key, change] of map) {
-        const deLaPersona = change.kind === 'userRoles' && change.userId === user.id;
-        const bandera = change.kind === 'flag' && change.userId === user.id;
-        if (deLaPersona || bandera) next.delete(key);
-      }
-      return next;
-    });
-    this.put({ kind: 'userOrganization', userId: user.id, organizationId }, false);
+    this.drafts.quitarDonde(
+      (change) => (change.kind === 'userRoles' || change.kind === 'flag') && change.userId === user.id,
+    );
+    this.drafts.put({ kind: 'userOrganization', userId: user.id, organizationId }, false);
   }
 
   setRoleActive(role: ApiAdminRole, value: boolean): void {
-    this.put({ kind: 'roleActive', roleId: role.id, value }, value === role.isActive);
-  }
-
-  setFlag(key: string, organizationId: string | null, userId: string | null, value: boolean): void {
-    this.put(
-      { kind: 'flag', key, organizationId, userId, value },
-      value === this.flagBase(key, organizationId, userId),
-    );
+    this.drafts.put({ kind: 'roleActive', roleId: role.id, value }, value === role.isActive);
   }
 
   setOrganizationActive(org: ApiAdminOrganization, value: boolean): void {
-    this.put({ kind: 'organizationActive', organizationId: org.id, value }, value === org.isActive);
+    this.drafts.put({ kind: 'organizationActive', organizationId: org.id, value }, value === org.isActive);
   }
 
   setDefaultOrganization(org: ApiAdminOrganization): void {
-    this.put({ kind: 'organizationDefault', organizationId: org.id }, org.isDefault);
+    this.drafts.put({ kind: 'organizationDefault', organizationId: org.id }, org.isDefault);
   }
 
   descartar(): void {
-    this.pending.set(new Map());
-    this.failures.set([]);
+    this.drafts.descartar();
   }
 
-  async guardar(): Promise<void> {
-    if (this.saving() || !this.dirty()) return;
-    this.saving.set(true);
-    this.failures.set([]);
-    const pendientes = this.changes();
-    const fallos: SaveFailure[] = [];
-    const aplicados: AdminChange[] = [];
+  marcarUsuarioActivo(userId: string, value: boolean): void {
+    this.users.update((xs) => xs.map((u) => (u.id === userId ? { ...u, isActive: value } : u)));
+  }
 
-    for (const ola of [1, 2, 3, 4] as const) {
-      const deLaOla = pendientes.filter((c) => changeWave(c) === ola);
-      const resultados = await Promise.allSettled(deLaOla.map((c) => this.ejecutar(c)));
-      resultados.forEach((resultado, i) => {
-        const cambio = deLaOla[i];
-        if (resultado.status === 'fulfilled') {
-          aplicados.push(cambio);
-          return;
-        }
-        const reason = resultado.reason instanceof Error ? resultado.reason.message : '';
-        fallos.push({ key: changeKey(cambio), label: this.describe(cambio), reason });
-      });
-    }
+  olvidarMiembros(): void {
+    this.membersByOrganization.set({});
+  }
 
-    this.pending.update((map) => {
-      const next = new Map(map);
-      for (const c of aplicados) next.delete(changeKey(c));
-      return next;
-    });
-    this.failures.set(fallos);
+  fijarPredeterminada(org: ApiAdminOrganization): void {
+    this.organizations.update((xs) => xs.map((x) => (x.id === org.id ? org : { ...x, isDefault: false })));
+  }
 
-    if (aplicados.length) {
-      if (aplicados.some(affectsAccess)) await this.cargarUsuarios();
-      await this.arranque.pollSession();
-    }
-    this.saving.set(false);
-    this.app.toast.set(
-      fallos.length
-        ? this.i18n.t('admin.save.partial', { done: aplicados.length, failed: fallos.length })
-        : this.i18n.t('admin.save.done', { count: aplicados.length }),
+  olvidarOrganizacion(id: string): void {
+    const sin = <T>(known: Readonly<Record<string, T>>) =>
+      Object.fromEntries(Object.entries(known).filter(([clave]) => clave !== id));
+    this.organizations.update((items) => items.filter((item) => item.id !== id));
+    this.rolesByOrganization.update(sin);
+    this.membersByOrganization.update(sin);
+  }
+
+  olvidarRolesPorOrganizacion(): void {
+    this.rolesByOrganization.set({});
+  }
+
+  olvidarCaches(): void {
+    this.membersByOrganization.set({});
+    this.rolesByOrganization.set({});
+  }
+
+  ponerOrganizacion(org: ApiAdminOrganization): void {
+    this.organizations.update((xs) =>
+      xs.some((x) => x.id === org.id) ? xs.map((x) => (x.id === org.id ? org : x)) : [...xs, org],
     );
   }
 
-  private async ejecutar(change: AdminChange): Promise<void> {
-    switch (change.kind) {
-      case 'userActive':
-        await firstValueFrom(this.api.setAdminUserActive(change.userId, change.value));
-        this.users.update((xs) => xs.map((u) => (u.id === change.userId ? { ...u, isActive: change.value } : u)));
-        return;
-      case 'userRoles': {
-        await firstValueFrom(this.api.assignAdminUserRoles(change.userId, change.organizationId, change.roleIds));
-        return;
-      }
-      case 'userOrganization':
-        await firstValueFrom(this.api.addAdminOrganizationMember(change.organizationId, change.userId));
-        this.membersByOrganization.set({});
-        return;
-      case 'roleActive':
-        await firstValueFrom(this.api.setAdminRoleActive(change.roleId, change.value));
-        this.parchearRol(change.roleId, { isActive: change.value });
-        return;
-      case 'flag': {
-        const saved = await firstValueFrom(
-          this.api.updateAdminFeatureFlag(change.key, {
-            organizationId: change.organizationId,
-            userId: change.userId,
-            isEnabled: change.value,
-          }),
-        );
-        this.flags.update((flags) => [
-          ...flags.filter(
-            (f) => !(f.key === change.key && f.organizationId === change.organizationId && f.userId === change.userId),
-          ),
-          saved,
-        ]);
-        if (change.organizationId && !change.userId) this.parchearBanderaDeOrganizacion(change);
-        else if (!change.organizationId && !change.userId) await this.recargarBanderasDeOrganizaciones();
-        return;
-      }
-      case 'organizationActive': {
-        const org = await firstValueFrom(
-          this.api.updateAdminOrganization(change.organizationId, { isActive: change.value }),
-        );
-        this.organizations.update((xs) => xs.map((x) => (x.id === org.id ? org : x)));
-        return;
-      }
-      case 'organizationDefault': {
-        const org = await firstValueFrom(this.api.setDefaultAdminOrganization(change.organizationId));
-        this.organizations.update((xs) => xs.map((x) => (x.id === org.id ? org : { ...x, isDefault: false })));
-        return;
-      }
-    }
-  }
-
-  async guardarDescripcionDePermiso(code: string, descripcion: string): Promise<void> {
-    try {
-      await firstValueFrom(this.api.setPermissionDescription(code, descripcion.trim() || null));
-      this.permissionCatalog.set(await firstValueFrom(this.api.superAdminPermissions()));
-      this.app.toast.set(this.i18n.t('admin.permissions.catalog.saved'));
-    } catch (error) {
-      this.app.toast.set(error instanceof Error ? error.message : this.i18n.t('admin.permissions.catalog.failed'));
-      throw error;
-    }
-  }
-
-  async eliminarOrganizacion(organization: ApiAdminOrganization): Promise<void> {
-    try {
-      await firstValueFrom(this.api.deleteAdminOrganization(organization.id));
-      this.organizations.update((items) => items.filter((item) => item.id !== organization.id));
-      this.rolesByOrganization.update((known) =>
-        Object.fromEntries(Object.entries(known).filter(([id]) => id !== organization.id)),
-      );
-      this.membersByOrganization.update((known) =>
-        Object.fromEntries(Object.entries(known).filter(([id]) => id !== organization.id)),
-      );
-      this.app.toast.set(this.i18n.t('admin.organizations.delete.done', { name: organization.name }));
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : '';
-      this.app.toast.set(
-        reason
-          ? this.i18n.t('admin.organizations.delete.failedReason', { reason })
-          : this.i18n.t('admin.toast.loadFailed'),
-      );
-    }
-  }
-
-  async consolidarOrganizaciones(): Promise<void> {
-    try {
-      const result = await firstValueFrom(this.api.consolidateAdminOrganizations());
-      this.membersByOrganization.set({});
-      this.rolesByOrganization.set({});
-      await this.cargar();
-      await this.arranque.pollSession();
-      this.app.toast.set(
-        this.i18n.t('admin.organizations.consolidate.done', {
-          users: result.movedUsers,
-          organizations: result.deletedOrganizations,
-        }),
-      );
-    } catch (error) {
-      const reason = error instanceof Error ? error.message : '';
-      this.app.toast.set(
-        reason
-          ? this.i18n.t('admin.organizations.consolidate.failedReason', { reason })
-          : this.i18n.t('admin.toast.loadFailed'),
-      );
-    }
-  }
-
-  private async recargarBanderasDeOrganizaciones(): Promise<void> {
-    for (const id of Object.keys(this.flagsByOrganization())) await this.cargarBanderasDe(id);
-  }
-
-  private parchearBanderaDeOrganizacion(change: Extract<AdminChange, { kind: 'flag' }>): void {
-    const id = change.organizationId as string;
-    this.flagsByOrganization.update((todas) => {
-      const actuales = todas[id];
-      if (!actuales) return todas;
-      const previa = actuales.find((f) => f.key === change.key);
-      const globalEnabled = previa?.globalEnabled ?? true;
-      const propia: ApiAdminOrganizationFlag = {
-        key: change.key,
-        isEnabled: change.value && globalEnabled,
-        source: 'organization',
-        organizationValue: change.value,
-        globalEnabled,
-      };
-      return {
-        ...todas,
-        [id]: [...actuales.filter((f) => f.key !== change.key), propia].sort((a, b) => a.key.localeCompare(b.key)),
-      };
-    });
-  }
-
-  private parchearRol(roleId: string, cambios: Partial<ApiAdminRole>): void {
+  parchearRol(roleId: string, cambios: Partial<ApiAdminRole>): void {
     const aplica = (xs: readonly ApiAdminRole[]) => xs.map((r) => (r.id === roleId ? { ...r, ...cambios } : r));
     this.roles.update(aplica);
     this.rolesByOrganization.update((todas) =>
@@ -648,62 +350,21 @@ export class AdminStore {
     );
   }
 
-  async guardarRol(id: string | null, body: Parameters<AdministrationApi['saveAdminRole']>[1]): Promise<ApiAdminRole> {
-    const saved = await firstValueFrom(
-      this.api.saveAdminRole(id, { ...body, permissions: this.permisosDelCatalogo(body.permissions ?? []) }),
-    );
-    this.roles.update((xs) => (id ? xs.map((x) => (x.id === saved.id ? saved : x)) : [...xs, saved]));
-    if (saved.organizationId) {
-      this.rolesByOrganization.update((todas) => {
-        const actuales = todas[saved.organizationId as string];
-        if (!actuales) return todas;
-        const lista = id ? actuales.map((x) => (x.id === saved.id ? saved : x)) : [...actuales, saved];
-        return { ...todas, [saved.organizationId as string]: lista };
-      });
-    }
-    if (id) await this.arranque.pollSession();
-    return saved;
+  ponerRol(saved: ApiAdminRole, esEdicion: boolean): void {
+    this.roles.update((xs) => (esEdicion ? xs.map((x) => (x.id === saved.id ? saved : x)) : [...xs, saved]));
+    if (!saved.organizationId) return;
+    const organizationId = saved.organizationId;
+    this.rolesByOrganization.update((todas) => {
+      const actuales = todas[organizationId];
+      if (!actuales) return todas;
+      const lista = esEdicion ? actuales.map((x) => (x.id === saved.id ? saved : x)) : [...actuales, saved];
+      return { ...todas, [organizationId]: lista };
+    });
   }
 
-  async eliminarRol(role: ApiAdminRole): Promise<void> {
-    await firstValueFrom(this.api.deleteAdminRole(role.id));
-    this.rolesByOrganization.set({});
+  paginaTrasQuitarRol(): number {
     const quedan = this.roles().length - 1;
-    await this.cargarRoles(quedan === 0 && this.rolesPage() > 1 ? this.rolesPage() - 1 : this.rolesPage());
-    await this.cargarUsuarios();
-  }
-
-  async crearOrganizacion(body: { name: string; baseCurrency: string }): Promise<void> {
-    const creada = await firstValueFrom(this.api.createAdminOrganization(body));
-    this.organizations.update((xs) => [...xs, creada]);
-    await this.cargarRoles(1);
-  }
-
-  async renombrarOrganizacion(id: string, name: string): Promise<void> {
-    const org = await firstValueFrom(this.api.updateAdminOrganization(id, { name }));
-    this.organizations.update((xs) => xs.map((x) => (x.id === org.id ? org : x)));
-  }
-
-  async crearIssueDeGithub(error: ApiClientError): Promise<ApiBugReportResult> {
-    const result = await firstValueFrom(this.api.createErrorGithubIssue(error.id));
-    if (result.githubIssueUrl) {
-      this.errors.update((xs) =>
-        xs.map((x) => (x.id === error.id ? { ...x, githubIssueUrl: result.githubIssueUrl ?? undefined } : x)),
-      );
-    }
-    return result;
-  }
-
-  async actualizarError(error: ApiClientError, status: ApiClientError['status']): Promise<void> {
-    await firstValueFrom(this.api.updateAdminError(error.id, status));
-    this.errors.update((xs) => xs.map((x) => (x.id === error.id ? { ...x, status } : x)));
-  }
-
-  private permisosDelCatalogo(permisos: readonly string[]): readonly string[] {
-    const catalogo = this.permissionCatalog();
-    if (!catalogo.length) return permisos;
-    const conocidos = new Set(catalogo.map((permiso) => permiso.code));
-    return permisos.filter((codigo) => conocidos.has(codigo));
+    return quedan === 0 && this.rolesPage() > 1 ? this.rolesPage() - 1 : this.rolesPage();
   }
 
   private organizationName(id: string): string {
@@ -721,41 +382,14 @@ export class AdminStore {
   }
 
   describe(change: AdminChange): string {
-    const t = (key: string, params?: Record<string, string | number>) => this.i18n.t(key, params);
-    const estado = (on: boolean) => t(on ? 'admin.common.enabled' : 'admin.common.disabled');
-    switch (change.kind) {
-      case 'userActive':
-        return t(change.value ? 'admin.changes.userActivate' : 'admin.changes.userDeactivate', {
-          user: this.userName(change.userId),
-        });
-      case 'userRoles':
-        return t('admin.changes.userRoles', {
-          user: this.userName(change.userId),
-          roles: change.roleIds.map((id) => this.roleName(id)).join(', ') || t('admin.users.directAccess'),
-        });
-      case 'userOrganization':
-        return t('admin.changes.userOrganization', {
-          user: this.userName(change.userId),
-          organization: this.organizationName(change.organizationId),
-        });
-      case 'roleActive':
-        return t(change.value ? 'admin.changes.roleActivate' : 'admin.changes.roleDeactivate', {
-          role: this.roleName(change.roleId),
-        });
-      case 'flag': {
-        const alcance = change.userId
-          ? this.userName(change.userId)
-          : change.organizationId
-            ? this.organizationName(change.organizationId)
-            : t('admin.flags.audience.global');
-        return t('admin.changes.flag', { key: change.key, scope: alcance, state: estado(change.value) });
-      }
-      case 'organizationActive':
-        return t(change.value ? 'admin.changes.organizationActivate' : 'admin.changes.organizationDeactivate', {
-          organization: this.organizationName(change.organizationId),
-        });
-      case 'organizationDefault':
-        return t('admin.changes.organizationDefault', { organization: this.organizationName(change.organizationId) });
-    }
+    return describeAdminChange(
+      change,
+      {
+        user: (id) => this.userName(id),
+        role: (id) => this.roleName(id),
+        organization: (id) => this.organizationName(id),
+      },
+      (key, params) => this.i18n.t(key, params),
+    );
   }
 }

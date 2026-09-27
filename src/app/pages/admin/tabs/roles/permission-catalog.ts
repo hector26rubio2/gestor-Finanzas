@@ -10,6 +10,7 @@ import { IconComponent } from '@ui/icon';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 
 @Component({
   selector: 'app-admin-permission-catalog',
@@ -81,6 +82,7 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 })
 export class PermissionCatalogComponent {
   readonly store = inject(AdminStore);
+  readonly permisos = inject(AdminPermissionsStore);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
   readonly puedeEditar = inject(CAPABILITIES).allows(P.administracion.capacidades.editar);
@@ -89,8 +91,8 @@ export class PermissionCatalogComponent {
   readonly guardando = signal<string | null>(null);
   readonly visibles = computed(() => {
     const texto = this.filtro().trim().toLowerCase();
-    return this.store
-      .permissionCatalog()
+    return this.permisos
+      .catalog()
       .filter((permiso) => !texto || `${permiso.code} ${permiso.description}`.toLowerCase().includes(texto));
   });
 
@@ -115,7 +117,7 @@ export class PermissionCatalogComponent {
   private async enviar(code: string, descripcion: string): Promise<void> {
     this.guardando.set(code);
     try {
-      await this.store.guardarDescripcionDePermiso(code, descripcion);
+      await this.permisos.guardarDescripcion(code, descripcion);
       this.borradores.update((actuales) => ({ ...actuales, [code]: undefined }));
     } catch {
       return;

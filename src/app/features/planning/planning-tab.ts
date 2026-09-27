@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { I18nService } from '@core/i18n';
@@ -32,6 +31,9 @@ import { FieldComponent } from '@ui/field';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { UiSelectComponent, type UiOption } from '@ui/select';
 import { SimuladorDePlanificacion } from './simulador';
+import { DeudasDelPlanComponent } from './partes/deudas-del-plan';
+import { EventosDelPlanComponent } from './partes/eventos-del-plan';
+import { FlujoDelPlanComponent } from './partes/flujo-del-plan';
 import { VistasGuardadasComponent } from '@shared/vistas-guardadas';
 import type { TipoDeVista } from '@core/api';
 
@@ -52,12 +54,14 @@ interface Metrica {
     FieldComponent,
     FormsModule,
     HlmButton,
-    HlmCheckbox,
     HlmInput,
     HlmTabsImports,
     NumericInputDirective,
     UiSelectComponent,
     VistasGuardadasComponent,
+    DeudasDelPlanComponent,
+    EventosDelPlanComponent,
+    FlujoDelPlanComponent,
   ],
   providers: [SimuladorDePlanificacion],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -116,9 +120,6 @@ export class PlanningTabComponent {
     { value: 'tasa', label: this.i18n.t('planning.sim.order.rate') },
     { value: 'saldo', label: this.i18n.t('planning.sim.order.balance') },
   ]);
-  readonly opcionesDeDeuda = computed<UiOption[]>(() =>
-    this.sim.deudasDelEscenario().map((d) => ({ value: d.id, label: d.nombre })),
-  );
 
   money(valor: number): string {
     return this.store.money(valor);
@@ -138,10 +139,6 @@ export class PlanningTabComponent {
     t: (clave, params) => this.i18n.t(clave, params),
   }));
 
-  readonly tiposDeLinea = ['ingreso', 'gasto'] as const;
-  lineasDe(tipo: 'ingreso' | 'gasto') {
-    return this.sim.categorias().filter((l) => l.tipo === tipo);
-  }
   readonly nombreDeEscenario = signal('');
   guardarEscenario(): void {
     this.sim.guardarEscenario(this.nombreDeEscenario());
@@ -190,7 +187,6 @@ export class PlanningTabComponent {
       crecimientoDeInversion(this.sim.inversion(), { ...this.entorno(), etiquetas: this.sim.etiquetasDeInversion() }),
     ),
   );
-  readonly hayDeudas = computed(() => this.sim.deudasDelEscenario().length > 0);
 
   readonly metricas = computed<Metrica[]>(() => {
     const t = (clave: string, params?: Record<string, string | number>) => this.i18n.t(clave, params);

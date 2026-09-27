@@ -21,8 +21,10 @@ import { AppStore } from '@core/state';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiSelectComponent } from '@ui/select';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
 import { BulkChange } from '@pages/admin/permission-picker/permission-picker';
 import { PermissionSectionsComponent } from '@pages/admin/permission-picker/permission-sections';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 
 @Component({
   selector: 'app-role-sheet',
@@ -67,7 +69,7 @@ import { PermissionSectionsComponent } from '@pages/admin/permission-picker/perm
         </label>
       }
       <app-permission-sections
-        [groups]="store.permissionGroups()"
+        [groups]="permisos.groups()"
         [checked]="isChecked"
         [organizationId]="organizationId()"
         [showLevel]="true"
@@ -87,6 +89,8 @@ import { PermissionSectionsComponent } from '@pages/admin/permission-picker/perm
 })
 export class RoleSheetComponent {
   readonly store = inject(AdminStore);
+  private readonly comandos = inject(AdminCommands);
+  readonly permisos = inject(AdminPermissionsStore);
   readonly i18n = inject(I18nService);
   private readonly app = inject(AppStore);
 
@@ -139,7 +143,7 @@ export class RoleSheetComponent {
     }
     this.saving.set(true);
     try {
-      await this.store.guardarRol(this.role()?.id ?? null, {
+      await this.comandos.guardarRol(this.role()?.id ?? null, {
         organizationId: this.organizationId(),
         name: this.name(),
         description: this.description(),

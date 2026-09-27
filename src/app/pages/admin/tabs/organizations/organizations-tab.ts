@@ -15,6 +15,7 @@ import { IconComponent } from '@ui/icon';
 import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
 import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
@@ -187,6 +188,7 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
 })
 export class OrganizationsTabComponent {
   readonly store = inject(AdminStore);
+  private readonly comandos = inject(AdminCommands);
   readonly i18n = inject(I18nService);
   readonly caps = inject(CAPABILITIES);
   private readonly app = inject(AppStore);
@@ -260,12 +262,12 @@ export class OrganizationsTabComponent {
   async confirmDelete(): Promise<void> {
     const organization = this.deleting();
     this.deleting.set(null);
-    if (organization) await this.store.eliminarOrganizacion(organization);
+    if (organization) await this.comandos.eliminarOrganizacion(organization);
   }
 
   async consolidate(): Promise<void> {
     this.confirmingConsolidation.set(false);
-    await this.store.consolidarOrganizaciones();
+    await this.comandos.consolidarOrganizaciones();
   }
 
   canMakeDefault(org: ApiAdminOrganization): boolean {
@@ -282,7 +284,7 @@ export class OrganizationsTabComponent {
     }
     this.saving.set(true);
     try {
-      await this.store.crearOrganizacion({ name: this.name().trim(), baseCurrency: currency });
+      await this.comandos.crearOrganizacion({ name: this.name().trim(), baseCurrency: currency });
       this.name.set('');
       this.creating.set(false);
     } catch (error) {

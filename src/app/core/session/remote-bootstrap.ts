@@ -4,7 +4,8 @@ import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '@cor
 import { MovementKindCatalog } from '@core/utils/movement-kinds';
 import { Router } from '@angular/router';
 import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
-import { toViewData, toViewUser } from './remote-mappers';
+import { toViewData } from './mappers/view-data.mapper';
+import { toViewUser } from './mappers/session.mapper';
 import { AppStore } from '@core/state/store';
 import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
 import { setCurrencyCatalog } from '@core/utils/money';
@@ -187,17 +188,15 @@ export class RemoteBootstrap {
     const catalog = new MovementKindCatalog(raw.movementKinds);
     this.store.kindCatalog.set(catalog);
     this.store.data.set(
-      toViewData(
-        this.i18n,
-        catalog,
-        raw.accounts,
-        raw.cards,
-        raw.movements.items,
-        raw.people,
-        raw.debts,
-        raw.investments,
-        raw.notifications,
-      ),
+      toViewData(this.i18n, catalog, {
+        accounts: raw.accounts,
+        cards: raw.cards,
+        movements: raw.movements.items,
+        people: raw.people,
+        debts: raw.debts,
+        investments: raw.investments,
+        notifications: raw.notifications,
+      }),
     );
     this.store.remoteMovementPage.set(raw.movements.page);
     this.store.remoteMovementSize.set(raw.movements.size);

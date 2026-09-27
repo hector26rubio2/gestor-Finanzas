@@ -1,7 +1,8 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AdminStore } from '@pages/admin/admin.store';
+import { ADMIN_STORE_PROVIDERS } from '@pages/admin/admin.providers';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
 import { AdministrationApi } from '@core/api';
 import { RemoteBootstrap, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
@@ -23,7 +24,7 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
         { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         // El almacén de administración solo se usa para crear la organización en esta
         // prueba: el API real no debe salir a red ni montar su transporte.
-        AdminStore,
+        ...ADMIN_STORE_PROVIDERS,
         { provide: AdministrationApi, useValue: {} },
         { provide: RemoteBootstrap, useValue: { pollSession: vi.fn() } },
       ],
@@ -73,7 +74,7 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
 
   it('no llega al backend con una moneda inválida', async () => {
     const componente = crear();
-    const guardar = vi.spyOn(componente.store, 'crearOrganizacion').mockResolvedValue(undefined);
+    const guardar = vi.spyOn(TestBed.inject(AdminCommands), 'crearOrganizacion').mockResolvedValue(undefined);
     componente.name.set('Espacio nuevo');
     componente.currency.set('EUROS');
 
@@ -89,7 +90,7 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
 
   it('envía la moneda elegida en mayúsculas, que es lo que lee el backend', async () => {
     const componente = crear();
-    const guardar = vi.spyOn(componente.store, 'crearOrganizacion').mockResolvedValue(undefined);
+    const guardar = vi.spyOn(TestBed.inject(AdminCommands), 'crearOrganizacion').mockResolvedValue(undefined);
     componente.name.set('Espacio nuevo');
     componente.currency.set('usd');
 

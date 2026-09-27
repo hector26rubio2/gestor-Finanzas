@@ -1,15 +1,12 @@
-import { Injectable, computed, effect, inject, linkedSignal, signal, untracked } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { FinanceApiClient, ApiWritesBus, claveDeConcepto } from '@core/api';
-import type { ApiObligation, ApiRecurrence } from '@core/api';
+import { Injectable, computed, inject, linkedSignal, signal } from '@angular/core';
+import { claveDeConcepto } from '@core/api';
 import type { EscenarioGuardado, MedidaDeComparacion, VistaDeGrafica } from '@shared/proyecciones';
-import { P } from '@core/session';
-import { CAPABILITIES, AppStore } from '@core/state';
+import { AppStore } from '@core/state';
 import { crearMovimientosDelPeriodo } from '@shared/historia';
 import { I18nService } from '@core/i18n';
 import { addDaysToIso, addMonthsToIso, sumBy } from '@core/utils';
-import { traerMovimientosDeTarjetas } from '@shared/tarjetas';
-import type { Movement } from '@core/state';
+import { FuentesDelSimulador } from './simulador-fuentes';
+import { AjusteDeDeuda, EventoDelEscenario, aplicarEstado, leerEstado, serializarEstado } from './simulador-estado';
 import {
   type Deuda,
   type Palanca,
@@ -36,44 +33,7 @@ import {
   tasaPromedioDeInversiones,
 } from '@shared/proyecciones';
 
-export type AjusteDeDeuda = Partial<Pick<Deuda, 'saldo' | 'tasaMensual' | 'cuotas'>>;
-
-export type EventoDelEscenario =
-  | {
-      readonly tipo: 'abono';
-      readonly id: string;
-      readonly deudaId: string;
-      readonly mes: number;
-      readonly monto: number;
-    }
-  | {
-      readonly tipo: 'tasa';
-      readonly id: string;
-      readonly deudaId: string;
-      readonly mes: number;
-      readonly tasaMensual: number;
-    };
-
-interface EstadoGuardado {
-  readonly version: number;
-  readonly recorte?: number;
-  readonly ajustesDeLinea?: Record<string, AjusteDeLinea>;
-  readonly recurrentesQuitados?: string[];
-  readonly cambiosDeFlujo?: CambioDeFlujo[];
-  readonly vista?: VistaDeGrafica;
-  readonly medidaDeComparacion?: MedidaDeComparacion;
-  readonly escenariosGuardados?: EscenarioGuardado[];
-  readonly ajustes?: Record<string, AjusteDeDeuda>;
-  readonly excluidas?: string[];
-  readonly hipoteticas?: Deuda[];
-  readonly abonoMensual?: number;
-  readonly orden?: OrdenDeAbono;
-  readonly eventos?: EventoDelEscenario[];
-  readonly fechaSinDeudas?: string;
-  readonly compra?: { monto: number; nombre: string; cuotas: number; tasa: number; mes: number };
-  readonly meta?: { monto: number; fecha: string };
-  readonly inversion?: { inicial: number; aporte: number; tasa: number; fecha: string };
-}
+export type { AjusteDeDeuda, EventoDelEscenario } from './simulador-estado';
 
 export const ID_DE_LA_COMPRA = 'compra:simulada';
 const RENDIMIENTO_SUPUESTO = 8;
@@ -87,10 +47,6 @@ export class SimuladorDePlanificacion {
   private readonly store = inject(AppStore);
   private readonly i18n = inject(I18nService);
 
-  private readonly api = inject(FinanceApiClient);
-  private readonly capabilities = inject(CAPABILITIES);
-  private readonly escrituras = inject(ApiWritesBus);
-
   readonly hoy = computed(() => this.store.hoy());
   readonly manana = computed(() => addDaysToIso(this.hoy(), 1));
   readonly limiteDeFechas = computed(() => addMonthsToIso(this.hoy(), 12 * 50));
@@ -101,42 +57,10 @@ export class SimuladorDePlanificacion {
   private readonly delPeriodo = crearMovimientosDelPeriodo(this.rangoMedido);
   readonly cargandoMovimientos = this.delPeriodo.cargando;
   readonly flujoMedido = computed(() => flujoPromedio(this.delPeriodo.movimientos(), this.hoy()));
-  readonly obligaciones = signal<readonly ApiObligation[]>([]);
-  private readonly traerObligaciones = effect(() => {
-    this.escrituras.version();
-    if (this.store.remoteState() !== 'ready') return;
-    if (!this.capabilities.allows(P.personas.obligaciones.listar)) return;
-    untracked(() => {
-      void firstValueFrom(this.api.obligations())
-        .then((lista) => this.obligaciones.set(lista))
-        .catch(() => this.obligaciones.set([]));
-    });
-  });
-  readonly movimientosDeTarjetas = signal<readonly Movement[] | null>(null);
-  private readonly traerTarjetas = effect(() => {
-    this.escrituras.version();
-    if (this.store.remoteState() !== 'ready') return;
-    const tarjetas = this.store
-      .data()
-      .accounts.filter((a) => a.type === 'credit')
-      .map((a) => a.id);
-    untracked(() => {
-      void traerMovimientosDeTarjetas(this.api, this.i18n, this.store.kindCatalog(), tarjetas)
-        .then((lista) => this.movimientosDeTarjetas.set(lista))
-        .catch(() => this.movimientosDeTarjetas.set(null));
-    });
-  });
-  readonly recurrentesApi = signal<readonly ApiRecurrence[]>([]);
-  private readonly traerRecurrentes = effect(() => {
-    this.escrituras.version();
-    if (this.store.remoteState() !== 'ready') return;
-    if (!this.capabilities.allows(P.calendario.recurrencias.listar)) return;
-    untracked(() => {
-      void firstValueFrom(this.api.recurrences())
-        .then((lista) => this.recurrentesApi.set(lista as readonly ApiRecurrence[]))
-        .catch(() => this.recurrentesApi.set([]));
-    });
-  });
+  private readonly fuentes = new FuentesDelSimulador();
+  readonly obligaciones = this.fuentes.obligaciones;
+  readonly movimientosDeTarjetas = this.fuentes.movimientosDeTarjetas;
+  readonly recurrentesApi = this.fuentes.recurrentesApi;
   readonly recorte = signal(0);
   readonly categorias = computed(() => [
     ...lineasPorCategoria(this.delPeriodo.movimientos(), this.hoy()),
@@ -221,6 +145,7 @@ export class SimuladorDePlanificacion {
     const compra = this.compra();
     return [...this.deudasDeHoy(), ...this.hipoteticas(), ...(compra ? [compra] : [])];
   });
+  readonly hayDeudas = computed(() => this.deudasDelEscenario().length > 0);
 
   readonly flujoMensual = computed(() =>
     flujoPorMes(
@@ -469,82 +394,13 @@ export class SimuladorDePlanificacion {
     ...this.escenariosGuardados(),
   ]);
 
-  readonly estado = computed(() =>
-    JSON.stringify({
-      version: 1,
-      recorte: this.recorte(),
-      ajustesDeLinea: this.ajustesDeLinea(),
-      recurrentesQuitados: [...this.recurrentesQuitados()],
-      cambiosDeFlujo: this.cambiosDeFlujo(),
-      vista: this.vista(),
-      medidaDeComparacion: this.medidaDeComparacion(),
-      escenariosGuardados: this.escenariosGuardados(),
-      ajustes: this.ajustes(),
-      excluidas: [...this.excluidas()],
-      hipoteticas: this.hipoteticas(),
-      abonoMensual: this.abonoMensual(),
-      orden: this.orden(),
-      eventos: this.eventos(),
-      fechaSinDeudas: this.fechaSinDeudas(),
-      compra: {
-        monto: this.compraMonto(),
-        nombre: this.compraNombre(),
-        cuotas: this.compraCuotas(),
-        tasa: this.compraTasa(),
-        mes: this.compraMes(),
-      },
-      meta: { monto: this.metaMonto(), fecha: this.metaFecha() },
-      inversion: {
-        inicial: this.inversionInicial(),
-        aporte: this.inversionAporte(),
-        tasa: this.inversionTasa(),
-        fecha: this.inversionFecha(),
-      },
-    }),
-  );
+  readonly estado = computed(() => serializarEstado(this));
 
   restaurar(json: string | null): void {
     this.restablecer();
     this.escenariosGuardados.set([]);
-    if (!json) return;
-    let guardado: EstadoGuardado;
-    try {
-      guardado = JSON.parse(json) as EstadoGuardado;
-    } catch {
-      return;
-    }
-    if (guardado?.version !== 1) return;
-    this.recorte.set(guardado.recorte ?? 0);
-    this.ajustesDeLinea.set(guardado.ajustesDeLinea ?? {});
-    this.recurrentesQuitados.set(new Set(guardado.recurrentesQuitados ?? []));
-    this.cambiosDeFlujo.set(guardado.cambiosDeFlujo ?? []);
-    this.vista.set(guardado.vista ?? 'original');
-    this.medidaDeComparacion.set(guardado.medidaDeComparacion ?? 'saldoTotal');
-    this.escenariosGuardados.set(guardado.escenariosGuardados ?? []);
-    this.ajustes.set(guardado.ajustes ?? {});
-    this.excluidas.set(new Set(guardado.excluidas ?? []));
-    this.hipoteticas.set(guardado.hipoteticas ?? []);
-    this.abonoMensual.set(guardado.abonoMensual ?? 0);
-    this.orden.set(guardado.orden ?? 'tasa');
-    this.eventos.set(guardado.eventos ?? []);
-    if (guardado.fechaSinDeudas) this.fechaSinDeudas.set(guardado.fechaSinDeudas);
-    if (guardado.compra) {
-      this.compraMonto.set(guardado.compra.monto);
-      this.compraNombre.set(guardado.compra.nombre);
-      this.compraCuotas.set(guardado.compra.cuotas);
-      this.compraTasa.set(guardado.compra.tasa);
-      this.compraMes.set(guardado.compra.mes);
-    }
-    if (guardado.meta) {
-      this.metaMonto.set(guardado.meta.monto);
-      this.metaFecha.set(guardado.meta.fecha);
-    }
-    if (guardado.inversion) {
-      this.inversionInicial.set(guardado.inversion.inicial);
-      this.inversionAporte.set(guardado.inversion.aporte);
-      this.inversionTasa.set(guardado.inversion.tasa);
-      this.inversionFecha.set(guardado.inversion.fecha);
-    }
+    const guardado = leerEstado(json);
+    if (guardado) aplicarEstado(this, guardado);
   }
 
   private etiquetasDesdeHoy(cantidad: number): string[] {

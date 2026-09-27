@@ -1,0 +1,80 @@
+<div class="grid gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <h3 class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.events') }}</h3>
+    <div class="flex gap-1.5">
+      <button
+        hlmBtn
+        variant="outline"
+        size="sm"
+        type="button"
+        [disabled]="!sim.hayDeudas()"
+        (click)="sim.agregarEvento('abono')"
+      >
+        {{ i18n.t('planning.sim.event.addPayment') }}
+      </button>
+      <button
+        hlmBtn
+        variant="outline"
+        size="sm"
+        type="button"
+        [disabled]="!sim.hayDeudas()"
+        (click)="sim.agregarEvento('tasa')"
+      >
+        {{ i18n.t('planning.sim.event.addRate') }}
+      </button>
+    </div>
+  </div>
+  @for (evento of sim.eventos(); track evento.id) {
+  <article class="grid grid-cols-2 gap-2 rounded-md border border-border p-2.5">
+    <fin-field
+      [label]="i18n.t(evento.tipo === 'abono' ? 'planning.sim.event.payment' : 'planning.sim.event.rate')"
+      [full]="true"
+    >
+      <fin-select
+        [options]="opcionesDeDeuda()"
+        [ngModel]="evento.deudaId"
+        (ngModelChange)="sim.editarEvento(evento.id, { deudaId: $event })"
+        [ariaLabel]="i18n.t('planning.sim.event.debt')"
+      />
+    </fin-field>
+    <fin-field [label]="i18n.t('planning.sim.event.month')">
+      <input
+        hlmInput
+        type="number"
+        min="0"
+        [ngModel]="evento.mes"
+        (ngModelChange)="sim.editarEvento(evento.id, { mes: numero($event) })"
+      />
+    </fin-field>
+    @if (evento.tipo === 'abono') {
+    <fin-field [label]="i18n.t('planning.sim.event.amount')">
+      <input
+        hlmInput
+        type="number"
+        min="0"
+        step="50000"
+        [ngModel]="evento.monto"
+        (ngModelChange)="sim.editarEvento(evento.id, { monto: numero($event) })"
+      />
+    </fin-field>
+    } @else {
+    <fin-field [label]="i18n.t('planning.sim.field.monthlyRate')">
+      <input
+        hlmInput
+        type="number"
+        min="0"
+        step="0.05"
+        [ngModel]="evento.tasaMensual"
+        (ngModelChange)="sim.editarEvento(evento.id, { tasaMensual: numero($event) })"
+      />
+    </fin-field>
+    }
+    <small class="col-span-full flex items-center justify-between text-[0.7rem] text-muted-foreground">
+      {{ sim.etiquetaDeMes(evento.mes) }}
+      <button hlmBtn variant="ghost" size="sm" type="button" (click)="sim.quitarEvento(evento.id)">
+        {{ i18n.t('planning.sim.remove') }}
+      </button>
+    </small>
+  </article>
+  }
+</div>

@@ -68,15 +68,14 @@
           [attr.aria-label]="i18n.t('shell.profile')"
         >
           <hlm-avatar class="size-[29px] flex-none rounded-[9px] after:rounded-[9px]">
-            @if (store.user()?.photoUrl) {
+            @if (store.user()?.photoUrl; as foto) {
             <img
               hlmAvatarImage
               class="rounded-[9px]"
-              [src]="store.user()?.photoUrl"
+              [ngSrc]="foto"
               alt=""
               width="29"
               height="29"
-              decoding="async"
               referrerpolicy="no-referrer"
             />
             }
