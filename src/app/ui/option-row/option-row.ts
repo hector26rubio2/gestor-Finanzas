@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, input, output } from '@angu
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
-import { I18nService } from '../../core/i18n';
+import { I18nService } from '@core/i18n';
 
 @Component({
   selector: 'fin-option-row',

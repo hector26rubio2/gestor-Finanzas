@@ -260,12 +260,10 @@ function comandoHook() {
     return `- ${fila.diagrama.id} (${fila.diagrama.spec}): ${ETIQUETAS[fila.situacion]}${archivos ? ` → ${archivos}` : ''}`;
   });
   const contexto = [
-    `Diagramas desactualizados (${pendientes.length}) en ${relative(process.cwd(), CARPETA) || CARPETA}:`,
+    ...(pendientes.length ? [`Diagramas desactualizados (${pendientes.length}):`] : []),
     ...lineas,
-    'Si el cambio altera lo que el diagrama cuenta, actualiza su spec con la skill archify y corre `pnpm diagramas generar <id>`. Si no lo altera, `pnpm diagramas sellar <id>`.',
-    ...(atlas.length
-      ? [`Atlas: ${atlas.join('; ')}. Corre \`pnpm diagramas atlas\` para reindexar y regenerar el portal.`]
-      : []),
+    ...(pendientes.length ? ['Cambió lo que cuenta → generar; si no → sellar (skill diagramas).'] : []),
+    ...(atlas.length ? [`Atlas: ${atlas.join('; ')} → \`pnpm diagramas atlas\`.`] : []),
   ].join('\n');
   process.stdout.write(
     JSON.stringify({ hookSpecificOutput: { hookEventName: 'PostToolUse', additionalContext: contexto } }),
@@ -276,6 +274,22 @@ function commitDe(raiz) {
   return spawnSync('git', ['-C', raiz, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).stdout?.trim() || null;
 }
 
+const ARCHIVOS_DE_CONTRATO = [
+  /^src\/app\/core\/api\/.+\.ts$/,
+  /Endpoints?\/.+\.cs$/,
+  /Endpoints\.cs$/,
+  /^src\/Finanzas\.Contracts\/.+\.cs$/,
+];
+
+function contratosCambiados(raiz, desde) {
+  const salida = spawnSync('git', ['-C', raiz, 'diff', '--name-only', `${desde}..HEAD`], { encoding: 'utf8' });
+  if (salida.status !== 0) return [];
+  return salida.stdout
+    .split('\n')
+    .map((linea) => linea.trim())
+    .filter((archivo) => archivo && ARCHIVOS_DE_CONTRATO.some((patron) => patron.test(archivo)));
+}
+
 function avisosAtlas() {
   const grafo = leerJson(GRAFO, null);
   if (!grafo) return ['el atlas no tiene grafo: corre `pnpm diagramas atlas`'];
@@ -284,10 +298,10 @@ function avisosAtlas() {
   for (const [clave, nombre] of Object.entries(REPOS_GITNEXUS)) {
     const indexado = registro().find((repo) => repo.name === nombre)?.lastCommit;
     const actual = existsSync(bases[clave]) ? commitDe(bases[clave]) : null;
-    if (actual && indexado && actual !== indexado)
-      avisos.push(`índice de GitNexus de ${nombre} viejo (${indexado.slice(0, 7)} → ${actual.slice(0, 7)})`);
-    else if (indexado && grafo.repos[clave]?.commit !== indexado)
-      avisos.push(`grafo del atlas de ${nombre} viejo respecto al índice`);
+    if (!actual || !indexado || actual === indexado) continue;
+    const cambiados = contratosCambiados(bases[clave], indexado);
+    if (cambiados.length)
+      avisos.push(`contratos de ${nombre} cambiaron (${cambiados.slice(0, 3).join(', ')}${cambiados.length > 3 ? '…' : ''})`);
   }
   return avisos;
 }
@@ -312,10 +326,46 @@ function comandoPortal(silencioso = false) {
   if (!silencioso) console.log(`Portal: ${relative(process.cwd(), PORTAL) || PORTAL}`);
 }
 
-function reindexar() {
+const PREFIJO_DE_AREA = 'gitnexus-area-';
+const RUIDO_DE_AREA = /\bsrc\/app\/ui\/helm\//;
+
+function podarSkillsDeArea(raiz) {
+  const carpeta = join(raiz, '.claude', 'skills');
+  if (!existsSync(carpeta)) return;
+  for (const nombre of readdirSync(carpeta)) {
+    if (!nombre.startsWith(PREFIJO_DE_AREA)) continue;
+    const ruta = join(carpeta, nombre);
+    const area = nombre.slice(PREFIJO_DE_AREA.length);
+    if (/^cluster-\d+$/.test(area) || area.endsWith('-tests')) {
+      rmSync(ruta, { recursive: true, force: true });
+      continue;
+    }
+    const archivo = join(ruta, 'SKILL.md');
+    if (!existsSync(archivo)) continue;
+    const lineas = readFileSync(archivo, 'utf8')
+      .split('\n')
+      .filter((linea) => !RUIDO_DE_AREA.test(linea));
+    const archivos = lineas
+      .filter((linea) => linea.startsWith('| `'))
+      .map((linea) => linea.split('`')[1])
+      .filter(Boolean)
+      .slice(0, 3)
+      .join(', ');
+    const texto = lineas
+      .join('\n')
+      .replace(
+        /^description: .*$/m,
+        `description: "Mapa del área ${area}: archivos clave, puntos de entrada y flujos. Cargar solo al modificar código del área ${area} (${archivos})."`,
+      );
+    writeFileSync(archivo, texto);
+  }
+}
+
+function reindexar(opciones = {}) {
+  const pdg = opciones.pdg ? ['--pdg'] : [];
   const pasos = [
-    { raiz: raices().front, args: ['analyze', '--skills', '--pdg', '--no-stats'] },
-    { raiz: raices().api, args: ['analyze', '--skills', '--skip-agents-md'] },
+    { raiz: raices().front, args: ['analyze', '--skills', '--skip-agents-md', '--skip-skills', '--no-stats', ...pdg] },
+    { raiz: raices().api, args: ['analyze', '--skills', '--skip-agents-md', '--skip-skills', ...pdg] },
   ];
   for (const { raiz, args } of pasos) {
     if (!existsSync(raiz)) continue;
@@ -324,10 +374,16 @@ function reindexar() {
     if (resultado.status !== 0) throw new Error(`gitnexus analyze falló en ${raiz}: ${resultado.stderr?.slice(-400)}`);
   }
   gitnexus(['group', 'sync', GRUPO_GITNEXUS], { stdio: 'ignore' });
+  for (const { raiz } of pasos) if (existsSync(raiz)) podarSkillsDeArea(raiz);
+}
+
+function comandoPodar() {
+  for (const raiz of [raices().front, raices().api]) if (existsSync(raiz)) podarSkillsDeArea(raiz);
+  console.log('Skills de área podadas.');
 }
 
 function comandoAtlas(opciones) {
-  if (!opciones.sinReindexar) reindexar();
+  if (!opciones.sinReindexar) reindexar(opciones);
   mkdirSync(DATOS, { recursive: true });
   console.log('Exportando el grafo por módulos…');
   escribirJson(GRAFO, exportarGrafo(REPOS_GITNEXUS));
@@ -365,7 +421,8 @@ function ayuda() {
   generar [ids…] [--pendientes] [--sin-navegador]
                                     valida, entrega y revisa en navegador con archify; sella si pasa
   sellar [ids…]                     marca como revisados contra el código actual sin regenerar
-  atlas [--sin-reindexar]           reindexa con GitNexus, exporta grafo y contratos y regenera el portal
+  atlas [--sin-reindexar] [--pdg]   reindexa con GitNexus (PDG opcional), exporta grafo y contratos y regenera el portal
+  podar                             limpia las skills gitnexus-area-* (sin clusters anónimos ni ruido de ui/helm)
   portal                            regenera docs/diagramas/index.html con los datos actuales
   explorar                          levanta gitnexus serve y abre la interfaz web con el grafo completo
   lista                             diagramas del manifiesto por área
@@ -388,7 +445,9 @@ if (comando === 'estado') {
   for (const diagrama of manifiesto().diagramas)
     console.log(`${diagrama.area.padEnd(16)} ${diagrama.id.padEnd(34)} ${diagrama.tipo}`);
 } else if (comando === 'atlas') {
-  comandoAtlas({ sinReindexar: banderas.has('--sin-reindexar') });
+  comandoAtlas({ sinReindexar: banderas.has('--sin-reindexar'), pdg: banderas.has('--pdg') });
+} else if (comando === 'podar') {
+  comandoPodar();
 } else if (comando === 'portal') {
   comandoPortal();
 } else if (comando === 'explorar') {

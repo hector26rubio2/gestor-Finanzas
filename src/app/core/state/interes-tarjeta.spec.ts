@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Account } from './demo-data';
+import { Account } from './view-model';
 
 /**
  * El interes del proximo corte sale de la tasa de la tarjeta, o no sale.

@@ -1,12 +1,12 @@
-import { IconComponent } from '../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, CapabilitiesProvider, AppStore, FEATURES } from '../../core/state/store';
-import { OverlayComponent } from '../../ui/overlay/overlay';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, CapabilitiesProvider, AppStore, FEATURES, Movement } from '@core/state';
+import { OverlayComponent } from '@ui/overlay';
 import { MovementCategoryFieldComponent } from './category-field/category-field';
 import { MovementCoreFieldsComponent } from './core-fields/core-fields';
 import { MovementCurrencyFieldsComponent } from './currency-fields/currency-fields';
@@ -17,10 +17,9 @@ import { MovementAttributionFieldComponent } from './attribution-field/attributi
 import { MovementCounterpartyFieldComponent } from './counterparty-field/counterparty-field';
 import { MovementFinancingFieldsComponent } from './financing-fields/financing-fields';
 import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-visibility-builder';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { FieldComponent } from '../../ui/field/field';
-import { AsyncActionService } from '../../core/utils/async-action.service';
-import { Movement } from '../../core/state/demo-data';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { FieldComponent } from '@ui/field';
+import { AsyncActionService } from '@core/utils';
 
 const MOVEMENT_KINDS = ['', 'income', 'expense', 'payment'] as const;
 const MOVEMENT_OPERATION_TYPES = ['normal', 'transfer', 'advance', 'loan', 'credit', 'received'] as const;
@@ -49,6 +48,7 @@ export type MovementFormModel = {
   installmentCurrent: number;
   installmentTotal: number;
   installmentRate?: number;
+  cardBucket?: number;
   loanProduct: NonNullable<Movement['loanProduct']>;
   monthlyRate?: number;
   termMonths?: number;
@@ -135,6 +135,7 @@ export class MovementFormComponent {
       recurrence: m?.recurrence ?? 'monthly',
       installmentCurrent: m?.installmentCurrent ?? 1,
       installmentTotal: m?.installmentTotal ?? 1,
+      cardBucket: m?.cardBucket,
       loanProduct: m?.loanProduct ?? 'personal',
       cardMode: 'purchase',
       operationType: m ? operacionDe(m) : operacionPedida(context.operationType, context.kind),

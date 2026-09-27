@@ -1,35 +1,22 @@
-import { todayIso } from '../utils/dates';
+import { todayIso, baseCurrency as monedaBase, currencyCatalog as catalogoDeMonedas, formatAmount, parseMoney, sumBy, CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '@core/utils';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { notifier } from '../notifications/notifier';
+import { notifier } from '@core/notifications';
 import {
   Account,
   accountBalance,
-  createDemoData,
   createEmptyData,
-  DemoData,
-  demoUsers,
+  ViewData,
+  SessionUser,
   Movement,
   Person,
   PersonKind,
-} from './demo-data';
-import { ApiCategory, FinanceApiClient, viewTypeToAccountKind } from '../api/api-client';
-import {
-  baseCurrency as monedaBase,
-  currencyCatalog as catalogoDeMonedas,
-  formatAmount,
-  parseMoney,
-  sumBy,
-} from '../utils/money';
-import { I18nService } from '../i18n';
-import { P } from '../session/permissions';
-import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } from '../utils/movement-kinds';
-import { RUNTIME_CONFIG } from '../session/runtime';
-import { DEMO_CATEGORIES } from './demo-categories';
+} from './view-model';
+import { ApiCategory, FinanceApiClient, viewTypeToAccountKind, LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION, COUNTERPARTY_KIND, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P, RUNTIME_CONFIG } from '@core/session';
 import { PREFERENCES } from './theme';
-import { anualDesdeMensual } from '../../shared/utils/tasas';
-import { LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION } from '../api/obligations.api';
-import { COUNTERPARTY_KIND } from '../api/people.api';
+import { anualDesdeMensual } from '@shared/utils';
 
 export { applyTheme, PREFERENCES } from './theme';
 import {
@@ -46,11 +33,11 @@ export type { Preferences } from './theme';
 export { navigation } from './navigation';
 
 export interface DataProvider {
-  load(): DemoData;
+  load(): ViewData;
 }
 export const DATA_PROVIDER = new InjectionToken<DataProvider>('DataProvider', {
   providedIn: 'root',
-  factory: () => ({ load: inject(RUNTIME_CONFIG).mode === 'demo' ? createDemoData : createEmptyData }),
+  factory: () => ({ load: createEmptyData }),
 });
 export interface CapabilitiesProvider {
   allows(capability: string): boolean;
@@ -71,15 +58,13 @@ export const FEATURES = new InjectionToken<{ enabled(key: string): boolean }>('F
       // única excepción es el plano de control: el superadmin necesita conservar la
       // vía para revertir una bandera mal configurada.
       enabled: (key) => {
-        if (store.runtime.mode === 'api' && !store.featureFlagsLoaded()) return false;
+        if (!store.featureFlagsLoaded()) return false;
         if (key === 'admin') return true;
-        return store.runtime.mode === 'api' ? store.featureFlags()[key] === true : (store.featureFlags()[key] ?? true);
+        return store.featureFlags()[key] === true;
       },
     };
   },
 });
-const DEMO_SESSION_KEY = 'finanzas.demo.perfil';
-const DEMO_HOY = '2026-08-31';
 
 /**
  * Canal de avisos efímeros que va al toaster de Spartan.
@@ -117,6 +102,17 @@ export interface CondicionesDeTarjeta {
   dueDay: number;
   monthlyRate?: number;
   issuerId?: string;
+  paymentPriority?: readonly number[];
+  foreignPaymentPriority?: readonly number[];
+}
+
+function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unknown {
+  if (!terms || typeof terms !== 'object') return terms;
+  return {
+    ...terms,
+    ...(credito.paymentPriority ? { paymentPriority: credito.paymentPriority } : {}),
+    ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
+  };
 }
 
 function conTasa(terms: unknown, mensual: number | undefined): unknown {
@@ -137,16 +133,14 @@ export class AppStore {
    */
   private readonly i18n = inject(I18nService);
   readonly data = signal(this.provider.load());
-  readonly users = demoUsers;
   /**
    * `photoUrl` es opcional a proposito: hoy ningun usuario demo ni la sesion de la API
    * lo traen (session.api.ts solo expone id/displayName/email), asi que queda `undefined`
    * y el sidebar sigue mostrando iniciales. El campo existe para que, en cuanto el backend
    * exponga la foto de la cuenta de Google, el avatar la use sin tocar mas que esa fuente.
    */
-  readonly user = signal<((typeof demoUsers)[number] & { photoUrl?: string }) | null>(null);
-  readonly remoteState = signal<'demo' | 'loading' | 'ready' | 'anonymous' | 'error'>(
-    this.runtime.mode === 'demo' ? 'demo' : 'loading',
+  readonly user = signal<SessionUser | null>(null);
+  readonly remoteState = signal<'loading' | 'ready' | 'anonymous' | 'error'>('loading'
   );
   readonly remoteError = signal('');
   /**
@@ -163,10 +157,10 @@ export class AppStore {
   readonly remoteMovementTotal = signal(0);
   readonly featureFlags = signal<Record<string, boolean>>(this.data().featureFlags);
   /** Distingue «catalogo cargado y sin esta clave» de «catalogo nunca cargado». */
-  readonly featureFlagsLoaded = signal(this.runtime.mode !== 'api');
+  readonly featureFlagsLoaded = signal(false);
   /** Tabla de invariantes publicada por la API. Vacía en modo demo, donde los datos ya traen su familia. */
   readonly kindCatalog = signal(EMPTY_KIND_CATALOG);
-  readonly categories = signal<readonly ApiCategory[]>(this.runtime.mode === 'api' ? [] : DEMO_CATEGORIES);
+  readonly categories = signal<readonly ApiCategory[]>([]);
   readonly preferences = inject(PREFERENCES);
   readonly query = signal('');
   readonly period = signal('all');
@@ -195,6 +189,7 @@ export class AppStore {
     installmentCurrent?: number;
     installmentTotal?: number;
     purchaseApr?: number;
+    cardBucket?: number;
     loanRole?: Movement['loanRole'];
     loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
@@ -282,7 +277,7 @@ export class AppStore {
   }
   readonly saldosDelServidor = signal<ReadonlyMap<string, number> | null>(null);
   hoy(): string {
-    return this.runtime.mode === 'demo' ? DEMO_HOY : todayIso();
+    return todayIso();
   }
   balance(account: Account) {
     return this.saldosDelServidor()?.get(account.id) ?? accountBalance(account, this.data().movements);
@@ -305,39 +300,6 @@ export class AppStore {
   inspect(type: string, id: string) {
     const old = this.inspector();
     this.inspector.set({ type, id, previous: old ? { type: old.type, id: old.id } : undefined });
-  }
-  /**
-   * Solo en modo demo: el perfil elegido vivia en memoria y un F5 devolvia a la
-   * pantalla de bienvenida. En modo API manda la cookie de sesion.
-   */
-  rememberDemoSession(index: number): void {
-    try {
-      sessionStorage.setItem(DEMO_SESSION_KEY, String(index));
-    } catch {
-      /* almacenamiento no disponible: la sesion sigue viviendo en memoria */
-    }
-  }
-  restoreDemoSession(): void {
-    if (this.runtime.mode !== 'demo' || this.user()) return;
-    try {
-      // Number(null) es 0, y 0 es un indice valido: sin esta guarda, no haber
-      // iniciado sesion entraba como el primer perfil.
-      const stored = sessionStorage.getItem(DEMO_SESSION_KEY);
-      if (stored === null) return;
-      const index = Number.parseInt(stored, 10);
-      if (Number.isInteger(index) && index >= 0 && index < this.users.length) {
-        this.user.set(this.users[index]);
-      }
-    } catch {
-      /* almacenamiento no disponible: se muestra la bienvenida */
-    }
-  }
-  forgetDemoSession(): void {
-    try {
-      sessionStorage.removeItem(DEMO_SESSION_KEY);
-    } catch {
-      /* nada que limpiar */
-    }
   }
   reset() {
     this.data.set(this.provider.load());
@@ -394,7 +356,6 @@ export class AppStore {
     );
   }
   async persistPreferences() {
-    if (this.runtime.mode !== 'api') return;
     const value = this.preferences();
     // La paleta propia solo viaja si esta sesión puede definirla. Antes se enviaba
     // siempre, incluso al elegir un preset o cambiar el idioma, y la API rechaza con
@@ -433,6 +394,7 @@ export class AppStore {
     installmentCurrent?: number;
     installmentTotal?: number;
     purchaseApr?: number;
+    cardBucket?: number;
     loanRole?: Movement['loanRole'];
     loanProduct?: Movement['loanProduct'];
     originalCurrency?: Movement['originalCurrency'];
@@ -461,215 +423,150 @@ export class AppStore {
     )
       throw new Error(this.i18n.t('form.movement.error.targetDifferent'));
     if (esFinanciacion && !input.id) return this.saveLoan(input, contraparte);
-    if (this.runtime.mode === 'api') {
-      if (input.id) {
-        const category = this.categories().find((item) => item.name === input.category);
-        const updated = await firstValueFrom(
-          this.injector.get(FinanceApiClient).reclassifyMovement(input.id, {
-            category: category?.id ?? null,
-            description: input.description || null,
-          }),
-        );
-        this.data.update((data) => ({
-          ...data,
-          movements: data.movements.map((item) =>
-            item.id === input.id
-              ? { ...item, description: updated.description ?? input.description, category: input.category }
-              : item,
-          ),
-        }));
-        this.form.set(null);
-        this.log('Movimiento reclasificado en la API', false);
-        return;
-      }
-      const account = this.account(input.accountId);
-      if (!account) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
-      if (input.kind === 'transfer' || input.kind === 'advance' || input.kind === 'payment') {
-        const amount = { amount: String(input.amount), currency: account.currency };
-        const idempotencyKey = crypto.randomUUID();
-        const client = this.injector.get(FinanceApiClient);
-        const operation = await firstValueFrom(
-          input.kind === 'payment'
-            ? client.createCardPayment({
-                date: input.date,
-                amount,
-                account: input.accountId,
-                card: input.targetId!,
-                description: input.description,
-                idempotencyKey,
-              })
-            : input.kind === 'advance'
-              ? client.createCashAdvance({
-                  date: input.date,
-                  amount,
-                  card: input.accountId,
-                  account: input.targetId!,
-                  description: input.description,
-                  idempotencyKey,
-                  installments: cuotas,
-                  apr: aprPropia,
-                })
-              : client.createTransfer({
-                  date: input.date,
-                  amount,
-                  sourceAccount: input.accountId,
-                  destinationAccount: input.targetId!,
-                  description: input.description,
-                  idempotencyKey,
-                }),
-        );
-        // Transferencia y avance no son su propia clase de movimiento: la pata que sale
-        // es un gasto y la que entra un ingreso, con `movementSubtype` como única marca
-        // de que el dinero solo se movió entre cuentas — ver el comentario en Movement.
-        const movementSubtype =
-          input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
-        const created = operation.legs.map<Movement>((leg) => {
-          const legAmount = parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect);
-          return {
-            id: leg.id,
-            date: leg.date,
-            description: leg.description ?? input.description,
-            accountId: leg.links['account'] ?? leg.links['card'] ?? '',
-            category: 'Transferencias',
-            kind: input.kind === 'payment' ? 'payment' : legAmount < 0 ? 'expense' : 'income',
-            movementSubtype,
-            amount: legAmount,
-            status: 'confirmed',
-          };
-        });
-        this.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
-        this.form.set(null);
-        this.log(
-          input.kind === 'payment'
-            ? 'Abono registrado en la API'
-            : input.kind === 'advance'
-              ? 'Avance registrado en la API'
-              : 'Transferencia registrada en la API',
-          false,
-        );
-        return;
-      }
-      const isIncome = input.kind === 'income';
-      const isCard = account.type === 'credit';
-      // El formulario guarda categoría y persona por nombre —es lo que ve y elige
-      // quien lo usa—, pero el backend solo acepta enlaces por id. Sin resolverlos
-      // aquí, el POST se enviaba sin `category` ni `counterparty`: la copia
-      // optimista sí los mostraba y, al recargar, el movimiento reaparecía «Sin
-      // categoría» y sin persona, sin forma de recuperarlo desde la interfaz.
-      const categoria = this.categories().find((item) => item.name === input.category);
-      const persona = contraparte ?? this.data().people.find((item) => item.name === input.person);
-      const created = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createMovement({
-          date: input.date,
-          kind: isIncome ? MovementKind.income : isCard ? MovementKind.cardPurchase : MovementKind.expense,
-          effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
-          flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
-          amount: {
-            amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
-            currency: input.originalCurrency ?? account.currency,
-          },
-          links: {
-            ...(isCard ? { card: input.accountId } : { account: input.accountId }),
-            ...(categoria ? { category: categoria.id } : {}),
-            ...(persona ? { counterparty: persona.id } : {}),
-          },
-          rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
-          rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
-          description: input.description,
-          idempotencyKey: crypto.randomUUID(),
-          purchaseApr: isCard ? aprPropia : undefined,
-          installments: isCard ? cuotas : undefined,
+    if (input.id) {
+      const category = this.categories().find((item) => item.name === input.category);
+      const updated = await firstValueFrom(
+        this.injector.get(FinanceApiClient).reclassifyMovement(input.id, {
+          category: category?.id ?? null,
+          description: input.description || null,
         }),
       );
-      const sign = signOf(created.flow, created.effect);
-      const movement: Movement = {
-        id: created.id,
-        date: created.date,
-        description: created.description ?? input.description,
-        accountId: input.accountId,
-        // Lo que vale es lo que guardó el servidor: su nombre de categoría y de
-        // persona es el que sobrevive a la recarga, y el enlace de contraparte es
-        // lo que decide si el movimiento es un préstamo («prestado») o propio.
-        category: created.linkNames['category']?.name ?? input.category,
-        kind: input.kind as Movement['kind'],
-        amount: parseMoney(created.amount.base) * sign,
-        status: 'confirmed',
-        person: created.linkNames['counterparty']?.name ?? input.person,
-        ownership: created.links['counterparty'] ? 'loaned' : 'own',
-        recurring: input.recurring === true || input.recurring === 'true',
-        loanRole: input.loanRole,
-        loanProduct: input.loanProduct,
-        purchaseApr: created.purchaseApr ?? undefined,
-        ...(isCard && cuotas ? { installmentTotal: cuotas, installmentCurrent: 1 } : {}),
-      };
-      this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
+      this.data.update((data) => ({
+        ...data,
+        movements: data.movements.map((item) =>
+          item.id === input.id
+            ? { ...item, description: updated.description ?? input.description, category: input.category }
+            : item,
+        ),
+      }));
       this.form.set(null);
-      this.log('Movimiento registrado en la API', false);
+      this.log('Movimiento reclasificado en la API', false);
       return;
     }
-    const id = input.id ?? crypto.randomUUID();
-    // `input.kind` es la operación pedida (qué botón/tipo eligió la persona), no
-    // necesariamente la clase que se guarda: transferencia y avance no son su propia
-    // clase de movimiento, la pata que sale es un gasto y la que entra un ingreso —
-    // `movementSubtype` es la única marca que los distingue de una compra o un sueldo
-    // real, y lo que excluyen los KPI y el filtro de Operación. `payment` (abono de
-    // tarjeta) sí sigue siendo su propia clase, sin tocar.
-    const isDualLeg = input.kind === 'payment' || input.kind === 'transfer' || input.kind === 'advance';
-    const movementSubtype: Movement['movementSubtype'] =
-      input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
-    const kind: Movement['kind'] =
-      input.kind === 'payment' ? 'payment' : input.kind === 'income' ? 'income' : 'expense';
+    const account = this.account(input.accountId);
+    if (!account) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
+    if (input.kind === 'transfer' || input.kind === 'advance' || input.kind === 'payment') {
+      const amount = { amount: String(input.amount), currency: account.currency };
+      const idempotencyKey = crypto.randomUUID();
+      const client = this.injector.get(FinanceApiClient);
+      const operation = await firstValueFrom(
+        input.kind === 'payment'
+          ? client.createCardPayment({
+              date: input.date,
+              amount,
+              account: input.accountId,
+              card: input.targetId!,
+              description: input.description,
+              idempotencyKey,
+            })
+          : input.kind === 'advance'
+            ? client.createCashAdvance({
+                date: input.date,
+                amount,
+                card: input.accountId,
+                account: input.targetId!,
+                description: input.description,
+                idempotencyKey,
+                installments: cuotas,
+                apr: aprPropia,
+              })
+            : client.createTransfer({
+                date: input.date,
+                amount,
+                sourceAccount: input.accountId,
+                destinationAccount: input.targetId!,
+                description: input.description,
+                idempotencyKey,
+              }),
+      );
+      // Transferencia y avance no son su propia clase de movimiento: la pata que sale
+      // es un gasto y la que entra un ingreso, con `movementSubtype` como única marca
+      // de que el dinero solo se movió entre cuentas — ver el comentario en Movement.
+      const movementSubtype = input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
+      const created = operation.legs.map<Movement>((leg) => {
+        const legAmount = parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect);
+        return {
+          id: leg.id,
+          date: leg.date,
+          description: leg.description ?? input.description,
+          accountId: leg.links['account'] ?? leg.links['card'] ?? '',
+          category: 'Transferencias',
+          kind: input.kind === 'payment' ? 'payment' : legAmount < 0 ? 'expense' : 'income',
+          movementSubtype,
+          amount: legAmount,
+          status: 'confirmed',
+        };
+      });
+      this.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
+      this.form.set(null);
+      this.log(
+        input.kind === 'payment'
+          ? 'Abono registrado en la API'
+          : input.kind === 'advance'
+            ? 'Avance registrado en la API'
+            : 'Transferencia registrada en la API',
+        false,
+      );
+      return;
+    }
+    const isIncome = input.kind === 'income';
+    const isCard = account.type === 'credit';
+    // El formulario guarda categoría y persona por nombre —es lo que ve y elige
+    // quien lo usa—, pero el backend solo acepta enlaces por id. Sin resolverlos
+    // aquí, el POST se enviaba sin `category` ni `counterparty`: la copia
+    // optimista sí los mostraba y, al recargar, el movimiento reaparecía «Sin
+    // categoría» y sin persona, sin forma de recuperarlo desde la interfaz.
+    const categoria = this.categories().find((item) => item.name === input.category);
+    const persona = contraparte ?? this.data().people.find((item) => item.name === input.person);
+    const created = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createMovement({
+        date: input.date,
+        kind: isIncome ? MovementKind.income : isCard ? MovementKind.cardPurchase : MovementKind.expense,
+        effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
+        flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
+        amount: {
+          amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
+          currency: input.originalCurrency ?? account.currency,
+        },
+        links: {
+          ...(isCard ? { card: input.accountId } : { account: input.accountId }),
+          ...(categoria ? { category: categoria.id } : {}),
+          ...(persona ? { counterparty: persona.id } : {}),
+        },
+        rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
+        rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
+        description: input.description,
+        idempotencyKey: crypto.randomUUID(),
+        purchaseApr: isCard ? aprPropia : undefined,
+        installments: isCard ? cuotas : undefined,
+        cardBucket: isCard && input.cardBucket ? input.cardBucket : undefined,
+      }),
+    );
+    const sign = signOf(created.flow, created.effect);
     const movement: Movement = {
-      id,
-      date: input.date,
-      description: input.description,
+      id: created.id,
+      date: created.date,
+      description: created.description ?? input.description,
       accountId: input.accountId,
-      category: input.category,
-      kind,
-      movementSubtype,
-      amount: kind === 'income' ? input.amount : -input.amount,
+      // Lo que vale es lo que guardó el servidor: su nombre de categoría y de
+      // persona es el que sobrevive a la recarga, y el enlace de contraparte es
+      // lo que decide si el movimiento es un préstamo («prestado») o propio.
+      category: created.linkNames['category']?.name ?? input.category,
+      kind: input.kind as Movement['kind'],
+      amount: parseMoney(created.amount.base) * sign,
       status: 'confirmed',
-      person: contraparte?.name ?? input.person,
-      ownership: input.person ? 'loaned' : (input.ownership ?? 'own'),
+      person: created.linkNames['counterparty']?.name ?? input.person,
+      ownership: created.links['counterparty'] ? 'loaned' : 'own',
       recurring: input.recurring === true || input.recurring === 'true',
-      recurrence: input.recurring === true || input.recurring === 'true' ? input.recurrence : undefined,
-      installmentCurrent:
-        input.installmentTotal && input.installmentTotal > 1 ? Number(input.installmentCurrent || 1) : undefined,
-      installmentTotal:
-        input.installmentTotal && input.installmentTotal > 1 ? Number(input.installmentTotal) : undefined,
       loanRole: input.loanRole,
       loanProduct: input.loanProduct,
-      originalCurrency: input.originalCurrency,
-      originalAmount: input.originalCurrency === 'USD' ? Number(input.originalAmount) : undefined,
-      exchangeRate: input.originalCurrency === 'USD' ? Number(input.exchangeRate) : undefined,
-      // Solo aplica a una compra de tarjeta: el resto de clases no causa interes por
-      // tasa anual, asi que un valor aqui no significaria nada (misma regla del backend).
-      purchaseApr:
-        (kind === 'expense' && this.account(input.accountId)?.type === 'credit') || input.kind === 'advance'
-          ? aprPropia
-          : undefined,
+      purchaseApr: created.purchaseApr ?? undefined,
+      ...(created.cardBucket ? { cardBucket: created.cardBucket } : {}),
+      ...(isCard && cuotas ? { installmentTotal: cuotas, installmentCurrent: 1 } : {}),
     };
-    this.data.update((d) => ({
-      ...d,
-      movements: [
-        ...d.movements.filter((m) => m.id !== id),
-        movement,
-        ...(isDualLeg
-          ? [
-              {
-                ...movement,
-                id: id + '-to',
-                accountId: input.targetId!,
-                amount: input.amount,
-                kind: (input.kind === 'payment' ? 'payment' : 'income') as Movement['kind'],
-              },
-            ]
-          : []),
-      ],
-      notifications: d.notifications.map((n) => (n.id === input.notificationId ? { ...n, read: true } : n)),
-    }));
+    this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
     this.form.set(null);
-    this.log(input.id ? 'Movimiento corregido; acción registrada' : 'Movimiento registrado', false);
+    this.log('Movimiento registrado en la API', false);
   }
   private async saveLoan(
     input: {
@@ -709,53 +606,42 @@ export class AppStore {
       ...(plazo ? { installmentTotal: plazo, installmentCurrent: 1 } : {}),
       ...(tasa !== undefined ? { purchaseApr: anualDesdeMensual(tasa) } : {}),
     };
-    if (this.runtime.mode === 'api') {
-      const creado = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createLoan({
-          date: input.date,
-          direction: recibido ? OBLIGATION_DIRECTION.payable : OBLIGATION_DIRECTION.receivable,
-          counterparty: contraparte.id,
-          amount: { amount: String(input.amount), currency: cuenta.currency },
-          ...(conTarjeta
-            ? { card: cuenta.id, cardMode: LOAN_CARD_MODE[input.cardMode ?? 'purchase'] }
-            : { account: cuenta.id }),
-          product: producto ? LOAN_PRODUCT[producto] : LOAN_PRODUCT.informal,
-          monthlyRate: tasa === undefined ? undefined : tasa / 100,
-          termMonths: plazo,
-          description: input.description || undefined,
-          idempotencyKey: crypto.randomUUID(),
-        }),
-      );
-      const movimientos = creado.movements.map<Movement>((pata) => ({
-        ...base,
-        id: pata.id,
-        amount: parseMoney(pata.amount.base) * (recibido ? 1 : -1),
-      }));
-      this.data.update((data) => ({ ...data, movements: [...movimientos, ...data.movements] }));
-    } else {
-      const movimiento: Movement = {
-        ...base,
-        id: crypto.randomUUID(),
-        amount: recibido ? input.amount : -input.amount,
-      };
-      this.data.update((data) => ({ ...data, movements: [movimiento, ...data.movements] }));
-    }
+    const creado = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createLoan({
+        date: input.date,
+        direction: recibido ? OBLIGATION_DIRECTION.payable : OBLIGATION_DIRECTION.receivable,
+        counterparty: contraparte.id,
+        amount: { amount: String(input.amount), currency: cuenta.currency },
+        ...(conTarjeta
+          ? { card: cuenta.id, cardMode: LOAN_CARD_MODE[input.cardMode ?? 'purchase'] }
+          : { account: cuenta.id }),
+        product: producto ? LOAN_PRODUCT[producto] : LOAN_PRODUCT.informal,
+        monthlyRate: tasa === undefined ? undefined : tasa / 100,
+        termMonths: plazo,
+        description: input.description || undefined,
+        idempotencyKey: crypto.randomUUID(),
+      }),
+    );
+    const movimientos = creado.movements.map<Movement>((pata) => ({
+      ...base,
+      id: pata.id,
+      amount: parseMoney(pata.amount.base) * (recibido ? 1 : -1),
+    }));
+    this.data.update((data) => ({ ...data, movements: [...movimientos, ...data.movements] }));
+
     this.form.set(null);
     this.log(esCredito ? 'Crédito registrado' : 'Préstamo registrado', false);
   }
   async createCounterparty(name: string, kind: PersonKind = 'person', email?: string): Promise<Person> {
     const nombre = name.trim();
     if (!nombre) throw new Error(this.i18n.t('form.error.nameRequired'));
-    const creada: Person =
-      this.runtime.mode === 'api'
-        ? await firstValueFrom(
+    const creada: Person =await firstValueFrom(
             this.injector.get(FinanceApiClient).createPerson({
               displayName: nombre,
               email: email || null,
               kind: kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person,
             }),
-          ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }))
-        : { id: crypto.randomUUID(), name: nombre, owed: 0, owing: 0, kind, email };
+          ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }));
     this.data.update((data) => ({ ...data, people: [...data.people, creada] }));
     return creada;
   }
@@ -769,147 +655,104 @@ export class AppStore {
   ) {
     const anual = credit?.monthlyRate === undefined ? undefined : anualDesdeMensual(credit.monthlyRate);
     const tasaApi = String((anual ?? 0) / 100);
-    if (this.runtime.mode === 'api') {
-      if (opening < 0) throw new Error(this.i18n.t('form.account.error.openingNegative'));
-      const client = this.injector.get(FinanceApiClient);
-      if (type === 'credit') {
-        if (!credit || credit.limit <= 0) throw new Error(this.i18n.t('form.account.error.creditLimit'));
-        const created = await firstValueFrom(
-          client.createCard({
-            name,
-            currency,
-            creditLimit: { amount: String(credit.limit), currency },
-            cycle: { statementDay: credit.cutDay, paymentDueDay: credit.dueDay },
-            terms: {
-              purchaseApr: { rate: tasaApi },
-              cashAdvanceApr: { rate: tasaApi },
-              internationalPurchaseApr: { rate: tasaApi },
-              deferredDefaultApr: { rate: tasaApi },
-              minimumPaymentRate: { rate: '0' },
-              minimumPaymentFloor: null,
-              gracePeriodDays: 0,
-            },
-            lastFour: '0000',
-            issuerEntity: credit.issuerId || null,
-          }),
-        );
-        this.data.update((data) => ({
-          ...data,
-          accounts: [
-            ...data.accounts,
-            {
-              id: created.id,
-              name: created.name,
-              type: 'credit',
-              currency: created.currency,
-              openingBalance: 0,
-              limit: parseMoney(created.creditLimit),
-              lastFour: created.lastFour ?? undefined,
-              cutDay: created.cycle.statementDay,
-              dueDay: created.cycle.paymentDueDay,
-              annualRate: anual,
-              issuerId: created.issuerEntity?.id,
-            },
-          ],
-        }));
-        this.form.set(null);
-        this.log('Tarjeta creada en la API', false);
-        return;
-      }
-      // El `kind` del contrato sale del tipo de vista. Antes eran dos números escritos a
-      // mano (`cash ? 1 : 3`), de modo que una cuenta corriente, una billetera u otra se
-      // abrian como ahorro sin que nadie lo pidiera.
-      const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: '0000' };
-      const openingResult =
-        opening === 0
-          ? null
-          : await firstValueFrom(
-              client.createAccountWithOpening({
-                account: accountRequest,
-                openingBalance: { amount: String(Math.abs(opening)), currency },
-                date: new Date().toISOString().slice(0, 10),
-                rate: currency === 'USD' ? String(exchangeRate) : null,
-                rateAsOf: currency === 'USD' ? new Date().toISOString().slice(0, 10) : null,
-                idempotencyKey: crypto.randomUUID(),
-              }),
-            );
-      const created = openingResult?.account ?? (await firstValueFrom(client.createAccount(accountRequest)));
-      const account: Account = {
-        id: created.id,
-        name: created.name,
-        type,
-        currency: created.currency,
-        openingBalance: 0,
-        lastFour: created.lastFour ?? undefined,
-      };
-      this.data.update((data) => ({ ...data, accounts: [...data.accounts, account] }));
-      if (openingResult) {
-        const movement = openingResult.openingMovement;
-        this.data.update((data) => ({
-          ...data,
-          movements: [
-            {
-              id: movement.id,
-              date: movement.date,
-              description: movement.description ?? `Saldo de apertura · ${name}`,
-              accountId: created.id,
-              category: 'Apertura',
-              kind: 'income',
-              amount: parseMoney(movement.amount.base),
-              status: 'confirmed',
-            },
-            ...data.movements,
-          ],
-        }));
-      }
+    if (opening < 0) throw new Error(this.i18n.t('form.account.error.openingNegative'));
+    const client = this.injector.get(FinanceApiClient);
+    if (type === 'credit') {
+      if (!credit || credit.limit <= 0) throw new Error(this.i18n.t('form.account.error.creditLimit'));
+      const created = await firstValueFrom(
+        client.createCard({
+          name,
+          currency,
+          creditLimit: { amount: String(credit.limit), currency },
+          cycle: { statementDay: credit.cutDay, paymentDueDay: credit.dueDay },
+          terms: {
+            purchaseApr: { rate: tasaApi },
+            cashAdvanceApr: { rate: tasaApi },
+            internationalPurchaseApr: { rate: tasaApi },
+            deferredDefaultApr: { rate: tasaApi },
+            minimumPaymentRate: { rate: '0' },
+            minimumPaymentFloor: null,
+            gracePeriodDays: 0,
+            paymentPriority: credit.paymentPriority ?? null,
+            foreignPaymentPriority: credit.foreignPaymentPriority ?? null,
+          },
+          lastFour: '0000',
+          issuerEntity: credit.issuerId || null,
+        }),
+      );
+      this.data.update((data) => ({
+        ...data,
+        accounts: [
+          ...data.accounts,
+          {
+            id: created.id,
+            name: created.name,
+            type: 'credit',
+            currency: created.currency,
+            openingBalance: 0,
+            limit: parseMoney(created.creditLimit),
+            lastFour: created.lastFour ?? undefined,
+            cutDay: created.cycle.statementDay,
+            dueDay: created.cycle.paymentDueDay,
+            annualRate: anual,
+            issuerId: created.issuerEntity?.id,
+            paymentPriority: completarPrioridad(created.terms?.paymentPriority, PRIORIDAD_EN_PESOS),
+            foreignPaymentPriority: completarPrioridad(created.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
+          },
+        ],
+      }));
       this.form.set(null);
-      this.log('Cuenta creada en la API', false);
+      this.log('Tarjeta creada en la API', false);
       return;
     }
-    const id = crypto.randomUUID();
+    // El `kind` del contrato sale del tipo de vista. Antes eran dos números escritos a
+    // mano (`cash ? 1 : 3`), de modo que una cuenta corriente, una billetera u otra se
+    // abrian como ahorro sin que nadie lo pidiera.
+    const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: '0000' };
+    const openingResult =
+      opening === 0
+        ? null
+        : await firstValueFrom(
+            client.createAccountWithOpening({
+              account: accountRequest,
+              openingBalance: { amount: String(Math.abs(opening)), currency },
+              date: new Date().toISOString().slice(0, 10),
+              rate: currency === 'USD' ? String(exchangeRate) : null,
+              rateAsOf: currency === 'USD' ? new Date().toISOString().slice(0, 10) : null,
+              idempotencyKey: crypto.randomUUID(),
+            }),
+          );
+    const created = openingResult?.account ?? (await firstValueFrom(client.createAccount(accountRequest)));
     const account: Account = {
-      id,
-      name,
+      id: created.id,
+      name: created.name,
       type,
-      currency,
-      ...(currency === 'USD' ? { exchangeRate } : {}),
+      currency: created.currency,
       openingBalance: 0,
-      lastFour: '0000',
-      color: '#087f68',
-      ...(type === 'credit'
-        ? {
-            limit: credit?.limit ?? 5000000,
-            cutDay: credit?.cutDay ?? 20,
-            dueDay: credit?.dueDay ?? 5,
-            annualRate: anual,
-            issuerId: credit?.issuerId || undefined,
-          }
-        : {}),
+      lastFour: created.lastFour ?? undefined,
     };
-    this.data.update((d) => ({
-      ...d,
-      accounts: [...d.accounts, account],
-      movements:
-        opening === 0
-          ? d.movements
-          : [
-              ...d.movements,
-              {
-                id: crypto.randomUUID(),
-                // Hoy, como hace la rama remota con `date: new Date()...`: el movimiento
-                // de apertura es un hecho de ahora, no de la ultima fecha escrita en el codigo.
-                date: todayIso(),
-                description: 'Saldo de apertura · ' + name,
-                accountId: id,
-                category: 'Apertura',
-                kind: opening > 0 ? 'income' : 'expense',
-                amount: opening,
-                status: 'confirmed',
-              },
-            ],
-    }));
+    this.data.update((data) => ({ ...data, accounts: [...data.accounts, account] }));
+    if (openingResult) {
+      const movement = openingResult.openingMovement;
+      this.data.update((data) => ({
+        ...data,
+        movements: [
+          {
+            id: movement.id,
+            date: movement.date,
+            description: movement.description ?? `Saldo de apertura · ${name}`,
+            accountId: created.id,
+            category: 'Apertura',
+            kind: 'income',
+            amount: parseMoney(movement.amount.base),
+            status: 'confirmed',
+          },
+          ...data.movements,
+        ],
+      }));
+    }
     this.form.set(null);
-    this.log('Cuenta creada', false);
+    this.log('Cuenta creada en la API', false);
   }
   async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
     // El backend distingue ingreso de gasto porque no existe categoria neutra: un
@@ -918,26 +761,11 @@ export class AppStore {
     // el tipo correcto queda invisible para el tipo de movimiento al que en realidad
     // pertenece.
     const type = kind === 'income' ? 1 : 2;
-    if (this.runtime.mode === 'api') {
-      const created = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createCategory({ name, type, color, icon }),
-      );
-      this.categories.update((items) => [...items, created]);
-    } else {
-      this.categories.update((items) => [
-        ...items,
-        {
-          id: `local-${Date.now()}`,
-          name,
-          type,
-          color,
-          icon,
-          parent: null,
-          isActive: true,
-          createdAt: new Date().toISOString(),
-        },
-      ]);
-    }
+    const created = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createCategory({ name, type, color, icon }),
+    );
+    this.categories.update((items) => [...items, created]);
+
     this.form.set(null);
     this.log(`Categoría ${name} creada`);
   }
@@ -963,37 +791,36 @@ export class AppStore {
     const credito = account.type === 'credit' ? changes.credit : undefined;
     if (account.type === 'credit' && (!credito || credito.limit <= 0))
       throw new Error(this.i18n.t('form.account.error.creditLimit'));
-    if (this.runtime.mode === 'api') {
-      const client = this.injector.get(FinanceApiClient);
-      if (credito) {
-        const actual = (await firstValueFrom(client.cards())).find((card) => card.id === account.id);
-        if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-        await firstValueFrom(
-          client.updateCard(account.id, {
-            name,
-            creditLimit: { amount: String(credito.limit), currency: actual.currency },
-            cycle: { statementDay: credito.cutDay, paymentDueDay: credito.dueDay },
-            terms: conTasa(actual.terms, credito.monthlyRate),
-            issuer: actual.issuer,
-            lastFour: lastFour ?? null,
-            isActive: actual.isActive,
-            issuerEntity: credito.issuerId || null,
-          }),
-        );
-      } else {
-        const actual = (await firstValueFrom(client.accounts())).find((item) => item.id === account.id);
-        if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-        await firstValueFrom(
-          client.updateAccount(account.id, {
-            name,
-            institution: actual.institution,
-            lastFour: lastFour ?? null,
-            isDefault: actual.isDefault,
-            isActive: actual.isActive,
-          }),
-        );
-      }
+    const client = this.injector.get(FinanceApiClient);
+    if (credito) {
+      const actual = (await firstValueFrom(client.cards())).find((card) => card.id === account.id);
+      if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+      await firstValueFrom(
+        client.updateCard(account.id, {
+          name,
+          creditLimit: { amount: String(credito.limit), currency: actual.currency },
+          cycle: { statementDay: credito.cutDay, paymentDueDay: credito.dueDay },
+          terms: conPrioridad(conTasa(actual.terms, credito.monthlyRate), credito),
+          issuer: actual.issuer,
+          lastFour: lastFour ?? null,
+          isActive: actual.isActive,
+          issuerEntity: credito.issuerId || null,
+        }),
+      );
+    } else {
+      const actual = (await firstValueFrom(client.accounts())).find((item) => item.id === account.id);
+      if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+      await firstValueFrom(
+        client.updateAccount(account.id, {
+          name,
+          institution: actual.institution,
+          lastFour: lastFour ?? null,
+          isDefault: actual.isDefault,
+          isActive: actual.isActive,
+        }),
+      );
     }
+
     const actualizada: Account = {
       ...account,
       name,
@@ -1020,9 +847,7 @@ export class AppStore {
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
     const actual = this.categories().find((category) => category.id === id);
     if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-    const guardada =
-      this.runtime.mode === 'api'
-        ? await firstValueFrom(
+    const guardada =await firstValueFrom(
             this.injector.get(FinanceApiClient).updateCategory(id, {
               name,
               color: changes.color,
@@ -1030,8 +855,7 @@ export class AppStore {
               parent: actual.parent,
               isActive: actual.isActive,
             }),
-          )
-        : { ...actual, name, color: changes.color, icon: changes.icon };
+          );
     this.categories.update((items) => items.map((item) => (item.id === id ? guardada : item)));
     if (actual.name !== guardada.name)
       this.data.update((data) => ({
@@ -1052,24 +876,23 @@ export class AppStore {
     const actual = this.data().people.find((person) => person.id === id);
     if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
     const email = changes.email?.trim() || undefined;
-    if (this.runtime.mode === 'api') {
-      const client = this.injector.get(FinanceApiClient);
-      const remota = (await firstValueFrom(client.people())).find((person) => person.id === id);
-      if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
-      await firstValueFrom(
-        client.updatePerson(id, {
-          displayName: name,
-          alias: remota.alias,
-          email: email ?? null,
-          phone: remota.phone,
-          notes: remota.notes,
-          isActive: remota.isActive,
-          ...(changes.kind
-            ? { kind: changes.kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person }
-            : {}),
-        }),
-      );
-    }
+    const client = this.injector.get(FinanceApiClient);
+    const remota = (await firstValueFrom(client.people())).find((person) => person.id === id);
+    if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
+    await firstValueFrom(
+      client.updatePerson(id, {
+        displayName: name,
+        alias: remota.alias,
+        email: email ?? null,
+        phone: remota.phone,
+        notes: remota.notes,
+        isActive: remota.isActive,
+        ...(changes.kind
+          ? { kind: changes.kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person }
+          : {}),
+      }),
+    );
+
     this.data.update((data) => ({
       ...data,
       people: data.people.map((person) =>
@@ -1095,20 +918,19 @@ export class AppStore {
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
     if (!this.data().investments.some((investment) => investment.id === id))
       throw new Error(this.i18n.t('form.error.notFound'));
-    if (this.runtime.mode === 'api') {
-      const client = this.injector.get(FinanceApiClient);
-      const remota = (await firstValueFrom(client.investments())).find((investment) => investment.id === id);
-      if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
-      await firstValueFrom(
-        client.updateInvestment(id, {
-          name,
-          instrumentType: changes.instrumentType,
-          risk: remota.risk ?? 2,
-          symbol: remota.symbol ?? null,
-          isActive: remota.isActive,
-        }),
-      );
-    }
+    const client = this.injector.get(FinanceApiClient);
+    const remota = (await firstValueFrom(client.investments())).find((investment) => investment.id === id);
+    if (!remota) throw new Error(this.i18n.t('form.error.notFound'));
+    await firstValueFrom(
+      client.updateInvestment(id, {
+        name,
+        instrumentType: changes.instrumentType,
+        risk: remota.risk ?? 2,
+        symbol: remota.symbol ?? null,
+        isActive: remota.isActive,
+      }),
+    );
+
     this.data.update((data) => ({
       ...data,
       investments: data.investments.map((investment) =>
@@ -1119,72 +941,51 @@ export class AppStore {
     this.log(`Inversión ${name} actualizada`);
   }
   async createInvestment(name: string, instrumentType: string, currency: string) {
-    if (this.runtime.mode === 'api') {
-      const created = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createInvestment({ name, instrumentType, currency, risk: 2 }),
-      );
-      this.data.update((data) => ({
-        ...data,
-        investments: [
-          ...data.investments,
-          {
-            id: created.id,
-            name: created.name,
-            type: created.instrumentType,
-            cost: parseMoney(created.costBasis),
-            value: parseMoney(created.marketValue ?? created.costBasis),
-            institution: 'Sin especificar',
-            currency,
-            units: 0,
-            risk: 'Medio',
-            liquidity: 'Programada',
-          },
-        ],
-      }));
-    } else {
-      this.data.update((data) => ({
-        ...data,
-        investments: [
-          ...data.investments,
-          {
-            id: crypto.randomUUID(),
-            name,
-            type: instrumentType,
-            cost: 0,
-            value: 0,
-            institution: 'Sin especificar',
-            currency,
-            units: 0,
-            risk: 'Medio',
-            liquidity: 'Programada',
-          },
-        ],
-      }));
-    }
+    const created = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createInvestment({ name, instrumentType, currency, risk: 2 }),
+    );
+    this.data.update((data) => ({
+      ...data,
+      investments: [
+        ...data.investments,
+        {
+          id: created.id,
+          name: created.name,
+          type: created.instrumentType,
+          cost: parseMoney(created.costBasis),
+          value: parseMoney(created.marketValue ?? created.costBasis),
+          institution: 'Sin especificar',
+          currency,
+          units: 0,
+          risk: 'Medio',
+          liquidity: 'Programada',
+        },
+      ],
+    }));
+
     this.form.set(null);
     this.log(`Inversión ${name} creada`);
   }
   async createRecurrence(name: string, amount: number, accountId: string, frequency: number, start: string) {
-    if (this.runtime.mode === 'api') {
-      const account = this.account(accountId);
-      if (!account) throw new Error(this.i18n.t('form.recurrence.error.accountInvalid'));
-      await firstValueFrom(
-        this.injector.get(FinanceApiClient).createRecurrence({
-          name,
-          movementTemplate: account.type === 'credit' ? 20 : 2,
-          amount: { amount: String(amount), currency: account.currency },
-          target: account.type === 'credit' ? { card: accountId } : { account: accountId },
-          schedule: {
-            frequency,
-            interval: 1,
-            start,
-            end: null,
-            dayOfMonth: frequency === 3 ? Number(start.slice(-2)) : null,
-            dayOfWeek: null,
-          },
-        }),
-      );
-    }
+    const account = this.account(accountId);
+    if (!account) throw new Error(this.i18n.t('form.recurrence.error.accountInvalid'));
+    await firstValueFrom(
+      this.injector.get(FinanceApiClient).createRecurrence({
+        name,
+        movementTemplate: account.type === 'credit' ? 20 : 2,
+        amount: { amount: String(amount), currency: account.currency },
+        target: account.type === 'credit' ? { card: accountId } : { account: accountId },
+        schedule: {
+          frequency,
+          interval: 1,
+          start,
+          end: null,
+          dayOfMonth: frequency === 3 ? Number(start.slice(-2)) : null,
+          dayOfWeek: null,
+        },
+      }),
+    );
+
     this.form.set(null);
     this.log(`Recurrencia ${name} creada`);
   }

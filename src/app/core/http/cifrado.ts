@@ -1,7 +1,7 @@
 import { HttpBackend, HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { RUNTIME_CONFIG } from '@core/session';
 
 export const CABECERA_CIFRADO = 'X-Finanzas-Cifrado';
 export const TIPO_CIFRADO = 'application/vnd.finanzas.cifrado+json';

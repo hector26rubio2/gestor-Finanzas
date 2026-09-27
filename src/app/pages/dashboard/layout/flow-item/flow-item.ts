@@ -1,7 +1,7 @@
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, output } from '@angular/core';
-import { I18nService } from '../../../../core/i18n';
-import { IconComponent } from '../../../../ui/icon/icon';
+import { I18nService } from '@core/i18n';
+import { IconComponent } from '@ui/icon';
 import {
   FlowItem,
   GRID_GAP,

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmBadge } from '@spartan-ng/helm/badge';
-import { I18nService } from '../../../core/i18n';
-import { StoredPalette, variablesDePaleta } from '../../../core/state/theme';
-import { IconComponent } from '../../../ui/icon/icon';
+import { I18nService } from '@core/i18n';
+import { StoredPalette, variablesDePaleta } from '@core/state';
+import { IconComponent } from '@ui/icon';
 
 const BARRAS = [42, 68, 55, 80, 47, 90, 62];
 

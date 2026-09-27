@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '../http/api-http-client';
+import { API_TRANSPORT } from '@core/http';
 import { API_ROUTES } from './api-routes';
 
 export interface ApiUser {

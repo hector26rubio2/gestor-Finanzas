@@ -1,5 +1,5 @@
-import { P } from '../../core/session/permissions';
-import { I18nService } from '../../core/i18n';
+import { P } from '@core/session';
+import { I18nService } from '@core/i18n';
 import { Widget } from './dashboard.model';
 
 export function buildWidgetCatalog(i18n: I18nService): Widget[] {

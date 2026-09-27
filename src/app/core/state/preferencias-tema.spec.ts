@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
-import { P } from '../session/permissions';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from './store';
 
 describe('persistPreferences', () => {
@@ -20,7 +19,7 @@ describe('persistPreferences', () => {
     const api = { updatePreferences: vi.fn((request: { customThemeJson: string | null }) => of(request)) };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });

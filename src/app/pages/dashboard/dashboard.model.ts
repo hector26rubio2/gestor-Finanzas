@@ -1,3 +1,10 @@
+import type {
+  Dimension as DimensionDelMotor,
+  Granularidad,
+  Measure as MedidaDelMotor,
+  TipoVisual,
+} from '@shared/graficas';
+import { VISUALES } from '@shared/graficas';
 export type Scale = 'day' | 'week' | 'month' | 'year';
 /**
  * Los nueve primeros son fijos: cada uno trae su propia lógica de datos (ingresos vs
@@ -9,6 +16,7 @@ export type Scale = 'day' | 'week' | 'month' | 'year';
 export type FixedWidgetType =
   'flow' | 'trend' | 'categories' | 'accounts' | 'scatter' | 'donut' | 'stacked' | 'heatmap' | 'gauge' | 'histogram';
 export type GenericWidgetType =
+  | Exclude<TipoVisual, 'line'>
   | 'line'
   | 'area'
   | 'bar'
@@ -28,12 +36,12 @@ export type GenericWidgetType =
   | 'statusBars';
 export type WidgetType = FixedWidgetType | GenericWidgetType;
 /** Eje / agrupación disponible para un widget genérico. */
-export type Dimension = 'category' | 'account' | 'date' | 'kind' | 'person' | 'recurring' | 'installments';
+export type Dimension = DimensionDelMotor;
 export type Seleccion =
   | { readonly tipo: 'dimension'; readonly dimension: Dimension; readonly label: string }
   | { readonly tipo: 'importe'; readonly min: number; readonly max: number; readonly label: string };
 /** Qué se mide dentro de cada grupo de la dimensión. */
-export type Measure = 'amount' | 'expense' | 'income' | 'count' | 'average';
+export type Measure = MedidaDelMotor;
 /**
  * Las cinco medidas simples, mas formulas que cruzan ingreso y gasto -solo para la franja
  * de KPI de arriba, no para los widgets del grid, que ya tienen su propio motor de
@@ -68,27 +76,21 @@ export type Widget = {
   goalMin?: number;
   goalTarget?: number;
   goalMax?: number;
+  variant?: string;
+  granularity?: Granularidad;
+  limit?: number;
 };
 export const GENERIC_TYPES: readonly GenericWidgetType[] = [
-  'line',
-  'area',
-  'bar',
-  'barH',
-  'grouped',
-  'stackedBars',
-  'stacked100',
-  'pie',
-  'treemap',
-  'funnel',
-  'waterfall',
+  ...VISUALES.map((v) => v.tipo),
   'card',
-  'matrix',
   'table',
   'indicator',
   'colorScale',
   'statusBars',
 ];
-export const TWO_DIMENSION_TYPES: readonly WidgetType[] = ['grouped', 'stackedBars', 'stacked100', 'matrix'];
+export const TWO_DIMENSION_TYPES: readonly WidgetType[] = VISUALES.filter((v) => v.dimensiones === 2).map(
+  (v) => v.tipo,
+);
 export type TimelinePoint = {
   key: string;
   label: string;

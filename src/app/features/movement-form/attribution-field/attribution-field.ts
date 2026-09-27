@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
-import { I18nService } from '../../../core/i18n';
-import { AppStore } from '../../../core/state/store';
-import { FieldComponent } from '../../../ui/field/field';
-import { UiOption, UiSelectComponent } from '../../../ui/select/select';
+import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state';
+import { FieldComponent } from '@ui/field';
+import { UiOption, UiSelectComponent } from '@ui/select';
 
 @Component({
   selector: 'fin-movement-attribution-field',

@@ -142,7 +142,7 @@ async function revisar(browser, ruta, permiso) {
       route.fulfill({
         status: 200,
         contentType: 'application/javascript',
-        body: `window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: '${apiBaseUrl}' };`,
+        body: `window.__FINANZAS_CONFIG__ = { apiBaseUrl: '${apiBaseUrl}' };`,
       }),
     );
     await context.route('**/api/v1/session', (route) =>

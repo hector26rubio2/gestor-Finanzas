@@ -3,12 +3,11 @@ import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
-import { I18nService } from '../../../core/i18n';
-import { P } from '../../../core/session/permissions';
-import { AppStore, CAPABILITIES } from '../../../core/state/store';
-import { DEFAULT_PALETTE, StoredPalette, contraste } from '../../../core/state/theme';
-import { FieldComponent } from '../../../ui/field/field';
-import { IconComponent } from '../../../ui/icon/icon';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { AppStore, CAPABILITIES, DEFAULT_PALETTE, StoredPalette, contraste } from '@core/state';
+import { FieldComponent } from '@ui/field';
+import { IconComponent } from '@ui/icon';
 import { ThemePreviewComponent } from '../theme-preview/theme-preview';
 
 type ColorKey = 'primary' | 'background' | 'surface' | 'text' | 'border' | 'secondary';

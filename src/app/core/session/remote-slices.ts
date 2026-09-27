@@ -1,5 +1,5 @@
 import { ObservedValueOf } from 'rxjs';
-import { ApiSession, FinanceApiClient } from '../api/api-client';
+import { ApiSession, FinanceApiClient } from '@core/api';
 import { P } from './permissions';
 
 export type Rebanada =

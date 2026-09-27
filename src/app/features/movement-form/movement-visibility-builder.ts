@@ -1,4 +1,4 @@
-import { Account } from '../../core/state/demo-data';
+import { Account } from '@core/state';
 
 export type CounterpartyScope = 'person' | 'institution' | 'any';
 

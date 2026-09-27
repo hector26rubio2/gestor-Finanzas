@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Account, Movement } from '../../core/state/demo-data';
+import { Account, Movement } from '@core/state';
 import { mostOverextendedCard, mostUsedCard, nextCardDue } from './card-insights';
 
 const card = (id: string, extra: Partial<Account> = {}): Account => ({

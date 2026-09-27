@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
-import { I18nService } from '../../core/i18n';
+import { I18nService } from '@core/i18n';
 
 type Pagina = number | 'hueco';
 

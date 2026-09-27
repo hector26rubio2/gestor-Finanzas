@@ -7,17 +7,16 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
-import { FieldComponent } from '../../ui/field/field';
+import { FieldComponent } from '@ui/field';
 import { ThemeStudioComponent } from './theme-studio/theme-studio';
-import { CategoryIconComponent } from '../../ui/category-icon/category-icon';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api/api-client';
-import { IconComponent } from '../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { P } from '../../core/session/permissions';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { CAPABILITIES, AppStore, FEATURES } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
+import { CategoryIconComponent } from '@ui/category-icon';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '@core/api';
+import { IconComponent } from '@ui/icon';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { P, RemoteBootstrap } from '@core/session';
+import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { I18nService } from '@core/i18n';
 
 const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'data'] as const;
 type Seccion = (typeof SECCIONES)[number];
@@ -179,7 +178,7 @@ export class PreferencesTabComponent implements OnInit {
   }
 
   private async cargarMiembros(): Promise<void> {
-    if (this.store.runtime.mode !== 'api' || !this.can(P.organizacion.miembros.listar)) return;
+    if (!this.can(P.organizacion.miembros.listar)) return;
     try {
       const [gente, roles] = await Promise.all([
         firstValueFrom(this.api.organizationMembers()),

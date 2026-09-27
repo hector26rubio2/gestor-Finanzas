@@ -4,9 +4,9 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
-import { I18nService } from '../../../../core/i18n';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
+import { I18nService } from '@core/i18n';
+import { IconComponent } from '@ui/icon';
+import { UiOption, UiSelectComponent } from '@ui/select';
 import { KpiRanges } from '../kpi-ranges';
 
 @Component({

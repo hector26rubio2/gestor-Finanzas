@@ -11,37 +11,27 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { toCsv, downloadCsv } from '../../core/utils/csv';
-import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
-import { TableZoneComponent } from '../../ui/table-zone/table-zone';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { SkeletonComponent } from '../../ui/skeleton/skeleton';
-import { KpiComponent } from '../../ui/kpi/kpi';
+import { toCsv, downloadCsv, sumBy } from '@core/utils';
+import { KpiGridComponent } from '@ui/kpi-grid';
+import { TableZoneComponent } from '@ui/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { DataTableComponent } from '@ui/data-table';
+import { SkeletonComponent } from '@ui/skeleton';
+import { KpiComponent } from '@ui/kpi';
 import { longestInstallmentDebt, recurringExpenseCount, topSpendingCategory } from './movement-insights';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import type { Movement } from '../../core/state/demo-data';
-import { sumBy } from '../../core/utils/money';
-import { monthRange } from '../../core/api/shared-api-types';
-import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, rangosMensuales, variacion } from '../../shared/historia/historia';
-import { MovementsBookService } from '../../shared/movements/movements-book.service';
-import { HeaderActionsService } from '../../shared/header-actions.service';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import type { Movement } from '@core/state';
+import { monthRange } from '@core/api';
+import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, rangosMensuales, variacion } from '@shared/historia';
+import { MovementsBookService } from '@shared/movements';
+import { HeaderActionsService } from '@shared/header-actions.service';
 
 /** KPI de esta cesta cuya pista cambia según de dónde salen sus datos. */
 export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'installments' | 'topCategory';
 
-/** Pista en demo: los datos cargados son la selección completa, así que no hay que matizar. */
-const PISTA_DEMO: Record<MovementsKpi, string> = {
-  income: 'movements.kpi.selectionHint',
-  expense: 'movements.kpi.selectionHint',
-  records: 'movements.kpi.records.hint',
-  recurring: 'movements.kpi.recurring.hint',
-  installments: 'movements.kpi.installments.hint',
-  topCategory: 'movements.kpi.topCategory.hint',
-};
 
 /**
  * Clave de la pista de un KPI, según el modo de carga.
@@ -55,8 +45,8 @@ const PISTA_DEMO: Record<MovementsKpi, string> = {
  * dice con claridad. En demo los datos cargados son la selección completa y la pista
  * original sigue siendo cierta, por eso no cambia.
  */
-export function movementsKpiHintKey(mode: string, kpi: MovementsKpi): string {
-  return mode === 'api' ? `movements.kpi.page.${kpi}.hint` : PISTA_DEMO[kpi];
+export function movementsKpiHintKey(kpi: MovementsKpi): string {
+  return `movements.kpi.page.${kpi}.hint`;
 }
 
 @Component({
@@ -96,12 +86,11 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly totalesDelServidor = computed(() => {
     const sinFiltros = this.store.accountFilter() === 'all' && !this.book.pinned().length;
     const punto = this.totalDelPeriodo()[0];
-    return this.store.runtime.mode === 'api' && sinFiltros && punto && !punto.movs ? punto : null;
+    return sinFiltros && punto && !punto.movs ? punto : null;
   });
   readonly ingresosMostrados = computed(() => this.totalesDelServidor()?.income ?? this.store.income());
   readonly gastosMostrados = computed(() => this.totalesDelServidor()?.expense ?? this.store.expense());
-  readonly registrosMostrados = computed(() =>
-    this.store.runtime.mode === 'api' ? this.store.remoteMovementTotal() : this.store.movements().length,
+  readonly registrosMostrados = computed(() =>this.store.remoteMovementTotal(),
   );
   readonly historiaEtiqueta = computed(() => this.i18n.t('kpi.history.month', { count: PERIODOS_DE_HISTORIA }));
   readonly variacion = variacion;
@@ -130,7 +119,7 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   hintDe(kpi: MovementsKpi): string {
     if (this.totalesDelServidor() && (kpi === 'income' || kpi === 'expense')) return 'movements.kpi.selectionHint';
     if (kpi === 'records') return 'movements.kpi.selectionHint';
-    return movementsKpiHintKey(this.store.runtime.mode, kpi);
+    return movementsKpiHintKey(kpi);
   }
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 

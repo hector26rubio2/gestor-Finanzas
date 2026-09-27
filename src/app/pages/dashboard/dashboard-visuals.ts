@@ -1,14 +1,11 @@
 import { Signal, WritableSignal, computed, inject } from '@angular/core';
-import { Movement } from '../../core/state/demo-data';
-import { I18nService } from '../../core/i18n';
-import { sumBy } from '../../core/utils/money';
-import {} from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { UiOption } from '../../ui/select/select';
-import { ChartOption } from '../../ui/chart/chart';
-import { ChartThemeService } from '../../ui/chart/chart-theme';
+import { Movement, CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { UiOption } from '@ui/select';
+import { ChartOption, ChartThemeService } from '@ui/chart';
 import { CategorySlice, Dimension, Measure, Scale, TimelinePoint, Widget } from './dashboard.model';
-import { cifraCorta, conAlfa, degradado, ejesDeIntervalo } from './dashboard-chart-style';
+import { cifraCorta, conAlfa, degradado, ejesDeIntervalo, ContextoDeDatos, agregar, etiquetaDeDimension, valorDeMedida, TIPOS_DEL_MOTOR, construirVisual, crearContextoDeDatos, etiquetaDeTipoDeMovimiento } from '@shared/graficas';
+import type { Granularidad, TipoVisual } from '@shared/graficas';
 
 export abstract class DashboardVisuals {
   readonly store = inject(AppStore);
@@ -432,411 +429,55 @@ export abstract class DashboardVisuals {
     };
   });
 
-  /** Clave para agrupar (estable, sin formatear) y etiqueta para mostrar. Iguales salvo en fecha. */
+  protected granularidadDe(widget?: Pick<Widget, 'granularity'>): Granularidad {
+    if (widget?.granularity) return widget.granularity;
+    return this.scale() === 'year' ? 'month' : 'day';
+  }
+
+  protected contextoDeDatos(granularidad: Granularidad = this.granularidadDe()): ContextoDeDatos {
+    return crearContextoDeDatos(this.store, this.i18n, granularidad);
+  }
+
   protected dimensionKey(m: Movement, dim: Dimension): { key: string; label: string } {
-    if (dim === 'date') {
-      const d = new Date(`${m.date}T12:00:00Z`);
-      const key = this.scale() === 'year' ? m.date.slice(0, 7) : m.date;
-      const label =
-        this.scale() === 'year'
-          ? new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'short', timeZone: 'UTC' }).format(d)
-          : new Intl.DateTimeFormat(this.store.preferences().locale, {
-              day: '2-digit',
-              month: 'short',
-              timeZone: 'UTC',
-            }).format(d);
-      return { key, label };
-    }
-    const label =
-      dim === 'category'
-        ? m.category
-        : dim === 'account'
-          ? (this.store.account(m.accountId)?.name ?? this.i18n.t('dashboard.account.none'))
-          : dim === 'kind'
-            ? this.kindLabel(m)
-            : dim === 'recurring'
-              ? this.i18n.t(
-                  m.recurring ? 'dashboard.dimension.recurring.fixed' : 'dashboard.dimension.recurring.variable',
-                )
-              : dim === 'installments'
-                ? this.i18n.t(
-                    (m.installmentTotal ?? 1) > 1
-                      ? 'dashboard.dimension.installments.yes'
-                      : 'dashboard.dimension.installments.no',
-                  )
-                : (m.person ?? this.i18n.t('dashboard.person.none'));
-    return { key: label, label };
+    return etiquetaDeDimension(m, dim, this.contextoDeDatos());
   }
-  /**
-   * Transferencia y avance ya no son su propia clase de movimiento (`kind` es
-   * `expense`/`income` como cualquier otro), así que hay que mirar `movementSubtype`
-   * primero o un widget partido por "tipo" mostraría un gasto de transferencia
-   * mezclado con los gastos reales, perdiendo justo la distinción que antes daba
-   * `kind === 'transfer'`.
-   */
+
   protected kindLabel(m: Movement): string {
-    if (m.movementSubtype === 'transfer') return this.i18n.t('dashboard.movement.kind.transfer');
-    if (m.movementSubtype === 'advance') return this.i18n.t('dashboard.movement.kind.advance');
-    const etiquetas: Record<string, string> = {
-      income: this.i18n.t('dashboard.movement.kind.income'),
-      expense: this.i18n.t('dashboard.movement.kind.expense'),
-      payment: this.i18n.t('dashboard.movement.kind.payment'),
-    };
-    return etiquetas[m.kind] ?? m.kind;
+    return etiquetaDeTipoDeMovimiento(m, this.i18n);
   }
-  /**
-   * `expense`/`income` se basan en el signo del importe, no en `kind`: un widget puede
-   * partir la misma medida por `kind` como serie (dimension2), y si "gasto" filtrara otra
-   * vez por `kind === 'expense'` las series de pago/transferencia saldrían siempre en cero
-   * -su filtro y el de la medida se pisan-. El signo no tiene ese problema y es la misma
-   * idea de fondo: dinero que sale es gasto, dinero que entra es ingreso.
-   */
+
   protected measureValue(rows: readonly Movement[], measure: Measure): number {
-    switch (measure) {
-      case 'amount':
-        return sumBy(rows, (m) => m.amount);
-      case 'expense':
-        return sumBy(
-          rows.filter((m) => m.amount < 0),
-          (m) => -m.amount,
-        );
-      case 'income':
-        return sumBy(
-          rows.filter((m) => m.amount > 0),
-          (m) => m.amount,
-        );
-      case 'count':
-        return rows.length;
-      case 'average':
-        return rows.length ? sumBy(rows, (m) => Math.abs(m.amount)) / rows.length : 0;
-    }
+    return valorDeMedida(rows, measure);
   }
-  /** El texto de una cifra según su métrica: unidades para cantidad, dinero para el resto. */
+
   formatMeasure(value: number, widget: Pick<Widget, 'measure'>): string {
     return (widget.measure ?? 'expense') === 'count' ? Math.round(value).toLocaleString() : this.store.money(value);
   }
-  /**
-   * Agrega los movimientos del periodo por la dimensión del widget.
-   *
-   * Fecha ordena cronológicamente por la clave (no la etiqueta: "ene" y "ago" ordenan mal
-   * alfabéticamente); el resto ordena de mayor a menor para que lo más relevante quede
-   * primero en barras, dona, embudo, etc.
-   */
-  protected aggregate(widget: Pick<Widget, 'dimension' | 'measure'>): { key: string; label: string; value: number }[] {
-    const dim = widget.dimension ?? 'category';
-    const measure = widget.measure ?? 'expense';
-    const grupos = new Map<string, { label: string; filas: Movement[] }>();
-    for (const m of this.movements()) {
-      const { key, label } = this.dimensionKey(m, dim);
-      const entrada = grupos.get(key) ?? { label, filas: [] };
-      entrada.filas.push(m);
-      grupos.set(key, entrada);
-    }
-    const filas = [...grupos].map(([key, { label, filas }]) => ({
-      key,
-      label,
-      value: this.measureValue(filas, measure),
-    }));
-    return dim === 'date' ? filas.sort((a, b) => a.key.localeCompare(b.key)) : filas.sort((a, b) => b.value - a.value);
+
+  protected aggregate(
+    widget: Pick<Widget, 'dimension' | 'measure' | 'granularity'>,
+  ): { key: string; label: string; value: number }[] {
+    return agregar(
+      this.movements(),
+      widget.dimension ?? 'category',
+      widget.measure ?? 'expense',
+      this.contextoDeDatos(this.granularidadDe(widget)),
+    );
   }
-  /**
-   * Igual que `aggregate` pero cruzando dos dimensiones: una para el eje y otra para la
-   * serie (columnas agrupadas/apiladas, mapa de calor). Las categorías del eje ordenan
-   * como en `aggregate`; las series ordenan alfabéticamente, que es estable y predecible.
-   */
-  protected aggregate2D(widget: Widget): { categories: string[]; series: { name: string; data: number[] }[] } {
-    const dim = widget.dimension ?? 'category';
-    const dim2 = widget.dimension2 ?? 'kind';
-    const measure = widget.measure ?? 'expense';
-    const ordenCategorias: string[] = [];
-    const etiquetaCategoria = new Map<string, string>();
-    const series = new Set<string>();
-    const celdas = new Map<string, Movement[]>();
-    for (const m of this.movements()) {
-      const c = this.dimensionKey(m, dim);
-      const s = this.dimensionKey(m, dim2);
-      if (!etiquetaCategoria.has(c.key)) {
-        etiquetaCategoria.set(c.key, c.label);
-        ordenCategorias.push(c.key);
-      }
-      series.add(s.label);
-      const clave = c.key + '\u0000' + s.label;
-      const filas = celdas.get(clave) ?? [];
-      filas.push(m);
-      celdas.set(clave, filas);
-    }
-    const nombresSeries = [...series].sort();
-    const totalCategoria = (categoria: string) =>
-      nombresSeries.reduce(
-        (s, nombre) => s + this.measureValue(celdas.get(categoria + '\u0000' + nombre) ?? [], measure),
-        0,
-      );
-    const categorias =
-      dim === 'date'
-        ? [...ordenCategorias].sort()
-        : [...ordenCategorias].sort((a, b) => totalCategoria(b) - totalCategoria(a));
-    return {
-      categories: categorias.map((c) => etiquetaCategoria.get(c) ?? c),
-      series: nombresSeries.map((nombre) => ({
-        name: nombre,
-        data: categorias.map((c) => this.measureValue(celdas.get(c + '\u0000' + nombre) ?? [], measure)),
-      })),
-    };
-  }
-  /** Construye la opción de echarts de un widget genérico según su tipo. */
+
   widgetOption(widget: Widget): ChartOption {
-    const palette = this.temaGrafica.palette();
-    const valueFormatter = (valor: unknown) => this.formatMeasure(Number(valor), widget);
-    switch (widget.type) {
-      case 'line':
-      case 'area': {
-        const agg = this.aggregate(widget);
-        return {
-          ...ejesDeIntervalo(
-            palette,
-            agg.map((a) => a.label),
-          ),
-          tooltip: { trigger: 'axis' as const, valueFormatter },
-          series: [
-            {
-              type: 'line' as const,
-              smooth: 0.24,
-              showSymbol: agg.length <= 20,
-              lineStyle: { width: 2.4, color: palette.accent },
-              itemStyle: { color: palette.accent },
-              areaStyle: widget.type === 'area' ? { color: degradado(palette.accent) } : undefined,
-              data: agg.map((a) => a.value),
-            },
-          ],
-        };
-      }
-      case 'bar':
-      case 'barH': {
-        const agg = this.aggregate(widget).slice(0, 12);
-        const horizontal = widget.type === 'barH';
-        // ECharts ordena la fuente declarativamente antes de pintarla. Esto deja la
-        // agregación en el componente y el ordenamiento en el motor de gráficos, y
-        // permite reutilizar el mismo dataset cuando añadamos filtros o series.
-        // Referencia: https://echarts.apache.org/handbook/en/concepts/data-transform
-        const source = [['label', 'value'], ...agg.map((item) => [item.label, item.value])];
-        const ejeCategoria = {
-          type: 'category' as const,
-          axisLine: { lineStyle: { color: palette.line } },
-          axisTick: { show: false },
-          axisLabel: { color: palette.muted, hideOverlap: true },
-        };
-        const ejeValor = {
-          type: 'value' as const,
-          splitLine: { lineStyle: { color: palette.line, type: 'dashed' as const } },
-          axisLabel: { color: palette.muted, formatter: (v: number) => cifraCorta(v) },
-        };
-        return {
-          grid: horizontal
-            ? { top: 10, right: 24, bottom: 10, left: 110, containLabel: true }
-            : { top: 20, right: 18, bottom: 34, left: 62 },
-          xAxis: horizontal ? ejeValor : ejeCategoria,
-          yAxis: horizontal ? ejeCategoria : ejeValor,
-          dataset: [
-            { id: 'bar-source', source },
-            {
-              id: 'bar-sorted',
-              fromDatasetId: 'bar-source',
-              transform: { type: 'sort', config: { dimension: 'value', order: 'desc' } },
-            },
-          ],
-          tooltip: { trigger: 'axis' as const, valueFormatter },
-          series: [
-            {
-              type: 'bar' as const,
-              datasetId: 'bar-sorted',
-              encode: horizontal ? { x: 'value', y: 'label' } : { x: 'label', y: 'value' },
-              barMaxWidth: 26,
-              itemStyle: {
-                color: palette.accent,
-                borderRadius: (horizontal ? [0, 5, 5, 0] : [5, 5, 0, 0]) as [number, number, number, number],
-              },
-            },
-          ],
-        };
-      }
-      case 'grouped':
-      case 'stackedBars':
-      case 'stacked100': {
-        const { categories, series } = this.aggregate2D(widget);
-        const colores = [palette.accent, palette.danger, palette.warn, '#0ea5e9', '#64748b', '#a855f7'];
-        const porcentaje = widget.type === 'stacked100';
-        const totales = categories.map((_, i) => series.reduce((s, serie) => s + serie.data[i], 0) || 1);
-        return {
-          ...ejesDeIntervalo(palette, categories),
-          legend: {
-            data: series.map((s) => s.name),
-            top: 0,
-            right: 0,
-            textStyle: { color: palette.muted },
-            icon: 'circle',
-          },
-          tooltip: {
-            trigger: 'axis' as const,
-            axisPointer: { type: 'shadow' as const },
-            valueFormatter: porcentaje ? (v: unknown) => `${Number(v).toFixed(0)}%` : valueFormatter,
-          },
-          series: series.map((serie, i) => ({
-            name: serie.name,
-            type: 'bar' as const,
-            stack: widget.type === 'grouped' ? undefined : 'total',
-            barMaxWidth: 26,
-            itemStyle: { color: colores[i % colores.length] },
-            data: porcentaje ? serie.data.map((v, idx) => (v / totales[idx]) * 100) : serie.data,
-          })),
-        };
-      }
-      case 'pie': {
-        const agg = this.aggregate(widget).slice(0, 8);
-        return {
-          tooltip: {
-            trigger: 'item' as const,
-            formatter: (p: { name: string; value: number; percent: number }) =>
-              `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b> · ${p.percent}%`,
-          },
-          legend: {
-            orient: 'vertical' as const,
-            right: 0,
-            top: 'middle',
-            textStyle: { color: palette.muted, fontSize: 14 },
-            itemWidth: 13,
-            itemHeight: 13,
-            itemGap: 16,
-            icon: 'circle',
-          },
-          series: [
-            {
-              type: 'pie' as const,
-              radius: '72%',
-              center: ['38%', '50%'],
-              itemStyle: { borderColor: palette.surface, borderWidth: 2 },
-              // Sin esto, la etiqueta y la linea guia usan el negro por defecto de echarts:
-              // ilegible sobre el fondo oscuro y la "e" del borde que mencionaste era esa
-              // linea guia sin color de tema, no el borde entre porciones.
-              label: { color: palette.text, fontSize: 13 },
-              labelLine: { lineStyle: { color: palette.line } },
-              data: agg.map((a) => ({ name: a.label, value: a.value })),
-            },
-          ],
-        };
-      }
-      case 'treemap': {
-        const agg = this.aggregate(widget);
-        return {
-          tooltip: {
-            formatter: (p: { name: string; value: number }) =>
-              `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>`,
-          },
-          series: [
-            {
-              type: 'treemap' as const,
-              left: '0.5%',
-              top: '0.5%',
-              right: '0.5%',
-              bottom: '0.5%',
-              data: agg.map((a) => ({ name: a.label, value: a.value })),
-              itemStyle: { borderColor: palette.surface, gapWidth: 2 },
-              breadcrumb: { show: false },
-              label: { color: '#fff', fontSize: 13 },
-            },
-          ],
-        };
-      }
-      case 'funnel': {
-        const agg = this.aggregate(widget).slice(0, 8);
-        return {
-          tooltip: {
-            formatter: (p: { name: string; value: number }) =>
-              `${p.name}<br/><b>${this.formatMeasure(p.value, widget)}</b>`,
-          },
-          series: [
-            {
-              type: 'funnel' as const,
-              left: '10%',
-              width: '80%',
-              sort: 'descending' as const,
-              label: { color: palette.text },
-              itemStyle: { color: palette.accent, borderColor: palette.surface, borderWidth: 1 },
-              data: agg.map((a) => ({ name: a.label, value: a.value })),
-            },
-          ],
-        };
-      }
-      case 'waterfall': {
-        const agg = this.aggregate(widget);
-        let acumulado = 0;
-        const base: number[] = [];
-        const delta: { value: number; itemStyle: { color: string } }[] = [];
-        for (const a of agg) {
-          base.push(a.value >= 0 ? acumulado : acumulado + a.value);
-          delta.push({
-            value: Math.abs(a.value),
-            itemStyle: { color: a.value >= 0 ? palette.accent : palette.danger },
-          });
-          acumulado += a.value;
-        }
-        return {
-          ...ejesDeIntervalo(
-            palette,
-            agg.map((a) => a.label),
-          ),
-          tooltip: { trigger: 'axis' as const, valueFormatter },
-          series: [
-            { type: 'bar' as const, stack: 'cascada', itemStyle: { color: 'transparent' }, silent: true, data: base },
-            { type: 'bar' as const, stack: 'cascada', barMaxWidth: 26, data: delta },
-          ],
-        };
-      }
-      case 'matrix': {
-        const { categories, series } = this.aggregate2D(widget);
-        const celdas: [number, number, number][] = [];
-        series.forEach((s, yi) => s.data.forEach((v, xi) => celdas.push([xi, yi, v])));
-        const max = Math.max(1, ...celdas.map((c) => c[2]));
-        return {
-          grid: { top: 10, right: 18, bottom: 60, left: 130, containLabel: true },
-          xAxis: {
-            type: 'category' as const,
-            data: categories,
-            axisLine: { lineStyle: { color: palette.line } },
-            axisTick: { show: false },
-            axisLabel: { color: palette.muted, hideOverlap: true },
-          },
-          yAxis: {
-            type: 'category' as const,
-            data: series.map((s) => s.name),
-            axisLine: { show: false },
-            axisTick: { show: false },
-            axisLabel: { color: palette.muted },
-          },
-          visualMap: {
-            min: 0,
-            max,
-            calculable: true,
-            orient: 'horizontal' as const,
-            left: 'center',
-            bottom: 0,
-            textStyle: { color: palette.muted },
-            formatter: (v: number) => cifraCorta(v),
-            inRange: { color: [conAlfa(palette.accent, 0.12), palette.accent] },
-          },
-          tooltip: {
-            formatter: (p: { value: [number, number, number] }) =>
-              `${categories[p.value[0]]} · ${series[p.value[1]].name}<br/><b>${this.formatMeasure(p.value[2], widget)}</b>`,
-          },
-          series: [
-            { type: 'heatmap' as const, data: celdas, itemStyle: { borderColor: palette.surface, borderWidth: 2 } },
-          ],
-        };
-      }
-      case 'indicator':
-        return this.indicatorOption(widget);
-      default:
-        return { series: [] };
-    }
+    if (widget.type === 'indicator') return this.indicatorOption(widget);
+    if (!TIPOS_DEL_MOTOR.has(widget.type)) return { series: [] };
+    return construirVisual({
+      config: { ...widget, tipo: widget.type as TipoVisual },
+      movs: this.movements(),
+      entorno: {
+        palette: this.temaGrafica.palette(),
+        ctx: this.contextoDeDatos(this.granularidadDe(widget)),
+        dinero: (valor) => this.store.money(valor),
+        titulo: widget.title,
+      },
+    });
   }
   /**
    * Umbrales del semáforo: rojo hasta la mitad de la meta, ámbar hasta la meta, verde de

@@ -1,24 +1,23 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CdkDropList } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
-import { parseMoney, sumBy } from '../../core/utils/money';
-import { P } from '../../core/session/permissions';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { IconComponent, IconName } from '../../ui/icon/icon';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { KpiComponent } from '../../ui/kpi/kpi';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { ChartComponent } from '../../ui/chart/chart';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../ui/field/field';
-import { CategoryBadgeComponent } from '../../ui/category-badge/category-badge';
-import { FinTableCellDirective } from '../../ui/data-table/table-cell.directive';
+import { ApiDashboard, FinanceApiClient } from '@core/api';
+import { parseMoney, sumBy } from '@core/utils';
+import { P } from '@core/session';
+import { sincronizarConLaUrl } from '@core/state';
+import { IconComponent, IconName } from '@ui/icon';
+import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
+import { KpiComponent } from '@ui/kpi';
+import { OverlayComponent } from '@ui/overlay';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { ChartComponent } from '@ui/chart';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
+import { CategoryBadgeComponent } from '@ui/category-badge';
 import { CategoryListComponent } from './widgets/category-list/category-list';
 import { AccountListComponent } from './widgets/account-list/account-list';
 import { ColorScaleComponent } from './widgets/color-scale/color-scale';
@@ -27,7 +26,8 @@ import { WidgetControlsComponent } from './widgets/widget-controls/widget-contro
 import { WidgetCardComponent } from './widgets/widget-card/widget-card';
 import { FilterPanelComponent } from './filters/filter-panel/filter-panel';
 import { CUSTOM_KPI_PREFIX, FIXED_KPI_PREFIX, KpiStripComponent } from './kpis/kpi-strip/kpi-strip';
-import { DashboardLayoutService } from './layout/dashboard-layout.service';
+import { DashboardLayoutService, WidgetGuardado } from './layout/dashboard-layout.service';
+import { SelectorDeTablerosComponent } from './tableros/selector-de-tableros';
 import { FlowDefault, WIDGET_MIN_COLS } from './layout/dashboard-layout';
 import { FlowItemComponent } from './layout/flow-item/flow-item';
 
@@ -42,12 +42,14 @@ import {
   TWO_DIMENSION_TYPES,
 } from './dashboard.model';
 import { DashboardKpis } from './dashboard-kpis';
-import type { Movement } from '../../core/state/demo-data';
-import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo } from '../../shared/historia/historia';
+import type { Movement } from '@core/state';
+import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, crearMovimientosDelPeriodo } from '@shared/historia';
 import { KpiRanges, KpiStatus, estadoDe } from './kpis/kpi-ranges';
 
 type KpiStatusValue = KpiStatus | null;
 import { buildWidgetCatalog } from './dashboard-widget-catalog';
+import { ConfiguradorVisualComponent, GaleriaVisualComponent, OpcionesDeGraficas, TIPOS_DEL_MOTOR, definicionDe } from '@shared/graficas';
+import type { ConfiguracionVisual, TipoVisual } from '@shared/graficas';
 
 const KPI_HEIGHT = 120;
 
@@ -87,8 +89,39 @@ function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
   return isoDe(date);
 }
 
+const CAMPOS_EDITABLES = [
+  'type',
+  'wide',
+  'dimension',
+  'dimension2',
+  'measure',
+  'variant',
+  'granularity',
+  'limit',
+  'goalMin',
+  'goalTarget',
+  'goalMax',
+] as const;
+
+function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[]): Widget[] {
+  const porId = new Map(guardados.map((guardado) => [guardado.id, guardado]));
+  const base = catalogo.map((widget) => {
+    const cambios = porId.get(widget.id);
+    return cambios ? ({ ...widget, ...cambios, title: widget.title, kicker: widget.kicker } as Widget) : widget;
+  });
+  const propios = guardados
+    .filter((guardado) => guardado.custom && typeof guardado.title === 'string' && typeof guardado['type'] === 'string')
+    .map((guardado) => {
+      const { custom, ...widget } = guardado;
+      void custom;
+      return widget as unknown as Widget;
+    });
+  return [...base, ...propios];
+}
+
 @Component({
   imports: [
+    SelectorDeTablerosComponent,
     HlmButton,
     HlmInput,
     FormsModule,
@@ -113,6 +146,8 @@ function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
     KpiStripComponent,
     CdkDropList,
     FlowItemComponent,
+    ConfiguradorVisualComponent,
+    GaleriaVisualComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
@@ -153,10 +188,11 @@ export class DashboardComponent extends DashboardKpis {
    */
   readonly puedePersonalizar = computed(
     () =>
-      this.caps.allows(P.dashboard.widget.orden.editar) ||
-      this.caps.allows(P.dashboard.widget.tipo.editar) ||
-      this.caps.allows(P.dashboard.widget.deshabilitar) ||
-      this.caps.allows(P.dashboard.widget.crear),
+      !this.layout.soloLectura() &&
+      (this.caps.allows(P.dashboard.widget.orden.editar) ||
+        this.caps.allows(P.dashboard.widget.tipo.editar) ||
+        this.caps.allows(P.dashboard.widget.deshabilitar) ||
+        this.caps.allows(P.dashboard.widget.crear)),
   );
 
   /** Sin ningún KPI concedido la franja se retira entera, en vez de quedar vacía. */
@@ -386,7 +422,43 @@ export class DashboardComponent extends DashboardKpis {
   readonly hiddenIds = signal<string[]>([]);
   readonly widgetCreatorOpen = signal(false);
   newWidgetTitle = '';
-  newWidgetMetric: WidgetType = 'bar';
+  private readonly opcionesDeGraficas = inject(OpcionesDeGraficas);
+  readonly nuevoVisual = signal<ConfiguracionVisual>({ tipo: 'bar', dimension: 'category', measure: 'expense' });
+  readonly otroTipo = signal<WidgetType | ''>('');
+  get newWidgetMetric(): WidgetType {
+    return this.otroTipo() || this.nuevoVisual().tipo;
+  }
+  readonly vistaPrevia = computed(() =>
+    this.otroTipo()
+      ? null
+      : this.widgetOption({
+          id: 'vista-previa',
+          title: '',
+          kicker: '',
+          type: this.nuevoVisual().tipo,
+          wide: true,
+          ...this.sinTipo(this.nuevoVisual()),
+        }),
+  );
+  elegirTipoDelMotor(tipo: string): void {
+    const definicion = definicionDe(tipo);
+    if (!definicion) return;
+    this.otroTipo.set('');
+    this.newWidgetWidth = definicion.ancha ? 'wide' : 'half';
+    this.nuevoVisual.update((actual) => ({
+      ...actual,
+      tipo: definicion.tipo,
+      variant: undefined,
+      dimension: definicion.sugerida.dimension,
+      dimension2: definicion.sugerida.dimension2,
+      measure: definicion.sugerida.measure ?? 'expense',
+    }));
+  }
+  private sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'> {
+    const { tipo, ...resto } = config;
+    void tipo;
+    return resto;
+  }
   newWidgetWidth = 'wide';
   newWidgetDimension: Dimension = 'category';
   newWidgetDimension2: Dimension = 'kind';
@@ -407,50 +479,35 @@ export class DashboardComponent extends DashboardKpis {
    * caja, exploración de categorías con click-to-filter, dispersión fecha/importe— y no
    * aceptan dimensión ni métrica; se mantienen para no romper widgets ya creados con ellos.
    */
+  readonly otherWidgetTypeOptions = computed<readonly UiOption[]>(() =>
+    (
+      [
+        'indicator',
+        'colorScale',
+        'statusBars',
+        'table',
+        'flow',
+        'trend',
+        'categories',
+        'accounts',
+        'scatter',
+        'donut',
+        'stacked',
+        'heatmap',
+        'gauge',
+        'histogram',
+      ] as const
+    ).map((value) => ({ value, label: this.i18n.t(`dashboard.widgetType.${value}`) })),
+  );
   readonly widgetTypeOptions = computed<readonly UiOption[]>(() => [
-    { value: 'line', label: this.i18n.t('dashboard.widgetType.line') },
-    { value: 'area', label: this.i18n.t('dashboard.widgetType.area') },
-    { value: 'bar', label: this.i18n.t('dashboard.widgetType.bar') },
-    { value: 'barH', label: this.i18n.t('dashboard.widgetType.barH') },
-    { value: 'grouped', label: this.i18n.t('dashboard.widgetType.grouped') },
-    { value: 'stackedBars', label: this.i18n.t('dashboard.widgetType.stackedBars') },
-    { value: 'stacked100', label: this.i18n.t('dashboard.widgetType.stacked100') },
-    { value: 'pie', label: this.i18n.t('dashboard.widgetType.pie') },
-    { value: 'treemap', label: this.i18n.t('dashboard.widgetType.treemap') },
-    { value: 'funnel', label: this.i18n.t('dashboard.widgetType.funnel') },
-    { value: 'waterfall', label: this.i18n.t('dashboard.widgetType.waterfall') },
-    { value: 'matrix', label: this.i18n.t('dashboard.widgetType.matrix') },
-    { value: 'indicator', label: this.i18n.t('dashboard.widgetType.indicator') },
-    { value: 'colorScale', label: this.i18n.t('dashboard.widgetType.colorScale') },
-    { value: 'statusBars', label: this.i18n.t('dashboard.widgetType.statusBars') },
-    { value: 'table', label: this.i18n.t('dashboard.widgetType.table') },
-    { value: 'flow', label: this.i18n.t('dashboard.widgetType.flow') },
-    { value: 'trend', label: this.i18n.t('dashboard.widgetType.trend') },
-    { value: 'categories', label: this.i18n.t('dashboard.widgetType.categories') },
-    { value: 'accounts', label: this.i18n.t('dashboard.widgetType.accounts') },
-    { value: 'scatter', label: this.i18n.t('dashboard.widgetType.scatter') },
-    { value: 'donut', label: this.i18n.t('dashboard.widgetType.donut') },
-    { value: 'stacked', label: this.i18n.t('dashboard.widgetType.stacked') },
-    { value: 'heatmap', label: this.i18n.t('dashboard.widgetType.heatmap') },
-    { value: 'gauge', label: this.i18n.t('dashboard.widgetType.gauge') },
-    { value: 'histogram', label: this.i18n.t('dashboard.widgetType.histogram') },
+    ...this.opcionesDeGraficas.tipos(),
+    ...this.otherWidgetTypeOptions().map((opcion) => ({ ...opcion, description: this.i18n.t('charts.group.others') })),
   ]);
-  readonly dimensionOptions = computed<readonly UiOption[]>(() => [
-    { value: 'category', label: this.i18n.t('dashboard.dimension.category') },
-    { value: 'account', label: this.i18n.t('dashboard.dimension.account') },
-    { value: 'date', label: this.i18n.t('dashboard.dimension.date') },
-    { value: 'kind', label: this.i18n.t('dashboard.dimension.kind') },
-    { value: 'person', label: this.i18n.t('dashboard.dimension.person') },
-    { value: 'recurring', label: this.i18n.t('dashboard.dimension.recurring') },
-    { value: 'installments', label: this.i18n.t('dashboard.dimension.installments') },
-  ]);
-  readonly measureOptions = computed<readonly UiOption[]>(() => [
-    { value: 'expense', label: this.i18n.t('dashboard.measure.expense') },
-    { value: 'income', label: this.i18n.t('dashboard.measure.income') },
-    { value: 'amount', label: this.i18n.t('dashboard.measure.amount') },
-    { value: 'count', label: this.i18n.t('dashboard.measure.count') },
-    { value: 'average', label: this.i18n.t('dashboard.measure.average') },
-  ]);
+
+  readonly dimensionOptions = this.opcionesDeGraficas.dimensiones;
+
+  readonly measureOptions = this.opcionesDeGraficas.medidas;
+
   readonly widgetWidthOptions = computed<readonly UiOption[]>(() => [
     { value: 'wide', label: this.i18n.t('dashboard.widgetWidth.wide') },
     { value: 'half', label: this.i18n.t('dashboard.widgetWidth.half') },
@@ -461,6 +518,13 @@ export class DashboardComponent extends DashboardKpis {
   needsDimension2(type: WidgetType): boolean {
     return TWO_DIMENSION_TYPES.includes(type);
   }
+  esDelMotor(type: string): boolean {
+    return TIPOS_DEL_MOTOR.has(type);
+  }
+  variantOptions(type: string): readonly UiOption[] {
+    return this.opcionesDeGraficas.variantes(type);
+  }
+  readonly granularityOptions = this.opcionesDeGraficas.granularidades;
   needsGoal(type: WidgetType): boolean {
     return type === 'indicator' || type === 'colorScale';
   }
@@ -471,6 +535,22 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'year', label: this.i18n.t('dashboard.period.year') },
   ]);
   readonly all = signal<Widget[]>(buildWidgetCatalog(this.i18n));
+  private readonly restaurarWidgets = effect(() => {
+    const guardados = this.layout.widgetConfigs();
+    untracked(() => this.all.set(fusionarWidgets(buildWidgetCatalog(this.i18n), guardados ?? [])));
+  });
+  private guardarWidgets(): void {
+    const catalogo = new Map(buildWidgetCatalog(this.i18n).map((widget) => [widget.id, widget]));
+    const configs = this.all().flatMap((widget): WidgetGuardado[] => {
+      const original = catalogo.get(widget.id);
+      if (!original) return [{ ...widget, custom: true }];
+      const cambios = Object.fromEntries(
+        CAMPOS_EDITABLES.filter((campo) => widget[campo] !== original[campo]).map((campo) => [campo, widget[campo]]),
+      );
+      return Object.keys(cambios).length ? [{ id: widget.id, ...cambios }] : [];
+    });
+    this.layout.saveWidgetConfigs(configs);
+  }
   canSee(widget: Widget): boolean {
     // Antes, un widget sin capacidad era visible para cualquiera, y los creados por
     // el usuario nacian asi. Ahora heredan el permiso de los widgets propios.
@@ -568,14 +648,16 @@ export class DashboardComponent extends DashboardKpis {
 
   private readonly cargaRemota = effect(() => {
     const rango = this.range();
-    if (this.store.runtime.mode !== 'api' || this.nadaQueMostrar()) return;
+    if (this.nadaQueMostrar()) return;
     void firstValueFrom(this.api.dashboard(rango.start, rango.end))
       .then((valor) => this.remote.set(valor))
       .catch(() => this.remote.set(null));
   });
 
+  private readonly delPeriodo = crearMovimientosDelPeriodo(computed(() => this.range()));
+  readonly cargandoPeriodo = this.delPeriodo.cargando;
   readonly base = computed(() =>
-    this.store.data().movements.filter((m) => {
+    this.delPeriodo.movimientos().filter((m) => {
       const a = this.store.account(m.accountId);
       return (
         m.date >= this.range().start &&
@@ -817,6 +899,7 @@ export class DashboardComponent extends DashboardKpis {
       [next[index], next[target]] = [next[target], next[index]];
       return next;
     });
+    this.guardarWidgets();
   }
   changeType(id: string, type: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
@@ -833,28 +916,38 @@ export class DashboardComponent extends DashboardKpis {
           : { ...item, type: nextType };
       }),
     );
+    this.guardarWidgets();
   }
   changeDimension(id: string, dimension: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) =>
       items.map((item) => (item.id === id ? { ...item, dimension: dimension as Dimension } : item)),
     );
+    this.guardarWidgets();
   }
   changeDimension2(id: string, dimension2: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) =>
       items.map((item) => (item.id === id ? { ...item, dimension2: dimension2 as Dimension } : item)),
     );
+    this.guardarWidgets();
   }
   changeMeasure(id: string, measure: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) => items.map((item) => (item.id === id ? { ...item, measure: measure as Measure } : item)));
+    this.guardarWidgets();
+  }
+  changeWidgetField(id: string, field: 'variant' | 'granularity', value: string | undefined) {
+    if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
+    this.all.update((items) => items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+    this.guardarWidgets();
   }
   changeGoal(id: string, field: 'goalMin' | 'goalTarget' | 'goalMax', value: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     const numero = Number(value);
     if (Number.isNaN(numero)) return;
     this.all.update((items) => items.map((item) => (item.id === id ? { ...item, [field]: numero } : item)));
+    this.guardarWidgets();
   }
   createWidget(event: Event) {
     event.preventDefault();
@@ -862,6 +955,8 @@ export class DashboardComponent extends DashboardKpis {
     const title = this.newWidgetTitle.trim();
     if (!title) return;
     const generic = this.isGeneric(this.newWidgetMetric);
+    const delMotor = this.esDelMotor(this.newWidgetMetric);
+    const visual = this.nuevoVisual();
     this.all.update((items) => [
       ...items,
       {
@@ -870,23 +965,27 @@ export class DashboardComponent extends DashboardKpis {
         kicker: this.i18n.t('dashboard.widget.custom.kicker'),
         type: this.newWidgetMetric,
         wide: this.newWidgetWidth === 'wide' && this.newWidgetMetric !== 'indicator',
-        ...(generic
-          ? {
-              dimension: this.newWidgetDimension,
-              measure: this.newWidgetMeasure,
-              ...(this.needsDimension2(this.newWidgetMetric) ? { dimension2: this.newWidgetDimension2 } : {}),
-              ...(this.needsGoal(this.newWidgetMetric)
-                ? {
-                    goalMin: this.newWidgetGoalMin,
-                    goalTarget: this.newWidgetGoalTarget,
-                    goalMax: this.newWidgetGoalMax,
-                  }
-                : {}),
-            }
-          : {}),
+        ...(delMotor
+          ? this.sinTipo(visual)
+          : generic
+            ? {
+                dimension: this.newWidgetDimension,
+                measure: this.newWidgetMeasure,
+                ...(this.needsDimension2(this.newWidgetMetric) ? { dimension2: this.newWidgetDimension2 } : {}),
+                ...(this.needsGoal(this.newWidgetMetric)
+                  ? {
+                      goalMin: this.newWidgetGoalMin,
+                      goalTarget: this.newWidgetGoalTarget,
+                      goalMax: this.newWidgetGoalMax,
+                    }
+                  : {}),
+              }
+            : {}),
       },
     ]);
+    this.guardarWidgets();
     this.newWidgetTitle = '';
+    this.otroTipo.set('');
     this.widgetCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title }));
   }

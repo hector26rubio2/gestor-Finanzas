@@ -1,13 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { MovementsBookService } from '../../shared/movements/movements-book.service';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '@core/api';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore, sincronizarConLaUrl } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { MovementsBookService } from '@shared/movements';
 
 @Component({
   selector: 'app-calendar-tab',
@@ -119,7 +118,6 @@ export class CalendarTabComponent implements OnInit {
    * servir. Cada una se pide si su permiso esta concedido, y si una falla la otra queda.
    */
   async loadCalendarProjection(): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return;
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
     const fallos: string[] = [];
@@ -142,7 +140,6 @@ export class CalendarTabComponent implements OnInit {
     if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
   }
   async materialize(item: ApiProjectedOccurrence): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return this.store.log('Ocurrencia confirmada y registrada');
     try {
       await firstValueFrom(
         this.api.materializeRecurrence(item.recurrence.id, {

@@ -1,8 +1,8 @@
 import { Injectable, inject } from '@angular/core';
-import { ApiClientError, ApiPermissionDescriptor } from '../../core/api/administration.api';
-import { I18nService } from '../../core/i18n';
-import { AppStore } from '../../core/state/store';
-import { formatDateTime, formatDateTimeLong } from '../../core/utils/dates';
+import { ApiClientError, ApiPermissionDescriptor } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state';
+import { formatDateTime, formatDateTimeLong } from '@core/utils';
 
 const ACTION_KEYS: Readonly<Record<number, string>> = {
   1: 'view',

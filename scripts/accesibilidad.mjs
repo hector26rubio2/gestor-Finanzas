@@ -3,6 +3,7 @@ import { spawn, spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright-core';
+import { simularApi } from './api-simulada.mjs';
 
 const require = createRequire(import.meta.url);
 const axeSource = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
@@ -105,27 +106,17 @@ async function auditar(page, etiqueta) {
 
 async function revisarEscenario(browser, escenario) {
   const context = await browser.newContext({ viewport: escenario.viewport, colorScheme: escenario.colorScheme });
-  await context.route('**/config.js', (route) =>
-    route.fulfill({
-      status: 200,
-      contentType: 'application/javascript',
-      body: "window.__FINANZAS_CONFIG__ = { mode: 'demo' };",
-    }),
-  );
+  await simularApi(context);
   const page = await context.newPage();
   const fallos = [];
   try {
-    await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded' });
-    const entrar = page.getByRole('button', { name: 'Continuar como Valentina' });
-    await entrar.waitFor({ state: 'visible' });
-    fallos.push(...(await auditar(page, `${escenario.nombre} /login`)));
-    await entrar.click();
+    await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' });
     await page.waitForURL(/\/dashboard/);
 
     for (const ruta of rutas) {
       await page.goto(`${baseUrl}/${ruta}`, { waitUntil: 'domcontentloaded' });
       await page
-        .locator('.workspace-page, .dashboard, .admin-page, demo-sin-seccion, main#contenido-principal')
+        .locator('.workspace-page, .dashboard, .admin-page, fin-sin-seccion, main#contenido-principal')
         .first()
         .waitFor({ state: 'visible' });
       await page.waitForTimeout(1200);

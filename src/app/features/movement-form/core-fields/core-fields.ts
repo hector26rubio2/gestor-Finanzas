@@ -1,14 +1,13 @@
-import { DateFieldComponent } from '../../../ui/date-field/date-field';
+import { DateFieldComponent } from '@ui/date-field';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
-import { I18nService } from '../../../core/i18n';
-import { P } from '../../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../../core/state/store';
-import { Account } from '../../../core/state/demo-data';
-import { UiOption, UiSelectComponent } from '../../../ui/select/select';
-import { NumericInputDirective } from '../../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../../ui/field/field';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore, Account } from '@core/state';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
 
 @Component({
   selector: 'fin-movement-core-fields',

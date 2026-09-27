@@ -2,10 +2,11 @@ import { TestBed } from '@angular/core/testing';
 import { Router, provideRouter } from '@angular/router';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
+import { FinanceApiClient } from '@core/api';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { AppStore } from '../state/store';
+import { AppStore } from '@core/state';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * Cerrar sesion estaba escrito dos veces —el menu de perfil y Preferencias— y las copias
@@ -13,8 +14,8 @@ import { AppStore } from '../state/store';
  * seguias dentro, y si la llamada al servidor fallaba se rendia sin limpiar nada.
  */
 describe('cerrar sesion', () => {
-  function montar(mode: 'demo' | 'api', api: Partial<FinanceApiClient> = {}) {
-    window.__FINANZAS_CONFIG__ = mode === 'api' ? { mode, apiBaseUrl: 'https://api.example.test' } : { mode };
+  function montar(api: Partial<FinanceApiClient> = {}) {
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -24,7 +25,7 @@ describe('cerrar sesion', () => {
         ]),
         {
           provide: RUNTIME_CONFIG,
-          useValue: mode === 'api' ? { mode, apiBaseUrl: 'https://api.example.test' } : { mode },
+          useValue: { apiBaseUrl: 'https://api.example.test' },
         },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)), ...api } },
       ],
@@ -34,28 +35,12 @@ describe('cerrar sesion', () => {
 
   beforeEach(() => TestBed.resetTestingModule());
 
-  it('lleva a la pantalla de acceso y olvida el perfil local', async () => {
-    const arranque = montar('demo');
-    const store = TestBed.inject(AppStore);
-    const router = TestBed.inject(Router);
-    store.user.set(store.users[0]);
-    sessionStorage.setItem('finanzas.demo.perfil', '0');
-    await router.navigateByUrl('/dashboard');
-
-    await arranque.cerrarSesion();
-
-    expect(router.url).toBe('/login');
-    expect(store.user()).toBeNull();
-    // Sin esto, en modo local la siguiente carga volvia a entrar sola.
-    expect(sessionStorage.getItem('finanzas.demo.perfil')).toBeNull();
-  });
-
   it('si el servidor no responde, la sesion local se cierra igual', async () => {
     const logout = vi.fn(() => throwError(() => new Error('sin red')));
-    const arranque = montar('api', { logout } as unknown as Partial<FinanceApiClient>);
+    const arranque = montar({ logout } as unknown as Partial<FinanceApiClient>);
     const store = TestBed.inject(AppStore);
     const router = TestBed.inject(Router);
-    store.user.set(store.users[0]);
+    store.user.set(USUARIO_DE_PRUEBA);
     await router.navigateByUrl('/dashboard');
 
     await arranque.cerrarSesion();
@@ -78,12 +63,12 @@ describe('cerrar sesion', () => {
       permissions: ['dashboard.ver'],
     };
     const session = vi.fn(() => of(sesion));
-    const arranque = montar('api', {
+    const arranque = montar({
       logout: vi.fn(() => of(void 0)),
       session,
     } as unknown as Partial<FinanceApiClient>);
     const store = TestBed.inject(AppStore);
-    store.user.set(store.users[0]);
+    store.user.set(USUARIO_DE_PRUEBA);
 
     await arranque.cerrarSesion();
     const llamadasAlCerrar = session.mock.calls.length;
@@ -96,11 +81,11 @@ describe('cerrar sesion', () => {
   });
 
   it('deja el estado en anonimo, no en cargando', async () => {
-    const arranque = montar('api', {
+    const arranque = montar({
       logout: vi.fn(() => of(void 0)),
     } as unknown as Partial<FinanceApiClient>);
     const store = TestBed.inject(AppStore);
-    store.user.set(store.users[0]);
+    store.user.set(USUARIO_DE_PRUEBA);
 
     await arranque.cerrarSesion();
 
@@ -110,8 +95,8 @@ describe('cerrar sesion', () => {
 
   it('cierra tambien la sesion del servidor cuando la hay', async () => {
     const logout = vi.fn(() => of(void 0));
-    const arranque = montar('api', { logout } as unknown as Partial<FinanceApiClient>);
-    TestBed.inject(AppStore).user.set(TestBed.inject(AppStore).users[0]);
+    const arranque = montar({ logout } as unknown as Partial<FinanceApiClient>);
+    TestBed.inject(AppStore).user.set(USUARIO_DE_PRUEBA);
 
     await arranque.cerrarSesion();
 

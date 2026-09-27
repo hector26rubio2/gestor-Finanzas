@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { IconComponent } from '../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { RouterLink } from '@angular/router';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
+import { RemoteBootstrap } from '@core/session';
+import { AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
 
 /**
  * Lo que se enseña cuando la sesión no tiene ninguna sección abierta.

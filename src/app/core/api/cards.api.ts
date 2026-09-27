@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '../http/api-http-client';
+import { API_TRANSPORT } from '@core/http';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
 
@@ -10,7 +10,11 @@ export interface ApiCard {
   creditLimit: ApiMoney;
   cycle: { statementDay: number; paymentDueDay: number };
   /** Condiciones financieras. La tasa de compras decide el interes del proximo corte. */
-  terms?: { purchaseApr?: { rate?: string | number | null } | null } | null;
+  terms?: {
+    purchaseApr?: { rate?: string | number | null } | null;
+    paymentPriority?: readonly number[] | null;
+    foreignPaymentPriority?: readonly number[] | null;
+  } | null;
   issuer: string | null;
   lastFour: string | null;
   isActive: boolean;

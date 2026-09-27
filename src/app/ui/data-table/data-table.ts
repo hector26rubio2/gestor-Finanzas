@@ -40,12 +40,12 @@ import {
   sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/angular-table';
-import { I18nService } from '../../core/i18n';
-import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
-import { IconComponent, IconName } from '../icon/icon';
-import { SearchFieldComponent } from '../search-field/search-field';
-import { DateFieldComponent } from '../date-field/date-field';
-import { UiOption, UiSelectComponent } from '../select/select';
+import { I18nService } from '@core/i18n';
+import { sincronizarPaginaConLaUrl } from '@core/state';
+import { IconComponent, IconName } from '@ui/icon';
+import { SearchFieldComponent } from '@ui/search-field';
+import { DateFieldComponent } from '@ui/date-field';
+import { UiOption, UiSelectComponent } from '@ui/select';
 import { FinTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {

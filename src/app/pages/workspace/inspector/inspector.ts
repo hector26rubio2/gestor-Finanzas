@@ -1,27 +1,33 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { IconComponent } from '../../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { FinanceApiClient } from '../../../core/api/api-client';
-import type { ApiSharedPurchase } from '../../../core/api/purchases.api';
-import type { ApiSettlement } from '../../../core/api/settlements.api';
-import { parseMoney } from '../../../core/utils/money';
-import { I18nService } from '../../../core/i18n';
-import { PERMISO_DE_REVERSO, familiaDeMovimiento } from '../../../core/session/familia-de-movimiento';
-import { P } from '../../../core/session/permissions';
-import { permisoParaEditarCuenta } from '../../../features/account-form/account-form';
-import type { Account, Movement } from '../../../core/state/demo-data';
-import { CAPABILITIES, AppStore, FEATURES } from '../../../core/state/store';
-import { formatReturnRate, sumBy } from '../../../core/utils/money';
-import { SIN_DATO } from '../../../shared/utils/placeholders';
-import { MovementsBookService } from '../../../shared/movements/movements-book.service';
-import { BankCardComponent } from '../../../ui/bank-card/bank-card';
-import { ConfirmDialogComponent } from '../../../ui/confirm-dialog/confirm-dialog';
-import { DataTableComponent } from '../../../ui/data-table/data-table';
-import { OverlayComponent } from '../../../ui/overlay/overlay';
+import { FinanceApiClient, ApiWritesBus, CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, claveDeConcepto, completarPrioridad } from '@core/api';
+import type { ApiSharedPurchase, ApiSettlement } from '@core/api';
+import { parseMoney, formatReturnRate, sumBy } from '@core/utils';
+import { I18nService } from '@core/i18n';
+import { PERMISO_DE_REVERSO, familiaDeMovimiento, P, toMovement } from '@core/session';
+import { permisoParaEditarCuenta } from '@features/account-form';
+import type { Account, Movement } from '@core/state';
+import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { SIN_DATO } from '@shared/utils';
+import { MovementsBookService } from '@shared/movements';
+import { BankCardComponent } from '@ui/bank-card';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
+import { DataTableComponent } from '@ui/data-table';
+import { OverlayComponent } from '@ui/overlay';
+import { UiSelectComponent } from '@ui/select';
+import { aplicarAbono, comprasPendientes, saldosPorConcepto } from '@shared/tarjetas';
+
+interface ApiCardStatus {
+  debt: { amount: string; currency: string };
+  availableCredit: { amount: string; currency: string };
+  minimumPayment: { amount: string; currency: string };
+  currentPeriod: { range: { start: string; end: string }; statementDate: string; dueDate: string };
+}
 
 @Component({
   selector: 'fin-inspector',
@@ -35,6 +41,7 @@ import { OverlayComponent } from '../../../ui/overlay/overlay';
     ConfirmDialogComponent,
     DataTableComponent,
     OverlayComponent,
+    UiSelectComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inspector.html',
@@ -49,6 +56,7 @@ export class InspectorComponent {
   private readonly features = inject(FEATURES);
   private readonly api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
+  private readonly escrituras = inject(ApiWritesBus);
 
   readonly canReverseSelected = computed(() => {
     const movimiento = this.selectedMovement();
@@ -61,77 +69,120 @@ export class InspectorComponent {
   }
 
   readonly cardPaymentAmount = signal(500000);
-  readonly cardPurchases = computed(() => {
-    const id = this.selectedAccount()?.id;
-    return this.store
-      .data()
-      .movements.filter((m) => m.accountId === id && m.amount < 0 && m.kind === 'expense')
-      .slice(0, 12);
+  readonly cuentaDeOrigen = signal('');
+  readonly cuentasDeOrigen = computed(() => this.store.data().accounts.filter((a) => a.type !== 'credit'));
+  private readonly origenPorDefecto = effect(() => {
+    const cuentas = this.cuentasDeOrigen();
+    if (!cuentas.some((c) => c.id === untracked(this.cuentaDeOrigen)))
+      this.cuentaDeOrigen.set((cuentas.find((c) => c.type === 'savings') ?? cuentas[0])?.id ?? '');
   });
-  readonly cardDebt = computed(() => {
-    const account = this.selectedAccount();
-    return account
-      ? Math.max(0, -this.store.balance(account)) || sumBy(this.cardPurchases(), (m) => Math.abs(m.amount))
-      : 0;
-  });
-  readonly paymentAllocation = computed(() => {
-    let remaining = Math.max(0, this.cardPaymentAmount());
-    return this.cardPurchases().map((m) => {
-      const before = Math.abs(m.amount);
-      const applied = Math.min(before, remaining);
-      remaining -= applied;
-      return {
-        id: m.id,
-        description: m.description,
-        installment: m.installmentTotal ? `${m.installmentCurrent}/${m.installmentTotal}` : '1/1',
-        before,
-        applied,
-        after: before - applied,
-      };
+  readonly opcionesDeOrigen = computed(() => this.cuentasDeOrigen().map((c) => ({ value: c.id, label: c.name })));
+  readonly movimientosDeTarjeta = signal<readonly Movement[]>([]);
+  readonly estadoDeTarjeta = signal<ApiCardStatus | null>(null);
+  private readonly traerTarjeta = effect(() => {
+    const tarjeta = this.selectedAccount();
+    this.escrituras.version();
+    if (!tarjeta || tarjeta.type !== 'credit') return;
+    untracked(() => {
+      void this.cargarTarjeta(tarjeta.id);
     });
   });
-  readonly appliedPayment = computed(() => sumBy(this.paymentAllocation(), (row) => row.applied));
-  /** Mismas filas que `paymentAllocation`, con los importes ya formateados para `table`. */
+  private async cargarTarjeta(id: string): Promise<void> {
+    const catalogo = this.store.kindCatalog();
+    const movimientos: Movement[] = [];
+    try {
+      for (let pagina = 1; pagina <= 20; pagina++) {
+        const respuesta = await firstValueFrom(
+          this.api.movements({ page: pagina, pageSize: 100, filter: { cards: [id] } }),
+        );
+        movimientos.push(...respuesta.items.map((m) => toMovement(this.i18n, catalogo, m)));
+        if (!respuesta.hasNext) break;
+      }
+    } catch {
+      movimientos.length = 0;
+    }
+    if (this.selectedAccount()?.id !== id) return;
+    this.movimientosDeTarjeta.set(movimientos);
+    try {
+      this.estadoDeTarjeta.set((await firstValueFrom(this.api.cardStatus(id))) as ApiCardStatus);
+    } catch {
+      this.estadoDeTarjeta.set(null);
+    }
+  }
+  readonly prioridadDeTarjeta = computed(() => {
+    const tarjeta = this.selectedAccount();
+    return tarjeta?.currency && tarjeta.currency !== 'COP'
+      ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
+      : completarPrioridad(tarjeta?.paymentPriority, PRIORIDAD_EN_PESOS);
+  });
+  readonly comprasPendientes = computed(() => comprasPendientes(this.movimientosDeTarjeta()));
+  readonly saldosPorConcepto = computed(() => saldosPorConcepto(this.comprasPendientes(), this.prioridadDeTarjeta()));
+  readonly cardPurchases = computed(() => {
+    const ids = new Set(this.comprasPendientes().map((c) => c.id));
+    return this.movimientosDeTarjeta().filter((m) => ids.has(m.id));
+  });
+  readonly cardDebt = computed(() => {
+    const estado = this.estadoDeTarjeta();
+    if (estado) return parseMoney(estado.debt);
+    const account = this.selectedAccount();
+    return account
+      ? Math.max(0, -this.store.balance(account)) || sumBy(this.comprasPendientes(), (c) => c.pendiente)
+      : 0;
+  });
+  readonly pagoMinimo = computed(() => {
+    const estado = this.estadoDeTarjeta();
+    return estado ? parseMoney(estado.minimumPayment) : null;
+  });
+  readonly periodoActual = computed(() => this.estadoDeTarjeta()?.currentPeriod ?? null);
+  etiquetaDeConcepto(concepto: number): string {
+    return this.i18n.t(`card.bucket.${claveDeConcepto(concepto) ?? 'fees'}`);
+  }
+  readonly paymentAllocation = computed(() =>
+    aplicarAbono(this.saldosPorConcepto(), Math.min(this.cardPaymentAmount(), this.cardDebt() || Infinity)),
+  );
+  readonly appliedPayment = computed(() => sumBy(this.paymentAllocation(), (row) => row.aplicado));
   readonly paymentAllocationRows = computed(() =>
-    this.paymentAllocation().map((row) => ({
-      ...row,
-      before: this.store.money(row.before),
-      applied: this.store.money(row.applied),
-      after: this.store.money(row.after),
+    this.paymentAllocation().map((row, indice) => ({
+      id: String(row.concepto),
+      order: String(indice + 1),
+      description: this.etiquetaDeConcepto(row.concepto),
+      installment: String(this.saldosPorConcepto()[indice]?.compras.length ?? 0),
+      before: this.store.money(row.antes),
+      applied: this.store.money(row.aplicado),
+      after: this.store.money(row.despues),
     })),
   );
   readonly paymentAllocationColumns = computed(() => [
-    { key: 'description', label: this.i18n.t('workspace.cardPayment.table.purchase') },
-    { key: 'installment', label: this.i18n.t('workspace.cardPayment.table.installment') },
+    { key: 'order', label: '#' },
+    { key: 'description', label: this.i18n.t('workspace.cardPayment.table.bucket') },
+    { key: 'installment', label: this.i18n.t('workspace.cardPayment.table.purchases') },
     { key: 'before', label: this.i18n.t('workspace.cardPayment.table.balanceBefore') },
     { key: 'applied', label: this.i18n.t('workspace.cardPayment.table.applied') },
     { key: 'after', label: this.i18n.t('workspace.cardPayment.table.balanceAfter') },
   ]);
-  readonly cardStatementPurchases = computed(() => sumBy(this.cardPurchases(), (m) => Math.abs(m.amount)));
+  readonly cardStatementPurchases = computed(() => {
+    const periodo = this.periodoActual();
+    const compras = this.movimientosDeTarjeta().filter((m) => m.kind === 'expense' && m.amount < 0);
+    const delPeriodo = periodo
+      ? compras.filter((m) => m.date >= periodo.range.start && m.date <= periodo.range.end)
+      : compras.filter((m) => m.date.slice(0, 7) === this.store.hoy().slice(0, 7));
+    return sumBy(delPeriodo, (m) => Math.abs(m.amount));
+  });
   readonly nextInstallments = computed(() =>
-    sumBy(this.cardPurchases(), (m) => Math.abs(m.amount) / Math.max(1, m.installmentTotal ?? 1)),
+    sumBy(this.comprasPendientes(), (c) => Math.min(c.pendiente, c.cuotaDelMes)),
   );
-  /**
-   * Interes del proximo corte, compra por compra, con la tasa propia de cada una o —a
-   * falta de ella— la que declara la tarjeta.
-   *
-   * Antes aplicaba un 0.023 mensual fijo —un 27.6 % anual— a cualquier tarjeta, sin
-   * mirar la suya: las de los datos demo declaran 10.2 % y 7.8 %, y la pantalla enseñaba
-   * un numero que no salia de ninguna parte bajo el rotulo «Interes estimado». Inventar
-   * una cifra en una pantalla de dinero es peor que no darla, porque quien la lee decide
-   * con ella. Y una compra puntual puede traer su propia tasa —cambio ese mes, aunque la
-   * tarjeta no cambio la suya—, asi que sumar todo a una sola tasa ya no era exacto.
-   *
-   * Sin tasa declarada (ni propia ni de la tarjeta) para ninguna compra, devuelve null y
-   * la linea no se pinta; con algunas si y otras no, las que no tienen simplemente no
-   * suman interes en vez de tirar el numero entero.
-   */
   readonly cardEstimatedInterest = computed(() => {
     const tasaTarjeta = this.selectedAccount()?.annualRate;
-    const intereses = this.cardPurchases().map((m) => {
-      const anual = m.purchaseApr ?? tasaTarjeta;
+    const porId = new Map(this.movimientosDeTarjeta().map((m) => [m.id, m]));
+    const intereses = this.comprasPendientes().map((compra) => {
+      if (
+        compra.concepto === CARD_BUCKET.zeroRatePurchases ||
+        compra.concepto === CARD_BUCKET.singleInstallmentPurchases
+      )
+        return 0;
+      const anual = porId.get(compra.id)?.purchaseApr ?? tasaTarjeta;
       return anual !== undefined && anual !== null && Number.isFinite(anual)
-        ? Math.abs(m.amount) * (anual / 100 / 12)
+        ? compra.pendiente * (anual / 100 / 12)
         : null;
     });
     if (intereses.every((x) => x === null)) return null;
@@ -151,11 +202,10 @@ export class InspectorComponent {
   async confirmCardPayment() {
     const card = this.selectedAccount();
     if (!card || this.appliedPayment() <= 0) return;
-    const source = this.store.data().accounts.find((account) => account.type === 'savings');
     await this.store.save({
       kind: 'payment',
-      date: new Date().toISOString().slice(0, 10),
-      accountId: source?.id ?? '',
+      date: this.store.hoy(),
+      accountId: this.cuentaDeOrigen(),
       targetId: card.id,
       description: `Abono a ${card.name}`,
       amount: this.appliedPayment(),
@@ -368,15 +418,6 @@ export class InspectorComponent {
   private readonly confirmKind = signal<'reverse' | 'deactivateAccount'>('reverse');
   readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
   async reverseMovement(movement: Movement) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.data.update((data) => ({
-        ...data,
-        movements: data.movements.filter((item) => item.id !== movement.id),
-      }));
-      this.store.inspector.set(null);
-      this.store.log(this.i18n.t('workspace.messages.movementReversedLocal'));
-      return;
-    }
     try {
       await firstValueFrom(
         this.api.reverseMovement(movement.id, {
@@ -397,8 +438,6 @@ export class InspectorComponent {
     const movement = this.selectedMovement();
     const person = this.store.data().people.find((item) => item.name === movement?.person);
     if (!movement || !person) return;
-    if (this.store.runtime.mode === 'demo')
-      return this.store.log(this.i18n.t('workspace.messages.sharedPurchaseLocal'));
     try {
       await firstValueFrom(
         this.api.createSharedPurchase({
@@ -417,7 +456,6 @@ export class InspectorComponent {
   async issueSelectedSettlement() {
     const person = this.selectedPerson();
     if (!person) return;
-    if (this.store.runtime.mode === 'demo') return this.store.log(this.i18n.t('workspace.messages.settlementLocal'));
     const today = new Date().toISOString().slice(0, 10);
     const start = `${today.slice(0, 7)}-01`;
     try {
@@ -447,7 +485,7 @@ export class InspectorComponent {
   private async cargarHistorialDePersona(personId: string | null): Promise<void> {
     this.personPurchases.set(null);
     this.personSettlements.set(null);
-    if (!personId || this.store.runtime.mode !== 'api' || !this.features.enabled('people.history')) return;
+    if (!personId || !this.features.enabled('people.history')) return;
     const [compras, liquidaciones] = await Promise.allSettled([
       this.can(P.personas.compras.listar) ? firstValueFrom(this.api.sharedPurchases()) : Promise.resolve(null),
       this.can(P.personas.liquidaciones.listar) ? firstValueFrom(this.api.settlements()) : Promise.resolve(null),
@@ -502,12 +540,6 @@ export class InspectorComponent {
     this.store.form.set({ kind: 'account', account });
   }
   async deactivateAccount(account: Account) {
-    if (this.store.runtime.mode === 'demo') {
-      this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
-      this.store.inspector.set(null);
-      this.store.log(this.i18n.t('workspace.messages.accountDeactivatedLocal'));
-      return;
-    }
     try {
       await firstValueFrom(
         this.api.updateAccount(account.id, {

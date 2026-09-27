@@ -1,22 +1,19 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CarruselComponent } from '../../ui/carrusel/carrusel';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { KpiComponent } from '../../ui/kpi/kpi';
+import { CarruselComponent } from '@ui/carrusel';
+import { DataTableComponent } from '@ui/data-table';
+import { KpiComponent } from '@ui/kpi';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
-import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
-import { SearchFieldComponent } from '../../ui/search-field/search-field';
-import { TableZoneComponent } from '../../ui/table-zone/table-zone';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { UiSelectComponent } from '../../ui/select/select';
-import { AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { MovementsBookService } from '../../shared/movements/movements-book.service';
-import { Account } from '../../core/state/demo-data';
-import { compactMoney } from '../../shared/utils/chart-math';
-import { ChartCardComponent } from '../../ui/chart/chart-card';
-import { ChartThemeService } from '../../ui/chart/chart-theme';
-import { barrasHorizontales } from '../../ui/chart/opciones';
+import { KpiGridComponent } from '@ui/kpi-grid';
+import { SearchFieldComponent } from '@ui/search-field';
+import { TableZoneComponent } from '@ui/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { UiSelectComponent } from '@ui/select';
+import { AppStore, CAPABILITIES, Account } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { MovementsBookService } from '@shared/movements';
+import { compactMoney } from '@shared/utils';
+import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 import {
   HEALTHY_UTILIZATION_PERCENT,
   creditCards,
@@ -24,13 +21,11 @@ import {
   mostUsedCard,
   nextCardDue,
 } from './card-insights';
-import {
-  PERIODOS_DE_HISTORIA,
-  crearHistoriaDeSaldos,
-  rangosMensuales,
-  variacion,
-} from '../../shared/historia/historia';
-import { estadoDe } from '../../pages/dashboard/kpis/kpi-ranges';
+import { PERIODOS_DE_HISTORIA, crearHistoriaDeSaldos, rangosMensuales, variacion, crearMovimientosDelPeriodo } from '@shared/historia';
+import { estadoDe } from '@pages/dashboard';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { P } from '@core/session';
+import { addDaysToIso } from '@core/utils';
 
 @Component({
   selector: 'app-accounts-tab',
@@ -40,6 +35,7 @@ import { estadoDe } from '../../pages/dashboard/kpis/kpi-ranges';
     FormsModule,
     HlmToggleGroupImports,
     DataTableComponent,
+    HlmButton,
     KpiComponent,
     KpiGridComponent,
     SearchFieldComponent,
@@ -55,12 +51,16 @@ export class AccountsTabComponent implements OnDestroy {
   readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
+  private readonly capabilities = inject(CAPABILITIES);
 
   private readonly referenceDate = computed(() => this.store.hoy());
   private readonly cards = computed(() => creditCards(this.store.data().accounts));
   private readonly debtOf = (card: Account) => Math.max(0, -this.store.balance(card));
   readonly nextDue = computed(() => nextCardDue(this.cards(), this.debtOf, this.referenceDate()));
-  readonly mostUsed = computed(() => mostUsedCard(this.cards(), this.store.data().movements, this.referenceDate()));
+  private readonly ultimos30 = crearMovimientosDelPeriodo(
+    computed(() => ({ start: addDaysToIso(this.store.hoy(), -30), end: this.store.hoy() })),
+  );
+  readonly mostUsed = computed(() => mostUsedCard(this.cards(), this.ultimos30.movimientos(), this.referenceDate()));
   readonly mostOverextended = computed(() => mostOverextendedCard(this.cards(), this.debtOf));
   readonly healthyPercent = HEALTHY_UTILIZATION_PERCENT;
   private readonly historia = crearHistoriaDeSaldos(
@@ -141,6 +141,18 @@ export class AccountsTabComponent implements OnDestroy {
       );
   });
   readonly selectedAccountFilter = computed(() => this.store.accountFilter());
+  readonly cuentaSeleccionada = computed(() => {
+    const id = this.store.accountFilter();
+    return id === 'all' ? null : (this.store.account(id) ?? null);
+  });
+  readonly puedePagar = computed(() => this.capabilities.allows(P.movimientos.pagos.crear));
+  deudaDe(cuenta: Account): number {
+    return this.debtOf(cuenta);
+  }
+  registrarAbono(id: string): void {
+    this.store.inspect('card', id);
+    this.store.cardPaymentMode.set(true);
+  }
 
   setAccountQuery(value: string): void {
     this.accountQuery.set(value);

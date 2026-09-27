@@ -1,10 +1,10 @@
 import { Signal, computed, inject, signal } from '@angular/core';
-import { Movement } from '../../core/state/demo-data';
-import { PuntoDeFlujo, variacion } from '../../shared/historia/historia';
-import { P } from '../../core/session/permissions';
-import { sumBy } from '../../core/utils/money';
-import { IconName } from '../../ui/icon/icon';
-import { UiOption } from '../../ui/select/select';
+import { Movement } from '@core/state';
+import { PuntoDeFlujo, variacion } from '@shared/historia';
+import { P } from '@core/session';
+import { sumBy } from '@core/utils';
+import { IconName } from '@ui/icon';
+import { UiOption } from '@ui/select';
 import { Dimension, KpiFormula } from './dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
 import { DashboardLayoutService, KpiDefinition, KpiFilter } from './layout/dashboard-layout.service';

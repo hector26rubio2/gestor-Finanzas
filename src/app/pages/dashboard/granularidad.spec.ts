@@ -2,15 +2,13 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { RUNTIME_CONFIG } from '../../core/session/runtime';
-import { AppStore } from '../../core/state/store';
-import { AccountFormComponent } from '../../features/account-form/account-form';
-import { MovementFormComponent } from '../../features/movement-form/movement-form';
-import { MovementInstallmentFieldsComponent } from '../../features/movement-form/installment-fields/installment-fields';
-import { MovementCategoryFieldComponent } from '../../features/movement-form/category-field/category-field';
+import { FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
+import { AppStore } from '@core/state';
+import { AccountFormComponent } from '@features/account-form';
+import { MovementFormComponent, MovementInstallmentFieldsComponent, MovementCategoryFieldComponent } from '@features/movement-form';
 import { DashboardComponent } from './dashboard';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * Antes una casilla concedía una capacidad entera: marcar «administrar cuentas» daba
@@ -18,17 +16,17 @@ import { DashboardComponent } from './dashboard';
  * por separado y que la interfaz lo refleja control a control.
  */
 function preparar(permisos: readonly string[]) {
-  window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+  window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
-      { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+      { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
     ],
   });
   const store = TestBed.inject(AppStore);
-  store.user.set({ ...store.users[0], capabilities: [...permisos] });
+  store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [...permisos] });
   return store;
 }
 
@@ -243,6 +241,11 @@ describe('movimientos: cada figura del ledger por separado', () => {
 
   it('cambiar de gasto a ingreso en el mismo componente cambia las categorías ofrecidas', () => {
     preparar([P.movimientos.ver, P.movimientos.crear]);
+    const categoria = { color: '#000', icon: '', parent: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' };
+    TestBed.inject(AppStore).categories.set([
+      { ...categoria, id: 'gasto', name: 'Mercado', type: 2 },
+      { ...categoria, id: 'ingreso', name: 'Salario', type: 1 },
+    ]);
     const fixture = TestBed.createComponent(MovementCategoryFieldComponent);
     fixture.componentInstance.model = { category: '' };
     fixture.componentInstance.kind = 'expense';

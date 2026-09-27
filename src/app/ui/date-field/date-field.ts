@@ -1,8 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
-import { I18nService } from '../../core/i18n';
-import { AppStore } from '../../core/state/store';
+import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state';
 import { CalendarLocale } from './calendar-locale';
 
 const NOON = 12;
@@ -29,6 +29,8 @@ export function fromIsoDate(value: string): Date | undefined {
       [date]="date()"
       [formatDate]="format()"
       [transformDate]="atNoon"
+      [minDate]="minDate()"
+      [maxDate]="maxDate()"
       [autoCloseOnSelect]="true"
       [disabled]="isDisabled()"
       (dateChange)="pick($event)"
@@ -44,6 +46,10 @@ export class DateFieldComponent implements ControlValueAccessor {
   private readonly store = inject(AppStore);
   private readonly calendarLocale = inject(CalendarLocale);
   readonly placeholder = input('');
+  readonly min = input('');
+  readonly max = input('');
+  readonly minDate = computed(() => fromIsoDate(this.min()));
+  readonly maxDate = computed(() => fromIsoDate(this.max()));
   readonly value = signal('');
   private readonly cvaDisabled = signal(false);
   readonly disabledInput = input(false, { alias: 'disabled' });

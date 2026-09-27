@@ -2,9 +2,9 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AdministrationApi } from '../api/administration.api';
-import { AppStore } from '../state/store';
-import { patchConsole } from '../utils/console-buffer';
+import { AdministrationApi } from '@core/api';
+import { AppStore } from '@core/state';
+import { patchConsole } from '@core/utils';
 import { fingerprintOf, isIgnoredMessage } from './error-report';
 import { ErrorReporter } from './error-reporter';
 

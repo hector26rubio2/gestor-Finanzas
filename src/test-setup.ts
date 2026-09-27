@@ -1,5 +1,5 @@
-import { preloadCatalog } from './app/core/i18n';
-import es from './app/core/i18n/es';
+import { preloadCatalog } from '@core/i18n';
+import es from '@core/i18n/es';
 
 preloadCatalog('es', es);
 

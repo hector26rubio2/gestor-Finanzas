@@ -1,4 +1,4 @@
-import { IconComponent } from '../../../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,12 +15,12 @@ import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
-import { ApiAdminOrganization, ApiAdminUser } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../../../core/state/store';
-import { OptionRowComponent } from '../../../../ui/option-row/option-row';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
+import { ApiAdminOrganization, ApiAdminUser } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { OptionRowComponent } from '@ui/option-row';
+import { SheetPanelComponent } from '@ui/sheet-panel';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
 

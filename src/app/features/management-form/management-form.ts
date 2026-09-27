@@ -1,18 +1,17 @@
-import { DateFieldComponent } from '../../ui/date-field/date-field';
-import { IconComponent } from '../../ui/icon/icon';
-import { IconPickerComponent } from '../../ui/icon-picker/icon-picker';
+import { DateFieldComponent } from '@ui/date-field';
+import { IconComponent } from '@ui/icon';
+import { IconPickerComponent } from '@ui/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../ui/field/field';
-import { PersonKind } from '../../core/state/demo-data';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore, PersonKind } from '@core/state';
+import { OverlayComponent } from '@ui/overlay';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
 
 @Component({
   selector: 'fin-management-form',
@@ -62,7 +61,7 @@ export class ManagementFormComponent {
     { value: 'income', label: this.i18n.t('form.management.categoryType.income') },
   ]);
   email = '';
-  relationship: import('../../core/state/demo-data').Person['relationship'] = 'Otro';
+  relationship: import('@core/state/view-model').Person['relationship'] = 'Otro';
   personKind: PersonKind = (this.store.form()?.personKind as PersonKind | undefined) ?? 'person';
   readonly personKindOptions = computed<readonly UiOption[]>(() => [
     { value: 'person', label: this.i18n.t('people.kind.person') },

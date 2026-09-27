@@ -12,43 +12,83 @@ import {
 import * as echarts from 'echarts/core';
 import {
   BarChart,
+  BoxplotChart,
+  CandlestickChart,
+  ChordChart,
+  EffectScatterChart,
   FunnelChart,
   GaugeChart,
+  GraphChart,
   HeatmapChart,
   LineChart,
+  ParallelChart,
+  PictorialBarChart,
   PieChart,
+  RadarChart,
+  SankeyChart,
   ScatterChart,
+  SunburstChart,
+  ThemeRiverChart,
+  TreeChart,
   TreemapChart,
 } from 'echarts/charts';
 import {
+  CalendarComponent,
   DataZoomComponent,
   DatasetComponent,
   TransformComponent,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
   MarkLineComponent,
+  MarkPointComponent,
+  ParallelComponent,
+  PolarComponent,
+  RadarComponent,
+  SingleAxisComponent,
+  ToolboxComponent,
   TooltipComponent,
   VisualMapComponent,
 } from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
-import { I18nService } from '../../core/i18n';
+import { I18nService } from '@core/i18n';
 import { ChartThemeService } from './chart-theme';
 
 echarts.use([
   BarChart,
+  BoxplotChart,
+  CandlestickChart,
+  ChordChart,
+  EffectScatterChart,
   FunnelChart,
   GaugeChart,
+  GraphChart,
   HeatmapChart,
   LineChart,
+  ParallelChart,
+  PictorialBarChart,
   PieChart,
+  RadarChart,
+  SankeyChart,
   ScatterChart,
+  SunburstChart,
+  ThemeRiverChart,
+  TreeChart,
   TreemapChart,
+  CalendarComponent,
   DataZoomComponent,
   DatasetComponent,
   TransformComponent,
   GridComponent,
   LegendComponent,
+  MarkAreaComponent,
   MarkLineComponent,
+  MarkPointComponent,
+  ParallelComponent,
+  PolarComponent,
+  RadarComponent,
+  SingleAxisComponent,
+  ToolboxComponent,
   TooltipComponent,
   VisualMapComponent,
   CanvasRenderer,
@@ -104,8 +144,11 @@ export class ChartComponent implements OnDestroy {
         borderColor: p.line,
         textStyle: { color: p.text },
         extraCssText: 'box-shadow: 0 18px 45px rgba(0,0,0,.16); border-radius: 12px;',
+        confine: true,
       },
-      animationDuration: 420,
+      animationDuration: 520,
+      animationEasing: 'cubicOut' as const,
+      animationDurationUpdate: 360,
     };
   });
 
@@ -148,7 +191,16 @@ export class ChartComponent implements OnDestroy {
       // deben sobrevivir mezcladas con las nuevas.
       const reduceMotion =
         typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.grafica.setOption({ ...base, ...(option as object), ...(reduceMotion ? { animation: false } : {}) }, true);
+      const propia = option as { tooltip?: object };
+      this.grafica.setOption(
+        {
+          ...base,
+          ...(option as object),
+          tooltip: { ...base.tooltip, ...(propia.tooltip ?? {}) },
+          ...(reduceMotion ? { animation: false } : {}),
+        },
+        true,
+      );
     });
   }
 

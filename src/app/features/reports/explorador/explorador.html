@@ -1,0 +1,200 @@
+<fin-vistas-guardadas
+  tipo="reporte"
+  [estado]="estado()"
+  [etiqueta]="i18n.t('reports.saved.label')"
+  [vacia]="i18n.t('reports.saved.none')"
+  [plantillas]="plantillas()"
+  (cargar)="cargarReporte($event.json)"
+/>
+<section
+  class="flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card px-3.5 py-3"
+  [attr.aria-label]="i18n.t('reports.explorer.filtersAriaLabel')"
+>
+  <div class="w-48 flex-none">
+    <fin-field [label]="i18n.t('reports.explorer.period')">
+      <fin-select
+        class="w-44"
+        [ngModel]="preset()"
+        (ngModelChange)="preset.set($event)"
+        [options]="presets()"
+        [ariaLabel]="i18n.t('reports.explorer.period')"
+      />
+    </fin-field>
+  </div>
+  @if (preset() === 'custom') {
+  <div class="w-40 flex-none">
+    <fin-field [label]="i18n.t('reports.explorer.from')">
+      <fin-date-field class="w-full" [ngModel]="desde()" (ngModelChange)="desde.set($event)" />
+    </fin-field>
+  </div>
+  <div class="w-40 flex-none">
+    <fin-field [label]="i18n.t('reports.explorer.to')">
+      <fin-date-field class="w-full" [ngModel]="hasta()" (ngModelChange)="hasta.set($event)" />
+    </fin-field>
+  </div>
+  } @else {
+  <div class="flex items-center gap-1">
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      [attr.aria-label]="i18n.t('carousel.previous')"
+      (click)="moverAncla(-1)"
+    >
+      <fin-icon name="previous" />
+    </button>
+    <span class="min-w-44 px-2 text-center text-[0.84rem] font-medium" aria-live="polite"
+      >{{ etiquetaDelRango() }}</span
+    >
+    <button
+      hlmBtn
+      variant="outline"
+      size="icon"
+      type="button"
+      [attr.aria-label]="i18n.t('carousel.next')"
+      (click)="moverAncla(1)"
+    >
+      <fin-icon name="next" />
+    </button>
+  </div>
+  }
+  <div class="w-48 flex-none">
+    <fin-field [label]="i18n.t('dashboard.dimension.account')">
+      <fin-select
+        class="w-44"
+        [ngModel]="cuenta()"
+        (ngModelChange)="cuenta.set($event)"
+        [options]="cuentas()"
+        [ariaLabel]="i18n.t('dashboard.dimension.account')"
+      />
+    </fin-field>
+  </div>
+  <div class="w-48 flex-none">
+    <fin-field [label]="i18n.t('dashboard.dimension.category')">
+      <fin-select
+        class="w-44"
+        [ngModel]="categoria()"
+        (ngModelChange)="categoria.set($event)"
+        [options]="categorias()"
+        [ariaLabel]="i18n.t('dashboard.dimension.category')"
+      />
+    </fin-field>
+  </div>
+  <div class="w-36 flex-none">
+    <fin-field [label]="i18n.t('dashboard.dimension.flow')">
+      <fin-select
+        class="w-36"
+        [ngModel]="flujo()"
+        (ngModelChange)="flujo.set($event)"
+        [options]="flujos()"
+        [ariaLabel]="i18n.t('dashboard.dimension.flow')"
+      />
+    </fin-field>
+  </div>
+  <div class="ms-auto flex flex-wrap items-center gap-2">
+    <span class="text-[0.72rem] text-muted-foreground" role="status">
+      {{ cargando() ? i18n.t('reports.explorer.loading') : i18n.t('reports.explorer.count', { count:
+      movimientos().length }) }} @if (!completos()) { · {{ i18n.t('reports.explorer.partial') }} }
+    </span>
+    <button hlmBtn variant="ghost" size="sm" type="button" (click)="restaurar()">
+      <fin-icon name="undo" /> {{ i18n.t('reports.explorer.reset') }}
+    </button>
+    <button hlmBtn size="sm" type="button" (click)="editando.set(null)">
+      <fin-icon name="plus" /> {{ i18n.t('reports.explorer.addView') }}
+    </button>
+  </div>
+</section>
+
+<section class="grid grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
+  @for (vista of vistas(); track vista.id; let primero = $first, ultimo = $last) {
+  <article hlmCard class="min-w-0 gap-2 p-4" [class.col-span-full]="vista.wide">
+    <header class="flex flex-wrap items-center gap-2">
+      <h2 class="min-w-0 flex-1 truncate text-sm font-semibold">{{ vista.title }}</h2>
+      <div class="flex items-center gap-0.5">
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [disabled]="primero"
+          [attr.aria-label]="i18n.t('dashboard.widgetActions.moveUp')"
+          (click)="moverVista(vista.id, -1)"
+        >
+          <fin-icon name="chevronUp" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [disabled]="ultimo"
+          [attr.aria-label]="i18n.t('dashboard.widgetActions.moveDown')"
+          (click)="moverVista(vista.id, 1)"
+        >
+          <fin-icon name="chevronDown" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="i18n.t('reports.explorer.toggleWidth')"
+          (click)="alternarAncho(vista)"
+        >
+          <fin-icon name="columns" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="i18n.t('reports.explorer.duplicate')"
+          (click)="duplicarVista(vista)"
+        >
+          <fin-icon name="copy" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="i18n.t('reports.explorer.editView')"
+          (click)="editando.set(vista)"
+        >
+          <fin-icon name="edit" />
+        </button>
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="i18n.t('reports.explorer.remove')"
+          (click)="quitarVista(vista.id)"
+        >
+          <fin-icon name="close" />
+        </button>
+      </div>
+    </header>
+    @if (movimientos().length) {
+    <fin-chart
+      [option]="opcionesDeVistas().get(vista.id)!"
+      [height]="vista.wide ? 320 : 280"
+      [ariaLabel]="vista.title"
+    />
+    } @else {
+    <p class="grid min-h-60 place-items-center text-sm text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+    }
+  </article>
+  }
+</section>
+
+@if (editando() !== undefined) {
+<fin-editor-de-vista
+  [vista]="editando() ?? null"
+  [movimientos]="movimientos()"
+  [granularidad]="granularidad()"
+  (guardar)="guardarVista($event)"
+  (cerrar)="editando.set(undefined)"
+/>
+}

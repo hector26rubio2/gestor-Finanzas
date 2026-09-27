@@ -1,9 +1,9 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../../core/api/api-client';
-import { RUNTIME_CONFIG } from '../../../core/session/runtime';
-import { AppStore } from '../../../core/state/store';
+import { FinanceApiClient } from '@core/api';
+import { RUNTIME_CONFIG } from '@core/session';
+import { AppStore } from '@core/state';
 import { DashboardLayoutService } from './dashboard-layout.service';
 
 const defaults = [
@@ -19,7 +19,7 @@ describe('diseño del dashboard guardado en el servidor', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)), saveDashboardLayout: save } },
       ],
     });

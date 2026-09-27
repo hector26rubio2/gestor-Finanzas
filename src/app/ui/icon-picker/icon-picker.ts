@@ -3,9 +3,8 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
-import { I18nService } from '../../core/i18n';
-import { CategoryIconComponent } from '../category-icon/category-icon';
-import { ICONOS_DE_CATEGORIA, NOMBRES_DE_ICONO, iconoDeCategoria } from '../category-icon/category-icons';
+import { I18nService } from '@core/i18n';
+import { CategoryIconComponent, ICONOS_DE_CATEGORIA, NOMBRES_DE_ICONO, iconoDeCategoria } from '@ui/category-icon';
 
 @Component({
   selector: 'fin-icon-picker',

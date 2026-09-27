@@ -1,21 +1,9 @@
-import { I18nService } from '../i18n';
-import { Account, DemoData, Movement } from '../state/demo-data';
-import type { AppStore } from '../state/store';
-import {
-  accountKindToViewType,
-  ApiAccount,
-  ApiCard,
-  ApiDebtPosition,
-  ApiInvestment,
-  ApiMovement,
-  ApiNotification,
-  ApiSession,
-} from '../api/api-client';
-import { parseAmount, parseMoney, parseRate } from '../utils/money';
-import { CashFlow, classifyFamily, MovementKind, MovementKindCatalog, signOf } from '../utils/movement-kinds';
-import { COUNTERPARTY_KIND } from '../api/people.api';
+import { I18nService } from '@core/i18n';
+import { Account, ViewData, Movement, SessionUser } from '@core/state';
+import { accountKindToViewType, ApiAccount, ApiCard, ApiDebtPosition, ApiInvestment, ApiMovement, ApiNotification, ApiSession, COUNTERPARTY_KIND, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
+import { parseAmount, parseMoney, parseRate, CashFlow, classifyFamily, MovementKind, MovementKindCatalog, signOf } from '@core/utils';
 
-export function toViewUser(session: ApiSession): AppStore['users'][number] & { photoUrl?: string } {
+export function toViewUser(session: ApiSession): SessionUser {
   return {
     id: session.user.id,
     name: session.user.displayName,
@@ -35,7 +23,7 @@ export function toViewData(
   debts: readonly ApiDebtPosition[],
   investments: readonly ApiInvestment[],
   notifications: readonly ApiNotification[],
-): DemoData {
+): ViewData {
   const viewAccounts: Account[] = [
     ...accounts.map((account) => ({
       id: account.id,
@@ -62,6 +50,8 @@ export function toViewData(
       // La tasa de compras la publica el servidor; la pantalla del extracto la usaba
       // inventada. Ausente si no viene: mejor no dar la cifra que darla falsa.
       annualRate: tasaAnual(card.terms?.purchaseApr?.rate),
+      paymentPriority: completarPrioridad(card.terms?.paymentPriority, PRIORIDAD_EN_PESOS),
+      foreignPaymentPriority: completarPrioridad(card.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
       issuerId: card.issuerEntity?.id,
     })),
   ];
@@ -133,7 +123,10 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     originalCurrency: source.amount.original.currency === 'USD' ? 'USD' : 'COP',
     originalAmount: parseAmount(source.amount.original.amount, source.amount.original.currency),
     exchangeRate: parseRate(source.amount.rate),
-    ...(source.installments ? { installmentTotal: source.installments, installmentCurrent: 1 } : {}),
+    ...(source.installments
+      ? { installmentTotal: source.installments, installmentCurrent: cuotaEnCurso(source.date, source.installments) }
+      : {}),
+    ...(source.cardBucket ? { cardBucket: source.cardBucket } : {}),
     ...(source.purchaseApr !== null && source.purchaseApr !== undefined ? { purchaseApr: source.purchaseApr } : {}),
     ...(rolDePrestamo(source) ? { loanRole: rolDePrestamo(source) } : {}),
   };
@@ -155,4 +148,10 @@ function tasaAnual(valor: string | number | null | undefined): number | undefine
   if (valor === null || valor === undefined) return undefined;
   const numero = typeof valor === 'number' ? valor : Number(valor.trim());
   return Number.isFinite(numero) ? Math.round(numero * 100 * 1000) / 1000 : undefined;
+}
+
+export function cuotaEnCurso(fecha: string, total: number, hoy = new Date().toISOString().slice(0, 10)): number {
+  const [a1, m1] = fecha.split('-').map(Number);
+  const [a2, m2] = hoy.split('-').map(Number);
+  return Math.min(total, Math.max(1, (a2 - a1) * 12 + (m2 - m1) + 1));
 }

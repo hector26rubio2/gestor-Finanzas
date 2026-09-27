@@ -1,0 +1,47 @@
+[
+  {
+    "kind": 1,
+    "allowedEffects": [1],
+    "allowedFlows": [1],
+    "requiredLinks": [2],
+    "forbiddenLinks": [],
+    "exactlyOneOfLinks": [],
+    "isAlwaysNeutral": false
+  },
+  {
+    "kind": 2,
+    "allowedEffects": [2],
+    "allowedFlows": [2],
+    "requiredLinks": [2],
+    "forbiddenLinks": [],
+    "exactlyOneOfLinks": [],
+    "isAlwaysNeutral": false
+  },
+  {
+    "kind": 20,
+    "allowedEffects": [2],
+    "allowedFlows": [2],
+    "requiredLinks": [4],
+    "forbiddenLinks": [],
+    "exactlyOneOfLinks": [],
+    "isAlwaysNeutral": false
+  },
+  {
+    "kind": 21,
+    "allowedEffects": [0],
+    "allowedFlows": [1, 2],
+    "requiredLinks": [],
+    "forbiddenLinks": [8],
+    "exactlyOneOfLinks": [],
+    "isAlwaysNeutral": true
+  },
+  {
+    "kind": 24,
+    "allowedEffects": [0],
+    "allowedFlows": [1, 2],
+    "requiredLinks": [],
+    "forbiddenLinks": [8],
+    "exactlyOneOfLinks": [],
+    "isAlwaysNeutral": true
+  }
+]

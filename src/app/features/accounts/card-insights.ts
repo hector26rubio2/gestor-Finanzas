@@ -1,4 +1,4 @@
-import { Account, Movement } from '../../core/state/demo-data';
+import { Account, Movement } from '@core/state';
 
 export const HEALTHY_UTILIZATION_PERCENT = 50;
 const RECENT_USAGE_DAYS = 30;

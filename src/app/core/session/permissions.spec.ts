@@ -1,15 +1,16 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiRequestError, FinanceApiClient } from '../api/api-client';
+import { ApiRequestError, FinanceApiClient } from '@core/api';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from '../state/store';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 describe('permisos granulares', () => {
   beforeEach(() => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     TestBed.resetTestingModule();
   });
 
@@ -61,7 +62,7 @@ describe('permisos granulares', () => {
   it('allows compara contra los permisos que trae la sesión', () => {
     const store = TestBed.inject(AppStore);
     const caps = TestBed.inject(CAPABILITIES);
-    store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver] });
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.movimientos.ver] });
 
     expect(caps.allows(P.movimientos.ver)).toBe(true);
     // Ver la vista ya no concede escribir en ella: es el punto de toda la matriz.
@@ -74,13 +75,13 @@ describe('banderas de funcionalidad', () => {
   beforeEach(() => TestBed.resetTestingModule());
 
   it('en modo demo una clave ausente habilita', () => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     const features = TestBed.inject(FEATURES);
     expect(features.enabled('cualquier-cosa')).toBe(true);
   });
 
   it('contra la API, mientras el catálogo no llegue, nada abre', () => {
-    window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://api.example.test' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
     const store = TestBed.inject(AppStore);
     const features = TestBed.inject(FEATURES);
 
@@ -113,7 +114,7 @@ describe('sesión sin permisos', () => {
     const api = { session: vi.fn(() => of(sesionSinPermisos)) };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -132,7 +133,7 @@ describe('sesión sin permisos', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });

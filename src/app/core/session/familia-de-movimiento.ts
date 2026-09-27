@@ -1,5 +1,5 @@
 import { P } from './permissions';
-import type { Account, Movement } from '../state/demo-data';
+import type { Account, Movement } from '@core/state';
 
 export type FamiliaDeMovimiento = 'transferencias' | 'pagos' | 'avances' | 'prestamos' | 'creditos';
 

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
-import { IconComponent, IconName } from '../../../ui/icon/icon';
+import { IconComponent, IconName } from '@ui/icon';
 
 export interface MovementKindOption {
   value: string;

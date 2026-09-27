@@ -1,11 +1,11 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
-import type { ApiMovement } from '../api/ledger.api';
-import { I18nService } from '../i18n';
-import { toMovement } from '../session/remote-mappers';
-import { EMPTY_KIND_CATALOG, MovementKind } from '../utils/movement-kinds';
+import { FinanceApiClient } from '@core/api';
+import type { ApiMovement } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { toMovement } from '@core/session';
+import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils';
 import { AppStore } from './store';
 
 function pata(id: string, flow: number, links: Record<string, string>): ApiMovement {
@@ -34,7 +34,7 @@ function pata(id: string, flow: number, links: Record<string, string>): ApiMovem
 
 describe('avance en efectivo', () => {
   afterEach(() => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   });
 
   it('se registra con la tarjeta como origen y queda fuera de ingresos y gastos', async () => {
@@ -48,7 +48,7 @@ describe('avance en efectivo', () => {
       }),
     );
     const createTransfer = vi.fn();
-    window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://api.example.test' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [{ provide: FinanceApiClient, useValue: { createCashAdvance, createTransfer } }],

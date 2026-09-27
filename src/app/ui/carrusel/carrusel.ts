@@ -10,8 +10,8 @@ import {
   viewChild,
 } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
-import { I18nService } from '../../core/i18n';
-import { IconComponent } from '../icon/icon';
+import { I18nService } from '@core/i18n';
+import { IconComponent } from '@ui/icon';
 
 const UMBRAL_DE_ARRASTRE = 4;
 

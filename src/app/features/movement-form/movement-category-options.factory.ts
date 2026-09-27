@@ -1,5 +1,5 @@
-import { ApiCategory } from '../../core/api/api-client';
-import { UiOption } from '../../ui/select/select';
+import { ApiCategory } from '@core/api';
+import { UiOption } from '@ui/select';
 
 /**
  * Espejo de `Finanzas.Contracts.Categories.CategoryTypeDto`: no hay valor neutro

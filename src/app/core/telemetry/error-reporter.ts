@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { AdministrationApi } from '../api/administration.api';
-import { AppStore } from '../state/store';
-import { AccionDeUsuario } from '../http/accion';
-import { listenToConsole } from '../utils/console-buffer';
+import { AdministrationApi } from '@core/api';
+import { AppStore } from '@core/state';
+import { AccionDeUsuario } from '@core/http';
+import { listenToConsole } from '@core/utils';
 import { buildReport, fingerprintOf, isIgnoredMessage, ErrorOrigin } from './error-report';
 
 const MAX_REPORTS_PER_WINDOW = 10;
@@ -21,7 +21,7 @@ export class ErrorReporter {
   private sending = false;
 
   start(): void {
-    if (this.stops.length || this.store.runtime.mode !== 'api' || typeof window === 'undefined') return;
+    if (this.stops.length || typeof window === 'undefined') return;
     this.stops.push(
       listenToConsole((entry, args) => {
         if (entry.level !== 'error') return;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Account } from '../../core/state/demo-data';
+import type { Account } from '@core/state';
 import { MovementVisibilityBuilder } from './movement-visibility-builder';
 
 const tarjeta: Account = { id: 'c', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0 };

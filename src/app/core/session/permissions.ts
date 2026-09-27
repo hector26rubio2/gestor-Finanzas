@@ -30,6 +30,11 @@ export const P = {
       gastos: 'dashboard.kpi.gastos.ver',
       recuento: 'dashboard.kpi.recuento.ver',
     },
+    tableros: {
+      crear: 'dashboard.tableros.crear',
+      accesos: { editar: 'dashboard.tableros.accesos.editar' },
+    },
+    compartidos: { ver: 'dashboard.compartidos.ver' },
     widget: {
       editar: 'dashboard.widget.editar',
       crear: 'dashboard.widget.crear',

@@ -2,9 +2,8 @@ import { CanMatchFn, Router, UrlTree, provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { Observable, firstValueFrom, isObservable } from 'rxjs';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { CAPABILITIES, AppStore, FEATURES } from './core/state/store';
-import { P } from './core/session/permissions';
-import { RUNTIME_CONFIG } from './core/session/runtime';
+import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { P, RUNTIME_CONFIG } from '@core/session';
 import { routes } from './routes';
 
 /**
@@ -25,7 +24,7 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
 
   const montar = (permisos: readonly string[], banderas: Record<string, boolean>, cargadas = true) => {
     TestBed.configureTestingModule({
-      providers: [{ provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } }],
+      providers: [{ provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } }],
     });
     const store = TestBed.inject(AppStore);
     store.user.set({ id: 'u1', name: 'Lectora', email: 'l@example.test', capabilities: [...permisos] } as never);
@@ -94,7 +93,7 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
       ],
     });
     const store = TestBed.inject(AppStore);
@@ -111,7 +110,7 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     TestBed.configureTestingModule({
       providers: [
         provideRouter(routes),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
       ],
     });
     const store = TestBed.inject(AppStore);

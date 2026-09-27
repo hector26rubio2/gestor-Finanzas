@@ -2,21 +2,17 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { AccountViewType } from '../../core/api/api-client';
-import { Account } from '../../core/state/demo-data';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../ui/field/field';
-import { IconComponent } from '../../ui/icon/icon';
-import { AsyncActionService } from '../../core/utils/async-action.service';
-import { mensualDesdeAnual } from '../../shared/utils/tasas';
-
-/** Componentes de un abono, en el orden en que se le aplican a la deuda. */
-export type PriorityItem = 'fees' | 'interest' | 'capital';
+import { AccountViewType, type CardBucket, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, claveDeConcepto, completarPrioridad } from '@core/api';
+import { Account, CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { OverlayComponent } from '@ui/overlay';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
+import { IconComponent } from '@ui/icon';
+import { AsyncActionService } from '@core/utils';
+import { mensualDesdeAnual } from '@shared/utils';
 
 /**
  * Permiso que exige el backend para abrir una cuenta de este tipo.
@@ -77,22 +73,24 @@ export class AccountFormComponent {
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
     { value: 'USD', label: this.i18n.t('form.currency.usd') },
   ]);
-  readonly paymentOrderOptions = computed<readonly UiOption[]>(() => [
-    { value: 'oldest', label: this.i18n.t('form.account.paymentOrder.oldest') },
-    { value: 'highest-rate', label: this.i18n.t('form.account.paymentOrder.highestRate') },
-    { value: 'smallest', label: this.i18n.t('form.account.paymentOrder.smallest') },
+  readonly monedaDePrioridad = signal<'pesos' | 'dolares'>('pesos');
+  readonly monedasDePrioridad = computed<readonly UiOption[]>(() => [
+    { value: 'pesos', label: this.i18n.t('form.account.priority.local') },
+    { value: 'dolares', label: this.i18n.t('form.account.priority.foreign') },
   ]);
-  readonly priorityLabels = computed<Record<PriorityItem, string>>(() => ({
-    fees: this.i18n.t('form.account.priorityItem.fees'),
-    interest: this.i18n.t('form.account.priorityItem.interest'),
-    capital: this.i18n.t('form.account.priorityItem.capital'),
-  }));
-  /** Orden en que un abono cubre cada componente de la deuda; arrastrable o con flechas. */
-  readonly paymentPriorityOrder = signal<PriorityItem[]>(['fees', 'interest', 'capital']);
+  readonly prioridadEnPesos = signal<CardBucket[]>([...PRIORIDAD_EN_PESOS]);
+  readonly prioridadEnDolares = signal<CardBucket[]>([...PRIORIDAD_EN_DOLARES]);
+  private prioridadActiva() {
+    return this.monedaDePrioridad() === 'pesos' ? this.prioridadEnPesos : this.prioridadEnDolares;
+  }
+  readonly paymentPriorityOrder = computed(() => this.prioridadActiva()());
+  etiquetaDeConcepto(concepto: number): string {
+    return this.i18n.t(`card.bucket.${claveDeConcepto(concepto) ?? 'fees'}`);
+  }
   private readonly draggedPriorityIndex = signal<number | null>(null);
   movePriority(index: number, delta: -1 | 1): void {
     const target = index + delta;
-    this.paymentPriorityOrder.update((order) => {
+    this.prioridadActiva().update((order) => {
       if (target < 0 || target >= order.length) return order;
       const next = [...order];
       [next[index], next[target]] = [next[target], next[index]];
@@ -106,12 +104,16 @@ export class AccountFormComponent {
     const from = this.draggedPriorityIndex();
     this.draggedPriorityIndex.set(null);
     if (from === null || from === index) return;
-    this.paymentPriorityOrder.update((order) => {
+    this.prioridadActiva().update((order) => {
       const next = [...order];
       const [moved] = next.splice(from, 1);
       next.splice(index, 0, moved);
       return next;
     });
+  }
+  restablecerPrioridad(): void {
+    if (this.monedaDePrioridad() === 'pesos') this.prioridadEnPesos.set([...PRIORIDAD_EN_PESOS]);
+    else this.prioridadEnDolares.set([...PRIORIDAD_EN_DOLARES]);
   }
   exchangeRate = 4168.35;
   opening = 0;
@@ -127,7 +129,6 @@ export class AccountFormComponent {
       .people.filter((persona) => persona.kind === 'institution')
       .map((persona) => ({ value: persona.id, label: persona.name })),
   ]);
-  paymentOrder = 'oldest';
   minimumPayment = 50000;
   readonly actions = inject(AsyncActionService);
   readonly editing = this.store.form()?.account ?? null;
@@ -156,6 +157,8 @@ export class AccountFormComponent {
     if (account.dueDay !== undefined) this.dueDay = account.dueDay;
     if (account.annualRate !== undefined) this.monthlyRate = mensualDesdeAnual(account.annualRate);
     this.issuerId = account.issuerId ?? '';
+    this.prioridadEnPesos.set(completarPrioridad(account.paymentPriority, PRIORIDAD_EN_PESOS));
+    this.prioridadEnDolares.set(completarPrioridad(account.foreignPaymentPriority, PRIORIDAD_EN_DOLARES));
   }
 
   closed = () => this.store.form.set(null);
@@ -181,6 +184,8 @@ export class AccountFormComponent {
               dueDay: Number(this.dueDay),
               monthlyRate: Number(this.monthlyRate),
               issuerId: this.issuerId,
+              paymentPriority: this.prioridadEnPesos(),
+              foreignPaymentPriority: this.prioridadEnDolares(),
             },
           ),
         {
@@ -211,6 +216,8 @@ export class AccountFormComponent {
               dueDay: Number(this.dueDay),
               monthlyRate: Number(this.monthlyRate),
               issuerId: this.issuerId,
+              paymentPriority: this.prioridadEnPesos(),
+              foreignPaymentPriority: this.prioridadEnDolares(),
             },
           }),
         {

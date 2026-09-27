@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { I18nService } from '../../../core/i18n';
-import { AppStore } from '../../../core/state/store';
-import { FieldComponent } from '../../../ui/field/field';
-import { UiOption, UiSelectComponent } from '../../../ui/select/select';
-import { cuotaFija } from '../../../shared/utils/tasas';
+import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state';
+import { FieldComponent } from '@ui/field';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { cuotaFija } from '@shared/utils';
 
 @Component({
   selector: 'fin-movement-financing-fields',

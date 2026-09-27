@@ -1,7 +1,6 @@
-import { P } from '../../core/session/permissions';
-import type { Account, PersonKind } from '../../core/state/demo-data';
-import type { Preferences } from '../../core/state/theme';
-import type { IconName } from '../../ui/icon/icon';
+import { P } from '@core/session';
+import type { Account, PersonKind, Preferences } from '@core/state';
+import type { IconName } from '@ui/icon';
 
 export interface Comando {
   id: string;

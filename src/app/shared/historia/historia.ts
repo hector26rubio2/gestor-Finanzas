@@ -1,10 +1,9 @@
 import { Signal, computed, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
-import { ApiWritesBus } from '../../core/api/api-writes';
-import type { Movement } from '../../core/state/demo-data';
-import { AppStore } from '../../core/state/store';
-import { parseMoney, sumBy } from '../../core/utils/money';
+import { ApiDashboard, FinanceApiClient, ApiWritesBus } from '@core/api';
+import type { Movement } from '@core/state';
+import { AppStore } from '@core/state';
+import { parseMoney, sumBy } from '@core/utils';
 
 export interface Rango {
   readonly start: string;
@@ -82,7 +81,7 @@ export function crearHistoriaDeFlujo(rangos: Signal<readonly Rango[]>, opciones:
   effect(() => {
     const lista = rangos();
     escrituras.version();
-    if (store.runtime.mode !== 'api' || store.remoteState() !== 'ready' || !lista.length) return;
+    if (store.remoteState() !== 'ready' || !lista.length) return;
     const desde = lista[0].start;
     const hasta = lista[lista.length - 1].end;
     untracked(() => {
@@ -97,7 +96,6 @@ export function crearHistoriaDeFlujo(rangos: Signal<readonly Rango[]>, opciones:
     const servidor = remota();
     const conServidor = opciones.usarServidor?.() ?? true;
     if (
-      store.runtime.mode === 'api' &&
       conServidor &&
       servidor &&
       servidor.desde === lista[0]?.start &&
@@ -125,7 +123,7 @@ export function crearHistoriaDeSaldos(rangos: Signal<readonly Rango[]>) {
   effect(() => {
     const lista = rangos();
     escrituras.version();
-    if (store.runtime.mode !== 'api' || store.remoteState() !== 'ready' || !lista.length) return;
+    if (store.remoteState() !== 'ready' || !lista.length) return;
     const clave = claveDe(lista);
     untracked(() => {
       void Promise.all(lista.map((rango) => firstValueFrom(api.dashboard(rango.start, rango.end))))
@@ -146,23 +144,6 @@ export function crearHistoriaDeSaldos(rangos: Signal<readonly Rango[]>) {
   return computed<readonly PuntoDeSaldo[]>(() => {
     const lista = rangos();
     const servidor = remota();
-    if (store.runtime.mode === 'api') return servidor?.clave === claveDe(lista) ? servidor.puntos : [];
-    const movs = store.data().movements.filter((m) => m.status === 'confirmed');
-    return lista.map((rango) => {
-      const hasta = movs.filter((m) => m.date <= rango.end);
-      let available = 0;
-      let debt = 0;
-      for (const cuenta of store.data().accounts) {
-        const saldo =
-          cuenta.openingBalance +
-          sumBy(
-            hasta.filter((m) => m.accountId === cuenta.id),
-            (m) => m.amount,
-          );
-        if (cuenta.type === 'credit') debt += Math.max(0, -saldo);
-        else available += saldo;
-      }
-      return { rango, available, debt };
-    });
+    return servidor?.clave === claveDe(lista) ? servidor.puntos : [];
   });
 }

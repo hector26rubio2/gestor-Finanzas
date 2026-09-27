@@ -11,6 +11,13 @@
     "esModuleInterop": true,
     "isolatedModules": true,
     "paths": {
+      "@app/*": ["./src/app/*"],
+      "@core/*": ["./src/app/core/*"],
+      "@shared/*": ["./src/app/shared/*"],
+      "@features/*": ["./src/app/features/*"],
+      "@pages/*": ["./src/app/pages/*"],
+      "@ui/*": ["./src/app/ui/*"],
+      "@testing/*": ["./src/app/testing/*"],
       "@spartan-ng/helm/sidebar": ["./src/app/ui/helm/sidebar/src/index.ts"],
       "@spartan-ng/helm/utils": ["./src/app/ui/helm/utils/src/index.ts"],
       "@spartan-ng/helm/button": ["./src/app/ui/helm/button/src/index.ts"],

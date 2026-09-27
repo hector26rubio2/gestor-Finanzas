@@ -1,0 +1,98 @@
+[
+  {
+    "key": "accounts",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "admin.permissionCatalog",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "auth.password",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "calendar",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "dashboard",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "movements",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "movements.cashAdvance",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "notifications",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "people",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "people.history",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "planning",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "portfolio",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "reports",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "security.payloadEncryption",
+    "isEnabled": false,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "settings",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  },
+  {
+    "key": "settings.categories",
+    "isEnabled": true,
+    "audienceJson": null,
+    "updatedAt": "1970-01-01T00:00:00+00:00"
+  }
+]

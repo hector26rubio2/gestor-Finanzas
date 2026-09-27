@@ -1,4 +1,4 @@
-import { IconComponent } from '../../../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -15,11 +15,11 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
-import { ApiAdminRole } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { AppStore } from '../../../../core/state/store';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiSelectComponent } from '../../../../ui/select/select';
+import { ApiAdminRole } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state';
+import { SheetPanelComponent } from '@ui/sheet-panel';
+import { UiSelectComponent } from '@ui/select';
 import { AdminStore } from '../../admin.store';
 import { BulkChange } from '../../permission-picker/permission-picker';
 import { PermissionSectionsComponent } from '../../permission-picker/permission-sections';

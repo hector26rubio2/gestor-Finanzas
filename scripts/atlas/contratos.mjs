@@ -9,6 +9,7 @@ const USO_RUTA = /API_ROUTES\.(\w+)(?:\([^)]*\))?(?:\}([\w\-/]+))?/g;
 const METODO_WEB = /method:\s*'(\w+)'/g;
 const METODO_TERNARIO = /method:\s*[\w.]+\s*\?\s*'(\w+)'\s*:\s*'(\w+)'/;
 const CLIENTE_HTTP = /\.(get|post|put|delete|patch)\s*(?:<[^>]*>)?\(\s*[^()]*$/i;
+const CONSTANTE_DE_RUTA = /^\s*(?:export\s+)?const\s+(\w+)\s*=\s*['`]\/api\//;
 const LITERAL_API = /['`](?:\$\{[^}]+\})?(\/api\/v1\/[\w\-/.]*(?:\$\{[^}]+\}[\w\-/.]*)*)(?:\?[^'`]*)?['`]/g;
 const FUNCION_TS =
   /^\s*(?:(?:public|private|protected|async|static|readonly)\s+)*(\w+)\s*(?:<[^>]*>)?\([^)]*\)\s*(?::\s*[^{]+)?\{\s*$/;
@@ -123,6 +124,18 @@ export function llamadasWeb(raiz) {
     for (const literal of texto.matchAll(LITERAL_API)) {
       const linea = lineaDe(texto, literal.index);
       const contexto = lineas[linea - 1] ?? '';
+      const constante = contexto.match(CONSTANTE_DE_RUTA)?.[1];
+      if (constante) {
+        for (const uso of texto.matchAll(new RegExp(String.raw`\b${constante}\b(?!\s*=)`, 'g'))) {
+          const lineaDeUso = lineaDe(texto, uso.index);
+          if (lineaDeUso === linea) continue;
+          const funcion = funcionQueContiene(lineas, lineaDeUso - 1);
+          const metodo = metodoCercano(texto, uso.index, funcion);
+          if (!metodo) continue;
+          llamadas.push({ metodo, ruta: literal[1], archivo, linea: lineaDeUso, funcion, via: constante });
+        }
+        continue;
+      }
       llamadas.push({
         metodo: /EventSource/.test(contexto)
           ? 'GET'

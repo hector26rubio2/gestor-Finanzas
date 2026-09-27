@@ -2,11 +2,11 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore, navigation } from '../../core/state/store';
-import { RUNTIME_CONFIG } from '../../core/session/runtime';
+import { FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
+import { CAPABILITIES, AppStore, navigation } from '@core/state';
 import { DashboardComponent } from './dashboard';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * Marcar la funcionalidad tiene que hacer que funcione.
@@ -22,17 +22,17 @@ import { DashboardComponent } from './dashboard';
  * código lo fija `PermisoUnicoPorPantallaTests` en el repositorio del backend.
  */
 function preparar(permisos: readonly string[]) {
-  window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+  window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
-      { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+      { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
     ],
   });
   const store = TestBed.inject(AppStore);
-  store.user.set({ ...store.users[0], capabilities: [...permisos] });
+  store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [...permisos] });
   return store;
 }
 

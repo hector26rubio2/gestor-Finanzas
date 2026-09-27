@@ -2,14 +2,16 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
-import { I18nService } from '../../../core/i18n';
-import { FieldComponent } from '../../../ui/field/field';
-import { AppStore } from '../../../core/state/store';
-import { mensualDesdeAnual } from '../../../shared/utils/tasas';
+import { I18nService } from '@core/i18n';
+import { FieldComponent } from '@ui/field';
+import { AppStore } from '@core/state';
+import { mensualDesdeAnual } from '@shared/utils';
+import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api';
+import { UiSelectComponent, type UiOption } from '@ui/select';
 
 @Component({
   selector: 'fin-movement-installment-fields',
-  imports: [HlmButton, HlmInput, FormsModule, FieldComponent],
+  imports: [HlmButton, HlmInput, FormsModule, FieldComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './installment-fields.html',
   host: { style: 'display: contents' },
@@ -40,6 +42,29 @@ export class MovementInstallmentFieldsComponent {
 
   useCardRate(): void {
     this.model['installmentRate'] = undefined;
+  }
+
+  tiposDeCompra(): UiOption[] {
+    return [
+      { value: '', label: this.i18n.t('form.movement.cardBucket.auto') },
+      ...TIPOS_DE_COMPRA.map((tipo) => ({
+        value: String(tipo),
+        label: this.i18n.t(`card.bucket.${claveDeConcepto(tipo)}`),
+      })),
+    ];
+  }
+
+  tipoDeCompra(): string {
+    return this.model['cardBucket'] ? String(this.model['cardBucket']) : '';
+  }
+
+  onTipoDeCompra(valor: string): void {
+    const tipo = Number(valor) || undefined;
+    this.model['cardBucket'] = tipo;
+    if (tipo === CARD_BUCKET.zeroRatePurchases) this.model['installmentRate'] = 0;
+    if (tipo === CARD_BUCKET.singleInstallmentPurchases) this.model['installmentTotal'] = 1;
+    if (tipo === CARD_BUCKET.internationalPurchases && this.model['originalCurrency'] === 'COP')
+      this.model['originalCurrency'] = 'USD';
   }
 
   isOverridden(): boolean {

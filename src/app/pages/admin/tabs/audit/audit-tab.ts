@@ -1,17 +1,16 @@
-import { DateFieldComponent } from '../../../../ui/date-field/date-field';
+import { DateFieldComponent } from '@ui/date-field';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
-import { ApiAuditEvent, ApiAuditFilter } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
-import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
-import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
+import { ApiAuditEvent, ApiAuditFilter } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { EmptyStateComponent } from '@ui/empty-state';
+import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
+import { IconComponent } from '@ui/icon';
+import { SheetPanelComponent } from '@ui/sheet-panel';
+import { UiOption, UiSelectComponent } from '@ui/select';
 import { AdminLabels } from '../../admin-labels';
 import { AdminStore } from '../../admin.store';
 import { AdminGridComponent } from '../../panel/admin-grid';
@@ -36,133 +35,130 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
   host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (store.sinDatos()) {
-      <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.audit.detail')" />
-    } @else {
-      <section class="rounded-xl border border-border bg-card">
-        <header class="flex flex-col gap-3 p-4">
-          <div>
-            <h2 class="text-base font-semibold">{{ i18n.t('admin.audit.title') }}</h2>
-            <p class="text-sm text-muted-foreground">{{ i18n.t('admin.audit.subtitle') }}</p>
-          </div>
-          <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <fin-select
-              [ngModel]="action()"
-              (ngModelChange)="update('action', $event)"
-              [options]="actionOptions()"
-              [ariaLabel]="i18n.t('admin.audit.actionFilterAriaLabel')"
-            />
-            <fin-select
-              [ngModel]="entityType()"
-              (ngModelChange)="update('entityType', $event)"
-              [options]="entityOptions()"
-              [ariaLabel]="i18n.t('admin.audit.entityFilterAriaLabel')"
-            />
-            <fin-select
-              [ngModel]="actor()"
-              (ngModelChange)="update('actor', $event)"
-              [options]="actorOptions()"
-              [ariaLabel]="i18n.t('admin.audit.actorFilterAriaLabel')"
-            />
-            <fin-select
-              [ngModel]="affected()"
-              (ngModelChange)="update('affected', $event)"
-              [options]="affectedOptions()"
-              [ariaLabel]="i18n.t('admin.audit.affectedFilterAriaLabel')"
-            />
-            <label hlmLabel class="flex items-start flex-col gap-1">
-              <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.from') }}</span>
-              <fin-date-field [ngModel]="from()" (ngModelChange)="update('from', $event)" />
-            </label>
-            <label hlmLabel class="flex items-start flex-col gap-1">
-              <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.to') }}</span>
-              <fin-date-field [ngModel]="to()" (ngModelChange)="update('to', $event)" />
-            </label>
-          </div>
-          @if (traceId(); as trace) {
-            <div
-              class="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-accent px-3 py-2 text-sm"
-            >
-              <fin-icon name="filter" />
-              <span>{{ i18n.t('admin.audit.trace.filtering', { trace: trace.slice(0, 12) }) }}</span>
-              <button hlmBtn variant="ghost" size="sm" class="ms-auto" (click)="filterByTrace('')">
-                <fin-icon name="close" /> {{ i18n.t('admin.audit.trace.remove') }}
-              </button>
-              <p class="basis-full text-xs text-muted-foreground">
-                {{
-                  i18n.t('admin.audit.trace.summary', {
-                    events: store.auditTotal(),
-                    errors: store.erroresDeLaAccion().length,
-                  })
-                }}
-              </p>
-              @if (store.erroresDeLaAccion().length) {
-                <ul class="grid basis-full gap-1.5">
-                  @for (error of store.erroresDeLaAccion(); track error.id) {
-                    <li
-                      class="flex items-start gap-2 rounded-md border border-destructive/30 bg-background px-2.5 py-1.5"
-                    >
-                      <span hlmBadge variant="destructive" class="flex-none">{{ error.source }}</span>
-                      <span class="line-clamp-2 min-w-0 flex-1 text-xs [overflow-wrap:anywhere]">{{
-                        error.title || error.message
-                      }}</span>
-                      <small class="flex-none text-[0.7rem] text-muted-foreground">{{
-                        labels.dateTimeLong(error.lastSeenAt)
-                      }}</small>
-                    </li>
-                  }
-                </ul>
-              }
-            </div>
-          }
-          @if (hasFilters()) {
-            <div>
-              <button hlmBtn variant="ghost" size="sm" (click)="clear()">
-                <fin-icon name="close" /> {{ i18n.t('admin.audit.clearFilters') }}
-              </button>
-            </div>
-          }
-        </header>
-        <app-admin-grid
-          class="[height:max(22rem,calc(100dvh-26rem))]! max-[700px]:[height:min(34rem,calc(100dvh-12rem))]!"
-        >
-          <fin-table
-            [columns]="columns()"
-            [rows]="rows()"
-            [totalRows]="store.auditTotal()"
-            [remotePage]="store.auditPage()"
-            [pageSize]="store.auditSize()"
-            [tableLabel]="i18n.t('admin.audit.title')"
-            (rowSelected)="selected.set($event['raw'])"
-            (pageSizeChange)="store.auditSize.set($event)"
-            (pageChange)="store.cargarAuditoria($event)"
+    <section class="rounded-xl border border-border bg-card">
+      <header class="flex flex-col gap-3 p-4">
+        <div>
+          <h2 class="text-base font-semibold">{{ i18n.t('admin.audit.title') }}</h2>
+          <p class="text-sm text-muted-foreground">{{ i18n.t('admin.audit.subtitle') }}</p>
+        </div>
+        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <fin-select
+            [ngModel]="action()"
+            (ngModelChange)="update('action', $event)"
+            [options]="actionOptions()"
+            [ariaLabel]="i18n.t('admin.audit.actionFilterAriaLabel')"
+          />
+          <fin-select
+            [ngModel]="entityType()"
+            (ngModelChange)="update('entityType', $event)"
+            [options]="entityOptions()"
+            [ariaLabel]="i18n.t('admin.audit.entityFilterAriaLabel')"
+          />
+          <fin-select
+            [ngModel]="actor()"
+            (ngModelChange)="update('actor', $event)"
+            [options]="actorOptions()"
+            [ariaLabel]="i18n.t('admin.audit.actorFilterAriaLabel')"
+          />
+          <fin-select
+            [ngModel]="affected()"
+            (ngModelChange)="update('affected', $event)"
+            [options]="affectedOptions()"
+            [ariaLabel]="i18n.t('admin.audit.affectedFilterAriaLabel')"
+          />
+          <label hlmLabel class="flex items-start flex-col gap-1">
+            <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.from') }}</span>
+            <fin-date-field [ngModel]="from()" (ngModelChange)="update('from', $event)" />
+          </label>
+          <label hlmLabel class="flex items-start flex-col gap-1">
+            <span class="text-xs text-muted-foreground">{{ i18n.t('admin.audit.to') }}</span>
+            <fin-date-field [ngModel]="to()" (ngModelChange)="update('to', $event)" />
+          </label>
+        </div>
+        @if (traceId(); as trace) {
+          <div
+            class="flex flex-wrap items-center gap-2 rounded-lg border border-primary/30 bg-accent px-3 py-2 text-sm"
           >
-            <ng-template finCell="action" let-row>
-              <b class="text-sm">{{ row.action }}</b>
-              <small class="block text-xs text-muted-foreground">{{ row.raw.action }}</small>
-            </ng-template>
-            <ng-template finCell="entity" let-row>
-              {{ row.entity }}
-              <small class="block text-xs text-muted-foreground">{{ entityDetail(row.raw) }}</small>
-            </ng-template>
-            <ng-template finCell="trace" let-row>
-              <button
-                hlmBtn
-                variant="outline"
-                size="xs"
-                type="button"
-                class="font-mono"
-                [attr.title]="i18n.t('admin.audit.trace.filterBy')"
-                [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + row.raw.traceId"
-                (click)="$event.stopPropagation(); filterByTrace(row.raw.traceId)"
-              >
-                <fin-icon name="filter" /> {{ row.raw.traceId.slice(0, 12) }}
-              </button>
-            </ng-template>
-          </fin-table>
-        </app-admin-grid>
-      </section>
-    }
+            <fin-icon name="filter" />
+            <span>{{ i18n.t('admin.audit.trace.filtering', { trace: trace.slice(0, 12) }) }}</span>
+            <button hlmBtn variant="ghost" size="sm" class="ms-auto" (click)="filterByTrace('')">
+              <fin-icon name="close" /> {{ i18n.t('admin.audit.trace.remove') }}
+            </button>
+            <p class="basis-full text-xs text-muted-foreground">
+              {{
+                i18n.t('admin.audit.trace.summary', {
+                  events: store.auditTotal(),
+                  errors: store.erroresDeLaAccion().length,
+                })
+              }}
+            </p>
+            @if (store.erroresDeLaAccion().length) {
+              <ul class="grid basis-full gap-1.5">
+                @for (error of store.erroresDeLaAccion(); track error.id) {
+                  <li
+                    class="flex items-start gap-2 rounded-md border border-destructive/30 bg-background px-2.5 py-1.5"
+                  >
+                    <span hlmBadge variant="destructive" class="flex-none">{{ error.source }}</span>
+                    <span class="line-clamp-2 min-w-0 flex-1 text-xs [overflow-wrap:anywhere]">{{
+                      error.title || error.message
+                    }}</span>
+                    <small class="flex-none text-[0.7rem] text-muted-foreground">{{
+                      labels.dateTimeLong(error.lastSeenAt)
+                    }}</small>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        }
+        @if (hasFilters()) {
+          <div>
+            <button hlmBtn variant="ghost" size="sm" (click)="clear()">
+              <fin-icon name="close" /> {{ i18n.t('admin.audit.clearFilters') }}
+            </button>
+          </div>
+        }
+      </header>
+      <app-admin-grid
+        class="[height:max(22rem,calc(100dvh-26rem))]! max-[700px]:[height:min(34rem,calc(100dvh-12rem))]!"
+      >
+        <fin-table
+          [columns]="columns()"
+          [rows]="rows()"
+          [totalRows]="store.auditTotal()"
+          [remotePage]="store.auditPage()"
+          [pageSize]="store.auditSize()"
+          [tableLabel]="i18n.t('admin.audit.title')"
+          (rowSelected)="selected.set($event['raw'])"
+          (pageSizeChange)="store.auditSize.set($event)"
+          (pageChange)="store.cargarAuditoria($event)"
+        >
+          <ng-template finCell="action" let-row>
+            <b class="text-sm">{{ row.action }}</b>
+            <small class="block text-xs text-muted-foreground">{{ row.raw.action }}</small>
+          </ng-template>
+          <ng-template finCell="entity" let-row>
+            {{ row.entity }}
+            <small class="block text-xs text-muted-foreground">{{ entityDetail(row.raw) }}</small>
+          </ng-template>
+          <ng-template finCell="trace" let-row>
+            <button
+              hlmBtn
+              variant="outline"
+              size="xs"
+              type="button"
+              class="font-mono"
+              [attr.title]="i18n.t('admin.audit.trace.filterBy')"
+              [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + row.raw.traceId"
+              (click)="$event.stopPropagation(); filterByTrace(row.raw.traceId)"
+            >
+              <fin-icon name="filter" /> {{ row.raw.traceId.slice(0, 12) }}
+            </button>
+          </ng-template>
+        </fin-table>
+      </app-admin-grid>
+    </section>
+  
     <fin-sheet-panel
       [wide]="true"
       [open]="!!selected()"

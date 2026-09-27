@@ -1,7 +1,8 @@
+import type { ConfiguracionVisual } from '@shared/graficas';
 import { Injectable, computed, effect, inject, signal, untracked } from '@angular/core';
-import { firstValueFrom } from 'rxjs';
-import { FinanceApiClient } from '../../../core/api/api-client';
-import { AppStore } from '../../../core/state/store';
+import { type Observable, firstValueFrom } from 'rxjs';
+import { FinanceApiClient, DashboardsApi } from '@core/api';
+import { AppStore } from '@core/state';
 import {
   FlowDefault,
   FlowItem,
@@ -39,7 +40,28 @@ interface StoredLayout {
   readonly kpis: readonly FlowItem[];
   readonly definitions?: readonly KpiDefinition[];
   readonly ranges?: Readonly<Record<string, KpiRanges | null>>;
+  readonly configs?: readonly WidgetGuardado[];
+  readonly reports?: readonly VistaDeReporte[];
 }
+
+export interface WidgetGuardado {
+  readonly id: string;
+  readonly title?: string;
+  readonly kicker?: string;
+  readonly custom?: boolean;
+  readonly [campo: string]: unknown;
+}
+
+export interface VistaDeReporte {
+  readonly id: string;
+  readonly title: string;
+  readonly config: ConfiguracionVisual;
+  readonly wide: boolean;
+}
+
+const esConfigValida = (valor: unknown): boolean =>
+  valor === undefined ||
+  (Array.isArray(valor) && valor.every((item) => !!item && typeof (item as { id?: unknown }).id === 'string'));
 
 const EMPTY: StoredLayout = { version: 2, widgets: [], kpis: [] };
 
@@ -73,6 +95,7 @@ function parse(raw: string | null | undefined): StoredLayout | null {
     if (parsed.version !== 2 || !parsed.widgets?.every(isFlowItem) || !parsed.kpis?.every(isFlowItem)) return null;
     if (parsed.definitions !== undefined && !parsed.definitions.every(isDefinition)) return null;
     if (!rangosValidos(parsed.ranges)) return null;
+    if (!esConfigValida(parsed.configs) || !esConfigValida(parsed.reports)) return null;
     return parsed;
   } catch {
     return null;
@@ -97,12 +120,22 @@ function write(key: string, value: StoredLayout): void {
 
 const SAVE_DELAY_MS = 800;
 
+export type DestinoDelDiseno =
+  | { readonly tipo: 'principal' }
+  | { readonly tipo: 'propio'; readonly id: string; readonly nombre: string; readonly fijado: boolean }
+  | { readonly tipo: 'compartido'; readonly id: string };
+
 @Injectable({ providedIn: 'root' })
 export class DashboardLayoutService {
   private readonly store = inject(AppStore);
   private readonly api = inject(FinanceApiClient);
+  private readonly tablerosApi = inject(DashboardsApi);
   private hydratedKey: string | null = null;
   private saveTimer: ReturnType<typeof setTimeout> | null = null;
+  private guardadoPendiente: (() => void) | null = null;
+  readonly destino = signal<DestinoDelDiseno>({ tipo: 'principal' });
+  readonly soloLectura = computed(() => this.destino().tipo === 'compartido');
+  readonly esPrincipal = computed(() => this.destino().tipo === 'principal');
   private readonly storageKey = computed(() => `finanzas.dashboard.layout.v2.${this.store.user()?.id ?? 'anon'}`);
 
   private readonly stored = signal<StoredLayout>(read(this.storageKey()));
@@ -116,10 +149,21 @@ export class DashboardLayoutService {
       this.stored().widgets.length > 0 ||
       this.stored().kpis.length > 0 ||
       this.stored().definitions !== undefined ||
+      this.stored().configs !== undefined ||
       Object.keys(this.stored().ranges ?? {}).length > 0,
   );
   readonly definitions = computed(() => this.stored().definitions ?? null);
   readonly ranges = computed(() => this.stored().ranges ?? {});
+  readonly widgetConfigs = computed(() => this.stored().configs ?? null);
+  readonly reportViews = computed(() => this.stored().reports ?? null);
+
+  saveWidgetConfigs(configs: readonly WidgetGuardado[]): void {
+    this.commit({ ...this.stored(), configs });
+  }
+
+  saveReportViews(reports: readonly VistaDeReporte[]): void {
+    this.commit({ ...this.stored(), reports });
+  }
 
   constructor() {
     effect(() => {
@@ -130,11 +174,31 @@ export class DashboardLayoutService {
     });
   }
 
+  usarDiseno(destino: DestinoDelDiseno, layoutJson?: string | null): void {
+    this.guardarYa();
+    this.destino.set(destino);
+    this.stored.set(destino.tipo === 'principal' ? read(this.storageKey()) : (parse(layoutJson) ?? EMPTY));
+  }
+
+  renombrarDestino(nombre: string, fijado: boolean): void {
+    const actual = this.destino();
+    if (actual.tipo === 'propio') this.destino.set({ ...actual, nombre, fijado });
+  }
+
+  disenoActualJson(): string | null {
+    const actual = this.stored();
+    return actual === EMPTY ? null : JSON.stringify(actual);
+  }
+
   hydrate(json: string | null | undefined): void {
     if (this.saveTimer) return;
     const key = this.storageKey();
     const remote = parse(json);
     this.hydratedKey = key;
+    if (!this.esPrincipal()) {
+      if (remote) write(key, remote);
+      return;
+    }
     if (remote) {
       this.stored.set(remote);
       write(key, remote);
@@ -176,9 +240,7 @@ export class DashboardLayoutService {
   }
 
   reset(): void {
-    this.stored.set(EMPTY);
-    write(this.storageKey(), EMPTY);
-    this.scheduleSave(EMPTY);
+    this.commit(EMPTY);
   }
 
   saveDefinitions(definitions: readonly KpiDefinition[]): void {
@@ -203,18 +265,33 @@ export class DashboardLayoutService {
   }
 
   private commit(next: StoredLayout): void {
+    if (this.soloLectura()) return;
     this.stored.set(next);
-    write(this.storageKey(), next);
+    if (this.esPrincipal()) write(this.storageKey(), next);
     this.scheduleSave(next);
   }
 
-  private scheduleSave(layout: StoredLayout): void {
-    if (this.store.runtime.mode !== 'api') return;
+  private guardarYa(): void {
     if (this.saveTimer) clearTimeout(this.saveTimer);
-    this.saveTimer = setTimeout(() => {
-      this.saveTimer = null;
-      const json = layout === EMPTY ? null : JSON.stringify(layout);
-      void firstValueFrom(this.api.saveDashboardLayout(json)).catch(() => undefined);
-    }, SAVE_DELAY_MS);
+    this.saveTimer = null;
+    const pendiente = this.guardadoPendiente;
+    this.guardadoPendiente = null;
+    pendiente?.();
+  }
+
+  private scheduleSave(layout: StoredLayout): void {
+    if (this.saveTimer) clearTimeout(this.saveTimer);
+    const destino = this.destino();
+    const json = layout === EMPTY ? null : JSON.stringify(layout);
+    this.guardadoPendiente = () => {
+      const peticion: Observable<unknown> | null =
+        destino.tipo === 'propio'
+          ? this.tablerosApi.update(destino.id, { name: destino.nombre, layoutJson: json, isPinned: destino.fijado })
+          : destino.tipo === 'principal'
+            ? this.api.saveDashboardLayout(json)
+            : null;
+      if (peticion) void firstValueFrom(peticion).catch(() => undefined);
+    };
+    this.saveTimer = setTimeout(() => this.guardarYa(), SAVE_DELAY_MS);
   }
 }

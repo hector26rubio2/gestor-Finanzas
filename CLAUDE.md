@@ -1,78 +1,37 @@
-<!-- gitnexus:start -->
-# GitNexus — Code Intelligence
+# gestor-Finanzas
 
-This project is indexed by GitNexus as **gestor-Finanzas**.
+Angular 22 + Spartan (front, este repo) · .NET 10 Clean Architecture/DDD (API en `../v2-api-finanzas`). pnpm.
+Prioridad: correctness > architecture safety > task completion > token efficiency.
 
-> Index stale? Run `node .gitnexus/run.cjs analyze --index-only` from the project root — it auto-selects an available runner. No `.gitnexus/run.cjs` yet? Bootstrap with `npx`, `bunx`, or `pnpm dlx` — e.g. `bunx gitnexus@latest analyze` (npm 11 npx crash; #1939).
+## Nivel de la tarea (decídelo antes de explorar)
 
-## Always Do
+- **N0** texto, i18n, estilos, docs, formato, generados → sin GitNexus ni diagramas.
+- **N1** cambio local (componente aislado, DTO nuevo, test puntual) → `context` del símbolo que tocas, una vez.
+- **N2** comportamiento existente, servicio, query, API, componente reutilizado → `impact` upstream por símbolo modificado (una vez; reusa el resultado).
+- **N3** refactor, dominio, cross-module, contrato web↔API, infraestructura, o riesgo HIGH/CRITICAL/UNKNOWN → skill `gitnexus-impact-analysis` (y `gitnexus-refactoring` si renombras o mueves).
 
-- **MUST run impact before editing.** Use `impact({target: "symbolName", direction: "upstream"})` or `node .gitnexus/run.cjs impact "symbolName" --direction upstream --repo .`; report callers, processes, and risk. Never substitute grep for graph analysis. For unified PDG impact, add `mode: "pdg"` with optional `line: <N>` — it returns statement-level `affectedStatements` over CDG + REACHING_DEF and inter-procedural symbols in `interproceduralByDepth`/`byDepth`; no-layer/degraded PDG results are UNKNOWN-risk notes (`--pdg` layer). CLI equivalent: `node .gitnexus/run.cjs impact "symbolName" --direction upstream --mode pdg --line <N> --repo .`.
-- **MUST analyze graph changes before committing.** Use `detect_changes({scope: "all"})` (MCP) or `node .gitnexus/run.cjs detect-changes --scope all --repo .` (CLI fallback). `partial: true` or `truncated: true` is not a clean check — a zero means unseen, not unaffected; re-run it. For regression review: `detect_changes({scope: "compare", base_ref: "main"})` or `node .gitnexus/run.cjs detect-changes --scope compare --base-ref "main" --repo .`.
-- MUST warn on HIGH/CRITICAL `risk` pre-edit; never use `riskSharedAxes` to waive a HIGH/CRITICAL `risk` warning. Compare File/symbol: MCP File omits axes; Graph-RAG expands File.
-- **MUST treat `risk: UNKNOWN` as unresolved, not as low.** An empty caller set is not evidence the symbol is unused — it can also mean the callers are not resolvable by the index (plain-object property access, dynamic dispatch, cross-language calls). `impact` pairs `UNKNOWN` with a `riskNote` saying so. Confirm with a text search before treating the symbol as safe to change or delete; do not proceed on the strength of a zero.
-- **MUST use `query({search_query: "concept"})` for concepts/flows, `context({name: "symbolName"})` for a named symbol, or `impact` for blast radius, on read-only callers, dependencies, imports, or execution flow.** Graph first; text search only for empty/`UNKNOWN`/literals.
-- For security review, `explain({target: "fileOrSymbol"})` lists taint findings (source→sink flows; needs `analyze --pdg`).
-- For control/data dependence, `pdg_query({mode: "controls", target: "fileOrSymbol"})` answers "under what condition does X run?" (CDG, incl. guard clauses) and `pdg_query({mode: "flows", target, variable})` traces "where does variable Y flow?" (REACHING_DEF). `--pdg` layer.
+Siempre, en cualquier nivel:
+- HIGH/CRITICAL → avisar antes de editar y cubrir con tests.
+- UNKNOWN no es seguro: confirmar con búsqueda de texto.
+- `detect_changes` (MCP o `node .gitnexus/run.cjs detect-changes --scope all --repo .`) antes de cada commit.
+- Renombrar símbolos con `rename` de GitNexus, nunca buscar y reemplazar.
 
-## Never Do
+## Contexto mínimo
 
-- NEVER edit a function, class, or method before MCP/CLI impact analysis.
-- NEVER ignore HIGH or CRITICAL risk warnings from impact analysis, and never read `UNKNOWN` as an all-clear — it means the walk could not answer, which is the one verdict that requires confirming by other means.
-- NEVER rename symbols with find-and-replace — use `rename` which understands the call graph.
-- NEVER commit before MCP/CLI graph change analysis.
+- Skills de área: carga solo `gitnexus-area-<área>` del código que modificas; no las de otras áreas.
+- Archivo conocido → Read/Grep directo. GitNexus es para relaciones, callers y flujos.
+- Salidas de build y tests siempre filtradas (`tail`, `grep`). UI: `read_page`/texto primero; captura solo para validar lo visual, reducida.
+- Agrupa comprobaciones independientes en una llamada. No releas lo que ya está en contexto.
+- Subagentes solo para barridos amplios cuyo detalle no necesitas; nunca para cambios de 1–2 archivos.
 
-## Resources
+## Cambios
 
-| Resource | Use for |
-| --- | --- |
-| `gitnexus://repo/gestor-Finanzas/context` | Codebase overview, check index freshness |
-| `gitnexus://repo/gestor-Finanzas/clusters` | All functional areas |
-| `gitnexus://repo/gestor-Finanzas/processes` | All execution flows |
-| `gitnexus://repo/gestor-Finanzas/process/{name}` | Step-by-step execution trace |
+Skill `minimal-change`. Sin refactors, dependencias ni archivos no pedidos.
 
-## Cross-Repo Groups
+## Diagramas
 
-This repository is listed under GitNexus **group(s): finanzas** (see `~/.gitnexus/groups/`). For cross-repo analysis, use MCP tools `impact`, `query`, and `context` with `repo` set to `@<groupName>` or `@<groupName>/<memberPath>` (paths match keys in that group’s `group.yaml`). Use `group_list` / `group_sync` for membership and sync. From the project root: `node .gitnexus/run.cjs group list`, `node .gitnexus/run.cjs group sync <name>`, `node .gitnexus/run.cjs group impact <name> --target <symbol> --repo <group-path>` (the `.gitnexus/run.cjs` path is repo-root-relative).
+Skill `diagramas` (cuándo `estado`, `sellar`, `generar`, `atlas`). El hook avisa tras cada mutación de git.
 
-## CLI
+## Respuesta final
 
-| Task | Read this skill file |
-| --- | --- |
-| Understand architecture / "How does X work?" | `.claude/skills/gitnexus-exploring/SKILL.md` |
-| Blast radius / "What breaks if I change X?" | `.claude/skills/gitnexus-impact-analysis/SKILL.md` |
-| Trace bugs / "Why is X failing?" | `.claude/skills/gitnexus-debugging/SKILL.md` |
-| Rename / extract / split / refactor | `.claude/skills/gitnexus-refactoring/SKILL.md` |
-| Tools, resources, schema reference | `.claude/skills/gitnexus-guide/SKILL.md` |
-| Index, status, clean, wiki CLI commands | `.claude/skills/gitnexus-cli/SKILL.md` |
-| Work in the Cluster_182 area | `.claude/skills/gitnexus-area-cluster-182/SKILL.md` |
-| Work in the Dashboard area | `.claude/skills/gitnexus-area-dashboard/SKILL.md` |
-| Work in the State area | `.claude/skills/gitnexus-area-state/SKILL.md` |
-| Work in the Admin area | `.claude/skills/gitnexus-area-admin/SKILL.md` |
-| Work in the Api area | `.claude/skills/gitnexus-area-api/SKILL.md` |
-| Work in the Scripts area | `.claude/skills/gitnexus-area-scripts/SKILL.md` |
-| Work in the Session area | `.claude/skills/gitnexus-area-session/SKILL.md` |
-| Work in the Movements area | `.claude/skills/gitnexus-area-movements/SKILL.md` |
-| Work in the Layout area | `.claude/skills/gitnexus-area-layout/SKILL.md` |
-| Work in the Cluster_38 area | `.claude/skills/gitnexus-area-cluster-38/SKILL.md` |
-| Work in the Atlas area | `.claude/skills/gitnexus-area-atlas/SKILL.md` |
-| Work in the Data-table area | `.claude/skills/gitnexus-area-data-table/SKILL.md` |
-| Work in the Bug-report area | `.claude/skills/gitnexus-area-bug-report/SKILL.md` |
-| Work in the Movement-form area | `.claude/skills/gitnexus-area-movement-form/SKILL.md` |
-| Work in the Select area | `.claude/skills/gitnexus-area-select/SKILL.md` |
-| Work in the Reports area | `.claude/skills/gitnexus-area-reports/SKILL.md` |
-| Work in the Preferences area | `.claude/skills/gitnexus-area-preferences/SKILL.md` |
-| Work in the Chart area | `.claude/skills/gitnexus-area-chart/SKILL.md` |
-| Work in the Notifications area | `.claude/skills/gitnexus-area-notifications/SKILL.md` |
-| Work in the Telemetry area | `.claude/skills/gitnexus-area-telemetry/SKILL.md` |
-
-<!-- gitnexus:end -->
-
-# Diagramas de arquitectura
-
-Los diagramas de todo el funcionamiento (web y API) viven en `docs/diagramas/`, uno por área, generados con la skill archify. `manifiesto.json` liga cada diagrama con los archivos que representa.
-
-- **Antes de commitear** un cambio de comportamiento, corre `pnpm diagramas estado --detalle`. Si un diagrama queda viejo y el cambio altera lo que cuenta, edita su spec con la skill archify y corre `pnpm diagramas generar <id>`; si no lo altera, `pnpm diagramas sellar <id>`.
-- Un hook de Claude Code avisa tras cada `git commit`, `merge`, `pull`, `rebase` o `checkout` qué diagramas quedaron viejos: trata ese aviso como el de índice viejo de GitNexus.
-- Un área nueva lleva su diagrama y su entrada en el manifiesto. Detalle en `docs/diagramas/README.md`.
-- `docs/diagramas/index.html` es el portal (diagramas, grafo de GitNexus por módulo, contratos web ↔ API y salud). Si cambian rutas del API o `API_ROUTES`, o el aviso dice que el atlas quedó atrás, corre `pnpm diagramas atlas` y revisa en la pestaña Contratos que no aparezcan llamadas sin endpoint.
+`Changed` / `Tests` / `Notes`, ≤ 15 líneas, salvo que se pida detalle. Sin repetir el pedido, sin volcar código ni narrar herramientas.

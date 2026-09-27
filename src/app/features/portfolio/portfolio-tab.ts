@@ -1,17 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { KpiComponent } from '../../ui/kpi/kpi';
-import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
-import { TableZoneComponent } from '../../ui/table-zone/table-zone';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { AppStore } from '../../core/state/store';
-import { formatReturnRate, sumBy } from '../../core/utils/money';
-import { I18nService } from '../../core/i18n';
-import { SIN_DATO } from '../../shared/utils/placeholders';
-import { ChartCardComponent } from '../../ui/chart/chart-card';
-import { ChartThemeService } from '../../ui/chart/chart-theme';
-import { compactMoney } from '../../shared/utils/chart-math';
-import { anillo, barrasHorizontales } from '../../ui/chart/opciones';
+import { DataTableComponent } from '@ui/data-table';
+import { KpiComponent } from '@ui/kpi';
+import { KpiGridComponent } from '@ui/kpi-grid';
+import { TableZoneComponent } from '@ui/table-zone';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { AppStore } from '@core/state';
+import { formatReturnRate, sumBy } from '@core/utils';
+import { I18nService } from '@core/i18n';
+import { SIN_DATO, compactMoney } from '@shared/utils';
+import { ChartCardComponent, ChartThemeService, anillo, barrasHorizontales } from '@ui/chart';
 
 @Component({
   selector: 'app-portfolio-tab',

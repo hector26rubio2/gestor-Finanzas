@@ -6,14 +6,13 @@ import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
-import { ApiAuthMethods, FinanceApiClient } from '../../core/api/api-client';
-import { ApiRequestError } from '../../core/http/api-http-client';
-import { applyTheme, AppStore, Preferences } from '../../core/state/store';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { IconComponent } from '../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { I18nService } from '../../core/i18n';
-import { safeReturnPath } from '../../core/session/return-url';
+import { ApiAuthMethods, FinanceApiClient } from '@core/api';
+import { ApiRequestError } from '@core/http';
+import { applyTheme, AppStore, Preferences } from '@core/state';
+import { RemoteBootstrap, safeReturnPath } from '@core/session';
+import { IconComponent } from '@ui/icon';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { I18nService } from '@core/i18n';
 @Component({
   imports: [FormsModule, HlmButton, HlmInput, HlmLabel, IconComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -36,7 +35,7 @@ export class LoginComponent {
   password = '';
 
   constructor() {
-    if (this.store.runtime.mode === 'api') void this.loadMethods();
+    void this.loadMethods();
   }
 
   private async loadMethods(): Promise<void> {
@@ -92,11 +91,6 @@ export class LoginComponent {
   /** A dónde volver tras entrar: la vista que se pidió antes de caer aquí, o el dashboard. */
   private returnPath(): string {
     return safeReturnPath(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/dashboard';
-  }
-  login(index: number) {
-    this.store.user.set(this.store.users[index]);
-    this.store.rememberDemoSession(index);
-    void this.router.navigateByUrl(this.returnPath());
   }
   theme(value: string) {
     const theme = value as Preferences['theme'];

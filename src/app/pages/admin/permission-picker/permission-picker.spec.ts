@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { RUNTIME_CONFIG } from '../../../core/session/runtime';
+import { RUNTIME_CONFIG } from '@core/session';
 import { PermissionPickerComponent } from './permission-picker';
 
 const groups = [
@@ -20,7 +20,9 @@ const groups = [
 describe('selector de permisos', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
-    TestBed.configureTestingModule({ providers: [{ provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } }] });
+    TestBed.configureTestingModule({
+      providers: [{ provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } }],
+    });
   });
 
   function montar(granted: string[]) {

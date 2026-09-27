@@ -69,7 +69,7 @@
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
     [pageSize]="store.remoteMovementSize()"
-    [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
+    [totalRows]="store.remoteMovementTotal()"
     [remotePage]="store.remoteMovementPage()"
     (pageSizeChange)="changeMovementPageSize($event)"
     (pageChange)="loadMovementPage($event)"

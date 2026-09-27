@@ -50,7 +50,7 @@ describe('cada permiso sirve para algo', () => {
   const comprobables = Object.entries(modulos)
     .filter(([ruta]) => !ruta.endsWith('.spec.ts'))
     // El catálogo declara y los perfiles demo conceden: ninguno de los dos comprueba.
-    .filter(([ruta]) => !ruta.endsWith('/permissions.ts') && !ruta.endsWith('/demo-data.ts'))
+    .filter(([ruta]) => !ruta.endsWith('/permissions.ts') && !ruta.endsWith('/view-model.ts'))
     .map(([, fuente]) => fuente)
     .join('\n');
   const comprobados = new Set(comprobables.match(/P\.[A-Za-zÁÉÍÓÚáéíóúñÑ]+(?:\.[A-Za-z]+)*/g) ?? []);

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
+import { FinanceApiClient } from '@core/api';
 import { AppStore } from './store';
 
 const terminos = {
@@ -15,7 +15,7 @@ const terminos = {
 };
 
 function montar(api: unknown) {
-  window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://api.example.test' };
+  window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({ providers: [{ provide: FinanceApiClient, useValue: api }] });
   const store = TestBed.inject(AppStore);
@@ -67,7 +67,7 @@ function montar(api: unknown) {
 
 describe('ediciones contra la API', () => {
   afterEach(() => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   });
 
   it('actualiza la tarjeta con sus términos actuales y cierra el formulario', async () => {
@@ -199,15 +199,3 @@ describe('ediciones contra la API', () => {
   });
 });
 
-describe('ediciones en modo demostración', () => {
-  it('edita una categoría local sin llamar a la API', async () => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
-    TestBed.resetTestingModule();
-    const store = TestBed.inject(AppStore);
-    const categoria = store.categories()[0];
-
-    await store.updateCategory(categoria.id, { name: 'Renombrada', color: '#222222', icon: '★' });
-
-    expect(store.categories()[0]).toMatchObject({ id: categoria.id, name: 'Renombrada', color: '#222222', icon: '★' });
-  });
-});

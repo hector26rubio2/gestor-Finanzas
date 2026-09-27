@@ -1,24 +1,9 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import {
-  AdministrationApi,
-  ApiAdminFeatureFlag,
-  ApiBugReportResult,
-  ApiAdminOrganization,
-  ApiAdminOrganizationFlag,
-  ApiAdminRole,
-  ApiAdminUser,
-  ApiAuditEvent,
-  ApiAuditFilter,
-  ApiClientError,
-  ApiOrganizationMember,
-  ApiPermissionDescriptor,
-} from '../../core/api/administration.api';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { ApiPage } from '../../core/api/shared-api-types';
+import { AdministrationApi, ApiAdminFeatureFlag, ApiBugReportResult, ApiAdminOrganization, ApiAdminOrganizationFlag, ApiAdminRole, ApiAdminUser, ApiAuditEvent, ApiAuditFilter, ApiClientError, ApiOrganizationMember, ApiPermissionDescriptor, ApiPage } from '@core/api';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { P, RemoteBootstrap } from '@core/session';
 import { AdminChange, affectsAccess, changeKey, changeWave, sameIds } from './admin-changes';
 
 export type AdminTab = 'summary' | 'users' | 'roles' | 'organizations' | 'flags' | 'audit' | 'errors';
@@ -73,7 +58,6 @@ export class AdminStore {
 
   readonly loading = signal(false);
   readonly loadFailed = signal(false);
-  readonly sinDatos = computed(() => this.app.runtime.mode !== 'api');
 
   private readonly pending = signal<ReadonlyMap<string, AdminChange>>(new Map());
   readonly changes = computed(() => [...this.pending().values()]);
@@ -106,7 +90,7 @@ export class AdminStore {
   });
 
   async cargar(): Promise<void> {
-    if (this.sinDatos() || !this.caps.allows(P.administracion.ver)) return;
+    if (!this.caps.allows(P.administracion.ver)) return;
     this.loading.set(true);
     this.loadFailed.set(false);
     const puede = (permiso: string) => this.caps.allows(permiso);
@@ -501,7 +485,7 @@ export class AdminStore {
 
     if (aplicados.length) {
       if (aplicados.some(affectsAccess)) await this.cargarUsuarios();
-      if (this.app.runtime.mode === 'api') await this.arranque.pollSession();
+      await this.arranque.pollSession();
     }
     this.saving.set(false);
     this.app.toast.set(
@@ -663,7 +647,7 @@ export class AdminStore {
         return { ...todas, [saved.organizationId as string]: lista };
       });
     }
-    if (id && this.app.runtime.mode === 'api') await this.arranque.pollSession();
+    if (id) await this.arranque.pollSession();
     return saved;
   }
 

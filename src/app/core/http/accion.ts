@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { RUNTIME_CONFIG } from '@core/session';
 
 export const CABECERA_ACCION = 'X-Finanzas-Accion';
 
@@ -41,6 +41,6 @@ export class AccionDeUsuario {
 
 export const accionInterceptor: HttpInterceptorFn = (req, next) => {
   const config = inject(RUNTIME_CONFIG);
-  if (config.mode !== 'api' || !config.apiBaseUrl || !req.url.startsWith(config.apiBaseUrl)) return next(req);
+  if (!config.apiBaseUrl || !req.url.startsWith(config.apiBaseUrl)) return next(req);
   return next(req.clone({ setHeaders: { [CABECERA_ACCION]: inject(AccionDeUsuario).usar() } }));
 };

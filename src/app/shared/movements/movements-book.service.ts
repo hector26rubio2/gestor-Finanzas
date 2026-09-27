@@ -1,15 +1,13 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiMovement, FinanceApiClient } from '../../core/api/api-client';
-import { UiOption } from '../../ui/select/select';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { parseMoney } from '../../core/utils/money';
-import { classifyFamily, signOf } from '../../core/utils/movement-kinds';
-import { TABLE_ALL_FIELDS, TableFilter } from '../../ui/data-table/data-table';
-import { monthRange } from '../../core/api/shared-api-types';
-import { I18nService } from '../../core/i18n';
-import type { Account } from '../../core/state/demo-data';
+import { ApiMovement, FinanceApiClient, monthRange } from '@core/api';
+import { UiOption } from '@ui/select';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { parseMoney, classifyFamily, signOf } from '@core/utils';
+import { TABLE_ALL_FIELDS, TableFilter } from '@ui/data-table';
+import { I18nService } from '@core/i18n';
+import type { Account } from '@core/state';
 
 const ACCOUNT_TYPE_LABEL_KEYS: Record<Account['type'], string> = {
   savings: 'movements.filters.accountType.savings',
@@ -194,10 +192,15 @@ export class MovementsBookService {
   }
   /** Hay una página de movimientos en camino; la tabla muestra un esqueleto encima. */
   readonly movementsLoading = signal(false);
+  private cuentaFiltrada() {
+    const id = this.store.accountFilter();
+    return id === 'all' ? null : (this.store.account(id) ?? { id, type: 'savings' as const });
+  }
+
   async loadMovementPage(page: number): Promise<void> {
     // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
     // fallo al cargar la pagina, que no es lo que pasa.
-    if (this.store.runtime.mode !== 'api' || !this.can(P.movimientos.ver)) return;
+    if (!this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
     this.movementsLoading.set(true);
     try {
@@ -207,9 +210,12 @@ export class MovementsBookService {
           page,
           pageSize: this.store.remoteMovementSize(),
           search: this.store.query() || undefined,
-          accountId: this.store.accountFilter() === 'all' ? undefined : this.store.accountFilter(),
+          accountId: this.cuentaFiltrada()?.type === 'credit' ? undefined : this.cuentaFiltrada()?.id,
           period: period === 'all' ? undefined : period,
-          filter: this.filtroDelServidor(),
+          filter:
+            this.cuentaFiltrada()?.type === 'credit'
+              ? { ...this.filtroDelServidor(), cards: [this.cuentaFiltrada()!.id] }
+              : this.filtroDelServidor(),
         }),
       );
       if (request !== this.movementRequest) return;
@@ -231,7 +237,7 @@ export class MovementsBookService {
     this.store.remoteMovementSize.set(size);
     void this.loadMovementPage(1);
   }
-  private toRemoteMovement(source: ApiMovement): import('../../core/state/demo-data').Movement {
+  private toRemoteMovement(source: ApiMovement): import('@core/state/view-model').Movement {
     // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
     // duplicada la expresión de signo y la lista de clases escrita a mano.
     const amount = parseMoney(source.amount.base) * signOf(source.flow, source.effect);

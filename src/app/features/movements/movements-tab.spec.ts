@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import en from '../../core/i18n/en';
-import es from '../../core/i18n/es';
-import fr from '../../core/i18n/fr';
-import pt from '../../core/i18n/pt';
+import en from '@core/i18n/en';
+import es from '@core/i18n/es';
+import fr from '@core/i18n/fr';
+import pt from '@core/i18n/pt';
 import { movementsKpiHintKey, type MovementsKpi } from './movements-tab';
 
 /**
@@ -12,19 +12,10 @@ import { movementsKpiHintKey, type MovementsKpi } from './movements-tab';
  * API ese número es la página cargada, no el periodo entero.
  */
 describe('pistas de los KPI de movimientos', () => {
-  it('en demo la pista sigue diciendo que los datos son la selección completa', () => {
-    expect(movementsKpiHintKey('demo', 'income')).toBe('movements.kpi.selectionHint');
-    expect(movementsKpiHintKey('demo', 'expense')).toBe('movements.kpi.selectionHint');
-    expect(movementsKpiHintKey('demo', 'records')).toBe('movements.kpi.records.hint');
-    expect(movementsKpiHintKey('demo', 'recurring')).toBe('movements.kpi.recurring.hint');
-    expect(movementsKpiHintKey('demo', 'installments')).toBe('movements.kpi.installments.hint');
-    expect(movementsKpiHintKey('demo', 'topCategory')).toBe('movements.kpi.topCategory.hint');
-  });
-
   it('en modo API la pista dice que el dato es de la página cargada', () => {
     const kpis: MovementsKpi[] = ['income', 'expense', 'records', 'recurring', 'installments', 'topCategory'];
     for (const kpi of kpis) {
-      expect(movementsKpiHintKey('api', kpi)).toBe(`movements.kpi.page.${kpi}.hint`);
+      expect(movementsKpiHintKey(kpi)).toBe(`movements.kpi.page.${kpi}.hint`);
     }
   });
 

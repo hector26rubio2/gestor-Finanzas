@@ -2,11 +2,10 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, u
 import { CommandPaletteService } from './command-palette.service';
 import { Router } from '@angular/router';
 import { HlmCommandImports } from '@spartan-ng/helm/command';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { navigation } from '../../core/state/navigation';
-import { CAPABILITIES, AppStore, FEATURES } from '../../core/state/store';
-import { IconComponent, IconName } from '../../ui/icon/icon';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { navigation, CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { IconComponent, IconName } from '@ui/icon';
 import {
   Comando,
   ContextoDeComandos,
