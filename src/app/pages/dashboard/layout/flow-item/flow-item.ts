@@ -10,8 +10,8 @@ import {
   clampHeight,
   colsFromWidth,
   rowSpan,
-} from '@pages/dashboard/layout/dashboard-layout';
-import { FlowResize } from '@pages/dashboard/layout/dashboard-layout.service';
+} from '@shared/tablero/dashboard-layout';
+import { FlowResize } from '@shared/tablero/dashboard-layout.service';
 
 type Axis = 'x' | 'y' | 'xy';
 

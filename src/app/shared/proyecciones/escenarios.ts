@@ -1,7 +1,7 @@
 import type { ApiObligation, ApiRecurrence } from '@core/api';
 import type { Account, Movement, Person } from '@core/state';
 import { sumBy } from '@core/utils';
-import { mensualDesdeAnual } from '@shared/utils/tasas';
+import { mensualDesdeAnual } from '@core/utils/tasas';
 import { type Deuda, type Flujo, type Palanca, cuotaFija, proyectar } from './amortizacion';
 import { CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
 import { type CompraPendiente, comprasPendientes, saldosPorConcepto } from '@shared/tarjetas/extracto';

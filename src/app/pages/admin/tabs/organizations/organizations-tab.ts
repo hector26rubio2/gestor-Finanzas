@@ -10,7 +10,6 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent } from '@ui/icon';
 import { SheetPanelComponent } from '@ui/sheet-panel';
@@ -36,7 +35,6 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
     AdminPanelComponent,
     DataTableComponent,
     FinTableCellDirective,
-    EmptyStateComponent,
     IconComponent,
     OrganizationSheetComponent,
     SheetPanelComponent,

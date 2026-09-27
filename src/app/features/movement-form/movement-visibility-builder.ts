@@ -11,6 +11,7 @@ export interface MovementFieldVisibility {
   readonly showInstallments: boolean;
   readonly installmentCurrentEditable: boolean;
   readonly showCurrency: boolean;
+  readonly showPurchaseCurrency: boolean;
   readonly showLoanTerms: boolean;
   readonly showLoanProduct: boolean;
   readonly showCardMode: boolean;
@@ -26,6 +27,7 @@ export class MovementVisibilityBuilder {
     showInstallments: false,
     installmentCurrentEditable: false,
     showCurrency: false,
+    showPurchaseCurrency: false,
     showLoanTerms: false,
     showLoanProduct: false,
     showCardMode: false,
@@ -36,6 +38,7 @@ export class MovementVisibilityBuilder {
     private readonly account: Account | undefined,
     private readonly isEditing: boolean,
     private readonly operationType: string = 'normal',
+    private readonly purchaseCurrency?: string,
   ) {}
 
   private get isNormal(): boolean {
@@ -76,7 +79,10 @@ export class MovementVisibilityBuilder {
   }
 
   withCurrency(): this {
-    return this.set({ showCurrency: this.isNormal && this.kind === 'expense' && this.account?.currency === 'USD' });
+    const compra = this.isNormal && this.kind === 'expense';
+    const bimoneda = this.isCreditAccount && this.account?.dualCurrency === true;
+    const enDolares = bimoneda ? this.purchaseCurrency === 'USD' : this.account?.currency === 'USD';
+    return this.set({ showPurchaseCurrency: compra && bimoneda, showCurrency: compra && enDolares });
   }
 
   withLoan(): this {

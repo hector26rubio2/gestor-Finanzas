@@ -7,7 +7,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
-import { CAPABILITIES, AppStore, PersonKind } from '@core/state';
+import { CAPABILITIES, AppStore, PersonKind, CatalogCommands } from '@core/state';
 import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
@@ -33,6 +33,7 @@ import { FieldComponent } from '@ui/field';
 export class ManagementFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly store = inject(AppStore);
+  private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
@@ -144,12 +145,13 @@ export class ManagementFormComponent {
       if (permiso && !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
-        await this.store.createCategory(this.name, this.color, this.icon, this.categoryType);
+        await this.catalogCommands.createCategory(this.name, this.color, this.icon, this.categoryType);
       if (this.kind() === 'person')
-        await this.store.createPerson(this.name, this.email, this.relationship, this.personKind);
-      if (this.kind() === 'investment') await this.store.createInvestment(this.name, this.instrument, this.currency);
+        await this.catalogCommands.createPerson(this.name, this.email, this.relationship, this.personKind);
+      if (this.kind() === 'investment')
+        await this.catalogCommands.createInvestment(this.name, this.instrument, this.currency);
       if (this.kind() === 'recurrence')
-        await this.store.createRecurrence(
+        await this.catalogCommands.createRecurrence(
           this.name,
           Number(this.amount),
           this.accountId,
@@ -173,16 +175,16 @@ export class ManagementFormComponent {
       if (!permiso || !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
-        await this.store.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
+        await this.catalogCommands.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
       if (this.kind() === 'person')
-        await this.store.updatePerson(id, {
+        await this.catalogCommands.updatePerson(id, {
           name: this.name,
           email: this.email,
           relationship: this.relationship,
           kind: this.personKind,
         });
       if (this.kind() === 'investment')
-        await this.store.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
+        await this.catalogCommands.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }

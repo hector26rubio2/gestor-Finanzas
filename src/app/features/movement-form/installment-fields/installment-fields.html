@@ -14,7 +14,7 @@
 <fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
   <input hlmInput type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
-}
+} @if (conCuotas()) {
 <fin-field [label]="i18n.t('form.movement.field.installmentRate')">
   <input
     hlmInput
@@ -31,4 +31,4 @@
 <button hlmBtn variant="link" size="xs" type="button" class="col-span-full justify-self-start" (click)="useCardRate()">
   {{ i18n.t('form.movement.installmentRate.useCardDefault', { rate: tasaTarjeta }) }}
 </button>
-}
+} }

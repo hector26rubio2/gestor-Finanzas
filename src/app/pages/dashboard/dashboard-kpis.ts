@@ -5,10 +5,10 @@ import { P } from '@core/session';
 import { sumBy } from '@core/utils';
 import { IconName } from '@ui/icon';
 import { UiOption } from '@ui/select';
-import { Dimension, KpiFormula } from './dashboard.model';
+import { Dimension, KpiFormula } from '@shared/tablero/dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
-import { DashboardLayoutService, KpiDefinition, KpiFilter } from './layout/dashboard-layout.service';
-import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from './kpis/kpi-ranges';
+import { DashboardLayoutService, KpiDefinition, KpiFilter } from '@shared/tablero/dashboard-layout.service';
+import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from '@shared/tablero/kpi-ranges';
 import { CUSTOM_KPI_PREFIX } from './kpis/kpi-strip/kpi-strip';
 
 export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [

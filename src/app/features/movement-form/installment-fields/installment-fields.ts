@@ -5,7 +5,7 @@ import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { FieldComponent } from '@ui/field/field';
 import { AppStore } from '@core/state/store';
-import { mensualDesdeAnual } from '@shared/utils/tasas';
+import { mensualDesdeAnual } from '@core/utils/tasas';
 import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api/card-buckets';
 import { UiSelectComponent, type UiOption } from '@ui/select/select';
 
@@ -30,6 +30,10 @@ export class MovementInstallmentFieldsComponent {
   cardMonthlyRate(): number | undefined {
     const anual = this.card()?.annualRate;
     return anual === undefined ? undefined : mensualDesdeAnual(anual);
+  }
+
+  conCuotas(): boolean {
+    return Number(this.model['installmentTotal']) > 1;
   }
 
   monthlyRate(): number | null {

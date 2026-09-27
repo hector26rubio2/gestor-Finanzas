@@ -51,3 +51,25 @@ describe('MovementVisibilityBuilder', () => {
     expect(visible.showTargetAccount).toBe(false);
   });
 });
+
+const conMoneda = (cuenta: Account, moneda?: string) =>
+  new MovementVisibilityBuilder('expense', cuenta, false, 'normal', moneda).withCurrency().build();
+
+describe('moneda de una compra con tarjeta', () => {
+  it('una tarjeta de una sola moneda no pregunta la moneda de la compra', () => {
+    expect(conMoneda(tarjeta)).toMatchObject({ showPurchaseCurrency: false, showCurrency: false });
+  });
+
+  it('una tarjeta solo en dólares pide la TRM sin preguntar la moneda', () => {
+    expect(conMoneda({ ...tarjeta, currency: 'USD' })).toMatchObject({
+      showPurchaseCurrency: false,
+      showCurrency: true,
+    });
+  });
+
+  it('una tarjeta bimoneda deja elegir la moneda y pide la TRM solo en dólares', () => {
+    const bimoneda: Account = { ...tarjeta, dualCurrency: true };
+    expect(conMoneda(bimoneda, 'COP')).toMatchObject({ showPurchaseCurrency: true, showCurrency: false });
+    expect(conMoneda(bimoneda, 'USD')).toMatchObject({ showPurchaseCurrency: true, showCurrency: true });
+  });
+});

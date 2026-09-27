@@ -15,8 +15,8 @@ import {
   withCols,
   withHeight,
 } from './dashboard-layout';
-import { Dimension, KpiFormula } from '@pages/dashboard/dashboard.model';
-import { KpiRanges, esRangoValido } from '@pages/dashboard/kpis/kpi-ranges';
+import { Dimension, KpiFormula } from './dashboard.model';
+import { KpiRanges, esRangoValido } from './kpi-ranges';
 
 export interface FlowResize {
   readonly cols?: number;
@@ -167,6 +167,10 @@ export class DashboardLayoutService {
   }
 
   constructor() {
+    effect(() => {
+      const diseno = this.store.disenoDelServidor();
+      if (diseno) untracked(() => this.hydrate(diseno.json));
+    });
     effect(() => {
       const key = this.storageKey();
       untracked(() => {

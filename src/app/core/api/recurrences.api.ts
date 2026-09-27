@@ -59,6 +59,10 @@ export class RecurrencesApi {
     });
   }
 
+  deleteRecurrence(id: string) {
+    return this.transport.request<void>({ method: 'DELETE', path: API_ROUTES.recurrence(id) });
+  }
+
   materializeRecurrence(
     id: string,
     request: { occurrence: string; amount?: ApiMoney | null; idempotencyKey?: string | null },

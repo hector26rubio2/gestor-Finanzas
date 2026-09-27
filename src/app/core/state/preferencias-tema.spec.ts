@@ -1,3 +1,4 @@
+import { PreferencesActions } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -36,7 +37,7 @@ describe('persistPreferences', () => {
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar]) as never);
 
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
 
     expect(api.updatePreferences).toHaveBeenCalledOnce();
     expect(api.updatePreferences.mock.calls[0][0]).toMatchObject({ customThemeJson: null });
@@ -46,11 +47,11 @@ describe('persistPreferences', () => {
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar, P.preferencias.tema.editar]) as never);
 
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
     expect(JSON.parse(api.updatePreferences.mock.calls[0][0].customThemeJson!)).toEqual({});
 
     store.preferences.update((value) => ({ ...value, surface: '#101010', accent: '#ff0000' }));
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
 
     expect(JSON.parse(api.updatePreferences.mock.calls[1][0].customThemeJson!)).toEqual({
       accent: '#ff0000',

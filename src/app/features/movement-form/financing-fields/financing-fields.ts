@@ -5,7 +5,7 @@ import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state/store';
 import { FieldComponent } from '@ui/field/field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
-import { cuotaFija } from '@shared/utils/tasas';
+import { cuotaFija } from '@core/utils/tasas';
 
 @Component({
   selector: 'fin-movement-financing-fields',

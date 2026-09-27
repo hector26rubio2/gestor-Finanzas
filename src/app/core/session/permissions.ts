@@ -92,6 +92,7 @@ export const P = {
     recurrencias: {
       listar: 'calendario.recurrencias.listar',
       crear: 'calendario.recurrencias.crear',
+      deshabilitar: 'calendario.recurrencias.deshabilitar',
     },
     proyecciones: { crear: 'calendario.proyecciones.crear' },
   },

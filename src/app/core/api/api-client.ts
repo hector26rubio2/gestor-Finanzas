@@ -313,6 +313,9 @@ export class FinanceApiClient {
   recurrences() {
     return this.recurrencesApi.recurrences();
   }
+  deleteRecurrence(id: string) {
+    return this.recurrencesApi.deleteRecurrence(id);
+  }
   createRecurrence(request: unknown) {
     return this.recurrencesApi.createRecurrence(request);
   }

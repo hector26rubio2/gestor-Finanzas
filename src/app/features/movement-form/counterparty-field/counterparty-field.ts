@@ -5,6 +5,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
 import { AppStore, CAPABILITIES } from '@core/state/store';
+import { CatalogCommands } from '@core/state/catalog-commands';
 import { PersonKind } from '@core/state/view-model';
 import { FieldComponent } from '@ui/field/field';
 import { IconComponent } from '@ui/icon/icon';
@@ -24,6 +25,8 @@ export class MovementCounterpartyFieldComponent {
   @Input({ required: true }) scope!: CounterpartyScope;
 
   private readonly store = inject(AppStore);
+
+  private readonly catalogCommands = inject(CatalogCommands);
   private readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   readonly creando = signal(false);
@@ -74,7 +77,7 @@ export class MovementCounterpartyFieldComponent {
     if (!nombre || this.guardando()) return;
     this.guardando.set(true);
     try {
-      const creada = await this.store.createCounterparty(nombre, this.tipoNuevo());
+      const creada = await this.catalogCommands.createCounterparty(nombre, this.tipoNuevo());
       this.model['counterpartyId'] = creada.id;
       this.nombreNuevo.set('');
       this.creando.set(false);

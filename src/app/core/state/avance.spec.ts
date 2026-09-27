@@ -1,3 +1,4 @@
+import { MovementCommands } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -63,7 +64,7 @@ describe('avance en efectivo', () => {
       movements: [],
     }));
 
-    await store.save({
+    await TestBed.inject(MovementCommands).save({
       kind: 'advance',
       date: '2026-09-25',
       description: 'Avance',

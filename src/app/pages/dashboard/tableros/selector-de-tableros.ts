@@ -4,11 +4,11 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
-import { sincronizarConLaUrl } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { IconComponent } from '@ui/icon';
 import { UiSelectComponent, type UiOption } from '@ui/select';
-import { DashboardLayoutService } from '@pages/dashboard/layout/dashboard-layout.service';
+import { DashboardLayoutService } from '@shared/tablero/dashboard-layout.service';
 import { TABLERO_PRINCIPAL, TablerosService } from './tableros.service';
 
 type Panel = 'nuevo' | 'renombrar' | 'compartir' | null;

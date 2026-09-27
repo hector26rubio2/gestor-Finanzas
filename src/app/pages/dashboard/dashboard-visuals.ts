@@ -3,7 +3,7 @@ import { Movement, CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
 import { UiOption } from '@ui/select';
 import { ChartOption, ChartThemeService } from '@ui/chart';
-import { CategorySlice, Dimension, Measure, Scale, TimelinePoint, Widget } from './dashboard.model';
+import { CategorySlice, Dimension, Measure, Scale, TimelinePoint, Widget } from '@shared/tablero/dashboard.model';
 import {
   cifraCorta,
   conAlfa,

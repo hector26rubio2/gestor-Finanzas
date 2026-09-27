@@ -106,11 +106,17 @@
       {{ i18n.t('form.account.hint.opening') }}
     </p>
     } @if (esTarjeta()) {
+    <label class="col-span-full flex items-center gap-2 text-[0.82rem] font-medium">
+      <hlm-checkbox [checked]="bimoneda()" (checkedChange)="alternarBimoneda($event)" />
+      <span>{{ i18n.t('form.account.field.dualCurrency') }}</span>
+      <small class="text-muted-foreground">{{ i18n.t('form.account.hint.dualCurrency') }}</small>
+    </label>
     <fin-field [label]="i18n.t('form.account.field.monthlyFee')">
       <input hlmInput name="monthlyFee" [(ngModel)]="monthlyFee" type="number" min="0" step="1000" />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
       <div class="flex flex-wrap items-center justify-between gap-2">
+        @if (bimoneda()) {
         <fin-select
           class="w-56"
           name="monedaDePrioridad"
@@ -119,6 +125,7 @@
           [options]="monedasDePrioridad()"
           [ariaLabel]="i18n.t('form.account.priority.currency')"
         />
+        }
         <button hlmBtn variant="ghost" size="sm" type="button" (click)="restablecerPrioridad()">
           {{ i18n.t('form.account.priority.reset') }}
         </button>

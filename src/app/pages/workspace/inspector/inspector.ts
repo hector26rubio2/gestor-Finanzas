@@ -20,7 +20,7 @@ import { I18nService } from '@core/i18n';
 import { PERMISO_DE_REVERSO, familiaDeMovimiento, P, toMovement } from '@core/session';
 import { permisoParaEditarCuenta } from '@features/account-form';
 import type { Account, Movement } from '@core/state';
-import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { CAPABILITIES, AppStore, FEATURES, MovementCommands } from '@core/state';
 import { SIN_DATO } from '@shared/utils';
 import { MovementsBookService } from '@shared/movements';
 import { BankCardComponent } from '@ui/bank-card';
@@ -58,6 +58,7 @@ export class InspectorComponent {
   readonly Math = Math;
   readonly i18n = inject(I18nService);
   readonly store = inject(AppStore);
+  private readonly movementCommands = inject(MovementCommands);
   readonly P = P;
   readonly parseMoney = parseMoney;
   private readonly capabilities = inject(CAPABILITIES);
@@ -211,7 +212,7 @@ export class InspectorComponent {
   async confirmCardPayment() {
     const card = this.selectedAccount();
     if (!card || this.appliedPayment() <= 0) return;
-    await this.store.save({
+    await this.movementCommands.save({
       kind: 'payment',
       date: this.store.hoy(),
       accountId: this.cuentaDeOrigen(),

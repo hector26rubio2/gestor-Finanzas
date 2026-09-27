@@ -28,7 +28,7 @@ import {
   variacion,
   crearMovimientosDelPeriodo,
 } from '@shared/historia';
-import { estadoDe } from '@pages/dashboard/kpis/kpi-ranges';
+import { estadoDe } from '@shared/tablero/kpi-ranges';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { P } from '@core/session';
 import { addDaysToIso } from '@core/utils';

@@ -5,7 +5,6 @@ import { ApiAdminUser } from '@core/api';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES } from '@core/state';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { IconComponent } from '@ui/icon';
 import { PagerComponent } from '@ui/pager';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
@@ -24,7 +23,6 @@ import { UserSheetComponent } from './user-sheet';
     AdminPanelComponent,
     DataTableComponent,
     FinTableCellDirective,
-    EmptyStateComponent,
     IconComponent,
     PagerComponent,
     UserSheetComponent,

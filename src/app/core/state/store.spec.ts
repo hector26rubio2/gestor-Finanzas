@@ -1,3 +1,4 @@
+import { CatalogCommands, MovementCommands } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -74,7 +75,7 @@ describe('AppStore en modo API', () => {
       }),
     });
 
-    await store.save({
+    await TestBed.inject(MovementCommands).save({
       kind: 'expense',
       date: '2026-09-25',
       description: 'Mercado del sábado',
@@ -123,7 +124,7 @@ describe('AppStore en modo API', () => {
       }),
     });
 
-    await store.save({
+    await TestBed.inject(MovementCommands).save({
       kind: 'expense',
       date: '2026-09-25',
       description: 'Gasto sin clasificar',
@@ -140,16 +141,16 @@ describe('AppStore en modo API', () => {
 
   it('escribe el kind que distingue el backend en vez de adivinar ahorro o efectivo', async () => {
     const payloads: { name: string; kind: number }[] = [];
-    const store = montar({
+    montar({
       createAccount: vi.fn((body: { name: string; kind: number }) => {
         payloads.push(body);
         return of({ id: `cuenta-${payloads.length}`, name: body.name, currency: 'COP', lastFour: '0000' });
       }),
     });
 
-    await store.createAccount('Corriente', 'checking', 0, 'COP');
-    await store.createAccount('Billetera', 'wallet', 0, 'COP');
-    await store.createAccount('Otra', 'other', 0, 'COP');
+    await TestBed.inject(CatalogCommands).createAccount('Corriente', 'checking', 0, 'COP');
+    await TestBed.inject(CatalogCommands).createAccount('Billetera', 'wallet', 0, 'COP');
+    await TestBed.inject(CatalogCommands).createAccount('Otra', 'other', 0, 'COP');
 
     // AccountKindDto: Checking=2, Wallet=4, Other=99. Antes eran dos números escritos
     // a mano (`cash ? 1 : 3`), de modo que estas cuentas volvían como ahorro.

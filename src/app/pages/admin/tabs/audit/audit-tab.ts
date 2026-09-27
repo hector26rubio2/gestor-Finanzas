@@ -6,7 +6,6 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiAuditEvent, ApiAuditFilter } from '@core/api';
 import { I18nService } from '@core/i18n';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent } from '@ui/icon';
 import { SheetPanelComponent } from '@ui/sheet-panel';
@@ -27,7 +26,6 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
     HlmBadge,
     HlmButton,
     HlmLabel,
-    EmptyStateComponent,
     IconComponent,
     SheetPanelComponent,
     UiSelectComponent,

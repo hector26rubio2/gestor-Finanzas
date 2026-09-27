@@ -4,13 +4,15 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '@core/api';
 import { P } from '@core/session';
-import { CAPABILITIES, AppStore, sincronizarConLaUrl } from '@core/state';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 
 @Component({
   selector: 'app-calendar-tab',
-  imports: [HlmButton],
+  imports: [HlmButton, ConfirmDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendar-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -138,6 +140,24 @@ export class CalendarTabComponent implements OnInit {
     }
 
     if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
+  }
+  readonly porEliminar = signal<ApiRecurrence | null>(null);
+  frecuencia(recurrente: ApiRecurrence): string {
+    return this.i18n.t(`calendar.recurring.frequency.${recurrente.schedule.frequency}`, {
+      n: recurrente.schedule.interval,
+    });
+  }
+  async eliminarRecurrente(): Promise<void> {
+    const recurrente = this.porEliminar();
+    this.porEliminar.set(null);
+    if (!recurrente) return;
+    try {
+      await firstValueFrom(this.api.deleteRecurrence(recurrente.id));
+      this.store.toast.set(this.i18n.t('calendar.recurring.deleted', { name: recurrente.name }));
+      await this.loadCalendarProjection();
+    } catch {
+      this.store.toast.set(this.i18n.t('calendar.recurring.deleteFailed'));
+    }
   }
   async materialize(item: ApiProjectedOccurrence): Promise<void> {
     try {

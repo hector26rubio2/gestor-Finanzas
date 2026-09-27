@@ -10,7 +10,6 @@ import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@
 import { setCurrencyCatalog } from '@core/utils/money';
 import { P } from './permissions';
 import { I18nService } from '@core/i18n/i18n.service';
-import { DashboardLayoutService } from '@pages/dashboard/layout/dashboard-layout.service';
 import { SaldosService } from './saldos.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +18,6 @@ export class RemoteBootstrap {
   private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
-  private readonly layout = inject(DashboardLayoutService);
   private readonly saldos = inject(SaldosService);
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
@@ -227,7 +225,7 @@ export class RemoteBootstrap {
         radius: custom?.radius ?? value.radius,
       }));
       applyStoredAppearance(preferences, custom);
-      this.layout.hydrate(preferences.dashboardLayoutJson);
+      this.store.disenoDelServidor.set({ json: preferences.dashboardLayoutJson ?? null });
     }
   }
 

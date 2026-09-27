@@ -13,7 +13,7 @@ import { BrnCalendarI18nService, BrnCalendarI18nToken } from '@spartan-ng/brain/
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
 import { I18nService } from '@core/i18n';
-import { AppStore } from '@core/state/store';
+import { PREFERENCES } from '@core/state/theme';
 import { CalendarLocale } from './calendar-locale';
 
 const NOON = 12;
@@ -57,7 +57,7 @@ export function fromIsoDate(value: string): Date | undefined {
 })
 export class DateFieldComponent implements ControlValueAccessor {
   readonly i18n = inject(I18nService);
-  private readonly store = inject(AppStore);
+  private readonly preferences = inject(PREFERENCES);
   private readonly calendarLocale = inject(CalendarLocale);
   readonly placeholder = input('');
   readonly min = input('');
@@ -84,7 +84,7 @@ export class DateFieldComponent implements ControlValueAccessor {
   readonly isDisabled = computed(() => this.disabledInput() || this.cvaDisabled());
   readonly date = computed(() => fromIsoDate(this.value()));
   readonly format = computed(() => {
-    const formatter = new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'medium' });
+    const formatter = new Intl.DateTimeFormat(this.preferences().locale, { dateStyle: 'medium' });
     return (date: Date) => formatter.format(date);
   });
   readonly atNoon = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate(), NOON);

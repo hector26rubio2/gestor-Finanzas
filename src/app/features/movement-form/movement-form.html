@@ -47,6 +47,16 @@
       <fin-movement-recurrence-fields [model]="model" />
       } @if (vis.showInstallments) {
       <fin-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
+      } @if (vis.showPurchaseCurrency) {
+      <fin-field [label]="i18n.t('form.movement.field.purchaseCurrency')">
+        <fin-select
+          name="purchaseCurrency"
+          [options]="monedasDeCompra()"
+          [ngModel]="monedaDeCompra()"
+          (ngModelChange)="elegirMonedaDeCompra($event)"
+          [ariaLabel]="i18n.t('form.movement.field.purchaseCurrency')"
+        />
+      </fin-field>
       } @if (vis.showCurrency) {
       <fin-movement-currency-fields [model]="model" />
       }

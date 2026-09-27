@@ -1,3 +1,4 @@
+import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import {
@@ -20,7 +21,7 @@ import {
   claveDeConcepto,
   completarPrioridad,
 } from '@core/api';
-import { Account, CAPABILITIES, AppStore, type Movement } from '@core/state';
+import { Account, CAPABILITIES, AppStore, type Movement, CatalogCommands } from '@core/state';
 import { aplicarAbono, comprasPendientes, saldosPorConcepto, traerMovimientosDeTarjetas } from '@shared/tarjetas';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
@@ -30,7 +31,7 @@ import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { AsyncActionService } from '@core/utils';
-import { mensualDesdeAnual } from '@shared/utils';
+import { mensualDesdeAnual } from '@core/utils/tasas';
 
 /**
  * Permiso que exige el backend para abrir una cuenta de este tipo.
@@ -54,6 +55,7 @@ export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
   selector: 'fin-account-form',
   imports: [
     HlmButton,
+    HlmCheckbox,
     HlmInput,
     FormsModule,
     OverlayComponent,
@@ -68,6 +70,7 @@ export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
 export class AccountFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
   private readonly store = inject(AppStore);
+  private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   name = 'Ahorro principal';
@@ -91,6 +94,7 @@ export class AccountFormComponent {
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
     { value: 'USD', label: this.i18n.t('form.currency.usd') },
   ]);
+  readonly bimoneda = signal(false);
   readonly monedaDePrioridad = signal<'pesos' | 'dolares'>('pesos');
   readonly monedasDePrioridad = computed<readonly UiOption[]>(() => [
     { value: 'pesos', label: this.i18n.t('form.account.priority.local') },
@@ -99,7 +103,13 @@ export class AccountFormComponent {
   readonly prioridadEnPesos = signal<CardBucket[]>([...PRIORIDAD_EN_PESOS]);
   readonly prioridadEnDolares = signal<CardBucket[]>([...PRIORIDAD_EN_DOLARES]);
   private prioridadActiva() {
-    return this.monedaDePrioridad() === 'pesos' ? this.prioridadEnPesos : this.prioridadEnDolares;
+    const moneda = this.bimoneda() ? this.monedaDePrioridad() : this.currency === 'USD' ? 'dolares' : 'pesos';
+    return moneda === 'pesos' ? this.prioridadEnPesos : this.prioridadEnDolares;
+  }
+
+  alternarBimoneda(valor: boolean): void {
+    this.bimoneda.set(valor);
+    if (!valor) this.monedaDePrioridad.set(this.currency === 'USD' ? 'dolares' : 'pesos');
   }
   readonly paymentPriorityOrder = computed(() => this.prioridadActiva()());
   etiquetaDeConcepto(concepto: number): string {
@@ -162,8 +172,8 @@ export class AccountFormComponent {
       .join(' · ');
   }
   restablecerPrioridad(): void {
-    if (this.monedaDePrioridad() === 'pesos') this.prioridadEnPesos.set([...PRIORIDAD_EN_PESOS]);
-    else this.prioridadEnDolares.set([...PRIORIDAD_EN_DOLARES]);
+    const activa = this.prioridadActiva();
+    activa.set(activa === this.prioridadEnPesos ? [...PRIORIDAD_EN_PESOS] : [...PRIORIDAD_EN_DOLARES]);
   }
   exchangeRate = 4168.35;
   opening = 0;
@@ -208,6 +218,7 @@ export class AccountFormComponent {
     if (account.annualRate !== undefined) this.monthlyRate = mensualDesdeAnual(account.annualRate);
     this.issuerId = account.issuerId ?? '';
     this.monthlyFee = account.monthlyFee ?? 0;
+    this.bimoneda.set(account.dualCurrency === true);
     this.prioridadEnPesos.set(completarPrioridad(account.paymentPriority, PRIORIDAD_EN_PESOS));
     this.prioridadEnDolares.set(completarPrioridad(account.foreignPaymentPriority, PRIORIDAD_EN_DOLARES));
   }
@@ -223,7 +234,7 @@ export class AccountFormComponent {
       await this.actions.run(
         this.saveActionKey,
         () =>
-          this.store.createAccount(
+          this.catalogCommands.createAccount(
             this.name,
             this.type,
             Number(this.opening),
@@ -238,6 +249,7 @@ export class AccountFormComponent {
               paymentPriority: this.prioridadEnPesos(),
               foreignPaymentPriority: this.prioridadEnDolares(),
               monthlyFee: Number(this.monthlyFee) || 0,
+              dualCurrency: this.bimoneda(),
             },
             this.lastFour,
           ),
@@ -260,7 +272,7 @@ export class AccountFormComponent {
       await this.actions.run(
         this.saveActionKey,
         () =>
-          this.store.updateAccount(account, {
+          this.catalogCommands.updateAccount(account, {
             name: this.name,
             lastFour: this.lastFour,
             credit: {
@@ -272,6 +284,7 @@ export class AccountFormComponent {
               paymentPriority: this.prioridadEnPesos(),
               foreignPaymentPriority: this.prioridadEnDolares(),
               monthlyFee: Number(this.monthlyFee) || 0,
+              dualCurrency: this.bimoneda(),
             },
           }),
         {

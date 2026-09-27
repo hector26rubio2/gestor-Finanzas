@@ -4,7 +4,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state';
-import { DashboardLayoutService, VistaDeReporte } from '@pages/dashboard/layout/dashboard-layout.service';
+import { DashboardLayoutService, VistaDeReporte } from '@shared/tablero/dashboard-layout.service';
 import {
   crearEntorno,
   granularidadParaRango,

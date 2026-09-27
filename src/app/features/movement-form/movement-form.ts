@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
 import { CAPABILITIES, CapabilitiesProvider, AppStore, FEATURES } from '@core/state/store';
+import { MovementCommands } from '@core/state/movement-commands';
 import { OverlayComponent } from '@ui/overlay/overlay';
 import { MovementCategoryFieldComponent } from './category-field/category-field';
 import { MovementCoreFieldsComponent } from './core-fields/core-fields';
@@ -92,6 +93,7 @@ const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'rec
 })
 export class MovementFormComponent {
   readonly store = inject(AppStore);
+  private readonly movementCommands = inject(MovementCommands);
   private readonly capabilities: CapabilitiesProvider = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   readonly i18n = inject(I18nService);
@@ -213,9 +215,30 @@ export class MovementFormComponent {
 
   visibility(): MovementFieldVisibility {
     const account = this.store.account(this.model.accountId);
-    return new MovementVisibilityBuilder(this.model.kind, account, !!this.model.id, this.model.operationType)
+    return new MovementVisibilityBuilder(
+      this.model.kind,
+      account,
+      !!this.model.id,
+      this.model.operationType,
+      this.monedaDeCompra(),
+    )
       .withAll()
       .build();
+  }
+
+  readonly monedasDeCompra = computed<readonly UiOption[]>(() => [
+    { value: 'COP', label: this.i18n.t('form.currency.cop') },
+    { value: 'USD', label: this.i18n.t('form.currency.usd') },
+  ]);
+
+  monedaDeCompra(): 'COP' | 'USD' {
+    const tarjeta = this.store.account(this.model.accountId);
+    if (tarjeta?.type === 'credit' && !tarjeta.dualCurrency) return tarjeta.currency === 'USD' ? 'USD' : 'COP';
+    return this.model.originalCurrency === 'USD' ? 'USD' : 'COP';
+  }
+
+  elegirMonedaDeCompra(moneda: 'COP' | 'USD'): void {
+    this.model.originalCurrency = moneda;
   }
 
   private permisoDeGuardado(): string {
@@ -260,11 +283,16 @@ export class MovementFormComponent {
       this.error.set('');
       this.validar();
       const kind = this.effectiveKind();
-      await this.actions.run(this.saveActionKey, () => this.store.save({ ...this.model, kind }), {
-        loading: this.i18n.t('form.movement.toast.loading'),
-        success: this.i18n.t('form.movement.toast.success'),
-        error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
-      });
+      const originalCurrency = this.visibility().showCurrency ? 'USD' : this.monedaDeCompra();
+      await this.actions.run(
+        this.saveActionKey,
+        () => this.movementCommands.save({ ...this.model, kind, originalCurrency }),
+        {
+          loading: this.i18n.t('form.movement.toast.loading'),
+          success: this.i18n.t('form.movement.toast.success'),
+          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+        },
+      );
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }

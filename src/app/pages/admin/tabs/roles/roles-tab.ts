@@ -7,7 +7,6 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent } from '@ui/icon';
 import { PagerComponent } from '@ui/pager';
@@ -28,7 +27,6 @@ import { RoleSheetComponent } from './role-sheet';
     DataTableComponent,
     FinTableCellDirective,
     ConfirmDialogComponent,
-    EmptyStateComponent,
     IconComponent,
     PagerComponent,
     RoleSheetComponent,

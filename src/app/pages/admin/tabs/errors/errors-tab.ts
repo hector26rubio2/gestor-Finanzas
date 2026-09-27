@@ -6,7 +6,6 @@ import { ApiClientError, FinanceApiClient } from '@core/api';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent } from '@ui/icon';
@@ -26,7 +25,6 @@ import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
     DataTableComponent,
     FinTableCellDirective,
     HlmDialogImports,
-    EmptyStateComponent,
     IconComponent,
     SheetPanelComponent,
     UiSelectComponent,

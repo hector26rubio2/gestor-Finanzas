@@ -2,7 +2,6 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
 import { IconComponent, IconName } from '@ui/icon';
 import { AdminLabels } from '@pages/admin/admin-labels';
@@ -27,7 +26,6 @@ interface SummaryKpi {
     AdminPanelComponent,
     DataTableComponent,
     FinTableCellDirective,
-    EmptyStateComponent,
     IconComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },

@@ -6,7 +6,8 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
-import { AppStore, CAPABILITIES, sincronizarConLaUrl } from '@core/state';
+import { AppStore, CAPABILITIES } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 import {
   type EntornoDeProyeccion,
   type MedidaDeComparacion,

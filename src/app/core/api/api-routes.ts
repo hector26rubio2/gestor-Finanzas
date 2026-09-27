@@ -51,6 +51,7 @@ export const API_ROUTES = {
   superAdminPermission: (code: string) => `/api/v1/superadmin/permissions/${encodeURIComponent(code)}`,
   cardStatus: (id: string) => `/api/v1/cards/${encodeURIComponent(id)}/status`,
   notificationRead: (id: string) => `/api/v1/notifications/${encodeURIComponent(id)}/read`,
+  recurrence: (id: string) => `/api/v1/recurrences/${encodeURIComponent(id)}`,
   recurrenceMaterializations: (id: string) => `/api/v1/recurrences/${encodeURIComponent(id)}/materializations`,
   adminFeatureFlag: (key: string) => `/api/v1/admin/feature-flags/${encodeURIComponent(key)}`,
   adminUserActive: (id: string) => `/api/v1/superadmin/users/${encodeURIComponent(id)}/active`,

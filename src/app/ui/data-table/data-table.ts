@@ -41,7 +41,7 @@ import {
   tableFeatures,
 } from '@tanstack/angular-table';
 import { I18nService } from '@core/i18n';
-import { sincronizarPaginaConLaUrl } from '@core/state/url-state';
+import { sincronizarPaginaConLaUrl } from '@core/routing/url-state';
 import { IconComponent, IconName } from '@ui/icon/icon';
 import { SearchFieldComponent } from '@ui/search-field/search-field';
 import { DateFieldComponent } from '@ui/date-field/date-field';

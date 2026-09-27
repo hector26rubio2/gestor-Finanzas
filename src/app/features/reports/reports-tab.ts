@@ -1,13 +1,13 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { ExploradorDeReportesComponent } from './explorador/explorador';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import type { Account, Movement } from '@core/state';
-import { CAPABILITIES, AppStore, sincronizarConLaUrl } from '@core/state';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
 import { HeaderActionsService } from '@shared/header-actions.service';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -25,7 +25,6 @@ const esEconomico = (movement: Movement) => !movement.movementSubtype && movemen
   selector: 'app-reports-tab',
   imports: [
     FormsModule,
-    HlmButton,
     HlmCard,
     HlmTabsImports,
     ExploradorDeReportesComponent,

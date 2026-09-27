@@ -15,7 +15,7 @@ import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '@core/api
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { P, RemoteBootstrap } from '@core/session';
-import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
 import { I18nService } from '@core/i18n';
 
 const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'data'] as const;
@@ -41,6 +41,7 @@ type Seccion = (typeof SECCIONES)[number];
 })
 export class PreferencesTabComponent implements OnInit {
   readonly store = inject(AppStore);
+  private readonly preferencesActions = inject(PreferencesActions);
   private readonly capabilities = inject(CAPABILITIES);
   readonly features = inject(FEATURES);
   private readonly arranque = inject(RemoteBootstrap);
@@ -195,11 +196,11 @@ export class PreferencesTabComponent implements OnInit {
   }
 
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
-    this.store.usarTema(theme);
+    this.preferencesActions.usarTema(theme);
   }
   usarMiTema(): void {
     const guardado = this.store.preferences().customSaved;
-    if (guardado) this.store.usarTemaPropio(guardado);
+    if (guardado) this.preferencesActions.usarTemaPropio(guardado);
   }
   setFont(font: string): void {
     this.store.preferences.update((p) => ({ ...p, font }));
@@ -220,7 +221,7 @@ export class PreferencesTabComponent implements OnInit {
     this.persistPreferences();
   }
   private persistPreferences(): void {
-    void this.store
+    void this.preferencesActions
       .persistPreferences()
       .catch((error) =>
         this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),

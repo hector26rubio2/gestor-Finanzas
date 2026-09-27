@@ -6,7 +6,6 @@ import { HlmTableImports } from '@spartan-ng/helm/table';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES } from '@core/state';
-import { EmptyStateComponent } from '@ui/empty-state';
 import { PagerComponent } from '@ui/pager';
 import { SearchFieldComponent } from '@ui/search-field';
 import { IconComponent } from '@ui/icon';
@@ -23,7 +22,6 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
     HlmSwitch,
     HlmTableImports,
     AdminPanelComponent,
-    EmptyStateComponent,
     PagerComponent,
     SearchFieldComponent,
     IconComponent,

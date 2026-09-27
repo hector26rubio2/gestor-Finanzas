@@ -378,10 +378,10 @@
       </summary>
       <div class="mt-2 grid gap-1 text-[0.72rem]">
         <div class="flex justify-between">
-          <span>{{ i18n.t('planning.sim.income') }}</span><b>{{ money(sim.flujoMensual().ingreso[0] ?? 0) }}</b>
+          <span>{{ i18n.t('planning.sim.income') }}</span><b>{{ money(sim.flujoMensual().ingreso.at(0) ?? 0) }}</b>
         </div>
         <div class="flex justify-between">
-          <span>{{ i18n.t('planning.sim.expense') }}</span><b>{{ money(sim.flujoMensual().gasto[0] ?? 0) }}</b>
+          <span>{{ i18n.t('planning.sim.expense') }}</span><b>{{ money(sim.flujoMensual().gasto.at(0) ?? 0) }}</b>
         </div>
       </div>
       <fin-field [label]="i18n.t('planning.sim.cut')">

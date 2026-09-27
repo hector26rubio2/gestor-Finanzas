@@ -65,6 +65,7 @@ export function toViewData(
       paymentPriority: completarPrioridad(card.terms?.paymentPriority, PRIORIDAD_EN_PESOS),
       foreignPaymentPriority: completarPrioridad(card.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
       ...(card.terms?.monthlyFee ? { monthlyFee: parseMoney(card.terms.monthlyFee) } : {}),
+      dualCurrency: card.terms?.dualCurrency === true,
       issuerId: card.issuerEntity?.id,
     })),
   ];

@@ -6,6 +6,7 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
 import { navigation } from '@core/state/navigation';
 import { CAPABILITIES, AppStore, FEATURES } from '@core/state/store';
+import { PreferencesActions } from '@core/state/preferences-actions';
 import { IconComponent, IconName } from '@ui/icon/icon';
 import {
   Comando,
@@ -70,6 +71,7 @@ export class CommandPaletteComponent {
   readonly i18n = inject(I18nService);
   private readonly router = inject(Router);
   private readonly store = inject(AppStore);
+  private readonly preferencesActions = inject(PreferencesActions);
   private readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   private readonly servicio = inject(CommandPaletteService);
@@ -107,9 +109,11 @@ export class CommandPaletteComponent {
         this.ir(destino, () => this.store.form.set({ kind, personKind }));
       },
       irA: (ruta, params) => this.ir(ruta, undefined, params),
-      usarTema: (tema) => this.store.usarTema(tema),
+      usarTema: (tema) => this.preferencesActions.usarTema(tema),
       usarMiTema:
-        miTema && this.caps.allows(P.preferencias.tema.editar) ? () => this.store.usarTemaPropio(miTema) : undefined,
+        miTema && this.caps.allows(P.preferencias.tema.editar)
+          ? () => this.preferencesActions.usarTemaPropio(miTema)
+          : undefined,
     };
   });
 

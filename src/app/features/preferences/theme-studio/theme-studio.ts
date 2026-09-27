@@ -5,7 +5,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmSliderImports } from '@spartan-ng/helm/slider';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
-import { AppStore, CAPABILITIES, DEFAULT_PALETTE, StoredPalette, contraste } from '@core/state';
+import { AppStore, CAPABILITIES, DEFAULT_PALETTE, StoredPalette, contraste, PreferencesActions } from '@core/state';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { ThemePreviewComponent } from '@features/preferences/theme-preview/theme-preview';
@@ -83,6 +83,7 @@ const PUNTOS_DE_PARTIDA: readonly { id: string; clave: string; paleta: Omit<Borr
 })
 export class ThemeStudioComponent {
   readonly store = inject(AppStore);
+  private readonly preferencesActions = inject(PreferencesActions);
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   readonly puedeEditar = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
@@ -142,7 +143,7 @@ export class ThemeStudioComponent {
   guardarYAplicar(): void {
     if (!this.puedeEditar()) return;
     const tema = this.borrador();
-    this.store.usarTemaPropio(tema);
+    this.preferencesActions.usarTemaPropio(tema);
     this.store.toast.set(this.i18n.t('preferences.themeSavedLog', { name: tema.name }));
   }
 }

@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { type ApiSavedDashboard, type ApiDashboardMember, DashboardsApi } from '@core/api/dashboards.api';
 import { P } from '@core/session/permissions';
 import { AppStore, CAPABILITIES } from '@core/state/store';
-import { DashboardLayoutService } from '@pages/dashboard/layout/dashboard-layout.service';
+import { DashboardLayoutService } from '@shared/tablero/dashboard-layout.service';
 
 export const TABLERO_PRINCIPAL = 'principal';
 

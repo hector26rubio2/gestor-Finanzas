@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
 import { I18nService } from '@core/i18n';
-import { CAPABILITIES, sincronizarConLaUrl } from '@core/state';
+import { CAPABILITIES } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { ADMIN_TABS, ADMIN_TAB_IDS } from './admin-tabs';
 import { AdminStore } from './admin.store';

@@ -1,17 +1,17 @@
 import { Injectable, effect, inject, untracked } from '@angular/core';
 import { injectBrnCalendarI18n } from '@spartan-ng/brain/calendar';
-import { AppStore } from '@core/state/store';
+import { PREFERENCES } from '@core/state/theme';
 
 const REFERENCE_SUNDAY = new Date(2023, 0, 1, 12);
 
 @Injectable({ providedIn: 'root' })
 export class CalendarLocale {
   private readonly calendar = injectBrnCalendarI18n();
-  private readonly store = inject(AppStore);
+  private readonly preferences = inject(PREFERENCES);
 
   constructor() {
     effect(() => {
-      const locale = this.store.preferences().locale;
+      const locale = this.preferences().locale;
       const weekday = new Intl.DateTimeFormat(locale, { weekday: 'short' });
       const weekdayLong = new Intl.DateTimeFormat(locale, { weekday: 'long' });
       const month = new Intl.DateTimeFormat(locale, { month: 'short' });
