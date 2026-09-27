@@ -73,7 +73,7 @@ describe('DashboardComponent y las cifras del servidor', () => {
 
     // El servidor no sabe nada de «solo esta cuenta»: si mandara su cifra, el KPI no
     // respondería a lo que el usuario acaba de filtrar.
-    componente.remote.set(dashboard);
+    componente.datos.remote.set(dashboard);
     componente.accountId.set('cuenta-1');
     fixture.detectChanges();
 

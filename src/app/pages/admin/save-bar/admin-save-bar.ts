@@ -3,6 +3,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
 
 @Component({
   selector: 'app-admin-save-bar',
@@ -50,7 +51,7 @@ import { AdminStore } from '@pages/admin/admin.store';
             <button hlmBtn variant="outline" [disabled]="store.saving()" (click)="store.descartar()">
               <fin-icon name="close" /> {{ i18n.t('admin.save.discard') }}
             </button>
-            <button hlmBtn [disabled]="store.saving() || !store.dirty()" (click)="store.guardar()">
+            <button hlmBtn [disabled]="store.saving() || !store.dirty()" (click)="comandos.guardarBorrador()">
               {{ saveLabel() }}
             </button>
           </div>
@@ -61,6 +62,7 @@ import { AdminStore } from '@pages/admin/admin.store';
 })
 export class AdminSaveBarComponent {
   readonly store = inject(AdminStore);
+  readonly comandos = inject(AdminCommands);
   readonly i18n = inject(I18nService);
   readonly open = signal(false);
 

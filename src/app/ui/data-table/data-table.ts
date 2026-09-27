@@ -21,25 +21,7 @@ import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmAutocompleteImports } from '@spartan-ng/helm/autocomplete';
 import { HlmTableImports } from '@spartan-ng/helm/table';
-import {
-  ColumnDef,
-  columnFacetingFeature,
-  columnFilteringFeature,
-  columnVisibilityFeature,
-  createFacetedRowModel,
-  createFacetedUniqueValues,
-  createFilteredRowModel,
-  createPaginatedRowModel,
-  createSortedRowModel,
-  filterFn_includesString,
-  globalFilteringFeature,
-  injectTable,
-  rowPaginationFeature,
-  rowSelectionFeature,
-  rowSortingFeature,
-  sortFn_alphanumeric,
-  tableFeatures,
-} from '@tanstack/angular-table';
+import { ColumnDef, injectTable } from '@tanstack/angular-table';
 import { I18nService } from '@core/i18n';
 import { sincronizarPaginaConLaUrl } from '@core/routing/url-state';
 import { IconComponent, IconName } from '@ui/icon/icon';
@@ -47,83 +29,22 @@ import { SearchFieldComponent } from '@ui/search-field/search-field';
 import { DateFieldComponent } from '@ui/date-field/date-field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { FinTableCellDirective } from './table-cell.directive';
-
-export interface TableColumn {
-  key: string;
-  label: string;
-  essential?: boolean;
-  sortable?: boolean;
-  sortKey?: string;
-  facet?: boolean;
-  hideable?: boolean;
-  hidden?: boolean;
-  filter?: 'date';
-  rawKey?: string;
-  options?: readonly string[];
-  wrap?: boolean;
-}
-
-type Row = Record<string, any>;
-
-export interface TableFilter {
-  id: string;
-  field: string;
-  value: string;
-}
-
-interface SearchQuery {
-  field: string;
-  text: string;
-}
-
-const SELECT_COLUMN = '__select';
-export const TABLE_ALL_FIELDS = '__all';
-const ALL_FIELDS = TABLE_ALL_FIELDS;
-
-const searchFilter = (
-  row: { getAllCells: () => { column: { id: string } }[]; getValue: (id: string) => unknown },
-  _id: string,
-  query: SearchQuery | undefined,
-): boolean => {
-  const needle = query?.text.trim().toLowerCase();
-  if (!needle) return true;
-  const ids =
-    query!.field === ALL_FIELDS
-      ? row
-          .getAllCells()
-          .map((cell) => cell.column.id)
-          .filter((id) => id !== SELECT_COLUMN)
-      : [query!.field];
-  return ids.some((id) =>
-    String(row.getValue(id) ?? '')
-      .toLowerCase()
-      .includes(needle),
-  );
-};
-
-const oneOfFilter = (
-  row: { getValue: (id: string) => unknown },
-  id: string,
-  allowed: readonly string[] | undefined,
-): boolean => !allowed?.length || allowed.includes(String(row.getValue(id) ?? ''));
-oneOfFilter.autoRemove = (value: readonly string[] | undefined) => !value?.length;
-
-const features = tableFeatures({
-  rowPaginationFeature,
-  rowSortingFeature,
-  columnFilteringFeature,
-  globalFilteringFeature,
-  columnVisibilityFeature,
-  rowSelectionFeature,
-  columnFacetingFeature,
-  paginatedRowModel: createPaginatedRowModel(),
-  sortedRowModel: createSortedRowModel(),
-  filteredRowModel: createFilteredRowModel(),
-  facetedRowModel: createFacetedRowModel(),
-  facetedUniqueValues: createFacetedUniqueValues(),
-  sortFns: { alphanumeric: sortFn_alphanumeric },
-  filterFns: { includesString: filterFn_includesString, oneOf: oneOfFilter, search: searchFilter },
-});
+import {
+  ariaDeOrden,
+  fechaFijada,
+  filtrarPorFijados,
+  iconoDeOrden,
+  mostrarValor,
+  SELECT_COLUMN,
+  SortDirection,
+  TABLE_ALL_FIELDS,
+  TableColumn,
+  TableFilter,
+  TableRow,
+  TableSearchQuery,
+  tableFeaturesConfig,
+  valoresConocidos,
+} from './data-table.model';
 
 @Component({
   selector: 'fin-table',
@@ -158,7 +79,7 @@ export class DataTableComponent {
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
   readonly tableLabel = input(this.i18n.t('table.defaultLabel'));
   readonly columns = input<TableColumn[]>([]);
-  readonly rows = input<Row[]>([]);
+  readonly rows = input<TableRow[]>([]);
   readonly pageSize = input(10);
   readonly totalRows = input<number | null>(null);
   readonly remotePage = input(1);
@@ -167,52 +88,34 @@ export class DataTableComponent {
   readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
   readonly urlKey = input<string | null>(null);
-  @Output() readonly rowSelected = new EventEmitter<Row>();
-  @Output() readonly selectionChange = new EventEmitter<Row[]>();
+  @Output() readonly rowSelected = new EventEmitter<TableRow>();
+  @Output() readonly selectionChange = new EventEmitter<TableRow[]>();
   @Output() readonly pageSizeChange = new EventEmitter<number>();
   @Output() readonly pageChange = new EventEmitter<number>();
   @Output() readonly pinnedChange = new EventEmitter<readonly TableFilter[]>();
 
   readonly page = signal(0);
   private readonly selectedSize = signal<number | null>(null);
-  readonly searchField = signal(ALL_FIELDS);
+  readonly searchField = signal(TABLE_ALL_FIELDS);
   readonly searchText = signal('');
   readonly pinned = signal<readonly TableFilter[]>([]);
   private pinnedId = 0;
-  private readonly pinnedRows = computed(() => {
-    const condiciones = this.pinned();
-    if (!condiciones.length || this.remote()) return this.rows();
-    const porCampo = new Map<string, string[]>();
-    for (const condicion of condiciones)
-      porCampo.set(condicion.field, [...(porCampo.get(condicion.field) ?? []), condicion.value.toLocaleLowerCase()]);
-    const claves = this.columns().map((column) => column.key);
-    const texto = (row: Row, clave: string) => String(row[clave] ?? '').toLocaleLowerCase();
-    const coincide = (row: Row, campo: string, valor: string) => {
-      const columna = this.columnOf(campo);
-      if (columna?.filter === 'date') return texto(row, columna.rawKey ?? campo).startsWith(valor);
-      return texto(row, campo).includes(valor);
-    };
-    return this.rows().filter((row) =>
-      [...porCampo.entries()].every(([campo, valores]) =>
-        valores.some((valor) =>
-          campo === ALL_FIELDS
-            ? claves.some((clave) => texto(row, clave).includes(valor))
-            : coincide(row, campo, valor),
-        ),
-      ),
-    );
-  });
+  private readonly pinnedRows = computed(() =>
+    !this.pinned().length || this.remote()
+      ? this.rows()
+      : filtrarPorFijados(this.rows(), this.pinned(), this.columns()),
+  );
 
   readonly remote = computed(() => this.totalRows() !== null);
   readonly size = computed(() => Math.max(1, this.selectedSize() ?? this.pageSize()));
   readonly hasDetailColumns = computed(() => this.columns().some((c) => c.essential === false));
   readonly showToolbar = computed(() => this.toolbar() ?? (this.showFooter() && !this.remote()));
 
-  private readonly columnDefs = computed<ColumnDef<typeof features, Row>[]>(() => {
+  private readonly columnDefs = computed<ColumnDef<typeof tableFeaturesConfig, TableRow>[]>(() => {
     const remote = this.remote();
-    const defs: ColumnDef<typeof features, Row>[] = this.columns().map((column) => ({
+    const defs: ColumnDef<typeof tableFeaturesConfig, TableRow>[] = this.columns().map((column) => ({
       id: column.key,
-      accessorFn: (row: Row) => row[column.sortKey ?? column.key],
+      accessorFn: (row: TableRow) => row[column.sortKey ?? column.key],
       header: column.label,
       enableSorting: !remote && column.sortable !== false,
       enableHiding: column.hideable !== false,
@@ -233,7 +136,7 @@ export class DataTableComponent {
   });
 
   readonly table = injectTable(() => ({
-    features,
+    features: tableFeaturesConfig,
     columns: this.columnDefs(),
     data: this.pinnedRows(),
     manualPagination: this.remote(),
@@ -241,7 +144,7 @@ export class DataTableComponent {
     autoResetPageIndex: false,
     globalFilterFn: 'search',
     enableGlobalFilter: !this.remote(),
-    getRowId: (row: Row, index: number) => String(row['id'] ?? index),
+    getRowId: (row: TableRow, index: number) => String(row['id'] ?? index),
     state: {
       pagination: {
         pageIndex: this.remote() ? Math.max(0, this.remotePage() - 1) : this.page(),
@@ -276,7 +179,7 @@ export class DataTableComponent {
     this.table.getAllLeafColumns().filter((column) => column.id !== SELECT_COLUMN && column.getCanHide()),
   );
   readonly fieldOptions = computed<readonly UiOption[]>(() => [
-    { value: ALL_FIELDS, label: this.i18n.t('table.search.allFields') },
+    { value: TABLE_ALL_FIELDS, label: this.i18n.t('table.search.allFields') },
     ...this.columns().map((column) => ({ value: column.key, label: column.label })),
   ]);
   readonly hasFilters = computed(
@@ -347,19 +250,7 @@ export class DataTableComponent {
 
   readonly searchColumn = computed(() => this.columnOf(this.searchField()) ?? null);
   readonly searchIsDate = computed(() => this.searchColumn()?.filter === 'date');
-  private readonly knownValues = computed<readonly string[]>(() => {
-    const columna = this.searchColumn();
-    if (!columna || columna.filter === 'date') return [];
-    if (columna.options) return columna.options;
-    const valores = [
-      ...new Set(
-        this.rows()
-          .map((row) => this.display(row[columna.key]))
-          .filter(Boolean),
-      ),
-    ];
-    return valores.length <= 40 ? valores.sort((a, b) => a.localeCompare(b)) : [];
-  });
+  private readonly knownValues = computed(() => valoresConocidos(this.rows(), this.searchColumn()));
   readonly suggestible = computed(() => this.knownValues().length > 0);
   readonly suggestions = computed(() => {
     const buscado = this.searchText().trim().toLocaleLowerCase();
@@ -387,13 +278,7 @@ export class DataTableComponent {
   }
 
   pinnedText(filtro: TableFilter): string {
-    if (this.columnOf(filtro.field)?.filter !== 'date') return filtro.value;
-    const fecha = new Date(`${filtro.value}T12:00:00Z`);
-    if (Number.isNaN(fecha.getTime())) return filtro.value;
-    return new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
-      dateStyle: 'medium',
-      timeZone: 'UTC',
-    }).format(fecha);
+    return this.columnOf(filtro.field)?.filter === 'date' ? fechaFijada(filtro.value) : filtro.value;
   }
 
   unpin(id: string): void {
@@ -403,7 +288,7 @@ export class DataTableComponent {
   }
 
   pinnedLabel(field: string): string {
-    if (field === ALL_FIELDS) return this.i18n.t('table.search.allFields');
+    if (field === TABLE_ALL_FIELDS) return this.i18n.t('table.search.allFields');
     return this.columns().find((column) => column.key === field)?.label ?? field;
   }
 
@@ -414,7 +299,9 @@ export class DataTableComponent {
 
   private applySearch(): void {
     const text = this.searchText();
-    this.table.setGlobalFilter(text.trim() ? ({ field: this.searchField(), text } satisfies SearchQuery) : undefined);
+    this.table.setGlobalFilter(
+      text.trim() ? ({ field: this.searchField(), text } satisfies TableSearchQuery) : undefined,
+    );
     this.page.set(0);
   }
 
@@ -449,16 +336,12 @@ export class DataTableComponent {
     this.page.set(0);
   }
 
-  sortIcon(direction: false | 'asc' | 'desc'): IconName {
-    if (direction === 'asc') return 'sortAscending';
-    if (direction === 'desc') return 'sortDescending';
-    return 'sortNone';
+  sortIcon(direction: SortDirection): IconName {
+    return iconoDeOrden(direction);
   }
 
-  ariaSort(direction: false | 'asc' | 'desc'): 'ascending' | 'descending' | 'none' {
-    if (direction === 'asc') return 'ascending';
-    if (direction === 'desc') return 'descending';
-    return 'none';
+  ariaSort(direction: SortDirection): 'ascending' | 'descending' | 'none' {
+    return ariaDeOrden(direction);
   }
 
   toggleRowSelection(row: { toggleSelected: (value?: boolean) => void }, checked: boolean): void {
@@ -508,6 +391,6 @@ export class DataTableComponent {
   }
 
   display(value: unknown): string {
-    return value == null ? '—' : String(value);
+    return mostrarValor(value);
   }
 }

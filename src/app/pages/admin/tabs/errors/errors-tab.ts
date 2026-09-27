@@ -14,6 +14,7 @@ import { UiOption, UiSelectComponent } from '@ui/select';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
 import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
 
 @Component({
   selector: 'app-admin-errors-tab',
@@ -40,8 +41,8 @@ import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
         </div>
         <fin-select
           class="w-52"
-          [ngModel]="store.errorsStatus()"
-          (ngModelChange)="store.cargarErrores(1, $event)"
+          [ngModel]="errores.status()"
+          (ngModelChange)="errores.cargar(1, $event)"
           [options]="statusOptions()"
           [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
         />
@@ -50,13 +51,13 @@ import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
         <fin-table
           [columns]="columns()"
           [rows]="rows()"
-          [totalRows]="store.errorsTotal()"
-          [remotePage]="store.errorsPage()"
-          [pageSize]="store.errorsSize()"
+          [totalRows]="errores.total()"
+          [remotePage]="errores.page()"
+          [pageSize]="errores.size()"
           [tableLabel]="i18n.t('admin.errors.title')"
           (rowSelected)="selected.set($event['raw'])"
-          (pageSizeChange)="store.errorsSize.set($event)"
-          (pageChange)="store.cargarErrores($event)"
+          (pageSizeChange)="errores.size.set($event)"
+          (pageChange)="errores.cargar($event)"
         >
           <ng-template finCell="source" let-row>
             <span hlmBadge variant="outline">{{ row.raw.source }}</span>
@@ -188,6 +189,7 @@ import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 })
 export class ErrorsTabComponent {
   readonly store = inject(AdminStore);
+  readonly errores = inject(AdminErrorsStore);
   readonly api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
@@ -207,7 +209,7 @@ export class ErrorsTabComponent {
   ]);
 
   readonly rows = computed(() =>
-    this.store.errors().map((error) => ({
+    this.errores.items().map((error) => ({
       id: error.id,
       source: error.source,
       message: `${error.title ?? ''} ${error.message}`,
@@ -219,7 +221,7 @@ export class ErrorsTabComponent {
   );
   readonly creatingIssue = signal(false);
   readonly selectedError = computed(
-    () => this.store.errors().find((error) => error.id === this.selected()?.id) ?? this.selected(),
+    () => this.errores.items().find((error) => error.id === this.selected()?.id) ?? this.selected(),
   );
 
   readonly stateOptions = computed<readonly UiOption[]>(() => [
@@ -239,7 +241,7 @@ export class ErrorsTabComponent {
   async createIssue(error: ApiClientError): Promise<void> {
     this.creatingIssue.set(true);
     try {
-      const result = await this.store.crearIssueDeGithub(error);
+      const result = await this.errores.crearIssueDeGithub(error);
       this.app.toast.set(
         result.githubStatus === 'created'
           ? this.i18n.t('admin.errors.issueCreated')
@@ -255,7 +257,7 @@ export class ErrorsTabComponent {
   async setStatus(error: ApiClientError, status: ApiClientError['status']): Promise<void> {
     if (status === error.status) return;
     try {
-      await this.store.actualizarError(error, status);
+      await this.errores.actualizar(error, status);
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.errorStatusFailed'));
     }

@@ -14,6 +14,7 @@ import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
 import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso } from './audit-catalog';
+import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
 
 @Component({
   selector: 'app-admin-audit-tab',
@@ -85,14 +86,14 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
             <p class="basis-full text-xs text-muted-foreground">
               {{
                 i18n.t('admin.audit.trace.summary', {
-                  events: store.auditTotal(),
-                  errors: store.erroresDeLaAccion().length,
+                  events: auditoria.total(),
+                  errors: auditoria.erroresDeLaAccion().length,
                 })
               }}
             </p>
-            @if (store.erroresDeLaAccion().length) {
+            @if (auditoria.erroresDeLaAccion().length) {
               <ul class="grid basis-full gap-1.5">
-                @for (error of store.erroresDeLaAccion(); track error.id) {
+                @for (error of auditoria.erroresDeLaAccion(); track error.id) {
                   <li
                     class="flex items-start gap-2 rounded-md border border-destructive/30 bg-background px-2.5 py-1.5"
                   >
@@ -123,13 +124,13 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
         <fin-table
           [columns]="columns()"
           [rows]="rows()"
-          [totalRows]="store.auditTotal()"
-          [remotePage]="store.auditPage()"
-          [pageSize]="store.auditSize()"
+          [totalRows]="auditoria.total()"
+          [remotePage]="auditoria.page()"
+          [pageSize]="auditoria.size()"
           [tableLabel]="i18n.t('admin.audit.title')"
           (rowSelected)="selected.set($event['raw'])"
-          (pageSizeChange)="store.auditSize.set($event)"
-          (pageChange)="store.cargarAuditoria($event)"
+          (pageSizeChange)="auditoria.size.set($event)"
+          (pageChange)="auditoria.cargar($event)"
         >
           <ng-template finCell="action" let-row>
             <b class="text-sm">{{ row.action }}</b>
@@ -211,14 +212,15 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
 })
 export class AuditTabComponent {
   readonly store = inject(AdminStore);
+  readonly auditoria = inject(AdminAuditStore);
   readonly labels = inject(AdminLabels);
   readonly i18n = inject(I18nService);
 
-  readonly action = signal(this.store.auditFilter().action ?? '');
-  readonly entityType = signal(this.store.auditFilter().entityType ?? '');
-  readonly actor = signal(this.store.auditFilter().actorUserId ?? '');
-  readonly affected = signal(this.store.auditFilter().userId ?? '');
-  readonly traceId = signal(this.store.auditFilter().traceId ?? '');
+  readonly action = signal(this.auditoria.filter().action ?? '');
+  readonly entityType = signal(this.auditoria.filter().entityType ?? '');
+  readonly actor = signal(this.auditoria.filter().actorUserId ?? '');
+  readonly affected = signal(this.auditoria.filter().userId ?? '');
+  readonly traceId = signal(this.auditoria.filter().traceId ?? '');
   readonly from = signal('');
   readonly to = signal('');
   readonly selected = signal<ApiAuditEvent | null>(null);
@@ -233,7 +235,7 @@ export class AuditTabComponent {
   ]);
 
   readonly rows = computed(() =>
-    this.store.audit().map((event) => ({
+    this.auditoria.events().map((event) => ({
       id: event.id,
       date: this.labels.dateTime(event.createdAt),
       actor: this.actorName(event),
@@ -267,7 +269,7 @@ export class AuditTabComponent {
 
   update(field: 'action' | 'entityType' | 'actor' | 'affected' | 'from' | 'to', value: string): void {
     this[field].set(value);
-    void this.store.cargarAuditoria(1, this.filter());
+    void this.auditoria.cargar(1, this.filter());
   }
 
   clear(): void {
@@ -278,12 +280,12 @@ export class AuditTabComponent {
     this.traceId.set('');
     this.from.set('');
     this.to.set('');
-    void this.store.cargarAuditoria(1, {});
+    void this.auditoria.cargar(1, {});
   }
 
   filterByTrace(trace: string): void {
     this.traceId.set(trace);
-    void this.store.cargarAuditoria(1, this.filter());
+    void this.auditoria.cargar(1, this.filter());
   }
 
   actorName(event: ApiAuditEvent): string {

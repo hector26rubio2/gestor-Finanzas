@@ -5,6 +5,10 @@ import { AdministrationApi, ApiAdminOrganization, ApiAdminRole, ApiAdminUser } f
 import { RemoteBootstrap } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { AdminStore } from './admin.store';
+import { ADMIN_STORE_PROVIDERS } from './admin.providers';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 
 const role = (over: Partial<ApiAdminRole> = {}): ApiAdminRole => ({
   id: 'r1',
@@ -72,7 +76,7 @@ describe('AdminStore', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        AdminStore,
+        ...ADMIN_STORE_PROVIDERS,
         { provide: AdministrationApi, useValue: api },
         { provide: RemoteBootstrap, useValue: { pollSession } },
         { provide: AppStore, useValue: { runtime: { mode: 'api' }, toast } },
@@ -125,7 +129,7 @@ describe('AdminStore', () => {
     store.setUserActive(daniel, false);
     store.setUserRole(daniel, 'r2');
 
-    await store.guardar();
+    await TestBed.inject(AdminCommands).guardarBorrador();
 
     expect(api.setAdminUserActive).toHaveBeenCalledWith('u1', false);
     expect(api.assignAdminUserRoles).toHaveBeenCalledWith('u1', 'o1', ['r2']);
@@ -142,7 +146,7 @@ describe('AdminStore', () => {
     store.setUserActive(daniel, false);
     store.setUserRole(daniel, 'r2');
 
-    await store.guardar();
+    await TestBed.inject(AdminCommands).guardarBorrador();
 
     expect(store.count()).toBe(1);
     expect(store.changes()[0].kind).toBe('userActive');
@@ -173,7 +177,7 @@ describe('AdminStore', () => {
     store.setOrganizationActive(store.organizations()[1], true);
     store.setDefaultOrganization(store.organizations()[1]);
     store.setOrganizationActive(store.organizations()[0], false);
-    await store.guardar();
+    await TestBed.inject(AdminCommands).guardarBorrador();
 
     expect(orden).toEqual(['active:o2:true', 'default:o2', 'active:o1:false']);
     expect(store.organizations().find((o) => o.id === 'o2')?.isDefault).toBe(true);
@@ -185,7 +189,7 @@ describe('AdminStore', () => {
     const daniel = store.users()[0];
     store.setUserActive(daniel, false);
     store.setUserRole(daniel, 'r2');
-    store.setFlag('calendar', 'o1', daniel.id, false);
+    TestBed.inject(AdminFlagsStore).setFlag('calendar', 'o1', daniel.id, false);
 
     store.setUserOrganization(daniel, 'o2');
 
@@ -223,13 +227,13 @@ describe('AdminStore', () => {
   });
 
   it('guardar un rol manda solo permisos del catálogo', async () => {
-    const store = create();
-    store.permissionCatalog.set([
+    create();
+    TestBed.inject(AdminPermissionsStore).catalog.set([
       { code: 'movimientos.ver', resource: 'movimientos', action: 1, level: 1, description: 'Entrar' },
     ]);
     api.saveAdminRole.mockReturnValue(of(role({ id: 'r9' })));
 
-    await store.guardarRol(null, {
+    await TestBed.inject(AdminCommands).guardarRol(null, {
       organizationId: 'o1',
       name: 'Nuevo',
       description: '',

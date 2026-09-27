@@ -12,6 +12,8 @@ import { SheetPanelComponent } from '@ui/sheet-panel';
 import { UiSelectComponent } from '@ui/select';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 import { RESOURCE_FEATURE } from '@pages/admin/permission-picker/permission-sections';
 
 @Component({
@@ -127,6 +129,8 @@ import { RESOURCE_FEATURE } from '@pages/admin/permission-picker/permission-sect
 })
 export class UserSheetComponent {
   readonly store = inject(AdminStore);
+  readonly banderas = inject(AdminFlagsStore);
+  readonly permisos = inject(AdminPermissionsStore);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
   readonly caps = inject(CAPABILITIES);
@@ -150,10 +154,10 @@ export class UserSheetComponent {
   readonly effectiveGroups = computed(() => {
     const granted = new Set(this.effective());
     const organizationId = this.organizationId();
-    const flags = organizationId ? this.store.organizationFlagsOf(organizationId) : undefined;
+    const flags = organizationId ? this.banderas.organizationFlagsOf(organizationId) : undefined;
     const off = new Set((flags ?? []).filter((flag) => !flag.isEnabled).map((flag) => flag.key));
-    return this.store
-      .permissionGroups()
+    return this.permisos
+      .groups()
       .filter((group) => !off.has(RESOURCE_FEATURE[group.name] ?? ''))
       .map((group) => ({ name: group.name, items: group.items.filter((item) => granted.has(item.code)) }))
       .filter((group) => group.items.length);
@@ -164,7 +168,7 @@ export class UserSheetComponent {
       const organizationId = this.organizationId();
       if (organizationId) {
         void this.store.cargarRolesDe(organizationId);
-        void this.store.cargarBanderasDe(organizationId);
+        void this.banderas.cargarBanderasDe(organizationId);
       }
     });
   }

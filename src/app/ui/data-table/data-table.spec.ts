@@ -2,7 +2,8 @@ import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
-import { DataTableComponent, TableColumn } from './data-table';
+import { DataTableComponent } from './data-table';
+import { TableColumn } from './data-table.model';
 
 const columns: TableColumn[] = [
   { key: 'name', label: 'Nombre' },

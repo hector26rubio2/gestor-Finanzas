@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '@core/api/api-client';
 import type { ApiMovement } from '@core/api/ledger.api';
 import { I18nService } from '@core/i18n';
-import { toMovement } from '@core/session/remote-mappers';
+import { toMovement } from '@core/session/mappers';
 import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils/movement-kinds';
 import { AppStore } from './store';
 

@@ -6,8 +6,12 @@ import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data
 import { IconComponent, IconName } from '@ui/icon';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
 import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
+import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
+import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 
 interface SummaryKpi {
   label: string;
@@ -136,14 +140,18 @@ interface SummaryKpi {
 })
 export class SummaryTabComponent {
   readonly store = inject(AdminStore);
+  readonly banderas = inject(AdminFlagsStore);
+  readonly permisos = inject(AdminPermissionsStore);
+  readonly errores = inject(AdminErrorsStore);
+  readonly auditoria = inject(AdminAuditStore);
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
 
   readonly kpis = computed<readonly SummaryKpi[]>(() => {
     const users = this.store.users();
     const organizations = this.store.organizations();
-    const flags = this.store.platformFlags();
-    const open = this.store.errors().filter((error) => error.status !== 'resolved');
+    const flags = this.banderas.platformFlags();
+    const open = this.errores.items().filter((error) => error.status !== 'resolved');
     return [
       {
         label: this.i18n.t('admin.summary.activeUsers.label'),
@@ -162,7 +170,7 @@ export class SummaryTabComponent {
       {
         label: this.i18n.t('admin.summary.roles.label'),
         value: this.store.rolesTotal(),
-        detail: this.i18n.t('admin.summary.roles.detail', { count: this.store.permissionCatalog().length }),
+        detail: this.i18n.t('admin.summary.roles.detail', { count: this.permisos.catalog().length }),
         icon: 'shield',
         warn: false,
       },
@@ -231,7 +239,7 @@ export class SummaryTabComponent {
   ]);
 
   readonly activityRows = computed(() =>
-    this.store.audit().map((event) => ({
+    this.auditoria.events().map((event) => ({
       id: event.id,
       action: this.labels.auditAction(event.action),
       entity: this.labels.auditEntity(event.entityType),

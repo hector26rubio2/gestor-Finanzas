@@ -15,6 +15,7 @@ import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import { AdminLabels } from '@pages/admin/admin-labels';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
 import { BulkChange, PermissionGroup, PermissionPickerComponent } from './permission-picker';
 
 export const RESOURCE_FEATURE: Readonly<Record<string, string>> = {
@@ -85,6 +86,7 @@ export class PermissionSectionsComponent {
   readonly i18n = inject(I18nService);
   readonly labels = inject(AdminLabels);
   private readonly store = inject(AdminStore);
+  readonly banderas = inject(AdminFlagsStore);
 
   readonly groups = input.required<readonly PermissionGroup[]>();
   readonly checked = input.required<(code: string) => boolean>();
@@ -99,7 +101,7 @@ export class PermissionSectionsComponent {
 
   private readonly disabledFeatures = computed(() => {
     const organizationId = this.organizationId();
-    const flags = organizationId ? this.store.organizationFlagsOf(organizationId) : undefined;
+    const flags = organizationId ? this.banderas.organizationFlagsOf(organizationId) : undefined;
     return new Set((flags ?? []).filter((flag) => !flag.isEnabled).map((flag) => flag.key));
   });
 
@@ -114,7 +116,7 @@ export class PermissionSectionsComponent {
   constructor() {
     effect(() => {
       const organizationId = this.organizationId();
-      if (organizationId) untracked(() => void this.store.cargarBanderasDe(organizationId));
+      if (organizationId) untracked(() => void this.banderas.cargarBanderasDe(organizationId));
     });
   }
 

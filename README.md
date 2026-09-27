@@ -1,22 +1,57 @@
-# Finanzas Web — prototipo visual
+# Finanzas Web
 
-Frontend Angular independiente de la aplicación legacy. El modo de ejecución se selecciona explícitamente en `public/config.js`:
+Front Angular 22 (standalone, zoneless, signals, Spartan UI) de la app de finanzas personales. Siempre trabaja contra la API real ([v2-api-finanzas](../v2-api-finanzas)) y su base PostgreSQL: no hay modo demo ni datos quemados.
+
+## Requisitos
+
+- Node 24 y pnpm 10.
+- La API corriendo (local en `http://localhost:5198`, ver su README).
+
+## Configuración
+
+`public/config.js` solo dice dónde está la API:
 
 ```js
-window.__FINANZAS_CONFIG__ = { mode: 'demo' };
-// o
-window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://su-api.onrender.com' };
+window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://localhost:5198' };
 ```
 
-El modo `demo` usa únicamente datos ficticios en memoria. El modo `api` consume la superficie `/api/v1`, envía la cookie de sesión, obtiene CSRF antes de cada escritura y nunca sustituye un fallo remoto por datos demo. El backend debe permitir mediante CORS el origen exacto del frontend y credenciales.
+En GitHub Pages el workflow `deploy.yml` escribe ese archivo con la variable de repositorio `API_BASE_URL`; si falta, el despliegue falla. La API debe permitir por CORS el origen exacto del front con credenciales.
 
-```powershell
-pnpm --dir apps/web start
-pnpm --dir apps/web build
-pnpm --dir apps/web test
-pnpm --dir apps/web lint
+## Comandos
+
+| Comando | Qué hace |
+|---|---|
+| `pnpm install` | Instala dependencias |
+| `pnpm start` | Servidor de desarrollo en `http://localhost:4300` |
+| `pnpm build` | Build de producción (`dist/`) |
+| `pnpm test` | Pruebas unitarias (Vitest vía `ng test`) |
+| `pnpm lint` · `pnpm format:check` | ESLint y Prettier |
+| `pnpm test:ui` | Capturas de las 11 rutas en 9 tamaños de pantalla contra una API simulada |
+| `pnpm test:a11y` | Accesibilidad con axe (claro, oscuro, móvil) |
+| `pnpm test:permisos` | Cada sección abre solo con su permiso |
+| `pnpm diagramas estado` | Qué diagramas de `docs/diagramas` quedaron viejos |
+| `pnpm diagramas atlas` | Reindexa GitNexus y regenera el portal `docs/diagramas/index.html` |
+
+Las suites `test:ui`, `test:a11y` y `test:permisos` levantan `pnpm start` y una API simulada (`scripts/api-simulada.mjs` + `scripts/fixtures/`); no tocan la base real.
+
+## Estructura
+
+```
+src/app/
+  core/       sesión, API, estado global, i18n, routing, utilidades
+  shared/     piezas reutilizadas por varias páginas (tablero, historia, gráficas, proyecciones…)
+  features/   formularios y pestañas de dominio (cuentas, movimientos, planificación…)
+  pages/      pantallas enrutadas (dashboard, admin, workspace…)
+  ui/         componentes de interfaz sin lógica de negocio (Spartan helm + propios)
+  testing/    utilidades de pruebas
 ```
 
-Perfiles demo: Valentina tiene todas las capacidades; Daniel permite comprobar navegación restringida. El conjunto de datos cubre septiembre de 2025 a agosto de 2026 y puede restaurarse desde Preferencias.
+- Imports con alias: `@core`, `@shared`, `@features`, `@pages`, `@ui`, `@testing`, `@app`. Nada de `../`.
+- Cada carpeta tiene un barril `index.ts`. Se importa por barril solo desde una capa superior (`ui` < `core` < `shared` < `features` < `pages`); los archivos del arranque usan la ruta completa para no inflar el bundle inicial.
+- Estado con signals: `AppStore` + comandos por dominio (`MovementCommands`, `CatalogCommands`, `PreferencesActions`); stores por pestaña en administración.
 
-La sesión remota define las capacidades efectivas; el cliente carga solo los módulos autorizados. Los endpoints que todavía no existen siguen presentándose como prototipo sin escritura remota. Los componentes no consumen IPC o HTTP directamente.
+## Documentación
+
+- Auditoría técnica y estado: `../AUDITORIA.md`.
+- Diagramas de arquitectura: `docs/diagramas/index.html` (portal) y `docs/diagramas/README.md`.
+- Reglas para agentes (GitNexus, niveles de cambio, diagramas): `CLAUDE.md`.

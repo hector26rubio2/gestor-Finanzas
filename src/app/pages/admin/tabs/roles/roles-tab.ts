@@ -11,10 +11,12 @@ import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data
 import { IconComponent } from '@ui/icon';
 import { PagerComponent } from '@ui/pager';
 import { AdminStore } from '@pages/admin/admin.store';
+import { AdminCommands } from '@pages/admin/stores/admin-commands';
 import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { PermissionCatalogComponent } from './permission-catalog';
 import { RoleSheetComponent } from './role-sheet';
+import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.store';
 
 @Component({
   selector: 'app-admin-roles-tab',
@@ -131,7 +133,7 @@ import { RoleSheetComponent } from './role-sheet';
     @if (
       caps.allows(P.administracion.capacidades.listar) &&
       features.enabled('admin.permissionCatalog') &&
-      store.permissionCatalog().length
+      permisos.catalog().length
     ) {
       <app-admin-permission-catalog />
     }
@@ -150,6 +152,8 @@ import { RoleSheetComponent } from './role-sheet';
 })
 export class RolesTabComponent {
   readonly store = inject(AdminStore);
+  private readonly comandos = inject(AdminCommands);
+  readonly permisos = inject(AdminPermissionsStore);
   readonly i18n = inject(I18nService);
   readonly caps = inject(CAPABILITIES);
   readonly features = inject(FEATURES);
@@ -203,7 +207,7 @@ export class RolesTabComponent {
     this.deleting.set(null);
     if (!role) return;
     try {
-      await this.store.eliminarRol(role);
+      await this.comandos.eliminarRol(role);
       this.app.toast.set(this.i18n.t('admin.toast.deleteRoleSucceeded', { name: role.name }));
     } catch (error) {
       const reason = error instanceof Error ? error.message : '';
