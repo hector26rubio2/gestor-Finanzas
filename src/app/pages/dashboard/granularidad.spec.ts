@@ -26,7 +26,10 @@ function preparar(permisos: readonly string[]) {
     providers: [
       provideRouter([]),
       { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
-      { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
+      {
+        provide: FinanceApiClient,
+        useValue: { dashboard: vi.fn(() => of(null)), saveDashboardLayout: vi.fn(() => of(null)) },
+      },
     ],
   });
   const store = TestBed.inject(AppStore);
