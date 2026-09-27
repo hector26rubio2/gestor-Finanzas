@@ -10,6 +10,7 @@
           "builder": "@angular/build:application",
           "options": {
             "browser": "src/main.ts",
+            "polyfills": [],
             "index": "src/index.html",
             "tsConfig": "tsconfig.app.json",
             "assets": [
@@ -28,9 +29,23 @@
                   "type": "initial",
                   "maximumWarning": "700kB",
                   "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "8kB",
+                  "maximumError": "16kB"
+                },
+                {
+                  "type": "anyScript",
+                  "maximumWarning": "1MB",
+                  "maximumError": "1.5MB"
                 }
               ],
               "outputHashing": "all",
+              "namedChunks": false,
+              "security": {
+                "autoCsp": true
+              },
               "sourceMap": false,
               "extractLicenses": true,
               "optimization": {

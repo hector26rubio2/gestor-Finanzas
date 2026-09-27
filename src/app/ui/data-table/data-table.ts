@@ -40,12 +40,12 @@ import {
   sortFn_alphanumeric,
   tableFeatures,
 } from '@tanstack/angular-table';
-import { I18nService } from '../../core/i18n';
-import { sincronizarPaginaConLaUrl } from '../../core/state/url-state';
-import { IconComponent, IconName } from '../icon/icon';
-import { SearchFieldComponent } from '../search-field/search-field';
-import { DateFieldComponent } from '../date-field/date-field';
-import { UiOption, UiSelectComponent } from '../select/select';
+import { I18nService } from '@core/i18n';
+import { sincronizarPaginaConLaUrl } from '@core/routing/url-state';
+import { IconComponent, IconName } from '@ui/icon/icon';
+import { SearchFieldComponent } from '@ui/search-field/search-field';
+import { DateFieldComponent } from '@ui/date-field/date-field';
+import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { FinTableCellDirective } from './table-cell.directive';
 
 export interface TableColumn {
@@ -60,6 +60,7 @@ export interface TableColumn {
   filter?: 'date';
   rawKey?: string;
   options?: readonly string[];
+  wrap?: boolean;
 }
 
 type Row = Record<string, any>;
@@ -493,8 +494,13 @@ export class DataTableComponent {
   }
 
   detailClass(column: TableColumn, rowIndex: number): string {
-    if (column.essential !== false) return '';
-    return this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden';
+    const ajuste = column.wrap ? 'max-w-[28rem] min-w-48 whitespace-normal [overflow-wrap:anywhere]' : '';
+    if (column.essential !== false) return ajuste;
+    return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden'}`;
+  }
+
+  textoRecortado(column: TableColumn | undefined): boolean {
+    return !!column?.wrap;
   }
 
   columnOf(key: string): TableColumn | undefined {

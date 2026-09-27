@@ -5,6 +5,7 @@
         {{ i18n.t('dashboard.greeting', { name: store.user()?.name?.split(' ')?.[0] ?? '' }) }}
       </h1>
       <p class="text-muted-foreground">{{ i18n.t('dashboard.subtitle') }}</p>
+      <fin-selector-de-tableros class="mt-3" />
     </div>
     @if (puedePersonalizar()) {
     <button
@@ -30,36 +31,36 @@
   </section>
   } @else {
   <fin-filter-panel
-    [scales]="scales()"
+    [scales]="periodo.scales()"
     [scale]="scale()"
     [hasFilters]="hasFilters()"
-    [periodPickerOpen]="periodPickerOpen()"
-    [periodShortLabel]="periodShortLabel()"
-    [anchorYear]="anchorYear()"
-    [anchorMonth]="anchorMonth()"
-    [anchorDay]="anchorDay()"
-    [anchorWeekOfMonth]="anchorWeekOfMonth()"
-    [monthOptions]="monthOptions()"
-    [weekOfMonthOptions]="weekOfMonthOptions()"
+    [periodPickerOpen]="periodo.periodPickerOpen()"
+    [periodShortLabel]="periodo.periodShortLabel()"
+    [anchorYear]="periodo.anchorYear()"
+    [anchorMonth]="periodo.anchorMonth()"
+    [anchorDay]="periodo.anchorDay()"
+    [anchorWeekOfMonth]="periodo.anchorWeekOfMonth()"
+    [monthOptions]="periodo.monthOptions()"
+    [weekOfMonthOptions]="periodo.weekOfMonthOptions()"
     [accountId]="accountId()"
     [accountSelectOptions]="accountSelectOptions()"
     [accountType]="accountType()"
     [accountTypeOptions]="accountTypeOptions()"
     [globalCategory]="globalCategory()"
     [categorySelectOptions]="categorySelectOptions()"
-    [periodLabel]="periodLabel()"
+    [periodLabel]="periodo.periodLabel()"
     [movementsCount]="movements().length"
     (clear)="reset()"
     [selectionLabel]="seleccionEtiqueta()"
     (clearSelection)="seleccion.set(null)"
     (scaleChange)="scale.set($event)"
-    (shiftPeriod)="shiftPeriod($event)"
-    (togglePeriodPicker)="periodPickerOpen.update((v) => !v)"
-    (closePeriodPicker)="periodPickerOpen.set(false)"
-    (yearChange)="setYear($event)"
-    (monthChange)="setMonth($event)"
-    (weekOfMonthChange)="setWeekOfMonth($event)"
-    (dayChange)="setDay($event)"
+    (shiftPeriod)="periodo.shiftPeriod($event)"
+    (togglePeriodPicker)="periodo.periodPickerOpen.update((v) => !v)"
+    (closePeriodPicker)="periodo.periodPickerOpen.set(false)"
+    (yearChange)="periodo.setYear($event)"
+    (monthChange)="periodo.setMonth($event)"
+    (weekOfMonthChange)="periodo.setWeekOfMonth($event)"
+    (dayChange)="periodo.setDay($event)"
     (accountIdChange)="accountId.set($event)"
     (accountTypeChange)="changeAccountType($event)"
     (globalCategoryChange)="globalCategory.set($event)"
@@ -131,6 +132,11 @@
             [showDimensionMeasure]="isGeneric(widget.type)"
             [showSeries]="needsDimension2(widget.type)"
             [showGoal]="needsGoal(widget.type)"
+            [variant]="widget.variant ?? ''"
+            [variantOptions]="variantOptions(widget.type)"
+            [granularity]="widget.granularity ?? ''"
+            [granularityOptions]="granularityOptions()"
+            [showGranularity]="esDelMotor(widget.type)"
             [canReorder]="caps.allows(P.dashboard.widget.orden.editar)"
             [canChangeType]="caps.allows(P.dashboard.widget.tipo.editar)"
             [canHide]="caps.allows(P.dashboard.widget.deshabilitar)"
@@ -140,6 +146,8 @@
             (dimensionChange)="changeDimension(widget.id, $event)"
             (measureChange)="changeMeasure(widget.id, $event)"
             (dimension2Change)="changeDimension2(widget.id, $event)"
+            (variantChange)="changeWidgetField(widget.id, 'variant', $event)"
+            (granularityChange)="changeWidgetField(widget.id, 'granularity', $event || undefined)"
             (goalChange)="changeGoal(widget.id, $event.key, $event.value)"
             (hide)="hide(widget.id)"
           />
@@ -382,65 +390,80 @@
     } }
   </aside>
   } @if (widgetCreatorOpen()) {
-  <fin-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" (closed)="widgetCreatorOpen.set(false)">
-    <form class="grid gap-3.5" (submit)="createWidget($event)">
-      <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
-        <input hlmInput name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
-      </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetForm.visualization')">
-        <fin-select
-          name="widgetMetric"
-          [(ngModel)]="newWidgetMetric"
-          [options]="widgetTypeOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetForm.visualization.ariaLabel')"
-        />
-      </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetForm.distribution')">
-        <fin-select
-          name="widgetWidth"
-          [(ngModel)]="newWidgetWidth"
-          [options]="widgetWidthOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetForm.distribution.ariaLabel')"
-        />
-      </fin-field>
-      @if (isGeneric(newWidgetMetric)) {
-      <fin-field [label]="i18n.t('dashboard.widgetForm.dimensionAxis')">
-        <fin-select
-          name="widgetDimension"
-          [(ngModel)]="newWidgetDimension"
-          [options]="dimensionOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
-        />
-      </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetForm.measureValue')">
-        <fin-select
-          name="widgetMeasure"
-          [(ngModel)]="newWidgetMeasure"
-          [options]="measureOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
-        />
-      </fin-field>
-      } @if (needsDimension2(newWidgetMetric)) {
-      <fin-field [label]="i18n.t('dashboard.widgetActions.series.ariaLabel')">
-        <fin-select
-          name="widgetDimension2"
-          [(ngModel)]="newWidgetDimension2"
-          [options]="dimensionOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetForm.dimension2.ariaLabel')"
-        />
-      </fin-field>
-      } @if (needsGoal(newWidgetMetric)) {
-      <fin-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
-        <input hlmInput name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
-      </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
-        <input hlmInput name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
-      </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
-        <input hlmInput name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
-      </fin-field>
-      }
-      <p class="text-muted-foreground">{{ i18n.t('dashboard.widgetForm.note') }}</p>
+  <fin-overlay
+    [title]="i18n.t('dashboard.actions.createWidget')"
+    mode="modal"
+    [wide]="true"
+    (closed)="widgetCreatorOpen.set(false)"
+  >
+    <form class="grid gap-4" (submit)="createWidget($event)">
+      <div class="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
+        <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
+          <input hlmInput name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
+        </fin-field>
+        <fin-field [label]="i18n.t('dashboard.widgetForm.distribution')">
+          <fin-select
+            name="widgetWidth"
+            [(ngModel)]="newWidgetWidth"
+            [options]="widgetWidthOptions()"
+            [ariaLabel]="i18n.t('dashboard.widgetForm.distribution.ariaLabel')"
+          />
+        </fin-field>
+      </div>
+      <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-5 max-[900px]:grid-cols-1">
+        <div class="flex max-h-[62vh] min-w-0 flex-col gap-4 overflow-y-auto pe-1">
+          <fin-galeria-visual
+            [valor]="otroTipo() ? '' : nuevoVisual().tipo"
+            (valorChange)="elegirTipoDelMotor($event)"
+          />
+          <fin-field [label]="i18n.t('charts.group.others')">
+            <fin-select
+              name="otroTipo"
+              [ngModel]="otroTipo()"
+              (ngModelChange)="otroTipo.set($event)"
+              [options]="[{ value: '', label: '—' }].concat(otherWidgetTypeOptions())"
+              [ariaLabel]="i18n.t('charts.group.others')"
+            />
+          </fin-field>
+        </div>
+        <div class="flex min-w-0 flex-col gap-3">
+          @if (!otroTipo()) {
+          <fin-configurador-visual [conTipo]="false" [(config)]="nuevoVisual" />
+          @if (vistaPrevia(); as opcion) {
+          <div class="rounded-lg border border-border bg-card p-3">
+            <fin-chart [option]="opcion" [height]="300" [ariaLabel]="newWidgetTitle || i18n.t('charts.picker.label')" />
+          </div>
+          } } @else { @if (isGeneric(newWidgetMetric)) {
+          <fin-field [label]="i18n.t('dashboard.widgetForm.dimensionAxis')">
+            <fin-select
+              name="widgetDimension"
+              [(ngModel)]="newWidgetDimension"
+              [options]="dimensionOptions()"
+              [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
+            />
+          </fin-field>
+          <fin-field [label]="i18n.t('dashboard.widgetForm.measureValue')">
+            <fin-select
+              name="widgetMeasure"
+              [(ngModel)]="newWidgetMeasure"
+              [options]="measureOptions()"
+              [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
+            />
+          </fin-field>
+          } @if (needsGoal(newWidgetMetric)) {
+          <fin-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
+            <input hlmInput name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
+          </fin-field>
+          <fin-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
+            <input hlmInput name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
+          </fin-field>
+          <fin-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
+            <input hlmInput name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
+          </fin-field>
+          } }
+        </div>
+      </div>
+      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('dashboard.widgetForm.note') }}</p>
       <div class="flex justify-end gap-2">
         <button hlmBtn variant="outline" type="button" (click)="widgetCreatorOpen.set(false)">
           <fin-icon name="close" /> {{ i18n.t('dashboard.widgetForm.cancel') }}</button

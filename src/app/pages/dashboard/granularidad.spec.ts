@@ -2,16 +2,17 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { RUNTIME_CONFIG } from '../../core/session/runtime';
-import { AppStore } from '../../core/state/store';
-import { AccountFormComponent } from '../../features/account-form/account-form';
-import { MovementFormComponent } from '../../features/movement-form/movement-form';
-import { MovementLoanFieldsComponent } from '../../features/movement-form/loan-fields/loan-fields';
-import { MovementInstallmentFieldsComponent } from '../../features/movement-form/installment-fields/installment-fields';
-import { MovementCategoryFieldComponent } from '../../features/movement-form/category-field/category-field';
+import { FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
+import { AppStore } from '@core/state';
+import { AccountFormComponent } from '@features/account-form';
+import {
+  MovementFormComponent,
+  MovementInstallmentFieldsComponent,
+  MovementCategoryFieldComponent,
+} from '@features/movement-form';
 import { DashboardComponent } from './dashboard';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * Antes una casilla concedía una capacidad entera: marcar «administrar cuentas» daba
@@ -19,17 +20,20 @@ import { DashboardComponent } from './dashboard';
  * por separado y que la interfaz lo refleja control a control.
  */
 function preparar(permisos: readonly string[]) {
-  window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+  window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     providers: [
       provideRouter([]),
-      { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
-      { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
+      { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
+      {
+        provide: FinanceApiClient,
+        useValue: { dashboard: vi.fn(() => of(null)), saveDashboardLayout: vi.fn(() => of(null)) },
+      },
     ],
   });
   const store = TestBed.inject(AppStore);
-  store.user.set({ ...store.users[0], capabilities: [...permisos] });
+  store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [...permisos] });
   return store;
 }
 
@@ -197,86 +201,58 @@ describe('movimientos: cada figura del ledger por separado', () => {
     expect(componente.operationTypeOptions().map((o) => o.value)).toContain('transfer');
   });
 
-  it('los campos de préstamo y de crédito son dos permisos distintos', () => {
-    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
-    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: 'Ana' };
-    fixture.componentInstance.showLoan = true;
+  it('préstamo y crédito se ofrecen con permisos distintos', () => {
+    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear, P.personas.deudas.crear]);
+    abrirFormulario('income');
+    const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
 
-    expect(fixture.componentInstance.showLoanRole()).toBe(true);
-    fixture.componentInstance.model['loanRole'] = 'lent';
-    // Sin administracion.creditos.crear, ver el producto sigue cerrado aunque ya haya rol.
-    expect(fixture.componentInstance.showLoanProduct()).toBe(false);
+    const valores = componente.operationTypeOptions().map((opcion) => opcion.value);
+    expect(valores).toContain('loan');
+    expect(valores).toContain('received');
+    expect(valores).not.toContain('credit');
   });
 
-  it('con responsabilidad propia no se ofrece la relación de préstamo', () => {
-    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
-    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: '' };
-    fixture.componentInstance.showLoan = true;
-
-    expect(fixture.componentInstance.showLoanRole()).toBe(false);
-
-    fixture.componentInstance.onPersonChange('Ana');
-    expect(fixture.componentInstance.showLoanRole()).toBe(true);
-    fixture.componentInstance.model['loanRole'] = 'lent';
-
-    fixture.componentInstance.onPersonChange('');
-    expect(fixture.componentInstance.showLoanRole()).toBe(false);
-    expect(fixture.componentInstance.model['loanRole']).toBe('');
-  });
-
-  it('la tasa de la compra a cuotas usa la de la tarjeta por defecto y se puede reemplazar', () => {
+  it('la tasa mensual de las cuotas usa la de la tarjeta por defecto y se puede reemplazar', () => {
     preparar([P.movimientos.ver, P.movimientos.crear]);
     const fixture = TestBed.createComponent(MovementInstallmentFieldsComponent);
     fixture.componentInstance.model = { accountId: 'credit-emerald', installmentTotal: 6 };
 
-    // Los datos demo no declaran tasa para esta tarjeta: sin escribir nada, no hay
-    // ninguna que ofrecer como default.
-    expect(fixture.componentInstance.cardApr()).toBeUndefined();
-    expect(fixture.componentInstance.purchaseApr()).toBeNull();
+    expect(fixture.componentInstance.cardMonthlyRate()).toBeUndefined();
+    expect(fixture.componentInstance.monthlyRate()).toBeNull();
     expect(fixture.componentInstance.isOverridden()).toBe(false);
 
-    fixture.componentInstance.onPurchaseAprChange(27.5);
-    expect(fixture.componentInstance.purchaseApr()).toBe(27.5);
+    fixture.componentInstance.onMonthlyRateChange(2.1);
+    expect(fixture.componentInstance.monthlyRate()).toBe(2.1);
     expect(fixture.componentInstance.isOverridden()).toBe(true);
 
-    fixture.componentInstance.useCardApr();
-    expect(fixture.componentInstance.model['purchaseApr']).toBeUndefined();
+    fixture.componentInstance.useCardRate();
+    expect(fixture.componentInstance.model['installmentRate']).toBeUndefined();
     expect(fixture.componentInstance.isOverridden()).toBe(false);
   });
 
-  it('prestar y deber se ofrecen por separado', () => {
-    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear, P.personas.prestamos.crear]);
-    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', kind: 'expense' };
-    fixture.componentInstance.showLoan = true;
+  it('un gasto ofrece prestar pero no crédito, que es de ingreso', () => {
+    preparar([
+      P.movimientos.ver,
+      P.movimientos.crear,
+      P.movimientos.prestamos.crear,
+      P.movimientos.creditos.crear,
+      P.personas.prestamos.crear,
+    ]);
+    abrirFormulario('expense');
+    const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
 
-    const valores = fixture.componentInstance.loanRoleOptions().map((opcion) => opcion.value);
-    expect(valores).toContain('lent');
-    expect(valores).not.toContain('borrowed');
-  });
-
-  /**
-   * Regresión: `showLoanRole`/`showLoanProduct` no pueden ser `computed()`. Un
-   * `computed()` no rastrea un `@Input()` normal ni una propiedad mutable de
-   * `model` — la primera lectura quedaba en caché para siempre, así que elegir
-   * después una tarjeta de crédito nunca llegaba a ocultar el préstamo.
-   */
-  it('cambiar showLoan después de creado el componente se refleja sin recrearlo', () => {
-    preparar([P.movimientos.ver, P.movimientos.crear, P.movimientos.prestamos.crear]);
-    const fixture = TestBed.createComponent(MovementLoanFieldsComponent);
-    fixture.componentInstance.model = { loanRole: '', operationType: 'loan', person: 'Ana' };
-    fixture.componentInstance.showLoan = true;
-    expect(fixture.componentInstance.showLoanRole()).toBe(true);
-
-    // La misma instancia, como pasa al elegir una tarjeta de crédito sin cerrar el formulario.
-    fixture.componentInstance.showLoan = false;
-    expect(fixture.componentInstance.showLoanRole()).toBe(false);
+    const valores = componente.operationTypeOptions().map((opcion) => opcion.value);
+    expect(valores).toContain('loan');
+    expect(valores).not.toContain('credit');
   });
 
   it('cambiar de gasto a ingreso en el mismo componente cambia las categorías ofrecidas', () => {
     preparar([P.movimientos.ver, P.movimientos.crear]);
+    const categoria = { color: '#000', icon: '', parent: null, isActive: true, createdAt: '2026-01-01T00:00:00Z' };
+    TestBed.inject(AppStore).categories.set([
+      { ...categoria, id: 'gasto', name: 'Mercado', type: 2 },
+      { ...categoria, id: 'ingreso', name: 'Salario', type: 1 },
+    ]);
     const fixture = TestBed.createComponent(MovementCategoryFieldComponent);
     fixture.componentInstance.model = { category: '' };
     fixture.componentInstance.kind = 'expense';

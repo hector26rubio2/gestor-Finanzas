@@ -16,6 +16,11 @@ export function addMonthsToIso(iso: string, months: number): string {
   return toIsoDate(target);
 }
 
+export function addDaysToIso(iso: string, days: number): string {
+  const [year, month, day] = iso.split('-').map(Number);
+  return toIsoDate(new Date(year, month - 1, day + days));
+}
+
 export function formatDateTime(iso: string | Date | null | undefined, locale: string): string {
   if (!iso) return '';
   const date = iso instanceof Date ? iso : new Date(iso);

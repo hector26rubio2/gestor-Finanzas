@@ -1,24 +1,24 @@
+import { DashboardPeriodo } from './periodo/dashboard-periodo';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CdkDropList } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
-import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
-import { parseMoney, sumBy } from '../../core/utils/money';
-import { P } from '../../core/session/permissions';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { IconComponent, IconName } from '../../ui/icon/icon';
-import { DataTableComponent } from '../../ui/data-table/data-table';
-import { KpiComponent } from '../../ui/kpi/kpi';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { ChartComponent } from '../../ui/chart/chart';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../ui/field/field';
-import { CategoryBadgeComponent } from '../../ui/category-badge/category-badge';
-import { FinTableCellDirective } from '../../ui/data-table/table-cell.directive';
+import { ApiDashboard, FinanceApiClient } from '@core/api';
+import { parseMoney, sumBy } from '@core/utils';
+import { P } from '@core/session';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
+import { IconComponent, IconName } from '@ui/icon';
+import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
+import { KpiComponent } from '@ui/kpi';
+import { OverlayComponent } from '@ui/overlay';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { ChartComponent } from '@ui/chart';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
+import { CategoryBadgeComponent } from '@ui/category-badge';
 import { CategoryListComponent } from './widgets/category-list/category-list';
 import { AccountListComponent } from './widgets/account-list/account-list';
 import { ColorScaleComponent } from './widgets/color-scale/color-scale';
@@ -27,12 +27,12 @@ import { WidgetControlsComponent } from './widgets/widget-controls/widget-contro
 import { WidgetCardComponent } from './widgets/widget-card/widget-card';
 import { FilterPanelComponent } from './filters/filter-panel/filter-panel';
 import { CUSTOM_KPI_PREFIX, FIXED_KPI_PREFIX, KpiStripComponent } from './kpis/kpi-strip/kpi-strip';
-import { DashboardLayoutService } from './layout/dashboard-layout.service';
-import { FlowDefault, WIDGET_MIN_COLS } from './layout/dashboard-layout';
+import { DashboardLayoutService, WidgetGuardado } from '@shared/tablero/dashboard-layout.service';
+import { SelectorDeTablerosComponent } from './tableros/selector-de-tableros';
+import { FlowDefault, WIDGET_MIN_COLS } from '@shared/tablero/dashboard-layout';
 import { FlowItemComponent } from './layout/flow-item/flow-item';
 
 import {
-  Scale,
   WidgetType,
   Dimension,
   Measure,
@@ -40,55 +40,59 @@ import {
   Widget,
   GENERIC_TYPES,
   TWO_DIMENSION_TYPES,
-} from './dashboard.model';
+} from '@shared/tablero/dashboard.model';
 import { DashboardKpis } from './dashboard-kpis';
-import type { Movement } from '../../core/state/demo-data';
-import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo } from '../../shared/historia/historia';
-import { KpiRanges, KpiStatus, estadoDe } from './kpis/kpi-ranges';
+import type { Movement } from '@core/state';
+import { crearHistoriaDeFlujo, crearMovimientosDelPeriodo } from '@shared/historia';
+import { KpiRanges, KpiStatus, estadoDe } from '@shared/tablero/kpi-ranges';
 
 type KpiStatusValue = KpiStatus | null;
 import { buildWidgetCatalog } from './dashboard-widget-catalog';
+import {
+  ConfiguradorVisualComponent,
+  GaleriaVisualComponent,
+  OpcionesDeGraficas,
+  TIPOS_DEL_MOTOR,
+  definicionDe,
+} from '@shared/graficas';
+import type { ConfiguracionVisual } from '@shared/graficas';
 
 const KPI_HEIGHT = 120;
 
-function isoDe(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
-}
+const CAMPOS_EDITABLES = [
+  'type',
+  'wide',
+  'dimension',
+  'dimension2',
+  'measure',
+  'variant',
+  'granularity',
+  'limit',
+  'goalMin',
+  'goalTarget',
+  'goalMax',
+] as const;
 
-function rangoDe(ancla: string, escala: Scale): { start: string; end: string } {
-  const a = new Date(`${ancla}T12:00:00`);
-  let start: Date, end: Date;
-  if (escala === 'day') {
-    start = new Date(a);
-    end = new Date(a);
-  } else if (escala === 'week') {
-    const offset = (a.getDay() + 6) % 7;
-    start = new Date(a);
-    start.setDate(a.getDate() - offset);
-    end = new Date(start);
-    end.setDate(start.getDate() + 6);
-  } else if (escala === 'month') {
-    start = new Date(a.getFullYear(), a.getMonth(), 1, 12);
-    end = new Date(a.getFullYear(), a.getMonth() + 1, 0, 12);
-  } else {
-    start = new Date(a.getFullYear(), 0, 1, 12);
-    end = new Date(a.getFullYear(), 11, 31, 12);
-  }
-  return { start: isoDe(start), end: isoDe(end) };
-}
-
-function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
-  const date = new Date(`${ancla}T12:00:00`);
-  if (escala === 'year') date.setFullYear(date.getFullYear() + pasos);
-  else if (escala === 'month') {
-    date.setDate(1);
-    date.setMonth(date.getMonth() + pasos);
-  } else date.setDate(date.getDate() + pasos * (escala === 'week' ? 7 : 1));
-  return isoDe(date);
+function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[]): Widget[] {
+  const porId = new Map(guardados.map((guardado) => [guardado.id, guardado]));
+  const base = catalogo.map((widget) => {
+    const cambios = porId.get(widget.id);
+    return cambios ? ({ ...widget, ...cambios, title: widget.title, kicker: widget.kicker } as Widget) : widget;
+  });
+  const propios = guardados
+    .filter((guardado) => guardado.custom && typeof guardado.title === 'string' && typeof guardado['type'] === 'string')
+    .map((guardado) => {
+      const { custom, ...widget } = guardado;
+      void custom;
+      return widget as unknown as Widget;
+    });
+  return [...base, ...propios];
 }
 
 @Component({
+  providers: [DashboardPeriodo],
   imports: [
+    SelectorDeTablerosComponent,
     HlmButton,
     HlmInput,
     FormsModule,
@@ -113,11 +117,19 @@ function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
     KpiStripComponent,
     CdkDropList,
     FlowItemComponent,
+    ConfiguradorVisualComponent,
+    GaleriaVisualComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent extends DashboardKpis {
+  readonly periodo = inject(DashboardPeriodo);
+  readonly scale = this.periodo.scale;
+  readonly anchor = this.periodo.anchor;
+  readonly range = this.periodo.range;
+  readonly historiaEtiqueta = this.periodo.historiaEtiqueta;
+
   readonly P = P;
   private readonly api = inject(FinanceApiClient);
   readonly customizing = signal(false);
@@ -153,10 +165,11 @@ export class DashboardComponent extends DashboardKpis {
    */
   readonly puedePersonalizar = computed(
     () =>
-      this.caps.allows(P.dashboard.widget.orden.editar) ||
-      this.caps.allows(P.dashboard.widget.tipo.editar) ||
-      this.caps.allows(P.dashboard.widget.deshabilitar) ||
-      this.caps.allows(P.dashboard.widget.crear),
+      !this.layout.soloLectura() &&
+      (this.caps.allows(P.dashboard.widget.orden.editar) ||
+        this.caps.allows(P.dashboard.widget.tipo.editar) ||
+        this.caps.allows(P.dashboard.widget.deshabilitar) ||
+        this.caps.allows(P.dashboard.widget.crear)),
   );
 
   /** Sin ningún KPI concedido la franja se retira entera, en vez de quedar vacía. */
@@ -216,7 +229,7 @@ export class DashboardComponent extends DashboardKpis {
         icon: 'wallet',
         tone: 'accent',
         value: this.store.money(this.net()),
-        hint: this.periodLabel(),
+        hint: this.periodo.periodLabel(),
         ...fijo('balance', 'amount', this.net()),
         subirEsBueno: true,
       });
@@ -285,87 +298,6 @@ export class DashboardComponent extends DashboardKpis {
     ].some((codigo) => this.caps.allows(codigo)),
   );
 
-  readonly scale = signal<Scale>('month');
-  private readonly anclaPorDefecto = this.store.hoy();
-  readonly anchor = signal(this.anclaPorDefecto);
-  /**
-   * Saltar de año a golpe de "‹"/"›" es razonable entre meses vecinos, pero no para ir de
-   * 2026 a 1999: son mas de trescientos clics. El selector deja escribir el destino
-   * directamente, sin ser el `<input type=date>` del sistema -que no encaja con el resto
-   * de controles de la app-, con un `select` como todos los otros filtros.
-   */
-  readonly periodPickerOpen = signal(false);
-  readonly anchorYear = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getFullYear()));
-  readonly anchorMonth = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getMonth()));
-  readonly anchorDay = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getDate()));
-  /** Días del mes/año que muestra el selector: 28-31 según el mes, sin inventar un 31 de febrero. */
-  /** Días que tiene el mes del ancla; también el máximo válido para el selector de Día. */
-  readonly daysInAnchorMonth = computed(() =>
-    new Date(Number(this.anchorYear()), Number(this.anchorMonth()) + 1, 0).getDate(),
-  );
-  /**
-   * Semanas del mes en bloques fijos de 7 dias (1-7, 8-14...): no son semanas ISO -esas
-   * cruzan de un mes a otro y "semana 1 de enero" dejaria de significar lo mismo para
-   * quien solo quiere saltar al principio del mes-, pero alcanzan para lo que se pide:
-   * elegir "la primera semana de enero" sin tener que dar clic semana a semana.
-   */
-  readonly weekOfMonthOptions = computed<readonly UiOption[]>(() => {
-    const total = this.daysInAnchorMonth();
-    const semanas: UiOption[] = [];
-    for (let inicio = 1, n = 1; inicio <= total; inicio += 7, n++) {
-      const fin = Math.min(inicio + 6, total);
-      semanas.push({
-        value: String(inicio),
-        label: this.i18n.t('dashboard.filters.period.weekOption', { n, start: inicio, end: fin }),
-      });
-    }
-    return semanas;
-  });
-  /** Qué opción de `weekOfMonthOptions` contiene el día actual del ancla. */
-  readonly anchorWeekOfMonth = computed(() => {
-    const dia = Number(this.anchorDay());
-    return String(Math.floor((dia - 1) / 7) * 7 + 1);
-  });
-  setWeekOfMonth(value: string) {
-    this.setDay(value);
-  }
-  /** Nombres de mes según el idioma activo -mismo `Intl` que ya usa el resto del archivo para fechas. */
-  readonly monthOptions = computed<readonly UiOption[]>(() => {
-    const formateador = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long', timeZone: 'UTC' });
-    return Array.from({ length: 12 }, (_, i) => ({
-      value: String(i),
-      label: formateador.format(new Date(Date.UTC(2026, i, 1))),
-    }));
-  });
-  /**
-   * Solo digitos, a proposito: `<input type=number>` deja escribir "-" y "e" -notacion
-   * cientifica, 1e5 es un numero valido para el navegador-, y ni un año negativo ni "2e26"
-   * tienen sentido aqui. `Number(value)` los aceptaria igual, asi que la guardia va antes,
-   * sobre el texto crudo.
-   */
-  private soloDigitos(value: string): number | null {
-    const limpio = value.trim();
-    return /^\d+$/.test(limpio) ? Number(limpio) : null;
-  }
-  setYear(value: string) {
-    const year = this.soloDigitos(value);
-    if (year === null || year < 1) return;
-    const d = new Date(`${this.anchor()}T12:00:00`);
-    d.setFullYear(year);
-    this.anchor.set(this.iso(d));
-  }
-  setMonth(value: string) {
-    const d = new Date(`${this.anchor()}T12:00:00`);
-    d.setMonth(Number(value));
-    this.anchor.set(this.iso(d));
-  }
-  setDay(value: string) {
-    const day = this.soloDigitos(value);
-    if (day === null || day < 1) return;
-    const d = new Date(`${this.anchor()}T12:00:00`);
-    d.setDate(Math.min(day, this.daysInAnchorMonth()));
-    this.anchor.set(this.iso(d));
-  }
   readonly accountId = signal('all');
   readonly accountType = signal('all');
   readonly globalCategory = signal('all');
@@ -377,8 +309,6 @@ export class DashboardComponent extends DashboardKpis {
    * widget, no el contexto de la pantalla, y se promueve con «aplicar a todo».
    */
   private readonly urlDelDashboard = [
-    sincronizarConLaUrl('escala', this.scale, 'month', (v) => ['day', 'week', 'month', 'year'].includes(v)),
-    sincronizarConLaUrl('fecha', this.anchor, this.anclaPorDefecto, (v) => /^\d{4}-\d{2}-\d{2}$/.test(v)),
     sincronizarConLaUrl('cuenta', this.accountId, 'all'),
     sincronizarConLaUrl('tipo', this.accountType, 'all', (v) => ['all', 'credit', 'savings', 'cash'].includes(v)),
     sincronizarConLaUrl('categoria', this.globalCategory, 'all'),
@@ -386,7 +316,43 @@ export class DashboardComponent extends DashboardKpis {
   readonly hiddenIds = signal<string[]>([]);
   readonly widgetCreatorOpen = signal(false);
   newWidgetTitle = '';
-  newWidgetMetric: WidgetType = 'bar';
+  private readonly opcionesDeGraficas = inject(OpcionesDeGraficas);
+  readonly nuevoVisual = signal<ConfiguracionVisual>({ tipo: 'bar', dimension: 'category', measure: 'expense' });
+  readonly otroTipo = signal<WidgetType | ''>('');
+  get newWidgetMetric(): WidgetType {
+    return this.otroTipo() || this.nuevoVisual().tipo;
+  }
+  readonly vistaPrevia = computed(() =>
+    this.otroTipo()
+      ? null
+      : this.widgetOption({
+          id: 'vista-previa',
+          title: '',
+          kicker: '',
+          type: this.nuevoVisual().tipo,
+          wide: true,
+          ...this.sinTipo(this.nuevoVisual()),
+        }),
+  );
+  elegirTipoDelMotor(tipo: string): void {
+    const definicion = definicionDe(tipo);
+    if (!definicion) return;
+    this.otroTipo.set('');
+    this.newWidgetWidth = definicion.ancha ? 'wide' : 'half';
+    this.nuevoVisual.update((actual) => ({
+      ...actual,
+      tipo: definicion.tipo,
+      variant: undefined,
+      dimension: definicion.sugerida.dimension,
+      dimension2: definicion.sugerida.dimension2,
+      measure: definicion.sugerida.measure ?? 'expense',
+    }));
+  }
+  private sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'> {
+    const { tipo, ...resto } = config;
+    void tipo;
+    return resto;
+  }
   newWidgetWidth = 'wide';
   newWidgetDimension: Dimension = 'category';
   newWidgetDimension2: Dimension = 'kind';
@@ -407,50 +373,35 @@ export class DashboardComponent extends DashboardKpis {
    * caja, exploración de categorías con click-to-filter, dispersión fecha/importe— y no
    * aceptan dimensión ni métrica; se mantienen para no romper widgets ya creados con ellos.
    */
+  readonly otherWidgetTypeOptions = computed<readonly UiOption[]>(() =>
+    (
+      [
+        'indicator',
+        'colorScale',
+        'statusBars',
+        'table',
+        'flow',
+        'trend',
+        'categories',
+        'accounts',
+        'scatter',
+        'donut',
+        'stacked',
+        'heatmap',
+        'gauge',
+        'histogram',
+      ] as const
+    ).map((value) => ({ value, label: this.i18n.t(`dashboard.widgetType.${value}`) })),
+  );
   readonly widgetTypeOptions = computed<readonly UiOption[]>(() => [
-    { value: 'line', label: this.i18n.t('dashboard.widgetType.line') },
-    { value: 'area', label: this.i18n.t('dashboard.widgetType.area') },
-    { value: 'bar', label: this.i18n.t('dashboard.widgetType.bar') },
-    { value: 'barH', label: this.i18n.t('dashboard.widgetType.barH') },
-    { value: 'grouped', label: this.i18n.t('dashboard.widgetType.grouped') },
-    { value: 'stackedBars', label: this.i18n.t('dashboard.widgetType.stackedBars') },
-    { value: 'stacked100', label: this.i18n.t('dashboard.widgetType.stacked100') },
-    { value: 'pie', label: this.i18n.t('dashboard.widgetType.pie') },
-    { value: 'treemap', label: this.i18n.t('dashboard.widgetType.treemap') },
-    { value: 'funnel', label: this.i18n.t('dashboard.widgetType.funnel') },
-    { value: 'waterfall', label: this.i18n.t('dashboard.widgetType.waterfall') },
-    { value: 'matrix', label: this.i18n.t('dashboard.widgetType.matrix') },
-    { value: 'indicator', label: this.i18n.t('dashboard.widgetType.indicator') },
-    { value: 'colorScale', label: this.i18n.t('dashboard.widgetType.colorScale') },
-    { value: 'statusBars', label: this.i18n.t('dashboard.widgetType.statusBars') },
-    { value: 'table', label: this.i18n.t('dashboard.widgetType.table') },
-    { value: 'flow', label: this.i18n.t('dashboard.widgetType.flow') },
-    { value: 'trend', label: this.i18n.t('dashboard.widgetType.trend') },
-    { value: 'categories', label: this.i18n.t('dashboard.widgetType.categories') },
-    { value: 'accounts', label: this.i18n.t('dashboard.widgetType.accounts') },
-    { value: 'scatter', label: this.i18n.t('dashboard.widgetType.scatter') },
-    { value: 'donut', label: this.i18n.t('dashboard.widgetType.donut') },
-    { value: 'stacked', label: this.i18n.t('dashboard.widgetType.stacked') },
-    { value: 'heatmap', label: this.i18n.t('dashboard.widgetType.heatmap') },
-    { value: 'gauge', label: this.i18n.t('dashboard.widgetType.gauge') },
-    { value: 'histogram', label: this.i18n.t('dashboard.widgetType.histogram') },
+    ...this.opcionesDeGraficas.tipos(),
+    ...this.otherWidgetTypeOptions().map((opcion) => ({ ...opcion, description: this.i18n.t('charts.group.others') })),
   ]);
-  readonly dimensionOptions = computed<readonly UiOption[]>(() => [
-    { value: 'category', label: this.i18n.t('dashboard.dimension.category') },
-    { value: 'account', label: this.i18n.t('dashboard.dimension.account') },
-    { value: 'date', label: this.i18n.t('dashboard.dimension.date') },
-    { value: 'kind', label: this.i18n.t('dashboard.dimension.kind') },
-    { value: 'person', label: this.i18n.t('dashboard.dimension.person') },
-    { value: 'recurring', label: this.i18n.t('dashboard.dimension.recurring') },
-    { value: 'installments', label: this.i18n.t('dashboard.dimension.installments') },
-  ]);
-  readonly measureOptions = computed<readonly UiOption[]>(() => [
-    { value: 'expense', label: this.i18n.t('dashboard.measure.expense') },
-    { value: 'income', label: this.i18n.t('dashboard.measure.income') },
-    { value: 'amount', label: this.i18n.t('dashboard.measure.amount') },
-    { value: 'count', label: this.i18n.t('dashboard.measure.count') },
-    { value: 'average', label: this.i18n.t('dashboard.measure.average') },
-  ]);
+
+  readonly dimensionOptions = this.opcionesDeGraficas.dimensiones;
+
+  readonly measureOptions = this.opcionesDeGraficas.medidas;
+
   readonly widgetWidthOptions = computed<readonly UiOption[]>(() => [
     { value: 'wide', label: this.i18n.t('dashboard.widgetWidth.wide') },
     { value: 'half', label: this.i18n.t('dashboard.widgetWidth.half') },
@@ -461,16 +412,33 @@ export class DashboardComponent extends DashboardKpis {
   needsDimension2(type: WidgetType): boolean {
     return TWO_DIMENSION_TYPES.includes(type);
   }
+  esDelMotor(type: string): boolean {
+    return TIPOS_DEL_MOTOR.has(type);
+  }
+  variantOptions(type: string): readonly UiOption[] {
+    return this.opcionesDeGraficas.variantes(type);
+  }
+  readonly granularityOptions = this.opcionesDeGraficas.granularidades;
   needsGoal(type: WidgetType): boolean {
     return type === 'indicator' || type === 'colorScale';
   }
-  readonly scales = computed<{ value: Scale; label: string }[]>(() => [
-    { value: 'day', label: this.i18n.t('dashboard.period.day') },
-    { value: 'week', label: this.i18n.t('dashboard.period.week') },
-    { value: 'month', label: this.i18n.t('dashboard.period.month') },
-    { value: 'year', label: this.i18n.t('dashboard.period.year') },
-  ]);
   readonly all = signal<Widget[]>(buildWidgetCatalog(this.i18n));
+  private readonly restaurarWidgets = effect(() => {
+    const guardados = this.layout.widgetConfigs();
+    untracked(() => this.all.set(fusionarWidgets(buildWidgetCatalog(this.i18n), guardados ?? [])));
+  });
+  private guardarWidgets(): void {
+    const catalogo = new Map(buildWidgetCatalog(this.i18n).map((widget) => [widget.id, widget]));
+    const configs = this.all().flatMap((widget): WidgetGuardado[] => {
+      const original = catalogo.get(widget.id);
+      if (!original) return [{ ...widget, custom: true }];
+      const cambios = Object.fromEntries(
+        CAMPOS_EDITABLES.filter((campo) => widget[campo] !== original[campo]).map((campo) => [campo, widget[campo]]),
+      );
+      return Object.keys(cambios).length ? [{ id: widget.id, ...cambios }] : [];
+    });
+    this.layout.saveWidgetConfigs(configs);
+  }
   canSee(widget: Widget): boolean {
     // Antes, un widget sin capacidad era visible para cualquiera, y los creados por
     // el usuario nacian asi. Ahora heredan el permiso de los widgets propios.
@@ -494,15 +462,6 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'all', label: this.i18n.t('dashboard.filters.allLocal') },
     ...this.localOptions().map((category) => ({ value: category, label: category })),
   ]);
-  readonly range = computed(() => rangoDe(this.anchor(), this.scale()));
-  readonly rangosHistoricos = computed(() =>
-    Array.from({ length: PERIODOS_DE_HISTORIA }, (_, indice) =>
-      rangoDe(desplazarAncla(this.anchor(), this.scale(), indice - PERIODOS_DE_HISTORIA + 1), this.scale()),
-    ),
-  );
-  readonly historiaEtiqueta = computed(() =>
-    this.i18n.t(`kpi.history.${this.scale()}`, { count: PERIODOS_DE_HISTORIA }),
-  );
   readonly seleccion = signal<Seleccion | null>(null);
   private cumpleSeleccion(m: Movement, conFecha: boolean): boolean {
     const seleccion = this.seleccion();
@@ -527,34 +486,13 @@ export class DashboardComponent extends DashboardKpis {
       this.cumpleSeleccion(m, false)
     );
   }
-  readonly historial = crearHistoriaDeFlujo(this.rangosHistoricos, {
+  readonly historial = crearHistoriaDeFlujo(this.periodo.rangosHistoricos, {
     incluir: (m) => this.coincideConFiltros(m),
     usarServidor: () =>
       this.accountId() === 'all' &&
       this.accountType() === 'all' &&
       this.globalCategory() === 'all' &&
       this.seleccionSoloDeFecha(),
-  });
-  readonly periodLabel = computed(() => {
-    const f = (v: string) =>
-      new Intl.DateTimeFormat(this.store.preferences().locale, {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric',
-        timeZone: 'UTC',
-      }).format(new Date(`${v}T12:00:00Z`));
-    return `${f(this.range().start)} – ${f(this.range().end)}`;
-  });
-  readonly periodShortLabel = computed(() => {
-    const options: Intl.DateTimeFormatOptions =
-      this.scale() === 'year'
-        ? { year: 'numeric' }
-        : this.scale() === 'month'
-          ? { month: 'long', year: 'numeric' }
-          : { day: 'numeric', month: 'short', year: 'numeric' };
-    return new Intl.DateTimeFormat(this.store.preferences().locale, { ...options, timeZone: 'UTC' }).format(
-      new Date(`${this.anchor()}T12:00:00Z`),
-    );
   });
   /**
    * Cifras del periodo calculadas por el servidor.
@@ -568,14 +506,16 @@ export class DashboardComponent extends DashboardKpis {
 
   private readonly cargaRemota = effect(() => {
     const rango = this.range();
-    if (this.store.runtime.mode !== 'api' || this.nadaQueMostrar()) return;
+    if (this.nadaQueMostrar()) return;
     void firstValueFrom(this.api.dashboard(rango.start, rango.end))
       .then((valor) => this.remote.set(valor))
       .catch(() => this.remote.set(null));
   });
 
+  private readonly delPeriodo = crearMovimientosDelPeriodo(computed(() => this.range()));
+  readonly cargandoPeriodo = this.delPeriodo.cargando;
   readonly base = computed(() =>
-    this.store.data().movements.filter((m) => {
+    this.delPeriodo.movimientos().filter((m) => {
       const a = this.store.account(m.accountId);
       return (
         m.date >= this.range().start &&
@@ -712,7 +652,7 @@ export class DashboardComponent extends DashboardKpis {
   readonly hasFilters = computed(
     () =>
       this.scale() !== 'month' ||
-      this.anchor() !== this.anclaPorDefecto ||
+      this.anchor() !== this.periodo.anclaPorDefecto ||
       this.accountId() !== 'all' ||
       this.accountType() !== 'all' ||
       this.globalCategory() !== 'all' ||
@@ -792,7 +732,7 @@ export class DashboardComponent extends DashboardKpis {
   }
   reset() {
     this.scale.set('month');
-    this.anchor.set(this.anclaPorDefecto);
+    this.anchor.set(this.periodo.anclaPorDefecto);
     this.accountId.set('all');
     this.accountType.set('all');
     this.globalCategory.set('all');
@@ -817,6 +757,7 @@ export class DashboardComponent extends DashboardKpis {
       [next[index], next[target]] = [next[target], next[index]];
       return next;
     });
+    this.guardarWidgets();
   }
   changeType(id: string, type: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
@@ -833,28 +774,38 @@ export class DashboardComponent extends DashboardKpis {
           : { ...item, type: nextType };
       }),
     );
+    this.guardarWidgets();
   }
   changeDimension(id: string, dimension: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) =>
       items.map((item) => (item.id === id ? { ...item, dimension: dimension as Dimension } : item)),
     );
+    this.guardarWidgets();
   }
   changeDimension2(id: string, dimension2: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) =>
       items.map((item) => (item.id === id ? { ...item, dimension2: dimension2 as Dimension } : item)),
     );
+    this.guardarWidgets();
   }
   changeMeasure(id: string, measure: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     this.all.update((items) => items.map((item) => (item.id === id ? { ...item, measure: measure as Measure } : item)));
+    this.guardarWidgets();
+  }
+  changeWidgetField(id: string, field: 'variant' | 'granularity', value: string | undefined) {
+    if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
+    this.all.update((items) => items.map((item) => (item.id === id ? { ...item, [field]: value } : item)));
+    this.guardarWidgets();
   }
   changeGoal(id: string, field: 'goalMin' | 'goalTarget' | 'goalMax', value: string) {
     if (!this.caps.allows(P.dashboard.widget.tipo.editar)) return;
     const numero = Number(value);
     if (Number.isNaN(numero)) return;
     this.all.update((items) => items.map((item) => (item.id === id ? { ...item, [field]: numero } : item)));
+    this.guardarWidgets();
   }
   createWidget(event: Event) {
     event.preventDefault();
@@ -862,6 +813,8 @@ export class DashboardComponent extends DashboardKpis {
     const title = this.newWidgetTitle.trim();
     if (!title) return;
     const generic = this.isGeneric(this.newWidgetMetric);
+    const delMotor = this.esDelMotor(this.newWidgetMetric);
+    const visual = this.nuevoVisual();
     this.all.update((items) => [
       ...items,
       {
@@ -870,23 +823,27 @@ export class DashboardComponent extends DashboardKpis {
         kicker: this.i18n.t('dashboard.widget.custom.kicker'),
         type: this.newWidgetMetric,
         wide: this.newWidgetWidth === 'wide' && this.newWidgetMetric !== 'indicator',
-        ...(generic
-          ? {
-              dimension: this.newWidgetDimension,
-              measure: this.newWidgetMeasure,
-              ...(this.needsDimension2(this.newWidgetMetric) ? { dimension2: this.newWidgetDimension2 } : {}),
-              ...(this.needsGoal(this.newWidgetMetric)
-                ? {
-                    goalMin: this.newWidgetGoalMin,
-                    goalTarget: this.newWidgetGoalTarget,
-                    goalMax: this.newWidgetGoalMax,
-                  }
-                : {}),
-            }
-          : {}),
+        ...(delMotor
+          ? this.sinTipo(visual)
+          : generic
+            ? {
+                dimension: this.newWidgetDimension,
+                measure: this.newWidgetMeasure,
+                ...(this.needsDimension2(this.newWidgetMetric) ? { dimension2: this.newWidgetDimension2 } : {}),
+                ...(this.needsGoal(this.newWidgetMetric)
+                  ? {
+                      goalMin: this.newWidgetGoalMin,
+                      goalTarget: this.newWidgetGoalTarget,
+                      goalMax: this.newWidgetGoalMax,
+                    }
+                  : {}),
+              }
+            : {}),
       },
     ]);
+    this.guardarWidgets();
     this.newWidgetTitle = '';
+    this.otroTipo.set('');
     this.widgetCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title }));
   }
@@ -898,9 +855,6 @@ export class DashboardComponent extends DashboardKpis {
     { key: 'label', label: this.i18n.t('dashboard.table.group') },
     { key: 'value', label: this.i18n.t('dashboard.table.value') },
   ]);
-  shiftPeriod(direction: number) {
-    this.anchor.set(desplazarAncla(this.anchor(), this.scale(), direction));
-  }
   inspect(row: Record<string, unknown>) {
     if (!this.caps.allows(P.dashboard.detalle.ver)) return;
     this.store.inspect('movement', String(row['id']));

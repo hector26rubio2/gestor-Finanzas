@@ -1,4 +1,4 @@
-<hlm-tabs [tab]="planningTab()" (tabActivated)="planningTab.set($any($event))">
+<hlm-tabs class="min-h-0 flex-1 gap-4" [tab]="planningTab()" (tabActivated)="planningTab.set($any($event))">
   <hlm-tabs-list
     variant="line"
     class="w-full justify-start overflow-x-auto border-b border-border"
@@ -8,82 +8,691 @@
     <button [hlmTabsTrigger]="tab" class="flex-none px-3.5 py-2.5">{{ tabLabel(tab) }}</button>
     }
   </hlm-tabs-list>
-  @for (tab of visiblePlanningTabs(); track tab) {
-  <div [hlmTabsContent]="tab" class="flex flex-1 flex-col">
-    @if (planningTab() === tab) {
-    <ng-container *ngTemplateOutlet="panel" />
-    }
-  </div>
-  }
-</hlm-tabs>
-@if (!visiblePlanningTabs().length) {
-<p class="text-[0.85rem] text-muted-foreground">{{ i18n.t('planning.noAccess') }}</p>
-}
-<ng-template #panel>
+  @if (visiblePlanningTabs().length) {
+  <fin-vistas-guardadas
+    [tipo]="tipoDePlan()"
+    [estado]="sim.estado()"
+    [etiqueta]="i18n.t('planning.plans.label')"
+    [vacia]="i18n.t('planning.plans.none')"
+    (cargar)="sim.restaurar($event.json)"
+  />
+  } @if (!visiblePlanningTabs().length) {
+  <p class="text-[0.85rem] text-muted-foreground">{{ i18n.t('planning.noAccess') }}</p>
+  } @else {
   <section
-    class="grid min-h-0 flex-1 grid-cols-[280px_minmax(0,1fr)] gap-3.5 max-[1100px]:grid-cols-1"
-    [attr.aria-label]="i18n.t('planning.ariaLabel', { tab: tabLabel(planningTab()) })"
+    [hlmTabsContent]="planningTab()"
+    class="grid min-h-0 flex-1 grid-cols-[340px_minmax(0,1fr)] gap-3.5 max-[1100px]:grid-cols-1"
   >
-    <aside
-      class="flex flex-col gap-5 rounded-lg border border-border bg-card p-5 max-[1100px]:grid max-[1100px]:grid-cols-[1.2fr_1fr_1fr] max-[1100px]:items-start max-[700px]:flex"
-    >
+    <aside class="flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-card p-4">
       <header>
         <span class="text-[0.72rem] font-bold tracking-widest text-primary"
           >{{ i18n.t('planning.parametersLabel') }}</span
         >
-        <h2 class="mt-1 mb-1.5 text-[1.05rem]">{{ planningCopy().parameterTitle }}</h2>
-        <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().helper }}</p>
+        <h2 class="mt-1 mb-1 text-[1.05rem]">{{ i18n.t('planning.sim.title.' + sufijo(planningTab())) }}</h2>
+        <p class="text-[0.76rem] leading-normal text-muted-foreground">
+          {{ i18n.t('planning.sim.helper.' + sufijo(planningTab())) }}
+        </p>
       </header>
-      <label class="grid gap-2 text-[0.72rem] text-muted-foreground"
-        >{{ planningCopy().amountLabel }}<hlm-slider
-          class="my-2"
-          [min]="planningCopy().min"
-          [max]="planningCopy().max"
-          [step]="planningCopy().step"
-          [value]="[monthly()]"
-          [aria-label]="planningCopy().amountLabel"
-          (valueChange)="monthly.set($event[0])"
-        /><b class="text-[1.25rem] text-foreground">{{ store.money(monthly()) }}</b
-        ><small class="leading-snug">{{ planningCopy().rangeHint }}</small></label
-      ><label class="grid gap-2 text-[0.72rem] text-muted-foreground"
-        >{{ i18n.t('planning.targetDateLabel') }}<fin-date-field [(ngModel)]="targetDate"
-      /></label>
-      <div class="grid gap-[5px] rounded-[10px] bg-accent p-3 text-[0.72rem] leading-snug max-[1100px]:col-span-full">
-        <b>{{ i18n.t('planning.assumptionLabel') }}</b
-        ><span class="font-normal text-muted-foreground">{{ planningCopy().assumption }}</span>
+
+      @switch (planningTab()) { @case ('Compra') {
+      <div class="grid grid-cols-2 gap-3">
+        <fin-field [label]="i18n.t('planning.sim.purchase.name')" [full]="true">
+          <input
+            hlmInput
+            [ngModel]="sim.compraNombre()"
+            (ngModelChange)="sim.compraNombre.set($event)"
+            [placeholder]="i18n.t('planning.sim.purchase.defaultName')"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.purchase.amount')" [full]="true">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="50000"
+            [ngModel]="sim.compraMonto()"
+            (ngModelChange)="sim.compraMonto.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.field.installments')">
+          <input
+            hlmInput
+            type="number"
+            min="1"
+            max="360"
+            [ngModel]="sim.compraCuotas()"
+            (ngModelChange)="sim.compraCuotas.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.field.monthlyRate')">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="0.05"
+            [ngModel]="sim.compraTasa()"
+            (ngModelChange)="sim.compraTasa.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.purchase.startMonth')" [full]="true">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            max="120"
+            [ngModel]="sim.compraMes()"
+            (ngModelChange)="sim.compraMes.set(numero($event))"
+          />
+        </fin-field>
       </div>
+      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.sim.purchase.note') }}</p>
+      } @case ('Vacaciones') {
+      <div class="grid grid-cols-2 gap-3">
+        <fin-field [label]="i18n.t('planning.sim.goal.amount')" [full]="true">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="100000"
+            [ngModel]="sim.metaMonto()"
+            (ngModelChange)="sim.metaMonto.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.goal.date')" [full]="true">
+          <fin-date-field
+            [min]="sim.manana()"
+            [max]="sim.limiteDeFechas()"
+            [ngModel]="sim.metaFecha()"
+            (ngModelChange)="sim.metaFecha.set($event)"
+          />
+        </fin-field>
+      </div>
+      } @case ('Inversión') {
+      <div class="grid grid-cols-2 gap-3">
+        <fin-field [label]="i18n.t('planning.sim.investment.initial')" [full]="true">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="100000"
+            [ngModel]="sim.inversionInicial()"
+            (ngModelChange)="sim.inversionInicial.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.investment.monthly')">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="50000"
+            [ngModel]="sim.inversionAporte()"
+            (ngModelChange)="sim.inversionAporte.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.investment.annualRate')">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="0.1"
+            [ngModel]="sim.inversionTasa()"
+            (ngModelChange)="sim.inversionTasa.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.investment.until')" [full]="true">
+          <fin-date-field
+            [min]="sim.manana()"
+            [max]="sim.limiteDeFechas()"
+            [ngModel]="sim.inversionFecha()"
+            (ngModelChange)="sim.inversionFecha.set($event)"
+          />
+        </fin-field>
+      </div>
+      <p class="text-[0.72rem] text-muted-foreground">
+        {{ i18n.t('planning.sim.investment.current', { amount: money(sim.valorInvertido()) }) }}
+      </p>
+      } @default {
+      <div class="grid grid-cols-2 gap-3">
+        <fin-field [label]="i18n.t('planning.sim.extraMonthly')">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="50000"
+            [ngModel]="sim.abonoMensual()"
+            (ngModelChange)="sim.abonoMensual.set(numero($event))"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.order.label')">
+          <fin-select
+            [options]="ordenes()"
+            [ngModel]="sim.orden()"
+            (ngModelChange)="sim.orden.set($event)"
+            [ariaLabel]="i18n.t('planning.sim.order.label')"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.debtFreeBy')" [full]="true">
+          <fin-date-field
+            [min]="sim.manana()"
+            [max]="sim.limiteDeFechas()"
+            [ngModel]="sim.fechaSinDeudas()"
+            (ngModelChange)="sim.fechaSinDeudas.set($event)"
+          />
+        </fin-field>
+      </div>
+
+      <div class="grid gap-2">
+        <div class="flex items-center justify-between gap-2">
+          <h3 class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.debts') }}</h3>
+          <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarDeuda()">
+            {{ i18n.t('planning.sim.debt.add') }}
+          </button>
+        </div>
+        @for (deuda of sim.deudasReales(); track deuda.id) {
+        <article
+          class="grid gap-2 rounded-md border border-border p-2.5"
+          [class.opacity-50]="sim.excluidas().has(deuda.id)"
+        >
+          <label class="flex items-center gap-2 text-[0.78rem] font-medium">
+            <hlm-checkbox
+              [checked]="!sim.excluidas().has(deuda.id)"
+              (checkedChange)="sim.alternarDeuda(deuda.id, $event)"
+            />
+            <span class="truncate">{{ deuda.nombre }}</span>
+            <small class="ml-auto text-muted-foreground">{{ i18n.t('planning.sim.kind.' + deuda.tipo) }}</small>
+          </label>
+          @if (!sim.excluidas().has(deuda.id)) {
+          <div class="grid grid-cols-3 gap-2">
+            <fin-field [label]="i18n.t('planning.sim.field.balance')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                [ngModel]="sim.ajustes()[deuda.id]?.saldo ?? deuda.saldo"
+                (ngModelChange)="sim.ajustar(deuda.id, { saldo: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.field.monthlyRate')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                step="0.05"
+                [ngModel]="sim.ajustes()[deuda.id]?.tasaMensual ?? deuda.tasaMensual"
+                (ngModelChange)="sim.ajustar(deuda.id, { tasaMensual: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.field.installments')">
+              <input
+                hlmInput
+                type="number"
+                min="1"
+                [ngModel]="sim.ajustes()[deuda.id]?.cuotas ?? deuda.cuotas"
+                (ngModelChange)="sim.ajustar(deuda.id, { cuotas: numero($event) || 1 })"
+              />
+            </fin-field>
+          </div>
+          @if (!deuda.tasaConocida) {
+          <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.debt.assumedRate') }}</small>
+          } }
+        </article>
+        } @for (deuda of sim.hipoteticas(); track deuda.id) {
+        <article class="grid gap-2 rounded-md border border-dashed border-primary/50 p-2.5">
+          <div class="flex items-center gap-2">
+            <input
+              hlmInput
+              class="h-8 flex-1"
+              [ngModel]="deuda.nombre"
+              (ngModelChange)="sim.renombrarHipotetica(deuda.id, $event)"
+              [attr.aria-label]="i18n.t('planning.sim.debt.name')"
+            />
+            <button hlmBtn variant="ghost" size="sm" type="button" (click)="sim.quitarHipotetica(deuda.id)">
+              {{ i18n.t('planning.sim.remove') }}
+            </button>
+          </div>
+          <div class="grid grid-cols-3 gap-2">
+            <fin-field [label]="i18n.t('planning.sim.field.balance')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                [ngModel]="deuda.saldo"
+                (ngModelChange)="sim.ajustar(deuda.id, { saldo: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.field.monthlyRate')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                step="0.05"
+                [ngModel]="deuda.tasaMensual"
+                (ngModelChange)="sim.ajustar(deuda.id, { tasaMensual: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.field.installments')">
+              <input
+                hlmInput
+                type="number"
+                min="1"
+                [ngModel]="deuda.cuotas"
+                (ngModelChange)="sim.ajustar(deuda.id, { cuotas: numero($event) || 1 })"
+              />
+            </fin-field>
+          </div>
+        </article>
+        } @if (!sim.deudasReales().length && !sim.hipoteticas().length) {
+        <p class="text-[0.75rem] text-muted-foreground">{{ i18n.t('planning.sim.debt.none') }}</p>
+        }
+      </div>
+
+      <div class="grid gap-2">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h3 class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.events') }}</h3>
+          <div class="flex gap-1.5">
+            <button
+              hlmBtn
+              variant="outline"
+              size="sm"
+              type="button"
+              [disabled]="!hayDeudas()"
+              (click)="sim.agregarEvento('abono')"
+            >
+              {{ i18n.t('planning.sim.event.addPayment') }}
+            </button>
+            <button
+              hlmBtn
+              variant="outline"
+              size="sm"
+              type="button"
+              [disabled]="!hayDeudas()"
+              (click)="sim.agregarEvento('tasa')"
+            >
+              {{ i18n.t('planning.sim.event.addRate') }}
+            </button>
+          </div>
+        </div>
+        @for (evento of sim.eventos(); track evento.id) {
+        <article class="grid grid-cols-2 gap-2 rounded-md border border-border p-2.5">
+          <fin-field
+            [label]="i18n.t(evento.tipo === 'abono' ? 'planning.sim.event.payment' : 'planning.sim.event.rate')"
+            [full]="true"
+          >
+            <fin-select
+              [options]="opcionesDeDeuda()"
+              [ngModel]="evento.deudaId"
+              (ngModelChange)="sim.editarEvento(evento.id, { deudaId: $event })"
+              [ariaLabel]="i18n.t('planning.sim.event.debt')"
+            />
+          </fin-field>
+          <fin-field [label]="i18n.t('planning.sim.event.month')">
+            <input
+              hlmInput
+              type="number"
+              min="0"
+              [ngModel]="evento.mes"
+              (ngModelChange)="sim.editarEvento(evento.id, { mes: numero($event) })"
+            />
+          </fin-field>
+          @if (evento.tipo === 'abono') {
+          <fin-field [label]="i18n.t('planning.sim.event.amount')">
+            <input
+              hlmInput
+              type="number"
+              min="0"
+              step="50000"
+              [ngModel]="evento.monto"
+              (ngModelChange)="sim.editarEvento(evento.id, { monto: numero($event) })"
+            />
+          </fin-field>
+          } @else {
+          <fin-field [label]="i18n.t('planning.sim.field.monthlyRate')">
+            <input
+              hlmInput
+              type="number"
+              min="0"
+              step="0.05"
+              [ngModel]="evento.tasaMensual"
+              (ngModelChange)="sim.editarEvento(evento.id, { tasaMensual: numero($event) })"
+            />
+          </fin-field>
+          }
+          <small class="col-span-full flex items-center justify-between text-[0.7rem] text-muted-foreground">
+            {{ sim.etiquetaDeMes(evento.mes) }}
+            <button hlmBtn variant="ghost" size="sm" type="button" (click)="sim.quitarEvento(evento.id)">
+              {{ i18n.t('planning.sim.remove') }}
+            </button>
+          </small>
+        </article>
+        }
+      </div>
+      } }
+
+      <details class="grid gap-3 rounded-md bg-accent p-3" open>
+        <summary class="cursor-pointer">
+          <span class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.cashflow') }}</span>
+          <small class="block text-[0.7rem] text-muted-foreground"
+            >{{ i18n.t('planning.sim.cashflowHint', { n: sim.flujoMedido().mesesMedidos }) }}</small
+          >
+        </summary>
+        <div class="mt-2 grid gap-1 text-[0.72rem]">
+          <div class="flex justify-between">
+            <span>{{ i18n.t('planning.sim.income') }}</span><b>{{ money(sim.flujoMensual().ingreso.at(0) ?? 0) }}</b>
+          </div>
+          <div class="flex justify-between">
+            <span>{{ i18n.t('planning.sim.expense') }}</span><b>{{ money(sim.flujoMensual().gasto.at(0) ?? 0) }}</b>
+          </div>
+        </div>
+        <fin-field [label]="i18n.t('planning.sim.cut')">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            max="100"
+            [ngModel]="sim.recorte()"
+            (ngModelChange)="sim.recorte.set(numero($event))"
+          />
+        </fin-field>
+
+        @for (tipo of tiposDeLinea; track tipo) {
+        <div class="grid gap-1.5">
+          <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.' + tipo) }}</h4>
+          @for (linea of lineasDe(tipo); track linea.id) {
+          <div
+            class="grid grid-cols-[auto_1fr_110px] items-center gap-2"
+            [class.opacity-50]="!sim.lineaVigente(linea.id, linea.monto).incluida"
+          >
+            <hlm-checkbox
+              [checked]="sim.lineaVigente(linea.id, linea.monto).incluida"
+              [attr.aria-label]="linea.nombre"
+              (checkedChange)="sim.ajustarLinea(linea.id, { incluida: $event }, linea.monto)"
+            />
+            <span class="truncate text-[0.74rem]" [title]="linea.nombre">{{ linea.nombre }}</span>
+            <input
+              hlmInput
+              class="h-8"
+              type="number"
+              min="0"
+              step="10000"
+              [attr.aria-label]="linea.nombre"
+              [ngModel]="sim.lineaVigente(linea.id, linea.monto).monto"
+              (ngModelChange)="sim.ajustarLinea(linea.id, { monto: numero($event) }, linea.monto)"
+            />
+          </div>
+          } @empty {
+          <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.flow.empty') }}</small>
+          }
+        </div>
+        } @if (sim.recurrentes().length) {
+        <div class="grid gap-1.5">
+          <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.recurring') }}</h4>
+          <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.flow.recurringHint') }}</small>
+          @for (recurrente of sim.recurrentes(); track recurrente.id) {
+          <label
+            class="flex items-center gap-2 text-[0.74rem]"
+            [class.line-through]="sim.recurrentesQuitados().has(recurrente.id)"
+          >
+            <hlm-checkbox
+              [checked]="!sim.recurrentesQuitados().has(recurrente.id)"
+              (checkedChange)="sim.alternarRecurrente(recurrente.id, !$event)"
+            />
+            <span class="flex-1 truncate">{{ recurrente.nombre }}</span>
+            <small [class.text-emerald-600]="recurrente.tipo === 'ingreso'"
+              >{{ recurrente.tipo === 'ingreso' ? '+' : '−' }}{{ money(recurrente.monto) }}</small
+            >
+          </label>
+          }
+        </div>
+        }
+
+        <div class="grid gap-1.5">
+          <div class="flex flex-wrap items-center justify-between gap-1.5">
+            <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.changes') }}</h4>
+            <div class="flex gap-1">
+              <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarCambio('ingreso')">
+                {{ i18n.t('planning.sim.flow.addIncome') }}
+              </button>
+              <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarCambio('gasto')">
+                {{ i18n.t('planning.sim.flow.addExpense') }}
+              </button>
+            </div>
+          </div>
+          @for (cambio of sim.cambiosDeFlujo(); track cambio.id) {
+          <article class="grid grid-cols-3 gap-2 rounded-md border border-border bg-card p-2">
+            <input
+              hlmInput
+              class="col-span-full h-8"
+              [attr.aria-label]="i18n.t('planning.sim.flow.name')"
+              [ngModel]="cambio.nombre"
+              (ngModelChange)="sim.editarCambio(cambio.id, { nombre: $event })"
+            />
+            <fin-field [label]="i18n.t('planning.sim.event.amount')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                step="10000"
+                [ngModel]="cambio.monto"
+                (ngModelChange)="sim.editarCambio(cambio.id, { monto: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.flow.from')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                [ngModel]="cambio.desde"
+                (ngModelChange)="sim.editarCambio(cambio.id, { desde: numero($event) })"
+              />
+            </fin-field>
+            <fin-field [label]="i18n.t('planning.sim.flow.until')">
+              <input
+                hlmInput
+                type="number"
+                min="0"
+                [placeholder]="i18n.t('planning.sim.flow.forever')"
+                [ngModel]="cambio.hasta"
+                (ngModelChange)="sim.editarCambio(cambio.id, { hasta: $event === '' || $event === null ? null : numero($event) })"
+              />
+            </fin-field>
+            <small class="col-span-full flex items-center justify-between text-[0.7rem] text-muted-foreground">
+              {{ i18n.t(cambio.tipo === 'ingreso' ? 'planning.sim.flow.incomeTag' : 'planning.sim.flow.expenseTag') }} ·
+              {{ sim.etiquetaDeMes(cambio.desde) }}
+              <button hlmBtn variant="ghost" size="sm" type="button" (click)="sim.quitarCambio(cambio.id)">
+                {{ i18n.t('planning.sim.remove') }}
+              </button>
+            </small>
+          </article>
+          }
+        </div>
+      </details>
+      <button hlmBtn variant="ghost" size="sm" type="button" class="self-start" (click)="sim.restablecer()">
+        {{ i18n.t('planning.sim.reset') }}
+      </button>
     </aside>
-    <div class="grid min-w-0 grid-rows-[auto_minmax(320px,1fr)_auto] gap-3">
+
+    <div class="flex min-w-0 flex-col gap-3">
       <section
-        class="grid grid-cols-3 gap-2.5 max-[700px]:grid-cols-1"
+        class="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-end gap-3 max-[900px]:grid-cols-1 rounded-lg border border-border bg-card px-3.5 py-2.5"
+        [attr.aria-label]="i18n.t('planning.sim.toolbar')"
+      >
+        <fin-field [label]="i18n.t('planning.sim.view.label')">
+          <fin-select
+            class="w-40"
+            [options]="vistas()"
+            [ngModel]="sim.vista()"
+            (ngModelChange)="sim.vista.set($event)"
+            [ariaLabel]="i18n.t('planning.sim.view.label')"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.compare.measure')">
+          <fin-select
+            class="w-48"
+            [options]="medidas()"
+            [ngModel]="sim.medidaDeComparacion()"
+            (ngModelChange)="sim.medidaDeComparacion.set($event)"
+            [ariaLabel]="i18n.t('planning.sim.compare.measure')"
+          />
+        </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.compare.name')">
+          <input
+            hlmInput
+            class="w-48"
+            [ngModel]="nombreDeEscenario()"
+            (ngModelChange)="nombreDeEscenario.set($event)"
+            [placeholder]="i18n.t('planning.sim.compare.placeholder')"
+          />
+        </fin-field>
+        <button hlmBtn variant="outline" type="button" (click)="guardarEscenario()">
+          {{ i18n.t('planning.sim.compare.save') }}
+        </button>
+        <div class="col-span-full flex flex-wrap gap-1.5 empty:hidden">
+          @for (guardado of sim.escenariosGuardados(); track guardado.id) {
+          <span class="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[0.72rem]">
+            {{ guardado.nombre }}
+            <button
+              hlmBtn
+              variant="ghost"
+              size="sm"
+              type="button"
+              class="h-5 px-1"
+              [attr.aria-label]="i18n.t('planning.sim.remove')"
+              (click)="sim.quitarEscenario(guardado.id)"
+            >
+              ×
+            </button>
+          </span>
+          }
+        </div>
+      </section>
+      <section
+        class="grid grid-cols-4 gap-2.5 max-[1300px]:grid-cols-2 max-[600px]:grid-cols-1"
         [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')"
       >
-        @for (metric of planningMetrics(); track metric.label) {
-        <article class="grid min-w-0 gap-[5px] rounded-lg border border-border bg-card p-3.5">
-          <span>{{ metric.label }}</span
-          ><strong class="overflow-hidden text-[1.2rem] text-ellipsis whitespace-nowrap">{{ metric.value }}</strong
-          ><small class="text-muted-foreground">{{ metric.hint }}</small>
+        @for (metrica of metricas(); track metrica.label) {
+        <article class="grid min-w-0 gap-1 rounded-lg border border-border bg-card p-3.5">
+          <span class="text-[0.75rem] text-muted-foreground">{{ metrica.label }}</span>
+          <strong
+            class="truncate text-[1.2rem]"
+            [class.text-emerald-600]="metrica.tono === 'bien'"
+            [class.text-destructive]="metrica.tono === 'mal'"
+            >{{ metrica.value }}</strong
+          >
+          <small class="text-[0.7rem] text-muted-foreground">{{ metrica.hint }}</small>
         </article>
         }
       </section>
-      <article class="flex min-h-0 flex-col rounded-lg border border-border bg-card p-[18px]">
-        <header class="flex items-start justify-between gap-[18px] max-[700px]:grid">
-          <div>
-            <span class="text-[0.72rem] font-bold tracking-widest text-primary"
-              >{{ i18n.t('planning.projectionLabel') }}</span
-            >
-            <h2 class="mt-1 mb-1.5 text-[1.05rem]">{{ planningCopy().chartTitle }}</h2>
-            <p class="text-[0.76rem] leading-normal text-muted-foreground">{{ planningCopy().chartDescription }}</p>
-          </div>
-        </header>
-        <fin-chart
-          class="mt-[15px]"
-          [option]="planningChartOption()"
-          [height]="240"
-          [ariaLabel]="planningCopy().chartDescription"
+
+      @switch (planningTab()) { @case ('Compra') {
+      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+        <fin-chart-card
+          class="col-span-full"
+          [title]="i18n.t('planning.sim.chart.balances')"
+          [description]="i18n.t('planning.sim.chart.balancesHint')"
+          [option]="graficaDeSaldos()"
+          [height]="280"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.empty.purchase')"
         />
-      </article>
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.payments')"
+          [description]="i18n.t('planning.sim.chart.paymentsHint')"
+          [option]="graficaDeCuotas()"
+          [height]="240"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.empty.purchase')"
+        />
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.cashflow')"
+          [description]="i18n.t('planning.sim.chart.cashflowHint')"
+          [option]="graficaDeFlujo()"
+          [height]="240"
+        />
+      </div>
+      } @case ('Vacaciones') {
+      <fin-chart-card
+        [title]="i18n.t('planning.sim.chart.cashflow')"
+        [description]="i18n.t('planning.sim.chart.goalHint')"
+        [option]="graficaDeFlujo()"
+        [height]="340"
+      />
+      } @case ('Inversión') {
+      <fin-chart-card
+        [title]="i18n.t('planning.sim.chart.investment')"
+        [description]="i18n.t('planning.sim.chart.investmentHint')"
+        [option]="graficaDeInversion()"
+        [height]="340"
+      />
+      } @default {
+      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+        <fin-chart-card
+          class="col-span-full"
+          [title]="i18n.t('planning.sim.chart.balances')"
+          [description]="i18n.t('planning.sim.chart.balancesHint')"
+          [option]="graficaDeSaldos()"
+          [height]="300"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.debt.none')"
+        />
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.payments')"
+          [description]="i18n.t('planning.sim.chart.paymentsHint')"
+          [option]="graficaDeCuotas()"
+          [height]="240"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.debt.none')"
+        />
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.interest')"
+          [description]="i18n.t('planning.sim.chart.interestHint')"
+          [option]="graficaDeIntereses()"
+          [height]="240"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.debt.none')"
+        />
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.timeline')"
+          [description]="i18n.t('planning.sim.chart.timelineHint')"
+          [option]="graficaDeLineaDeTiempo()"
+          [height]="240"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.debt.none')"
+        />
+        <fin-chart-card
+          [title]="i18n.t('planning.sim.chart.map')"
+          [description]="i18n.t('planning.sim.chart.mapHint')"
+          [option]="graficaDeMapa()"
+          [height]="240"
+          [hasData]="hayDeudas()"
+          [empty]="i18n.t('planning.sim.debt.none')"
+        />
+        <fin-chart-card
+          class="col-span-full"
+          [title]="i18n.t('planning.sim.chart.cashflow')"
+          [description]="i18n.t('planning.sim.chart.cashflowHint')"
+          [option]="graficaDeFlujo()"
+          [height]="240"
+        />
+      </div>
+      } }
+      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+        <fin-chart-card
+          class="col-span-full"
+          [title]="i18n.t('planning.sim.chart.monthByMonth')"
+          [description]="i18n.t('planning.sim.chart.monthByMonthHint')"
+          [option]="graficaMesAMes()"
+          [height]="300"
+        />
+        <fin-chart-card
+          class="col-span-full"
+          [title]="i18n.t('planning.sim.chart.compare')"
+          [description]="i18n.t('planning.sim.chart.compareHint')"
+          [option]="graficaDeComparacion()"
+          [height]="260"
+        />
+      </div>
       <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
     </div>
   </section>
-</ng-template>
+  }
+</hlm-tabs>

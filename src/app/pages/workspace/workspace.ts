@@ -1,16 +1,16 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
-import { MovementsBookService } from '../../shared/movements/movements-book.service';
-import { HeaderActionsService } from '../../shared/header-actions.service';
+import { MovementsBookService } from '@shared/movements';
+import { HeaderActionsService } from '@shared/header-actions.service';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
-import { AccountFormComponent } from '../../features/account-form/account-form';
-import { ManagementFormComponent } from '../../features/management-form/management-form';
-import { IconComponent } from '../../ui/icon/icon';
-import { SinAccesoComponent } from '../../ui/sin-acceso/sin-acceso';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
+import { AccountFormComponent } from '@features/account-form';
+import { ManagementFormComponent } from '@features/management-form';
+import { IconComponent } from '@ui/icon';
+import { SinAccesoComponent } from '@ui/sin-acceso';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
 import { InspectorComponent } from './inspector/inspector';
-import { I18nService } from '../../core/i18n';
+import { I18nService } from '@core/i18n';
 
 /*
  * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no

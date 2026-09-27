@@ -2,11 +2,11 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiDashboard, FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { RUNTIME_CONFIG } from '../../core/session/runtime';
-import { AppStore } from '../../core/state/store';
+import { ApiDashboard, FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
+import { AppStore } from '@core/state';
 import { DashboardComponent } from './dashboard';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * El contrato de `DashboardDto` dice que el cliente no suma importes por su cuenta. Estas
@@ -32,22 +32,22 @@ describe('DashboardComponent y las cifras del servidor', () => {
     asOf: '2026-08-31',
   };
 
-  function montar(mode: 'api' | 'demo', api: Partial<FinanceApiClient> = {}) {
-    window.__FINANZAS_CONFIG__ = mode === 'api' ? { mode, apiBaseUrl: 'https://api.example.test' } : { mode };
+  function montar(api: Partial<FinanceApiClient> = {}) {
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
         {
           provide: RUNTIME_CONFIG,
-          useValue: mode === 'api' ? { mode, apiBaseUrl: 'https://api.example.test' } : { mode },
+          useValue: { apiBaseUrl: 'https://api.example.test' },
         },
         { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(dashboard)), ...api } },
       ],
     });
     const store = TestBed.inject(AppStore);
     // Con alguna pieza concedida: sin ninguna no hay nada que pintar y no se pide nada.
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver, P.dashboard.tabla.ver] });
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver, P.dashboard.tabla.ver] });
     return TestBed.createComponent(DashboardComponent);
   }
 
@@ -55,7 +55,7 @@ describe('DashboardComponent y las cifras del servidor', () => {
 
   it('pide el dashboard al servidor con el rango del periodo activo', async () => {
     const api = { dashboard: vi.fn(() => of(dashboard)) };
-    const fixture = montar('api', api as Partial<FinanceApiClient>);
+    const fixture = montar(api as Partial<FinanceApiClient>);
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -65,18 +65,8 @@ describe('DashboardComponent y las cifras del servidor', () => {
     expect(hasta).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
-  it('en modo demo no llama al servidor y calcula en local', async () => {
-    const api = { dashboard: vi.fn(() => of(dashboard)) };
-    const fixture = montar('demo', api as Partial<FinanceApiClient>);
-    fixture.detectChanges();
-    await fixture.whenStable();
-
-    expect(api.dashboard).not.toHaveBeenCalled();
-    expect(fixture.componentInstance.remote()).toBeNull();
-  });
-
   it('un filtro local devuelve el cálculo a la pantalla, porque el servidor no lo conoce', async () => {
-    const fixture = montar('api');
+    const fixture = montar();
     fixture.detectChanges();
     await fixture.whenStable();
     const componente = fixture.componentInstance;

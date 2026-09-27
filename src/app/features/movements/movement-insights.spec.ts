@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Movement } from '../../core/state/demo-data';
+import { Movement } from '@core/state';
 import { longestInstallmentDebt, recurringExpenseCount, topSpendingCategory } from './movement-insights';
 
 const movement = (extra: Partial<Movement>): Movement => ({

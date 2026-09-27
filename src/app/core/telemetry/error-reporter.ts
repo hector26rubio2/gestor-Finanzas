@@ -1,7 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { AdministrationApi } from '../api/administration.api';
-import { AppStore } from '../state/store';
-import { listenToConsole } from '../utils/console-buffer';
+import { AdministrationApi } from '@core/api/administration.api';
+import { AppStore } from '@core/state/store';
+import { AccionDeUsuario } from '@core/http/accion';
+import { listenToConsole } from '@core/utils/console-buffer';
 import { buildReport, fingerprintOf, isIgnoredMessage, ErrorOrigin } from './error-report';
 
 const MAX_REPORTS_PER_WINDOW = 10;
@@ -12,6 +13,7 @@ const MAX_DISTINCT_ERRORS = 50;
 export class ErrorReporter {
   private readonly api = inject(AdministrationApi);
   private readonly store = inject(AppStore);
+  private readonly accion = inject(AccionDeUsuario);
   private readonly reported = new Set<string>();
   private readonly stops: Array<() => void> = [];
   private windowStartedAt = 0;
@@ -19,7 +21,7 @@ export class ErrorReporter {
   private sending = false;
 
   start(): void {
-    if (this.stops.length || this.store.runtime.mode !== 'api' || typeof window === 'undefined') return;
+    if (this.stops.length || typeof window === 'undefined') return;
     this.stops.push(
       listenToConsole((entry, args) => {
         if (entry.level !== 'error') return;
@@ -69,7 +71,7 @@ export class ErrorReporter {
     });
     this.sending = true;
     try {
-      this.api.reportClientError(report).subscribe({ error: () => undefined });
+      this.api.reportClientError({ ...report, traceId: this.accion.id() }).subscribe({ error: () => undefined });
     } finally {
       this.sending = false;
     }

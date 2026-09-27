@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { accountBalance, type Account, type Movement } from './core/state/demo-data';
-import { BASE_CURRENCY, baseCurrency } from './core/utils/money';
+import { accountBalance, type Account, type Movement } from '@core/state';
+import { BASE_CURRENCY, baseCurrency } from '@core/utils';
 
 type GlobDeVite = (patron: string, opciones: { query: string; import: string; eager: true }) => Record<string, string>;
 
@@ -18,7 +18,7 @@ const normalizar = (clave: string): string => {
 const indiceDeFuentes = new Map(Object.entries(fuentes).map(([clave, texto]) => [normalizar(clave), texto]));
 
 const FICHEROS_DE_IMPORTES = [
-  'src/app/core/state/demo-data.ts',
+  'src/app/core/state/view-model.ts',
   'src/app/features/people/people-tab.ts',
   'src/app/features/portfolio/portfolio-tab.ts',
   'src/app/features/planning/planning-tab.ts',

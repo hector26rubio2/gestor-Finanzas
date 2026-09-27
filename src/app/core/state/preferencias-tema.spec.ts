@@ -1,9 +1,10 @@
+import { PreferencesActions } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
-import { P } from '../session/permissions';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { FinanceApiClient } from '@core/api/api-client';
+import { P } from '@core/session/permissions';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { AppStore } from './store';
 
 describe('persistPreferences', () => {
@@ -20,7 +21,7 @@ describe('persistPreferences', () => {
     const api = { updatePreferences: vi.fn((request: { customThemeJson: string | null }) => of(request)) };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -36,7 +37,7 @@ describe('persistPreferences', () => {
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar]) as never);
 
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
 
     expect(api.updatePreferences).toHaveBeenCalledOnce();
     expect(api.updatePreferences.mock.calls[0][0]).toMatchObject({ customThemeJson: null });
@@ -46,11 +47,11 @@ describe('persistPreferences', () => {
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar, P.preferencias.tema.editar]) as never);
 
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
     expect(JSON.parse(api.updatePreferences.mock.calls[0][0].customThemeJson!)).toEqual({});
 
     store.preferences.update((value) => ({ ...value, surface: '#101010', accent: '#ff0000' }));
-    await store.persistPreferences();
+    await TestBed.inject(PreferencesActions).persistPreferences();
 
     expect(JSON.parse(api.updatePreferences.mock.calls[1][0].customThemeJson!)).toEqual({
       accent: '#ff0000',

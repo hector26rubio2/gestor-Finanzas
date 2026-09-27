@@ -1,12 +1,11 @@
 import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { AdminStore } from '../../admin.store';
-import { AdministrationApi } from '../../../../core/api/administration.api';
-import { RemoteBootstrap } from '../../../../core/session/remote-bootstrap';
-import { RUNTIME_CONFIG } from '../../../../core/session/runtime';
-import { AppStore } from '../../../../core/state/store';
-import { currencyCatalog, LOCAL_CURRENCIES, setCurrencyCatalog } from '../../../../core/utils/money';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdministrationApi } from '@core/api';
+import { RemoteBootstrap, RUNTIME_CONFIG } from '@core/session';
+import { AppStore } from '@core/state';
+import { currencyCatalog, LOCAL_CURRENCIES, setCurrencyCatalog } from '@core/utils';
 import { OrganizationsTabComponent } from './organizations-tab';
 
 /**
@@ -16,12 +15,12 @@ import { OrganizationsTabComponent } from './organizations-tab';
  */
 describe('organizaciones: la moneda base se elige de un catálogo', () => {
   beforeEach(() => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([]),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         // El almacén de administración solo se usa para crear la organización en esta
         // prueba: el API real no debe salir a red ni montar su transporte.
         AdminStore,

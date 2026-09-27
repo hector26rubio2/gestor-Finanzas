@@ -1,8 +1,8 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '../http/api-http-client';
-import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '../utils/movement-kinds';
+import { API_TRANSPORT } from '@core/http/api-http-client';
+import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import { API_ROUTES } from './api-routes';
-import { ApiLinkRef, ApiMoney, ApiPage, MovementQuery, monthRange } from './shared-api-types';
+import { ApiConvertedMoney, ApiLinkRef, ApiMoney, ApiPage, MovementQuery, monthRange } from './shared-api-types';
 
 /** Valores que acepta `MovementKindDto`. El número es parte del contrato. */
 export type MovementKindValue = (typeof MovementKind)[keyof typeof MovementKind];
@@ -44,6 +44,8 @@ export interface CreateMovementBody {
   description?: string;
   idempotencyKey: string;
   purchaseApr?: number;
+  cardBucket?: number;
+  installments?: number;
 }
 
 /**
@@ -79,6 +81,8 @@ export interface CreateCashAdvanceBody {
   account: string;
   description?: string;
   idempotencyKey: string;
+  installments?: number;
+  apr?: number;
 }
 
 export interface ApiMovement {
@@ -96,13 +100,8 @@ export interface ApiMovement {
   reversalOf: string | null;
   reversedBy: string | null;
   purchaseApr: number | null;
-}
-
-export interface ApiConvertedMoney {
-  original: ApiMoney;
-  base: ApiMoney;
-  rate: string;
-  rateAsOf: string;
+  cardBucket?: number | null;
+  installments?: number | null;
 }
 
 export interface ApiOperation {

@@ -2,17 +2,17 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, ou
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { ApiAdminUser } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES } from '../../../../core/state/store';
-import { OptionRowComponent } from '../../../../ui/option-row/option-row';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiSelectComponent } from '../../../../ui/select/select';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { RESOURCE_FEATURE } from '../../permission-picker/permission-sections';
+import { IconComponent } from '@ui/icon';
+import { ApiAdminUser } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES } from '@core/state';
+import { OptionRowComponent } from '@ui/option-row';
+import { SheetPanelComponent } from '@ui/sheet-panel';
+import { UiSelectComponent } from '@ui/select';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { RESOURCE_FEATURE } from '@pages/admin/permission-picker/permission-sections';
 
 @Component({
   selector: 'app-user-sheet',

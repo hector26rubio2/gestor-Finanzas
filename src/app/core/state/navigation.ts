@@ -1,4 +1,4 @@
-import { P } from '../session/permissions';
+import { P } from '@core/session/permissions';
 
 /** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
 export const navigation = [

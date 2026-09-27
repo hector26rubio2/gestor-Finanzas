@@ -2,10 +2,10 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../../../core/i18n';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { NumericInputDirective } from '../../../../ui/numeric-input/numeric-input.directive';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
+import { I18nService } from '@core/i18n';
+import { IconComponent } from '@ui/icon';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { UiOption, UiSelectComponent } from '@ui/select';
 
 export type GoalKey = 'goalMin' | 'goalTarget' | 'goalMax';
 
@@ -25,6 +25,11 @@ export class WidgetControlsComponent {
   readonly goalMin = input(0);
   readonly goalTarget = input(0);
   readonly goalMax = input(0);
+  readonly variant = input('');
+  readonly granularity = input('');
+  readonly variantOptions = input<readonly UiOption[]>([]);
+  readonly granularityOptions = input<readonly UiOption[]>([]);
+  readonly showGranularity = input(false);
 
   readonly typeOptions = input<readonly UiOption[]>([]);
   readonly dimensionOptions = input<readonly UiOption[]>([]);
@@ -44,6 +49,8 @@ export class WidgetControlsComponent {
   @Output() readonly dimensionChange = new EventEmitter<string>();
   @Output() readonly measureChange = new EventEmitter<string>();
   @Output() readonly dimension2Change = new EventEmitter<string>();
+  @Output() readonly variantChange = new EventEmitter<string>();
+  @Output() readonly granularityChange = new EventEmitter<string>();
   @Output() readonly goalChange = new EventEmitter<{ key: GoalKey; value: string }>();
   @Output() readonly hide = new EventEmitter<void>();
 }

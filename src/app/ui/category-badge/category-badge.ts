@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
-import { IconComponent, IconName } from '../icon/icon';
+import { IconComponent, IconName } from '@ui/icon/icon';
 
 const CATEGORY_ICONS: readonly (readonly [RegExp, IconName])[] = [
   [/aliment|comida|restaur|caf[eé]|food|dining/i, 'utensils'],

@@ -1,16 +1,15 @@
 import { DestroyRef, Injectable, inject } from '@angular/core';
 import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
-import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '../api/api-client';
-import { MovementKindCatalog } from '../utils/movement-kinds';
+import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
+import { MovementKindCatalog } from '@core/utils/movement-kinds';
 import { Router } from '@angular/router';
 import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
 import { toViewData, toViewUser } from './remote-mappers';
-import { AppStore } from '../state/store';
-import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '../state/theme';
-import { setCurrencyCatalog } from '../utils/money';
+import { AppStore } from '@core/state/store';
+import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
+import { setCurrencyCatalog } from '@core/utils/money';
 import { P } from './permissions';
-import { I18nService } from '../i18n/i18n.service';
-import { DashboardLayoutService } from '../../pages/dashboard/layout/dashboard-layout.service';
+import { I18nService } from '@core/i18n/i18n.service';
 import { SaldosService } from './saldos.service';
 
 @Injectable({ providedIn: 'root' })
@@ -19,7 +18,6 @@ export class RemoteBootstrap {
   private readonly store = inject(AppStore);
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
-  private readonly layout = inject(DashboardLayoutService);
   private readonly saldos = inject(SaldosService);
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
@@ -43,9 +41,7 @@ export class RemoteBootstrap {
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
-    this.store.restoreDemoSession();
     await this.initialize();
-    if (this.store.runtime.mode !== 'api') return;
     // El sondeo se queda como respaldo: cubre el canal caido, el navegador sin
     // EventSource y el despliegue con mas de una instancia, donde el aviso puede salir
     // por una maquina distinta de la que atiende esta pestana.
@@ -74,7 +70,6 @@ export class RemoteBootstrap {
    * Es la única que pone `remoteState` en «loading» y, con él, el indicador de carga.
    */
   async initialize(): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return;
     this.cerradaAProposito = false;
     this.store.remoteState.set('loading');
     try {
@@ -224,10 +219,13 @@ export class RemoteBootstrap {
         text: custom?.text ?? value.text,
         surface: custom?.surface ?? value.surface,
         border: custom?.border ?? value.border,
+        background: custom?.background ?? value.background,
+        custom: custom?.custom === true,
+        customSaved: custom?.saved ?? value.customSaved,
         radius: custom?.radius ?? value.radius,
       }));
       applyStoredAppearance(preferences, custom);
-      this.layout.hydrate(preferences.dashboardLayoutJson);
+      this.store.disenoDelServidor.set({ json: preferences.dashboardLayoutJson ?? null });
     }
   }
 
@@ -276,7 +274,7 @@ export class RemoteBootstrap {
    * (el menú lateral, por ejemplo). Si cambió la persona o la organización, recarga todo.
    */
   private async cargarSesion(): Promise<void> {
-    if (this.cerradaAProposito || this.store.runtime.mode !== 'api') return;
+    if (this.cerradaAProposito) return;
     if (this.store.remoteState() === 'loading' || this.refrescando) return;
     this.refrescando = true;
     try {
@@ -344,7 +342,7 @@ export class RemoteBootstrap {
    * trae reconexion automatica. El aviso no lleva datos; solo dice que hay que releer.
    */
   private escucharCambiosDeAcceso(): void {
-    if (this.store.runtime.mode !== 'api' || typeof EventSource === 'undefined') return;
+    if (typeof EventSource === 'undefined') return;
     if (this.canal) return;
     try {
       this.canal = new EventSource(`${this.store.runtime.apiBaseUrl}/api/v1/events`, {
@@ -380,16 +378,14 @@ export class RemoteBootstrap {
     this.canal?.close();
     this.canal = null;
 
-    if (this.store.runtime.mode === 'api') {
-      try {
-        await firstValueFrom(this.api.logout());
-      } catch {
-        /* la sesion local se cierra igual; el servidor la caducara */
-      }
+    try {
+      await firstValueFrom(this.api.logout());
+    } catch {
+      /* la sesion local se cierra igual; el servidor la caducara */
     }
+
     this.store.remoteState.set('anonymous');
     clearAppearanceOverrides();
-    this.store.forgetDemoSession();
     this.store.user.set(null);
     this.store.form.set(null);
     this.store.inspector.set(null);

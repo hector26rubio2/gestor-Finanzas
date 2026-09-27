@@ -1,21 +1,25 @@
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
+import { ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { HlmLabel } from '@spartan-ng/helm/label';
-import { CategoryIconComponent } from '../../ui/category-icon/category-icon';
-import { HlmSliderImports } from '@spartan-ng/helm/slider';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '../../core/api/api-client';
-import { IconComponent } from '../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { P } from '../../core/session/permissions';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { DEFAULT_PALETTE, clearPaletteOverrides } from '../../core/state/theme';
-import { applyTheme, CAPABILITIES, AppStore, FEATURES } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { FieldComponent } from '@ui/field';
+import { ThemeStudioComponent } from './theme-studio/theme-studio';
+import { CategoryIconComponent } from '@ui/category-icon';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '@core/api';
+import { IconComponent } from '@ui/icon';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { P, RemoteBootstrap } from '@core/session';
+import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
+import { I18nService } from '@core/i18n';
+
+const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'data'] as const;
+type Seccion = (typeof SECCIONES)[number];
 
 @Component({
   selector: 'app-preferences-tab',
@@ -25,8 +29,9 @@ import { I18nService } from '../../core/i18n';
     HlmButton,
     HlmCard,
     HlmInput,
-    HlmLabel,
-    HlmSliderImports,
+    HlmTabsImports,
+    FieldComponent,
+    ThemeStudioComponent,
     IconComponent,
     UiSelectComponent,
   ],
@@ -36,27 +41,13 @@ import { I18nService } from '../../core/i18n';
 })
 export class PreferencesTabComponent implements OnInit {
   readonly store = inject(AppStore);
+  private readonly preferencesActions = inject(PreferencesActions);
   private readonly capabilities = inject(CAPABILITIES);
   readonly features = inject(FEATURES);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
   readonly P = P;
-  readonly colorControls: readonly {
-    key: 'accent' | 'primary' | 'secondary' | 'text' | 'surface' | 'border';
-    label: string;
-  }[] = [
-    { key: 'accent', label: 'preferences.accent.label' },
-    { key: 'primary', label: 'preferences.primary.label' },
-    { key: 'secondary', label: 'preferences.secondary.label' },
-    { key: 'text', label: 'preferences.text.label' },
-    { key: 'surface', label: 'preferences.surface.label' },
-    { key: 'border', label: 'preferences.border.label' },
-  ];
-  setColor(key: 'accent' | 'primary' | 'secondary' | 'text' | 'surface' | 'border', value: string): void {
-    if (key === 'accent') this.setAccent(value);
-    else this.setThemeValue(key, value);
-  }
   readonly categoryGroups = computed(() =>
     [
       { type: 2, label: this.i18n.t('preferences.categories.expense') },
@@ -78,6 +69,36 @@ export class PreferencesTabComponent implements OnInit {
   }
   /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
   readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
+
+  readonly seccion = signal<Seccion>('appearance');
+
+  constructor() {
+    inject(ActivatedRoute)
+      .queryParamMap.pipe(takeUntilDestroyed())
+      .subscribe((params) => {
+        const pedida = params.get('section');
+        if (pedida && SECCIONES.includes(pedida as Seccion)) this.seccion.set(pedida as Seccion);
+      });
+  }
+  readonly secciones = computed(() =>
+    [
+      { id: 'appearance', label: 'preferences.sections.appearance', icon: 'palette', visible: true },
+      { id: 'studio', label: 'preferences.sections.studio', icon: 'edit', visible: this.canCustomize() },
+      {
+        id: 'organization',
+        label: 'preferences.sections.organization',
+        icon: 'people',
+        visible: this.can(P.organizacion.miembros.listar),
+      },
+      {
+        id: 'categories',
+        label: 'preferences.sections.categories',
+        icon: 'tag',
+        visible: this.can(P.cuentas.categorias.listar) && this.features.enabled('settings.categories'),
+      },
+      { id: 'data', label: 'preferences.sections.data', icon: 'settings', visible: true },
+    ].filter((item) => item.visible),
+  );
 
   readonly miembros = signal<readonly ApiOrganizationMember[]>([]);
   readonly rolesDisponibles = signal<readonly ApiAdminRole[]>([]);
@@ -158,7 +179,7 @@ export class PreferencesTabComponent implements OnInit {
   }
 
   private async cargarMiembros(): Promise<void> {
-    if (this.store.runtime.mode !== 'api' || !this.can(P.organizacion.miembros.listar)) return;
+    if (!this.can(P.organizacion.miembros.listar)) return;
     try {
       const [gente, roles] = await Promise.all([
         firstValueFrom(this.api.organizationMembers()),
@@ -175,20 +196,11 @@ export class PreferencesTabComponent implements OnInit {
   }
 
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
-    this.store.preferences.update((p) => ({
-      ...p,
-      theme,
-      accent: DEFAULT_PALETTE.accent,
-      primary: DEFAULT_PALETTE.primary,
-      secondary: DEFAULT_PALETTE.secondary,
-      text: DEFAULT_PALETTE.text,
-      surface: DEFAULT_PALETTE.surface,
-      border: DEFAULT_PALETTE.border,
-    }));
-    clearPaletteOverrides();
-    document.documentElement.style.setProperty('--radius', `${this.store.preferences().radius}px`);
-    applyTheme(theme);
-    this.persistPreferences();
+    this.preferencesActions.usarTema(theme);
+  }
+  usarMiTema(): void {
+    const guardado = this.store.preferences().customSaved;
+    if (guardado) this.preferencesActions.usarTemaPropio(guardado);
   }
   setFont(font: string): void {
     this.store.preferences.update((p) => ({ ...p, font }));
@@ -203,45 +215,13 @@ export class PreferencesTabComponent implements OnInit {
     this.store.log(this.i18n.t('preferences.localeUpdatedLog'));
     this.persistPreferences();
   }
-  setAccent(accent: string): void {
-    this.store.preferences.update((value) => ({ ...value, accent, primary: accent }));
-    document.documentElement.style.setProperty('--accent', accent);
-    this.persistPreferences();
-  }
-  setThemeValue(key: 'name' | 'primary' | 'secondary' | 'text' | 'surface' | 'border', value: string): void {
-    this.store.preferences.update((preferences) => ({
-      ...preferences,
-      [key]: value,
-      ...(key === 'primary' ? { accent: value } : {}),
-    }));
-    const cssKey = (
-      {
-        primary: '--accent',
-        secondary: '--secondary',
-        text: '--text',
-        surface: '--surface',
-        border: '--line',
-      } as Record<string, string>
-    )[key];
-    if (cssKey) document.documentElement.style.setProperty(cssKey, value);
-  }
-  saveCustomTheme(): void {
-    this.persistPreferences();
-    this.store.log(this.i18n.t('preferences.themeSavedLog', { name: this.store.preferences().name }));
-  }
   setDensity(density: 'comfortable' | 'compact'): void {
     this.store.preferences.update((value) => ({ ...value, density }));
     document.documentElement.dataset['density'] = density;
     this.persistPreferences();
   }
-  setRadius(radius: number | string): void {
-    const value = Number(radius);
-    this.store.preferences.update((preferences) => ({ ...preferences, radius: value }));
-    document.documentElement.style.setProperty('--radius', `${value}px`);
-    this.persistPreferences();
-  }
   private persistPreferences(): void {
-    void this.store
+    void this.preferencesActions
       .persistPreferences()
       .catch((error) =>
         this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),

@@ -74,36 +74,78 @@
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
-<hlm-toggle-group
-  type="single"
-  variant="outline"
-  size="sm"
-  spacing="2"
-  class="shrink-0 flex-nowrap overflow-x-auto pb-1 [scrollbar-width:thin]"
-  [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
-  [value]="selectedAccountFilter()"
+<fin-carrusel [ariaLabel]="i18n.t('accounts.cards.listAriaLabel')">
+  <hlm-toggle-group
+    type="single"
+    variant="outline"
+    size="sm"
+    spacing="2"
+    class="w-max flex-nowrap py-0.5"
+    [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
+    [value]="selectedAccountFilter()"
+  >
+    <button
+      hlmToggleGroupItem
+      type="button"
+      value="all"
+      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      (click)="filterByAccount('all')"
+    >
+      {{ i18n.t('accounts.cards.allChip') }}
+    </button>
+    @for (a of filteredAccounts(); track a.id) {
+    <button
+      hlmToggleGroupItem
+      type="button"
+      [value]="a.id"
+      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      (click)="filterByAccount(a.id)"
+    >
+      {{ a.name }}
+    </button>
+    }
+  </hlm-toggle-group>
+</fin-carrusel>
+@if (cuentaSeleccionada(); as cuenta) {
+<section
+  class="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-2 rounded-lg border border-primary/30 bg-accent px-4 py-3"
+  [attr.aria-label]="cuenta.name"
 >
-  <button
-    hlmToggleGroupItem
-    type="button"
-    value="all"
-    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
-    (click)="filterByAccount('all')"
-  >
-    {{ i18n.t('accounts.cards.allChip') }}
-  </button>
-  @for (a of filteredAccounts(); track a.id) {
-  <button
-    hlmToggleGroupItem
-    type="button"
-    [value]="a.id"
-    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
-    (click)="selectAccount(a.id, a.type)"
-  >
-    {{ a.name }}
-  </button>
+  <div class="grid">
+    <span class="text-[0.72rem] text-muted-foreground">{{ i18n.t('form.account.type.' + cuenta.type) }}</span>
+    <strong>{{ cuenta.name }}</strong>
+  </div>
+  @if (cuenta.type === 'credit') {
+  <div class="grid text-[0.8rem]">
+    <span class="text-muted-foreground">{{ i18n.t('accounts.selected.debt') }}</span>
+    <b>{{ store.money(deudaDe(cuenta)) }}</b>
+  </div>
+  <div class="grid text-[0.8rem]">
+    <span class="text-muted-foreground">{{ i18n.t('accounts.selected.available') }}</span>
+    <b>{{ store.money(Math.max(0, (cuenta.limit ?? 0) - deudaDe(cuenta))) }}</b>
+  </div>
+  <div class="grid text-[0.8rem]">
+    <span class="text-muted-foreground">{{ i18n.t('accounts.selected.cycle') }}</span>
+    <b>{{ i18n.t('accounts.selected.cycleDays', { cut: cuenta.cutDay ?? '—', due: cuenta.dueDay ?? '—' }) }}</b>
+  </div>
+  } @else {
+  <div class="grid text-[0.8rem]">
+    <span class="text-muted-foreground">{{ i18n.t('accounts.selected.balance') }}</span>
+    <b>{{ store.money(store.balance(cuenta)) }}</b>
+  </div>
   }
-</hlm-toggle-group>
+  <div class="ms-auto flex gap-2">
+    <button hlmBtn variant="outline" size="sm" type="button" (click)="selectAccount(cuenta.id, cuenta.type)">
+      {{ i18n.t('accounts.selected.detail') }}
+    </button>
+    @if (cuenta.type === 'credit' && puedePagar()) {
+    <button hlmBtn size="sm" type="button" (click)="registrarAbono(cuenta.id)">
+      {{ i18n.t('accounts.selected.payment') }}
+    </button>
+    }
+  </div>
+</section>
+}
 <section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
   <fin-chart-card
     [title]="i18n.t('accounts.chart.balancesTitle')"
@@ -123,7 +165,7 @@
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
     [pageSize]="store.remoteMovementSize()"
-    [totalRows]="store.runtime.mode === 'api' ? store.remoteMovementTotal() : null"
+    [totalRows]="store.remoteMovementTotal()"
     [remotePage]="store.remoteMovementPage()"
     (pageSizeChange)="book.changeMovementPageSize($event)"
     (pageChange)="book.loadMovementPage($event)"

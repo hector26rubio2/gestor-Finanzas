@@ -3,6 +3,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { chromium } from 'playwright-core';
+import { simularApi } from './api-simulada.mjs';
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const artifacts = join(webRoot, 'artifacts');
@@ -214,7 +215,8 @@ async function exerciseInteractions(page) {
   // El primer chip es "Todas" (solo filtra, no abre nada); el segundo es la primera
   // cuenta real, y ese sí abre el inspector — igual que antes lo hacía `.bank-card`,
   // cuando el carrusel de tarjetas grandes vivía en esta misma página.
-  const cardTrigger = page.locator('hlm-toggle-group button[aria-pressed]').nth(1);
+  await page.locator('hlm-toggle-group button[aria-pressed]').nth(1).click();
+  const cardTrigger = page.getByRole('button', { name: 'Ver extracto y detalle' });
   await cardTrigger.focus();
   await cardTrigger.press('Enter');
   const inspector = page.locator('[data-slot="sheet-content"]');
@@ -245,13 +247,7 @@ async function exerciseInteractions(page) {
 async function testViewport(browser, viewport) {
   const context = await browser.newContext({ viewport, colorScheme: 'light' });
   const page = await context.newPage();
-  await page.route('**/config.js', async (route) => {
-    await route.fulfill({
-      status: 200,
-      contentType: 'application/javascript',
-      body: "window.__FINANZAS_CONFIG__ = { mode: 'demo' };",
-    });
-  });
+  await simularApi(context);
   const consoleErrors = [];
   const failures = [];
   page.on('console', (message) => {
@@ -263,12 +259,8 @@ async function testViewport(browser, viewport) {
     // `networkidle` espera a que la red calle dos segundos, y con el servidor de
     // desarrollo detras eso puede no ocurrir nunca: su canal de recarga mantiene la
     // conexion viva. En una maquina lenta la suite se quedaba colgada ahi sin fallar.
-    await page.goto(`${baseUrl}/login`, { waitUntil: 'domcontentloaded' });
-    await page.getByRole('button', { name: 'Continuar como Valentina' }).waitFor({ state: 'visible' });
+    await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' });
     const viewportLabel = viewport.label ?? `${viewport.width}px`;
-    const loginOverflow = await horizontalOverflow(page, `${viewportLabel} login`);
-    if (loginOverflow) failures.push(loginOverflow);
-    await page.getByRole('button', { name: 'Continuar como Valentina' }).click();
     await page.waitForURL(/\/dashboard/);
 
     if (viewport.width === 1440) await exerciseInteractions(page);

@@ -1,5 +1,5 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
-  ><form class="flex flex-col gap-[22px]" (ngSubmit)="submit()">
+  ><form class="flex flex-col gap-5" (ngSubmit)="submit()">
     @let vis = visibility();
     <fin-movement-kind-selector
       [kind]="model['kind']"
@@ -12,28 +12,57 @@
       {{ i18n.t('form.movement.chooseTypeHint') }}
     </p>
     } @else {
-    <fin-field [label]="i18n.t('form.movement.field.operationType')">
-      <fin-select
-        name="operationType"
-        [ngModel]="model['operationType']"
-        (ngModelChange)="setOperationType($event)"
-        [options]="operationTypeOptions()"
-        [ariaLabel]="i18n.t('form.movement.field.operationType')"
-      />
-    </fin-field>
+    <div class="flex flex-col gap-1.5">
+      <fin-field [label]="i18n.t('form.movement.field.operationType')">
+        <fin-select
+          name="operationType"
+          [ngModel]="model['operationType']"
+          (ngModelChange)="setOperationType($event)"
+          [options]="operationTypeOptions()"
+          [ariaLabel]="i18n.t('form.movement.field.operationType')"
+        />
+      </fin-field>
+      <p class="px-0.5 text-[0.8rem] text-muted-foreground">{{ operationHint() }}</p>
+    </div>
     <div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
-      <fin-movement-core-fields [model]="model" [kind]="effectiveKind()" [showTargetAccount]="vis.showTargetAccount" />
-      @if (vis.showCategory) {
-      <fin-movement-category-field [model]="model" [kind]="effectiveKind()" />
-      } @if (vis.showPerson) {
-      <fin-movement-loan-fields [model]="model" [showLoan]="vis.showLoan" />
+      <fin-movement-core-fields
+        [model]="model"
+        [kind]="model['kind']"
+        [operation]="model['operationType']"
+        [showTargetAccount]="vis.showTargetAccount"
+      />
+      @if (vis.counterparty; as alcance) {
+      <fin-movement-counterparty-field [model]="model" [scope]="alcance" />
+      } @if (vis.showCategory) {
+      <fin-movement-category-field [model]="model" [kind]="model['kind']" />
+      } @if (vis.showAttribution) {
+      <fin-movement-attribution-field [model]="model" />
+      } @if (vis.showLoanTerms) {
+      <fin-movement-financing-fields
+        [model]="model"
+        [showProduct]="vis.showLoanProduct"
+        [showCardMode]="vis.showCardMode"
+      />
       } @if (vis.showRecurrence) {
       <fin-movement-recurrence-fields [model]="model" />
       } @if (vis.showInstallments) {
       <fin-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
+      } @if (vis.showPurchaseCurrency) {
+      <fin-field [label]="i18n.t('form.movement.field.purchaseCurrency')">
+        <fin-select
+          name="purchaseCurrency"
+          [options]="monedasDeCompra()"
+          [ngModel]="monedaDeCompra()"
+          (ngModelChange)="elegirMonedaDeCompra($event)"
+          [ariaLabel]="i18n.t('form.movement.field.purchaseCurrency')"
+        />
+      </fin-field>
       } @if (vis.showCurrency) {
       <fin-movement-currency-fields [model]="model" />
       }
+      <fin-field [label]="i18n.t('form.movement.field.description')" [full]="true">
+        <input hlmInput type="text" name="description" [(ngModel)]="model['description']" required />
+      </fin-field>
     </div>
     } @if (error()) {
     <p class="text-destructive" role="alert">{{ error() }}</p>

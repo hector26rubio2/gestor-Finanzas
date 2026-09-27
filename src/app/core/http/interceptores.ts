@@ -1,9 +1,9 @@
 import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Observable, catchError, from, of, switchMap, tap, throwError } from 'rxjs';
-import { ApiWritesBus } from '../api/api-writes';
-import { RUNTIME_CONFIG } from '../session/runtime';
-import { AppStore } from '../state/store';
+import { ApiWritesBus } from '@core/api/api-writes';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
+import { AppStore } from '@core/state/store';
 import {
   CABECERA_CIFRADO,
   CODIGO_LLAVE_VIEJA,
@@ -15,13 +15,16 @@ import {
 
 export const BANDERA_CIFRADO = 'security.payloadEncryption';
 
-const esEscritura = (metodo: string) => metodo !== 'GET' && metodo !== 'HEAD' && metodo !== 'OPTIONS';
+const esConsultaPorPost = (url: string) => /\/search(\?|$)/.test(url);
+
+export const esEscritura = (metodo: string, url = '') =>
+  metodo !== 'GET' && metodo !== 'HEAD' && metodo !== 'OPTIONS' && !esConsultaPorPost(url);
 
 export const escriturasInterceptor: HttpInterceptorFn = (req, next) => {
   const bus = inject(ApiWritesBus);
   return next(req).pipe(
     tap((evento) => {
-      if (evento instanceof HttpResponse && esEscritura(req.method)) bus.notify();
+      if (evento instanceof HttpResponse && esEscritura(req.method, req.url)) bus.notify();
     }),
   );
 };
@@ -31,7 +34,6 @@ export const cifradoInterceptor: HttpInterceptorFn = (req, next) => {
   const store = inject(AppStore);
   const cifrado = inject(CifradoService);
   const aplica =
-    config.mode === 'api' &&
     !!config.apiBaseUrl &&
     req.url.startsWith(config.apiBaseUrl) &&
     !req.url.endsWith(RUTA_LLAVE_PUBLICA) &&
@@ -41,7 +43,12 @@ export const cifradoInterceptor: HttpInterceptorFn = (req, next) => {
   const enviar = (renovar: boolean): Observable<HttpEvent<unknown>> =>
     from(cifrado.preparar(req.body, renovar).catch(() => null)).pipe(
       switchMap((preparada) => {
-        if (!preparada) return next(req);
+        if (!preparada) {
+          if (!store.featureFlagsLoaded()) return next(req);
+          return throwError(
+            () => new HttpErrorResponse({ status: 0, statusText: 'cifrado.no_disponible', url: req.url }),
+          );
+        }
         const { cabecera, cuerpo, llave } = preparada;
         const cifrada: HttpRequest<unknown> =
           cuerpo === null

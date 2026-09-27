@@ -1,0 +1,81 @@
+@if (tableros.disponible()) {
+<div class="flex flex-wrap items-center gap-2" role="group" [attr.aria-label]="i18n.t('dashboard.boards.label')">
+  <fin-select
+    class="w-64 max-[700px]:w-full"
+    [options]="opciones()"
+    [ngModel]="seleccion()"
+    (ngModelChange)="seleccion.set($event)"
+    [ariaLabel]="i18n.t('dashboard.boards.label')"
+  />
+  @if (layout.soloLectura()) {
+  <span class="rounded-full border border-border px-2 py-0.5 text-[0.72rem] text-muted-foreground">
+    {{ i18n.t('dashboard.boards.readOnly', { name: activo()?.owner?.name ?? '' }) }}
+  </span>
+  } @if (tableros.puedeCrear()) {
+  <button hlmBtn variant="outline" size="sm" type="button" (click)="abrirPanel('nuevo')">
+    <fin-icon name="plus" /> {{ i18n.t('dashboard.boards.new') }}
+  </button>
+  } @if (esPropio()) {
+  <button hlmBtn variant="ghost" size="sm" type="button" (click)="abrirPanel('renombrar')">
+    {{ i18n.t('dashboard.boards.rename') }}
+  </button>
+  <button hlmBtn variant="ghost" size="sm" type="button" [attr.aria-pressed]="activo()?.isPinned" (click)="fijar()">
+    {{ activo()?.isPinned ? i18n.t('dashboard.boards.unpin') : i18n.t('dashboard.boards.pin') }}
+  </button>
+  @if (tableros.puedeCompartir()) {
+  <button hlmBtn variant="ghost" size="sm" type="button" (click)="abrirPanel('compartir')">
+    {{ i18n.t('dashboard.boards.share') }}
+  </button>
+  } @if (tableros.puedeCrear()) {
+  <button hlmBtn variant="ghost" size="sm" type="button" class="text-destructive" (click)="confirmarBorrado.set(true)">
+    {{ i18n.t('dashboard.boards.delete') }}
+  </button>
+  } }
+</div>
+
+@if (panel(); as abierto) {
+<form class="grid max-w-xl gap-2.5 rounded-lg border border-border bg-card p-3" (ngSubmit)="confirmar()">
+  @if (abierto === 'compartir') {
+  <p class="text-[0.78rem] text-muted-foreground">{{ i18n.t('dashboard.boards.shareHint') }}</p>
+  @for (miembro of tableros.miembros(); track miembro.id) {
+  <label class="flex items-center gap-2 text-[0.82rem]">
+    <hlm-checkbox [checked]="elegidos().has(miembro.id)" (checkedChange)="alternarMiembro(miembro.id, $event)" />
+    <span class="flex-1">{{ miembro.name }}</span>
+    <small class="text-muted-foreground">{{ miembro.email }}</small>
+  </label>
+  } @empty {
+  <small class="text-muted-foreground">{{ i18n.t('dashboard.boards.noMembers') }}</small>
+  } } @else {
+  <label class="grid gap-1 text-[0.78rem] text-muted-foreground">
+    {{ i18n.t('dashboard.boards.name') }}
+    <input hlmInput name="nombre" maxlength="60" required [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
+  </label>
+  @if (abierto === 'nuevo') {
+  <label class="flex items-center gap-2 text-[0.8rem]">
+    <hlm-checkbox [checked]="copiarActual()" (checkedChange)="copiarActual.set($event)" />
+    {{ i18n.t('dashboard.boards.copyCurrent') }}
+  </label>
+  } } @if (error()) {
+  <p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+  }
+  <div class="flex justify-end gap-2">
+    <button hlmBtn variant="ghost" size="sm" type="button" (click)="panel.set(null)">
+      {{ i18n.t('dashboard.boards.cancel') }}
+    </button>
+    <button hlmBtn size="sm" type="submit">{{ i18n.t('dashboard.boards.save') }}</button>
+  </div>
+</form>
+} @else if (error()) {
+<p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+}
+
+<fin-confirm-dialog
+  [open]="confirmarBorrado()"
+  [title]="i18n.t('dashboard.boards.deleteTitle')"
+  [description]="i18n.t('dashboard.boards.deleteDetail', { name: activo()?.name ?? '' })"
+  [confirmLabel]="i18n.t('dashboard.boards.delete')"
+  [cancelLabel]="i18n.t('dashboard.boards.cancel')"
+  (confirmed)="borrar()"
+  (dismissed)="confirmarBorrado.set(false)"
+/>
+}

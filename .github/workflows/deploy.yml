@@ -52,11 +52,11 @@ jobs:
           PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
         run: pnpm test:a11y
       - name: Escribir config de API desde la variable del repositorio
-        if: ${{ vars.API_BASE_URL != '' }}
         env:
           API_BASE_URL: ${{ vars.API_BASE_URL }}
         run: |
-          echo "window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: '$API_BASE_URL' };" > public/config.js
+          test -n "$API_BASE_URL" || { echo "::error::Falta la variable de repositorio API_BASE_URL"; exit 1; }
+          echo "window.__FINANZAS_CONFIG__ = { apiBaseUrl: '$API_BASE_URL' };" > public/config.js
       - run: pnpm exec ng build --base-href /gestor-Finanzas/
       - run: cp dist/browser/index.html dist/browser/404.html
       - run: touch dist/browser/.nojekyll

@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
-import { I18nService } from '../../core/i18n';
-import { IconComponent, IconName } from '../icon/icon';
-import { ChartComponent } from '../chart/chart';
-import { ChartThemeService } from '../chart/chart-theme';
-import { KpiGridContext } from '../kpi-grid/kpi-grid';
+import { I18nService } from '@core/i18n';
+import { IconComponent, IconName } from '@ui/icon/icon';
+import { ChartComponent } from '@ui/chart/chart';
+import { ChartThemeService } from '@ui/chart/chart-theme';
+import { KpiGridContext } from '@ui/kpi-grid/kpi-grid';
 
 function suavizar(serie: readonly number[], puntos: number): number[] {
   if (serie.length <= puntos) return [...serie];

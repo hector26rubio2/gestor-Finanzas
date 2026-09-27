@@ -1,4 +1,4 @@
-import { Movement } from '../../core/state/demo-data';
+import { Movement } from '@core/state';
 
 export interface LongestInstallmentDebt {
   description: string;

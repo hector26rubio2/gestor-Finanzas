@@ -3,11 +3,11 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
-import { IconComponent } from '../../../../ui/icon/icon';
+import { IconComponent } from '@ui/icon';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inject, input } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../../../core/i18n';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
+import { I18nService } from '@core/i18n';
+import { UiOption, UiSelectComponent } from '@ui/select';
 
 export type Scale = 'day' | 'week' | 'month' | 'year';
 

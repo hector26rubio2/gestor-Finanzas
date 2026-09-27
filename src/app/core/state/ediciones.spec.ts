@@ -1,7 +1,8 @@
+import { CatalogCommands } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../api/api-client';
+import { FinanceApiClient } from '@core/api/api-client';
 import { AppStore } from './store';
 
 const terminos = {
@@ -15,7 +16,7 @@ const terminos = {
 };
 
 function montar(api: unknown) {
-  window.__FINANZAS_CONFIG__ = { mode: 'api', apiBaseUrl: 'https://api.example.test' };
+  window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({ providers: [{ provide: FinanceApiClient, useValue: api }] });
   const store = TestBed.inject(AppStore);
@@ -67,7 +68,7 @@ function montar(api: unknown) {
 
 describe('ediciones contra la API', () => {
   afterEach(() => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   });
 
   it('actualiza la tarjeta con sus términos actuales y cierra el formulario', async () => {
@@ -91,7 +92,7 @@ describe('ediciones contra la API', () => {
     store.form.set({ kind: 'account' });
     const tarjeta = store.data().accounts[1];
 
-    await store.updateAccount(tarjeta, {
+    await TestBed.inject(CatalogCommands).updateAccount(tarjeta, {
       name: ' Visa oro ',
       lastFour: '4321',
       credit: { limit: 5000000, cutDay: 25, dueDay: 10 },
@@ -105,6 +106,7 @@ describe('ediciones contra la API', () => {
       issuer: 'Banco',
       lastFour: '4321',
       isActive: true,
+      issuerEntity: null,
     });
     expect(store.account('tarjeta-1')).toMatchObject({ name: 'Visa oro', limit: 5000000, cutDay: 25, dueDay: 10 });
     expect(store.form()).toBeNull();
@@ -117,7 +119,10 @@ describe('ediciones contra la API', () => {
       updateAccount,
     });
 
-    await store.updateAccount(store.data().accounts[0], { name: 'Ahorro principal', lastFour: '' });
+    await TestBed.inject(CatalogCommands).updateAccount(store.data().accounts[0], {
+      name: 'Ahorro principal',
+      lastFour: '',
+    });
 
     expect(updateAccount).toHaveBeenCalledWith('cuenta-1', {
       name: 'Ahorro principal',
@@ -133,7 +138,9 @@ describe('ediciones contra la API', () => {
     const updateAccount = vi.fn();
     const store = montar({ updateAccount });
 
-    await expect(store.updateAccount(store.data().accounts[0], { name: 'Ahorros', lastFour: '12a' })).rejects.toThrow();
+    await expect(
+      TestBed.inject(CatalogCommands).updateAccount(store.data().accounts[0], { name: 'Ahorros', lastFour: '12a' }),
+    ).rejects.toThrow();
     expect(updateAccount).not.toHaveBeenCalled();
   });
 
@@ -143,7 +150,11 @@ describe('ediciones contra la API', () => {
     );
     const store = montar({ updateCategory });
 
-    await store.updateCategory('categoria-1', { name: 'Supermercado', color: '#111111', icon: '🛒' });
+    await TestBed.inject(CatalogCommands).updateCategory('categoria-1', {
+      name: 'Supermercado',
+      color: '#111111',
+      icon: '🛒',
+    });
 
     expect(updateCategory).toHaveBeenCalledWith('categoria-1', {
       name: 'Supermercado',
@@ -164,7 +175,10 @@ describe('ediciones contra la API', () => {
       updatePerson,
     });
 
-    await store.updatePerson('persona-1', { name: 'Camilo Rojas', email: 'camilo@example.test' });
+    await TestBed.inject(CatalogCommands).updatePerson('persona-1', {
+      name: 'Camilo Rojas',
+      email: 'camilo@example.test',
+    });
 
     expect(updatePerson).toHaveBeenCalledWith('persona-1', {
       displayName: 'Camilo Rojas',
@@ -185,7 +199,10 @@ describe('ediciones contra la API', () => {
       updateInvestment,
     });
 
-    await store.updateInvestment('inversion-1', { name: 'CDT 90 días', instrumentType: 'Fondo' });
+    await TestBed.inject(CatalogCommands).updateInvestment('inversion-1', {
+      name: 'CDT 90 días',
+      instrumentType: 'Fondo',
+    });
 
     expect(updateInvestment).toHaveBeenCalledWith('inversion-1', {
       name: 'CDT 90 días',
@@ -195,18 +212,5 @@ describe('ediciones contra la API', () => {
       isActive: true,
     });
     expect(store.data().investments[0]).toMatchObject({ name: 'CDT 90 días', type: 'Fondo' });
-  });
-});
-
-describe('ediciones en modo demostración', () => {
-  it('edita una categoría local sin llamar a la API', async () => {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
-    TestBed.resetTestingModule();
-    const store = TestBed.inject(AppStore);
-    const categoria = store.categories()[0];
-
-    await store.updateCategory(categoria.id, { name: 'Renombrada', color: '#222222', icon: '★' });
-
-    expect(store.categories()[0]).toMatchObject({ id: categoria.id, name: 'Renombrada', color: '#222222', icon: '★' });
   });
 });

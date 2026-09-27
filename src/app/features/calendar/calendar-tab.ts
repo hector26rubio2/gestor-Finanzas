@@ -1,17 +1,18 @@
 import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { MovementsBookService } from '../../shared/movements/movements-book.service';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { ApiProjectedOccurrence, ApiRecurrence, FinanceApiClient } from '@core/api';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
+import { I18nService } from '@core/i18n';
+import { MovementsBookService } from '@shared/movements';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 
 @Component({
   selector: 'app-calendar-tab',
-  imports: [HlmButton],
+  imports: [HlmButton, ConfirmDialogComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendar-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -119,7 +120,6 @@ export class CalendarTabComponent implements OnInit {
    * servir. Cada una se pide si su permiso esta concedido, y si una falla la otra queda.
    */
   async loadCalendarProjection(): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return;
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
     const fallos: string[] = [];
@@ -141,8 +141,25 @@ export class CalendarTabComponent implements OnInit {
 
     if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
   }
+  readonly porEliminar = signal<ApiRecurrence | null>(null);
+  frecuencia(recurrente: ApiRecurrence): string {
+    return this.i18n.t(`calendar.recurring.frequency.${recurrente.schedule.frequency}`, {
+      n: recurrente.schedule.interval,
+    });
+  }
+  async eliminarRecurrente(): Promise<void> {
+    const recurrente = this.porEliminar();
+    this.porEliminar.set(null);
+    if (!recurrente) return;
+    try {
+      await firstValueFrom(this.api.deleteRecurrence(recurrente.id));
+      this.store.toast.set(this.i18n.t('calendar.recurring.deleted', { name: recurrente.name }));
+      await this.loadCalendarProjection();
+    } catch {
+      this.store.toast.set(this.i18n.t('calendar.recurring.deleteFailed'));
+    }
+  }
   async materialize(item: ApiProjectedOccurrence): Promise<void> {
-    if (this.store.runtime.mode !== 'api') return this.store.log('Ocurrencia confirmada y registrada');
     try {
       await firstValueFrom(
         this.api.materializeRecurrence(item.recurrence.id, {

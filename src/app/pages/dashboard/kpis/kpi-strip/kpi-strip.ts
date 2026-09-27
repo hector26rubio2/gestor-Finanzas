@@ -10,14 +10,14 @@ import {
   input,
   output,
 } from '@angular/core';
-import { I18nService } from '../../../../core/i18n';
-import { IconComponent, IconName } from '../../../../ui/icon/icon';
-import { KpiComponent } from '../../../../ui/kpi/kpi';
-import { FlowItem, KPI_MIN_COLS } from '../../layout/dashboard-layout';
-import { FlowResize } from '../../layout/dashboard-layout.service';
-import { FlowItemComponent } from '../../layout/flow-item/flow-item';
-import { KpiRanges, KpiStatus } from '../kpi-ranges';
-import { KpiRangesEditorComponent } from '../kpi-ranges-editor/kpi-ranges-editor';
+import { I18nService } from '@core/i18n';
+import { IconComponent, IconName } from '@ui/icon';
+import { KpiComponent } from '@ui/kpi';
+import { FlowItem, KPI_MIN_COLS } from '@shared/tablero/dashboard-layout';
+import { FlowResize } from '@shared/tablero/dashboard-layout.service';
+import { FlowItemComponent } from '@pages/dashboard/layout/flow-item/flow-item';
+import { KpiRanges, KpiStatus } from '@shared/tablero/kpi-ranges';
+import { KpiRangesEditorComponent } from '@pages/dashboard/kpis/kpi-ranges-editor/kpi-ranges-editor';
 
 export interface KpiCardConfig {
   key?: string;

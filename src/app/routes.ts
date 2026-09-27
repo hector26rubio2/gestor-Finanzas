@@ -2,8 +2,8 @@ import { Injector, Type, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
 import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
 import { filter, map, take } from 'rxjs';
-import { safeReturnPath } from './core/session/return-url';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/state/store';
+import { safeReturnPath } from '@core/session/return-url';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 
 /**
  * Deja entrar a una sección, o manda a la primera que sí esté abierta.
@@ -68,47 +68,50 @@ const guard: CanMatchFn = (route) => {
  * en su `<router-outlet>`.
  */
 const workspaceFeatureLoader: Record<string, () => Promise<Type<unknown>>> = {
-  movements: () => import('./features/movements/movements-tab').then((m) => m.MovementsTabComponent),
-  calendar: () => import('./features/calendar/calendar-tab').then((m) => m.CalendarTabComponent),
-  accounts: () => import('./features/accounts/accounts-tab').then((m) => m.AccountsTabComponent),
-  people: () => import('./features/people/people-tab').then((m) => m.PeopleTabComponent),
-  portfolio: () => import('./features/portfolio/portfolio-tab').then((m) => m.PortfolioTabComponent),
-  planning: () => import('./features/planning/planning-tab').then((m) => m.PlanningTabComponent),
-  reports: () => import('./features/reports/reports-tab').then((m) => m.ReportsTabComponent),
-  notifications: () => import('./features/notifications/notifications-tab').then((m) => m.NotificationsTabComponent),
-  settings: () => import('./features/preferences/preferences-tab').then((m) => m.PreferencesTabComponent),
+  movements: () => import('@features/movements/movements-tab').then((m) => m.MovementsTabComponent),
+  calendar: () => import('@features/calendar/calendar-tab').then((m) => m.CalendarTabComponent),
+  accounts: () => import('@features/accounts/accounts-tab').then((m) => m.AccountsTabComponent),
+  people: () => import('@features/people/people-tab').then((m) => m.PeopleTabComponent),
+  portfolio: () => import('@features/portfolio/portfolio-tab').then((m) => m.PortfolioTabComponent),
+  planning: () => import('@features/planning/planning-tab').then((m) => m.PlanningTabComponent),
+  reports: () => import('@features/reports/reports-tab').then((m) => m.ReportsTabComponent),
+  notifications: () => import('@features/notifications/notifications-tab').then((m) => m.NotificationsTabComponent),
+  settings: () => import('@features/preferences/preferences-tab').then((m) => m.PreferencesTabComponent),
 };
 
 const sinCambiosPendientes: CanDeactivateFn<{ puedeSalir(): boolean | Promise<boolean> }> = (component) =>
   component.puedeSalir();
 
 export const routes: Routes = [
-  { path: 'login', loadComponent: () => import('./pages/login/login').then((m) => m.LoginComponent) },
+  { path: 'login', loadComponent: () => import('@pages/login/login').then((m) => m.LoginComponent) },
   {
     path: 'sin-acceso',
-    loadComponent: () => import('./pages/sin-seccion/sin-seccion').then((m) => m.SinSeccionComponent),
+    loadComponent: () => import('@pages/sin-seccion/sin-seccion').then((m) => m.SinSeccionComponent),
   },
   ...navigation.map((n) => {
     if (n.path === 'dashboard')
       return {
         path: n.path,
+        title: `nav.${n.path}`,
         canMatch: [guard],
         data: { capability: n.capability },
-        loadComponent: () => import('./pages/dashboard/dashboard').then((m) => m.DashboardComponent),
+        loadComponent: () => import('@pages/dashboard/dashboard').then((m) => m.DashboardComponent),
       };
     if (n.path === 'admin')
       return {
         path: n.path,
+        title: `nav.${n.path}`,
         canMatch: [guard],
         canDeactivate: [sinCambiosPendientes],
         data: { capability: n.capability },
-        loadComponent: () => import('./pages/admin/admin').then((m) => m.AdminComponent),
+        loadComponent: () => import('@pages/admin/admin').then((m) => m.AdminComponent),
       };
     return {
       path: n.path,
+      title: `nav.${n.path}`,
       canMatch: [guard],
       data: { capability: n.capability },
-      loadComponent: () => import('./pages/workspace/workspace').then((m) => m.WorkspaceComponent),
+      loadComponent: () => import('@pages/workspace/workspace').then((m) => m.WorkspaceComponent),
       children: [{ path: '', loadComponent: workspaceFeatureLoader[n.path] }],
     };
   }),

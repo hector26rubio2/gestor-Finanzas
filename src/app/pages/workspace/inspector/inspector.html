@@ -42,7 +42,8 @@
         <div>
           <span>{{ i18n.t('workspace.statement.title') }}</span>
           <h3 class="mt-[3px]">
-            {{ i18n.t('workspace.statement.nextCutoff', { day: selectedAccount()?.cutDay ?? '' }) }}
+            @if (periodoActual(); as periodo) { {{ i18n.t('workspace.statement.cutoffOn', { date: periodo.statementDate
+            }) }} } @else { {{ i18n.t('workspace.statement.nextCutoff', { day: selectedAccount()?.cutDay ?? '' }) }} }
           </h3>
         </div>
         <b>{{ store.money(cardStatementTotal()) }}</b>
@@ -59,11 +60,30 @@
         }
         <span
           >{{ i18n.t('workspace.statement.dueDate') }}
-          <b>{{ i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay ?? '' }) }}</b></span
+          <b
+            >{{ periodoActual()?.dueDate ?? i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay ?? '' })
+            }}</b
+          ></span
         >
+        @if (pagoMinimo(); as minimo) {
+        <span>{{ i18n.t('workspace.statement.minimumPayment') }} <b>{{ store.money(minimo) }}</b></span>
+        } @if (cuotaDeManejo() > 0) {
+        <span>{{ i18n.t('workspace.statement.monthlyFee') }} <b>{{ store.money(cuotaDeManejo()) }}</b></span>
+        }
       </div>
       @if (cardEstimatedInterest() === null) {
       <small class="text-muted-foreground">{{ i18n.t('workspace.statement.noRateNote') }}</small>
+      } @if (saldosPorConcepto().length) {
+      <ul class="grid gap-1 text-[0.74rem]">
+        @for (saldo of saldosPorConcepto(); track saldo.concepto) {
+        <li class="flex justify-between gap-2">
+          <span class="text-muted-foreground"
+            >{{ etiquetaDeConcepto(saldo.concepto) }} · {{ saldo.compras.length }}</span
+          >
+          <b>{{ store.money(saldo.saldo) }}</b>
+        </li>
+        }
+      </ul>
       }
       <small class="text-muted-foreground">{{ i18n.t('workspace.statement.estimateNote') }}</small>
     </section>
@@ -197,6 +217,14 @@
           {{ i18n.t('workspace.cardPayment.back') }}
         </button>
       </header>
+      <label class="grid gap-1 text-[0.78rem] text-muted-foreground"
+        >{{ i18n.t('workspace.cardPayment.sourceAccount') }}
+        <fin-select
+          [options]="opcionesDeOrigen()"
+          [ngModel]="cuentaDeOrigen()"
+          (ngModelChange)="cuentaDeOrigen.set($event)"
+          [ariaLabel]="i18n.t('workspace.cardPayment.sourceAccount')"
+      /></label>
       <label class="grid gap-1.5 text-muted-foreground"
         >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
           hlmInput
@@ -227,6 +255,7 @@
       <button hlmBtn class="h-10" (click)="confirmCardPayment()">
         <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
       </button>
+      <small class="text-[0.72rem] text-muted-foreground">{{ i18n.t('workspace.cardPayment.priorityNote') }}</small>
     </section>
     }
   </section></ng-template

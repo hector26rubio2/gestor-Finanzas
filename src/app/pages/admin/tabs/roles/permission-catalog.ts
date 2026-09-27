@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ApiPermissionDescriptor } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES } from '../../../../core/state/store';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { ApiPermissionDescriptor } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES } from '@core/state';
+import { IconComponent } from '@ui/icon';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 
 @Component({
   selector: 'app-admin-permission-catalog',

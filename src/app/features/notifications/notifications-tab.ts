@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { HeaderActionsService } from '../../shared/header-actions.service';
+import { FinanceApiClient } from '@core/api';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { HeaderActionsService } from '@shared/header-actions.service';
 
 @Component({
   selector: 'app-notifications-tab',
@@ -33,26 +33,24 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   }
 
   async readAll(): Promise<void> {
-    if (this.store.runtime.mode === 'api') {
-      try {
-        const unread = this.store.data().notifications.filter((item) => !item.read);
-        await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
-      } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.bulkUpdateError'));
-        return;
-      }
+    try {
+      const unread = this.store.data().notifications.filter((item) => !item.read);
+      await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
+    } catch (error) {
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.bulkUpdateError'));
+      return;
     }
+
     this.store.data.update((d) => ({ ...d, notifications: d.notifications.map((n) => ({ ...n, read: true })) }));
   }
   async mark(id: string): Promise<void> {
-    if (this.store.runtime.mode === 'api') {
-      try {
-        await firstValueFrom(this.api.markNotificationRead(id));
-      } catch (error) {
-        this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.updateError'));
-        return;
-      }
+    try {
+      await firstValueFrom(this.api.markNotificationRead(id));
+    } catch (error) {
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.updateError'));
+      return;
     }
+
     this.store.data.update((d) => ({
       ...d,
       notifications: d.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),

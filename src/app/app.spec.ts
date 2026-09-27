@@ -3,10 +3,10 @@ import { Router, provideRouter } from '@angular/router';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app';
-import { FinanceApiClient } from './core/api/api-client';
-import { P } from './core/session/permissions';
-import { RUNTIME_CONFIG } from './core/session/runtime';
-import { AppStore } from './core/state/store';
+import { FinanceApiClient } from '@core/api';
+import { P, RUNTIME_CONFIG } from '@core/session';
+import { AppStore, navigation } from '@core/state';
+import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 /**
  * El armazón de la aplicación y la pantalla de entrada.
@@ -18,7 +18,7 @@ import { AppStore } from './core/state/store';
  */
 describe('AppComponent y la pantalla de entrada', () => {
   function montar() {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -27,10 +27,14 @@ describe('AppComponent y la pantalla de entrada', () => {
           { path: 'dashboard', children: [] },
           { path: 'movements', children: [] },
         ]),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)) } },
       ],
     });
+    const store = TestBed.inject(AppStore);
+    store.featureFlags.set(Object.fromEntries(navigation.map((entrada) => [entrada.path, true])));
+    store.featureFlagsLoaded.set(true);
+    store.remoteState.set('ready');
     return TestBed.createComponent(AppComponent);
   }
 
@@ -39,7 +43,7 @@ describe('AppComponent y la pantalla de entrada', () => {
   it('no envuelve el login con el armazón, aunque ya haya usuario', async () => {
     const fixture = montar();
     const store = TestBed.inject(AppStore);
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/login');
     fixture.detectChanges();
@@ -53,7 +57,7 @@ describe('AppComponent y la pantalla de entrada', () => {
   it('fuera del login el armazón vuelve', async () => {
     const fixture = montar();
     const store = TestBed.inject(AppStore);
-    store.user.set({ ...store.users[0], capabilities: [P.dashboard.ver] });
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver] });
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
     fixture.detectChanges();
@@ -73,7 +77,7 @@ describe('AppComponent y la pantalla de entrada', () => {
 
     // Sin dashboard.ver, ir a /dashboard a ciegas devolvería al mismo sitio por el guard.
     const store = TestBed.inject(AppStore);
-    store.user.set({ ...store.users[0], capabilities: [P.movimientos.ver] });
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.movimientos.ver] });
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -83,12 +87,12 @@ describe('AppComponent y la pantalla de entrada', () => {
 
 describe('AppComponent y el menú', () => {
   function montar() {
-    window.__FINANZAS_CONFIG__ = { mode: 'demo' };
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         provideRouter([{ path: 'dashboard', children: [] }]),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)) } },
       ],
     });

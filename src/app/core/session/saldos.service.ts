@@ -1,10 +1,10 @@
 import { Injectable, effect, inject, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiWritesBus } from '../api/api-writes';
-import { FinanceApiClient } from '../api/api-client';
-import { AppStore } from '../state/store';
-import { parseMoney } from '../utils/money';
-import { todayIso } from '../utils/dates';
+import { ApiWritesBus } from '@core/api/api-writes';
+import { FinanceApiClient } from '@core/api/api-client';
+import { AppStore } from '@core/state/store';
+import { parseMoney } from '@core/utils/money';
+import { todayIso } from '@core/utils/dates';
 
 const ESPERA_MS = 300;
 
@@ -19,7 +19,7 @@ export class SaldosService {
     effect(() => {
       this.escrituras.version();
       const listo = this.store.remoteState() === 'ready';
-      if (this.store.runtime.mode !== 'api' || !listo) return;
+      if (!listo) return;
       untracked(() => this.programar());
     });
   }

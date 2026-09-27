@@ -46,6 +46,20 @@
   [options]="dimensionOptions()"
   (ngModelChange)="dimension2Change.emit($event)"
 />
+} @if (variantOptions().length) {
+<fin-select
+  [ariaLabel]="i18n.t('charts.variant.label')"
+  [ngModel]="variant() || variantOptions()[0].value"
+  [options]="variantOptions()"
+  (ngModelChange)="variantChange.emit($event)"
+/>
+} @if (showGranularity()) {
+<fin-select
+  [ariaLabel]="i18n.t('charts.granularity.label')"
+  [ngModel]="granularity()"
+  [options]="granularityOptions()"
+  (ngModelChange)="granularityChange.emit($event)"
+/>
 } @if (showGoal()) {
 <input
   hlmInput

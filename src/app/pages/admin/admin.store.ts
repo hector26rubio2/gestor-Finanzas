@@ -13,12 +13,11 @@ import {
   ApiClientError,
   ApiOrganizationMember,
   ApiPermissionDescriptor,
-} from '../../core/api/administration.api';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { RemoteBootstrap } from '../../core/session/remote-bootstrap';
-import { ApiPage } from '../../core/api/shared-api-types';
+  ApiPage,
+} from '@core/api';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { I18nService } from '@core/i18n';
+import { P, RemoteBootstrap } from '@core/session';
 import { AdminChange, affectsAccess, changeKey, changeWave, sameIds } from './admin-changes';
 
 export type AdminTab = 'summary' | 'users' | 'roles' | 'organizations' | 'flags' | 'audit' | 'errors';
@@ -62,6 +61,7 @@ export class AdminStore {
   readonly auditTotal = signal(0);
   readonly auditSize = signal(25);
   readonly auditFilter = signal<ApiAuditFilter>({});
+  readonly erroresDeLaAccion = signal<readonly ApiClientError[]>([]);
   readonly errors = signal<readonly ApiClientError[]>([]);
   readonly errorsPage = signal(1);
   readonly errorsTotal = signal(0);
@@ -72,7 +72,6 @@ export class AdminStore {
 
   readonly loading = signal(false);
   readonly loadFailed = signal(false);
-  readonly sinDatos = computed(() => this.app.runtime.mode !== 'api');
 
   private readonly pending = signal<ReadonlyMap<string, AdminChange>>(new Map());
   readonly changes = computed(() => [...this.pending().values()]);
@@ -105,7 +104,7 @@ export class AdminStore {
   });
 
   async cargar(): Promise<void> {
-    if (this.sinDatos() || !this.caps.allows(P.administracion.ver)) return;
+    if (!this.caps.allows(P.administracion.ver)) return;
     this.loading.set(true);
     this.loadFailed.set(false);
     const puede = (permiso: string) => this.caps.allows(permiso);
@@ -208,10 +207,22 @@ export class AdminStore {
     if (!this.caps.allows(P.administracion.auditoria.listar)) return;
     try {
       this.auditFilter.set(filter);
-      this.aplicarAuditoria(await firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)));
+      const [auditoria, errores] = await Promise.all([
+        firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)),
+        filter.traceId && this.caps.allows(P.administracion.errores.listar)
+          ? firstValueFrom(this.api.adminErrors(1, 50, '', filter.traceId)).then((pagina) => pagina.items)
+          : Promise.resolve([] as readonly ApiClientError[]),
+      ]);
+      this.aplicarAuditoria(auditoria);
+      this.erroresDeLaAccion.set(errores);
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
     }
+  }
+
+  verAccion(traceId: string): void {
+    this.tab.set('audit');
+    void this.cargarAuditoria(1, { traceId });
   }
 
   async cargarErrores(page: number, status = this.errorsStatus()): Promise<void> {
@@ -488,7 +499,7 @@ export class AdminStore {
 
     if (aplicados.length) {
       if (aplicados.some(affectsAccess)) await this.cargarUsuarios();
-      if (this.app.runtime.mode === 'api') await this.arranque.pollSession();
+      await this.arranque.pollSession();
     }
     this.saving.set(false);
     this.app.toast.set(
@@ -650,7 +661,7 @@ export class AdminStore {
         return { ...todas, [saved.organizationId as string]: lista };
       });
     }
-    if (id && this.app.runtime.mode === 'api') await this.arranque.pollSession();
+    if (id) await this.arranque.pollSession();
     return saved;
   }
 

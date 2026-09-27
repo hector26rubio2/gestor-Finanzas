@@ -1,27 +1,23 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import type { Account, Movement } from '../../core/state/demo-data';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { sincronizarConLaUrl } from '../../core/state/url-state';
-import { downloadCsv, toCsv } from '../../core/utils/csv';
-import { todayIso } from '../../core/utils/dates';
-import { sumBy } from '../../core/utils/money';
-import { HeaderActionsService } from '../../shared/header-actions.service';
-import { TAB_PAGE_HOST_CLASS } from '../../shared/tab-page-layout';
-import { compactMoney as formatCompactMoney } from '../../shared/utils/chart-math';
-import { SIN_DATO } from '../../shared/utils/placeholders';
-import { ChartComponent } from '../../ui/chart/chart';
-import { ChartThemeService } from '../../ui/chart/chart-theme';
-import { anillo, barrasAgrupadas, lineaConCero, medidor } from '../../ui/chart/opciones';
-import { IconComponent } from '../../ui/icon/icon';
-import { KpiComponent } from '../../ui/kpi/kpi';
-import { KpiGridComponent } from '../../ui/kpi-grid/kpi-grid';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '../accounts/card-insights';
+import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { ExploradorDeReportesComponent } from './explorador/explorador';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import type { Account, Movement } from '@core/state';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
+import { downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
+import { HeaderActionsService } from '@shared/header-actions.service';
+import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { compactMoney as formatCompactMoney, SIN_DATO } from '@shared/utils';
+import { ChartComponent, ChartThemeService, anillo, barrasAgrupadas, lineaConCero, medidor } from '@ui/chart';
+import { IconComponent } from '@ui/icon';
+import { KpiComponent } from '@ui/kpi';
+import { KpiGridComponent } from '@ui/kpi-grid';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
 const esEconomico = (movement: Movement) => !movement.movementSubtype && movement.kind !== 'payment';
 
@@ -29,8 +25,9 @@ const esEconomico = (movement: Movement) => !movement.movementSubtype && movemen
   selector: 'app-reports-tab',
   imports: [
     FormsModule,
-    HlmButton,
     HlmCard,
+    HlmTabsImports,
+    ExploradorDeReportesComponent,
     ChartComponent,
     IconComponent,
     KpiComponent,
@@ -62,6 +59,13 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     this.headerActions.exportReport.set(null);
   }
 
+  readonly seccion = signal<'summary' | 'explorer'>('summary');
+  private readonly urlDeSeccion = sincronizarConLaUrl(
+    'vista',
+    this.seccion,
+    'summary',
+    (v) => v === 'summary' || v === 'explorer',
+  );
   readonly reportPeriod = signal('6');
   readonly reportPeriodOptions = computed<readonly UiOption[]>(() => [
     { value: '3', label: this.i18n.t('reports.period.3') },

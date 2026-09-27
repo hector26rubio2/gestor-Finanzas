@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
-import { I18nService } from '../../core/i18n';
+import { I18nService } from '@core/i18n';
 
 const EMPTY_VALUE = '__fin_empty__';
 const encode = (value: string): string => (value === '' ? EMPTY_VALUE : value);

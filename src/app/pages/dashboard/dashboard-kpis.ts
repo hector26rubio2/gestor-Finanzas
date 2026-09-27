@@ -1,14 +1,14 @@
 import { Signal, computed, inject, signal } from '@angular/core';
-import { Movement } from '../../core/state/demo-data';
-import { PuntoDeFlujo, variacion } from '../../shared/historia/historia';
-import { P } from '../../core/session/permissions';
-import { sumBy } from '../../core/utils/money';
-import { IconName } from '../../ui/icon/icon';
-import { UiOption } from '../../ui/select/select';
-import { Dimension, KpiFormula } from './dashboard.model';
+import { Movement } from '@core/state';
+import { PuntoDeFlujo, variacion } from '@shared/historia';
+import { P } from '@core/session';
+import { sumBy } from '@core/utils';
+import { IconName } from '@ui/icon';
+import { UiOption } from '@ui/select';
+import { Dimension, KpiFormula } from '@shared/tablero/dashboard.model';
 import { DashboardVisuals } from './dashboard-visuals';
-import { DashboardLayoutService, KpiDefinition, KpiFilter } from './layout/dashboard-layout.service';
-import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from './kpis/kpi-ranges';
+import { DashboardLayoutService, KpiDefinition, KpiFilter } from '@shared/tablero/dashboard-layout.service';
+import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from '@shared/tablero/kpi-ranges';
 import { CUSTOM_KPI_PREFIX } from './kpis/kpi-strip/kpi-strip';
 
 export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [

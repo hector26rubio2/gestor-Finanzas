@@ -74,6 +74,9 @@
               class="rounded-[9px]"
               [src]="store.user()?.photoUrl"
               alt=""
+              width="29"
+              height="29"
+              decoding="async"
               referrerpolicy="no-referrer"
             />
             }
@@ -144,6 +147,22 @@
                   </a>
                   @if (item.path === 'notifications' && store.unread()) {
                   <span hlmSidebarMenuBadge>{{ store.unread() }}</span>
+                  } @if (item.path === 'dashboard' && tableros.fijados().length) {
+                  <ul hlmSidebarMenuSub>
+                    @for (tablero of tableros.fijados(); track tablero.id) {
+                    <li hlmSidebarMenuSubItem>
+                      <a
+                        hlmSidebarMenuSubButton
+                        routerLink="/dashboard"
+                        [queryParams]="{ tablero: tablero.id }"
+                        [isActive]="tableros.activo() === tablero.id"
+                        [attr.title]="tablero.name"
+                        (click)="sidebar.setOpenMobile(false)"
+                        ><fin-icon name="dashboard" class="[--icon-size:15px]" /><span>{{ tablero.name }}</span></a
+                      >
+                    </li>
+                    }
+                  </ul>
                   } @if (item.path === 'admin' && pestanasAdmin().length > 1) {
                   <button
                     hlmSidebarMenuAction

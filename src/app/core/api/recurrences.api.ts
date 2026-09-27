@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '../http/api-http-client';
+import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
 
@@ -57,6 +57,10 @@ export class RecurrencesApi {
       path: API_ROUTES.projectedCalendar,
       params: { from, to },
     });
+  }
+
+  deleteRecurrence(id: string) {
+    return this.transport.request<void>({ method: 'DELETE', path: API_ROUTES.recurrence(id) });
   }
 
   materializeRecurrence(

@@ -1,144 +1,169 @@
-<section
-  class="flex items-end justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
-  [attr.aria-label]="i18n.t('reports.filtersAriaLabel')"
->
-  <label class="grid w-40 gap-[3px] text-[0.72rem] text-muted-foreground"
-    >{{ i18n.t('reports.periodLabel') }}<fin-select
-      [ngModel]="reportPeriod()"
-      (ngModelChange)="reportPeriod.set($event)"
-      [options]="reportPeriodOptions()"
-      [ariaLabel]="i18n.t('reports.periodSelectAriaLabel')"
-  /></label>
-  <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.traceabilityNote') }}</p>
-  @if (can(P.reportes.exportar)) {
-  <button hlmBtn variant="outline" type="button" (click)="exportReport()">
-    <fin-icon name="download" /> {{ i18n.t('reports.exportButton') }}
-  </button>
-  }
-</section>
-<fin-kpi-grid>
-  <fin-kpi
-    [label]="i18n.t('reports.kpi.net.label')"
-    icon="trendUp"
-    [value]="store.money(reportNet())"
-    [hint]="i18n.t('reports.kpi.net.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('reports.kpi.savingsRate.label')"
-    icon="percent"
-    [value]="reportSavingsRate()"
-    [hint]="i18n.t('reports.kpi.savingsRate.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('reports.kpi.averageExpense.label')"
-    icon="trendDown"
-    tone="danger"
-    [value]="store.money(reportAverageExpense())"
-    [hint]="i18n.t('reports.kpi.averageExpense.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('reports.kpi.topCategory.label')"
-    icon="tag"
-    [value]="topCategory().name"
-    [hint]="store.money(topCategory().value)"
-  />
-</fin-kpi-grid>
-<section class="grid auto-rows-max grid-cols-[1.2fr_0.8fr] gap-3.5 max-[700px]:grid-cols-1">
-  @if (can(P.reportes.comparativo.ver)) {
-  <div hlmCard class="min-h-[250px] gap-0 p-5">
-    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
-    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
-    @if (reportSeries().length) {
-    <fin-chart
-      [option]="incomeExpenseOption()"
-      [height]="240"
-      [ariaLabel]="i18n.t('reports.incomeExpense.ariaLabel')"
-    />
-    } @else {
-    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
-    }
-  </div>
-  } @if (can(P.reportes.categorias.ver)) {
-  <div hlmCard class="min-h-[250px] gap-0 p-5">
-    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.categories.title') }}</h2>
-    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
-    @if (reportCategories().length) {
-    <fin-chart [option]="categoriesOption()" [height]="240" [ariaLabel]="i18n.t('reports.categories.title')" />
-    } @else {
-    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
-    }
-  </div>
-  } @if (can(P.reportes.tendencia.ver)) {
-  <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
-    <h2 class="mb-[5px] text-base">{{ i18n.t('reports.trend.title') }}</h2>
-    <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
-    @if (reportSeries().length) {
-    <fin-chart [option]="trendOption()" [height]="220" [ariaLabel]="i18n.t('reports.trend.ariaLabel')" />
-    } @else {
-    <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
-    }
-  </div>
-  } @if (can(P.reportes.deuda.ver)) {
-  <div hlmCard class="min-h-[250px] gap-0 p-5">
-    <h2 class="mb-3 text-base">{{ i18n.t('reports.debtHealth.title') }}</h2>
-    @if (utilization() !== null) {
-    <fin-chart
-      [option]="utilizationOption()"
-      [height]="170"
-      [ariaLabel]="i18n.t('reports.debtHealth.utilization.label')"
-    />
-    }
-    <dl
-      class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
+<hlm-tabs class="flex min-h-0 flex-1 flex-col gap-3.5" [tab]="seccion()" (tabActivated)="seccion.set($any($event))">
+  <hlm-tabs-list
+    variant="line"
+    class="w-full flex-none justify-start overflow-x-auto border-b border-border"
+    [attr.aria-label]="i18n.t('reports.sections.ariaLabel')"
+  >
+    <button hlmTabsTrigger="summary" class="flex-none gap-2 px-3.5 py-2.5">
+      <fin-icon name="reports" /> {{ i18n.t('reports.sections.summary') }}
+    </button>
+    <button hlmTabsTrigger="explorer" class="flex-none gap-2 px-3.5 py-2.5">
+      <fin-icon name="portfolio" /> {{ i18n.t('reports.sections.explorer') }}
+    </button>
+  </hlm-tabs-list>
+  <div hlmTabsContent="summary" class="flex flex-col gap-3.5">
+    @if (seccion() === 'summary') {
+    <section
+      class="flex items-end justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
+      [attr.aria-label]="i18n.t('reports.filtersAriaLabel')"
     >
-      @if (utilization() === null) {
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
-        <dd class="font-bold">{{ sinDato }}</dd>
+      <label class="grid w-40 gap-[3px] text-[0.72rem] text-muted-foreground"
+        >{{ i18n.t('reports.periodLabel') }}<fin-select
+          [ngModel]="reportPeriod()"
+          (ngModelChange)="reportPeriod.set($event)"
+          [options]="reportPeriodOptions()"
+          [ariaLabel]="i18n.t('reports.periodSelectAriaLabel')"
+      /></label>
+      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.traceabilityNote') }}</p>
+    </section>
+    <fin-kpi-grid>
+      <fin-kpi
+        [label]="i18n.t('reports.kpi.net.label')"
+        icon="trendUp"
+        [value]="store.money(reportNet())"
+        [hint]="i18n.t('reports.kpi.net.hint')"
+      />
+      <fin-kpi
+        [label]="i18n.t('reports.kpi.savingsRate.label')"
+        icon="percent"
+        [value]="reportSavingsRate()"
+        [hint]="i18n.t('reports.kpi.savingsRate.hint')"
+      />
+      <fin-kpi
+        [label]="i18n.t('reports.kpi.averageExpense.label')"
+        icon="trendDown"
+        tone="danger"
+        [value]="store.money(reportAverageExpense())"
+        [hint]="i18n.t('reports.kpi.averageExpense.hint')"
+      />
+      <fin-kpi
+        [label]="i18n.t('reports.kpi.topCategory.label')"
+        icon="tag"
+        [value]="topCategory().name"
+        [hint]="store.money(topCategory().value)"
+      />
+    </fin-kpi-grid>
+    <section class="grid auto-rows-max grid-cols-[1.2fr_0.8fr] gap-3.5 max-[700px]:grid-cols-1">
+      @if (can(P.reportes.comparativo.ver)) {
+      <div hlmCard class="min-h-[250px] gap-0 p-5">
+        <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
+        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
+        @if (reportSeries().length) {
+        <fin-chart
+          [option]="incomeExpenseOption()"
+          [height]="240"
+          [ariaLabel]="i18n.t('reports.incomeExpense.ariaLabel')"
+        />
+        } @else {
+        <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+        }
+      </div>
+      } @if (can(P.reportes.categorias.ver)) {
+      <div hlmCard class="min-h-[250px] gap-0 p-5">
+        <h2 class="mb-[5px] text-base">{{ i18n.t('reports.categories.title') }}</h2>
+        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
+        @if (reportCategories().length) {
+        <fin-chart [option]="categoriesOption()" [height]="240" [ariaLabel]="i18n.t('reports.categories.title')" />
+        } @else {
+        <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+        }
+      </div>
+      } @if (can(P.reportes.tendencia.ver)) {
+      <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
+        <h2 class="mb-[5px] text-base">{{ i18n.t('reports.trend.title') }}</h2>
+        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
+        @if (reportSeries().length) {
+        <fin-chart [option]="trendOption()" [height]="220" [ariaLabel]="i18n.t('reports.trend.ariaLabel')" />
+        } @else {
+        <p class="m-auto py-10 text-center text-muted-foreground">{{ i18n.t('reports.empty') }}</p>
+        }
+      </div>
+      } @if (can(P.reportes.deuda.ver)) {
+      <div hlmCard class="min-h-[250px] gap-0 p-5">
+        <h2 class="mb-3 text-base">{{ i18n.t('reports.debtHealth.title') }}</h2>
+        @if (utilization() !== null) {
+        <fin-chart
+          [option]="utilizationOption()"
+          [height]="170"
+          [ariaLabel]="i18n.t('reports.debtHealth.utilization.label')"
+        />
+        }
+        <dl
+          class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
+        >
+          @if (utilization() === null) {
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.utilization.label') }}</dt>
+            <dd class="font-bold">{{ sinDato }}</dd>
+          </div>
+          }
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
+            <dd class="text-end font-bold">
+              @if (nextDue(); as proximo) { {{ proximo.fecha }}
+              <small class="block font-normal text-muted-foreground">{{ proximo.tarjeta }}</small>
+              } @else { {{ sinDato }} }
+            </dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
+            <dd class="font-bold">
+              {{ estimatedInterest() === null ? sinDato : store.money(estimatedInterest() ?? 0) }}
+            </dd>
+          </div>
+        </dl>
+      </div>
+      } @if (can(P.reportes.patrimonio.ver)) {
+      <div hlmCard class="min-h-[250px] gap-0 p-5">
+        <h2 class="mb-3 text-base">{{ i18n.t('reports.netWorth.title') }}</h2>
+        <dl
+          class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
+        >
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.liquidAssets.label') }}</dt>
+            <dd class="font-bold">{{ store.money(store.available()) }}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.investments.label') }}</dt>
+            <dd class="font-bold">{{ store.money(investmentValue()) }}</dd>
+          </div>
+          <div>
+            <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.debt.label') }}</dt>
+            <dd class="font-bold">{{ store.money(store.debt()) }}</dd>
+          </div>
+        </dl>
+      </div>
+      } @if (can(P.reportes.hallazgos.ver)) {
+      <div hlmCard class="col-span-full min-h-[180px] gap-0 p-5 max-[700px]:col-auto">
+        <h2 class="mb-3 text-base">{{ i18n.t('reports.insights.title') }}</h2>
+        <ul class="grid gap-3 text-muted-foreground">
+          @for (hallazgo of insights(); track $index) {
+          <li>{{ hallazgo }}</li>
+          }
+        </ul>
       </div>
       }
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.nextDue.label') }}</dt>
-        <dd class="text-end font-bold">
-          @if (nextDue(); as proximo) { {{ proximo.fecha }}
-          <small class="block font-normal text-muted-foreground">{{ proximo.tarjeta }}</small>
-          } @else { {{ sinDato }} }
-        </dd>
-      </div>
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.debtHealth.interest.label') }}</dt>
-        <dd class="font-bold">{{ estimatedInterest() === null ? sinDato : store.money(estimatedInterest() ?? 0) }}</dd>
-      </div>
-    </dl>
+    </section>
+
+    }
   </div>
-  } @if (can(P.reportes.patrimonio.ver)) {
-  <div hlmCard class="min-h-[250px] gap-0 p-5">
-    <h2 class="mb-3 text-base">{{ i18n.t('reports.netWorth.title') }}</h2>
-    <dl
-      class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
-    >
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.liquidAssets.label') }}</dt>
-        <dd class="font-bold">{{ store.money(store.available()) }}</dd>
-      </div>
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.investments.label') }}</dt>
-        <dd class="font-bold">{{ store.money(investmentValue()) }}</dd>
-      </div>
-      <div>
-        <dt class="text-muted-foreground">{{ i18n.t('reports.netWorth.debt.label') }}</dt>
-        <dd class="font-bold">{{ store.money(store.debt()) }}</dd>
-      </div>
-    </dl>
+  <div hlmTabsContent="explorer" class="flex flex-col gap-3.5">
+    @if (seccion() === 'explorer') {
+    <header>
+      <h2 class="text-base font-semibold">{{ i18n.t('reports.explorer.title') }}</h2>
+      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('reports.explorer.description') }}</p>
+    </header>
+    <fin-explorador-de-reportes />
+    }
   </div>
-  } @if (can(P.reportes.hallazgos.ver)) {
-  <div hlmCard class="col-span-full min-h-[180px] gap-0 p-5 max-[700px]:col-auto">
-    <h2 class="mb-3 text-base">{{ i18n.t('reports.insights.title') }}</h2>
-    <ul class="grid gap-3 text-muted-foreground">
-      @for (hallazgo of insights(); track $index) {
-      <li>{{ hallazgo }}</li>
-      }
-    </ul>
-  </div>
-  }
-</section>
+</hlm-tabs>

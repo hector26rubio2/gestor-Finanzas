@@ -25,8 +25,8 @@ import { ApiPreference } from './preferences.api';
 import { MovementQuery } from './shared-api-types';
 
 // Transporte HTTP: puertos y adaptador CSRF, movidos a core/http/.
-export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from '../http/api-http-client';
-export type { ApiRequest, ApiTransport, ApiProblem } from '../http/api-http-client';
+export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from '@core/http/api-http-client';
+export type { ApiRequest, ApiTransport, ApiProblem } from '@core/http/api-http-client';
 
 // Tabla de rutas y tipos compartidos, movidos a core/api/.
 export { API_ROUTES } from './api-routes';
@@ -165,6 +165,9 @@ export class FinanceApiClient {
   }
   debts() {
     return this.peopleApi.debts();
+  }
+  createLoan(...args: Parameters<ObligationsApi['createLoan']>) {
+    return this.obligationsApi.createLoan(...args);
   }
   obligations() {
     return this.obligationsApi.obligations();
@@ -309,6 +312,9 @@ export class FinanceApiClient {
   }
   recurrences() {
     return this.recurrencesApi.recurrences();
+  }
+  deleteRecurrence(id: string) {
+    return this.recurrencesApi.deleteRecurrence(id);
   }
   createRecurrence(request: unknown) {
     return this.recurrencesApi.createRecurrence(request);

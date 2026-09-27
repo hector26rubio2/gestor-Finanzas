@@ -2,21 +2,18 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { ApiClientError } from '../../../../core/api/administration.api';
-import { FinanceApiClient } from '../../../../core/api/api-client';
-import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../../../core/state/store';
-import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
+import { ApiClientError, FinanceApiClient } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
-import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
-import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
-import { AdminLabels } from '../../admin-labels';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
+import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
+import { IconComponent } from '@ui/icon';
+import { SheetPanelComponent } from '@ui/sheet-panel';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { AdminLabels } from '@pages/admin/admin-labels';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 
 @Component({
   selector: 'app-admin-errors-tab',
@@ -28,7 +25,6 @@ import { AdminGridComponent } from '../../panel/admin-grid';
     DataTableComponent,
     FinTableCellDirective,
     HlmDialogImports,
-    EmptyStateComponent,
     IconComponent,
     SheetPanelComponent,
     UiSelectComponent,
@@ -36,56 +32,57 @@ import { AdminGridComponent } from '../../panel/admin-grid';
   host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (store.sinDatos()) {
-      <fin-empty [title]="i18n.t('admin.emptyState.title')" [detail]="i18n.t('admin.emptyState.errors.detail')" />
-    } @else {
-      <section class="rounded-xl border border-border bg-card">
-        <header class="flex flex-wrap items-end justify-between gap-3 p-4">
-          <div>
-            <h2 class="text-base font-semibold">{{ i18n.t('admin.errors.title') }}</h2>
-            <p class="text-sm text-muted-foreground">{{ i18n.t('admin.errors.subtitle') }}</p>
-          </div>
-          <fin-select
-            class="w-52"
-            [ngModel]="store.errorsStatus()"
-            (ngModelChange)="store.cargarErrores(1, $event)"
-            [options]="statusOptions()"
-            [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
-          />
-        </header>
-        <app-admin-grid>
-          <fin-table
-            [columns]="columns()"
-            [rows]="rows()"
-            [totalRows]="store.errorsTotal()"
-            [remotePage]="store.errorsPage()"
-            [pageSize]="store.errorsSize()"
-            [tableLabel]="i18n.t('admin.errors.title')"
-            (rowSelected)="selected.set($event['raw'])"
-            (pageSizeChange)="store.errorsSize.set($event)"
-            (pageChange)="store.cargarErrores($event)"
-          >
-            <ng-template finCell="source" let-row>
-              <span hlmBadge variant="outline">{{ row.raw.source }}</span>
-            </ng-template>
-            <ng-template finCell="message" let-row>
-              <span class="flex min-w-0 flex-col">
-                <b class="truncate text-sm">{{ row.raw.title || row.raw.message }}</b>
-                <small class="truncate text-xs text-muted-foreground">
-                  {{ row.raw.version }} ·
-                  {{ i18n.t('admin.errors.affectedUsersLabel', { count: row.raw.affectedUsers }) }}
-                </small>
-              </span>
-            </ng-template>
-            <ng-template finCell="status" let-row>
-              <span hlmBadge [variant]="row.raw.status === 'resolved' ? 'secondary' : 'destructive'">{{
-                row.status
-              }}</span>
-            </ng-template>
-          </fin-table>
-        </app-admin-grid>
-      </section>
-    }
+    <section class="rounded-xl border border-border bg-card">
+      <header class="flex flex-wrap items-end justify-between gap-3 p-4">
+        <div>
+          <h2 class="text-base font-semibold">{{ i18n.t('admin.errors.title') }}</h2>
+          <p class="text-sm text-muted-foreground">{{ i18n.t('admin.errors.subtitle') }}</p>
+        </div>
+        <fin-select
+          class="w-52"
+          [ngModel]="store.errorsStatus()"
+          (ngModelChange)="store.cargarErrores(1, $event)"
+          [options]="statusOptions()"
+          [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
+        />
+      </header>
+      <app-admin-grid>
+        <fin-table
+          [columns]="columns()"
+          [rows]="rows()"
+          [totalRows]="store.errorsTotal()"
+          [remotePage]="store.errorsPage()"
+          [pageSize]="store.errorsSize()"
+          [tableLabel]="i18n.t('admin.errors.title')"
+          (rowSelected)="selected.set($event['raw'])"
+          (pageSizeChange)="store.errorsSize.set($event)"
+          (pageChange)="store.cargarErrores($event)"
+        >
+          <ng-template finCell="source" let-row>
+            <span hlmBadge variant="outline">{{ row.raw.source }}</span>
+          </ng-template>
+          <ng-template finCell="message" let-row>
+            <span class="flex min-w-0 flex-col gap-0.5">
+              <b
+                class="line-clamp-2 text-sm [overflow-wrap:anywhere]"
+                [attr.title]="row.raw.title || row.raw.message"
+                >{{ row.raw.title || row.raw.message }}</b
+              >
+              <small class="truncate text-xs text-muted-foreground">
+                {{ row.raw.version }} ·
+                {{ i18n.t('admin.errors.affectedUsersLabel', { count: row.raw.affectedUsers }) }}
+              </small>
+            </span>
+          </ng-template>
+          <ng-template finCell="status" let-row>
+            <span hlmBadge [variant]="row.raw.status === 'resolved' ? 'secondary' : 'destructive'">{{
+              row.status
+            }}</span>
+          </ng-template>
+        </fin-table>
+      </app-admin-grid>
+    </section>
+
     <fin-sheet-panel
       [wide]="true"
       [open]="!!selectedError()"
@@ -154,10 +151,17 @@ import { AdminGridComponent } from '../../panel/admin-grid';
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.common.traceId') }}</dt>
             <dd>
-              <code>{{ error.traceId || i18n.t('admin.errors.drawer.traceIdMissing') }}</code>
+              <code class="[overflow-wrap:anywhere]">{{
+                error.traceId || i18n.t('admin.errors.drawer.traceIdMissing')
+              }}</code>
             </dd>
           </div>
         </dl>
+        @if (error.traceId && caps.allows(P.administracion.auditoria.listar)) {
+          <button hlmBtn variant="outline" type="button" class="self-start" (click)="verAccion(error.traceId)">
+            <fin-icon name="filter" /> {{ i18n.t('admin.errors.drawer.viewAction') }}
+          </button>
+        }
         @if (error.githubIssueUrl) {
           <a hlmBtn [href]="error.githubIssueUrl" target="_blank" rel="noopener">
             {{ i18n.t('admin.errors.drawer.githubLink') }} ↗
@@ -196,7 +200,7 @@ export class ErrorsTabComponent {
 
   readonly columns = computed<TableColumn[]>(() => [
     { key: 'source', label: this.i18n.t('admin.errors.column.source') },
-    { key: 'message', label: this.i18n.t('admin.errors.column.message') },
+    { key: 'message', label: this.i18n.t('admin.errors.column.message'), wrap: true },
     { key: 'occurrences', label: this.i18n.t('admin.errors.column.occurrences') },
     { key: 'status', label: this.i18n.t('admin.errors.column.status') },
     { key: 'lastSeen', label: this.i18n.t('admin.errors.drawer.lastSeen') },
@@ -255,5 +259,10 @@ export class ErrorsTabComponent {
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.errorStatusFailed'));
     }
+  }
+
+  verAccion(traceId: string): void {
+    this.selected.set(null);
+    this.store.verAccion(traceId);
   }
 }

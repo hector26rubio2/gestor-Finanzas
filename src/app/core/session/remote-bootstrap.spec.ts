@@ -1,12 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiRequestError, FinanceApiClient } from '../api/api-client';
-import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '../utils/money';
+import { ApiRequestError, FinanceApiClient } from '@core/api/api-client';
+import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '@core/utils/money';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
-import { AppStore } from '../state/store';
+import { AppStore } from '@core/state/store';
 
 describe('RemoteBootstrap', () => {
   const emptyPage = { items: [], page: 1, size: 25, total: 0, totalPages: 0, hasNext: false };
@@ -64,7 +64,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -103,7 +103,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -136,7 +136,7 @@ describe('RemoteBootstrap', () => {
   const montar = (api: unknown) => {
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -253,7 +253,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -380,7 +380,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -416,7 +416,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });
@@ -439,7 +439,7 @@ describe('RemoteBootstrap', () => {
     };
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: FinanceApiClient, useValue: api },
       ],
     });

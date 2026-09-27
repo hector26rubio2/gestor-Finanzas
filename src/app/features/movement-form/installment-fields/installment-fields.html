@@ -1,24 +1,34 @@
+<fin-field [label]="i18n.t('form.movement.field.cardBucket')">
+  <fin-select
+    name="cardBucket"
+    [options]="tiposDeCompra()"
+    [ngModel]="tipoDeCompra()"
+    (ngModelChange)="onTipoDeCompra($event)"
+    [ariaLabel]="i18n.t('form.movement.field.cardBucket')"
+  />
+</fin-field>
 <fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
-  <input hlmInput type="number" name="installmentTotal" min="1" [(ngModel)]="model['installmentTotal']" />
+  <input hlmInput type="number" name="installmentTotal" min="1" max="120" [(ngModel)]="model['installmentTotal']" />
 </fin-field>
 @if (currentEditable) {
 <fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
   <input hlmInput type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
-}
-<fin-field [label]="i18n.t('form.movement.field.purchaseApr')">
+} @if (conCuotas()) {
+<fin-field [label]="i18n.t('form.movement.field.installmentRate')">
   <input
     hlmInput
     type="number"
-    name="purchaseApr"
+    name="installmentRate"
     min="0"
-    step="0.1"
-    [ngModel]="purchaseApr()"
-    (ngModelChange)="onPurchaseAprChange($event)"
+    max="100"
+    step="0.01"
+    [ngModel]="monthlyRate()"
+    (ngModelChange)="onMonthlyRateChange($event)"
   />
 </fin-field>
-@if (isOverridden() && cardApr() !== undefined) { @let tasaTarjeta = cardApr()!;
-<button hlmBtn variant="link" size="xs" type="button" (click)="useCardApr()">
-  {{ i18n.t('form.movement.purchaseApr.useCardDefault', { rate: tasaTarjeta }) }}
+@if (isOverridden() && cardMonthlyRate() !== undefined) { @let tasaTarjeta = cardMonthlyRate()!;
+<button hlmBtn variant="link" size="xs" type="button" class="col-span-full justify-self-start" (click)="useCardRate()">
+  {{ i18n.t('form.movement.installmentRate.useCardDefault', { rate: tasaTarjeta }) }}
 </button>
-}
+} }

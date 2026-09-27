@@ -1,0 +1,28 @@
+@if (showProduct) {
+<fin-field [label]="i18n.t('form.movement.field.loanProduct')">
+  <fin-select
+    name="loanProduct"
+    [(ngModel)]="model['loanProduct']"
+    [options]="productOptions()"
+    [ariaLabel]="i18n.t('form.movement.field.loanProduct')"
+  />
+</fin-field>
+} @if (showCardMode) {
+<fin-field [label]="i18n.t('form.movement.field.cardMode')">
+  <fin-select
+    name="cardMode"
+    [(ngModel)]="model['cardMode']"
+    [options]="cardModeOptions()"
+    [ariaLabel]="i18n.t('form.movement.field.cardMode')"
+  />
+</fin-field>
+}
+<fin-field [label]="i18n.t('form.movement.field.monthlyRate')">
+  <input hlmInput type="number" name="monthlyRate" min="0" max="100" step="0.01" [(ngModel)]="model['monthlyRate']" />
+</fin-field>
+<fin-field [label]="i18n.t('form.movement.field.termMonths')">
+  <input hlmInput type="number" name="termMonths" min="1" max="480" step="1" [(ngModel)]="model['termMonths']" />
+</fin-field>
+@if (cuota(); as estimado) {
+<p class="col-span-full -mt-1 text-[0.8rem] text-muted-foreground" role="status">{{ estimado }}</p>
+}

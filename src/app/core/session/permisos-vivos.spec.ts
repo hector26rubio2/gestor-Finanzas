@@ -50,13 +50,13 @@ describe('cada permiso sirve para algo', () => {
   const comprobables = Object.entries(modulos)
     .filter(([ruta]) => !ruta.endsWith('.spec.ts'))
     // El catálogo declara y los perfiles demo conceden: ninguno de los dos comprueba.
-    .filter(([ruta]) => !ruta.endsWith('/permissions.ts') && !ruta.endsWith('/demo-data.ts'))
+    .filter(([ruta]) => !ruta.endsWith('/permissions.ts') && !ruta.endsWith('/view-model.ts'))
     .map(([, fuente]) => fuente)
     .join('\n');
   const comprobados = new Set(comprobables.match(/P\.[A-Za-zÁÉÍÓÚáéíóúñÑ]+(?:\.[A-Za-z]+)*/g) ?? []);
 
-  it('el catálogo del cliente tiene los 113 códigos', () => {
-    expect(declarados).toHaveLength(113);
+  it('el catálogo del cliente tiene los 117 códigos', () => {
+    expect(declarados).toHaveLength(117);
   });
 
   it('ninguno se puede marcar sin que nada lo mire', () => {

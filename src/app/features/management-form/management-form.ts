@@ -1,17 +1,17 @@
-import { DateFieldComponent } from '../../ui/date-field/date-field';
-import { IconComponent } from '../../ui/icon/icon';
-import { IconPickerComponent } from '../../ui/icon-picker/icon-picker';
+import { DateFieldComponent } from '@ui/date-field';
+import { IconComponent } from '@ui/icon';
+import { IconPickerComponent } from '@ui/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { I18nService } from '../../core/i18n';
-import { P } from '../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../core/state/store';
-import { OverlayComponent } from '../../ui/overlay/overlay';
-import { UiOption, UiSelectComponent } from '../../ui/select/select';
-import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
-import { FieldComponent } from '../../ui/field/field';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore, PersonKind, CatalogCommands } from '@core/state';
+import { OverlayComponent } from '@ui/overlay';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { NumericInputDirective } from '@ui/numeric-input';
+import { FieldComponent } from '@ui/field';
 
 @Component({
   selector: 'fin-management-form',
@@ -33,6 +33,7 @@ import { FieldComponent } from '../../ui/field/field';
 export class ManagementFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly store = inject(AppStore);
+  private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
@@ -61,7 +62,12 @@ export class ManagementFormComponent {
     { value: 'income', label: this.i18n.t('form.management.categoryType.income') },
   ]);
   email = '';
-  relationship: import('../../core/state/demo-data').Person['relationship'] = 'Otro';
+  relationship: import('@core/state/view-model').Person['relationship'] = 'Otro';
+  personKind: PersonKind = (this.store.form()?.personKind as PersonKind | undefined) ?? 'person';
+  readonly personKindOptions = computed<readonly UiOption[]>(() => [
+    { value: 'person', label: this.i18n.t('people.kind.person') },
+    { value: 'institution', label: this.i18n.t('people.kind.institution') },
+  ]);
   readonly relationshipOptions = computed<readonly UiOption[]>(() => [
     { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
     { value: 'Amistad', label: this.i18n.t('form.management.relationship.friendship') },
@@ -114,6 +120,7 @@ export class ManagementFormComponent {
       this.name = person.name;
       this.email = person.email ?? '';
       this.relationship = person.relationship ?? 'Otro';
+      this.personKind = person.kind ?? 'person';
     }
     if (kind === 'investment') {
       const investment = this.store.data().investments.find((item) => item.id === id);
@@ -138,11 +145,13 @@ export class ManagementFormComponent {
       if (permiso && !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
-        await this.store.createCategory(this.name, this.color, this.icon, this.categoryType);
-      if (this.kind() === 'person') await this.store.createPerson(this.name, this.email, this.relationship);
-      if (this.kind() === 'investment') await this.store.createInvestment(this.name, this.instrument, this.currency);
+        await this.catalogCommands.createCategory(this.name, this.color, this.icon, this.categoryType);
+      if (this.kind() === 'person')
+        await this.catalogCommands.createPerson(this.name, this.email, this.relationship, this.personKind);
+      if (this.kind() === 'investment')
+        await this.catalogCommands.createInvestment(this.name, this.instrument, this.currency);
       if (this.kind() === 'recurrence')
-        await this.store.createRecurrence(
+        await this.catalogCommands.createRecurrence(
           this.name,
           Number(this.amount),
           this.accountId,
@@ -166,11 +175,16 @@ export class ManagementFormComponent {
       if (!permiso || !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
       if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
-        await this.store.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
+        await this.catalogCommands.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
       if (this.kind() === 'person')
-        await this.store.updatePerson(id, { name: this.name, email: this.email, relationship: this.relationship });
+        await this.catalogCommands.updatePerson(id, {
+          name: this.name,
+          email: this.email,
+          relationship: this.relationship,
+          kind: this.personKind,
+        });
       if (this.kind() === 'investment')
-        await this.store.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
+        await this.catalogCommands.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }

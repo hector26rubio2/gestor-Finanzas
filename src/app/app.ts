@@ -11,16 +11,17 @@ import {
 } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { P } from './core/session/permissions';
-import { safeReturnPath } from './core/session/return-url';
-import { I18nService } from './core/i18n';
-import { RemoteBootstrap } from './core/session/remote-bootstrap';
-import { IconComponent } from './ui/icon/icon';
-import { CAPABILITIES, AppStore, FEATURES, navigation } from './core/state/store';
-import { BugReportButtonComponent } from './features/bug-report/bug-report';
-import { CommandPaletteComponent } from './shared/command-palette/command-palette';
-import { CommandPaletteService } from './shared/command-palette/command-palette.service';
-import { MovementFormComponent } from './features/movement-form/movement-form';
+import { P } from '@core/session/permissions';
+import { safeReturnPath } from '@core/session/return-url';
+import { I18nService } from '@core/i18n';
+import { RemoteBootstrap } from '@core/session/remote-bootstrap';
+import { IconComponent } from '@ui/icon/icon';
+import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
+import { TablerosService } from '@pages/dashboard/tableros/tableros.service';
+import { BugReportButtonComponent } from '@features/bug-report/bug-report';
+import { CommandPaletteComponent } from '@shared/command-palette/command-palette';
+import { CommandPaletteService } from '@shared/command-palette/command-palette.service';
+import { MovementFormComponent } from '@features/movement-form/movement-form';
 import { HlmToaster } from '@spartan-ng/helm/sonner';
 import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import {
@@ -44,7 +45,7 @@ import {
   HlmSidebarMenuSubButton,
   HlmSidebarMenuSubItem,
 } from '@spartan-ng/helm/sidebar';
-import { ADMIN_TABS } from './pages/admin/admin-tabs';
+import { ADMIN_TABS } from '@pages/admin/admin-tabs';
 import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmProgress, HlmProgressIndicator } from '@spartan-ng/helm/progress';
@@ -214,7 +215,7 @@ export class AppComponent {
    * `remoteState` pasa a «ready» cuando ya estan cargados movimientos, cuentas, personas,
    * preferencias y banderas, asi que esta ventana cubre justo lo que hay que esperar.
    */
-  readonly cargandoSesion = computed(() => this.store.runtime.mode === 'api' && this.store.remoteState() === 'loading');
+  readonly cargandoSesion = computed(() => this.store.remoteState() === 'loading');
 
   /**
    * A dónde ir tras entrar. No a `/dashboard` a ciegas: quien no tenga `dashboard.ver`
@@ -254,6 +255,7 @@ export class AppComponent {
     const formulario = this.store.form();
     return !!formulario && !FORM_KINDS_SIN_MOVIMIENTO.includes(formulario.kind ?? '');
   });
+  readonly tableros = inject(TablerosService);
   readonly allowed = computed(() =>
     navigation.filter((n) => this.caps.allows(n.capability) && this.features.enabled(n.path)),
   );

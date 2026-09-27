@@ -1,8 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { FinanceApiClient } from '../../core/api/api-client';
-import { RUNTIME_CONFIG } from '../../core/session/runtime';
+import { FinanceApiClient } from '@core/api';
+import { RUNTIME_CONFIG } from '@core/session';
 import { BugReportButtonComponent } from './bug-report';
 
 describe('botón flotante de reportes', () => {
@@ -11,7 +11,7 @@ describe('botón flotante de reportes', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)) } },
       ],
     });
@@ -78,7 +78,7 @@ describe('reporte con cuestionario', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'demo' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         {
           provide: FinanceApiClient,
           useValue: {

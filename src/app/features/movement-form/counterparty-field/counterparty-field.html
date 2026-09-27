@@ -1,0 +1,42 @@
+<fin-field [label]="label()">
+  <div class="flex items-center gap-2">
+    <fin-select
+      class="min-w-0 flex-1"
+      name="counterpartyId"
+      [(ngModel)]="model['counterpartyId']"
+      [options]="opciones()"
+      [ariaLabel]="label()"
+    />
+    @if (puedeCrear()) {
+    <button
+      hlmBtn
+      type="button"
+      variant="outline"
+      size="icon"
+      [attr.aria-label]="textoAgregar()"
+      [attr.aria-expanded]="creando()"
+      (click)="creando.set(!creando())"
+    >
+      <fin-icon name="plus" />
+    </button>
+    }
+  </div>
+</fin-field>
+@if (creando()) {
+<fin-field [label]="textoAgregar()">
+  <div class="flex items-center gap-2">
+    <input
+      hlmInput
+      class="min-w-0 flex-1"
+      type="text"
+      name="nuevaContraparte"
+      [ngModel]="nombreNuevo()"
+      (ngModelChange)="nombreNuevo.set($event)"
+      (keydown.enter)="$event.preventDefault(); agregar()"
+    />
+    <button hlmBtn type="button" size="sm" [disabled]="!nombreNuevo().trim() || guardando()" (click)="agregar()">
+      {{ i18n.t('form.actions.add') }}
+    </button>
+  </div>
+</fin-field>
+}

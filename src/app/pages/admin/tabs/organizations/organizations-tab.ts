@@ -5,20 +5,18 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
-import { ApiAdminOrganization } from '../../../../core/api/administration.api';
-import { I18nService } from '../../../../core/i18n';
-import { P } from '../../../../core/session/permissions';
-import { CAPABILITIES, AppStore } from '../../../../core/state/store';
-import { ConfirmDialogComponent } from '../../../../ui/confirm-dialog/confirm-dialog';
-import { EmptyStateComponent } from '../../../../ui/empty-state/empty-state';
-import { DataTableComponent, TableColumn } from '../../../../ui/data-table/data-table';
-import { FinTableCellDirective } from '../../../../ui/data-table/table-cell.directive';
-import { IconComponent } from '../../../../ui/icon/icon';
-import { SheetPanelComponent } from '../../../../ui/sheet-panel/sheet-panel';
-import { UiOption, UiSelectComponent } from '../../../../ui/select/select';
-import { AdminStore } from '../../admin.store';
-import { AdminGridComponent } from '../../panel/admin-grid';
-import { AdminPanelComponent } from '../../panel/admin-panel';
+import { ApiAdminOrganization } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { P } from '@core/session';
+import { CAPABILITIES, AppStore } from '@core/state';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
+import { DataTableComponent, TableColumn, FinTableCellDirective } from '@ui/data-table';
+import { IconComponent } from '@ui/icon';
+import { SheetPanelComponent } from '@ui/sheet-panel';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { AdminStore } from '@pages/admin/admin.store';
+import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
+import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
 
 /** Código de moneda ISO 4217: tres letras, que es lo que el backend exige en el cuerpo. */
@@ -37,7 +35,6 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
     AdminPanelComponent,
     DataTableComponent,
     FinTableCellDirective,
-    EmptyStateComponent,
     IconComponent,
     OrganizationSheetComponent,
     SheetPanelComponent,
@@ -47,120 +44,111 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
   host: { class: 'flex min-w-0 flex-col gap-4' },
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (store.sinDatos()) {
-      <fin-empty
-        [title]="i18n.t('admin.emptyState.title')"
-        [detail]="i18n.t('admin.emptyState.organizations.detail')"
-      />
-    } @else {
-      <fin-confirm-dialog
-        [open]="confirmingConsolidation()"
-        [title]="i18n.t('admin.organizations.consolidate.title')"
-        [description]="i18n.t('admin.organizations.consolidate.description')"
-        [confirmLabel]="i18n.t('admin.organizations.consolidate.confirm')"
-        [cancelLabel]="i18n.t('admin.common.cancel')"
-        (confirmed)="consolidate()"
-        (dismissed)="confirmingConsolidation.set(false)"
-      />
-      <fin-confirm-dialog
-        [open]="!!deleting()"
-        [title]="i18n.t('admin.organizations.delete.title', { name: deleting()?.name ?? '' })"
-        [description]="i18n.t('admin.organizations.delete.description')"
-        [confirmLabel]="i18n.t('admin.organizations.delete.confirm')"
-        [cancelLabel]="i18n.t('admin.common.cancel')"
-        (confirmed)="confirmDelete()"
-        (dismissed)="deleting.set(null)"
-      />
-      <app-admin-panel
-        [title]="i18n.t('admin.organizations.title')"
-        [subtitle]="i18n.t('admin.organizations.subtitle')"
-      >
-        <div panelActions class="flex flex-wrap items-center gap-2">
-          @if (canConsolidate()) {
-            <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
-              <fin-icon name="layers" /> {{ i18n.t('admin.organizations.consolidate.action') }}
-            </button>
-          }
-          <label class="flex items-center gap-2 text-xs text-muted-foreground">
-            <hlm-switch
-              [checked]="showArchived()"
-              [aria-label]="i18n.t('admin.organizations.showArchived')"
-              (checkedChange)="showArchived.set($event)"
-            />
-            {{ i18n.t('admin.organizations.showArchived') }}
-          </label>
-          @if (caps.allows(P.administracion.organizaciones.crear)) {
-            <button hlmBtn (click)="creating.set(true)">
-              <fin-icon name="plus" /> {{ i18n.t('admin.organizations.actions.create') }}
-            </button>
-          }
-        </div>
-        <app-admin-grid>
-          <fin-table
-            [columns]="columns()"
-            [rows]="rows()"
-            [selectable]="false"
-            [pageSize]="15"
-            [tableLabel]="i18n.t('admin.organizations.title')"
-          >
-            <ng-template finCell="organization" let-row>
-              <div class="flex items-center gap-3">
-                <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
-                  <fin-icon name="organization" />
-                </span>
-                <span class="flex min-w-0 flex-col">
-                  <b class="text-sm">{{ row.raw.name }}</b>
-                  <small class="text-xs text-muted-foreground">{{ row.raw.slug }}</small>
-                </span>
-              </div>
-            </ng-template>
-            <ng-template finCell="default" let-row>
-              @if (store.isDefaultOrganization(row.raw)) {
-                <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
-              } @else if (canMakeDefault(row.raw)) {
-                <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(row.raw)">
-                  {{ i18n.t('admin.organizations.makeDefault') }}
+    <fin-confirm-dialog
+      [open]="confirmingConsolidation()"
+      [title]="i18n.t('admin.organizations.consolidate.title')"
+      [description]="i18n.t('admin.organizations.consolidate.description')"
+      [confirmLabel]="i18n.t('admin.organizations.consolidate.confirm')"
+      [cancelLabel]="i18n.t('admin.common.cancel')"
+      (confirmed)="consolidate()"
+      (dismissed)="confirmingConsolidation.set(false)"
+    />
+    <fin-confirm-dialog
+      [open]="!!deleting()"
+      [title]="i18n.t('admin.organizations.delete.title', { name: deleting()?.name ?? '' })"
+      [description]="i18n.t('admin.organizations.delete.description')"
+      [confirmLabel]="i18n.t('admin.organizations.delete.confirm')"
+      [cancelLabel]="i18n.t('admin.common.cancel')"
+      (confirmed)="confirmDelete()"
+      (dismissed)="deleting.set(null)"
+    />
+    <app-admin-panel [title]="i18n.t('admin.organizations.title')" [subtitle]="i18n.t('admin.organizations.subtitle')">
+      <div panelActions class="flex flex-wrap items-center gap-2">
+        @if (canConsolidate()) {
+          <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
+            <fin-icon name="layers" /> {{ i18n.t('admin.organizations.consolidate.action') }}
+          </button>
+        }
+        <label class="flex items-center gap-2 text-xs text-muted-foreground">
+          <hlm-switch
+            [checked]="showArchived()"
+            [aria-label]="i18n.t('admin.organizations.showArchived')"
+            (checkedChange)="showArchived.set($event)"
+          />
+          {{ i18n.t('admin.organizations.showArchived') }}
+        </label>
+        @if (caps.allows(P.administracion.organizaciones.crear)) {
+          <button hlmBtn (click)="creating.set(true)">
+            <fin-icon name="plus" /> {{ i18n.t('admin.organizations.actions.create') }}
+          </button>
+        }
+      </div>
+      <app-admin-grid>
+        <fin-table
+          [columns]="columns()"
+          [rows]="rows()"
+          [selectable]="false"
+          [pageSize]="15"
+          [tableLabel]="i18n.t('admin.organizations.title')"
+        >
+          <ng-template finCell="organization" let-row>
+            <div class="flex items-center gap-3">
+              <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-accent text-primary">
+                <fin-icon name="organization" />
+              </span>
+              <span class="flex min-w-0 flex-col">
+                <b class="text-sm">{{ row.raw.name }}</b>
+                <small class="text-xs text-muted-foreground">{{ row.raw.slug }}</small>
+              </span>
+            </div>
+          </ng-template>
+          <ng-template finCell="default" let-row>
+            @if (store.isDefaultOrganization(row.raw)) {
+              <span hlmBadge>{{ i18n.t('admin.organizations.defaultBadge') }}</span>
+            } @else if (canMakeDefault(row.raw)) {
+              <button hlmBtn variant="ghost" size="sm" (click)="store.setDefaultOrganization(row.raw)">
+                {{ i18n.t('admin.organizations.makeDefault') }}
+              </button>
+            }
+          </ng-template>
+          <ng-template finCell="active" let-row>
+            <span class="flex items-center gap-2">
+              @if (caps.allows(P.administracion.organizaciones.editar)) {
+                <hlm-switch
+                  [checked]="store.isOrganizationActive(row.raw)"
+                  [disabled]="store.isDefaultOrganization(row.raw)"
+                  [aria-label]="i18n.t('admin.organizations.activeToggle', { name: row.raw.name })"
+                  (checkedChange)="store.setOrganizationActive(row.raw, $event)"
+                />
+              }
+              <span class="text-xs text-muted-foreground">{{ row.active }}</span>
+            </span>
+          </ng-template>
+          <ng-template finCell="actions" let-row>
+            <span class="inline-flex items-center gap-2">
+              @if (canDelete(row.raw)) {
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon-sm"
+                  type="button"
+                  class="text-destructive"
+                  [attr.aria-label]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
+                  [attr.title]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
+                  (click)="deleting.set(row.raw)"
+                >
+                  <fin-icon name="trash" />
                 </button>
               }
-            </ng-template>
-            <ng-template finCell="active" let-row>
-              <span class="flex items-center gap-2">
-                @if (caps.allows(P.administracion.organizaciones.editar)) {
-                  <hlm-switch
-                    [checked]="store.isOrganizationActive(row.raw)"
-                    [disabled]="store.isDefaultOrganization(row.raw)"
-                    [aria-label]="i18n.t('admin.organizations.activeToggle', { name: row.raw.name })"
-                    (checkedChange)="store.setOrganizationActive(row.raw, $event)"
-                  />
-                }
-                <span class="text-xs text-muted-foreground">{{ row.active }}</span>
-              </span>
-            </ng-template>
-            <ng-template finCell="actions" let-row>
-              <span class="inline-flex items-center gap-2">
-                @if (canDelete(row.raw)) {
-                  <button
-                    hlmBtn
-                    variant="ghost"
-                    size="icon-sm"
-                    type="button"
-                    class="text-destructive"
-                    [attr.aria-label]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
-                    [attr.title]="i18n.t('admin.organizations.delete.action', { name: row.raw.name })"
-                    (click)="deleting.set(row.raw)"
-                  >
-                    <fin-icon name="trash" />
-                  </button>
-                }
-                <button hlmBtn variant="outline" size="sm" (click)="managingId.set(row.raw.id)">
-                  {{ i18n.t('admin.organizations.manage') }}
-                </button>
-              </span>
-            </ng-template>
-          </fin-table>
-        </app-admin-grid>
-      </app-admin-panel>
-    }
+              <button hlmBtn variant="outline" size="sm" (click)="managingId.set(row.raw.id)">
+                {{ i18n.t('admin.organizations.manage') }}
+              </button>
+            </span>
+          </ng-template>
+        </fin-table>
+      </app-admin-grid>
+    </app-admin-panel>
+
     <app-organization-sheet [organization]="managing()" (closed)="managingId.set(null)" />
     <fin-sheet-panel
       [open]="creating()"

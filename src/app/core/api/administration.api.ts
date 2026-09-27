@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { API_TRANSPORT } from '../http/api-http-client';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { API_TRANSPORT } from '@core/http/api-http-client';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { API_ROUTES } from './api-routes';
 import { ApiFeatureFlag } from './preferences.api';
 import { ApiPage } from './shared-api-types';
@@ -196,6 +196,7 @@ export interface BugReportPayload {
   consoleLogJson?: string;
   systemInfoJson?: string;
   screenshotBase64?: string;
+  traceId?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -425,11 +426,11 @@ export class AdministrationApi {
     });
   }
 
-  adminErrors(page = 1, size = 25, status = '') {
+  adminErrors(page = 1, size = 25, status = '', traceId?: string) {
     return this.transport.request<ApiPage<ApiClientError>>({
       method: 'GET',
       path: API_ROUTES.adminErrors,
-      params: { page, size, status },
+      params: { page, size, status, traceId },
     });
   }
 
@@ -449,7 +450,13 @@ export class AdministrationApi {
     });
   }
 
-  reportClientError(payload: { source: 'web'; fingerprint: string; message: string; contextJson: string }) {
+  reportClientError(payload: {
+    source: 'web';
+    fingerprint: string;
+    message: string;
+    contextJson: string;
+    traceId?: string | null;
+  }) {
     return this.transport.request<ApiClientError>({
       method: 'POST',
       path: API_ROUTES.clientErrors,

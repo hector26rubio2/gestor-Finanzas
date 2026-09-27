@@ -3,11 +3,11 @@ import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmComboboxImports } from '@spartan-ng/helm/combobox';
-import { ApiPermissionDescriptor } from '../../../core/api/administration.api';
-import { I18nService } from '../../../core/i18n';
-import { IconComponent } from '../../../ui/icon/icon';
-import { UiOption, UiSelectComponent } from '../../../ui/select/select';
-import { AdminLabels } from '../admin-labels';
+import { ApiPermissionDescriptor } from '@core/api';
+import { I18nService } from '@core/i18n';
+import { IconComponent } from '@ui/icon';
+import { UiOption, UiSelectComponent } from '@ui/select';
+import { AdminLabels } from '@pages/admin/admin-labels';
 
 export interface PermissionGroup {
   name: string;

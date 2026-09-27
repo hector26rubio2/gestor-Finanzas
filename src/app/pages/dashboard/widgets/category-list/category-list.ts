@@ -1,9 +1,9 @@
 import { HlmButton } from '@spartan-ng/helm/button';
-import { CategoryBadgeComponent } from '../../../../ui/category-badge/category-badge';
+import { CategoryBadgeComponent } from '@ui/category-badge';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { NgScrollbar } from 'ngx-scrollbar';
 import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
-import { AppStore } from '../../../../core/state/store';
+import { AppStore } from '@core/state';
 
 export interface CategoryListItem {
   name: string;

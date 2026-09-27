@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { API_TRANSPORT, FinanceApiClient, HttpApiTransport } from './api-client';
-import { RUNTIME_CONFIG } from '../session/runtime';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 
 describe('FinanceApiClient', () => {
   let api: FinanceApiClient;
@@ -15,7 +15,7 @@ describe('FinanceApiClient', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
-        { provide: RUNTIME_CONFIG, useValue: { mode: 'api', apiBaseUrl: 'https://api.example.test' } },
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
         { provide: API_TRANSPORT, useClass: HttpApiTransport },
       ],
     });

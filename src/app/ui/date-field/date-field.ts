@@ -1,8 +1,19 @@
-import { ChangeDetectionStrategy, Component, computed, forwardRef, inject, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
+import { BrnCalendarI18nService, BrnCalendarI18nToken } from '@spartan-ng/brain/calendar';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
-import { I18nService } from '../../core/i18n';
-import { AppStore } from '../../core/state/store';
+import { I18nService } from '@core/i18n';
+import { PREFERENCES } from '@core/state/theme';
 import { CalendarLocale } from './calendar-locale';
 
 const NOON = 12;
@@ -20,7 +31,10 @@ export function fromIsoDate(value: string): Date | undefined {
 @Component({
   selector: 'fin-date-field',
   imports: [HlmDatePickerImports],
-  providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DateFieldComponent), multi: true }],
+  providers: [
+    { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DateFieldComponent), multi: true },
+    { provide: BrnCalendarI18nToken, useFactory: () => new BrnCalendarI18nService() },
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -29,6 +43,8 @@ export function fromIsoDate(value: string): Date | undefined {
       [date]="date()"
       [formatDate]="format()"
       [transformDate]="atNoon"
+      [minDate]="minDate()"
+      [maxDate]="maxDate()"
       [autoCloseOnSelect]="true"
       [disabled]="isDisabled()"
       (dateChange)="pick($event)"
@@ -41,16 +57,34 @@ export function fromIsoDate(value: string): Date | undefined {
 })
 export class DateFieldComponent implements ControlValueAccessor {
   readonly i18n = inject(I18nService);
-  private readonly store = inject(AppStore);
+  private readonly preferences = inject(PREFERENCES);
   private readonly calendarLocale = inject(CalendarLocale);
   readonly placeholder = input('');
+  readonly min = input('');
+  readonly max = input('');
+  readonly minDate = computed(() => fromIsoDate(this.min()));
+  readonly maxDate = computed(() => fromIsoDate(this.max()));
+  private readonly calendarioGlobal = inject(BrnCalendarI18nService);
+  private readonly calendarioPropio = inject(BrnCalendarI18nToken);
+  private readonly anios = effect(() => {
+    const actual = new Date().getFullYear();
+    const desde = this.minDate()?.getFullYear() ?? actual - 100;
+    const hasta = this.maxDate()?.getFullYear() ?? actual + 10;
+    const global = this.calendarioGlobal.config();
+    untracked(() =>
+      this.calendarioPropio.use({
+        ...global,
+        years: () => Array.from({ length: Math.max(1, hasta - desde + 1) }, (_, i) => desde + i),
+      }),
+    );
+  });
   readonly value = signal('');
   private readonly cvaDisabled = signal(false);
   readonly disabledInput = input(false, { alias: 'disabled' });
   readonly isDisabled = computed(() => this.disabledInput() || this.cvaDisabled());
   readonly date = computed(() => fromIsoDate(this.value()));
   readonly format = computed(() => {
-    const formatter = new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'medium' });
+    const formatter = new Intl.DateTimeFormat(this.preferences().locale, { dateStyle: 'medium' });
     return (date: Date) => formatter.format(date);
   });
   readonly atNoon = (date: Date): Date => new Date(date.getFullYear(), date.getMonth(), date.getDate(), NOON);
