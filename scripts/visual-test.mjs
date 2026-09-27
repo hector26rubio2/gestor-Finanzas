@@ -215,7 +215,8 @@ async function exerciseInteractions(page) {
   // El primer chip es "Todas" (solo filtra, no abre nada); el segundo es la primera
   // cuenta real, y ese sí abre el inspector — igual que antes lo hacía `.bank-card`,
   // cuando el carrusel de tarjetas grandes vivía en esta misma página.
-  const cardTrigger = page.locator('hlm-toggle-group button[aria-pressed]').nth(1);
+  await page.locator('hlm-toggle-group button[aria-pressed]').nth(1).click();
+  const cardTrigger = page.getByRole('button', { name: 'Ver extracto y detalle' });
   await cardTrigger.focus();
   await cardTrigger.press('Enter');
   const inspector = page.locator('[data-slot="sheet-content"]');

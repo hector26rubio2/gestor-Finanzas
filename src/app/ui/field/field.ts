@@ -7,10 +7,12 @@ import { HlmFieldImports } from '@spartan-ng/helm/field';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
-    <label hlmField class="gap-2" [class.col-span-full]="full()">
-      <span hlmFieldLabel class="text-[0.78rem] font-medium text-muted-foreground">{{ label() }}</span>
-      <ng-content />
-    </label>
+    <div hlmField class="gap-2" [class.col-span-full]="full()">
+      <label class="flex flex-col gap-2">
+        <span hlmFieldLabel class="text-[0.78rem] font-medium text-muted-foreground">{{ label() }}</span>
+        <ng-content />
+      </label>
+    </div>
   `,
 })
 export class FieldComponent {
