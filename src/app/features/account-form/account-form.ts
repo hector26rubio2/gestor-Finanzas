@@ -13,6 +13,7 @@ import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.dire
 import { FieldComponent } from '../../ui/field/field';
 import { IconComponent } from '../../ui/icon/icon';
 import { AsyncActionService } from '../../core/utils/async-action.service';
+import { mensualDesdeAnual } from '../../shared/utils/tasas';
 
 /** Componentes de un abono, en el orden en que se le aplican a la deuda. */
 export type PriorityItem = 'fees' | 'interest' | 'capital';
@@ -52,6 +53,7 @@ export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
 })
 export class AccountFormComponent {
   private readonly capabilities = inject(CAPABILITIES);
+  private readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
   name = 'Ahorro principal';
@@ -69,7 +71,7 @@ export class AccountFormComponent {
       }))
       .filter((option) => this.capabilities.allows(option.permiso)),
   );
-  type: AccountViewType = 'savings';
+  type: AccountViewType = this.store.form()?.accountType ?? 'savings';
   currency = 'COP';
   readonly currencyOptions = computed<readonly UiOption[]>(() => [
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
@@ -116,10 +118,17 @@ export class AccountFormComponent {
   limit = 5000000;
   cutDay = 20;
   dueDay = 5;
-  annualRate = 28.5;
+  monthlyRate = 2.11;
+  issuerId = '';
+  readonly issuerOptions = computed<readonly UiOption[]>(() => [
+    { value: '', label: this.i18n.t('form.account.issuer.none') },
+    ...this.store
+      .data()
+      .people.filter((persona) => persona.kind === 'institution')
+      .map((persona) => ({ value: persona.id, label: persona.name })),
+  ]);
   paymentOrder = 'oldest';
   minimumPayment = 50000;
-  private store = inject(AppStore);
   readonly actions = inject(AsyncActionService);
   readonly editing = this.store.form()?.account ?? null;
   readonly saveActionKey = this.editing ? `account:update:${this.editing.id}` : 'account:create';
@@ -145,6 +154,8 @@ export class AccountFormComponent {
     if (account.limit !== undefined) this.limit = account.limit;
     if (account.cutDay !== undefined) this.cutDay = account.cutDay;
     if (account.dueDay !== undefined) this.dueDay = account.dueDay;
+    if (account.annualRate !== undefined) this.monthlyRate = mensualDesdeAnual(account.annualRate);
+    this.issuerId = account.issuerId ?? '';
   }
 
   closed = () => this.store.form.set(null);
@@ -168,6 +179,8 @@ export class AccountFormComponent {
               limit: Number(this.limit),
               cutDay: Number(this.cutDay),
               dueDay: Number(this.dueDay),
+              monthlyRate: Number(this.monthlyRate),
+              issuerId: this.issuerId,
             },
           ),
         {
@@ -192,7 +205,13 @@ export class AccountFormComponent {
           this.store.updateAccount(account, {
             name: this.name,
             lastFour: this.lastFour,
-            credit: { limit: Number(this.limit), cutDay: Number(this.cutDay), dueDay: Number(this.dueDay) },
+            credit: {
+              limit: Number(this.limit),
+              cutDay: Number(this.cutDay),
+              dueDay: Number(this.dueDay),
+              monthlyRate: Number(this.monthlyRate),
+              issuerId: this.issuerId,
+            },
           }),
         {
           loading: this.i18n.t('form.account.toast.updating'),

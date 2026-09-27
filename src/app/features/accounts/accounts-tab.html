@@ -74,36 +74,38 @@
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
-<hlm-toggle-group
-  type="single"
-  variant="outline"
-  size="sm"
-  spacing="2"
-  class="shrink-0 flex-nowrap overflow-x-auto pb-1 [scrollbar-width:thin]"
-  [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
-  [value]="selectedAccountFilter()"
->
-  <button
-    hlmToggleGroupItem
-    type="button"
-    value="all"
-    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
-    (click)="filterByAccount('all')"
+<fin-carrusel [ariaLabel]="i18n.t('accounts.cards.listAriaLabel')">
+  <hlm-toggle-group
+    type="single"
+    variant="outline"
+    size="sm"
+    spacing="2"
+    class="w-max flex-nowrap py-0.5"
+    [attr.aria-label]="i18n.t('accounts.cards.listAriaLabel')"
+    [value]="selectedAccountFilter()"
   >
-    {{ i18n.t('accounts.cards.allChip') }}
-  </button>
-  @for (a of filteredAccounts(); track a.id) {
-  <button
-    hlmToggleGroupItem
-    type="button"
-    [value]="a.id"
-    class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
-    (click)="selectAccount(a.id, a.type)"
-  >
-    {{ a.name }}
-  </button>
-  }
-</hlm-toggle-group>
+    <button
+      hlmToggleGroupItem
+      type="button"
+      value="all"
+      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      (click)="filterByAccount('all')"
+    >
+      {{ i18n.t('accounts.cards.allChip') }}
+    </button>
+    @for (a of filteredAccounts(); track a.id) {
+    <button
+      hlmToggleGroupItem
+      type="button"
+      [value]="a.id"
+      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      (click)="selectAccount(a.id, a.type)"
+    >
+      {{ a.name }}
+    </button>
+    }
+  </hlm-toggle-group>
+</fin-carrusel>
 <section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
   <fin-chart-card
     [title]="i18n.t('accounts.chart.balancesTitle')"

@@ -44,6 +44,7 @@ export interface CreateMovementBody {
   description?: string;
   idempotencyKey: string;
   purchaseApr?: number;
+  installments?: number;
 }
 
 /**
@@ -79,6 +80,8 @@ export interface CreateCashAdvanceBody {
   account: string;
   description?: string;
   idempotencyKey: string;
+  installments?: number;
+  apr?: number;
 }
 
 export interface ApiMovement {
@@ -96,6 +99,7 @@ export interface ApiMovement {
   reversalOf: string | null;
   reversedBy: string | null;
   purchaseApr: number | null;
+  installments?: number | null;
 }
 
 export interface ApiConvertedMoney {

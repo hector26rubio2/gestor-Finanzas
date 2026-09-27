@@ -14,6 +14,7 @@ export const API_ROUTES = {
   people: '/api/v1/people',
   debts: '/api/v1/people/debt-positions',
   obligations: '/api/v1/obligations',
+  loans: '/api/v1/loans',
   investments: '/api/v1/investments',
   movementKinds: '/api/v1/movement-kinds',
   movementSearch: '/api/v1/movements/search',

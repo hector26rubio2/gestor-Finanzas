@@ -1,6 +1,7 @@
 import { DateFieldComponent } from '../../../../ui/date-field/date-field';
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmLabel } from '@spartan-ng/helm/label';
 import { ApiAuditEvent, ApiAuditFilter } from '../../../../core/api/administration.api';
@@ -24,6 +25,7 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
     FinTableCellDirective,
     DateFieldComponent,
     FormsModule,
+    HlmBadge,
     HlmButton,
     HlmLabel,
     EmptyStateComponent,
@@ -86,6 +88,31 @@ import { AUDIT_ACTIONS, AUDIT_ENTITIES, endOfDayIso, prettyJson, startOfDayIso }
               <button hlmBtn variant="ghost" size="sm" class="ms-auto" (click)="filterByTrace('')">
                 <fin-icon name="close" /> {{ i18n.t('admin.audit.trace.remove') }}
               </button>
+              <p class="basis-full text-xs text-muted-foreground">
+                {{
+                  i18n.t('admin.audit.trace.summary', {
+                    events: store.auditTotal(),
+                    errors: store.erroresDeLaAccion().length,
+                  })
+                }}
+              </p>
+              @if (store.erroresDeLaAccion().length) {
+                <ul class="grid basis-full gap-1.5">
+                  @for (error of store.erroresDeLaAccion(); track error.id) {
+                    <li
+                      class="flex items-start gap-2 rounded-md border border-destructive/30 bg-background px-2.5 py-1.5"
+                    >
+                      <span hlmBadge variant="destructive" class="flex-none">{{ error.source }}</span>
+                      <span class="line-clamp-2 min-w-0 flex-1 text-xs [overflow-wrap:anywhere]">{{
+                        error.title || error.message
+                      }}</span>
+                      <small class="flex-none text-[0.7rem] text-muted-foreground">{{
+                        labels.dateTimeLong(error.lastSeenAt)
+                      }}</small>
+                    </li>
+                  }
+                </ul>
+              }
             </div>
           }
           @if (hasFilters()) {

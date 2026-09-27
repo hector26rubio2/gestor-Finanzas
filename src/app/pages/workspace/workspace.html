@@ -20,6 +20,14 @@
       <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'person' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
       </button>
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        (click)="store.form.set({ kind: 'person', personKind: 'institution' })"
+      >
+        <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInstitution') }}
+      </button>
       } @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
       <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'investment' })">
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}

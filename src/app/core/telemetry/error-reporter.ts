@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AdministrationApi } from '../api/administration.api';
 import { AppStore } from '../state/store';
+import { AccionDeUsuario } from '../http/accion';
 import { listenToConsole } from '../utils/console-buffer';
 import { buildReport, fingerprintOf, isIgnoredMessage, ErrorOrigin } from './error-report';
 
@@ -12,6 +13,7 @@ const MAX_DISTINCT_ERRORS = 50;
 export class ErrorReporter {
   private readonly api = inject(AdministrationApi);
   private readonly store = inject(AppStore);
+  private readonly accion = inject(AccionDeUsuario);
   private readonly reported = new Set<string>();
   private readonly stops: Array<() => void> = [];
   private windowStartedAt = 0;
@@ -69,7 +71,7 @@ export class ErrorReporter {
     });
     this.sending = true;
     try {
-      this.api.reportClientError(report).subscribe({ error: () => undefined });
+      this.api.reportClientError({ ...report, traceId: this.accion.id() }).subscribe({ error: () => undefined });
     } finally {
       this.sending = false;
     }

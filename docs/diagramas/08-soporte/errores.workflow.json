@@ -42,6 +42,17 @@
           "issue"
         ],
         "note": "El superadmin filtra, reintenta el issue y marca el error resuelto."
+      },
+      {
+        "id": "traza",
+        "label": "Seguir una acción",
+        "focus": [
+          "fallo",
+          "fila",
+          "pestana",
+          "accion"
+        ],
+        "note": "El ID de acción viaja en X-Finanzas-Accion: errores del navegador, fallos del API y auditoría quedan unidos."
       }
     ]
   },
@@ -121,6 +132,15 @@
       "width": 108
     },
     {
+      "id": "fallo",
+      "lane": "api",
+      "col": 1,
+      "type": "backend",
+      "label": "Fallo del API",
+      "sublabel": "500 con su trace",
+      "width": 104
+    },
+    {
       "id": "telemetria",
       "lane": "api",
       "col": 2,
@@ -174,6 +194,15 @@
       "label": "Resuelto",
       "sublabel": "con su resolución",
       "width": 104
+    },
+    {
+      "id": "accion",
+      "lane": "registro",
+      "col": 5,
+      "type": "database",
+      "label": "Toda la acción",
+      "sublabel": "auditoría + errores",
+      "width": 112
     }
   ],
   "edges": [
@@ -188,6 +217,11 @@
     },
     {
       "from": "telemetria",
+      "to": "fila",
+      "label": "guarda"
+    },
+    {
+      "from": "fallo",
       "to": "fila",
       "label": "guarda"
     },
@@ -216,6 +250,12 @@
       "to": "resuelto",
       "label": "marca",
       "variant": "emphasis"
+    },
+    {
+      "from": "pestana",
+      "to": "accion",
+      "label": "mismo trace",
+      "variant": "dashed"
     }
   ],
   "cards": [
@@ -223,8 +263,8 @@
       "dot": "emerald",
       "title": "Automático",
       "items": [
-        "Se ignoran mensajes de ruido",
-        "Hay tope de errores distintos por sesión"
+        "Cada clic o Enter abre una acción con su ID",
+        "Todas las peticiones de la acción comparten el trace"
       ]
     },
     {
@@ -239,8 +279,8 @@
       "dot": "rose",
       "title": "Límites",
       "items": [
-        "Las dos rutas tienen límite de peticiones",
-        "Cuerpos grandes se rechazan con 400"
+        "Un 500 del API queda registrado con el mismo trace",
+        "Las dos rutas tienen límite de peticiones"
       ]
     }
   ]

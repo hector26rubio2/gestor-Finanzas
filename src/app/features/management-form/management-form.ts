@@ -12,6 +12,7 @@ import { OverlayComponent } from '../../ui/overlay/overlay';
 import { UiOption, UiSelectComponent } from '../../ui/select/select';
 import { NumericInputDirective } from '../../ui/numeric-input/numeric-input.directive';
 import { FieldComponent } from '../../ui/field/field';
+import { PersonKind } from '../../core/state/demo-data';
 
 @Component({
   selector: 'fin-management-form',
@@ -62,6 +63,11 @@ export class ManagementFormComponent {
   ]);
   email = '';
   relationship: import('../../core/state/demo-data').Person['relationship'] = 'Otro';
+  personKind: PersonKind = (this.store.form()?.personKind as PersonKind | undefined) ?? 'person';
+  readonly personKindOptions = computed<readonly UiOption[]>(() => [
+    { value: 'person', label: this.i18n.t('people.kind.person') },
+    { value: 'institution', label: this.i18n.t('people.kind.institution') },
+  ]);
   readonly relationshipOptions = computed<readonly UiOption[]>(() => [
     { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
     { value: 'Amistad', label: this.i18n.t('form.management.relationship.friendship') },
@@ -114,6 +120,7 @@ export class ManagementFormComponent {
       this.name = person.name;
       this.email = person.email ?? '';
       this.relationship = person.relationship ?? 'Otro';
+      this.personKind = person.kind ?? 'person';
     }
     if (kind === 'investment') {
       const investment = this.store.data().investments.find((item) => item.id === id);
@@ -139,7 +146,8 @@ export class ManagementFormComponent {
       if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
         await this.store.createCategory(this.name, this.color, this.icon, this.categoryType);
-      if (this.kind() === 'person') await this.store.createPerson(this.name, this.email, this.relationship);
+      if (this.kind() === 'person')
+        await this.store.createPerson(this.name, this.email, this.relationship, this.personKind);
       if (this.kind() === 'investment') await this.store.createInvestment(this.name, this.instrument, this.currency);
       if (this.kind() === 'recurrence')
         await this.store.createRecurrence(
@@ -168,7 +176,12 @@ export class ManagementFormComponent {
       if (this.kind() === 'category')
         await this.store.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
       if (this.kind() === 'person')
-        await this.store.updatePerson(id, { name: this.name, email: this.email, relationship: this.relationship });
+        await this.store.updatePerson(id, {
+          name: this.name,
+          email: this.email,
+          relationship: this.relationship,
+          kind: this.personKind,
+        });
       if (this.kind() === 'investment')
         await this.store.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
     } catch (error) {

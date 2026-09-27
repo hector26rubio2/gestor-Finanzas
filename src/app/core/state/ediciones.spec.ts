@@ -105,6 +105,7 @@ describe('ediciones contra la API', () => {
       issuer: 'Banco',
       lastFour: '4321',
       isActive: true,
+      issuerEntity: null,
     });
     expect(store.account('tarjeta-1')).toMatchObject({ name: 'Visa oro', limit: 5000000, cutDay: 25, dueDay: 10 });
     expect(store.form()).toBeNull();

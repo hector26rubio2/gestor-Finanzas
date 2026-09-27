@@ -166,6 +166,9 @@ export class FinanceApiClient {
   debts() {
     return this.peopleApi.debts();
   }
+  createLoan(...args: Parameters<ObligationsApi['createLoan']>) {
+    return this.obligationsApi.createLoan(...args);
+  }
   obligations() {
     return this.obligationsApi.obligations();
   }

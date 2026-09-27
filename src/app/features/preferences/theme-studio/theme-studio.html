@@ -1,0 +1,72 @@
+@if (!puedeEditar()) {
+<p class="rounded-lg border border-dashed border-border p-4 text-[0.84rem] text-muted-foreground" role="note">
+  {{ i18n.t('preferences.customizeRestricted') }}
+</p>
+} @else {
+<div class="grid grid-cols-[minmax(280px,360px)_minmax(0,1fr)] gap-5 max-[900px]:grid-cols-1">
+  <div class="flex flex-col gap-4">
+    <fin-field [label]="i18n.t('preferences.themeName.label')">
+      <input hlmInput name="themeName" [ngModel]="borrador().name" (ngModelChange)="cambiarNombre($event)" />
+    </fin-field>
+    <div class="flex flex-col gap-2">
+      <span class="text-[0.78rem] font-medium">{{ i18n.t('preferences.studio.startFrom') }}</span>
+      <div class="flex flex-wrap gap-2">
+        @for (punto of puntosDePartida; track punto.id) {
+        <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="partirDe(punto.id)">
+          <i
+            class="size-3.5 rounded-full border border-border"
+            [style.background]="'linear-gradient(135deg,' + punto.paleta.background + ' 50%,' + punto.paleta.primary + ' 50%)'"
+          ></i>
+          {{ i18n.t(punto.clave) }}
+        </button>
+        }
+      </div>
+    </div>
+    <div class="grid grid-cols-2 gap-3">
+      @for (color of colores; track color.key) {
+      <label class="flex items-center gap-2.5 rounded-lg border border-border bg-card p-2">
+        <input
+          class="size-9 flex-none cursor-pointer rounded-md border border-border bg-transparent p-0.5"
+          type="color"
+          [name]="'color-' + color.key"
+          [ngModel]="borrador()[color.key]"
+          (ngModelChange)="cambiarColor(color.key, $event)"
+        />
+        <span class="grid min-w-0">
+          <span class="truncate text-[0.78rem] font-medium">{{ i18n.t(color.label) }}</span>
+          <code class="text-[0.7rem] text-muted-foreground uppercase">{{ borrador()[color.key] }}</code>
+        </span>
+      </label>
+      }
+    </div>
+    <fin-field [label]="i18n.t('preferences.radius.label') + ' · ' + borrador().radius + ' px'">
+      <hlm-slider
+        class="my-2 w-full"
+        [min]="0"
+        [max]="24"
+        [step]="1"
+        [value]="[borrador().radius]"
+        [aria-label]="i18n.t('preferences.radius.label')"
+        (valueChange)="cambiarRadio($event[0])"
+      />
+    </fin-field>
+    @if (contrasteBajo()) {
+    <p class="rounded-md bg-warning/10 px-3 py-2 text-[0.78rem] text-warning" role="status">
+      {{ i18n.t('preferences.studio.lowContrast', { ratio: contrasteTexto().toFixed(1) }) }}
+    </p>
+    }
+    <div class="mt-auto flex flex-wrap justify-end gap-2 border-t border-border pt-3">
+      <button hlmBtn variant="outline" type="button" [disabled]="!hayCambios()" (click)="descartar()">
+        <fin-icon name="undo" /> {{ i18n.t('preferences.studio.discard') }}
+      </button>
+      <button hlmBtn type="button" [disabled]="!hayCambios() && store.preferences().custom" (click)="guardarYAplicar()">
+        <fin-icon name="check" /> {{ i18n.t('preferences.studio.saveApply') }}
+      </button>
+    </div>
+  </div>
+  <div class="flex min-w-0 flex-col gap-2">
+    <span class="text-[0.78rem] text-muted-foreground">{{ i18n.t('preferences.studio.previewHint') }}</span>
+    <fin-theme-preview [palette]="paletaDeVista()" />
+  </div>
+</div>
+}

@@ -15,10 +15,9 @@
           "movements",
           "ingreso",
           "gasto",
-          "compra",
-          "prestamo"
+          "compra"
         ],
-        "note": "Ingreso, gasto, compra y préstamo nacen con una sola pata del libro."
+        "note": "Ingreso, gasto y compra nacen con una sola pata del libro."
       },
       {
         "id": "dos-patas",
@@ -31,11 +30,21 @@
           "avance"
         ],
         "note": "Transferencia, pago y avance mueven dinero en una transacción: nunca son ingreso ni gasto."
+      },
+      {
+        "id": "financiacion",
+        "label": "Préstamos y créditos",
+        "focus": [
+          "formulario",
+          "loans",
+          "prestamo"
+        ],
+        "note": "Préstamo o crédito crea la obligación con su entidad o persona, tasa mensual y plazo, y el desembolso neutro en la misma transacción."
       }
     ],
     "repository": {
       "url": "https://github.com/hector26rubio2/v2-api-finanzas",
-      "revision": "2d482d5f12592a20a267ece5d9a87c79f6564ad3"
+      "revision": "e3da0e94c9fae8df596286a3adfcd83e244b8572"
     }
   },
   "components": [
@@ -73,6 +82,25 @@
       ]
     },
     {
+      "id": "loans",
+      "type": "backend",
+      "label": "POST /loans",
+      "sublabel": "obligación + desembolso",
+      "pos": [
+        380,
+        244
+      ],
+      "size": [
+        180,
+        64
+      ],
+      "sources": [
+        {
+          "path": "src/Finanzas.Host/Endpoints/ObligationsEndpoints.cs"
+        }
+      ]
+    },
+    {
       "id": "operations",
       "type": "backend",
       "label": "POST /operations/*",
@@ -95,7 +123,7 @@
       "id": "ingreso",
       "type": "backend",
       "label": "Ingreso",
-      "sublabel": "efecto ingreso · categoría",
+      "sublabel": "categoría · quién lo envió",
       "pos": [
         820,
         40
@@ -128,7 +156,7 @@
       "id": "compra",
       "type": "backend",
       "label": "Compra con tarjeta",
-      "sublabel": "gasto, sube deuda · cuotas",
+      "sublabel": "gasto · cuotas y tasa mensual",
       "pos": [
         820,
         176
@@ -142,7 +170,7 @@
       "id": "prestamo",
       "type": "backend",
       "label": "Préstamo o crédito",
-      "sublabel": "ligado a una obligación",
+      "sublabel": "neutro · persona o entidad",
       "pos": [
         820,
         244
@@ -184,7 +212,7 @@
       "id": "avance",
       "type": "backend",
       "label": "Avance en efectivo",
-      "sublabel": "neutro, tarjeta a cuenta",
+      "sublabel": "neutro · cuotas y tasa",
       "pos": [
         820,
         466
@@ -210,6 +238,13 @@
       "variant": "emphasis"
     },
     {
+      "id": "financiar",
+      "from": "formulario",
+      "to": "loans",
+      "label": "prestamos / creditos",
+      "labelDy": 16
+    },
+    {
       "id": "a-ingreso",
       "from": "movements",
       "to": "ingreso"
@@ -226,10 +261,8 @@
     },
     {
       "id": "a-prestamo",
-      "from": "movements",
-      "to": "prestamo",
-      "label": "prestamos / creditos",
-      "labelSegment": 2
+      "from": "loans",
+      "to": "prestamo"
     },
     {
       "id": "a-transferencia",
@@ -264,7 +297,7 @@
       "dot": "cyan",
       "title": "Neutros",
       "items": [
-        "Transferencia, pago y avance no clasifican"
+        "Transferencia, pago, avance y préstamo no clasifican"
       ]
     },
     {
@@ -273,7 +306,7 @@
       "items": [
         "Crear y reversar: uno por familia",
         "Editar: común a todos",
-        "Recurrencia y cuotas solo en gasto normal"
+        "Cuotas y tasa mensual en compra y avance"
       ]
     }
   ]

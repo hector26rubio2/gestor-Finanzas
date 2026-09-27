@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { CarruselComponent } from '../../ui/carrusel/carrusel';
 import { DataTableComponent } from '../../ui/data-table/data-table';
 import { KpiComponent } from '../../ui/kpi/kpi';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
@@ -34,6 +35,7 @@ import { estadoDe } from '../../pages/dashboard/kpis/kpi-ranges';
 @Component({
   selector: 'app-accounts-tab',
   imports: [
+    CarruselComponent,
     ChartCardComponent,
     FormsModule,
     HlmToggleGroupImports,

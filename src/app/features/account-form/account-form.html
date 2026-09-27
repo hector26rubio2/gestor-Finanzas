@@ -31,6 +31,17 @@
     <fin-field [label]="i18n.t('form.account.field.dueDay')">
       <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
     </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
+      <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.issuer')">
+      <fin-select
+        name="issuerId"
+        [(ngModel)]="issuerId"
+        [options]="issuerOptions()"
+        [ariaLabel]="i18n.t('form.account.field.issuer')"
+      />
+    </fin-field>
     } } @else {
     <fin-field [label]="i18n.t('form.account.field.type')">
       <fin-select
@@ -68,8 +79,16 @@
     <fin-field [label]="i18n.t('form.account.field.dueDay')">
       <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
     </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.annualRate')">
-      <input hlmInput name="annualRate" [(ngModel)]="annualRate" type="number" min="0" step="0.01" />
+    <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
+      <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.account.field.issuer')">
+      <fin-select
+        name="issuerId"
+        [(ngModel)]="issuerId"
+        [options]="issuerOptions()"
+        [ariaLabel]="i18n.t('form.account.field.issuer')"
+      />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentOrder')">
       <fin-select

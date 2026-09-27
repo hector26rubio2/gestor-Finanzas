@@ -32,6 +32,7 @@ export class PeopleTabComponent {
 
   readonly peopleColumns = computed(() => [
     { key: 'name', label: this.i18n.t('people.column.name') },
+    { key: 'kind', label: this.i18n.t('people.column.kind'), facet: true },
     { key: 'relationship', label: this.i18n.t('people.column.relationship'), facet: true },
     { key: 'owed', label: this.i18n.t('people.column.owed') },
     { key: 'owing', label: this.i18n.t('people.column.owing') },
@@ -42,6 +43,7 @@ export class PeopleTabComponent {
     this.store.data().people.map((p) => ({
       id: p.id,
       name: p.name,
+      kind: this.i18n.t(p.kind === 'institution' ? 'people.kind.institution' : 'people.kind.person'),
       relationship: p.relationship ?? SIN_DATO,
       owed: this.store.money(p.owed),
       owing: this.store.money(p.owing),

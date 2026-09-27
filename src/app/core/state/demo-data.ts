@@ -62,13 +62,17 @@ export interface Account {
    * no se sustituye por una constante, que es lo que hacia la pantalla del extracto.
    */
   annualRate?: number;
+  issuerId?: string;
 }
 
 export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';
 
+export type PersonKind = 'person' | 'institution';
+
 export interface Person {
   id: string;
   name: string;
+  kind?: PersonKind;
   owed: number;
   owing: number;
   /** Ausente mientras la API no la publique: mostrarla como «Otro» era inventarla. */

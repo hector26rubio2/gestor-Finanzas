@@ -1,5 +1,16 @@
 import { InjectionToken, signal } from '@angular/core';
 
+export interface TemaPropio {
+  name: string;
+  primary: string;
+  secondary: string;
+  text: string;
+  surface: string;
+  border: string;
+  background: string;
+  radius: number;
+}
+
 export interface Preferences {
   /** `system` no estampa data-theme y deja que mande prefers-color-scheme. */
   theme: 'system' | 'light' | 'dark' | 'ocean' | 'sand' | 'berry';
@@ -14,6 +25,9 @@ export interface Preferences {
   text: string;
   surface: string;
   border: string;
+  background: string;
+  custom: boolean;
+  customSaved?: TemaPropio;
 }
 export const PREFERENCES = new InjectionToken('Preferences', {
   providedIn: 'root',
@@ -31,6 +45,8 @@ export const PREFERENCES = new InjectionToken('Preferences', {
       text: '#1e2130',
       surface: '#ffffff',
       border: '#e4e7ec',
+      background: '#f7f8fb',
+      custom: false,
     }),
 });
 
@@ -52,7 +68,10 @@ export interface StoredPalette {
   text?: string;
   surface?: string;
   border?: string;
+  background?: string;
   radius?: number;
+  custom?: boolean;
+  saved?: TemaPropio;
 }
 
 export interface StoredAppearance {
@@ -69,19 +88,36 @@ export const DEFAULT_PALETTE = {
   text: '#1e2130',
   surface: '#ffffff',
   border: '#e4e7ec',
+  background: '#f7f8fb',
   radius: 16,
 } as const;
 
 const THEME_IDS: readonly string[] = ['system', 'light', 'dark', 'ocean', 'sand', 'berry'];
 const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/;
-const OVERRIDDEN_VARIABLES = ['--font', '--accent', '--secondary', '--text', '--surface', '--line', '--radius'];
-const PALETTE_VARIABLES: readonly (readonly [keyof StoredPalette, string])[] = [
+const PALETTE_CSS_VARIABLES = [
+  '--accent',
+  '--accent-soft',
+  '--accent-contrast',
+  '--secondary',
+  '--panel',
+  '--text',
+  '--muted',
+  '--surface',
+  '--nav',
+  '--line',
+  '--control-line',
+  '--bg',
+  '--radius',
+];
+const OVERRIDDEN_VARIABLES = ['--font', ...PALETTE_CSS_VARIABLES];
+const PALETTE_VARIABLES: readonly (readonly [Exclude<keyof StoredPalette, 'custom' | 'saved'>, string])[] = [
   ['accent', '--accent'],
   ['primary', '--accent'],
   ['secondary', '--secondary'],
   ['text', '--text'],
   ['surface', '--surface'],
   ['border', '--line'],
+  ['background', '--bg'],
 ];
 
 export function parsePalette(json: string | null | undefined): StoredPalette | null {
@@ -100,12 +136,29 @@ export function paletteOverrides(
   preferences: Pick<
     Preferences,
     'name' | 'accent' | 'primary' | 'secondary' | 'text' | 'surface' | 'border' | 'radius'
-  >,
+  > &
+    Partial<Pick<Preferences, 'background' | 'custom' | 'customSaved'>>,
 ): StoredPalette {
-  const overrides: StoredPalette = {};
+  const guardado = preferences.customSaved ? { saved: preferences.customSaved } : {};
+  if (preferences.custom)
+    return {
+      ...guardado,
+      custom: true,
+      name: preferences.name,
+      accent: preferences.primary,
+      primary: preferences.primary,
+      secondary: preferences.secondary,
+      text: preferences.text,
+      surface: preferences.surface,
+      border: preferences.border,
+      background: preferences.background ?? DEFAULT_PALETTE.background,
+      radius: preferences.radius,
+    };
+  const overrides: StoredPalette = { ...guardado };
   if (preferences.name !== DEFAULT_PALETTE.name) overrides.name = preferences.name;
-  for (const key of ['accent', 'primary', 'secondary', 'text', 'surface', 'border'] as const) {
-    if (!sameColor(preferences[key], DEFAULT_PALETTE[key])) overrides[key] = preferences[key];
+  for (const key of ['accent', 'primary', 'secondary', 'text', 'surface', 'border', 'background'] as const) {
+    const value = preferences[key];
+    if (value !== undefined && !sameColor(value, DEFAULT_PALETTE[key])) overrides[key] = value;
   }
   if (preferences.radius !== DEFAULT_PALETTE.radius) overrides.radius = preferences.radius;
   return overrides;
@@ -113,8 +166,53 @@ export function paletteOverrides(
 
 export function clearPaletteOverrides(): void {
   const style = document.documentElement.style;
-  for (const variable of ['--accent', '--secondary', '--text', '--surface', '--line', '--radius'])
-    style.removeProperty(variable);
+  for (const variable of PALETTE_CSS_VARIABLES) style.removeProperty(variable);
+}
+
+function luminancia(hex: string): number {
+  const limpio = hex.replace('#', '');
+  const completo = limpio.length === 3 ? [...limpio].map((c) => c + c).join('') : limpio.slice(0, 6);
+  const canal = (i: number) => {
+    const v = parseInt(completo.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  };
+  return 0.2126 * canal(0) + 0.7152 * canal(2) + 0.0722 * canal(4);
+}
+
+export function esColorOscuro(hex: string): boolean {
+  return HEX_COLOR.test(hex) && luminancia(hex) < 0.2;
+}
+
+export function contraste(a: string, b: string): number {
+  if (!HEX_COLOR.test(a) || !HEX_COLOR.test(b)) return 21;
+  const [claro, oscuro] = [luminancia(a), luminancia(b)].sort((x, y) => y - x);
+  return (claro + 0.05) / (oscuro + 0.05);
+}
+
+export function variablesDePaleta(palette: StoredPalette): Record<string, string> {
+  const variables: Record<string, string> = {};
+  for (const [key, variable] of PALETTE_VARIABLES) {
+    const value = palette[key];
+    const isDefault = !palette.custom && key !== 'name' && key !== 'radius' && sameColor(value, DEFAULT_PALETTE[key]);
+    if (typeof value === 'string' && HEX_COLOR.test(value) && !isDefault) variables[variable] = value;
+  }
+  const acento = variables['--accent'];
+  if (acento) {
+    variables['--accent-soft'] = `color-mix(in srgb, ${acento} 16%, var(--surface))`;
+    variables['--accent-contrast'] = luminancia(acento) > 0.45 ? '#111418' : '#ffffff';
+  }
+  if (variables['--secondary']) variables['--panel'] = variables['--secondary'];
+  if (variables['--text']) variables['--muted'] = `color-mix(in srgb, ${variables['--text']} 64%, var(--surface))`;
+  if (variables['--surface']) variables['--nav'] = variables['--surface'];
+  if (variables['--line']) variables['--control-line'] = variables['--line'];
+  if (
+    typeof palette.radius === 'number' &&
+    palette.radius >= 0 &&
+    palette.radius <= 48 &&
+    (palette.custom || palette.radius !== DEFAULT_PALETTE.radius)
+  )
+    variables['--radius'] = `${palette.radius}px`;
+  return variables;
 }
 
 export function clearAppearanceOverrides(): void {
@@ -131,17 +229,11 @@ export function applyStoredAppearance(appearance: StoredAppearance, palette: Sto
   }
   if (appearance.font.includes(',')) root.style.setProperty('--font', appearance.font);
   if (!palette) return;
-  for (const [key, variable] of PALETTE_VARIABLES) {
-    const value = palette[key];
-    const isDefault = key !== 'name' && key !== 'radius' && sameColor(value, DEFAULT_PALETTE[key]);
-    if (typeof value === 'string' && HEX_COLOR.test(value) && !isDefault) root.style.setProperty(variable, value);
-  }
-  if (
-    typeof palette.radius === 'number' &&
-    palette.radius >= 0 &&
-    palette.radius <= 48 &&
-    palette.radius !== DEFAULT_PALETTE.radius
-  ) {
-    root.style.setProperty('--radius', `${palette.radius}px`);
-  }
+  aplicarPaleta(palette);
+}
+
+export function aplicarPaleta(palette: StoredPalette): void {
+  const style = document.documentElement.style;
+  for (const variable of PALETTE_CSS_VARIABLES) style.removeProperty(variable);
+  for (const [variable, value] of Object.entries(variablesDePaleta(palette))) style.setProperty(variable, value);
 }

@@ -1,3 +1,4 @@
+import { AccionDeUsuario } from '../../core/http/accion';
 import { BrnQuestionnaireImports } from '@spartan-ng/brain/questionnaire';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
@@ -80,6 +81,8 @@ export class BugReportButtonComponent {
   private readonly api = inject(FinanceApiClient);
   private readonly consoleBuffer = inject(ConsoleBufferService);
   private readonly router = inject(Router);
+  private readonly accion = inject(AccionDeUsuario);
+  private accionReportada: string | null = null;
   readonly i18n = inject(I18nService);
 
   readonly fab = signal<FabPosition>(readFab());
@@ -173,6 +176,7 @@ export class BugReportButtonComponent {
 
   launch(): void {
     this.reset();
+    this.accionReportada = this.accion.ultimaConActividad();
     this.open.set(true);
   }
 
@@ -290,6 +294,7 @@ export class BugReportButtonComponent {
           consoleLogJson: JSON.stringify(this.consoleBuffer.snapshot().slice(-50)),
           systemInfoJson: JSON.stringify(this.collectSystemInfo()),
           screenshotBase64: screenshot ? screenshot.slice(screenshot.indexOf(',') + 1) : undefined,
+          traceId: this.accionReportada ?? undefined,
         }),
       );
       this.githubIssueUrl.set(result.githubIssueUrl);

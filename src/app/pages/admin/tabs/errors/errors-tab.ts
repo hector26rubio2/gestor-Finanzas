@@ -69,8 +69,12 @@ import { AdminGridComponent } from '../../panel/admin-grid';
               <span hlmBadge variant="outline">{{ row.raw.source }}</span>
             </ng-template>
             <ng-template finCell="message" let-row>
-              <span class="flex min-w-0 flex-col">
-                <b class="truncate text-sm">{{ row.raw.title || row.raw.message }}</b>
+              <span class="flex min-w-0 flex-col gap-0.5">
+                <b
+                  class="line-clamp-2 text-sm [overflow-wrap:anywhere]"
+                  [attr.title]="row.raw.title || row.raw.message"
+                  >{{ row.raw.title || row.raw.message }}</b
+                >
                 <small class="truncate text-xs text-muted-foreground">
                   {{ row.raw.version }} ·
                   {{ i18n.t('admin.errors.affectedUsersLabel', { count: row.raw.affectedUsers }) }}
@@ -154,10 +158,17 @@ import { AdminGridComponent } from '../../panel/admin-grid';
           <div>
             <dt class="text-xs text-muted-foreground">{{ i18n.t('admin.common.traceId') }}</dt>
             <dd>
-              <code>{{ error.traceId || i18n.t('admin.errors.drawer.traceIdMissing') }}</code>
+              <code class="[overflow-wrap:anywhere]">{{
+                error.traceId || i18n.t('admin.errors.drawer.traceIdMissing')
+              }}</code>
             </dd>
           </div>
         </dl>
+        @if (error.traceId && caps.allows(P.administracion.auditoria.listar)) {
+          <button hlmBtn variant="outline" type="button" class="self-start" (click)="verAccion(error.traceId)">
+            <fin-icon name="filter" /> {{ i18n.t('admin.errors.drawer.viewAction') }}
+          </button>
+        }
         @if (error.githubIssueUrl) {
           <a hlmBtn [href]="error.githubIssueUrl" target="_blank" rel="noopener">
             {{ i18n.t('admin.errors.drawer.githubLink') }} ↗
@@ -196,7 +207,7 @@ export class ErrorsTabComponent {
 
   readonly columns = computed<TableColumn[]>(() => [
     { key: 'source', label: this.i18n.t('admin.errors.column.source') },
-    { key: 'message', label: this.i18n.t('admin.errors.column.message') },
+    { key: 'message', label: this.i18n.t('admin.errors.column.message'), wrap: true },
     { key: 'occurrences', label: this.i18n.t('admin.errors.column.occurrences') },
     { key: 'status', label: this.i18n.t('admin.errors.column.status') },
     { key: 'lastSeen', label: this.i18n.t('admin.errors.drawer.lastSeen') },
@@ -255,5 +266,10 @@ export class ErrorsTabComponent {
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.errorStatusFailed'));
     }
+  }
+
+  verAccion(traceId: string): void {
+    this.selected.set(null);
+    this.store.verAccion(traceId);
   }
 }

@@ -62,6 +62,7 @@ export class AdminStore {
   readonly auditTotal = signal(0);
   readonly auditSize = signal(25);
   readonly auditFilter = signal<ApiAuditFilter>({});
+  readonly erroresDeLaAccion = signal<readonly ApiClientError[]>([]);
   readonly errors = signal<readonly ApiClientError[]>([]);
   readonly errorsPage = signal(1);
   readonly errorsTotal = signal(0);
@@ -208,10 +209,22 @@ export class AdminStore {
     if (!this.caps.allows(P.administracion.auditoria.listar)) return;
     try {
       this.auditFilter.set(filter);
-      this.aplicarAuditoria(await firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)));
+      const [auditoria, errores] = await Promise.all([
+        firstValueFrom(this.api.superAdminAudit(page, this.auditSize(), filter)),
+        filter.traceId && this.caps.allows(P.administracion.errores.listar)
+          ? firstValueFrom(this.api.adminErrors(1, 50, '', filter.traceId)).then((pagina) => pagina.items)
+          : Promise.resolve([] as readonly ApiClientError[]),
+      ]);
+      this.aplicarAuditoria(auditoria);
+      this.erroresDeLaAccion.set(errores);
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
     }
+  }
+
+  verAccion(traceId: string): void {
+    this.tab.set('audit');
+    void this.cargarAuditoria(1, { traceId });
   }
 
   async cargarErrores(page: number, status = this.errorsStatus()): Promise<void> {

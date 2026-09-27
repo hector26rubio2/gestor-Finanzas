@@ -24,9 +24,18 @@
       }
     </fin-field>
     } @if (kind() === 'person') {
+    <fin-field [label]="i18n.t('form.management.field.personKind')">
+      <fin-select
+        name="personKind"
+        [(ngModel)]="personKind"
+        [options]="personKindOptions()"
+        [ariaLabel]="i18n.t('form.management.field.personKind')"
+      />
+    </fin-field>
     <fin-field [label]="i18n.t('form.management.field.email')">
       <input hlmInput name="email" type="email" [(ngModel)]="email" />
     </fin-field>
+    @if (personKind === 'person') {
     <fin-field [label]="i18n.t('form.management.field.relationship')">
       <fin-select
         name="relationship"
@@ -35,7 +44,7 @@
         [ariaLabel]="i18n.t('form.management.field.relationshipAria')"
       />
     </fin-field>
-    } @if (kind() === 'investment') {
+    } } @if (kind() === 'investment') {
     <fin-field [label]="i18n.t('form.management.field.instrument')">
       <fin-select
         name="instrument"

@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '../http/api-http-client';
 import { API_ROUTES } from './api-routes';
-import { ApiMoney } from './shared-api-types';
+import { ApiLinkRef, ApiMoney } from './shared-api-types';
 
 export interface ApiCard {
   id: string;
@@ -10,11 +10,12 @@ export interface ApiCard {
   creditLimit: ApiMoney;
   cycle: { statementDay: number; paymentDueDay: number };
   /** Condiciones financieras. La tasa de compras decide el interes del proximo corte. */
-  terms?: { purchaseApr?: { value?: string | number | null } | null } | null;
+  terms?: { purchaseApr?: { rate?: string | number | null } | null } | null;
   issuer: string | null;
   lastFour: string | null;
   isActive: boolean;
   createdAt: string;
+  issuerEntity?: ApiLinkRef | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -33,6 +34,7 @@ export class CardsApi {
     terms: unknown;
     issuer?: string | null;
     lastFour?: string | null;
+    issuerEntity?: string | null;
   }) {
     return this.transport.request<ApiCard>({ method: 'POST', path: API_ROUTES.cards, body: request });
   }
@@ -47,6 +49,7 @@ export class CardsApi {
       issuer: string | null;
       lastFour: string | null;
       isActive: boolean;
+      issuerEntity?: string | null;
     },
   ) {
     return this.transport.request<ApiCard>({ method: 'PUT', path: API_ROUTES.card(id), body: request });

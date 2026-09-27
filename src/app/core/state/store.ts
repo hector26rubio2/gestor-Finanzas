@@ -2,7 +2,17 @@ import { todayIso } from '../utils/dates';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { notifier } from '../notifications/notifier';
-import { Account, accountBalance, createDemoData, createEmptyData, DemoData, demoUsers, Movement } from './demo-data';
+import {
+  Account,
+  accountBalance,
+  createDemoData,
+  createEmptyData,
+  DemoData,
+  demoUsers,
+  Movement,
+  Person,
+  PersonKind,
+} from './demo-data';
 import { ApiCategory, FinanceApiClient, viewTypeToAccountKind } from '../api/api-client';
 import {
   baseCurrency as monedaBase,
@@ -17,9 +27,21 @@ import { CashFlow, EconomicEffect, EMPTY_KIND_CATALOG, MovementKind, signOf } fr
 import { RUNTIME_CONFIG } from '../session/runtime';
 import { DEMO_CATEGORIES } from './demo-categories';
 import { PREFERENCES } from './theme';
+import { anualDesdeMensual } from '../../shared/utils/tasas';
+import { LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION } from '../api/obligations.api';
+import { COUNTERPARTY_KIND } from '../api/people.api';
 
 export { applyTheme, PREFERENCES } from './theme';
-import { paletteOverrides } from './theme';
+import {
+  DEFAULT_PALETTE,
+  Preferences,
+  TemaPropio,
+  aplicarPaleta,
+  applyTheme as aplicarTemaBase,
+  clearPaletteOverrides,
+  esColorOscuro,
+  paletteOverrides,
+} from './theme';
 export type { Preferences } from './theme';
 export { navigation } from './navigation';
 
@@ -89,6 +111,20 @@ class CanalDeAvisos {
   }
 }
 
+export interface CondicionesDeTarjeta {
+  limit: number;
+  cutDay: number;
+  dueDay: number;
+  monthlyRate?: number;
+  issuerId?: string;
+}
+
+function conTasa(terms: unknown, mensual: number | undefined): unknown {
+  if (mensual === undefined || !terms || typeof terms !== 'object') return terms;
+  const tasa = { rate: String(anualDesdeMensual(mensual) / 100) };
+  return { ...terms, purchaseApr: tasa, cashAdvanceApr: tasa };
+}
+
 @Injectable({ providedIn: 'root' })
 export class AppStore {
   readonly runtime = inject(RUNTIME_CONFIG);
@@ -149,6 +185,9 @@ export class AppStore {
     movement?: Movement;
     /** Cuenta o tarjeta a editar: presente abre el formulario en modo edicion. */
     account?: Account;
+    personKind?: PersonKind;
+    operationType?: string;
+    accountType?: Account['type'];
     notificationId?: string;
     ownership?: Movement['ownership'];
     recurring?: boolean | string;
@@ -316,6 +355,44 @@ export class AppStore {
     this.history.update((h) => [{ date: new Date().toISOString().slice(0, 10), action }, ...h]);
     if (notify) this.toast.set(action);
   }
+  usarTema(theme: Preferences['theme']): void {
+    this.preferences.update((p) => ({
+      ...p,
+      theme,
+      accent: DEFAULT_PALETTE.accent,
+      primary: DEFAULT_PALETTE.primary,
+      secondary: DEFAULT_PALETTE.secondary,
+      text: DEFAULT_PALETTE.text,
+      surface: DEFAULT_PALETTE.surface,
+      border: DEFAULT_PALETTE.border,
+      background: DEFAULT_PALETTE.background,
+      name: p.customSaved?.name ?? DEFAULT_PALETTE.name,
+      radius: DEFAULT_PALETTE.radius,
+      custom: false,
+    }));
+    clearPaletteOverrides();
+    aplicarTemaBase(theme);
+    this.guardarPreferenciasEnSegundoPlano();
+  }
+  usarTemaPropio(tema: TemaPropio): void {
+    const base = esColorOscuro(tema.background) ? 'dark' : 'light';
+    this.preferences.update((p) => ({
+      ...p,
+      ...tema,
+      accent: tema.primary,
+      theme: base,
+      custom: true,
+      customSaved: tema,
+    }));
+    aplicarTemaBase(base);
+    aplicarPaleta({ ...tema, accent: tema.primary, custom: true });
+    this.guardarPreferenciasEnSegundoPlano();
+  }
+  private guardarPreferenciasEnSegundoPlano(): void {
+    void this.persistPreferences().catch((error) =>
+      this.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),
+    );
+  }
   async persistPreferences() {
     if (this.runtime.mode !== 'api') return;
     const value = this.preferences();
@@ -361,7 +438,20 @@ export class AppStore {
     originalCurrency?: Movement['originalCurrency'];
     originalAmount?: number;
     exchangeRate?: number;
+    operationType?: string;
+    counterpartyId?: string;
+    monthlyRate?: number;
+    termMonths?: number;
+    cardMode?: 'purchase' | 'cashAdvance';
+    installmentRate?: number;
   }) {
+    const esFinanciacion = input.operationType === 'loan' || input.operationType === 'credit';
+    const aprPropia =
+      input.installmentRate === undefined || input.installmentRate === null
+        ? undefined
+        : anualDesdeMensual(Number(input.installmentRate));
+    const cuotas = Number(input.installmentTotal) > 1 ? Number(input.installmentTotal) : undefined;
+    const contraparte = this.data().people.find((persona) => persona.id === input.counterpartyId);
     if (!Number.isFinite(input.amount) || input.amount <= 0)
       throw new Error(this.i18n.t('form.movement.error.amountPositive'));
     if (!this.account(input.accountId)) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
@@ -370,6 +460,7 @@ export class AppStore {
       (!input.targetId || input.targetId === input.accountId || !this.account(input.targetId))
     )
       throw new Error(this.i18n.t('form.movement.error.targetDifferent'));
+    if (esFinanciacion && !input.id) return this.saveLoan(input, contraparte);
     if (this.runtime.mode === 'api') {
       if (input.id) {
         const category = this.categories().find((item) => item.name === input.category);
@@ -415,6 +506,8 @@ export class AppStore {
                   account: input.targetId!,
                   description: input.description,
                   idempotencyKey,
+                  installments: cuotas,
+                  apr: aprPropia,
                 })
               : client.createTransfer({
                   date: input.date,
@@ -464,7 +557,7 @@ export class AppStore {
       // optimista sí los mostraba y, al recargar, el movimiento reaparecía «Sin
       // categoría» y sin persona, sin forma de recuperarlo desde la interfaz.
       const categoria = this.categories().find((item) => item.name === input.category);
-      const persona = this.data().people.find((item) => item.name === input.person);
+      const persona = contraparte ?? this.data().people.find((item) => item.name === input.person);
       const created = await firstValueFrom(
         this.injector.get(FinanceApiClient).createMovement({
           date: input.date,
@@ -484,7 +577,8 @@ export class AppStore {
           rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
           description: input.description,
           idempotencyKey: crypto.randomUUID(),
-          purchaseApr: isCard ? input.purchaseApr : undefined,
+          purchaseApr: isCard ? aprPropia : undefined,
+          installments: isCard ? cuotas : undefined,
         }),
       );
       const sign = signOf(created.flow, created.effect);
@@ -506,6 +600,7 @@ export class AppStore {
         loanRole: input.loanRole,
         loanProduct: input.loanProduct,
         purchaseApr: created.purchaseApr ?? undefined,
+        ...(isCard && cuotas ? { installmentTotal: cuotas, installmentCurrent: 1 } : {}),
       };
       this.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
       this.form.set(null);
@@ -534,7 +629,7 @@ export class AppStore {
       movementSubtype,
       amount: kind === 'income' ? input.amount : -input.amount,
       status: 'confirmed',
-      person: input.person,
+      person: contraparte?.name ?? input.person,
       ownership: input.person ? 'loaned' : (input.ownership ?? 'own'),
       recurring: input.recurring === true || input.recurring === 'true',
       recurrence: input.recurring === true || input.recurring === 'true' ? input.recurrence : undefined,
@@ -550,7 +645,9 @@ export class AppStore {
       // Solo aplica a una compra de tarjeta: el resto de clases no causa interes por
       // tasa anual, asi que un valor aqui no significaria nada (misma regla del backend).
       purchaseApr:
-        kind === 'expense' && this.account(input.accountId)?.type === 'credit' ? input.purchaseApr : undefined,
+        (kind === 'expense' && this.account(input.accountId)?.type === 'credit') || input.kind === 'advance'
+          ? aprPropia
+          : undefined,
     };
     this.data.update((d) => ({
       ...d,
@@ -574,14 +671,104 @@ export class AppStore {
     this.form.set(null);
     this.log(input.id ? 'Movimiento corregido; acción registrada' : 'Movimiento registrado', false);
   }
+  private async saveLoan(
+    input: {
+      kind: string;
+      date: string;
+      description: string;
+      accountId: string;
+      amount: number;
+      operationType?: string;
+      loanProduct?: Movement['loanProduct'];
+      monthlyRate?: number;
+      termMonths?: number;
+      cardMode?: 'purchase' | 'cashAdvance';
+    },
+    contraparte: Person | undefined,
+  ) {
+    if (!contraparte) throw new Error(this.i18n.t('form.movement.error.counterpartyRequired'));
+    const cuenta = this.account(input.accountId);
+    if (!cuenta) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
+    const recibido = input.kind === 'income';
+    const esCredito = input.operationType === 'credit';
+    const conTarjeta = cuenta.type === 'credit';
+    const tasa = input.monthlyRate === undefined || input.monthlyRate === null ? undefined : Number(input.monthlyRate);
+    const plazo = Number(input.termMonths) > 0 ? Math.round(Number(input.termMonths)) : undefined;
+    const producto = esCredito ? (input.loanProduct ?? 'personal') : undefined;
+    const base: Omit<Movement, 'id' | 'amount'> = {
+      date: input.date,
+      description: input.description || contraparte.name,
+      accountId: cuenta.id,
+      category: '',
+      kind: recibido ? 'income' : 'expense',
+      status: 'confirmed',
+      person: contraparte.name,
+      ownership: 'loaned',
+      loanRole: recibido ? 'borrowed' : 'lent',
+      loanProduct: producto,
+      ...(plazo ? { installmentTotal: plazo, installmentCurrent: 1 } : {}),
+      ...(tasa !== undefined ? { purchaseApr: anualDesdeMensual(tasa) } : {}),
+    };
+    if (this.runtime.mode === 'api') {
+      const creado = await firstValueFrom(
+        this.injector.get(FinanceApiClient).createLoan({
+          date: input.date,
+          direction: recibido ? OBLIGATION_DIRECTION.payable : OBLIGATION_DIRECTION.receivable,
+          counterparty: contraparte.id,
+          amount: { amount: String(input.amount), currency: cuenta.currency },
+          ...(conTarjeta
+            ? { card: cuenta.id, cardMode: LOAN_CARD_MODE[input.cardMode ?? 'purchase'] }
+            : { account: cuenta.id }),
+          product: producto ? LOAN_PRODUCT[producto] : LOAN_PRODUCT.informal,
+          monthlyRate: tasa === undefined ? undefined : tasa / 100,
+          termMonths: plazo,
+          description: input.description || undefined,
+          idempotencyKey: crypto.randomUUID(),
+        }),
+      );
+      const movimientos = creado.movements.map<Movement>((pata) => ({
+        ...base,
+        id: pata.id,
+        amount: parseMoney(pata.amount.base) * (recibido ? 1 : -1),
+      }));
+      this.data.update((data) => ({ ...data, movements: [...movimientos, ...data.movements] }));
+    } else {
+      const movimiento: Movement = {
+        ...base,
+        id: crypto.randomUUID(),
+        amount: recibido ? input.amount : -input.amount,
+      };
+      this.data.update((data) => ({ ...data, movements: [movimiento, ...data.movements] }));
+    }
+    this.form.set(null);
+    this.log(esCredito ? 'Crédito registrado' : 'Préstamo registrado', false);
+  }
+  async createCounterparty(name: string, kind: PersonKind = 'person', email?: string): Promise<Person> {
+    const nombre = name.trim();
+    if (!nombre) throw new Error(this.i18n.t('form.error.nameRequired'));
+    const creada: Person =
+      this.runtime.mode === 'api'
+        ? await firstValueFrom(
+            this.injector.get(FinanceApiClient).createPerson({
+              displayName: nombre,
+              email: email || null,
+              kind: kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person,
+            }),
+          ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }))
+        : { id: crypto.randomUUID(), name: nombre, owed: 0, owing: 0, kind, email };
+    this.data.update((data) => ({ ...data, people: [...data.people, creada] }));
+    return creada;
+  }
   async createAccount(
     name: string,
     type: Account['type'],
     opening: number,
     currency = 'COP',
     exchangeRate?: number,
-    credit?: { limit: number; cutDay: number; dueDay: number },
+    credit?: CondicionesDeTarjeta,
   ) {
+    const anual = credit?.monthlyRate === undefined ? undefined : anualDesdeMensual(credit.monthlyRate);
+    const tasaApi = String((anual ?? 0) / 100);
     if (this.runtime.mode === 'api') {
       if (opening < 0) throw new Error(this.i18n.t('form.account.error.openingNegative'));
       const client = this.injector.get(FinanceApiClient);
@@ -594,15 +781,16 @@ export class AppStore {
             creditLimit: { amount: String(credit.limit), currency },
             cycle: { statementDay: credit.cutDay, paymentDueDay: credit.dueDay },
             terms: {
-              purchaseApr: { rate: '0' },
-              cashAdvanceApr: { rate: '0' },
-              internationalPurchaseApr: { rate: '0' },
-              deferredDefaultApr: { rate: '0' },
+              purchaseApr: { rate: tasaApi },
+              cashAdvanceApr: { rate: tasaApi },
+              internationalPurchaseApr: { rate: tasaApi },
+              deferredDefaultApr: { rate: tasaApi },
               minimumPaymentRate: { rate: '0' },
               minimumPaymentFloor: null,
               gracePeriodDays: 0,
             },
             lastFour: '0000',
+            issuerEntity: credit.issuerId || null,
           }),
         );
         this.data.update((data) => ({
@@ -619,6 +807,8 @@ export class AppStore {
               lastFour: created.lastFour ?? undefined,
               cutDay: created.cycle.statementDay,
               dueDay: created.cycle.paymentDueDay,
+              annualRate: anual,
+              issuerId: created.issuerEntity?.id,
             },
           ],
         }));
@@ -687,7 +877,13 @@ export class AppStore {
       lastFour: '0000',
       color: '#087f68',
       ...(type === 'credit'
-        ? { limit: credit?.limit ?? 5000000, cutDay: credit?.cutDay ?? 20, dueDay: credit?.dueDay ?? 5 }
+        ? {
+            limit: credit?.limit ?? 5000000,
+            cutDay: credit?.cutDay ?? 20,
+            dueDay: credit?.dueDay ?? 5,
+            annualRate: anual,
+            issuerId: credit?.issuerId || undefined,
+          }
         : {}),
     };
     this.data.update((d) => ({
@@ -748,32 +944,18 @@ export class AppStore {
   async createPerson(
     name: string,
     email?: string,
-    relationship: import('./demo-data').Person['relationship'] = 'Otro',
+    relationship: Person['relationship'] = 'Otro',
+    kind: PersonKind = 'person',
   ) {
-    if (this.runtime.mode === 'api') {
-      const created = await firstValueFrom(
-        this.injector.get(FinanceApiClient).createPerson({ displayName: name, email: email || null }),
-      );
-      this.data.update((data) => ({
-        ...data,
-        people: [
-          ...data.people,
-          { id: created.id, name: created.displayName, owed: 0, owing: 0, relationship, email: email || undefined },
-        ],
-      }));
-    } else {
-      this.data.update((data) => ({
-        ...data,
-        people: [...data.people, { id: crypto.randomUUID(), name, owed: 0, owing: 0, relationship, email }],
-      }));
-    }
+    const creada = await this.createCounterparty(name, kind, email || undefined);
+    this.data.update((data) => ({
+      ...data,
+      people: data.people.map((persona) => (persona.id === creada.id ? { ...persona, relationship } : persona)),
+    }));
     this.form.set(null);
-    this.log(`Persona ${name} creada`);
+    this.log(`${kind === 'institution' ? 'Entidad' : 'Persona'} ${name} creada`);
   }
-  async updateAccount(
-    account: Account,
-    changes: { name: string; lastFour?: string; credit?: { limit: number; cutDay: number; dueDay: number } },
-  ) {
+  async updateAccount(account: Account, changes: { name: string; lastFour?: string; credit?: CondicionesDeTarjeta }) {
     const name = changes.name.trim();
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
     const lastFour = changes.lastFour?.trim() || undefined;
@@ -791,10 +973,11 @@ export class AppStore {
             name,
             creditLimit: { amount: String(credito.limit), currency: actual.currency },
             cycle: { statementDay: credito.cutDay, paymentDueDay: credito.dueDay },
-            terms: actual.terms,
+            terms: conTasa(actual.terms, credito.monthlyRate),
             issuer: actual.issuer,
             lastFour: lastFour ?? null,
             isActive: actual.isActive,
+            issuerEntity: credito.issuerId || null,
           }),
         );
       } else {
@@ -815,7 +998,15 @@ export class AppStore {
       ...account,
       name,
       lastFour,
-      ...(credito ? { limit: credito.limit, cutDay: credito.cutDay, dueDay: credito.dueDay } : {}),
+      ...(credito
+        ? {
+            limit: credito.limit,
+            cutDay: credito.cutDay,
+            dueDay: credito.dueDay,
+            issuerId: credito.issuerId || undefined,
+            ...(credito.monthlyRate === undefined ? {} : { annualRate: anualDesdeMensual(credito.monthlyRate) }),
+          }
+        : {}),
     };
     this.data.update((data) => ({
       ...data,
@@ -854,7 +1045,7 @@ export class AppStore {
   }
   async updatePerson(
     id: string,
-    changes: { name: string; email?: string; relationship?: import('./demo-data').Person['relationship'] },
+    changes: { name: string; email?: string; relationship?: Person['relationship']; kind?: PersonKind },
   ) {
     const name = changes.name.trim();
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
@@ -873,6 +1064,9 @@ export class AppStore {
           phone: remota.phone,
           notes: remota.notes,
           isActive: remota.isActive,
+          ...(changes.kind
+            ? { kind: changes.kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person }
+            : {}),
         }),
       );
     }
@@ -880,7 +1074,13 @@ export class AppStore {
       ...data,
       people: data.people.map((person) =>
         person.id === id
-          ? { ...person, name, email, relationship: changes.relationship ?? person.relationship }
+          ? {
+              ...person,
+              name,
+              email,
+              relationship: changes.relationship ?? person.relationship,
+              kind: changes.kind ?? person.kind,
+            }
           : person,
       ),
       movements: data.movements.map((movement) =>

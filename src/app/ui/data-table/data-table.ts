@@ -60,6 +60,7 @@ export interface TableColumn {
   filter?: 'date';
   rawKey?: string;
   options?: readonly string[];
+  wrap?: boolean;
 }
 
 type Row = Record<string, any>;
@@ -493,8 +494,13 @@ export class DataTableComponent {
   }
 
   detailClass(column: TableColumn, rowIndex: number): string {
-    if (column.essential !== false) return '';
-    return this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden';
+    const ajuste = column.wrap ? 'max-w-[28rem] min-w-48 whitespace-normal [overflow-wrap:anywhere]' : '';
+    if (column.essential !== false) return ajuste;
+    return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden'}`;
+  }
+
+  textoRecortado(column: TableColumn | undefined): boolean {
+    return !!column?.wrap;
   }
 
   columnOf(key: string): TableColumn | undefined {

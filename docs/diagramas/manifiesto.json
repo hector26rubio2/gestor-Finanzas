@@ -88,7 +88,8 @@
           "src/Finanzas.Host/RateLimiting.cs",
           "src/Finanzas.Host/FinanceExceptionHandler.cs",
           "src/Finanzas.Application/Pipeline.cs",
-          "src/Finanzas.Infrastructure/Persistence/AuditTrail.cs"
+          "src/Finanzas.Infrastructure/Persistence/AuditTrail.cs",
+          "src/Finanzas.Host/AccionDeUsuarioMiddleware.cs"
         ]
       }
     },
@@ -249,7 +250,8 @@
         "front": [
           "src/app/core/telemetry/*.ts",
           "src/app/features/bug-report/*.ts",
-          "src/app/pages/admin/tabs/errors/**/*.ts"
+          "src/app/pages/admin/tabs/errors/**/*.ts",
+          "src/app/core/http/accion.ts"
         ],
         "api": [
           "src/Finanzas.Infrastructure/Integrations/*.cs"
@@ -299,7 +301,8 @@
           "src/Finanzas.Domain/Ledger/MovementKindSpec.cs",
           "src/Finanzas.Domain/Ledger/Operation.cs",
           "src/Finanzas.Host/Endpoints/LedgerEndpoints.cs",
-          "src/Finanzas.Contracts/Identity/PermissionCodes.cs"
+          "src/Finanzas.Contracts/Identity/PermissionCodes.cs",
+          "src/Finanzas.Host/Endpoints/ObligationsEndpoints.cs"
         ],
         "front": [
           "src/app/features/movement-form/movement-visibility-builder.ts",

@@ -224,6 +224,9 @@ export class RemoteBootstrap {
         text: custom?.text ?? value.text,
         surface: custom?.surface ?? value.surface,
         border: custom?.border ?? value.border,
+        background: custom?.background ?? value.background,
+        custom: custom?.custom === true,
+        customSaved: custom?.saved ?? value.customSaved,
         radius: custom?.radius ?? value.radius,
       }));
       applyStoredAppearance(preferences, custom);

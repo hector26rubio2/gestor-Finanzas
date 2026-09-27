@@ -113,6 +113,47 @@ describe('AppStore', () => {
     expect(movimiento?.loanProduct).toBe('mortgage');
   });
 
+  it('registers a bank credit as incoming debt with monthly rate and term', async () => {
+    const banco = await store.createCounterparty('Banco Andino', 'institution');
+    await store.save({
+      kind: 'income',
+      operationType: 'credit',
+      date: '2026-08-31',
+      description: 'Crédito vehículo',
+      accountId: 'savings-main',
+      amount: 12_000_000,
+      category: '',
+      counterpartyId: banco.id,
+      loanProduct: 'vehicle',
+      monthlyRate: 1.5,
+      termMonths: 36,
+    });
+    const movimiento = store.data().movements.find((movement) => movement.description === 'Crédito vehículo');
+    expect(movimiento).toMatchObject({
+      kind: 'income',
+      amount: 12_000_000,
+      loanRole: 'borrowed',
+      loanProduct: 'vehicle',
+      person: 'Banco Andino',
+      installmentTotal: 36,
+    });
+    expect(store.data().people.find((persona) => persona.id === banco.id)?.kind).toBe('institution');
+  });
+
+  it('rejects a loan without a counterparty', async () => {
+    await expect(
+      store.save({
+        kind: 'expense',
+        operationType: 'loan',
+        date: '2026-08-31',
+        description: 'Préstamo sin persona',
+        accountId: 'savings-main',
+        amount: 100_000,
+        category: '',
+      }),
+    ).rejects.toThrow();
+  });
+
   it('preserves credit card terms entered in the shared account form', () => {
     store.createAccount('Tarjeta viajera', 'credit', 0, 'USD', 4200, { limit: 9000, cutDay: 12, dueDay: 27 });
     const account = store.data().accounts.find((item) => item.name === 'Tarjeta viajera');

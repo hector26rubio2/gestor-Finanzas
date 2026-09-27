@@ -96,7 +96,7 @@
       "from": "cliente",
       "to": "host",
       "y": 170,
-      "label": "POST /api/v1/movements",
+      "label": "POST con X-Finanzas-Accion",
       "variant": "emphasis"
     },
     {
@@ -136,7 +136,7 @@
       "from": "almacen",
       "to": "postgres",
       "y": 320,
-      "label": "movimiento y auditoría juntos",
+      "label": "movimiento y auditoría con ese trace",
       "variant": "emphasis"
     },
     {
