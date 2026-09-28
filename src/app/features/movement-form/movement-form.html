@@ -1,11 +1,11 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
   ><form class="flex flex-col gap-5" (ngSubmit)="submit()">
     @let vis = visibility();
-    <fin-movement-kind-selector
-      [kind]="model['kind']"
+    <fin-segmented
+      [value]="model['kind']"
       [options]="types()"
       [ariaLabel]="i18n.t('form.movement.typeGroup')"
-      (kindChange)="setKind($event)"
+      (valueChange)="setKind($event)"
     />
     @if (!model['kind']) {
     <p class="px-1 py-[22px] text-center text-[0.88rem] text-muted-foreground">

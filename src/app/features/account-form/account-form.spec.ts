@@ -45,5 +45,6 @@ describe('formulario de cuenta nueva', () => {
 
     expect(vista.querySelector('input[name="opening"]')).not.toBeNull();
     expect(vista.querySelector('input[name="limit"]')).toBeNull();
+    expect(vista.querySelector('fin-select[name="issuerId"]')).not.toBeNull();
   });
 });

@@ -58,7 +58,9 @@ export class InspectorCard {
       ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
       : completarPrioridad(tarjeta?.paymentPriority, PRIORIDAD_EN_PESOS);
   });
-  readonly comprasPendientes = computed(() => comprasPendientes(this.movimientosDeTarjeta()));
+  readonly comprasPendientes = computed(() =>
+    comprasPendientes(this.movimientosDeTarjeta(), this.prioridadDeTarjeta()),
+  );
   readonly saldosPorConcepto = computed(() => saldosPorConcepto(this.comprasPendientes(), this.prioridadDeTarjeta()));
   readonly cardDebt = computed(() => {
     const estado = this.estadoDeTarjeta();

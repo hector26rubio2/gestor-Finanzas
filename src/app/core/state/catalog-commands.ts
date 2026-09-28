@@ -56,6 +56,7 @@ export class CatalogCommands {
     exchangeRate?: number,
     credit?: CondicionesDeTarjeta,
     lastFour?: string,
+    issuerId?: string,
   ) {
     const digitos = lastFour?.trim() || undefined;
     if (digitos && !/^\d{4}$/.test(digitos)) throw new Error(this.i18n.t('form.account.error.lastFour'));
@@ -115,7 +116,13 @@ export class CatalogCommands {
       this.store.log('Tarjeta creada en la API', false);
       return;
     }
-    const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: digitos ?? null };
+    const accountRequest = {
+      name,
+      kind: viewTypeToAccountKind(type),
+      currency,
+      lastFour: digitos ?? null,
+      issuerEntity: issuerId || null,
+    };
     const openingResult =
       opening === 0
         ? null
@@ -137,6 +144,7 @@ export class CatalogCommands {
       currency: created.currency,
       openingBalance: 0,
       lastFour: created.lastFour ?? undefined,
+      issuerId: created.issuerEntity?.id,
     };
     this.store.data.update((data) => ({ ...data, accounts: [...data.accounts, account] }));
     if (openingResult) {
@@ -188,7 +196,10 @@ export class CatalogCommands {
     this.store.log(`${kind === 'institution' ? 'Entidad' : 'Persona'} ${name} creada`);
   }
 
-  async updateAccount(account: Account, changes: { name: string; lastFour?: string; credit?: CondicionesDeTarjeta }) {
+  async updateAccount(
+    account: Account,
+    changes: { name: string; lastFour?: string; credit?: CondicionesDeTarjeta; issuerId?: string },
+  ) {
     const name = changes.name.trim();
     if (!name) throw new Error(this.i18n.t('form.management.error.nameRequired'));
     const lastFour = changes.lastFour?.trim() || undefined;
@@ -222,6 +233,7 @@ export class CatalogCommands {
           lastFour: lastFour ?? null,
           isDefault: actual.isDefault,
           isActive: actual.isActive,
+          issuerEntity: changes.issuerId === undefined ? (actual.issuerEntity?.id ?? null) : changes.issuerId || null,
         }),
       );
     }
@@ -242,7 +254,9 @@ export class CatalogCommands {
             monthlyFee: credito.monthlyFee || undefined,
             ...(credito.dualCurrency === undefined ? {} : { dualCurrency: credito.dualCurrency }),
           }
-        : {}),
+        : changes.issuerId === undefined
+          ? {}
+          : { issuerId: changes.issuerId || undefined }),
     };
     this.store.data.update((data) => ({
       ...data,

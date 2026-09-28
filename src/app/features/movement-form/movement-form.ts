@@ -12,7 +12,7 @@ import { MovementCategoryFieldComponent } from './category-field/category-field'
 import { MovementCoreFieldsComponent } from './core-fields/core-fields';
 import { MovementCurrencyFieldsComponent } from './currency-fields/currency-fields';
 import { MovementInstallmentFieldsComponent } from './installment-fields/installment-fields';
-import { MovementKindOption, MovementKindSelectorComponent } from './kind-selector/kind-selector';
+import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
 import { MovementRecurrenceFieldsComponent } from './recurrence-fields/recurrence-fields';
 import { MovementAttributionFieldComponent } from './attribution-field/attribution-field';
 import { MovementCounterpartyFieldComponent } from './counterparty-field/counterparty-field';
@@ -76,7 +76,7 @@ const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'rec
     HlmInput,
     FormsModule,
     OverlayComponent,
-    MovementKindSelectorComponent,
+    SegmentedComponent,
     MovementCoreFieldsComponent,
     MovementCategoryFieldComponent,
     MovementCurrencyFieldsComponent,
@@ -101,10 +101,20 @@ export class MovementFormComponent {
   readonly actions = inject(AsyncActionService);
   readonly saveActionKey = 'movement:save';
 
-  readonly types = computed<readonly MovementKindOption[]>(() =>
+  readonly types = computed<readonly SegmentedOption[]>(() =>
     [
-      { value: 'expense', label: this.i18n.t('form.movement.type.expense'), permiso: P.movimientos.crear },
-      { value: 'income', label: this.i18n.t('form.movement.type.income'), permiso: P.movimientos.crear },
+      {
+        value: 'expense',
+        label: this.i18n.t('form.movement.type.expense'),
+        icon: 'trendDown' as const,
+        permiso: P.movimientos.crear,
+      },
+      {
+        value: 'income',
+        label: this.i18n.t('form.movement.type.income'),
+        icon: 'trendUp' as const,
+        permiso: P.movimientos.crear,
+      },
     ].filter((t) => this.capabilities.allows(t.permiso)),
   );
 

@@ -16,7 +16,7 @@ const mov = (parcial: Partial<Movement>): Movement => ({
 });
 
 describe('extracto de tarjeta', () => {
-  it('deja pendiente solo las cuotas que faltan y descuenta los pagos de lo más antiguo', () => {
+  it('deja pendiente solo las cuotas que faltan y descuenta los pagos según la prioridad', () => {
     const compras = comprasPendientes([
       mov({ id: 'tv', date: '2026-06-10', amount: -1_200_000, installmentTotal: 12, installmentCurrent: 4 }),
       mov({ id: 'mercado', date: '2026-09-05', amount: -300_000 }),
@@ -25,8 +25,28 @@ describe('extracto de tarjeta', () => {
     const tv = compras.find((c) => c.id === 'tv')!;
     expect(tv.concepto).toBe(CARD_BUCKET.deferredInstallmentPurchases);
     expect(tv.cuotaDelMes).toBe(100_000);
-    expect(tv.pendiente).toBe(800_000);
-    expect(compras.find((c) => c.id === 'mercado')?.pendiente).toBe(300_000);
+    expect(tv.pendiente).toBe(900_000);
+    expect(compras.find((c) => c.id === 'mercado')?.pendiente).toBe(200_000);
+  });
+
+  it('un pago ya hecho respeta la prioridad propia de la tarjeta', () => {
+    const movimientos = [
+      mov({ id: 'contado', date: '2026-09-01', amount: -200_000 }),
+      mov({ id: 'avance', date: '2026-09-02', amount: -300_000, movementSubtype: 'advance' }),
+      mov({ id: 'pago', date: '2026-09-10', kind: 'payment', amount: 250_000 }),
+    ];
+    const primeroAvances = [
+      CARD_BUCKET.cashAdvances,
+      ...PRIORIDAD_EN_PESOS.filter((c) => c !== CARD_BUCKET.cashAdvances),
+    ];
+    const compras = comprasPendientes(movimientos, primeroAvances);
+    expect(compras.find((c) => c.id === 'avance')?.pendiente).toBe(50_000);
+    expect(compras.find((c) => c.id === 'contado')?.pendiente).toBe(200_000);
+  });
+
+  it('un avance en dólares va a avances internacionales', () => {
+    const [avance] = comprasPendientes([mov({ amount: -100, movementSubtype: 'advance', originalCurrency: 'USD' })]);
+    expect(avance.concepto).toBe(CARD_BUCKET.internationalCashAdvances);
   });
 
   it('aplica el abono según la prioridad de la tarjeta', () => {

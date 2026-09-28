@@ -274,7 +274,10 @@ export function deudasDeTarjeta(
     tarjeta.currency && tarjeta.currency !== 'COP'
       ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
       : completarPrioridad(tarjeta.paymentPriority, PRIORIDAD_EN_PESOS);
-  const compras = comprasPendientes(movimientos.filter((m) => m.accountId === tarjeta.id));
+  const compras = comprasPendientes(
+    movimientos.filter((m) => m.accountId === tarjeta.id),
+    prioridad,
+  );
   const saldos = saldosPorConcepto(compras, prioridad);
   const pendiente = sumBy(saldos, (s) => s.saldo);
   const escala = pendiente > saldoTotal && pendiente > 0 ? saldoTotal / pendiente : 1;

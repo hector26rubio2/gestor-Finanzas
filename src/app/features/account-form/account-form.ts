@@ -148,7 +148,7 @@ export class AccountFormComponent {
   readonly vistaPrevia = computed(() => {
     const prioridad =
       this.editing?.currency && this.editing.currency !== 'COP' ? this.prioridadEnDolares() : this.prioridadEnPesos();
-    const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta()), prioridad);
+    const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta(), prioridad), prioridad);
     return aplicarAbono(saldos, this.abonoDePrueba());
   });
   dinero(valor: number): string {
@@ -240,6 +240,7 @@ export class AccountFormComponent {
               dualCurrency: this.bimoneda(),
             },
             this.lastFour,
+            this.type === 'credit' ? undefined : this.issuerId,
           ),
         {
           loading: this.i18n.t('form.account.toast.loading'),
@@ -263,6 +264,7 @@ export class AccountFormComponent {
           this.catalogCommands.updateAccount(account, {
             name: this.name,
             lastFour: this.lastFour,
+            issuerId: this.issuerId,
             credit: {
               limit: Number(this.limit),
               cutDay: Number(this.cutDay),

@@ -130,8 +130,34 @@ describe('ediciones contra la API', () => {
       lastFour: null,
       isDefault: true,
       isActive: true,
+      issuerEntity: null,
     });
     expect(store.account('cuenta-1')?.name).toBe('Ahorro principal');
+  });
+
+  it('asocia la cuenta a la entidad elegida y conserva la que tenía si no se indica otra', async () => {
+    const updateAccount = vi.fn(() => of({}));
+    const store = montar({
+      accounts: () =>
+        of([
+          {
+            id: 'cuenta-1',
+            institution: null,
+            isDefault: false,
+            isActive: true,
+            issuerEntity: { id: 'banco-1', name: 'Banco' },
+          },
+        ]),
+      updateAccount,
+    });
+    const comandos = TestBed.inject(CatalogCommands);
+
+    await comandos.updateAccount(store.data().accounts[0], { name: 'Ahorros' });
+    expect(updateAccount).toHaveBeenLastCalledWith('cuenta-1', expect.objectContaining({ issuerEntity: 'banco-1' }));
+
+    await comandos.updateAccount(store.data().accounts[0], { name: 'Ahorros', issuerId: 'banco-2' });
+    expect(updateAccount).toHaveBeenLastCalledWith('cuenta-1', expect.objectContaining({ issuerEntity: 'banco-2' }));
+    expect(store.account('cuenta-1')?.issuerId).toBe('banco-2');
   });
 
   it('rechaza unos últimos dígitos que no son cuatro números', async () => {
