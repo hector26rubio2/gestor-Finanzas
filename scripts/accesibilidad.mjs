@@ -94,7 +94,10 @@ function browserExecutable() {
 async function auditar(page, etiqueta) {
   await page.evaluate(axeSource);
   const resultado = await page.evaluate(() =>
-    window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } }),
+    window.axe.run(document, {
+      runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'] },
+      rules: { 'label-content-name-mismatch': { enabled: true } },
+    }),
   );
   return resultado.violations
     .filter((violacion) => impactosQueFallan.has(violacion.impact))
