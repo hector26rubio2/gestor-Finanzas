@@ -52,13 +52,13 @@
         </fin-field>
         } @if (needsGoal(newWidgetMetric)) {
         <fin-field [label]="i18n.t('dashboard.widgetActions.goalMin.ariaLabel')">
-          <input hlmInput name="widgetGoalMin" type="number" [(ngModel)]="newWidgetGoalMin" />
+          <input hlmInput name="widgetGoalMin" type="number" finConSigno [(ngModel)]="newWidgetGoalMin" />
         </fin-field>
         <fin-field [label]="i18n.t('dashboard.widgetActions.goalTarget.ariaLabel')">
-          <input hlmInput name="widgetGoalTarget" type="number" [(ngModel)]="newWidgetGoalTarget" />
+          <input hlmInput name="widgetGoalTarget" type="number" finConSigno [(ngModel)]="newWidgetGoalTarget" />
         </fin-field>
         <fin-field [label]="i18n.t('dashboard.widgetActions.goalMax.ariaLabel')">
-          <input hlmInput name="widgetGoalMax" type="number" [(ngModel)]="newWidgetGoalMax" />
+          <input hlmInput name="widgetGoalMax" type="number" finConSigno [(ngModel)]="newWidgetGoalMax" />
         </fin-field>
         } }
       </div>

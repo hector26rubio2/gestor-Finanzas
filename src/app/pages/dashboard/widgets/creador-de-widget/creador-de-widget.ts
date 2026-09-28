@@ -14,6 +14,7 @@ import { ConfiguradorVisualComponent, GaleriaVisualComponent, TIPOS_DEL_MOTOR, d
 import type { ConfiguracionVisual } from '@shared/graficas';
 import { Dimension, Measure, TWO_DIMENSION_TYPES, Widget, WidgetType } from '@shared/tablero/dashboard.model';
 import { esGenerico } from '@pages/dashboard/widgets/edicion-de-widgets';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 function sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'> {
   const { tipo, ...resto } = config;
@@ -24,6 +25,7 @@ function sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'>
 @Component({
   selector: 'fin-creador-de-widget',
   imports: [
+    NumericInputDirective,
     FormsModule,
     HlmButton,
     HlmInput,

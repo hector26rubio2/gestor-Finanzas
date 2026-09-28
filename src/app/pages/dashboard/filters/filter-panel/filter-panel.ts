@@ -8,6 +8,7 @@ import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inj
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { UiOption, UiSelectComponent } from '@ui/select';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 export type Scale = 'day' | 'week' | 'month' | 'year';
 
@@ -27,6 +28,7 @@ const ANIOS_ATRAS = 15;
 @Component({
   selector: 'fin-filter-panel',
   imports: [
+    NumericInputDirective,
     HlmButton,
     HlmDropdownMenuImports,
     HlmInput,

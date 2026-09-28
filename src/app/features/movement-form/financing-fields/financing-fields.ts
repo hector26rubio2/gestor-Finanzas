@@ -6,10 +6,11 @@ import { AppStore } from '@core/state/store';
 import { FieldComponent } from '@ui/field/field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { cuotaFija } from '@core/utils/tasas';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-movement-financing-fields',
-  imports: [FormsModule, HlmInput, UiSelectComponent, FieldComponent],
+  imports: [NumericInputDirective, FormsModule, HlmInput, UiSelectComponent, FieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './financing-fields.html',
   host: { style: 'display: contents' },

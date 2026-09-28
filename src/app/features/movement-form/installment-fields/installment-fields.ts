@@ -8,10 +8,11 @@ import { AppStore } from '@core/state/store';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api/card-buckets';
 import { UiSelectComponent, type UiOption } from '@ui/select/select';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-movement-installment-fields',
-  imports: [HlmButton, HlmInput, FormsModule, FieldComponent, UiSelectComponent],
+  imports: [NumericInputDirective, HlmButton, HlmInput, FormsModule, FieldComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './installment-fields.html',
   host: { style: 'display: contents' },
