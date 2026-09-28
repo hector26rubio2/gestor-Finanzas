@@ -7,13 +7,6 @@ export interface AsyncActionMessages<T> {
   error: string | ((error: unknown) => string);
 }
 
-/**
- * Ejecuta escrituras remotas con una sola operación en vuelo por clave.
- *
- * El mismo `Promise` se reutiliza si el usuario vuelve a enviar el formulario antes
- * de que termine. Además de evitar dobles escrituras, el toast conserva su sitio y
- * cambia de cargando a éxito o error cuando se resuelve la petición.
- */
 @Injectable({ providedIn: 'root' })
 export class AsyncActionService {
   private readonly pending = new Map<string, Promise<unknown>>();

@@ -64,11 +64,6 @@ export class PreferencesActions {
 
   async persistPreferences() {
     const value = this.store.preferences();
-    // La paleta propia solo viaja si esta sesión puede definirla. Antes se enviaba
-    // siempre, incluso al elegir un preset o cambiar el idioma, y la API rechaza con
-    // 403 cualquier tema personalizado de quien no gobierna la organización: el efecto
-    // era que un permiso de edición corriente no podía guardar nada. Un nulo aquí no
-    // borra la paleta guardada; la API conserva la que ya tenía.
     const puedeTemaPropio = !!this.store.user()?.capabilities.includes(P.preferencias.tema.editar);
     await firstValueFrom(
       this.injector.get(FinanceApiClient).updatePreferences({
@@ -76,9 +71,6 @@ export class PreferencesActions {
         theme: value.theme,
         font: value.font,
         density: value.density,
-        // La moneda que se guarda es la que ya está usando la organización, no un `COP`
-        // fijo: el backend guarda este valor como preferencia por usuario y no cambia la
-        // organización, así que escribir otra cosa solo desincronizaba la preferencia.
         baseCurrency: this.store.baseCurrency(),
         customThemeJson: puedeTemaPropio ? JSON.stringify(paletteOverrides(value)) : null,
       }),

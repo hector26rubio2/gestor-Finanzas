@@ -17,7 +17,6 @@ import { IconComponent } from '@ui/icon/icon';
 import { UiOption } from '@ui/select/select';
 import { OverlayComponent } from '@ui/overlay/overlay';
 
-/** Tope alineado con `MaxScreenshotBase64Length` en el backend (deja margen bajo el límite de 1 MB por petición de Kestrel). */
 const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
 
 const FAB_POSITION_KEY = 'finanzas.bug-report.fab.v1';
@@ -208,7 +207,6 @@ export class BugReportButtonComponent {
     return this.title.trim().length > 0 && this.description.trim().length > 0;
   }
 
-  /** Captura la pantalla actual, comprimida, solo si sigue marcado el checkbox al llegar a la revisión. */
   private async captureScreenshot(): Promise<void> {
     if (!this.includeScreenshot() || this.screenshotDataUrl()) return;
     this.capturingScreenshot.set(true);

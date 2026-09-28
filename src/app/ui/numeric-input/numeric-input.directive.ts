@@ -1,11 +1,5 @@
 import { Directive, HostListener } from '@angular/core';
 
-/**
- * `<input type="number">` deja teclear signo, notación científica ("e") y letras sueltas:
- * el `min`/`max` nativo solo invalida el valor al enviar, no impide escribirlo. Esta
- * directiva bloquea esas teclas y sanea el pegado para que el campo nunca acepte nada
- * que no sea un dígito o un punto decimal.
- */
 @Directive({
   selector: 'input[type=number]',
 })

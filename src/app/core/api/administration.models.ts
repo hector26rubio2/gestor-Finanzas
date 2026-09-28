@@ -8,11 +8,9 @@ export interface ApiAuditEvent {
   changesJson: string | null;
   createdAt: string;
   organizationId?: string;
-  /** Quién hizo el cambio; `userId` es la persona afectada. Nulo si lo hizo el sistema. */
   actorUserId?: string | null;
 }
 
-/** Filtros de la auditoría; se aplican en el servidor y se combinan. */
 export interface ApiAuditFilter {
   organizationId?: string;
   actorUserId?: string;
@@ -48,9 +46,7 @@ export interface ApiAdminUser {
     organizationName: string;
     status: string;
     effectiveCapabilities: readonly string[];
-    /** Lo que la persona puede hacer ahora, accion por accion. */
     effectivePermissions?: readonly string[];
-    /** Excepciones directas: mandan sobre lo que digan los roles. */
     roles: readonly ApiAdminRole[];
   }[];
 }
@@ -61,29 +57,23 @@ export interface ApiAdminRole {
   description: string | null;
   organizationId?: string;
   organizationName?: string;
-  /** Capacidades íntegramente concedidas. Derivada del servidor, solo lectura. */
   capabilities: readonly string[];
-  /** Permisos concedidos, uno por acción. Es lo que se edita. */
   permissions: readonly string[];
   isSystem: boolean;
-  /** En falso, nadie recibe sus permisos aunque siga asignado. */
   isActive: boolean;
 }
 
-/** Una organización, tal como la ve Administración. */
 export interface ApiAdminOrganization {
   id: string;
   name: string;
   slug: string;
   baseCurrency: string;
   isActive: boolean;
-  /** La organización donde cae quien entra sin invitación pendiente. A lo sumo una. */
   isDefault: boolean;
   memberCount: number;
   createdAt: string;
 }
 
-/** Valor efectivo de una bandera para una organización y de dónde sale. */
 export interface ApiConsolidationResult {
   targetOrganizationId: string;
   movedUsers: number;
@@ -94,13 +84,11 @@ export interface ApiConsolidationResult {
 export interface ApiAdminOrganizationFlag {
   key: string;
   isEnabled: boolean;
-  /** `organization` si la organización la fija ella misma; si no, hereda de `global` o `default`. */
   source: 'organization' | 'global' | 'default';
   organizationValue: boolean | null;
   globalEnabled: boolean;
 }
 
-/** Un permiso del catálogo: código, dónde vive y qué concede. */
 export interface ApiPermissionDescriptor {
   code: string;
   resource: string;
@@ -109,7 +97,6 @@ export interface ApiPermissionDescriptor {
   description: string;
 }
 
-/** Espejo de `PermissionActionDto`. */
 export const ApiPermissionAction: Readonly<Record<number, string>> = {
   1: 'Ver',
   2: 'Listar',
@@ -120,14 +107,12 @@ export const ApiPermissionAction: Readonly<Record<number, string>> = {
   7: 'Exportar',
 };
 
-/** Espejo de `PermissionLevelDto`. */
 export const ApiPermissionLevel: Readonly<Record<number, string>> = {
   1: 'básico',
   2: 'avanzado',
   3: 'premium',
 };
 
-/** Una persona dentro de la organizacion activa. */
 export interface ApiOrganizationMember {
   membershipId: string;
   userId: string;
@@ -169,7 +154,6 @@ export interface ApiClientError {
   resolution?: string | null;
   createdAt?: string;
   resolvedAt?: string | null;
-  /** Presentes solo en reportes manuales enviados desde el botón flotante. */
   title?: string | null;
   severity?: 'low' | 'medium' | 'high' | 'critical' | null;
   stepsToReproduce?: string | null;
@@ -179,7 +163,6 @@ export interface ApiClientError {
   githubIssueNumber?: number | null;
 }
 
-/** Lo que arma `BugReportButtonComponent` a partir de lo capturado en el navegador. */
 export interface BugReportPayload {
   title: string;
   description: string;

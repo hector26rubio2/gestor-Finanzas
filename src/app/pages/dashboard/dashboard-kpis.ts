@@ -120,7 +120,6 @@ export abstract class DashboardKpis extends DashboardVisuals {
     ...this.measureOptions(),
     ...opcionesDeFormulasDerivadas((key) => this.i18n.t(key)),
   ]);
-  /** Lo que ya ocupa un cupo en la franja -fijo o creado a mano- para no ofrecerlo dos veces. */
   readonly usedKpiFormulas = computed<Set<KpiFormula>>(() => {
     const usados = new Set<KpiFormula>(
       this.customKpis()
@@ -139,22 +138,12 @@ export abstract class DashboardKpis extends DashboardVisuals {
   protected diasDelPeriodo(): number {
     return diasDelRango(this.range());
   }
-  /**
-   * Saldo de cuentas líquidas (ahorro + efectivo): lo que hay a mano de verdad, sin contar
-   * cupo de tarjetas. Usa todos los movimientos, no solo los del periodo filtrado -un saldo
-   * es una foto de ahora mismo, no la suma de lo que paso en un rango.
-   */
   protected disponibleLiquido(): number {
     return sumBy(
-      this.store
-        .data()
-        // Todo lo que no es tarjeta: una cuenta corriente, una billetera u otra también son
-        // dinero a mano, y antes quedaban fuera por estar agrupadas como ahorro.
-        .accounts.filter((a) => a.type !== 'credit'),
+      this.store.data().accounts.filter((a) => a.type !== 'credit'),
       (a) => this.store.balance(a),
     );
   }
-  /** Deuda de tarjetas: solo el lado negativo del saldo -una tarjeta a favor no es deuda. */
   protected deudaTarjetas(): number {
     return sumBy(
       this.store.data().accounts.filter((a) => a.type === 'credit'),
@@ -167,7 +156,6 @@ export abstract class DashboardKpis extends DashboardVisuals {
       (a) => a.limit ?? 0,
     );
   }
-  /** Tarjeta de crédito con más movimientos en el periodo -"cuál se usa más", no cuánta deuda tiene. */
   protected tarjetaMasUsada(): { name: string; count: number } | null {
     const conteo = new Map<string, number>();
     for (const m of this.movements()) {
@@ -275,7 +263,6 @@ export abstract class DashboardKpis extends DashboardVisuals {
   tendenciaAbs(valor: number): string {
     return Math.abs(valor).toFixed(0);
   }
-  /** Dinero para las medidas simples; porcentaje, meses, días o el nombre de una tarjeta para las fórmulas derivadas. */
   kpiFormatValue(formula: KpiFormula, valor: number): string {
     if (formula === 'mostUsedCard') return this.tarjetaMasUsada()?.name ?? this.i18n.t('dashboard.kpi.noData');
     if (enPorcentaje(formula)) return `${valor.toFixed(0)}%`;
@@ -286,7 +273,6 @@ export abstract class DashboardKpis extends DashboardVisuals {
       measure: formula === 'dailyExpense' ? 'expense' : formula === 'dailyIncome' ? 'income' : formula,
     });
   }
-  /** Subtítulo del indicador "tarjeta más usada": cuántos movimientos, ya que el número grande es el nombre. */
   kpiHintFor(formula: KpiFormula): string {
     if (formula === 'mostUsedCard') {
       const top = this.tarjetaMasUsada();
@@ -343,7 +329,6 @@ export abstract class DashboardKpis extends DashboardVisuals {
     this.kpiLayout.saveDefinitions(this.customKpis().filter((k) => k.id !== id));
   }
 
-  /** Los indicadores propios normalizados a la misma forma que `fixedKpiItems`. */
   readonly customKpiItems = computed(() =>
     this.customKpis().map((kpi) => {
       const valor = this.kpiValueDe(kpi);

@@ -1,20 +1,3 @@
-/**
- * Códigos de permiso que emite el servidor.
- *
- * El backend es dueño del vocabulario: resuelve capacidades a esta lista en
- * `CapabilityPermissions.Resolve` y la entrega en `session.permissions`. Aquí solo se
- * les pone nombre para que las plantillas no repitan cadenas literales.
- *
- * Convención: `recurso.subrecurso.accion`, en minúsculas y sin tildes.
- *
- * `X.ver` es la funcionalidad entera: pone el recurso en el menú lateral, abre su ruta y
- * entrega su listado. Los demás códigos son las acciones de dentro, y cada uno responde
- * solo por su parte, sin depender de ningún otro: marcar un KPI del dashboard muestra ese
- * KPI. Hubo una época en que además hacía falta un `X.listar`, y no marcarlo dejaba la
- * pantalla en blanco: la entrada aparecía en el menú y dentro no había nada.
- *
- * Documentado en `docs/PERMISOS-MATRIZ.md` del repositorio del backend.
- */
 export const P = {
   sesion: {
     ver: 'sesion.ver',

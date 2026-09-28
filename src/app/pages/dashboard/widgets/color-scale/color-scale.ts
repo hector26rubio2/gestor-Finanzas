@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-/** Medidor de una meta como barra plana: valor actual, rango mín/meta/máx y una píldora de estado. */
 @Component({
   selector: 'fin-color-scale',
   host: { class: 'flex flex-1' },

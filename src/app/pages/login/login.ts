@@ -88,7 +88,6 @@ export class LoginComponent {
     { value: 'sand', label: 'Marfil cálido' },
     { value: 'berry', label: 'Ciruela' },
   ];
-  /** A dónde volver tras entrar: la vista que se pidió antes de caer aquí, o el dashboard. */
   private returnPath(): string {
     return safeReturnPath(this.route.snapshot.queryParamMap.get('returnUrl')) ?? '/dashboard';
   }
@@ -102,11 +101,6 @@ export class LoginComponent {
     document.documentElement.lang = locale.slice(0, 2);
   }
   googleLoginUrl(): string {
-    // Antes se mandaba `window.location.href` -la URL de esta misma pantalla de
-    // login-, así que un callback exitoso volvía derecho al login en vez de al
-    // dashboard: el navegador solo estaba obedeciendo a dónde se le dijo que
-    // volviera. `prepareExternalUrl` respeta el base-href del build (local sirve
-    // en «/», el despliegue en «/gestor-Finanzas/»), así que no hay que adivinarlo.
     const returnUrl = encodeURIComponent(
       `${window.location.origin}${this.location.prepareExternalUrl(this.returnPath())}`,
     );

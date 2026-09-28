@@ -13,7 +13,6 @@ export interface AccountListItem {
   color?: string;
 }
 
-/** Lista de cuentas por gasto, cada una con su color — clic filtra el resto del panel por esa cuenta. */
 @Component({
   imports: [NgScrollbar, HlmScrollAreaImports, HlmButton],
   selector: 'fin-account-list',

@@ -12,7 +12,6 @@ export interface TemaPropio {
 }
 
 export interface Preferences {
-  /** `system` no estampa data-theme y deja que mande prefers-color-scheme. */
   theme: 'system' | 'light' | 'dark' | 'ocean' | 'sand' | 'berry';
   accent: string;
   font: string;
@@ -50,11 +49,6 @@ export const PREFERENCES = new InjectionToken('Preferences', {
     }),
 });
 
-/**
- * Estampa el tema elegido. Con `system` retira el atributo para que la consulta
- * `prefers-color-scheme` de styles.css decida: antes se estampaba siempre
- * `light` y quien tenia el sistema en oscuro recibia la aplicacion en claro.
- */
 export function applyTheme(theme: Preferences['theme']): void {
   if (theme === 'system') delete document.documentElement.dataset['theme'];
   else document.documentElement.dataset['theme'] = theme;

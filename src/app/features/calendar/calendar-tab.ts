@@ -110,15 +110,6 @@ export class CalendarTabComponent implements OnInit {
     void this.loadCalendarProjection();
   }
 
-  /**
-   * Dos peticiones distintas, con dos permisos distintos y sin dependencia entre ellas.
-   *
-   * Iban en un `Promise.all` sin comprobar nada, asi que a quien tuviera el calendario y
-   * no las recurrencias le fallaba la de recurrencias con un 403, se rechazaba la
-   * promesa entera y se perdian tambien las proyecciones, que si podia ver. El aviso
-   * decia «no se pudo cargar el calendario proyectado» y el permiso concedido parecia no
-   * servir. Cada una se pide si su permiso esta concedido, y si una falla la otra queda.
-   */
   async loadCalendarProjection(): Promise<void> {
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);

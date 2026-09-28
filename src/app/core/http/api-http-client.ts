@@ -5,10 +5,6 @@ import { I18nService } from '@core/i18n/i18n.service';
 import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { API_ROUTES } from '@core/api/api-routes';
 
-/**
- * Transport boundary for the future API. Feature code depends on repositories,
- * never on HttpClient or endpoint strings. The demo remains the active provider.
- */
 export interface ApiRequest<TBody = unknown> {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
   path: string;
@@ -39,32 +35,12 @@ export class ApiRequestError extends Error {
   }
 }
 
-/**
- * Límite de tiempo de cada petición.
- *
- * Sin él, una llamada que no responde dejaba la acción clavada en «cargando»
- * para siempre (AsyncActionService) y la pantalla esperando datos que ya no
- * llegarían: en una red inestable eso es un fallo silencioso. Al cortar, el
- * backend-XHR entrega `TimeoutError` (y el fetch, `AbortError`), que
- * `toRequestError` traduce a un mensaje que sí se le puede enseñar a alguien.
- */
 const REQUEST_TIMEOUT_MS = 30_000;
 
-/** El corte por tiempo viaja como excepción de plataforma, no como problem-details. */
 function isTimeoutCause(cause: unknown): boolean {
   return cause instanceof DOMException && (cause.name === 'TimeoutError' || cause.name === 'AbortError');
 }
 
-/**
- * Transporte HTTP con token CSRF cacheado.
- *
- * Antes se pedía un token nuevo antes de cada escritura y el servidor rotaba la
- * cookie en cada llamada: dos escrituras concurrentes se anulaban entre sí
- * (A obtiene T1, B obtiene T2 y sobreescribe la cookie, A envía T1 → 403), y
- * toda mutación pagaba una ida y vuelta extra. Ahora el token se pide una vez,
- * se comparte entre peticiones en vuelo y sólo se renueva cuando el servidor lo
- * rechaza con `security.csrf_invalid`.
- */
 @Injectable()
 export class HttpApiTransport implements ApiTransport {
   private readonly http = inject(HttpClient);
@@ -112,9 +88,6 @@ export class HttpApiTransport implements ApiTransport {
   }
 
   private toRequestError(error: HttpErrorResponse): ApiRequestError {
-    // Un corte por tiempo no llega con problem-details: llega como status 0 con la
-    // excepción de la plataforma. Sin traducirlo, el mensaje era «La API respondió
-    // 0.», que no explica nada y queda fijado en pantalla hasta el próximo intento.
     if (error.status === 0 && isTimeoutCause(error.error)) {
       return new ApiRequestError(error.status, {
         code: 'transport.timeout',
@@ -129,7 +102,6 @@ export class HttpApiTransport implements ApiTransport {
     );
   }
 
-  /** Descarta el token en memoria. La sesión nueva traerá el suyo. */
   forgetCsrfToken(): void {
     this.csrfToken = null;
     this.csrfInFlight = null;

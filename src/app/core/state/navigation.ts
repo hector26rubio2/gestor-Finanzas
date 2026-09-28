@@ -1,6 +1,5 @@
 import { P } from '@core/session/permissions';
 
-/** La capacidad de cada entrada es el permiso `<recurso>.ver` de la matriz. */
 export const navigation = [
   { path: 'dashboard', label: 'Dashboard', icon: 'dashboard', group: 'overview', capability: P.dashboard.ver },
   { path: 'movements', label: 'Movimientos', icon: 'movements', group: 'money', capability: P.movimientos.ver },

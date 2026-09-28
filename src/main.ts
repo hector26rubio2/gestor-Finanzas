@@ -14,8 +14,6 @@ import { PREFERENCES } from '@core/state/theme';
 import { routes } from '@app/routes';
 import { FinanzasTitleStrategy } from '@core/routing/title-strategy';
 
-// Antes de arrancar Angular: para que el reporte de bugs pueda incluir los logs de
-// arranque, no solo los que ocurran despues de que el usuario abra el formulario.
 patchConsole();
 
 bootstrapApplication(AppComponent, {

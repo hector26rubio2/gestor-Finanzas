@@ -1,5 +1,4 @@
 import { sumBy } from '@core/utils/money';
-/** All amounts are signed COP values. Fixtures never touch a remote service. */
 export interface Movement {
   id: string;
   date: string;
@@ -15,23 +14,10 @@ export interface Movement {
   recurrence?: 'weekly' | 'monthly' | 'yearly';
   installmentCurrent?: number;
   installmentTotal?: number;
-  /**
-   * Tasa anual propia de esta compra a cuotas, en porcentaje. Puede cambiar mes a mes
-   * aunque la tarjeta no cambie la suya; ausente usa la de la tarjeta (`Account.annualRate`).
-   */
   purchaseApr?: number;
   cardBucket?: number;
   loanRole?: 'lent' | 'borrowed' | 'repayment';
-  /** Solo cuando es un crédito formal del banco (no un préstamo con una persona). */
   loanProduct?: 'personal' | 'mortgage' | 'vehicle' | 'education' | 'other';
-  /**
-   * Una transferencia o un avance de tarjeta no es su propia clase de movimiento: la
-   * pata que sale es un gasto y la que entra un ingreso, igual que cualquiera. Esta es
-   * la única marca que los distingue de una compra o un sueldo normal, y es lo que
-   * excluyen los KPI y el filtro de Operación para no contarlos como plata ganada o
-   * gastada de verdad — el dinero solo se movió entre cuentas propias (o entre la
-   * tarjeta y una cuenta propia, en el avance).
-   */
   movementSubtype?: 'transfer' | 'advance';
   originalCurrency?: 'COP' | 'USD';
   originalAmount?: number;
@@ -41,26 +27,16 @@ export interface Movement {
 export interface Account {
   id: string;
   name: string;
-  /**
-   * Los cinco tipos del contrato (`AccountKindDto`) más la tarjeta. Antes solo había
-   * `savings | credit | cash` y una cuenta corriente, una billetera o una «otra» llegaba
-   * aquí convertida en ahorro.
-   */
   type: 'savings' | 'checking' | 'cash' | 'wallet' | 'other' | 'credit';
   currency: string;
   openingBalance: number;
   limit?: number;
-  /** Ausente cuando la API no la publica. No se inventa un «0000». */
   lastFour?: string;
   color?: string;
   institution?: string;
   cutDay?: number;
   dueDay?: number;
   exchangeRate?: number;
-  /**
-   * Tasa anual de compras de una tarjeta, en porcentaje. Ausente cuando no se conoce:
-   * no se sustituye por una constante, que es lo que hacia la pantalla del extracto.
-   */
   annualRate?: number;
   issuerId?: string;
   paymentPriority?: readonly number[];
@@ -79,7 +55,6 @@ export interface Person {
   kind?: PersonKind;
   owed: number;
   owing: number;
-  /** Ausente mientras la API no la publique: mostrarla como «Otro» era inventarla. */
   relationship?: PersonRelationship;
   email?: string;
   averagePaymentDays?: number;
@@ -93,7 +68,6 @@ export interface Investment {
   value: number;
   cost: number;
   currency: string;
-  /** Los cuatro siguientes faltan en el contrato actual. Ausente ≠ cero ni «Medio». */
   institution?: string;
   units?: number;
   risk?: 'Bajo' | 'Medio' | 'Alto';
@@ -148,7 +122,6 @@ export interface SessionUser {
   photoUrl?: string;
 }
 
-/** Pending authorizations are visible but do not change the posted balance. */
 export function accountBalance(account: Account, movements: Movement[]): number {
   return (
     account.openingBalance +

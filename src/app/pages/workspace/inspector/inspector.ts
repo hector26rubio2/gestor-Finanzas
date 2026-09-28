@@ -81,12 +81,10 @@ export class InspectorComponent {
     this.store.data().movements.find((m) => m.id === this.store.inspector()?.id),
   );
   readonly selectedAccount = computed(() => this.store.account(this.store.inspector()?.id ?? ''));
-  /** El inspector muestra la tarjeta bonita y se ensancha solo para estos dos tipos. */
   readonly isAccountInspector = computed(() => {
     const type = this.store.inspector()?.type;
     return type === 'card' || type === 'account';
   });
-  /** Deuda como numero positivo en una tarjeta; saldo tal cual en el resto. */
   displayBalance(account: Account): number {
     const value = this.store.balance(account);
     return account.type === 'credit' ? (value < 0 ? -value : 0) : value;
@@ -159,11 +157,6 @@ export class InspectorComponent {
     const m = this.selectedMovement();
     if (m) this.store.open(m.kind, m.accountId, m);
   }
-  /**
-   * Pide confirmar antes de reversar. El inspector es un `<dialog>` modal nativo, y el
-   * overlay de CDK del diálogo de confirmación quedaría detrás de él: se cierra el
-   * inspector mientras se pregunta y se restaura si la persona cancela.
-   */
   askReverse(): void {
     const movement = this.selectedMovement();
     if (!movement) return;
@@ -195,7 +188,6 @@ export class InspectorComponent {
     | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<AppStore['inspector']> }
     | null
   >(null);
-  /** Último tipo pedido: el texto no cambia mientras el diálogo se cierra. */
   private readonly confirmKind = signal<'reverse' | 'deactivateAccount'>('reverse');
   readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
   async reverseMovement(movement: Movement) {
@@ -314,7 +306,6 @@ export class InspectorComponent {
     const investment = this.selectedInvestment();
     if (investment) this.store.form.set({ kind: 'investment', targetId: investment.id });
   }
-  /** Abre el mismo formulario de alta, precargado con la cuenta o tarjeta elegida. */
   editSelectedAccount(): void {
     const account = this.selectedAccount();
     if (!account) return;

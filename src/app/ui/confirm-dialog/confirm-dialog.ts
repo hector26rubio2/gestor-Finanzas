@@ -1,16 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 
-/**
- * Confirmación previa a una acción destructiva, sobre el Alert Dialog de Spartan.
- *
- * El padre controla `open`. Emite `confirmed` si la persona acepta y `dismissed` si
- * cierra sin aceptar (cancelar, Escape o clic fuera), para poder restaurar lo que
- * estaba en pantalla.
- *
- * No debe abrirse desde dentro de un `<dialog>` modal nativo (como `fin-overlay`): el
- * overlay de CDK queda detrás de la capa superior del navegador y sería inalcanzable.
- */
 @Component({
   selector: 'fin-confirm-dialog',
   imports: [HlmAlertDialogImports],

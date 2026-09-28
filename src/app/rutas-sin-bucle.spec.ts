@@ -6,14 +6,6 @@ import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { routes } from './routes';
 
-/**
- * El guard nunca puede mandar a una ruta que el propio guard cierra.
- *
- * Con la lista de banderas vacía —una instalación sin catálogo la devuelve así— toda
- * sección queda cerrada en modo API, y el rebote fijo a `/dashboard` se mandaba a sí
- * mismo sin parar: el hilo del navegador se quedaba girando en el bucle de
- * redirecciones y la pestaña dejaba de responder, sin un error en consola que lo dijera.
- */
 describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
   const guardDe = (path: string) => {
     const ruta = routes.find((r) => r.path === path);
@@ -30,7 +22,6 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
     store.user.set({ id: 'u1', name: 'Lectora', email: 'l@example.test', capabilities: [...permisos] } as never);
     store.featureFlags.set(banderas);
     store.featureFlagsLoaded.set(cargadas);
-    // El guard corre cuando el arranque ya terminó; mientras carga, espera (ver más abajo).
     store.remoteState.set('ready');
     return store;
   };
@@ -75,8 +66,6 @@ describe('guard de rutas: sin sección abierta no hay rebote infinito', () => {
   });
 
   it('espera a que termine la carga de la sesión antes de decidir', async () => {
-    // Al recargar, el usuario y las banderas aún no llegaron: decidir entonces cerraba rutas
-    // abiertas y mandaba al login o al dashboard, perdiendo la vista en la que se estaba.
     const store = montar([P.dashboard.ver], { dashboard: true });
     store.remoteState.set('loading');
 

@@ -104,11 +104,6 @@ export class DashboardComponent extends DashboardKpis {
     return { id: widget.id, cols: full ? 12 : 6, height: heights[widget.type] ?? 360 };
   }
 
-  /**
-   * Personalizar agrupa cuatro acciones distintas: reordenar, cambiar de tipo, ocultar
-   * y crear. El botón aparece si alguna está concedida, y dentro cada control comprueba
-   * la suya. Así se puede dar «solo reorganizar» sin dar «cambiar de visualización».
-   */
   readonly puedePersonalizar = computed(
     () =>
       !this.layout.soloLectura() &&
@@ -118,7 +113,6 @@ export class DashboardComponent extends DashboardKpis {
         this.caps.allows(P.dashboard.widget.crear)),
   );
 
-  /** Sin ningún KPI concedido la franja se retira entera, en vez de quedar vacía. */
   readonly algunKpi = computed(
     () =>
       this.caps.allows(P.dashboard.kpi.balance) ||
@@ -150,20 +144,11 @@ export class DashboardComponent extends DashboardKpis {
       },
     }),
   );
-  /**
-   * Si no hay ni una pieza concedida, el panel no tiene nada que pintar.
-   *
-   * Es lo único que decide entre la pantalla y la explicación. Antes decidía
-   * `dashboard.listar`, un permiso aparte que había que marcar además del de entrar:
-   * conceder «ver dashboard» y un KPI pintaba la explicación y escondía el KPI, que era
-   * justo lo que se había concedido. Cada pieza responde ahora por sí sola.
-   */
   readonly nadaQueMostrar = computed(
     () =>
       !this.algunKpi() && !this.algunWidget() && !this.caps.allows(P.dashboard.tabla.ver) && !this.puedePersonalizar(),
   );
 
-  /** Igual que los KPI: sin ninguna gráfica concedida, la rejilla no se pinta. */
   readonly algunWidget = computed(() =>
     [
       P.dashboard.widget.flujo,
@@ -207,13 +192,6 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'savings', label: this.i18n.t('dashboard.accountType.savings.plural') },
     { value: 'cash', label: this.i18n.t('dashboard.accountType.cash') },
   ]);
-  /**
-   * Los primeros catorce son genéricos: se combinan con dimensión + métrica (ver
-   * `isGeneric`) para que un widget "sea lo que el usuario quiera medir", en vez de una
-   * grafica ya calculada. Los marcados "(fijo)" traen su propia lógica de datos —flujo de
-   * caja, exploración de categorías con click-to-filter, dispersión fecha/importe— y no
-   * aceptan dimensión ni métrica; se mantienen para no romper widgets ya creados con ellos.
-   */
   readonly otherWidgetTypeOptions = computed<readonly UiOption[]>(() =>
     (
       [
@@ -314,7 +292,6 @@ export class DashboardComponent extends DashboardKpis {
     this.widgetCreatorOpen.set(false);
     this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title: widget.title }));
   }
-  /** Filas {etiqueta, valor} para un widget "tabla", ya formateadas para `table`. */
   tableRows(widget: Widget): Record<string, string>[] {
     return this.aggregate(widget).map((a) => ({ label: a.label, value: this.formatMeasure(a.value, widget) }));
   }

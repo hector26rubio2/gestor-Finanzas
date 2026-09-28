@@ -5,28 +5,12 @@ import { filter, map, take } from 'rxjs';
 import { safeReturnPath } from '@core/session/return-url';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 
-/**
- * Deja entrar a una sección, o manda a la primera que sí esté abierta.
- *
- * El rebote iba fijo a `/dashboard`, y el dashboard es una sección más: cuando su bandera
- * no llega —una instalación sin catálogo devuelve la lista vacía, y desde el cambio de
- * criterio una clave ausente cierra la ruta— el guard se mandaba a sí mismo una y otra
- * vez. Eso no se ve como una pantalla vacía: el hilo del navegador se queda girando en el
- * bucle de redirecciones y la pestaña deja de responder entera, sin un solo error en la
- * consola que lo explique.
- *
- * Ahora el destino se calcula: la primera entrada del menú que pase permiso y bandera. Si
- * no pasa ninguna, se va a una pantalla que lo explica, que es donde el bucle termina
- * porque esa ruta no está guardada.
- */
 const guard: CanMatchFn = (route) => {
   const store = inject(AppStore);
   const router = inject(Router);
   const injector = inject(Injector);
   const capacidades = inject(CAPABILITIES);
   const funcionalidades = inject(FEATURES);
-  // La URL completa que se pidió, para volver a ella tras entrar. `route.path` solo trae el
-  // primer tramo y perdería la consulta (p. ej. la página de una tabla).
   const solicitada = router.currentNavigation()?.extractedUrl.toString() ?? null;
 
   const decidir = (): boolean | UrlTree => {
@@ -50,9 +34,6 @@ const guard: CanMatchFn = (route) => {
     return router.parseUrl(destino ? `/${destino.path}` : '/sin-acceso');
   };
 
-  // Mientras el servidor resuelve la sesión no hay usuario ni banderas todavía: decidir en
-  // ese momento cerraría rutas que sí están abiertas y mandaría a la persona al login o al
-  // dashboard, perdiendo la vista en la que estaba al recargar.
   if (store.remoteState() !== 'loading') return decidir();
   return toObservable(store.remoteState, { injector }).pipe(
     filter((estado) => estado !== 'loading'),
@@ -60,13 +41,6 @@ const guard: CanMatchFn = (route) => {
     map(decidir),
   );
 };
-/**
- * Cada pestaña del workspace es su propio chunk perezoso: antes todas vivian dentro de
- * `WorkspaceComponent` y navegar a cualquiera de ellas bajaba el mismo chunk "workspace"
- * completo, con las nueve juntas. Ahora `WorkspaceComponent` es solo la cascara compartida
- * (cabecera, Inspector, formularios) y cada entrada aqui es la pestaña real que se monta
- * en su `<router-outlet>`.
- */
 const workspaceFeatureLoader: Record<string, () => Promise<Type<unknown>>> = {
   movements: () => import('@features/movements/movements-tab').then((m) => m.MovementsTabComponent),
   calendar: () => import('@features/calendar/calendar-tab').then((m) => m.CalendarTabComponent),

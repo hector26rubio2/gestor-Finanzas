@@ -18,15 +18,6 @@ const ACCOUNT_TYPE_LABEL_KEYS: Record<Account['type'], string> = {
   credit: 'movements.filters.accountType.credit',
 };
 
-/**
- * Movimientos ya filtrados y con formato de fila, mas su paginacion remota.
- *
- * Lo comparten Movimientos (que expone los controles de filtro) y Cuentas (cuya tabla de
- * movimientos de una cuenta filtra sobre el mismo resultado, heredando sin proponerselo
- * los filtros de tipo/categoria/operacion de Movimientos: asi se comportaba antes de
- * dividir la pagina y no es este el momento de cambiarlo). El inspector de un movimiento
- * tambien necesita recargar la pagina tras reversar uno.
- */
 @Injectable({ providedIn: 'root' })
 export class MovementsBookService {
   private readonly store = inject(AppStore);
@@ -47,13 +38,6 @@ export class MovementsBookService {
       label: this.i18n.t(key),
     })),
   ]);
-  /**
-   * `essential: false` manda la columna al detalle plegable de la fila en movil (ver
-   * TableColumn.essential): con 9 columnas, sin esto cada fila se volvia una tarjeta de
-   * medio celular y una pagina completa un scroll de miles de pixeles. Fecha, descripcion,
-   * importe y cuenta son lo que se necesita para reconocer un movimiento de un vistazo; el
-   * resto queda a un toque de distancia.
-   */
   readonly movementColumns = computed(() => [
     { key: 'date', label: this.i18n.t('movements.column.date'), filter: 'date' as const, rawKey: 'dateIso' },
     { key: 'description', label: this.i18n.t('movements.column.description') },
@@ -181,7 +165,6 @@ export class MovementsBookService {
       raw: m,
     })),
   );
-  /** Una sola forma de escribir una fecha en toda la aplicacion, con el idioma de las preferencias. */
   formatDate(value: string): string {
     const parsed = new Date(`${value}T00:00:00Z`);
     if (Number.isNaN(parsed.getTime())) return value;
@@ -190,7 +173,6 @@ export class MovementsBookService {
       timeZone: 'UTC',
     }).format(parsed);
   }
-  /** Hay una página de movimientos en camino; la tabla muestra un esqueleto encima. */
   readonly movementsLoading = signal(false);
   private cuentaFiltrada() {
     const id = this.store.accountFilter();
@@ -198,8 +180,6 @@ export class MovementsBookService {
   }
 
   async loadMovementPage(page: number): Promise<void> {
-    // Sin el permiso no se pide: el servidor responderia 403 y el aviso hablaria de un
-    // fallo al cargar la pagina, que no es lo que pasa.
     if (!this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
     this.movementsLoading.set(true);
@@ -238,8 +218,6 @@ export class MovementsBookService {
     void this.loadMovementPage(1);
   }
   private toRemoteMovement(source: ApiMovement): import('@core/state/view-model').Movement {
-    // Misma tabla de invariantes que usa el arranque remoto: aquí estaba
-    // duplicada la expresión de signo y la lista de clases escrita a mano.
     const amount = parseMoney(source.amount.base) * signOf(source.flow, source.effect);
     const family = this.store.kindCatalog().family(source.kind, source.effect, source.flow);
     return {

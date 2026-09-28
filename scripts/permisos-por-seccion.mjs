@@ -1,15 +1,3 @@
-/**
- * Un permiso por sección basta para entrar y ver algo.
- *
- * El modelo acordado: el permiso de la sección manda en el menú y en la entrada; los
- * permisos finos solo deciden qué se ve dentro. Lo que esta comprobación impide es la
- * regresión de siempre: que un permiso fino acabe cerrando la puerta, o que la pantalla
- * abra vacía —una pantalla vacía sin explicación se lee como averiada y se reporta como
- * un fallo que no existe—.
- *
- * Va con la sesión y los datos fingidos, sin API detrás: lo que se prueba es la decisión
- * del cliente, no el servidor.
- */
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
@@ -132,9 +120,6 @@ function browserExecutable() {
 async function revisar(browser, ruta, permiso) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   try {
-    // El comodin va primero: en Playwright manda la ruta registrada mas tarde, asi que
-    // los fingidos concretos de debajo ganan sobre este. Lo que nadie finja se queda en
-    // una respuesta vacia y no sale a la red, en vez de esperar treinta segundos.
     await context.route('**/api/v1/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),
     );
@@ -155,8 +140,6 @@ async function revisar(browser, ruta, permiso) {
       await context.route(`**/api/v1/${nombre}*`, (route) =>
         route.fulfill({ status: 200, contentType: 'application/json', body: cuerpo }),
       );
-    // El canal en vivo se abre siempre; con otro tipo de contenido el navegador lo aborta
-    // y escribe un error en consola que no dice nada de lo que aqui se comprueba.
     await context.route('**/api/v1/events*', (route) =>
       route.fulfill({ status: 200, contentType: 'text/event-stream', body: ': conectado\n\n' }),
     );

@@ -166,12 +166,10 @@ export class AccountsTabComponent implements OnDestroy {
   setAccountType(value: 'all' | Account['type']): void {
     this.accountType.set(value);
   }
-  /** Cambia cual cuenta filtra la tabla de abajo, sin abrir su inspector. */
   filterByAccount(id: string): void {
     this.store.accountFilter.set(id);
     void this.book.loadMovementPage(1);
   }
-  /** Abre el inspector completo: extracto, historial y acciones (pago, editar, desactivar). */
   selectAccount(id: string, type: string): void {
     this.filterByAccount(id);
     this.store.cardPaymentMode.set(false);

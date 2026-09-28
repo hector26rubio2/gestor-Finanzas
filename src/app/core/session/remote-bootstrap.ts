@@ -23,29 +23,14 @@ export class RemoteBootstrap {
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
 
-  /**
-   * Canal en vivo abierto, si lo hay. Se guarda para poder cerrarlo: al cerrar sesion
-   * seguia conectado y reintentando contra un endpoint que ya devolvia 401.
-   */
   private canal: EventSource | null = null;
 
-  /**
-   * Si la sesion se cerro a proposito.
-   *
-   * El sondeo y el canal seguian vivos despues de cerrar sesion, y ninguno sabia que la
-   * persona se habia ido: bastaba con que la siguiente lectura de la sesion devolviera
-   * algo —una cookie que todavia no habia caducado, una peticion en vuelo— para volver a
-   * entrar solo. Cerrar sesion tiene que ganarle a cualquier ciclo en marcha.
-   */
   private cerradaAProposito = false;
 
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
     await this.initialize();
-    // El sondeo se queda como respaldo: cubre el canal caido, el navegador sin
-    // EventSource y el despliegue con mas de una instancia, donde el aviso puede salir
-    // por una maquina distinta de la que atiende esta pestana.
     if (this.destroyRef.destroyed) return;
     const timer = window.setInterval(() => void this.pollSession(), 60_000);
     const onFocus = () => void this.pollSession();
@@ -59,25 +44,17 @@ export class RemoteBootstrap {
     this.escucharCambiosDeAcceso();
   }
 
-  /** Identidad de la sesión cargada: si cambia, hay que empezar de cero y no solo refrescar. */
   private identidad: string | null = null;
-  /** Permisos de la sesión cargada, para saber qué datos se conceden o se quitan al refrescar. */
   private permisos = new Set<string>();
   private refrescando = false;
   private raw: RawData = emptyRaw();
 
-  /**
-   * Carga completa: primera vez, al entrar y cuando cambia la persona o la organización.
-   * Es la única que pone `remoteState` en «loading» y, con él, el indicador de carga.
-   */
   async initialize(): Promise<void> {
     this.cerradaAProposito = false;
     this.store.remoteState.set('loading');
     try {
       const session = await firstValueFrom(this.api.session());
 
-      // Sin permisos el menu sale vacio y ninguna ruta abre. Antes eso ocurria en
-      // silencio y parecia una aplicacion rota; ahora se dice lo que pasa.
       if (!session.permissions?.length) {
         this.store.remoteError.set(this.i18n.t('session.error.noPermissions'));
         this.store.remoteState.set('error');
@@ -88,35 +65,23 @@ export class RemoteBootstrap {
       this.identidad = identidadDe(session);
       this.permisos = new Set(session.permissions);
 
-      // Cada petición se hace si su permiso está concedido, y el permiso es el mismo
-      // código que exige el endpoint. Antes se decidía con la máscara numérica de
-      // capacidades, que un rol granular deja vacía: conceder «ver movimientos» y nada más
-      // ponía la entrada en el menú y luego no pedía los movimientos.
       const claves = SLICES.filter((clave) => this.permisos.has(PERMISO_DE[clave]));
       const sinCatalogo = of<readonly ApiCurrency[] | null>(null);
       const result = await firstValueFrom(
         forkJoin({
           datos: this.pedirRebanadas(claves),
-          // Los valores efectivos no son una pantalla administrativa: toda sesión los
-          // necesita para decidir qué rutas puede ofrecer. Sin ellos no hay menú.
           featureFlags: this.api.featureFlags(),
           notifications: this.api.notifications().pipe(catchError(() => of([]))),
-          // El catálogo de monedas solo si su permiso está concedido, y con degradación:
-          // una lista que no llega no impide que la sesión arranque, y se siguen usando
-          // las monedas locales hasta el próximo intento.
           monedas: this.permisos.has(P.sesion.monedas.listar)
             ? this.api.currencies().pipe(catchError(() => sinCatalogo))
             : sinCatalogo,
         }),
       );
       this.raw = { ...emptyRaw(), ...result.datos, notifications: result.notifications };
-      // El catálogo entra antes que los importes: los decimales de cada moneda deciden
-      // cómo se parsean, y parsear con la tabla local equivale a suponer COP.
       if (result.monedas?.length) setCurrencyCatalog(result.monedas);
       this.aplicarDatos();
       this.aplicarSesion(session, result.featureFlags);
       this.store.remoteState.set('ready');
-      // Tras volver a entrar, el canal se reabre: al cerrar sesion se cerro a proposito.
       this.escucharCambiosDeAcceso();
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) {
@@ -132,11 +97,6 @@ export class RemoteBootstrap {
     }
   }
 
-  /**
-   * Trae las rebanadas de datos pedidas. Un fallo en una no anula la sesión: esa lista queda
-   * vacía y se avisa una vez. Antes cualquier error no crítico (una lista con 403 o 500)
-   * dejaba `user` en null y el guard mandaba al login, perdiendo la vista.
-   */
   private pedirRebanadas(claves: readonly Rebanada[]): Observable<Partial<RawData>> {
     if (!claves.length) return of({});
     let fallos = 0;
@@ -180,11 +140,8 @@ export class RemoteBootstrap {
     }
   }
 
-  /** Vuelca las rebanadas cargadas al store. Es lo único que reescribe `store.data`. */
   private aplicarDatos(): void {
     const raw = this.raw;
-    // El catálogo entra antes que los movimientos: la familia de cada clase se
-    // deriva de la tabla publicada, no de números escritos a mano en el cliente.
     const catalog = new MovementKindCatalog(raw.movementKinds);
     this.store.kindCatalog.set(catalog);
     this.store.data.set(
@@ -228,11 +185,6 @@ export class RemoteBootstrap {
     }
   }
 
-  /**
-   * Publica la sesión y las banderas solo si cambiaron. Cada `set` con un valor equivalente
-   * despertaba a todo lo que lee `store.user()` —el menú lateral incluido— y, con él, la
-   * pantalla activa; comparando antes solo se actualiza lo que de verdad cambió.
-   */
   private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[]): void {
     const user = toViewUser(session);
     const actual = this.store.user();
@@ -245,10 +197,6 @@ export class RemoteBootstrap {
       mismaLista(actual.capabilities, user.capabilities);
     if (!igual) this.store.user.set(user);
 
-    // La moneda base de la organización viene en la sesión y antes se descartaba aquí,
-    // junto al resto de la ficha: la UI seguía etiquetando y sumando en COP aunque el
-    // backend calculase en USD. Solo se acepta un código de tres letras, que es lo que el
-    // backend exige también en `PUT /preferences`.
     const monedaBase = session.organization.baseCurrency?.trim().toUpperCase();
     if (monedaBase?.length === 3 && monedaBase !== this.store.baseCurrency()) this.store.baseCurrency.set(monedaBase);
 
@@ -265,13 +213,6 @@ export class RemoteBootstrap {
     this.store.featureFlagsLoaded.set(true);
   }
 
-  /**
-   * Refresca lo que cambió sin recargar la aplicación: relee la sesión y las banderas,
-   * trae solo los datos de los permisos recién concedidos, vacía los de los retirados y
-   * publica el resultado. No toca `remoteState`, así que no aparece el indicador de carga
-   * ni se destruye la pantalla activa; si un permiso cambia, solo se repinta lo que lo lee
-   * (el menú lateral, por ejemplo). Si cambió la persona o la organización, recarga todo.
-   */
   private async cargarSesion(): Promise<void> {
     if (this.cerradaAProposito) return;
     if (this.store.remoteState() === 'loading' || this.refrescando) return;
@@ -297,28 +238,16 @@ export class RemoteBootstrap {
       if (concedidas.length || retiradas.length) this.aplicarDatos();
       this.aplicarSesion(session, flags);
     } catch (error) {
-      // La cookie pudo caducar justo durante el refresco (sondeo, foco o canal en
-      // vivo). Si el 401 se ignorara como cualquier otro error transitorio, el
-      // estado seguiría en «ready» y `user()` seguiría poblado: el guard dejaría
-      // pasar y la pantalla presentaría datos de hace una hora como vigentes.
-      // Pasando a «anonymous», el guard existente manda al login.
       if (error instanceof ApiRequestError && error.status === 401) {
         this.store.user.set(null);
         this.store.remoteState.set('anonymous');
         return;
       }
-      /* los errores transitorios se ignoran; el próximo ciclo reintenta */
     } finally {
       this.refrescando = false;
     }
   }
 
-  /**
-   * Si el callback de Google falló del lado del backend, redirige de vuelta con
-   * `?authError=1` en vez de dejar a la persona viendo el JSON crudo de la API. Sin
-   * esto, la sesión simplemente volvía a "anonymous" y la pantalla de login no decía
-   * nada de lo que había pasado.
-   */
   private consumeAuthError(): string | null {
     const params = new URLSearchParams(window.location.search);
     if (!params.has('authError')) return null;
@@ -328,18 +257,6 @@ export class RemoteBootstrap {
     return this.i18n.t('login.authError');
   }
 
-  /** Revisa la sesión y recarga todo cuando un administrador cambia los permisos. */
-  /**
-   * Escucha el canal en vivo de cambios de acceso.
-   *
-   * Sin esto, quitar un permiso tardaba hasta un minuto en verse: el servidor ya
-   * rechazaba la peticion —la cookie se revalida contra la base en cada llamada— pero la
-   * pantalla seguia ofreciendo la entrada de menu retirada, que es peor que no mostrarla
-   * porque invita a intentarlo.
-   *
-   * Eventos del servidor y no un socket: el flujo va en un solo sentido y EventSource ya
-   * trae reconexion automatica. El aviso no lleva datos; solo dice que hay que releer.
-   */
   private escucharCambiosDeAcceso(): void {
     if (typeof EventSource === 'undefined') return;
     if (this.canal) return;
@@ -351,25 +268,11 @@ export class RemoteBootstrap {
         if (!this.cerradaAProposito) void this.cargarSesion();
       });
     } catch {
-      // Si el canal no se puede abrir, queda el sondeo.
       this.canal = null;
     }
   }
 
-  /**
-   * Cierra la sesion y devuelve a la pantalla de acceso.
-   *
-   * Estaba escrito dos veces —en el menu de perfil y en Preferencias— y las dos copias
-   * habian divergido: la de Preferencias no olvidaba el perfil demo, asi que en modo
-   * local seguias dentro, y si la llamada al servidor fallaba se rendia sin limpiar
-   * nada, dejandote autenticado en pantalla. Una sola implementacion no puede divergir.
-   *
-   * Si el servidor no responde, la sesion local se cierra igual: quedarse dentro porque
-   * la red fallo es lo contrario de lo que pide quien pulsa «cerrar sesion». La cookie
-   * caduca por su cuenta.
-   */
   async cerrarSesion(): Promise<void> {
-    // Antes que nada: corta los ciclos que podrian volver a entrar mientras se cierra.
     this.cerradaAProposito = true;
     this.identidad = null;
     this.permisos = new Set();
@@ -379,9 +282,7 @@ export class RemoteBootstrap {
 
     try {
       await firstValueFrom(this.api.logout());
-    } catch {
-      /* la sesion local se cierra igual; el servidor la caducara */
-    }
+    } catch {}
 
     this.store.remoteState.set('anonymous');
     clearAppearanceOverrides();
@@ -391,7 +292,6 @@ export class RemoteBootstrap {
     await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
-  /** Revisa la sesión (sondeo, foco de la ventana y cambios hechos desde Administración). */
   async pollSession(): Promise<void> {
     await this.cargarSesion();
   }
