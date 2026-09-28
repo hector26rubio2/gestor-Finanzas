@@ -29,7 +29,13 @@
       <div class="flex min-w-0 flex-col gap-3">
         @if (!otroTipo()) {
         <fin-configurador-visual [conTipo]="false" [(config)]="nuevoVisual" />
-        @if (vistaPrevia(); as opcion) {
+        @if (previaVacia()) {
+        <p
+          class="grid min-h-[300px] place-items-center rounded-lg border border-dashed border-border p-6 text-center text-[0.85rem] text-muted-foreground"
+        >
+          {{ i18n.t('dashboard.widgetForm.previewEmpty') }}
+        </p>
+        } @else if (vistaPrevia(); as opcion) {
         <div class="rounded-lg border border-border bg-card p-3">
           <fin-chart [option]="opcion" [height]="300" [ariaLabel]="newWidgetTitle || i18n.t('charts.picker.label')" />
         </div>

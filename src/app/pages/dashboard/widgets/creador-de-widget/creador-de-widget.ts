@@ -16,6 +16,14 @@ import { Dimension, Measure, TWO_DIMENSION_TYPES, Widget, WidgetType } from '@sh
 import { esGenerico } from '@pages/dashboard/widgets/edicion-de-widgets';
 import { NumericInputDirective } from '@ui/numeric-input';
 
+function sinSeries(opcion: ChartOption | null): boolean {
+  const series = (opcion as { series?: unknown } | null)?.series;
+  if (!Array.isArray(series)) return !series;
+  return series.every((serie: { data?: unknown; links?: unknown[] }) =>
+    Array.isArray(serie.data) ? serie.data.length === 0 && !serie.links?.length : !serie.data && !serie.links?.length,
+  );
+}
+
 function sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'> {
   const { tipo, ...resto } = config;
   void tipo;
@@ -48,6 +56,7 @@ export class CreadorDeWidgetComponent {
   readonly dimensionOptions = input<readonly UiOption[]>([]);
   readonly measureOptions = input<readonly UiOption[]>([]);
   readonly opcionDe = input.required<(widget: Widget) => ChartOption>();
+  readonly hayDatos = input(true);
   readonly creado = output<Widget>();
   readonly cerrado = output<void>();
 
@@ -79,6 +88,8 @@ export class CreadorDeWidgetComponent {
           ...sinTipo(this.nuevoVisual()),
         }),
   );
+
+  readonly previaVacia = computed(() => !this.hayDatos() || sinSeries(this.vistaPrevia()));
 
   get newWidgetMetric(): WidgetType {
     return this.otroTipo() || this.nuevoVisual().tipo;
