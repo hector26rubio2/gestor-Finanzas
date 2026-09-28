@@ -225,7 +225,7 @@ export class AccountFormComponent {
           this.catalogCommands.createAccount(
             this.name,
             this.type,
-            Number(this.opening),
+            this.type === 'credit' ? 0 : Number(this.opening),
             this.currency,
             Number(this.exchangeRate),
             {

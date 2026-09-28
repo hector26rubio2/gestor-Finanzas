@@ -63,9 +63,11 @@
         [ariaLabel]="i18n.t('form.field.currency')"
       />
     </fin-field>
+    @if (type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.opening')">
       <input hlmInput name="opening" [(ngModel)]="opening" type="number" />
     </fin-field>
+    }
     <fin-field [label]="i18n.t('form.account.field.lastFour')">
       <input
         hlmInput
@@ -78,7 +80,7 @@
         autocomplete="off"
       />
     </fin-field>
-    @if (currency === 'USD') {
+    @if (currency === 'USD' && type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
       <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
     </fin-field>
@@ -103,11 +105,11 @@
         [ariaLabel]="i18n.t('form.account.field.issuer')"
       />
     </fin-field>
-    }
+    } @if (type !== 'credit') {
     <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
       {{ i18n.t('form.account.hint.opening') }}
     </p>
-    } @if (esTarjeta()) {
+    } } @if (esTarjeta()) {
     <label class="col-span-full flex items-center gap-2 text-[0.82rem] font-medium">
       <hlm-checkbox [checked]="bimoneda()" (checkedChange)="alternarBimoneda($event)" />
       <span>{{ i18n.t('form.account.field.dualCurrency') }}</span>
