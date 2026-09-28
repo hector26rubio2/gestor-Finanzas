@@ -8,11 +8,19 @@
   />
 </fin-field>
 <fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
-  <input hlmInput type="number" name="installmentTotal" min="1" max="120" [(ngModel)]="model['installmentTotal']" />
+  <input
+    hlmInput
+    type="number"
+    name="installmentTotal"
+    min="1"
+    max="120"
+    step="1"
+    [(ngModel)]="model['installmentTotal']"
+  />
 </fin-field>
 @if (currentEditable) {
 <fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
-  <input hlmInput type="number" name="installmentCurrent" min="1" [(ngModel)]="model['installmentCurrent']" />
+  <input hlmInput type="number" name="installmentCurrent" min="1" step="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
 } @if (conCuotas()) {
 <fin-field [label]="i18n.t('form.movement.field.installmentRate')">

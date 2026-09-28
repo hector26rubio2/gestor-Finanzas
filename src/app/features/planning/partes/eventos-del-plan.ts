@@ -7,10 +7,11 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { FieldComponent } from '@ui/field';
 import { UiSelectComponent } from '@ui/select';
 import { ParteDelPlan } from './parte-del-plan';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-eventos-del-plan',
-  imports: [FormsModule, HlmButton, HlmInput, FieldComponent, UiSelectComponent],
+  imports: [NumericInputDirective, FormsModule, HlmButton, HlmInput, FieldComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './eventos-del-plan.html',
   host: { style: 'display: contents' },

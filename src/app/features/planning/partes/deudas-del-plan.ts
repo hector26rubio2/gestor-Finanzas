@@ -5,10 +5,11 @@ import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { FieldComponent } from '@ui/field';
 import { ParteDelPlan } from './parte-del-plan';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-deudas-del-plan',
-  imports: [FormsModule, HlmButton, HlmCheckbox, HlmInput, FieldComponent],
+  imports: [NumericInputDirective, FormsModule, HlmButton, HlmCheckbox, HlmInput, FieldComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './deudas-del-plan.html',
   host: { style: 'display: contents' },

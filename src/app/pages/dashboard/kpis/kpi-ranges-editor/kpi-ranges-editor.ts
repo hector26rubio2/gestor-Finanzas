@@ -8,10 +8,20 @@ import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { KpiRanges } from '@shared/tablero/kpi-ranges';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-kpi-ranges-editor',
-  imports: [FormsModule, HlmButton, HlmInput, HlmPopoverImports, HlmSwitch, IconComponent, UiSelectComponent],
+  imports: [
+    NumericInputDirective,
+    FormsModule,
+    HlmButton,
+    HlmInput,
+    HlmPopoverImports,
+    HlmSwitch,
+    IconComponent,
+    UiSelectComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-popover [state]="abierto() ? 'open' : 'closed'" (stateChanged)="alCambiarEstado($event)">
@@ -49,6 +59,7 @@ import { KpiRanges } from '@shared/tablero/kpi-ranges';
               <input
                 hlmInput
                 type="number"
+                finConSigno
                 inputmode="decimal"
                 [ngModel]="amarillo()"
                 (ngModelChange)="amarillo.set(+$event)"
@@ -62,6 +73,7 @@ import { KpiRanges } from '@shared/tablero/kpi-ranges';
               <input
                 hlmInput
                 type="number"
+                finConSigno
                 inputmode="decimal"
                 [ngModel]="rojo()"
                 (ngModelChange)="rojo.set(+$event)"
