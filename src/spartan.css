@@ -1,8 +1,3 @@
-/*
- * Tailwind v4 + Spartan (Helm/Brain). Sin «preflight»: la base propia vive en `@layer base`
- * (styles.css) y las utilidades ganan siempre a ella. El orden de las capas se fija aquí,
- * en la primera hoja que carga la aplicación.
- */
 @layer theme, base, utilities;
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
@@ -18,14 +13,8 @@
 @custom-variant data-horizontal (&[data-orientation='horizontal']);
 @custom-variant data-open (&[data-state='open']);
 @custom-variant data-closed (&[data-state='closed']);
-/* Los temas oscuros de la aplicación se marcan con `data-theme`, no con la preferencia del sistema. */
 @custom-variant dark (:is([data-theme='dark'], [data-theme='ocean'], [data-theme='berry']) &);
 
-/*
- * Los tokens apuntan a las variables que el tema activo escribe en runtime (styles.css y
- * `applyTheme`); `chart-theme.ts` las observa, así que conservan su nombre. Cambiar de
- * tema, de acento o de radio en Preferencias repinta todo sin regenerar CSS.
- */
 @theme inline {
   --color-background: var(--bg);
   --color-foreground: var(--text);
@@ -65,7 +54,6 @@
   --shadow-pop: var(--shadow);
 }
 
-/* Desktop width changes are immediate: resizing every chart for 200ms stutters. */
 [data-slot='sidebar-gap'],
 [data-slot='sidebar-container'] {
   transition: none;

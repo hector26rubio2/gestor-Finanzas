@@ -12,7 +12,6 @@ export interface CategoryListItem {
   color: string;
 }
 
-/** Lista de categorías de gasto, cada una con su barra de reparto — clic filtra el resto del panel por esa categoría. */
 @Component({
   imports: [NgScrollbar, HlmScrollAreaImports, HlmButton, CategoryBadgeComponent],
   selector: 'fin-category-list',

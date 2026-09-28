@@ -31,9 +31,6 @@ describe('persistPreferences', () => {
   beforeEach(() => TestBed.resetTestingModule());
 
   it('no manda la paleta propia cuando la sesión no puede definirla', async () => {
-    // La API responde 403 a cualquier tema personalizado de quien no gobierna la
-    // organización. Enviarlo siempre convertía un cambio de preset, de idioma o de
-    // tipografía en un error, que es el fallo que se reportó.
     const { api, store } = montar();
     store.user.set(usuario([P.preferencias.ver, P.preferencias.editar]) as never);
 

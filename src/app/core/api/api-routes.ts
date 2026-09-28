@@ -1,4 +1,3 @@
-/** Stable v1 paths published by the backend; transport remains opt-in. */
 export const API_ROUTES = {
   csrf: '/api/v1/auth/csrf',
   organizationMembers: '/api/v1/organization/members',

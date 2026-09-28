@@ -1,12 +1,3 @@
-/*
- * Fichero de tipos compartidos por los clientes de recurso. Aquí vivían
- * `ApiMovementSummary` y `MovementRepository`/`MOVEMENT_REPOSITORY`: estaban declarados y
- * exportados, pero nadie los usaba, y su contrato no coincidía con el real
- * (`occurredOn`/`money`/`kind: string` frente a `date`/`amount`/enum numérico). Código
- * muerto que engaña a quien lo lea, así que se retiró: el resumen de movimiento real es
- * `ApiMovement`, en `ledger.api.ts`, y las consultas pasan por `MovementQuery` de aquí.
- */
-
 export interface ApiPage<T> {
   items: readonly T[];
   page: number;
@@ -25,7 +16,6 @@ export interface MovementQuery {
   filter?: Readonly<Record<string, unknown>>;
 }
 
-/** API-facing money never uses JavaScript floating point. */
 export interface ApiMoney {
   amount: string;
   currency: string;

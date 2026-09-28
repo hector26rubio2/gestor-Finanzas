@@ -8,14 +8,6 @@ import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore, navigation } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
-/**
- * El armazón de la aplicación y la pantalla de entrada.
- *
- * Se decidía solo con `store.user()`, y eso pintaba el login dentro del layout: al
- * recargar contra la API la sesión tarda, el guard manda a `/login` mientras no hay
- * usuario, y al resolverse la sesión aparecía el armazón alrededor de una pantalla de
- * entrada que ya no hacía falta.
- */
 describe('AppComponent y la pantalla de entrada', () => {
   function montar() {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
@@ -49,7 +41,6 @@ describe('AppComponent y la pantalla de entrada', () => {
     fixture.detectChanges();
 
     expect(fixture.componentInstance.enLogin()).toBe(true);
-    // Sin esto se veía la barra lateral y la superior alrededor del formulario.
     expect(fixture.nativeElement.querySelector('aside')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-slot="topbar"]')).toBeNull();
   });
@@ -61,7 +52,6 @@ describe('AppComponent y la pantalla de entrada', () => {
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
     fixture.detectChanges();
-    // El armazón va en un @defer para no cargarse en el login: llega tras su chunk.
     await fixture.whenStable();
     fixture.detectChanges();
 
@@ -75,7 +65,6 @@ describe('AppComponent y la pantalla de entrada', () => {
     await router.navigateByUrl('/login');
     fixture.detectChanges();
 
-    // Sin dashboard.ver, ir a /dashboard a ciegas devolvería al mismo sitio por el guard.
     const store = TestBed.inject(AppStore);
     store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.movimientos.ver] });
     fixture.detectChanges();
@@ -104,7 +93,6 @@ describe('AppComponent y el menú', () => {
   it('un solo control abre y cierra, en vez de dos botones con dos significados', () => {
     const componente = montar().componentInstance;
 
-    // En pantalla ancha «abrir» es que el panel no esté contraído.
     expect(componente.menuAbierto()).toBe(true);
     componente.alternarMenu();
     expect(componente.menuAbierto()).toBe(false);

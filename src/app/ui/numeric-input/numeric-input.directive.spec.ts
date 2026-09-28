@@ -40,10 +40,6 @@ describe('NumericInputDirective', () => {
     expect(keydown(input, 'ArrowLeft')).toBe(false);
   });
 
-  /**
-   * jsdom no implementa `ClipboardEvent`: se arma un `Event` normal y se le cuelga
-   * `clipboardData` a mano, que es lo único que la directiva llega a leer.
-   */
   function paste(text: string): boolean {
     const event = new Event('paste', { cancelable: true }) as Event & { clipboardData: DataTransfer };
     event.clipboardData = { getData: () => text } as unknown as DataTransfer;

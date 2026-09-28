@@ -18,7 +18,6 @@ export function listenToConsole(listener: ConsoleListener): () => void {
   return () => listeners.delete(listener);
 }
 
-/** Convierte argumentos de consola en texto legible, sin reventar con referencias circulares. */
 function toMessage(args: unknown[]): string {
   return args
     .map((arg) => {
@@ -33,10 +32,6 @@ function toMessage(args: unknown[]): string {
     .join(' ');
 }
 
-/**
- * Parchea `console.*` para guardar un buffer circular de las últimas entradas. Se llama
- * una sola vez, antes de `bootstrapApplication`, para no perderse los logs de arranque.
- */
 export function patchConsole(): void {
   if (patched || typeof console === 'undefined') return;
   patched = true;

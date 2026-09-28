@@ -8,11 +8,6 @@ import { RUNTIME_CONFIG } from './runtime';
 import { AppStore } from '@core/state/store';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
-/**
- * Cerrar sesion estaba escrito dos veces —el menu de perfil y Preferencias— y las copias
- * habian divergido: la de Preferencias no olvidaba el perfil demo, asi que en modo local
- * seguias dentro, y si la llamada al servidor fallaba se rendia sin limpiar nada.
- */
 describe('cerrar sesion', () => {
   function montar(api: Partial<FinanceApiClient> = {}) {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
@@ -45,15 +40,12 @@ describe('cerrar sesion', () => {
 
     await arranque.cerrarSesion();
 
-    // Quedarse dentro porque la red fallo es lo contrario de lo que se pidio.
     expect(logout).toHaveBeenCalled();
     expect(store.user()).toBeNull();
     expect(router.url).toBe('/login');
   });
 
   it('el sondeo no vuelve a entrar despues de cerrar sesion', async () => {
-    // Esto es lo que se veia: se cerraba sesion, el sondeo seguia corriendo, la
-    // siguiente lectura devolvia una sesion todavia viva y la aplicacion entraba sola.
     const sesion = {
       user: { id: 'u1', displayName: 'Valentina', email: 'v@example.test', isActive: true },
       organization: { id: 'o1', name: 'Personal', slug: 'p', baseCurrency: 'COP', isActive: true, createdAt: '' },
@@ -75,7 +67,6 @@ describe('cerrar sesion', () => {
 
     await arranque.pollSession();
 
-    // Ni siquiera pregunta: la sesion se cerro a proposito.
     expect(session.mock.calls.length).toBe(llamadasAlCerrar);
     expect(store.user()).toBeNull();
   });
@@ -89,7 +80,6 @@ describe('cerrar sesion', () => {
 
     await arranque.cerrarSesion();
 
-    // Con «loading» la pantalla de carga se quedaria puesta sobre el login.
     expect(store.remoteState()).toBe('anonymous');
   });
 

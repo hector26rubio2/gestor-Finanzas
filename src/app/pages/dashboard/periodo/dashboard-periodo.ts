@@ -53,12 +53,6 @@ export class DashboardPeriodo {
 
   readonly anchor = signal(this.anclaPorDefecto);
 
-  /**
-   * Saltar de año a golpe de "‹"/"›" es razonable entre meses vecinos, pero no para ir de
-   * 2026 a 1999: son mas de trescientos clics. El selector deja escribir el destino
-   * directamente, sin ser el `<input type=date>` del sistema -que no encaja con el resto
-   * de controles de la app-, con un `select` como todos los otros filtros.
-   */
   readonly periodPickerOpen = signal(false);
 
   readonly anchorYear = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getFullYear()));
@@ -67,18 +61,10 @@ export class DashboardPeriodo {
 
   readonly anchorDay = computed(() => String(new Date(`${this.anchor()}T12:00:00`).getDate()));
 
-  /** Días del mes/año que muestra el selector: 28-31 según el mes, sin inventar un 31 de febrero. */
-  /** Días que tiene el mes del ancla; también el máximo válido para el selector de Día. */
   readonly daysInAnchorMonth = computed(() =>
     new Date(Number(this.anchorYear()), Number(this.anchorMonth()) + 1, 0).getDate(),
   );
 
-  /**
-   * Semanas del mes en bloques fijos de 7 dias (1-7, 8-14...): no son semanas ISO -esas
-   * cruzan de un mes a otro y "semana 1 de enero" dejaria de significar lo mismo para
-   * quien solo quiere saltar al principio del mes-, pero alcanzan para lo que se pide:
-   * elegir "la primera semana de enero" sin tener que dar clic semana a semana.
-   */
   readonly weekOfMonthOptions = computed<readonly UiOption[]>(() => {
     const total = this.daysInAnchorMonth();
     const semanas: UiOption[] = [];
@@ -92,7 +78,6 @@ export class DashboardPeriodo {
     return semanas;
   });
 
-  /** Qué opción de `weekOfMonthOptions` contiene el día actual del ancla. */
   readonly anchorWeekOfMonth = computed(() => {
     const dia = Number(this.anchorDay());
     return String(Math.floor((dia - 1) / 7) * 7 + 1);
@@ -102,7 +87,6 @@ export class DashboardPeriodo {
     this.setDay(value);
   }
 
-  /** Nombres de mes según el idioma activo -mismo `Intl` que ya usa el resto del archivo para fechas. */
   readonly monthOptions = computed<readonly UiOption[]>(() => {
     const formateador = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'long', timeZone: 'UTC' });
     return Array.from({ length: 12 }, (_, i) => ({
@@ -111,12 +95,6 @@ export class DashboardPeriodo {
     }));
   });
 
-  /**
-   * Solo digitos, a proposito: `<input type=number>` deja escribir "-" y "e" -notacion
-   * cientifica, 1e5 es un numero valido para el navegador-, y ni un año negativo ni "2e26"
-   * tienen sentido aqui. `Number(value)` los aceptaria igual, asi que la guardia va antes,
-   * sobre el texto crudo.
-   */
   private soloDigitos(value: string): number | null {
     const limpio = value.trim();
     return /^\d+$/.test(limpio) ? Number(limpio) : null;

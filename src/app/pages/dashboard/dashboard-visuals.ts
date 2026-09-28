@@ -70,13 +70,6 @@ export abstract class DashboardVisuals {
 
   readonly apiladoOption = computed<ChartOption>(() => opcionApilada(this.contextoDeGrafica(), this.timeline()));
 
-  /**
-   * Que parte de lo que entro se quedo.
-   *
-   * Se acota a cero y a cien: un periodo con mas gasto que ingreso daria negativo y la
-   * aguja se saldria de la esfera, y el exceso no es informacion que un medidor pueda
-   * mostrar. La cifra del centro sigue siendo el balance de verdad.
-   */
   readonly tasaDeAhorro = computed(() => {
     const entra = this.income();
     if (entra <= 0) return 0;
@@ -89,7 +82,6 @@ export abstract class DashboardVisuals {
     opcionDeIntensidad(this.contextoDeGrafica(), this.timeline()),
   );
 
-  /** En cuántos rangos de importe cae cada movimiento del periodo, sin distinguir ingreso de gasto. */
   readonly cubetasDelHistograma = computed(() => {
     const montos = this.movements()
       .map((m) => Math.abs(m.amount))
@@ -156,12 +148,6 @@ export abstract class DashboardVisuals {
       },
     });
   }
-  /**
-   * Umbrales del semáforo: rojo hasta la mitad de la meta, ámbar hasta la meta, verde de
-   * ahí en adelante. Relativos a la meta -no a un 30/60 fijo- porque la meta la define
-   * quien crea el widget; un 30% fijo no significaria lo mismo para una meta de $500.000
-   * que para una de $50.000.000.
-   */
   protected indicatorZones(min: number, max: number, meta: number): { low: number; mid: number } {
     const fraccionMeta = max > min ? Math.min(1, Math.max(0, (meta - min) / (max - min))) : 0;
     return { low: fraccionMeta * 0.5, mid: fraccionMeta };
@@ -173,7 +159,6 @@ export abstract class DashboardVisuals {
     const max = widget.goalMax && widget.goalMax > min ? widget.goalMax : Math.max(valor, meta, min + 1) * 1.25;
     return { min, max, meta, valor };
   }
-  /** Rojo/ámbar/verde según en qué tramo cae el valor actual -para la aguja y la píldora de estado. */
   indicatorStatus(widget: Widget): { label: string; color: string } {
     const palette = this.temaGrafica.palette();
     const { min, max, meta, valor } = this.indicatorScale(widget);
@@ -184,12 +169,6 @@ export abstract class DashboardVisuals {
     if (valorFraccion < mid) return { label: this.i18n.t('dashboard.indicator.status.warning'), color: palette.warn };
     return { label: this.i18n.t('dashboard.indicator.status.good'), color: palette.success };
   }
-  /**
-   * Indicador con meta: valor actual, mínimo, máximo y meta, cada uno con su color -tal
-   * como el "Indicador KPI" de Power BI. Tres tramos de fondo (rojo/ámbar/verde) marcan
-   * critico/alerta/bueno igual que la referencia; el arco relleno toma el mismo color que
-   * el tramo donde cae el valor, y la aguja marca la meta en sí, encima de todo.
-   */
   protected indicatorOption(widget: Widget): ChartOption {
     const palette = this.temaGrafica.palette();
     const { min, max, meta, valor } = this.indicatorScale(widget);
@@ -250,22 +229,14 @@ export abstract class DashboardVisuals {
       ],
     };
   }
-  /** Posición del valor actual en la escala 0-100%, para el puntero de la barra de colores. */
   colorScalePercent(widget: Widget): number {
     const { min, max, valor } = this.indicatorScale(widget);
     return max > min ? Math.min(100, Math.max(0, ((valor - min) / (max - min)) * 100)) : 0;
   }
-  /** Igual que `colorScalePercent` pero para la meta, así el rótulo cae en el punto correcto de la barra. */
   colorScaleMetaPercent(widget: Widget): number {
     const { min, max, meta } = this.indicatorScale(widget);
     return max > min ? Math.min(100, Math.max(0, ((meta - min) / (max - min)) * 100)) : 0;
   }
-  /**
-   * Filas de `aggregate` con un porcentaje relativo al mayor valor del grupo -para dibujar
-   * cada una como una barra de progreso- y un tono según ese porcentaje, igual que el
-   * "Indicador de Barra de Estado" de la referencia: verde arriba de 66%, ámbar entre 33 y
-   * 66, rojo debajo.
-   */
   statusBarsRows(
     widget: Widget,
   ): { label: string; valueLabel: string; percent: number; tone: 'success' | 'warn' | 'danger' }[] {
@@ -277,7 +248,6 @@ export abstract class DashboardVisuals {
       return { label: f.label, valueLabel: this.formatMeasure(f.value, widget), percent, tone };
     });
   }
-  /** Total agregado de un widget "tarjeta": toda la dimensión colapsada en un solo número. */
   cardValue(widget: Widget): number {
     return this.measureValue(this.movements(), widget.measure ?? 'expense');
   }

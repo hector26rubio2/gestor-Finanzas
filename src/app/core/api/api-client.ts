@@ -24,15 +24,12 @@ import { ApiClientError, BugReportPayload } from './administration.api';
 import { ApiPreference } from './preferences.api';
 import { MovementQuery } from './shared-api-types';
 
-// Transporte HTTP: puertos y adaptador CSRF, movidos a core/http/.
 export { API_TRANSPORT, ApiRequestError, HttpApiTransport } from '@core/http/api-http-client';
 export type { ApiRequest, ApiTransport, ApiProblem } from '@core/http/api-http-client';
 
-// Tabla de rutas y tipos compartidos, movidos a core/api/.
 export { API_ROUTES } from './api-routes';
 export type { ApiPage, MovementQuery, ApiMoney, ApiLinkRef, ApiConvertedMoney } from './shared-api-types';
 
-// DTOs y clientes por recurso: uno por feature, igual que en el backend.
 export { SessionApi } from './session.api';
 export type { ApiUser, ApiOrganization, ApiSession, ApiCurrency, ApiAuthMethods } from './session.api';
 export { AccountsApi, ApiAccountKind, accountKindToViewType, viewTypeToAccountKind } from './accounts.api';
@@ -80,11 +77,6 @@ export type { ApiRecurrence, ApiProjectedOccurrence, ApiMaterialization } from '
 export { PurchasesApi } from './purchases.api';
 export { SettlementsApi } from './settlements.api';
 
-/**
- * Fachada de compatibilidad: conserva los ~50 métodos que las páginas ya usan
- * mientras esas páginas siguen sin dividirse en `features/`. Cada método
- * delega en el cliente de su feature — la lógica real vive allí, no aquí.
- */
 @Injectable({ providedIn: 'root' })
 export class FinanceApiClient {
   private readonly sessionApi = inject(SessionApi);

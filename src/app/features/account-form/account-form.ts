@@ -33,13 +33,6 @@ import { IconComponent } from '@ui/icon';
 import { AsyncActionService } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 
-/**
- * Permiso que exige el backend para abrir una cuenta de este tipo.
- *
- * Replica `FaltaPermisoDeTipoDeCuenta` de `AccountsEndpoints.cs:70-79`, donde el tipo
- * viaja en el cuerpo y la política de la ruta no puede verlo: sin esta regla, la
- * interfaz ofrecería cuentas que el servidor rechaza con 403 y el error llegaría tarde.
- */
 export function permisoParaEditarCuenta(tipo: AccountViewType): string {
   return tipo === 'credit' ? P.cuentas.tarjetas.editar : P.cuentas.editar;
 }
@@ -75,10 +68,6 @@ export class AccountFormComponent {
   readonly error = signal('');
   name = 'Ahorro principal';
 
-  /**
-   * Un tipo de cuenta por permiso: se puede dar el ahorro y retener la tarjeta.
-   * El permiso de cada uno sale de `permisoParaTipoDeCuenta`, la regla del backend.
-   */
   readonly accountTypes = computed(() =>
     (['savings', 'checking', 'cash', 'wallet', 'other', 'credit'] as const)
       .map((value) => ({
@@ -228,7 +217,6 @@ export class AccountFormComponent {
     if (this.editing) return this.saveChanges(this.editing);
     try {
       this.error.set('');
-      // Una tarjeta la crea quien administra tarjetas; una cuenta, quien administra cuentas.
       const permiso = permisoParaTipoDeCuenta(this.type);
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
       await this.actions.run(

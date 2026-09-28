@@ -41,7 +41,6 @@ export default {
   'login.authError': 'Não foi possível concluir o login com o Google. Tente novamente.',
   'login.localAccessNote': 'Acesso local · Informação protegida neste dispositivo',
 
-  // ui: componentes compartilhados (kpi, tabela, overlay, select, sem acesso, skeleton, gráfico)
   'kpi.sparkline.ariaLabel': '{label}: tendência do período',
   'kpi.delta.more': '{value} a mais que o período anterior',
   'kpi.delta.less': '{value} a menos que o período anterior',

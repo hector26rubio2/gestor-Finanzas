@@ -26,7 +26,6 @@ export class KpiComponent {
   readonly label = input('');
   readonly value = input('');
   readonly hint = input('');
-  /** Sin su propio borde/fondo/relleno, para vivir dentro de una tarjeta que ya los pone. */
   readonly bare = input(false);
   readonly compact = input(false);
   readonly row = input(true);
@@ -36,21 +35,13 @@ export class KpiComponent {
     return values.length > 1 && Math.max(...values) !== Math.min(...values);
   });
   private readonly grid = inject(KpiGridContext, { optional: true });
-  /** Icono del chip. Sin nombre, la tarjeta no dibuja chip: no todas lo necesitan. */
   readonly icon = input<IconName | ''>('');
-  /** Color del chip. «accent» por defecto; «success»/«danger» para ingresos y gastos. */
   readonly tone = input<'accent' | 'success' | 'danger'>('accent');
-  /** Serie del periodo para la minigrafica; con menos de dos puntos no se dibuja. */
   readonly series = input<readonly number[]>([]);
-  /** Variacion en tanto por ciento frente al intervalo anterior; `null` la oculta. */
   readonly delta = input<number | null>(null);
   readonly progress = input<number | null>(null);
   readonly status = input<'good' | 'warn' | 'bad' | null>(null);
   readonly caption = input('');
-  /**
-   * Si subir es una buena noticia. En ingresos si; en gastos, no. Sin esto la tarjeta
-   * pintaria de verde un mes en el que se gasto un tercio mas.
-   */
   readonly subirEsBueno = input(true);
 
   private readonly tema = inject(ChartThemeService);
@@ -99,13 +90,6 @@ export class KpiComponent {
     const valor = this.delta();
     return valor !== null && valor !== 0 && !(valor > 0 === this.subirEsBueno());
   });
-  /**
-   * La flecha dice hacia donde se movio la cifra; el color, si eso es buena noticia.
-   *
-   * Mezclar las dos cosas en la flecha hacia ilegible la tarjeta de gastos: un gasto que
-   * bajaba se pintaba con flecha hacia arriba «porque mejora», y junto al numero en
-   * valor absoluto se leia exactamente como lo contrario de lo que habia pasado.
-   */
   readonly flecha = computed(() => {
     const valor = this.delta();
     if (valor === null || valor === 0) return '▬';

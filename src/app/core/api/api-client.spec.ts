@@ -136,7 +136,6 @@ describe('FinanceApiClient', () => {
     classification.flush({ id: 'movement-1' });
     await reclassify;
 
-    // Sin pedir un token nuevo: el de la escritura anterior sigue vigente.
     const reversal = firstValueFrom(api.reverseMovement('movement-1', { date: '2026-09-05', reason: 'Duplicado' }));
     const request = http.expectOne('https://api.example.test/api/v1/movements/movement-1/reversal');
     expect(request.request.headers.get('X-CSRF-Token')).toBe('csrf-1');
@@ -147,8 +146,6 @@ describe('FinanceApiClient', () => {
   });
 
   it('reuses the CSRF token instead of rotating it on every write', async () => {
-    // El servidor reescribía la cookie en cada GET /csrf: dos escrituras
-    // concurrentes se anulaban entre sí y toda mutación pagaba una ida y vuelta.
     const first = firstValueFrom(api.createPerson({ displayName: 'Ana' }));
     http.expectOne('https://api.example.test/api/v1/auth/csrf').flush({ token: 'unico' });
     const firstRequest = http.expectOne('https://api.example.test/api/v1/people');
@@ -208,17 +205,12 @@ describe('FinanceApiClient', () => {
     csrf.flush({ token: 'csrf' });
 
     const request = http.expectOne('https://api.example.test/api/v1/people');
-    // Sin límite, una llamada que no responde dejaba la acción clavada en «cargando».
     expect(request.request.timeout).toBe(30_000);
-    // Así entrega el corte el backend: status 0 con la excepción de la plataforma.
-    // `flush` con este cuerpo simula exactamente el `HttpErrorResponse` real.
     request.flush(new DOMException('Request timed out', 'TimeoutError'), {
       status: 0,
       statusText: 'Request timeout',
     });
 
-    // El mensaje es el que se enseña en el toast y en el error del formulario, así
-    // que no puede ser «La API respondió 0.».
     await expect(promise).rejects.toMatchObject({
       status: 0,
       message: expect.stringContaining('tiempo'),

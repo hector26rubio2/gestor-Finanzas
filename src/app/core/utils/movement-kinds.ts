@@ -1,16 +1,3 @@
-/**
- * Catálogo de clases de movimiento, construido con la tabla que publica el
- * backend en `GET /api/v1/movement-kinds`.
- *
- * `HANDOFF.md` §1 decide que `MovementKindSpecDto` viaje **como dato** para que
- * no existan dos verdades. El cliente escribía a mano `kind === 10 || kind === 11`
- * y la misma expresión de signo copiada en tres archivos: reordenar un enum en
- * `Contracts` pasaba las pruebas del backend y rompía los signos de la interfaz
- * en silencio. Aquí las constantes tienen nombre y la familia se deriva de la
- * tabla, no de números escritos a mano.
- */
-
-/** Espejo de `MovementKindDto`. Los valores numéricos son parte del contrato. */
 export const MovementKind = {
   income: 1,
   expense: 2,
@@ -35,13 +22,10 @@ export const MovementKind = {
   loanAdjustment: 44,
 } as const;
 
-/** Espejo de `EconomicEffectDto`: efecto sobre el resultado del periodo. */
 export const EconomicEffect = { neutral: 0, income: 1, expense: 2 } as const;
 
-/** Espejo de `CashFlowDto`: efecto sobre el saldo del instrumento. */
 export const CashFlow = { none: 0, inflow: 1, outflow: 2 } as const;
 
-/** Espejo de `MovementLinkDto`, banderas combinables. */
 export const MovementLink = {
   none: 0,
   operation: 1,
@@ -55,7 +39,6 @@ export const MovementLink = {
   sharedPurchase: 256,
 } as const;
 
-/** Familia de presentación. No la publica el contrato: se deriva de la tabla. */
 export type MovementFamily = 'income' | 'expense' | 'transfer' | 'payment';
 
 export interface ApiMovementKindSpec {
@@ -68,10 +51,6 @@ export interface ApiMovementKindSpec {
   isAlwaysNeutral: boolean;
 }
 
-/**
- * El signo depende del flujo de caja, y del efecto económico sólo cuando el
- * movimiento no mueve saldo (un devengo de interés es gasto sin flujo).
- */
 export function signOf(flow: number, effect: number): 1 | -1 {
   if (flow === CashFlow.outflow) return -1;
   if (flow === CashFlow.none && effect === EconomicEffect.expense) return -1;
@@ -97,11 +76,6 @@ export class MovementKindCatalog {
     return this.byKind.get(kind)?.isAlwaysNeutral ?? false;
   }
 
-  /**
-   * Deriva la familia de los efectos admitidos y de los enlaces obligatorios:
-   * si la clase nunca es ingreso ni gasto y exige una tarjeta, es un pago; si
-   * nunca es ingreso ni gasto y no la exige, es un traslado.
-   */
   family(kind: number, effect?: number, flow?: number): MovementFamily {
     const spec = this.byKind.get(kind);
     if (!spec) return familyFromEffect(effect, flow);
@@ -118,10 +92,6 @@ export class MovementKindCatalog {
   }
 }
 
-/**
- * Último recurso cuando la clase no está en la tabla: se lee el propio
- * movimiento. Es menos preciso que la tabla, pero no inventa un gasto.
- */
 function familyFromEffect(effect: number | undefined, flow: number | undefined): MovementFamily {
   if (effect === EconomicEffect.income) return 'income';
   if (effect === EconomicEffect.expense) return 'expense';
@@ -129,16 +99,8 @@ function familyFromEffect(effect: number | undefined, flow: number | undefined):
   return 'transfer';
 }
 
-/** Catálogo vacío: en modo demo los movimientos ya nacen con su familia. */
 export const EMPTY_KIND_CATALOG = new MovementKindCatalog([]);
 
-/**
- * `family()` distingue 4 categorías porque así las publica el backend, pero el modelo
- * local del movimiento (`Movement.kind`) ya no tiene un valor `'transfer'` propio: la
- * pata que sale es un gasto y la que entra un ingreso, igual que cualquier otro —
- * `movementSubtype` es la única marca que la distingue de una compra o un sueldo real.
- * `'payment'` (abono de tarjeta) sí sigue siendo su propia clase, sin tocar.
- */
 export function classifyFamily(
   family: MovementFamily,
   amount: number,

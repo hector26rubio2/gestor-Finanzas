@@ -5,12 +5,6 @@ import fr from '@core/i18n/fr';
 import pt from '@core/i18n/pt';
 import { movementsKpiHintKey, type MovementsKpi } from './movements-tab';
 
-/**
- * Hallazgo 4, decisión registrada: no se piden totales al reporting porque
- * `GET /api/v1/dashboard` solo acepta `from`/`to` y los filtros de esta pestaña no se
- * pueden reproducir allí. En su lugar la pista dice de dónde sale el número, y en modo
- * API ese número es la página cargada, no el periodo entero.
- */
 describe('pistas de los KPI de movimientos', () => {
   it('en modo API la pista dice que el dato es de la página cargada', () => {
     const kpis: MovementsKpi[] = ['income', 'expense', 'records', 'recurring', 'installments', 'topCategory'];

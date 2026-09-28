@@ -12,11 +12,6 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { InspectorComponent } from './inspector/inspector';
 import { I18nService } from '@core/i18n';
 
-/*
- * Sin rotulo sobre el titulo. Un «LIBRO CENTRAL» en versales encima de «Movimientos» no
- * dice nada que el titulo no diga ya, y es el adorno mas repetido de las interfaces
- * generadas. La estructura tiene que codificar informacion, no decorarla.
- */
 const paginasConMeta = [
   'movements',
   'calendar',
@@ -50,17 +45,6 @@ export class WorkspaceComponent {
   readonly movementsBook = inject(MovementsBookService);
   private readonly capabilities = inject(CAPABILITIES);
   readonly P = P;
-  /**
-   * Vistas cuyo contenido son bloques sueltos, cada uno con su permiso.
-   *
-   * Las demas se sostienen solas: llegar a Movimientos exige `movimientos.ver`, y ese
-   * codigo ya trae la tabla. Estas dos no tienen nada equivalente —Reportes es un
-   * conjunto de bloques y Planificacion un conjunto de simuladores—, asi que sin ninguno
-   * concedido quedan en blanco.
-   *
-   * Antes hacia falta ademas un `X.listar` en las siete, y concederlo se olvidaba: la
-   * entrada aparecia en el menu lateral y dentro no habia nada, sin decir por que.
-   */
   private readonly bloquesPorVista: Readonly<Record<string, readonly string[]>> = {
     reports: [
       P.reportes.comparativo.ver,
@@ -79,7 +63,6 @@ export class WorkspaceComponent {
     ],
   };
 
-  /** La vista activa no tiene ni uno de sus bloques concedido. */
   readonly sinNingunBloque = computed(() => {
     const bloques = this.bloquesPorVista[this.page()];
     return !!bloques && !bloques.some((codigo) => this.can(codigo));
@@ -98,7 +81,6 @@ export class WorkspaceComponent {
     };
   });
   private readonly headerActions = inject(HeaderActionsService);
-  /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   exportReport(): void {
     this.headerActions.exportReport()?.();
   }
@@ -106,7 +88,6 @@ export class WorkspaceComponent {
     this.headerActions.exportMovements()?.();
   }
 
-  /** El boton vive en la cabecera compartida; la pestaña activa registra la logica real. */
   readAll(): void {
     this.headerActions.readAll()?.();
   }

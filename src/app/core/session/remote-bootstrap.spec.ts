@@ -20,8 +20,6 @@ describe('RemoteBootstrap', () => {
       isActive: true,
       createdAt: '',
     },
-    // La mascara numerica llega vacia, como en un rol granular: lo que decide que se pide
-    // son los permisos, que es lo mismo que exige cada endpoint.
     capabilities: [],
     organizations: [],
     expiresAt: '',
@@ -85,9 +83,6 @@ describe('RemoteBootstrap', () => {
   });
 
   it('con «ver movimientos» y nada más, los movimientos se piden', async () => {
-    // El fallo tal como se reportó: quitar todos los permisos, dejar solo ese, y la
-    // pantalla salía vacía. El menú y la ruta ya miraban el permiso; esta petición no,
-    // miraba la máscara numérica, que un rol granular deja vacía.
     const api = {
       session: vi.fn(() => of({ ...session, permissions: [P.movimientos.ver] })),
       accounts: vi.fn(() => of([])),
@@ -111,7 +106,6 @@ describe('RemoteBootstrap', () => {
     await TestBed.inject(RemoteBootstrap).initialize();
 
     expect(api.movements).toHaveBeenCalledWith({ page: 1, pageSize: 25 });
-    // Y solo eso: un permiso concede su pantalla, no las de al lado.
     expect(api.accounts).not.toHaveBeenCalled();
     expect(api.people).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
@@ -144,8 +138,6 @@ describe('RemoteBootstrap', () => {
   };
 
   it('un cambio de permisos no recarga los datos que no cambian ni muestra la carga', async () => {
-    // Antes cualquier cambio de permisos volvía a pedir todo y ponía «loading»: se destruía la
-    // pantalla activa. Ahora solo se relee la sesión y se actualiza lo que la lee.
     const upgraded = { ...session, permissions: [...session.permissions, P.movimientos.crear] };
     let current = session;
     const api = apiCon(() => current);
@@ -230,9 +222,6 @@ describe('RemoteBootstrap', () => {
   });
 
   it('reloads when the identity changes even with the same permissions', async () => {
-    // Antes la firma de sesión solo miraba capacidades/permisos: si otra persona -u otra
-    // organización- entraba con el mismo rol, pollSession() no veía ningún cambio y
-    // dejaba en pantalla los datos de la sesión anterior.
     const otherIdentity = {
       ...session,
       user: { ...session.user, id: 'u2', displayName: 'Otra persona' },
@@ -389,19 +378,16 @@ describe('RemoteBootstrap', () => {
     const store = TestBed.inject(AppStore);
     const [pago, gasto] = store.data().movements;
 
-    // A-2: la familia sale de la tabla publicada, no de un número escrito a mano.
     expect(api.movementKinds).toHaveBeenCalledOnce();
     expect(store.kindCatalog().size).toBe(2);
     expect(pago.kind).toBe('payment');
     expect(gasto.kind).toBe('expense');
     expect(pago.amount).toBe(-400000);
 
-    // A-1: el importe en moneda original conserva los centavos sin polvo binario.
     expect(pago.originalAmount).toBe(100);
     expect(store.data().accounts[0].limit).toBe(1500.55);
     expect(store.data().investments[0].value - store.data().investments[0].cost).toBeCloseTo(0.1, 10);
 
-    // A-3: lo que la API no publica llega ausente, no inventado.
     const inversion = store.data().investments[0];
     expect(inversion.risk).toBeUndefined();
     expect(inversion.liquidity).toBeUndefined();
@@ -430,9 +416,6 @@ describe('RemoteBootstrap', () => {
   });
 
   it('surfaces the failed Google callback instead of a silent anonymous state', async () => {
-    // El backend redirige aca con "?authError=1" cuando el callback de Google falla del
-    // lado del servidor -antes la persona se quedaba viendo un JSON crudo en el dominio
-    // de la API y esta pantalla ni se enteraba-.
     window.history.pushState(null, '', '/dashboard?authError=1&foo=bar');
     const api = {
       session: vi.fn(() => throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' }))),
@@ -455,11 +438,6 @@ describe('RemoteBootstrap', () => {
   });
 
   it('un 401 durante el refresco cierra la sesión en lugar de ignorarse', async () => {
-    // El sondeo cada 60 s, el foco de la ventana y el canal en vivo llaman a
-    // cargarSesion(). Si el 401 cayera en el catch que descarta los errores
-    // transitorios, el estado seguiría en «ready» y `user()` seguiría poblado: el
-    // guard dejaría pasar y la pantalla presentaría datos de hace una hora como
-    // vigentes, mientras toda escritura posterior fallaba sin volver al login.
     let caducada = false;
     const api = {
       ...apiCon(() => session),
@@ -481,8 +459,6 @@ describe('RemoteBootstrap', () => {
   });
 
   it('un error transitorio durante el refresco no cierra la sesión', async () => {
-    // El resto de errores siguen siendo transitorios: un 500 puntual o una caída
-    // de red no deben expulsar a nadie, el próximo ciclo reintenta.
     let caida = false;
     const api = {
       ...apiCon(() => session),
@@ -500,8 +476,6 @@ describe('RemoteBootstrap', () => {
   });
 
   describe('moneda base y catálogo de monedas', () => {
-    // Ambas son estado del módulo, compartido por todo el proceso de pruebas: sin
-    // devolverlas, una prueba en USD dejaría el resto del archivo formateando en USD.
     afterEach(() => {
       baseCurrency.set(BASE_CURRENCY);
       currencyCatalog.set(LOCAL_CURRENCIES);
@@ -554,7 +528,6 @@ describe('RemoteBootstrap', () => {
 
       await montar(api).initialize();
 
-      // Con degradación la sesión sigue lista y siguen mandando las monedas locales.
       expect(TestBed.inject(AppStore).remoteState()).toBe('ready');
       expect(currencyCatalog()).toEqual(LOCAL_CURRENCIES);
     });

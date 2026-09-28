@@ -41,7 +41,6 @@ export default {
   'login.authError': 'We could not complete Google sign-in. Please try again.',
   'login.localAccessNote': 'Local access · Information protected on this device',
 
-  // ui: shared components (kpi, table, overlay, select, no-access, skeleton, chart)
   'kpi.sparkline.ariaLabel': '{label}: trend over the period',
   'kpi.delta.more': '{value} more than the previous period',
   'kpi.delta.less': '{value} less than the previous period',

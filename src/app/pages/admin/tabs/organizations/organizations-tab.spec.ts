@@ -9,11 +9,6 @@ import { AppStore } from '@core/state';
 import { currencyCatalog, LOCAL_CURRENCIES, setCurrencyCatalog } from '@core/utils';
 import { OrganizationsTabComponent } from './organizations-tab';
 
-/**
- * B8: la moneda base era un `<input maxlength="3">` libre, donde cabía cualquier cosa y
- * el cuerpo llegaba al backend con un código que este rechazaba con 400 sin explicación.
- * Ahora se elige de un catálogo y, mientras haya opción, se valida antes de enviar.
- */
 describe('organizaciones: la moneda base se elige de un catálogo', () => {
   beforeEach(() => {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
@@ -22,8 +17,6 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
       providers: [
         provideRouter([]),
         { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
-        // El almacén de administración solo se usa para crear la organización en esta
-        // prueba: el API real no debe salir a red ni montar su transporte.
         ...ADMIN_STORE_PROVIDERS,
         { provide: AdministrationApi, useValue: {} },
         { provide: RemoteBootstrap, useValue: { pollSession: vi.fn() } },
@@ -31,7 +24,6 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
     });
   });
 
-  // El catálogo es estado del módulo, compartido por todo el proceso de pruebas.
   afterEach(() => currencyCatalog.set(LOCAL_CURRENCIES));
 
   const crear = () => TestBed.createComponent(OrganizationsTabComponent).componentInstance;
@@ -62,7 +54,6 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
     componente.currency.set('COP');
     expect(componente.monedaValida()).toBe(true);
 
-    // Mayúsculas o minúsculas da lo mismo: lo que no se acepta es la longitud.
     componente.currency.set('usd');
     expect(componente.monedaValida()).toBe(true);
 
@@ -82,7 +73,6 @@ describe('organizaciones: la moneda base se elige de un catálogo', () => {
 
     expect(guardar).not.toHaveBeenCalled();
     expect(componente.creating()).toBe(false);
-    // Se avisa con el mensaje del catálogo, no con la clave cruda.
     const aviso = TestBed.inject(AppStore).toast.texto();
     expect(aviso).not.toBe('');
     expect(aviso).not.toContain('admin.organizations.error.currencyInvalid');

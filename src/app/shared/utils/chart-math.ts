@@ -1,4 +1,3 @@
-/** Cifra compacta ($1,2 M) en la moneda y el idioma de las preferencias del usuario. */
 export function compactMoney(value: number, locale: string): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',

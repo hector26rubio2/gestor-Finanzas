@@ -7,7 +7,6 @@ export interface ApiUser {
   displayName: string;
   email: string;
   isActive: boolean;
-  /** Foto de la cuenta de Google, si el proveedor la entregó. */
   pictureUrl?: string | null;
 }
 
@@ -35,22 +34,11 @@ export interface ApiSession {
   permissions?: readonly string[];
 }
 
-/** Espejo de `CurrencyDto`: catálogo de monedas que el backend publica para toda la instancia. */
 export interface ApiCurrency {
   code: string;
   minorUnits: number;
   isBase: boolean;
 }
-
-/*
- * La máscara numérica de capacidades ya no se reproduce aquí.
- *
- * `session.capabilities` sigue llegando por compatibilidad, pero un rol granular la deja
- * vacía, así que decidir con ella era decidir con un dato que ya no se escribe. Era la
- * única cosa del cliente que no preguntaba por `session.permissions`, y por eso divergía:
- * el menú abría una pantalla cuyos datos nadie llegaba a pedir. Lo que se consulta es el
- * permiso, que es el mismo código que exige el endpoint.
- */
 
 @Injectable({ providedIn: 'root' })
 export class SessionApi {
@@ -60,12 +48,6 @@ export class SessionApi {
     return this.transport.request<ApiSession>({ method: 'GET', path: API_ROUTES.session });
   }
 
-  /**
-   * Catálogo de monedas. El endpoint solo pide sesión autenticada, pero el vocabulario
-   * publica `sesion.monedas.listar` y el resto de la aplicación pregunta por el permiso
-   * antes de pedir nada: aquí se respeta la misma regla, en vez de abrir una petición que
-   * nadie le había concedido a esa sesión.
-   */
   currencies() {
     return this.transport.request<readonly ApiCurrency[]>({ method: 'GET', path: API_ROUTES.currencies });
   }

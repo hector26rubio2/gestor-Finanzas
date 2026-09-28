@@ -29,21 +29,8 @@ import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, rangosMensuales, variacion 
 import { MovementsBookService } from '@shared/movements';
 import { HeaderActionsService } from '@shared/header-actions.service';
 
-/** KPI de esta cesta cuya pista cambia según de dónde salen sus datos. */
 export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'installments' | 'topCategory';
 
-/**
- * Clave de la pista de un KPI, según el modo de carga.
- *
- * Hallazgo 4, decisión: **no** se piden totales al reporting, se matiza la pista. El
- * endpoint `GET /api/v1/dashboard` solo acepta `from`/`to`, y los filtros de esta pestaña
- * —búsqueda, periodo, cuenta, tipo de cuenta, categoría y operación— no se pueden
- * reproducir allí: un total del servidor calcularía con unos filtros distintos y no
- * cuadraría con la tabla de abajo, que es justo el engaño que había. Además, en modo API
- * los KPI suman la página cargada (25 filas), no el periodo entero, así que la pista lo
- * dice con claridad. En demo los datos cargados son la selección completa y la pista
- * original sigue siendo cierta, por eso no cambia.
- */
 export function movementsKpiHintKey(kpi: MovementsKpi): string {
   return `movements.kpi.page.${kpi}.hint`;
 }
@@ -113,7 +100,6 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
-  /** Pista de un KPI: en modo API dice que el dato es de la página cargada. */
   hintDe(kpi: MovementsKpi): string {
     if (this.totalesDelServidor() && (kpi === 'income' || kpi === 'expense')) return 'movements.kpi.selectionHint';
     if (kpi === 'records') return 'movements.kpi.selectionHint';
@@ -121,7 +107,6 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
-  /** El boton de exportar de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
   ngOnInit(): void {
     this.headerActions.exportMovements.set(() => this.exportMovements());
   }
@@ -183,7 +168,6 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   changeMovementPageSize(size: number): void {
     this.book.changeMovementPageSize(size);
   }
-  /** Exporta los movimientos que hay a la vista, con los filtros aplicados. */
   exportMovements(): void {
     if (!this.can(P.movimientos.exportar)) return;
     const filas = this.book.movementRows();

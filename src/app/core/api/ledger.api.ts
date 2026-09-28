@@ -4,21 +4,10 @@ import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '@co
 import { API_ROUTES } from './api-routes';
 import { ApiConvertedMoney, ApiLinkRef, ApiMoney, ApiPage, MovementQuery, monthRange } from './shared-api-types';
 
-/** Valores que acepta `MovementKindDto`. El número es parte del contrato. */
 export type MovementKindValue = (typeof MovementKind)[keyof typeof MovementKind];
-/** Valores que acepta `EconomicEffectDto`. */
 export type EconomicEffectValue = (typeof EconomicEffect)[keyof typeof EconomicEffect];
-/** Valores que acepta `CashFlowDto`. */
 export type CashFlowValue = (typeof CashFlow)[keyof typeof CashFlow];
 
-/**
- * Enlaces del alta de un movimiento: espejo de `MovementLinksDto`.
- *
- * Todos opcionales porque qué combinación es legal lo decide la tabla de
- * invariantes que publica el backend. Lo que no puede pasar es que un campo se
- * pierda al construir el objeto a mano: así llegó un gasto sin `category` y sin
- * `counterparty` a producción, visible en pantalla y ausente al recargar.
- */
 export interface CreateMovementLinks {
   operation?: string;
   account?: string;
@@ -31,7 +20,6 @@ export interface CreateMovementLinks {
   sharedPurchase?: string;
 }
 
-/** Cuerpo de `POST /movements`: espejo de `CreateMovementRequest`. */
 export interface CreateMovementBody {
   date: string;
   kind: MovementKindValue;
@@ -48,10 +36,6 @@ export interface CreateMovementBody {
   installments?: number;
 }
 
-/**
- * Cuerpo de `POST /transfers`: espejo de `CreateTransferRequest`.
- * No admite categoría: mover dinero propio nunca es ingreso ni gasto.
- */
 export interface CreateTransferBody {
   date: string;
   amount: ApiMoney;
@@ -61,10 +45,6 @@ export interface CreateTransferBody {
   idempotencyKey: string;
 }
 
-/**
- * Cuerpo de `POST /card-payments`: espejo de `CreateCardPaymentRequest`.
- * Tampoco admite categoría: el gasto ya se contó al hacer la compra.
- */
 export interface CreateCardPaymentBody {
   date: string;
   amount: ApiMoney;
@@ -117,7 +97,6 @@ export interface ApiOperation {
 export class LedgerApi {
   private readonly transport = inject(API_TRANSPORT);
 
-  /** Tabla de invariantes por clase de movimiento: viaja como dato, no se reescribe aquí. */
   movementKinds() {
     return this.transport.request<readonly ApiMovementKindSpec[]>({ method: 'GET', path: API_ROUTES.movementKinds });
   }

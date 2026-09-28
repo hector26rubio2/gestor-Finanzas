@@ -65,7 +65,6 @@ describe('permisos granulares', () => {
     store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.movimientos.ver] });
 
     expect(caps.allows(P.movimientos.ver)).toBe(true);
-    // Ver la vista ya no concede escribir en ella: es el punto de toda la matriz.
     expect(caps.allows(P.movimientos.crear)).toBe(false);
     expect(caps.allows(P.cuentas.ver)).toBe(false);
   });
@@ -79,13 +78,11 @@ describe('banderas de funcionalidad', () => {
     const store = TestBed.inject(AppStore);
     const features = TestBed.inject(FEATURES);
 
-    // Antes devolvía true: un fallo de red abría todo en vez de cerrarlo.
     expect(store.featureFlagsLoaded()).toBe(false);
     expect(features.enabled('movements')).toBe(false);
 
     store.featureFlagsLoaded.set(true);
     expect(features.enabled('movements')).toBe(false);
-    // El plano de control no se puede apagar desde sí mismo.
     expect(features.enabled('admin')).toBe(true);
     store.featureFlags.set({ movements: false });
     expect(features.enabled('movements')).toBe(false);

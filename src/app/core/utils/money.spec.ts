@@ -36,8 +36,6 @@ describe('money', () => {
   });
 
   it('suma sin arrastrar el error del punto flotante', () => {
-    // La suma ingenua da 0.30000000000000004: es exactamente el defecto que
-    // el contrato evita entregando cadenas, y el cliente perdía al usar Number.
     expect(0.1 + 0.2).not.toBe(0.3);
     expect(sumAmounts([0.1, 0.2], 'USD')).toBe(0.3);
     expect(sumAmounts([parseAmount('0.10', 'USD'), parseAmount('0.20', 'USD')], 'USD')).toBe(0.3);
@@ -92,8 +90,6 @@ describe('money', () => {
     expect(formatAmount(Number.NaN, 'COP', 'es-CO')).toContain('0');
   });
 
-  // Moneda base y catálogo son estado del módulo, compartido por todo el proceso de
-  // pruebas: sin devolverlos, una prueba que cambia la base dejaría las siguientes en USD.
   afterEach(() => {
     baseCurrency.set(BASE_CURRENCY);
     currencyCatalog.set(LOCAL_CURRENCIES);
@@ -105,8 +101,6 @@ describe('money', () => {
       { code: 'USD', minorUnits: 2 },
     ]);
     baseCurrency.set('USD');
-    // Sin moneda explícita manda la base: con COP fijo, los centavos de una organización
-    // en USD se redondeaban a enteros en cada suma y cada etiqueta.
     expect(decimalsFor(null)).toBe(2);
     expect(toMinor('1234.5')).toBe(123450);
     expect(sumBy([{ importe: 19.99 }], (m) => m.importe)).toBe(19.99);
@@ -118,12 +112,10 @@ describe('money', () => {
   });
 
   it('lee los decimales del catálogo del servidor y no se deja vaciar', () => {
-    // Sin catálogo, ISO 4217 manda: dos decimales y cero inventado.
     expect(decimalsFor('JPY')).toBe(2);
     setCurrencyCatalog([{ code: 'JPY', minorUnits: 0 }, ...LOCAL_CURRENCIES]);
     expect(decimalsFor('jpy')).toBe(0);
     expect(toMinor('1000.4', 'JPY')).toBe(1000);
-    // Un catálogo vacío no borra el anterior: sin monedas conocidas, COP volvería a tener centavos.
     setCurrencyCatalog([]);
     expect(decimalsFor('JPY')).toBe(0);
     expect(currencyCatalog().some((option) => option.code === 'COP')).toBe(true);

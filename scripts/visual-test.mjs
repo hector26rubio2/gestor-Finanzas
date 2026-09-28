@@ -30,8 +30,6 @@ const viewports = [
   { width: 1024, height: 768 },
   { width: 1440, height: 900 },
   { width: 3440, height: 1440, label: 'ultrawide' },
-  // A 720x450 CSS viewport exercises the layout available when a 1440x900
-  // desktop viewport is viewed at 200% browser zoom.
   { width: 720, height: 450, label: 'zoom-200' },
 ];
 
@@ -56,16 +54,11 @@ async function ensureServer() {
     return;
   }
   console.log(`Starting Angular server at ${baseUrl}`);
-  // `pnpm.cmd` solo existe en Windows; en las maquinas de integracion continua el
-  // servidor moria al instante con «pnpm.cmd: not found».
   server = spawn(process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm', ['start'], {
     cwd: webRoot,
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
     shell: true,
-    // Fuera de Windows el hijo es un `sh` que a su vez lanza el servidor. Sin grupo
-    // propio se mata al intermediario y el servidor sigue vivo, y con el sigue vivo este
-    // proceso: por eso un fallo al arrancar se quedaba colgado en vez de acabar.
     detached: process.platform !== 'win32',
   });
   let output = '';
@@ -99,9 +92,6 @@ function browserExecutable() {
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
     'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
     'C:\\Program Files\\Microsoft\\Edge\\Application\\msedge.exe',
-    // Las maquinas de integracion continua traen Chrome instalado; `playwright-core` no
-    // descarga navegadores, asi que se usa el del sistema en vez de añadir una dependencia
-    // que baje uno en cada ejecucion.
     '/usr/bin/google-chrome',
     '/usr/bin/chromium-browser',
     '/usr/bin/chromium',
@@ -113,23 +103,12 @@ function browserExecutable() {
   return undefined;
 }
 
-/**
- * Abre una ruta.
- *
- * Antes escribia `location.hash`, de cuando el router usaba almohadilla. Al pasar a
- * rutas normales, eso dejo de navegar: la URL se quedaba donde estaba, la espera
- * caducaba a los treinta segundos y la suite entera fallaba sin decir nada util. Desde
- * entonces nadie volvio a ejecutarla, y por ahi se colaron los fallos de interfaz que
- * acabaron reportandose a mano.
- */
 async function waitForRoute(page, route) {
   await page.goto(`${baseUrl}/${route}`, { waitUntil: 'domcontentloaded' });
   await page.waitForURL(new RegExp(`/${route}(?:$|[?])`));
   try {
     await page.locator('[data-page], fin-sin-seccion').first().waitFor({ state: 'visible' });
   } catch {
-    // Un tiempo agotado a secas no dice nada: cuenta donde acabo y que habia en pantalla,
-    // que es la diferencia entre arreglarlo y volver a ignorar esta suite.
     const donde = page.url();
     const texto = (
       await page
@@ -143,13 +122,6 @@ async function waitForRoute(page, route) {
   }
 }
 
-/**
- * Elige una opcion en uno de los desplegables propios.
- *
- * `selectOption` solo entiende un `<select>` nativo, y desde la modernizacion de los
- * controles estos son un boton con su lista: la llamada fallaba por no encontrar el
- * elemento, no por que la aplicacion estuviera rota.
- */
 async function chooseOption(page, ariaLabel, optionLabel) {
   await page.locator(`[data-slot="select-trigger"][aria-label^="${ariaLabel}"]`).click();
   const item = page.locator('[data-slot="select-item"]', { hasText: new RegExp(`^\\s*${optionLabel}\\s*$`) }).first();
@@ -167,13 +139,6 @@ async function horizontalOverflow(page, label) {
     : `${label}: document has horizontal overflow (${metrics.scrollWidth}px > ${metrics.clientWidth}px)`;
 }
 
-/**
- * Espera a que el foco vuelva a donde se pidio.
- *
- * Devolver el foco ocurre despues de que el panel se oculte, asi que comprobarlo en el
- * instante siguiente es una carrera: en una maquina lenta el navegador todavia no lo ha
- * movido. Se espera a la condicion, y si no llega, falla igual pero por lo que es.
- */
 async function devuelveElFoco(locator, mensaje) {
   try {
     await locator.evaluate(
@@ -190,8 +155,6 @@ async function devuelveElFoco(locator, mensaje) {
         }),
     );
   } catch {
-    // Contar donde acabo el foco: sin eso, «no volvio» no distingue entre que la
-    // aplicacion no lo devuelva y que lo devuelva a otro sitio.
     const donde = await locator
       .evaluate(() => {
         const activo = document.activeElement;
@@ -212,9 +175,6 @@ async function exerciseInteractions(page) {
     assert(renderedRows === Number(size), `The table did not render ${size} rows (rendered ${renderedRows})`);
   }
 
-  // El primer chip es "Todas" (solo filtra, no abre nada); el segundo es la primera
-  // cuenta real, y ese sí abre el inspector — igual que antes lo hacía `.bank-card`,
-  // cuando el carrusel de tarjetas grandes vivía en esta misma página.
   await page.locator('hlm-toggle-group button[aria-pressed]').nth(1).click();
   const cardTrigger = page.getByRole('button', { name: 'Ver extracto y detalle' });
   await cardTrigger.focus();
@@ -256,9 +216,6 @@ async function testViewport(browser, viewport) {
   page.on('pageerror', (error) => consoleErrors.push(error.stack ?? error.message));
 
   try {
-    // `networkidle` espera a que la red calle dos segundos, y con el servidor de
-    // desarrollo detras eso puede no ocurrir nunca: su canal de recarga mantiene la
-    // conexion viva. En una maquina lenta la suite se quedaba colgada ahi sin fallar.
     await page.goto(`${baseUrl}/dashboard`, { waitUntil: 'domcontentloaded' });
     const viewportLabel = viewport.label ?? `${viewport.width}px`;
     await page.waitForURL(/\/dashboard/);
@@ -292,8 +249,6 @@ async function main() {
     await mkdir(join(artifacts, viewport.label ?? String(viewport.width)), { recursive: true });
   await ensureServer();
   const executablePath = browserExecutable();
-  // `playwright-core` no descarga navegadores: sin uno del sistema arrancaria buscando
-  // un binario que no existe y el fallo hablaria de rutas internas en vez de decir esto.
   assert(
     executablePath,
     'No se encontro Chrome ni Edge. Instale uno, o apunte PLAYWRIGHT_CHROMIUM_EXECUTABLE al ejecutable.',
@@ -301,8 +256,6 @@ async function main() {
   const browser = await chromium.launch({
     executablePath,
     headless: true,
-    // El navegador del sistema en una maquina de integracion continua no siempre puede
-    // levantar su cajon de arena; sin esto se queda esperando en vez de arrancar.
     args: ['--no-sandbox', '--disable-dev-shm-usage'],
   });
   try {
