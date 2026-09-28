@@ -240,6 +240,7 @@ export class AccountFormComponent {
               dualCurrency: this.bimoneda(),
             },
             this.lastFour,
+            this.type === 'credit' ? undefined : this.issuerId,
           ),
         {
           loading: this.i18n.t('form.account.toast.loading'),
@@ -263,6 +264,7 @@ export class AccountFormComponent {
           this.catalogCommands.updateAccount(account, {
             name: this.name,
             lastFour: this.lastFour,
+            issuerId: this.issuerId,
             credit: {
               limit: Number(this.limit),
               cutDay: Number(this.cutDay),

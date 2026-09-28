@@ -12,6 +12,7 @@ export function toViewAccount(account: ApiAccount): Account {
     openingBalance: 0,
     lastFour: account.lastFour ?? undefined,
     institution: account.institution ?? undefined,
+    issuerId: account.issuerEntity?.id,
   };
 }
 

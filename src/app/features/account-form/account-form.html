@@ -22,7 +22,16 @@
         autocomplete="off"
       />
     </fin-field>
-    @if (type === 'credit') {
+    @if (type !== 'cash') {
+    <fin-field [label]="i18n.t('form.account.field.issuer')">
+      <fin-select
+        name="issuerId"
+        [(ngModel)]="issuerId"
+        [options]="issuerOptions()"
+        [ariaLabel]="i18n.t('form.account.field.issuer')"
+      />
+    </fin-field>
+    } @if (type === 'credit') {
     <fin-field [label]="i18n.t('form.account.field.limit')">
       <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
     </fin-field>
@@ -34,14 +43,6 @@
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
       <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.issuer')">
-      <fin-select
-        name="issuerId"
-        [(ngModel)]="issuerId"
-        [options]="issuerOptions()"
-        [ariaLabel]="i18n.t('form.account.field.issuer')"
-      />
     </fin-field>
     } } @else {
     <fin-field [label]="i18n.t('form.account.field.type')">
@@ -84,6 +85,15 @@
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
       <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
     </fin-field>
+    } @if (type !== 'cash') {
+    <fin-field [label]="i18n.t('form.account.field.issuer')">
+      <fin-select
+        name="issuerId"
+        [(ngModel)]="issuerId"
+        [options]="issuerOptions()"
+        [ariaLabel]="i18n.t('form.account.field.issuer')"
+      />
+    </fin-field>
     } @if (type === 'credit') {
     <fin-field [label]="i18n.t('form.account.field.limit')">
       <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
@@ -96,14 +106,6 @@
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
       <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.issuer')">
-      <fin-select
-        name="issuerId"
-        [(ngModel)]="issuerId"
-        [options]="issuerOptions()"
-        [ariaLabel]="i18n.t('form.account.field.issuer')"
-      />
     </fin-field>
     } @if (type !== 'credit') {
     <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">

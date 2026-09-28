@@ -47,6 +47,7 @@ export interface ApiAccount {
   isDefault: boolean;
   isActive: boolean;
   createdAt: string;
+  issuerEntity?: { id: string; name: string } | null;
 }
 
 export interface ApiAccountOpening {
@@ -69,6 +70,7 @@ export class AccountsApi {
     institution?: string | null;
     lastFour?: string | null;
     isDefault?: boolean;
+    issuerEntity?: string | null;
   }) {
     return this.transport.request<ApiAccount, typeof request>({
       method: 'POST',
@@ -85,6 +87,7 @@ export class AccountsApi {
       institution?: string | null;
       lastFour?: string | null;
       isDefault?: boolean;
+      issuerEntity?: string | null;
     };
     openingBalance: ApiMoney;
     date: string;
@@ -107,6 +110,7 @@ export class AccountsApi {
       lastFour?: string | null;
       isDefault: boolean;
       isActive: boolean;
+      issuerEntity?: string | null;
     },
   ) {
     return this.transport.request<ApiAccount>({ method: 'PUT', path: API_ROUTES.account(id), body: request });
