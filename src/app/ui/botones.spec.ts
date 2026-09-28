@@ -2,15 +2,6 @@ import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { beforeEach, describe, expect, it } from 'vitest';
 
-/**
- * Las variantes de boton existian por convencion y no por regla: `primary` se redefinia
- * suelto en seis componentes, `quiet` en uno, y en el resto de la aplicacion las clases
- * no hacian nada. En la lista de avisos la accion principal y la secundaria se pintaban
- * identicas, y nadie podia saber cual era cual.
- *
- * Esta prueba monta los tres botones con la hoja global y comprueba que se distinguen
- * por relleno, que es lo que sigue funcionando en escala de grises.
- */
 @Component({
   template: `
     <button class="primary">Guardar</button>
@@ -26,7 +17,6 @@ describe('variantes de boton', () => {
 
   beforeEach(() => {
     TestBed.resetTestingModule();
-    // La hoja global no entra sola en el entorno de pruebas.
     hoja = document.createElement('style');
     hoja.textContent = `
       button { background: #0b2830; border: 1px solid #57858b; color: #edf8f5; }
@@ -45,7 +35,6 @@ describe('variantes de boton', () => {
       (b: Element) => getComputedStyle(b).backgroundColor,
     );
 
-    // Cuatro botones, cuatro tratamientos: relleno, contorno, sin caja y peligro.
     expect(new Set(fondos).size).toBeGreaterThan(1);
     expect(fondos[0]).not.toBe(fondos[1]);
     expect(fondos[1]).not.toBe(fondos[2]);

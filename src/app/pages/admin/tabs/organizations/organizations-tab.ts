@@ -20,7 +20,6 @@ import { AdminGridComponent } from '@pages/admin/panel/admin-grid';
 import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
 import { OrganizationSheetComponent } from './organization-sheet';
 
-/** Código de moneda ISO 4217: tres letras, que es lo que el backend exige en el cuerpo. */
 const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
 
 @Component({
@@ -201,16 +200,9 @@ export class OrganizationsTabComponent {
   readonly search = signal('');
   readonly name = signal('');
   readonly currency = signal('COP');
-  /**
-   * Monedas que se pueden elegir: las que publica la API y, mientras no llegue el
-   * catálogo, las locales. Antes era un `<input maxlength="3">` libre, donde cabía
-   * cualquier cosa —incluso letras de más— y el cuerpo llegaba al backend con un código
-   * que este rechazaba.
-   */
   readonly currencyOptions = computed<readonly UiOption[]>(() =>
     this.app.currencyCatalog().map((moneda) => ({ value: moneda.code, label: moneda.code })),
   );
-  /** Tres letras mayúsculas, que es todo lo que el backend acepta como moneda. */
   readonly monedaValida = computed(() => CODIGO_DE_MONEDA.test(this.currency().trim().toUpperCase()));
   readonly saving = signal(false);
   readonly managingId = signal<string | null>(null);
@@ -276,8 +268,6 @@ export class OrganizationsTabComponent {
 
   async create(): Promise<void> {
     const currency = this.currency().trim().toUpperCase();
-    // Red de seguridad por si el catálogo no cubre la moneda elegida: mejor avisar aquí
-    // que mandar un cuerpo que el backend rechaza con 400 sin explicación.
     if (!CODIGO_DE_MONEDA.test(currency)) {
       this.app.toast.set(this.i18n.t('admin.organizations.error.currencyInvalid'));
       return;

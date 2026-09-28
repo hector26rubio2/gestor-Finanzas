@@ -115,9 +115,6 @@ export class CatalogCommands {
       this.store.log('Tarjeta creada en la API', false);
       return;
     }
-    // El `kind` del contrato sale del tipo de vista. Antes eran dos números escritos a
-    // mano (`cash ? 1 : 3`), de modo que una cuenta corriente, una billetera u otra se
-    // abrian como ahorro sin que nadie lo pidiera.
     const accountRequest = { name, kind: viewTypeToAccountKind(type), currency, lastFour: digitos ?? null };
     const openingResult =
       opening === 0
@@ -166,11 +163,6 @@ export class CatalogCommands {
   }
 
   async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
-    // El backend distingue ingreso de gasto porque no existe categoria neutra: un
-    // traslado categorizado apareceria en los reportes ademas del gasto real. El
-    // formulario de movimiento filtra por este mismo valor, asi que una categoria sin
-    // el tipo correcto queda invisible para el tipo de movimiento al que en realidad
-    // pertenece.
     const type = kind === 'income' ? 1 : 2;
     const created = await firstValueFrom(
       this.injector.get(FinanceApiClient).createCategory({ name, type, color, icon }),

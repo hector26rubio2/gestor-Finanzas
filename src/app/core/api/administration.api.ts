@@ -37,7 +37,6 @@ export class AdministrationApi {
     });
   }
 
-  /** Bandera org/usuario vista desde administración (no el efectivo de un usuario). */
   updateFeatureFlag(key: string, request: { isEnabled: boolean; audienceJson?: string | null }) {
     return this.transport.request<ApiFeatureFlag>({
       method: 'PUT',
@@ -58,7 +57,6 @@ export class AdministrationApi {
     return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminUserActive(id), body: { isActive } });
   }
 
-  /** Personas de la organizacion activa, invitadas incluidas. */
   organizationMembers() {
     return this.transport.request<readonly ApiOrganizationMember[]>({
       method: 'GET',
@@ -66,7 +64,6 @@ export class AdministrationApi {
     });
   }
 
-  /** Suma a alguien por correo, con los roles con los que entrara. */
   inviteOrganizationMember(request: { email: string; displayName?: string; roleIds: readonly string[] }) {
     return this.transport.request<ApiOrganizationMember>({
       method: 'POST',
@@ -99,7 +96,6 @@ export class AdministrationApi {
     });
   }
 
-  /** Mueve la membresía activa de una persona a otra organización. Solo un administrador. */
   moveAdminUserOrganization(id: string, organizationId: string) {
     return this.transport.request<void>({
       method: 'PUT',
@@ -116,7 +112,6 @@ export class AdministrationApi {
     return this.transport.request<void>({ method: 'PUT', path: API_ROUTES.adminRoleActive(id), body: { isActive } });
   }
 
-  /** Catálogo completo: una fila por acción, que es lo que pinta el editor de roles. */
   superAdminPermissions() {
     return this.transport.request<readonly ApiPermissionDescriptor[]>({
       method: 'GET',
@@ -202,7 +197,6 @@ export class AdministrationApi {
     });
   }
 
-  /** Quiénes pertenecen a la organización, invitados incluidos. */
   adminOrganizationMembers(id: string) {
     return this.transport.request<readonly ApiOrganizationMember[]>({
       method: 'GET',
@@ -210,7 +204,6 @@ export class AdministrationApi {
     });
   }
 
-  /** Suma a una persona: si ya estaba en otra organización, se muda; si no tenía ninguna activa, entra. */
   addAdminOrganizationMember(id: string, userId: string) {
     return this.transport.request<void>({
       method: 'POST',
@@ -289,7 +282,6 @@ export class AdministrationApi {
     });
   }
 
-  /** URL directa (fuera del transporte JSON) para pintar la captura en un `<img>`; va por cookie de sesión. */
   screenshotUrl(id: string): string {
     return `${this.runtime.apiBaseUrl ?? ''}${API_ROUTES.adminErrorScreenshot(id)}`;
   }

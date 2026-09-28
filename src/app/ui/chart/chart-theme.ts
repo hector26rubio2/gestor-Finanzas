@@ -1,14 +1,5 @@
 import { Injectable, signal } from '@angular/core';
 
-/**
- * Colores vivos del tema, leídos del documento.
- *
- * Las gráficas no pueden usar `var(--accent)`: el lienzo pinta con colores resueltos, no
- * con variables CSS. Así que se leen una vez y se vuelven a leer cuando el tema cambia
- * —el conmutador estampa `data-theme` y la paleta propia escribe variables en el estilo
- * en línea del documento—, de modo que un `computed` que pida la paleta se rehace solo y
- * la gráfica se repinta con él.
- */
 export interface ChartPalette {
   accent: string;
   danger: string;
@@ -18,7 +9,6 @@ export interface ChartPalette {
   muted: string;
   line: string;
   surface: string;
-  /** Serie categórica: suficiente para que ninguna repita color antes de la séptima. */
   categorical: readonly string[];
 }
 
@@ -32,14 +22,10 @@ export class ChartThemeService {
 
   constructor() {
     if (typeof document === 'undefined') return;
-    // El tema se aplica de dos formas: `data-theme` en el documento y variables sueltas
-    // en su estilo en línea cuando alguien define una paleta propia. Ambas caben en la
-    // misma observación de atributos.
     new MutationObserver(() => this.interna.set(this.medir())).observe(document.documentElement, {
       attributes: true,
       attributeFilter: ['data-theme', 'style', 'data-density'],
     });
-    // Con el tema en «igual que el sistema» no hay atributo que cambie: manda el medio.
     window
       .matchMedia?.('(prefers-color-scheme: dark)')
       .addEventListener('change', () => this.interna.set(this.medir()));

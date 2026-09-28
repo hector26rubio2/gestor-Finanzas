@@ -11,8 +11,6 @@ import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '
 import { AppStore } from './store';
 
 describe('AppStore en modo API', () => {
-  // Respuesta simulada del servidor. Lo que manda al reconstruir la copia
-  // optimista es esto —y no el formulario—, porque es lo que sobrevive a la recarga.
   const respuesta: ApiMovement = {
     id: 'mov-remoto-1',
     date: '2026-09-25',
@@ -27,8 +25,6 @@ describe('AppStore en modo API', () => {
     },
     links: { account: 'cuenta-1', category: 'categoria-1', counterparty: 'persona-1' },
     linkNames: {
-      // El catálogo local puede estar desfasado; el nombre del servidor es el que
-      // se verá al recargar, así que la copia optimista no debe repetir el local.
       category: { id: 'categoria-1', name: 'Supermercado' },
       counterparty: { id: 'persona-1', name: 'Camilo' },
     },
@@ -40,7 +36,6 @@ describe('AppStore en modo API', () => {
     purchaseApr: null,
   };
 
-  /** Monta la tienda en modo API con un cliente simulado y un catálogo conocido. */
   const montar = (api: unknown) => {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'https://api.example.test' };
     TestBed.resetTestingModule();
@@ -85,15 +80,12 @@ describe('AppStore en modo API', () => {
       person: 'Camilo',
     });
 
-    // El cuerpo del POST lleva los enlaces por id: sin ellos, el movimiento
-    // reaparecía «Sin categoría» y sin persona al recargar.
     expect(payloads).toHaveLength(1);
     expect(payloads[0].links).toEqual({
       account: 'cuenta-1',
       category: 'categoria-1',
       counterparty: 'persona-1',
     });
-    // Y la copia optimista refleja lo que devolvió el servidor, no el formulario.
     expect(store.data().movements[0]).toMatchObject({
       id: 'mov-remoto-1',
       category: 'Supermercado',
@@ -135,7 +127,6 @@ describe('AppStore en modo API', () => {
     });
 
     expect(payloads[0].links).toEqual({ account: 'cuenta-1' });
-    // Sin contraparte guardada, el movimiento no es un préstamo.
     expect(store.data().movements[0]).toMatchObject({ ownership: 'own', amount: -1000 });
   });
 
@@ -152,8 +143,6 @@ describe('AppStore en modo API', () => {
     await TestBed.inject(CatalogCommands).createAccount('Billetera', 'wallet', 0, 'COP');
     await TestBed.inject(CatalogCommands).createAccount('Otra', 'other', 0, 'COP');
 
-    // AccountKindDto: Checking=2, Wallet=4, Other=99. Antes eran dos números escritos
-    // a mano (`cash ? 1 : 3`), de modo que estas cuentas volvían como ahorro.
     expect(payloads.map((body) => body.kind)).toEqual([2, 4, 99]);
   });
 });
@@ -167,9 +156,6 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     store = TestBed.inject(AppStore);
   });
 
-  // La moneda base y el catálogo son estado del módulo, compartido por todo el proceso
-  // de pruebas, y el idioma pre-cargado vive fuera de TestBed: sin devolverlos, una
-  // prueba en USD o en inglés dejaría las siguientes en USD o en inglés.
   afterEach(() => {
     baseCurrency.set(BASE_CURRENCY);
     currencyCatalog.set(LOCAL_CURRENCIES);
@@ -180,8 +166,6 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     store.toast.set('Aviso guardado');
     expect(store.toast.texto()).toBe('Aviso guardado');
 
-    // Dos avisos idénticos seguidos son dos avisos: quien reaccione por separado no
-    // debe creer que la segunda escritura no ocurrió.
     const revision = store.toast.revision();
     store.toast.set('Aviso guardado');
     expect(store.toast.revision()).toBe(revision + 1);
@@ -196,8 +180,6 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     expect(store.money(1234)).toContain('1.234,00');
 
     baseCurrency.set('COP');
-    // COP publica cero decimales: los centavos de una organización en USD no deben
-    // seguir apareciendo cuando la organización no es la misma.
     expect(store.money(1234)).toContain('1.234');
     expect(store.money(1234)).not.toContain(',');
   });

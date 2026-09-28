@@ -117,9 +117,6 @@ export class MovementCommands {
                 idempotencyKey,
               }),
       );
-      // Transferencia y avance no son su propia clase de movimiento: la pata que sale
-      // es un gasto y la que entra un ingreso, con `movementSubtype` como única marca
-      // de que el dinero solo se movió entre cuentas — ver el comentario en Movement.
       const movementSubtype = input.kind === 'transfer' ? 'transfer' : input.kind === 'advance' ? 'advance' : undefined;
       const created = operation.legs.map<Movement>((leg) => {
         const legAmount = parseMoney(leg.amount.base) * signOf(leg.flow, leg.effect);
@@ -149,11 +146,6 @@ export class MovementCommands {
     }
     const isIncome = input.kind === 'income';
     const isCard = account.type === 'credit';
-    // El formulario guarda categoría y persona por nombre —es lo que ve y elige
-    // quien lo usa—, pero el backend solo acepta enlaces por id. Sin resolverlos
-    // aquí, el POST se enviaba sin `category` ni `counterparty`: la copia
-    // optimista sí los mostraba y, al recargar, el movimiento reaparecía «Sin
-    // categoría» y sin persona, sin forma de recuperarlo desde la interfaz.
     const categoria = this.store.categories().find((item) => item.name === input.category);
     const persona = contraparte ?? this.store.data().people.find((item) => item.name === input.person);
     const created = await firstValueFrom(
@@ -186,9 +178,6 @@ export class MovementCommands {
       date: created.date,
       description: created.description ?? input.description,
       accountId: input.accountId,
-      // Lo que vale es lo que guardó el servidor: su nombre de categoría y de
-      // persona es el que sobrevive a la recarga, y el enlace de contraparte es
-      // lo que decide si el movimiento es un préstamo («prestado») o propio.
       category: created.linkNames['category']?.name ?? input.category,
       kind: input.kind as Movement['kind'],
       amount: parseMoney(created.amount.base) * sign,

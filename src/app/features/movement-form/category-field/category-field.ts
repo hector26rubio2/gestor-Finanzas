@@ -6,10 +6,6 @@ import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { buildCategoryOptions } from '@features/movement-form/movement-category-options.factory';
 import { FieldComponent } from '@ui/field/field';
 
-/**
- * Solo se muestra en gasto e ingreso — un traslado no clasifica, es la misma regla
- * que ya exige el backend (`CategoryTypeDto` no admite un valor neutro).
- */
 @Component({
   selector: 'fin-movement-category-field',
   imports: [FormsModule, UiSelectComponent, FieldComponent],
@@ -25,8 +21,6 @@ export class MovementCategoryFieldComponent {
   private readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
 
-  // No es un `computed()`: `kind` es un `@Input()` normal que cambia sin recrear
-  // este componente al alternar Gasto/Ingreso, y un `computed()` no lo rastrearía.
   categoryOptions(): readonly UiOption[] {
     return [
       { value: '', label: this.i18n.t('form.actions.select') },

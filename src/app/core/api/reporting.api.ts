@@ -22,7 +22,6 @@ export interface ApiDashboard {
   accounts: readonly { account: ApiLinkRef; balance: ApiMoney; asOf: string }[];
   cards: readonly { card: ApiLinkRef; debt: ApiMoney; availableCredit: ApiMoney; asOf: string }[];
   topCategories: readonly ApiCategoryTotal[];
-  /** Un punto por día del periodo. El cliente agrupa; no suma importes. */
   series: readonly ApiPeriodPoint[];
   asOf: string;
 }

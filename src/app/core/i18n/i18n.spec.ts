@@ -4,11 +4,6 @@ import es from './es';
 import fr from './fr';
 import pt from './pt';
 
-/**
- * No hay script de sincronía de catálogos en el repositorio ni en la CI: una clave que
- * se añade en español y se olvida en los otros tres idiomas se ve en producción como la
- * clave cruda (`form.account.type.checking`). Esta prueba es la puerta que falta.
- */
 describe('catálogos de idioma', () => {
   const catalogos: Record<string, Record<string, string>> = { es, en, fr, pt };
 

@@ -7,7 +7,6 @@ export interface StatusBarRow {
   tone: 'success' | 'warn' | 'danger';
 }
 
-/** Varias medidas del mismo widget, cada una como su propia barra de progreso. */
 @Component({
   selector: 'fin-status-bars',
   host: { class: 'flex flex-1' },

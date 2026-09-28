@@ -37,11 +37,6 @@ export function buildWidgetCatalog(i18n: I18nService): Widget[] {
       capability: P.dashboard.widget.tendencia,
     },
     {
-      /*
-       * Antes tenia `type: 'accounts'`, el mismo tipo que el widget "accounts" de arriba:
-       * ambos caian en el mismo @case del template y mostraban exactamente lo mismo. Con
-       * el motor generico cada widget trae su propia dimension/medida.
-       */
       id: 'commitments',
       title: i18n.t('dashboard.widget.commitments.title'),
       kicker: i18n.t('dashboard.widget.commitments.kicker'),
@@ -52,7 +47,6 @@ export function buildWidgetCatalog(i18n: I18nService): Widget[] {
       capability: P.dashboard.widget.compromisos,
     },
     {
-      // Mismo caso que "commitments": tenia `type: 'categories'`, duplicando ese widget.
       id: 'health',
       title: i18n.t('dashboard.widget.health.title'),
       kicker: i18n.t('dashboard.widget.health.kicker'),
@@ -62,12 +56,6 @@ export function buildWidgetCatalog(i18n: I18nService): Widget[] {
       wide: false,
       capability: P.dashboard.widget.salud,
     },
-    /*
-     * Galería: un widget por cada tipo de grafica que el motor sabe dibujar, para que el
-     * usuario de prueba vea de un vistazo todo el catalogo (genericos + fijos) sin tener
-     * que abrir "Crear widget" veinte veces. Sin `capability` -heredan
-     * `dashboard.widget.propios`, igual que cualquier widget que alguien cree a mano.
-     */
     {
       id: 'g-line',
       title: i18n.t('dashboard.widget.gallery.line.title'),

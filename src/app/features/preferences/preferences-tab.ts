@@ -67,7 +67,6 @@ export class PreferencesTabComponent implements OnInit {
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
   }
-  /** Reactivo: el sondeo de sesion cambia permisos y la interfaz debe seguirlo. */
   readonly canCustomize = computed(() => this.capabilities.allows(P.preferencias.tema.editar));
 
   readonly seccion = signal<Seccion>('appearance');
@@ -149,13 +148,6 @@ export class PreferencesTabComponent implements OnInit {
     void this.cargarMiembros();
   }
 
-  /**
-   * Suma a alguien al espacio.
-   *
-   * No se manda correo: la invitacion deja la membresia pendiente y la persona entra la
-   * primera vez que inicia sesion con esa direccion. Montar envio de correo es otro
-   * problema —servidor, dominio verificado, rebotes— y fingirlo seria peor que no tenerlo.
-   */
   async invitar(evento: Event): Promise<void> {
     evento.preventDefault();
     this.errorDeInvitacion.set('');
@@ -190,9 +182,7 @@ export class PreferencesTabComponent implements OnInit {
       this.miembros.set(gente);
       this.rolesDisponibles.set(roles);
       if (!this.rolInvitado && roles.length) this.rolInvitado = roles[0].id;
-    } catch {
-      /* sin lista: la seccion queda vacia y el resto de Preferencias sigue */
-    }
+    } catch {}
   }
 
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
@@ -209,8 +199,6 @@ export class PreferencesTabComponent implements OnInit {
   }
   async setLocale(locale: string): Promise<void> {
     this.store.preferences.update((value) => ({ ...value, locale }));
-    // Espera el catálogo del idioma nuevo: pedirlo antes de que cargue mostraba el
-    // aviso de "cambiado" todavía en el idioma anterior.
     await this.i18n.load(locale);
     this.store.log(this.i18n.t('preferences.localeUpdatedLog'));
     this.persistPreferences();

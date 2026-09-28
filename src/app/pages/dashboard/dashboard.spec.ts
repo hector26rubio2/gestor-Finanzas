@@ -8,11 +8,6 @@ import { AppStore } from '@core/state';
 import { DashboardComponent } from './dashboard';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
-/**
- * El contrato de `DashboardDto` dice que el cliente no suma importes por su cuenta. Estas
- * pruebas fijan que la pantalla usa las cifras del servidor cuando puede, y que sigue
- * calculando en local cuando el servidor no puede responder por ella.
- */
 describe('DashboardComponent y las cifras del servidor', () => {
   const dinero = (amount: string) => ({ amount, currency: 'COP' });
   const dashboard: ApiDashboard = {
@@ -46,7 +41,6 @@ describe('DashboardComponent y las cifras del servidor', () => {
       ],
     });
     const store = TestBed.inject(AppStore);
-    // Con alguna pieza concedida: sin ninguna no hay nada que pintar y no se pide nada.
     store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver, P.dashboard.tabla.ver] });
     return TestBed.createComponent(DashboardComponent);
   }
@@ -71,8 +65,6 @@ describe('DashboardComponent y las cifras del servidor', () => {
     await fixture.whenStable();
     const componente = fixture.componentInstance;
 
-    // El servidor no sabe nada de «solo esta cuenta»: si mandara su cifra, el KPI no
-    // respondería a lo que el usuario acaba de filtrar.
     componente.datos.remote.set(dashboard);
     componente.accountId.set('cuenta-1');
     fixture.detectChanges();

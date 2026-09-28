@@ -52,6 +52,5 @@ src/app/
 
 ## Documentación
 
-- Auditoría técnica y estado: `../AUDITORIA.md`.
 - Diagramas de arquitectura: `docs/diagramas/index.html` (portal) y `docs/diagramas/README.md`.
 - Reglas para agentes (GitNexus, niveles de cambio, diagramas): `CLAUDE.md`.

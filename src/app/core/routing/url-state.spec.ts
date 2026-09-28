@@ -4,10 +4,6 @@ import { Router, provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { sincronizarConLaUrl, sincronizarPaginaConLaUrl } from './url-state';
 
-/**
- * Los filtros vivían solo en señales: una vista no se podía compartir, recargar la
- * perdía y volver de una ficha devolvía la lista sin filtrar.
- */
 @Component({ template: '' })
 class Anfitrion {
   readonly tipo = signal('all');

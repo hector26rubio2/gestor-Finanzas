@@ -24,7 +24,6 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
     return this.capabilities.allows(permiso);
   }
 
-  /** El boton de la cabecera compartida delega aqui mientras esta pestaña esta activa. */
   ngOnInit(): void {
     this.headerActions.readAll.set(() => void this.readAll());
   }

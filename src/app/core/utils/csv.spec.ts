@@ -8,7 +8,6 @@ describe('csv', () => {
   });
 
   it('entrecomilla cuando el valor lleva el separador', () => {
-    // Sin esto, una descripción con punto y coma parte la fila en dos columnas.
     expect(escapeCsv('Mercado; frutas')).toBe('"Mercado; frutas"');
   });
 

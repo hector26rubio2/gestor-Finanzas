@@ -23,7 +23,6 @@ export const SLICES: readonly Rebanada[] = [
   'movements',
   'preferences',
 ];
-/** Permiso que autoriza pedir cada rebanada: el mismo código que exige el endpoint. */
 export const PERMISO_DE: Record<Rebanada, string> = {
   movementKinds: P.movimientos.clases.listar,
   accounts: P.cuentas.ver,
@@ -64,7 +63,6 @@ export function emptyRaw(): RawData {
   };
 }
 
-/** Persona y organización: si cambia una de las dos, los datos cargados ya no valen. */
 export function identidadDe(session: ApiSession): string {
   return `${session.user.id}|${session.organization.id}`;
 }

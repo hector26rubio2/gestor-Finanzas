@@ -41,7 +41,6 @@ export default {
   'login.authError': 'No fue posible completar el inicio de sesión con Google. Intenta de nuevo.',
   'login.localAccessNote': 'Acceso local · Información protegida en este dispositivo',
 
-  // ui: componentes compartidos (kpi, tabla, overlay, select, sin-acceso, skeleton, chart)
   'kpi.sparkline.ariaLabel': '{label}: evolución del periodo',
   'kpi.delta.more': '{value} más que el intervalo anterior',
   'kpi.delta.less': '{value} menos que el intervalo anterior',
@@ -73,7 +72,6 @@ export default {
   'skeleton.loading': 'Cargando contenido…',
   'chart.defaultAriaLabel': 'Gráfica',
 
-  // workspace: cascara compartida de las pestañas de trabajo
   'workspace.labels.movements.title': 'Movimientos',
   'workspace.labels.movements.description': 'Todos los efectos económicos, en un único lugar.',
   'workspace.labels.calendar.title': 'Calendario',
@@ -197,7 +195,6 @@ export default {
     'La cuenta dejará de mostrarse y no podrá usarse en movimientos nuevos.',
   'workspace.confirm.deactivateAccount.action': 'Desactivar cuenta',
 
-  // sin-seccion
   'sinSeccion.withSession.title': 'Tu acceso no abre ninguna sección',
   'sinSeccion.withSession.detail':
     'La sesión se inició bien, pero ninguna de las pantallas está habilitada para ti: o no tienes su permiso, o la funcionalidad está apagada en este espacio. Pídele a quien administra el espacio lo que necesites.',
@@ -207,7 +204,6 @@ export default {
     'Esta pantalla explica por qué una sesión puede quedarse sin secciones. Para eso hace falta iniciar sesión.',
   'sinSeccion.noSession.goToLogin': 'Ir a la pantalla de acceso',
 
-  // forms: movement-form, account-form, management-form
   'form.actions.save': 'Guardar',
   'form.actions.cancel': 'Cancelar',
   'form.actions.select': 'Selecciona',

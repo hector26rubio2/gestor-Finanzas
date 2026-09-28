@@ -7,10 +7,11 @@ import { UiSelectComponent } from '@ui/select';
 import { definicionDe } from '@shared/graficas/catalogo';
 import type { ConfiguracionVisual } from '@shared/graficas/modelo';
 import { OpcionesDeGraficas } from '@shared/graficas/opciones-de-graficas';
+import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
   selector: 'fin-configurador-visual',
-  imports: [FormsModule, HlmInput, FieldComponent, UiSelectComponent],
+  imports: [NumericInputDirective, FormsModule, HlmInput, FieldComponent, UiSelectComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'grid grid-cols-2 gap-3 max-[520px]:grid-cols-1' },
   template: `
@@ -78,6 +79,7 @@ import { OpcionesDeGraficas } from '@shared/graficas/opciones-de-graficas';
         type="number"
         min="3"
         max="60"
+        step="1"
         [ngModel]="config().limit ?? ''"
         (ngModelChange)="cambiar({ limit: $event ? Number($event) : undefined })"
       />

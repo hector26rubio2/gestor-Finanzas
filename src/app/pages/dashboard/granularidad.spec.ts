@@ -14,11 +14,6 @@ import {
 import { DashboardComponent } from './dashboard';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
-/**
- * Antes una casilla concedía una capacidad entera: marcar «administrar cuentas» daba
- * crear, editar y deshabilitar de golpe. Estas pruebas fijan que cada acción se libera
- * por separado y que la interfaz lo refleja control a control.
- */
 function preparar(permisos: readonly string[]) {
   window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
@@ -37,7 +32,6 @@ function preparar(permisos: readonly string[]) {
   return store;
 }
 
-/** Los seis widgets predefinidos, para probar las acciones sin que la rejilla quede vacía. */
 const VER_WIDGETS = [
   P.dashboard.widget.flujo,
   P.dashboard.widget.categorias,
@@ -47,7 +41,6 @@ const VER_WIDGETS = [
   P.dashboard.widget.salud,
 ];
 
-/** El formulario de movimiento se abre desde el almacén: sin eso no hay qué montar. */
 function abrirFormulario(kind: string) {
   TestBed.inject(AppStore).form.set({ kind } as never);
 }
@@ -80,7 +73,6 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     fixture.componentInstance.customizing.set(true);
     fixture.detectChanges();
 
-    // Quedaba una caja con el título «Diseño del dashboard» y ningún botón dentro.
     expect(fixture.nativeElement.querySelector('aside[data-slot="customize"]')).toBeNull();
   });
 
@@ -112,12 +104,6 @@ describe('dashboard: reorganizar no es cambiar de visualización', () => {
     expect(componente.widgets()).toHaveLength(cuantos);
   });
 
-  /*
-   * El motor genérico (dimensión/métrica/meta) y los indicadores de la franja de arriba
-   * son controles nuevos sobre el mismo widget; comparten el permiso de siempre
-   * (`widget.tipo.editar` para reconfigurar, `widget.crear`/`widget.deshabilitar` para
-   * crear o quitar), pero nunca se habían probado por separado.
-   */
   it('sin widget.tipo.editar no cambian ni la dimensión, ni la métrica, ni la meta', () => {
     preparar([P.dashboard.ver, P.dashboard.widget.orden.editar, ...VER_WIDGETS]);
     const componente = TestBed.createComponent(DashboardComponent).componentInstance;
@@ -186,8 +172,6 @@ describe('movimientos: cada figura del ledger por separado', () => {
     abrirFormulario('expense');
     const componente = TestBed.createComponent(MovementFormComponent).componentInstance;
 
-    // Solo dirección de dinero en los botones de arriba: transferencia/avance ahora
-    // son opciones del selector de Tipo, no valores propios de `types()`.
     expect(componente.types().map((t) => t.value)).toEqual(['expense', 'income']);
     expect(componente.operationTypeOptions().map((o) => o.value)).not.toContain('transfer');
   });
@@ -257,7 +241,6 @@ describe('movimientos: cada figura del ledger por separado', () => {
     fixture.componentInstance.kind = 'expense';
     const deGasto = fixture.componentInstance.categoryOptions().map((o) => o.value);
 
-    // Alternar el tipo sin recrear el componente, como hace el selector de tipo del formulario.
     fixture.componentInstance.kind = 'income';
     const deIngreso = fixture.componentInstance.categoryOptions().map((o) => o.value);
 
@@ -273,9 +256,6 @@ describe('cuentas: un tipo por permiso', () => {
     preparar([P.cuentas.ver, P.cuentas.crear, P.cuentas.ahorro.crear]);
     const componente = TestBed.createComponent(AccountFormComponent).componentInstance;
 
-    // Con `cuentas.ahorro.crear` el backend también acepta una cuenta corriente
-    // (AccountsEndpoints.cs:74), y con `cuentas.crear` acepta «otra»: ocultarlas aquí
-    // dejaría fuera cuentas que el servidor sí crea.
     expect(componente.accountTypes().map((t) => t.value)).toEqual(['savings', 'checking', 'other']);
   });
 
@@ -283,7 +263,6 @@ describe('cuentas: un tipo por permiso', () => {
     preparar([P.cuentas.ver, P.cuentas.crear, P.cuentas.tarjetas.crear]);
     const componente = TestBed.createComponent(AccountFormComponent).componentInstance;
 
-    // El efectivo y la billetera piden `cuentas.efectivo.crear`, que no está concedido.
     expect(componente.accountTypes().map((t) => t.value)).toEqual(['other', 'credit']);
   });
 });

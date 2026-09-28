@@ -15,6 +15,7 @@
         hlmInput
         name="lastFour"
         [(ngModel)]="lastFour"
+        finDigitos
         inputmode="numeric"
         maxlength="4"
         pattern="[0-9]{4}"
@@ -26,10 +27,10 @@
       <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.cutDay')">
-      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required />
+      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" step="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.dueDay')">
-      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
+      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" step="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
       <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
@@ -62,21 +63,24 @@
         [ariaLabel]="i18n.t('form.field.currency')"
       />
     </fin-field>
+    @if (type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.opening')">
       <input hlmInput name="opening" [(ngModel)]="opening" type="number" />
     </fin-field>
+    }
     <fin-field [label]="i18n.t('form.account.field.lastFour')">
       <input
         hlmInput
         name="lastFourNew"
         [(ngModel)]="lastFour"
+        finDigitos
         inputmode="numeric"
         maxlength="4"
         pattern="[0-9]{4}"
         autocomplete="off"
       />
     </fin-field>
-    @if (currency === 'USD') {
+    @if (currency === 'USD' && type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
       <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
     </fin-field>
@@ -85,10 +89,10 @@
       <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.cutDay')">
-      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" required />
+      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" step="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.dueDay')">
-      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" required />
+      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" step="1" required />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
       <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
@@ -101,11 +105,11 @@
         [ariaLabel]="i18n.t('form.account.field.issuer')"
       />
     </fin-field>
-    }
+    } @if (type !== 'credit') {
     <p class="col-span-full rounded-[10px] bg-accent p-3 text-[0.78rem] max-[500px]:col-auto">
       {{ i18n.t('form.account.hint.opening') }}
     </p>
-    } @if (esTarjeta()) {
+    } } @if (esTarjeta()) {
     <label class="col-span-full flex items-center gap-2 text-[0.82rem] font-medium">
       <hlm-checkbox [checked]="bimoneda()" (checkedChange)="alternarBimoneda($event)" />
       <span>{{ i18n.t('form.account.field.dualCurrency') }}</span>

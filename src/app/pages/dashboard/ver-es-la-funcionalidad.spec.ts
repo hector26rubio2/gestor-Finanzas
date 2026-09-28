@@ -8,19 +8,6 @@ import { CAPABILITIES, AppStore, navigation } from '@core/state';
 import { DashboardComponent } from './dashboard';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
-/**
- * Marcar la funcionalidad tiene que hacer que funcione.
- *
- * Durante un tiempo cada pantalla necesitaba dos permisos: `X.ver` para entrar y
- * `X.listar` para recibir su contenido. Conceder solo el primero —que es lo que hace
- * cualquiera al leer «ver movimientos»— ponía la entrada en el menú lateral y dentro no
- * había nada, sin decir por qué. Y en el dashboard, conceder «ver» más un KPI concreto
- * escondía justamente ese KPI: faltaba el segundo permiso, que nada anunciaba.
- *
- * Estas pruebas fijan la regla de ahora: `X.ver` es la funcionalidad entera y cada código
- * de dentro responde solo por su parte. Que el servidor entregue los datos con ese mismo
- * código lo fija `PermisoUnicoPorPantallaTests` en el repositorio del backend.
- */
 function preparar(permisos: readonly string[]) {
   window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
@@ -40,8 +27,6 @@ describe('«ver» es la funcionalidad entera', () => {
   beforeEach(() => TestBed.resetTestingModule());
 
   it('no queda ningún «listar» de pantalla que haya que marcar aparte', () => {
-    // La regresión, dicha sobre el catálogo: un `X.listar` junto a un `X.ver` vuelve a
-    // partir en dos la misma concesión, y volver a partirla es volver al fallo.
     const codigos = new Set<string>();
     const recorrer = (nodo: unknown): void => {
       if (typeof nodo === 'string') codigos.add(nodo);
@@ -58,7 +43,6 @@ describe('«ver» es la funcionalidad entera', () => {
   });
 
   it('cada entrada del menú lateral aparece con su permiso y solo con él', () => {
-    // El caso literal que se reportó: quitar todos los permisos y dejar uno.
     for (const entrada of navigation) {
       preparar([entrada.capability]);
       const caps = TestBed.inject(CAPABILITIES);
@@ -100,7 +84,6 @@ describe('«ver» es la funcionalidad entera', () => {
   });
 
   it('sin ninguna pieza del panel se explica, en vez de dejarlo en blanco', () => {
-    // El único caso en que la explicación es la respuesta correcta.
     preparar([P.dashboard.ver]);
     const fixture = TestBed.createComponent(DashboardComponent);
     fixture.detectChanges();
