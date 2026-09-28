@@ -12,6 +12,7 @@ import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
+import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
 
 @Component({
   selector: 'fin-management-form',
@@ -26,6 +27,7 @@ import { FieldComponent } from '@ui/field';
     UiSelectComponent,
     NumericInputDirective,
     FieldComponent,
+    SegmentedComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './management-form.html',
@@ -64,10 +66,18 @@ export class ManagementFormComponent {
   email = '';
   relationship: import('@core/state/view-model').Person['relationship'] = 'Otro';
   personKind: PersonKind = (this.store.form()?.personKind as PersonKind | undefined) ?? 'person';
-  readonly personKindOptions = computed<readonly UiOption[]>(() => [
-    { value: 'person', label: this.i18n.t('people.kind.person') },
-    { value: 'institution', label: this.i18n.t('people.kind.institution') },
+  readonly personKindOptions = computed<readonly SegmentedOption[]>(() => [
+    { value: 'person', label: this.i18n.t('people.kind.person'), icon: 'users' },
+    { value: 'institution', label: this.i18n.t('people.kind.institution'), icon: 'bank' },
   ]);
+
+  elegirTipoDePersona(valor: string): void {
+    this.personKind = valor === 'institution' ? 'institution' : 'person';
+  }
+
+  private correoDePersona(): string {
+    return this.personKind === 'person' ? this.email : '';
+  }
   readonly relationshipOptions = computed<readonly UiOption[]>(() => [
     { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
     { value: 'Amistad', label: this.i18n.t('form.management.relationship.friendship') },
@@ -147,7 +157,7 @@ export class ManagementFormComponent {
       if (this.kind() === 'category')
         await this.catalogCommands.createCategory(this.name, this.color, this.icon, this.categoryType);
       if (this.kind() === 'person')
-        await this.catalogCommands.createPerson(this.name, this.email, this.relationship, this.personKind);
+        await this.catalogCommands.createPerson(this.name, this.correoDePersona(), this.relationship, this.personKind);
       if (this.kind() === 'investment')
         await this.catalogCommands.createInvestment(this.name, this.instrument, this.currency);
       if (this.kind() === 'recurrence')
@@ -179,7 +189,7 @@ export class ManagementFormComponent {
       if (this.kind() === 'person')
         await this.catalogCommands.updatePerson(id, {
           name: this.name,
-          email: this.email,
+          email: this.correoDePersona(),
           relationship: this.relationship,
           kind: this.personKind,
         });
