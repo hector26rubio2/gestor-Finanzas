@@ -395,6 +395,7 @@
     [dimensionOptions]="dimensionOptions()"
     [measureOptions]="measureOptions()"
     [opcionDe]="opcionDeWidget"
+    [hayDatos]="movements().length > 0"
     (creado)="agregarWidget($event)"
     (cerrado)="widgetCreatorOpen.set(false)"
   />

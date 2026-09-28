@@ -1059,6 +1059,8 @@ export default {
   'dashboard.widgetForm.dimensionAxis': 'Dimension (axis)',
   'dashboard.widgetForm.measureValue': 'Measure (value)',
   'dashboard.widgetForm.dimension2.ariaLabel': "Widget's second dimension",
+  'dashboard.widgetForm.previewEmpty':
+    'There are no movements in the dashboard period to preview. Change the period or filters and the preview will show up here.',
   'dashboard.widgetForm.note': "The widget will follow the dashboard's linked period and filters.",
   'dashboard.widgetForm.cancel': 'Cancel',
   'dashboard.widgetForm.submit': 'Add widget',

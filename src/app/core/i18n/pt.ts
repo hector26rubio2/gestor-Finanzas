@@ -1059,6 +1059,8 @@ export default {
   'dashboard.widgetForm.dimensionAxis': 'Dimensão (eixo)',
   'dashboard.widgetForm.measureValue': 'Métrica (valor)',
   'dashboard.widgetForm.dimension2.ariaLabel': 'Segunda dimensão do widget',
+  'dashboard.widgetForm.previewEmpty':
+    'Não há movimentos no período do painel para pré-visualizar. Altere o período ou os filtros e a pré-visualização aparecerá aqui.',
   'dashboard.widgetForm.note': 'O widget respeitará o período e os filtros vinculados do painel.',
   'dashboard.widgetForm.cancel': 'Cancelar',
   'dashboard.widgetForm.submit': 'Adicionar widget',
