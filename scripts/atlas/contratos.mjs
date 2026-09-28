@@ -85,6 +85,7 @@ function funcionQueContiene(lineas, indiceLinea) {
 }
 
 function metodoCercano(texto, indice, funcion) {
+  if (funcion && /Url$/.test(funcion)) return 'GET';
   const antes = texto.slice(Math.max(0, indice - 220), indice);
   const cliente = antes.match(CLIENTE_HTTP);
   if (cliente) return cliente[1].toUpperCase();
@@ -93,7 +94,7 @@ function metodoCercano(texto, indice, funcion) {
   if (ternario && /[^h]:\s*$/.test(antes) && !/path:\s*$/.test(antes)) return ternario[2].toUpperCase();
   const metodos = [...texto.slice(Math.max(0, indice - 220), indice + 60).matchAll(METODO_WEB)];
   if (metodos.length) return metodos[metodos.length - 1][1].toUpperCase();
-  return funcion && /Url$/.test(funcion) ? 'GET' : null;
+  return null;
 }
 
 export function llamadasWeb(raiz) {
