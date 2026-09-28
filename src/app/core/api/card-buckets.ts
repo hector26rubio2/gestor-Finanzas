@@ -67,8 +67,10 @@ export function conceptoDeCompra(opciones: {
 }): CardBucket | null {
   if (opciones.kind !== 'expense') return null;
   if (opciones.cardBucket && CLAVE_DE_CONCEPTO.has(opciones.cardBucket)) return opciones.cardBucket as CardBucket;
-  if (opciones.movementSubtype === 'advance') return CARD_BUCKET.cashAdvances;
-  if (opciones.originalCurrency && opciones.originalCurrency !== 'COP') return CARD_BUCKET.internationalPurchases;
+  const extranjera = !!opciones.originalCurrency && opciones.originalCurrency !== 'COP';
+  if (opciones.movementSubtype === 'advance')
+    return extranjera ? CARD_BUCKET.internationalCashAdvances : CARD_BUCKET.cashAdvances;
+  if (extranjera) return CARD_BUCKET.internationalPurchases;
   return (opciones.installmentTotal ?? 1) > 1
     ? CARD_BUCKET.deferredInstallmentPurchases
     : CARD_BUCKET.singleInstallmentPurchases;

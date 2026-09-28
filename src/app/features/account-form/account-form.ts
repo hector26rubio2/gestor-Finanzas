@@ -148,7 +148,7 @@ export class AccountFormComponent {
   readonly vistaPrevia = computed(() => {
     const prioridad =
       this.editing?.currency && this.editing.currency !== 'COP' ? this.prioridadEnDolares() : this.prioridadEnPesos();
-    const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta()), prioridad);
+    const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta(), prioridad), prioridad);
     return aplicarAbono(saldos, this.abonoDePrueba());
   });
   dinero(valor: number): string {

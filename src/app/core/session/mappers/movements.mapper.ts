@@ -1,6 +1,7 @@
 import { I18nService } from '@core/i18n';
 import { Movement } from '@core/state/view-model';
 import { ApiMovement } from '@core/api/api-client';
+import { CARD_BUCKET } from '@core/api/card-buckets';
 import { parseAmount, parseMoney, parseRate } from '@core/utils/money';
 import { CashFlow, classifyFamily, MovementKind, MovementKindCatalog, signOf } from '@core/utils/movement-kinds';
 
@@ -30,7 +31,7 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     ...(source.installments
       ? { installmentTotal: source.installments, installmentCurrent: cuotaEnCurso(source.date, source.installments) }
       : {}),
-    ...(source.cardBucket ? { cardBucket: source.cardBucket } : {}),
+    ...(conceptoDeCargo(source) ? { cardBucket: conceptoDeCargo(source) } : {}),
     ...(source.purchaseApr !== null && source.purchaseApr !== undefined ? { purchaseApr: source.purchaseApr } : {}),
     ...(loanRole ? { loanRole } : {}),
   };
@@ -40,6 +41,12 @@ export function cuotaEnCurso(fecha: string, total: number, hoy = new Date().toIS
   const [a1, m1] = fecha.split('-').map(Number);
   const [a2, m2] = hoy.split('-').map(Number);
   return Math.min(total, Math.max(1, (a2 - a1) * 12 + (m2 - m1) + 1));
+}
+
+function conceptoDeCargo(source: ApiMovement): number | undefined {
+  if (source.cardBucket) return source.cardBucket;
+  if (source.kind === MovementKind.cardFee || source.kind === MovementKind.cardInterest) return CARD_BUCKET.fees;
+  return undefined;
 }
 
 function rolDePrestamo(source: ApiMovement): Movement['loanRole'] {

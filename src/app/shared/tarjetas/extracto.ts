@@ -1,6 +1,6 @@
 import type { Movement } from '@core/state';
 import { sumBy } from '@core/utils';
-import { type CardBucket, conceptoDeCompra } from '@core/api';
+import { type CardBucket, PRIORIDAD_EN_PESOS, conceptoDeCompra } from '@core/api';
 
 export interface CompraPendiente {
   readonly id: string;
@@ -29,7 +29,10 @@ export interface AplicacionDeAbono {
 
 const redondear = (valor: number) => Math.round(valor * 100) / 100;
 
-export function comprasPendientes(movimientos: readonly Movement[]): CompraPendiente[] {
+export function comprasPendientes(
+  movimientos: readonly Movement[],
+  prioridad: readonly CardBucket[] = PRIORIDAD_EN_PESOS,
+): CompraPendiente[] {
   const cargos = movimientos
     .filter((m) => m.kind === 'expense' && m.amount < 0)
     .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
@@ -61,12 +64,18 @@ export function comprasPendientes(movimientos: readonly Movement[]): CompraPendi
     };
   });
   let porDescontar = pagos - sumBy(brutas, (c) => Math.max(0, c.cuotaDelMes * (c.cuotaActual - 1)));
+  const posicion = (concepto: CardBucket) => {
+    const indice = prioridad.indexOf(concepto);
+    return indice < 0 ? prioridad.length : indice;
+  };
+  const descuentos = new Map<string, number>();
+  for (const compra of [...brutas].sort((a, b) => posicion(a.concepto) - posicion(b.concepto))) {
+    const descuento = Math.min(compra.pendiente, Math.max(0, porDescontar));
+    porDescontar -= descuento;
+    descuentos.set(compra.id, descuento);
+  }
   return brutas
-    .map((compra) => {
-      const descuento = Math.min(compra.pendiente, Math.max(0, porDescontar));
-      porDescontar -= descuento;
-      return { ...compra, pendiente: redondear(compra.pendiente - descuento) };
-    })
+    .map((compra) => ({ ...compra, pendiente: redondear(compra.pendiente - (descuentos.get(compra.id) ?? 0)) }))
     .filter((compra) => compra.pendiente > 0.005);
 }
 
