@@ -2,8 +2,8 @@ import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { accionInterceptor } from '@core/http/accion';
 import { cifradoInterceptor, escriturasInterceptor } from '@core/http/interceptores';
-import { inject, provideAppInitializer } from '@angular/core';
-import { TitleStrategy, provideRouter } from '@angular/router';
+import { ErrorHandler, inject, provideAppInitializer } from '@angular/core';
+import { TitleStrategy, provideRouter, withNavigationErrorHandler } from '@angular/router';
 import { AppComponent } from '@app/app';
 import { API_TRANSPORT, HttpApiTransport } from '@core/api/api-client';
 import { patchConsole } from '@core/utils/console-buffer';
@@ -13,12 +13,24 @@ import { I18nService } from '@core/i18n';
 import { PREFERENCES } from '@core/state/theme';
 import { routes } from '@app/routes';
 import { FinanzasTitleStrategy } from '@core/routing/title-strategy';
+import {
+  FinanzasErrorHandler,
+  esChunkPerdido,
+  recargarPorVersionNueva,
+  urlAbsoluta,
+} from '@core/routing/version-nueva';
 
 patchConsole();
 
 bootstrapApplication(AppComponent, {
   providers: [
-    provideRouter(routes),
+    provideRouter(
+      routes,
+      withNavigationErrorHandler((error) => {
+        if (esChunkPerdido(error.error)) recargarPorVersionNueva(urlAbsoluta(error.url));
+      }),
+    ),
+    { provide: ErrorHandler, useClass: FinanzasErrorHandler },
     { provide: TitleStrategy, useClass: FinanzasTitleStrategy },
     provideHttpClient(withInterceptors([accionInterceptor, escriturasInterceptor, cifradoInterceptor])),
     { provide: API_TRANSPORT, useClass: HttpApiTransport },
