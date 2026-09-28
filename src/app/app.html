@@ -65,8 +65,8 @@
           [hlmDropdownMenuTrigger]="profileMenu"
           align="start"
           side="right"
-          [attr.aria-label]="i18n.t('shell.profile')"
         >
+          <span class="sr-only">{{ i18n.t('shell.profile') }}</span>
           <hlm-avatar class="size-[29px] flex-none rounded-[9px] after:rounded-[9px]">
             @if (store.user()?.photoUrl; as foto) {
             <img
@@ -166,6 +166,7 @@
                   <button
                     hlmSidebarMenuAction
                     type="button"
+                    class="top-1 w-6"
                     [attr.aria-expanded]="adminAbierto()"
                     [attr.aria-label]="i18n.t('shell.toggleSubmenu', { name: i18n.t('nav.admin') })"
                     (click)="adminAbierto.set(!adminAbierto())"
@@ -228,11 +229,11 @@
           hlmBtn
           variant="outline"
           class="gap-2 px-2.5 text-muted-foreground"
-          [attr.aria-label]="i18n.t('shell.search')"
           [attr.aria-keyshortcuts]="'Control+K'"
           (click)="paleta.abrir()"
         >
           <fin-icon name="search" class="[--icon-size:18px]" />
+          <span class="sr-only min-[780px]:hidden">{{ i18n.t('shell.search') }}</span>
           <span class="max-[780px]:hidden">{{ i18n.t('shell.searchShort') }}</span>
           <kbd hlmKbdGroup class="max-[780px]:hidden"><kbd hlmKbd>Ctrl</kbd><kbd hlmKbd>K</kbd></kbd></button
         ><a
