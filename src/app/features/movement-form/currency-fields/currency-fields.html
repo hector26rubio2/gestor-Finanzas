@@ -4,7 +4,7 @@
 <fin-field [label]="i18n.t('form.movement.field.exchangeRate')">
   <input hlmInput type="number" name="exchangeRate" min="0" [(ngModel)]="model['exchangeRate']" />
 </fin-field>
-<p class="col-span-full text-[0.78rem] font-normal text-muted-foreground">
+<p class="col-span-full text-xs font-normal text-muted-foreground">
   {{ i18n.t('form.movement.field.officialTrm') }}: @if (officialTrmLoading()) { {{ i18n.t('form.movement.trm.loading')
   }} } @else if (officialTrm() !== null) {
   <strong>{{ officialTrm() }}</strong>

@@ -70,7 +70,7 @@
     [options]="book.accountTypeOptions()"
     [ariaLabel]="i18n.t('accounts.filters.type.label')"
   />
-  <span class="ms-auto text-[0.72rem] whitespace-nowrap text-muted-foreground" role="status"
+  <span class="ms-auto text-xs whitespace-nowrap text-muted-foreground" role="status"
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
@@ -88,7 +88,7 @@
       hlmToggleGroupItem
       type="button"
       value="all"
-      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      class="flex-none rounded-full text-xs data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
       (click)="filterByAccount('all')"
     >
       {{ i18n.t('accounts.cards.allChip') }}
@@ -98,7 +98,7 @@
       hlmToggleGroupItem
       type="button"
       [value]="a.id"
-      class="flex-none rounded-full text-[0.78rem] data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      class="flex-none rounded-full text-xs data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
       (click)="filterByAccount(a.id)"
     >
       {{ a.name }}
@@ -112,24 +112,24 @@
   [attr.aria-label]="cuenta.name"
 >
   <div class="grid">
-    <span class="text-[0.72rem] text-muted-foreground">{{ i18n.t('form.account.type.' + cuenta.type) }}</span>
+    <span class="text-xs text-muted-foreground">{{ i18n.t('form.account.type.' + cuenta.type) }}</span>
     <strong>{{ cuenta.name }}</strong>
   </div>
   @if (cuenta.type === 'credit') {
-  <div class="grid text-[0.8rem]">
+  <div class="grid text-xs">
     <span class="text-muted-foreground">{{ i18n.t('accounts.selected.debt') }}</span>
     <b>{{ store.money(deudaDe(cuenta)) }}</b>
   </div>
-  <div class="grid text-[0.8rem]">
+  <div class="grid text-xs">
     <span class="text-muted-foreground">{{ i18n.t('accounts.selected.available') }}</span>
     <b>{{ store.money(Math.max(0, (cuenta.limit ?? 0) - deudaDe(cuenta))) }}</b>
   </div>
-  <div class="grid text-[0.8rem]">
+  <div class="grid text-xs">
     <span class="text-muted-foreground">{{ i18n.t('accounts.selected.cycle') }}</span>
     <b>{{ i18n.t('accounts.selected.cycleDays', { cut: cuenta.cutDay ?? '—', due: cuenta.dueDay ?? '—' }) }}</b>
   </div>
   } @else {
-  <div class="grid text-[0.8rem]">
+  <div class="grid text-xs">
     <span class="text-muted-foreground">{{ i18n.t('accounts.selected.balance') }}</span>
     <b>{{ store.money(store.balance(cuenta)) }}</b>
   </div>

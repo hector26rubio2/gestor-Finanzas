@@ -28,7 +28,7 @@ export function iconForCategory(name: string): IconName {
   selector: 'fin-category-badge',
   imports: [HlmBadgeImports, IconComponent],
   host: { class: 'inline-flex' },
-  template: `<span hlmBadge [variant]="variant()" class="h-6 gap-1.5 px-2.5 text-[0.78rem]">
+  template: `<span hlmBadge [variant]="variant()" class="h-6 gap-1.5 px-2.5 text-xs">
     <fin-icon [name]="icon()" class="[--icon-size:13px]" />{{ name() }}
   </span>`,
 })

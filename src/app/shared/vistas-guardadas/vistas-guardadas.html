@@ -8,7 +8,7 @@
     [ariaLabel]="etiqueta()"
   />
   @if (activa() && !esPropia()) {
-  <span class="rounded-full border border-border px-2 py-0.5 text-[0.72rem] text-muted-foreground">
+  <span class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
     {{ i18n.t('savedViews.readOnly', { name: activa()?.owner?.name ?? '' }) }}
   </span>
   } @if (sinGuardar()) {
@@ -37,9 +37,9 @@
 @if (panel(); as abierto) {
 <form class="grid max-w-xl gap-2.5 rounded-lg border border-border bg-card p-3" (ngSubmit)="confirmar()">
   @if (abierto === 'compartir') {
-  <p class="text-[0.78rem] text-muted-foreground">{{ i18n.t('savedViews.shareHint') }}</p>
+  <p class="text-xs text-muted-foreground">{{ i18n.t('savedViews.shareHint') }}</p>
   @for (miembro of miembros(); track miembro.id) {
-  <label class="flex items-center gap-2 text-[0.82rem]">
+  <label class="flex items-center gap-2 text-xs">
     <hlm-checkbox [checked]="elegidos().has(miembro.id)" (checkedChange)="alternarMiembro(miembro.id, $event)" />
     <span class="flex-1">{{ miembro.name }}</span>
     <small class="text-muted-foreground">{{ miembro.email }}</small>
@@ -47,12 +47,12 @@
   } @empty {
   <small class="text-muted-foreground">{{ i18n.t('savedViews.noMembers') }}</small>
   } } @else {
-  <label class="grid gap-1 text-[0.78rem] text-muted-foreground">
+  <label class="grid gap-1 text-xs text-muted-foreground">
     {{ i18n.t('savedViews.name') }}
     <input hlmInput name="nombre" maxlength="60" required [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
   </label>
   } @if (error()) {
-  <p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+  <p class="text-xs text-destructive" role="alert">{{ error() }}</p>
   }
   <div class="flex justify-end gap-2">
     <button hlmBtn variant="ghost" size="sm" type="button" (click)="panel.set(null)">
@@ -62,7 +62,7 @@
   </div>
 </form>
 } @else if (error()) {
-<p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+<p class="text-xs text-destructive" role="alert">{{ error() }}</p>
 }
 
 <fin-confirm-dialog

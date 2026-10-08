@@ -1,5 +1,5 @@
 @if (!puedeEditar()) {
-<p class="rounded-lg border border-dashed border-border p-4 text-[0.84rem] text-muted-foreground" role="note">
+<p class="rounded-lg border border-dashed border-border p-4 text-xs text-muted-foreground" role="note">
   {{ i18n.t('preferences.customizeRestricted') }}
 </p>
 } @else {
@@ -9,7 +9,7 @@
       <input hlmInput name="themeName" [ngModel]="borrador().name" (ngModelChange)="cambiarNombre($event)" />
     </fin-field>
     <div class="flex flex-col gap-2">
-      <span class="text-[0.78rem] font-medium">{{ i18n.t('preferences.studio.startFrom') }}</span>
+      <span class="text-xs font-medium">{{ i18n.t('preferences.studio.startFrom') }}</span>
       <div class="flex flex-wrap gap-2">
         @for (punto of puntosDePartida; track punto.id) {
         <button hlmBtn variant="outline" size="sm" type="button" class="gap-2" (click)="partirDe(punto.id)">
@@ -33,8 +33,8 @@
           (ngModelChange)="cambiarColor(color.key, $event)"
         />
         <span class="grid min-w-0">
-          <span class="truncate text-[0.78rem] font-medium">{{ i18n.t(color.label) }}</span>
-          <code class="text-[0.7rem] text-muted-foreground uppercase">{{ borrador()[color.key] }}</code>
+          <span class="truncate text-xs font-medium">{{ i18n.t(color.label) }}</span>
+          <code class="text-xs text-muted-foreground uppercase">{{ borrador()[color.key] }}</code>
         </span>
       </label>
       }
@@ -51,7 +51,7 @@
       />
     </fin-field>
     @if (contrasteBajo()) {
-    <p class="rounded-md bg-warning/10 px-3 py-2 text-[0.78rem] text-warning" role="status">
+    <p class="rounded-md bg-warning/10 px-3 py-2 text-xs text-warning" role="status">
       {{ i18n.t('preferences.studio.lowContrast', { ratio: contrasteTexto().toFixed(1) }) }}
     </p>
     }
@@ -65,7 +65,7 @@
     </div>
   </div>
   <div class="flex min-w-0 flex-col gap-2">
-    <span class="text-[0.78rem] text-muted-foreground">{{ i18n.t('preferences.studio.previewHint') }}</span>
+    <span class="text-xs text-muted-foreground">{{ i18n.t('preferences.studio.previewHint') }}</span>
     <fin-theme-preview [palette]="paletaDeVista()" />
   </div>
 </div>

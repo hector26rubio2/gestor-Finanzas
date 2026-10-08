@@ -17,15 +17,19 @@
       class="flex items-end justify-between gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
       [attr.aria-label]="i18n.t('reports.filtersAriaLabel')"
     >
-      <label class="grid w-40 gap-[3px] text-[0.72rem] text-muted-foreground"
+      <label class="grid w-40 gap-[3px] text-xs text-muted-foreground"
         >{{ i18n.t('reports.periodLabel') }}<fin-select
           [ngModel]="reportPeriod()"
           (ngModelChange)="reportPeriod.set($event)"
           [options]="reportPeriodOptions()"
           [ariaLabel]="i18n.t('reports.periodSelectAriaLabel')"
       /></label>
-      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.traceabilityNote') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('reports.traceabilityNote') }}</p>
     </section>
+    @if (cargando() && !reportMovements().length) {
+    <fin-skeleton tipo="kpi" [filas]="4" />
+    <fin-skeleton tipo="grafica" />
+    } @else {
     <fin-kpi-grid>
       <fin-kpi
         [label]="i18n.t('reports.kpi.net.label')"
@@ -57,7 +61,7 @@
       @if (can(P.reportes.comparativo.ver)) {
       <div hlmCard class="min-h-[250px] gap-0 p-5">
         <h2 class="mb-[5px] text-base">{{ i18n.t('reports.incomeExpense.title') }}</h2>
-        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
+        <p class="mb-3 text-xs text-muted-foreground">{{ i18n.t('reports.incomeExpense.description') }}</p>
         @if (reportSeries().length) {
         <fin-chart
           [option]="incomeExpenseOption()"
@@ -71,7 +75,7 @@
       } @if (can(P.reportes.categorias.ver)) {
       <div hlmCard class="min-h-[250px] gap-0 p-5">
         <h2 class="mb-[5px] text-base">{{ i18n.t('reports.categories.title') }}</h2>
-        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
+        <p class="mb-3 text-xs text-muted-foreground">{{ i18n.t('reports.categories.description') }}</p>
         @if (reportCategories().length) {
         <fin-chart [option]="categoriesOption()" [height]="240" [ariaLabel]="i18n.t('reports.categories.title')" />
         } @else {
@@ -81,7 +85,7 @@
       } @if (can(P.reportes.tendencia.ver)) {
       <div hlmCard class="col-span-full min-h-[250px] gap-0 p-5 max-[700px]:col-auto">
         <h2 class="mb-[5px] text-base">{{ i18n.t('reports.trend.title') }}</h2>
-        <p class="mb-3 text-[0.72rem] text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
+        <p class="mb-3 text-xs text-muted-foreground">{{ i18n.t('reports.trend.description') }}</p>
         @if (reportSeries().length) {
         <fin-chart [option]="trendOption()" [height]="220" [ariaLabel]="i18n.t('reports.trend.ariaLabel')" />
         } @else {
@@ -154,14 +158,13 @@
       </div>
       }
     </section>
-
-    }
+    } }
   </div>
   <div hlmTabsContent="explorer" class="flex flex-col gap-3.5">
     @if (seccion() === 'explorer') {
     <header>
       <h2 class="text-base font-semibold">{{ i18n.t('reports.explorer.title') }}</h2>
-      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('reports.explorer.description') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('reports.explorer.description') }}</p>
     </header>
     <fin-explorador-de-reportes />
     }

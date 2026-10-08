@@ -1,11 +1,11 @@
 <details class="grid gap-3 rounded-md bg-accent p-3" open>
   <summary class="cursor-pointer">
-    <span class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.cashflow') }}</span>
-    <small class="block text-[0.7rem] text-muted-foreground"
+    <span class="text-xs font-semibold">{{ i18n.t('planning.sim.cashflow') }}</span>
+    <small class="block text-xs text-muted-foreground"
       >{{ i18n.t('planning.sim.cashflowHint', { n: sim.flujoMedido().mesesMedidos }) }}</small
     >
   </summary>
-  <div class="mt-2 grid gap-1 text-[0.72rem]">
+  <div class="mt-2 grid gap-1 text-xs">
     <div class="flex justify-between">
       <span>{{ i18n.t('planning.sim.income') }}</span><b>{{ money(sim.flujoMensual().ingreso.at(0) ?? 0) }}</b>
     </div>
@@ -26,7 +26,7 @@
 
   @for (tipo of tiposDeLinea; track tipo) {
   <div class="grid gap-1.5">
-    <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.' + tipo) }}</h4>
+    <h4 class="text-xs font-semibold">{{ i18n.t('planning.sim.flow.' + tipo) }}</h4>
     @for (linea of lineasDe(tipo); track linea.id) {
     <div
       class="grid grid-cols-[auto_1fr_110px] items-center gap-2 [&_button[role=checkbox]]:size-6 pointer-coarse:[&_button[role=checkbox]]:size-11"
@@ -37,7 +37,7 @@
         [aria-label]="linea.nombre"
         (checkedChange)="sim.ajustarLinea(linea.id, { incluida: $event }, linea.monto)"
       />
-      <span class="truncate text-[0.74rem]" [title]="linea.nombre">{{ linea.nombre }}</span>
+      <span class="truncate text-xs" [title]="linea.nombre">{{ linea.nombre }}</span>
       <input
         hlmInput
         class="h-8"
@@ -50,16 +50,16 @@
       />
     </div>
     } @empty {
-    <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.flow.empty') }}</small>
+    <small class="text-xs text-muted-foreground">{{ i18n.t('planning.sim.flow.empty') }}</small>
     }
   </div>
   } @if (sim.recurrentes().length) {
   <div class="grid gap-1.5">
-    <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.recurring') }}</h4>
-    <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.flow.recurringHint') }}</small>
+    <h4 class="text-xs font-semibold">{{ i18n.t('planning.sim.flow.recurring') }}</h4>
+    <small class="text-xs text-muted-foreground">{{ i18n.t('planning.sim.flow.recurringHint') }}</small>
     @for (recurrente of sim.recurrentes(); track recurrente.id) {
     <label
-      class="flex min-h-6 items-center gap-2 text-[0.74rem] [&_button[role=checkbox]]:size-6 pointer-coarse:min-h-11 pointer-coarse:[&_button[role=checkbox]]:size-11"
+      class="flex min-h-6 items-center gap-2 text-xs [&_button[role=checkbox]]:size-6 pointer-coarse:min-h-11 pointer-coarse:[&_button[role=checkbox]]:size-11"
       [class.line-through]="sim.recurrentesQuitados().has(recurrente.id)"
     >
       <hlm-checkbox
@@ -78,7 +78,7 @@
 
   <div class="grid gap-1.5">
     <div class="flex flex-wrap items-center justify-between gap-1.5">
-      <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.changes') }}</h4>
+      <h4 class="text-xs font-semibold">{{ i18n.t('planning.sim.flow.changes') }}</h4>
       <div class="flex gap-1">
         <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarCambio('ingreso')">
           {{ i18n.t('planning.sim.flow.addIncome') }}
@@ -126,7 +126,7 @@
           (ngModelChange)="sim.editarCambio(cambio.id, { hasta: $event === '' || $event === null ? null : numero($event) })"
         />
       </fin-field>
-      <small class="col-span-full flex items-center justify-between text-[0.7rem] text-muted-foreground">
+      <small class="col-span-full flex items-center justify-between text-xs text-muted-foreground">
         {{ i18n.t(cambio.tipo === 'ingreso' ? 'planning.sim.flow.incomeTag' : 'planning.sim.flow.expenseTag') }} · {{
         sim.etiquetaDeMes(cambio.desde) }}
         <button hlmBtn variant="ghost" size="sm" type="button" (click)="sim.quitarCambio(cambio.id)">

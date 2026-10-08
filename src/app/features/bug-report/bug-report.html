@@ -27,11 +27,11 @@
       ><fin-icon name="flag" /> {{ i18n.t('bugReport.success.githubLink') }} ↗</a
     >
     @if (githubDetail(); as detail) {
-    <p class="text-[0.8rem] text-muted-foreground" role="status">{{ detail }}</p>
+    <p class="text-xs text-muted-foreground" role="status">{{ detail }}</p>
     } } @else {
-    <p class="text-[0.85rem] text-muted-foreground" role="status">
+    <p class="text-sm text-muted-foreground" role="status">
       {{ i18n.t('bugReport.success.githubPending') }} @if (githubDetail(); as detail) {
-      <span class="mt-1 block text-[0.8rem]">{{ detail }}</span>
+      <span class="mt-1 block text-xs">{{ detail }}</span>
       }
     </p>
     }
@@ -64,7 +64,7 @@
 
     <fieldset brnQuestionnaireItem name="title" required class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
       <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.title') }}</legend>
-      <p brnQuestionnaireDescription class="text-[0.9rem] text-muted-foreground">
+      <p brnQuestionnaireDescription class="text-sm text-muted-foreground">
         {{ i18n.t('bugReport.step1.intro') }}
       </p>
       <input
@@ -79,7 +79,7 @@
       <p
         brnQuestionnaireError
         #titleError="brnQuestionnaireError"
-        class="text-[0.8rem] text-destructive"
+        class="text-xs text-destructive"
         [requiredMessage]="i18n.t('bugReport.q.required')"
       >
         {{ titleError.defaultMessage() }}
@@ -100,7 +100,7 @@
       <p
         brnQuestionnaireError
         #descriptionError="brnQuestionnaireError"
-        class="text-[0.8rem] text-destructive"
+        class="text-xs text-destructive"
         [requiredMessage]="i18n.t('bugReport.q.required')"
       >
         {{ descriptionError.defaultMessage() }}
@@ -113,7 +113,7 @@
         @for (option of severityOptions(); track option.value) {
         <label
           brnQuestionnaireChoice
-          class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-[0.9rem] has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 data-[checked]:border-primary data-[checked]:bg-accent"
+          class="flex cursor-pointer items-center gap-2.5 rounded-lg border border-border px-3 py-2.5 text-sm has-[:focus-visible]:ring-[3px] has-[:focus-visible]:ring-ring/50 data-[checked]:border-primary data-[checked]:bg-accent"
           [value]="option.value"
           [defaultChecked]="option.value === severity"
           (checkedChange)="pickSeverity($event, option.value)"
@@ -131,7 +131,7 @@
 
     <fieldset brnQuestionnaireItem name="steps" class="grid gap-2 border-0 p-0 [&[hidden]]:hidden">
       <legend brnQuestionnaireTitle class="text-base font-semibold">{{ i18n.t('bugReport.field.steps') }}</legend>
-      <p brnQuestionnaireDescription class="text-[0.9rem] text-muted-foreground">
+      <p brnQuestionnaireDescription class="text-sm text-muted-foreground">
         {{ i18n.t('bugReport.step2.intro') }}
       </p>
       <textarea
@@ -150,7 +150,7 @@
       <div brnQuestionnaireChoices>
         <label
           brnQuestionnaireChoice
-          class="flex cursor-pointer items-center gap-2.5 text-[0.9rem]"
+          class="flex cursor-pointer items-center gap-2.5 text-sm"
           value="screenshot"
           [defaultChecked]="includeScreenshot()"
           (checkedChange)="pickScreenshot($event)"
@@ -160,7 +160,7 @@
         </label>
       </div>
       @if (capturingScreenshot()) {
-      <p class="text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
+      <p class="text-sm text-muted-foreground">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
       } @else if (includeScreenshot() && screenshotDataUrl()) {
       <img
         class="max-h-56 w-full rounded-lg border border-border object-cover object-top"
@@ -168,11 +168,11 @@
         [alt]="i18n.t('bugReport.screenshot.previewAlt')"
       />
       } @else if (screenshotTooLarge()) {
-      <p class="text-[0.9rem] text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
+      <p class="text-sm text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
       } @else if (screenshotFailed()) {
-      <p class="text-[0.9rem] text-destructive" role="alert">{{ i18n.t('bugReport.screenshot.failed') }}</p>
+      <p class="text-sm text-destructive" role="alert">{{ i18n.t('bugReport.screenshot.failed') }}</p>
       }
-      <dl class="grid gap-2 [&>div]:flex [&>div]:justify-between [&>div]:text-[0.9rem] [&_dt]:text-muted-foreground">
+      <dl class="grid gap-2 [&>div]:flex [&>div]:justify-between [&>div]:text-sm [&_dt]:text-muted-foreground">
         <div>
           <dt>{{ i18n.t('bugReport.review.page') }}</dt>
           <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
@@ -182,7 +182,7 @@
           <dd>{{ consoleTail().length }} {{ i18n.t('bugReport.review.consoleLines') }}</dd>
         </div>
       </dl>
-      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('bugReport.review.privacyNote') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('bugReport.review.privacyNote') }}</p>
     </fieldset>
 
     <footer class="flex justify-between gap-2.5">

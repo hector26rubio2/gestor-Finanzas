@@ -8,7 +8,7 @@
       (valueChange)="setKind($event)"
     />
     @if (!model['kind']) {
-    <p class="px-1 py-[22px] text-center text-[0.88rem] text-muted-foreground">
+    <p class="px-1 py-[22px] text-center text-sm text-muted-foreground">
       {{ i18n.t('form.movement.chooseTypeHint') }}
     </p>
     } @else {
@@ -22,7 +22,7 @@
           [ariaLabel]="i18n.t('form.movement.field.operationType')"
         />
       </fin-field>
-      <p class="px-0.5 text-[0.8rem] text-muted-foreground">{{ operationHint() }}</p>
+      <p class="px-0.5 text-xs text-muted-foreground">{{ operationHint() }}</p>
     </div>
     <div class="grid grid-cols-2 gap-4 max-[560px]:grid-cols-1">
       <fin-movement-core-fields

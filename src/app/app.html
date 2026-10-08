@@ -2,17 +2,27 @@
 <hlm-toaster position="top-right" theme="system" richColors closeButton />
 }
 <ng-template #cargando>
-  <div
-    class="grid min-h-dvh content-center justify-items-center gap-2.5 bg-background p-6 text-foreground"
-    role="status"
-    aria-live="polite"
-  >
-    <fin-icon name="dashboard" class="text-primary [--icon-size:34px]" />
-    <b class="font-display text-[1.3rem] leading-[1.1] font-bold tracking-[-0.02em]">Finanzas</b>
-    <p class="text-[0.86rem] text-muted-foreground">{{ i18n.t('shell.loading') }}</p>
-    <hlm-progress class="mt-2 h-0.5 w-[min(220px,60vw)]">
-      <hlm-progress-indicator class="w-2/5 motion-reduce:w-full motion-reduce:animate-none motion-reduce:opacity-55" />
-    </hlm-progress>
+  <div class="flex min-h-dvh bg-background text-foreground" aria-busy="true">
+    <span role="status" aria-live="polite" class="sr-only">{{ i18n.t('shell.loading') }}</span>
+    <aside class="hidden w-[238px] shrink-0 flex-col gap-3 border-e border-border p-4 md:flex" aria-hidden="true">
+      <div class="mb-3 flex items-center gap-2">
+        <fin-icon name="dashboard" class="text-primary [--icon-size:24px]" />
+        <b class="font-display text-base font-bold">Finanzas</b>
+      </div>
+      @for (item of esqueletoDelMenu; track item) {
+      <div hlmSkeleton class="h-8"></div>
+      }
+    </aside>
+    <div class="flex min-w-0 flex-1 flex-col">
+      <div class="flex h-14 items-center gap-3 border-b border-border px-6" aria-hidden="true">
+        <div hlmSkeleton class="h-8 w-48"></div>
+        <div hlmSkeleton class="ms-auto h-8 w-32"></div>
+      </div>
+      <div class="grid gap-4 p-6 max-[780px]:p-3.5">
+        <fin-skeleton tipo="kpi" [filas]="4" />
+        <fin-skeleton tipo="grafica" />
+      </div>
+    </div>
   </div>
 </ng-template>
 @if (cargandoSesion()) {
@@ -81,14 +91,13 @@
               referrerpolicy="no-referrer"
             />
             }
-            <span hlmAvatarFallback class="rounded-[9px] bg-accent text-[0.72rem] font-bold text-primary"
+            <span hlmAvatarFallback class="rounded-[9px] bg-accent text-xs font-bold text-primary"
               >{{ userInitials() }}</span
             >
           </hlm-avatar>
           <span class="grid min-w-0 leading-[1.15] group-data-[collapsed=true]/app:hidden"
-            ><strong class="overflow-hidden text-[0.75rem] text-ellipsis whitespace-nowrap"
-              >{{ store.user()?.name }}</strong
-            ><small class="mt-[3px] text-[0.72rem] text-muted-foreground"
+            ><strong class="overflow-hidden text-xs text-ellipsis whitespace-nowrap">{{ store.user()?.name }}</strong
+            ><small class="mt-[3px] text-xs text-muted-foreground"
               >{{ espacioActivo() }} @if (store.organizations().length > 1) {
               <b class="rounded-full bg-accent px-[7px] py-px font-bold text-primary"
                 >{{ store.organizations().length }}</b
@@ -225,7 +234,7 @@
         (click)="alternarMenu()"
       >
         <fin-icon [name]="mobileOpen() ? 'close' : 'menu'" class="[--icon-size:18px]" /></button
-      ><span class="inline-flex items-center gap-[7px] text-[0.82rem] max-[780px]:hidden"
+      ><span class="inline-flex items-center gap-[7px] text-xs max-[780px]:hidden"
         ><fin-icon name="organization" class="[--icon-size:18px]" /> {{ espacioActivo() }}</span
       >
       <div class="ms-auto flex items-center gap-[9px]">
@@ -250,7 +259,7 @@
           ><fin-icon name="notifications" class="[--icon-size:18px]" />
           @if (store.unread()) {
           <span
-            class="absolute -top-1.5 -right-[5px] rounded-full bg-primary px-[5px] py-0.5 text-[0.72rem] text-primary-foreground"
+            class="absolute -top-1.5 -right-[5px] rounded-full bg-primary px-[5px] py-0.5 text-xs text-primary-foreground"
             >{{ store.unread() }}</span
           >
           }

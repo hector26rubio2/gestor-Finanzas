@@ -10,6 +10,7 @@ import { P } from '@core/session';
 import { IconComponent } from '@ui/icon';
 import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
+import { SkeletonComponent } from '@ui/skeleton';
 import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { ChartComponent } from '@ui/chart';
@@ -44,6 +45,7 @@ const KPI_HEIGHT = 120;
   imports: [
     SelectorDeTablerosComponent,
     HlmAlertImports,
+    SkeletonComponent,
     HlmButton,
     HlmInput,
     FormsModule,

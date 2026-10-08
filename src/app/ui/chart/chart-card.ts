@@ -10,7 +10,7 @@ import { ChartComponent, ChartOption } from './chart';
     <div hlmCard class="h-full gap-0 p-4">
       <h2 class="text-sm font-semibold">{{ title() }}</h2>
       @if (description()) {
-        <p class="mt-0.5 text-[0.72rem] text-muted-foreground">{{ description() }}</p>
+        <p class="mt-0.5 text-xs text-muted-foreground">{{ description() }}</p>
       }
       @if (hasData()) {
         <fin-chart class="mt-2" [option]="option()" [height]="height()" [ariaLabel]="title()" />

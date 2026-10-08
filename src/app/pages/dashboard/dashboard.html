@@ -158,7 +158,7 @@
             (hide)="edicion.hide(widget.id)"
           />
         </div>
-        } @switch (widget.type) { @case ('flow') { @if (timeline().length) {
+        } @defer (on viewport) { @switch (widget.type) { @case ('flow') { @if (timeline().length) {
         <fin-chart
           [option]="flujoOption()"
           (pick)="alPulsarDimension('date', $event)"
@@ -285,7 +285,7 @@
             [ariaLabel]="widget.title"
           />
           <dl
-            class="grid min-w-0 gap-3.5 [&_dd]:mt-0.5 [&_dd]:text-[0.95rem] [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:text-foreground [&_dt]:text-[0.72rem] [&_dt]:font-semibold [&_dt]:tracking-[0.04em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
+            class="grid min-w-0 gap-3.5 [&_dd]:mt-0.5 [&_dd]:text-sm [&_dd]:font-bold [&_dd]:whitespace-nowrap [&_dd]:text-foreground [&_dt]:text-xs [&_dt]:font-semibold [&_dt]:tracking-[0.04em] [&_dt]:text-muted-foreground [&_dt]:uppercase"
           >
             <div>
               <dt>Actual</dt>
@@ -305,7 +305,7 @@
               <dt>Estado</dt>
               <dd>
                 <span
-                  class="inline-block rounded-full border-[1.5px] px-3 py-1 text-[0.76rem] font-bold"
+                  class="inline-block rounded-full border-[1.5px] px-3 py-1 text-xs font-bold"
                   [style.color]="indicatorStatus(widget).color"
                   [style.border-color]="indicatorStatus(widget).color"
                 >
@@ -342,7 +342,9 @@
         </div>
         } @else {
         <p class="m-auto text-center text-muted-foreground">{{ i18n.t('dashboard.widget.empty.generic') }}</p>
-        } } }
+        } } } } @placeholder (minimum 300ms) {
+        <fin-skeleton tipo="grafica" class="h-full" />
+        }
       </fin-widget-card>
     </fin-flow-item>
     } }
@@ -452,7 +454,7 @@
     mode="inspector"
     (closed)="store.inspector.set(null)"
     ><div class="grid gap-3.5">
-      <span class="text-[0.72rem] tracking-[0.12em] text-primary">{{ i18n.t('dashboard.detailModal.kicker') }}</span>
+      <span class="text-xs tracking-[0.12em] text-primary">{{ i18n.t('dashboard.detailModal.kicker') }}</span>
       <h2>{{ movement.description }}</h2>
       <strong class="text-[1.8rem]">{{ store.money(movement.amount) }}</strong>
       <dl

@@ -1430,6 +1430,7 @@ export default {
   'kpi.history.week': 'Dernières {count} semaines',
   'kpi.history.month': 'Derniers {count} mois',
   'kpi.history.year': 'Dernières {count} années',
+  'kpi.delta.vsPrevious': 'vs période précédente',
   'dashboard.kpi.ranges.edit': 'Couleurs par plage pour {label}',
   'dashboard.kpi.ranges.title': 'Couleurs de « {label} »',
   'dashboard.kpi.ranges.enabled': 'Colorer selon la valeur',

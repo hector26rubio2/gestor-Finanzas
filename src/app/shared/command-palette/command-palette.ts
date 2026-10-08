@@ -94,7 +94,7 @@ function escribiendo(destino: EventTarget | null): boolean {
             }
           </div>
           <footer
-            class="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-3 py-2 text-[0.7rem] text-muted-foreground"
+            class="flex flex-wrap gap-x-4 gap-y-1 border-t border-border px-3 py-2 text-xs text-muted-foreground"
           >
             <span>{{ i18n.t('command.footer.navigate') }}</span>
             <span>{{ i18n.t('command.footer.choose') }}</span>

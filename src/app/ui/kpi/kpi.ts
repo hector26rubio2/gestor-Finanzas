@@ -42,6 +42,8 @@ export class KpiComponent {
   readonly status = input<'good' | 'warn' | 'bad' | null>(null);
   readonly caption = input('');
   readonly subirEsBueno = input(true);
+  readonly comparacion = input('');
+  readonly comparacionVisible = computed(() => this.comparacion() || this.i18n.t('kpi.delta.vsPrevious'));
 
   private readonly tema = inject(ChartThemeService);
 
@@ -151,7 +153,7 @@ export class KpiComponent {
           showSymbol: false,
           lineStyle: {
             width: fondo ? 1.5 : 1.8,
-            color: fondo ? `color-mix(in srgb, ${color} 55%, transparent)` : color,
+            color,
           },
           areaStyle: {
             color: {

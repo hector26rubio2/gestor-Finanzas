@@ -58,7 +58,7 @@
       </button>
     </div>
     <div *hlmPopoverPortal="let ctx" hlmPopoverContent class="grid w-64 gap-2.5 p-3">
-      <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
+      <label class="grid gap-1.5 text-xs font-semibold text-muted-foreground"
         >{{ i18n.t('dashboard.period.year') }}<fin-select
           [ngModel]="anchorYear()"
           (ngModelChange)="yearChange.emit($event)"
@@ -66,7 +66,7 @@
           [ariaLabel]="i18n.t('dashboard.period.year')"
       /></label>
       @if (scale() === 'month' || scale() === 'week' || scale() === 'day') {
-      <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
+      <label class="grid gap-1.5 text-xs font-semibold text-muted-foreground"
         >{{ i18n.t('dashboard.period.month') }}<fin-select
           [ngModel]="anchorMonth()"
           (ngModelChange)="monthChange.emit($event)"
@@ -74,7 +74,7 @@
           [ariaLabel]="i18n.t('dashboard.period.month')"
       /></label>
       } @if (scale() === 'week') {
-      <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
+      <label class="grid gap-1.5 text-xs font-semibold text-muted-foreground"
         >{{ i18n.t('dashboard.period.week') }}<fin-select
           [ngModel]="anchorWeekOfMonth()"
           (ngModelChange)="weekOfMonthChange.emit($event)"
@@ -82,7 +82,7 @@
           [ariaLabel]="i18n.t('dashboard.filters.period.weekOfMonth')"
       /></label>
       } @if (scale() === 'day') {
-      <label class="grid gap-1.5 text-[0.72rem] font-semibold text-muted-foreground"
+      <label class="grid gap-1.5 text-xs font-semibold text-muted-foreground"
         >{{ i18n.t('dashboard.period.day') }}<input
           hlmInput
           type="text"
@@ -177,7 +177,7 @@
     </button>
   </span>
   }
-  <p class="ms-auto text-[0.78rem] text-muted-foreground max-[780px]:w-full" role="status" aria-live="polite">
+  <p class="ms-auto text-xs text-muted-foreground max-[780px]:w-full" role="status" aria-live="polite">
     {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
   </p>
   @if (hasFilters()) {

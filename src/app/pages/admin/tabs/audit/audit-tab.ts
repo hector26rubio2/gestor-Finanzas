@@ -100,7 +100,7 @@ import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
                     <span class="line-clamp-2 min-w-0 flex-1 text-xs [overflow-wrap:anywhere]">{{
                       error.title || error.message
                     }}</span>
-                    <small class="flex-none text-[0.7rem] text-muted-foreground">{{
+                    <small class="flex-none text-xs text-muted-foreground">{{
                       labels.dateTimeLong(error.lastSeenAt)
                     }}</small>
                   </li>

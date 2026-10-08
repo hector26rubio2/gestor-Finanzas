@@ -15,7 +15,7 @@
         ‹
       </button>
       <div class="grid min-w-[170px] max-[700px]:order-first max-[700px]:w-full">
-        <span class="text-[0.72rem] tracking-[0.12em] text-muted-foreground"
+        <span class="text-xs tracking-[0.12em] text-muted-foreground"
           >{{ i18n.t('calendar.nav.periodLabel') }}</span
         ><strong class="font-display text-base capitalize">{{ calendarTitle() }}</strong>
       </div>
@@ -75,7 +75,7 @@
     } @else {
     <div class="grid grid-cols-[repeat(7,minmax(0,1fr))] border-y border-border py-2">
       @for (d of week(); track d) {
-      <b class="text-center text-[0.72rem] text-muted-foreground">{{ d }}</b>
+      <b class="text-center text-xs text-muted-foreground">{{ d }}</b>
       }
     </div>
     <div
@@ -96,13 +96,13 @@
         <b class="block">{{ day.day }}</b>
         @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
         <span
-          class="mt-[5px] block overflow-hidden text-[0.72rem] text-ellipsis whitespace-nowrap"
+          class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap"
           [class]="m.amount > 0 ? 'text-success' : 'text-destructive'"
           >{{ m.description }}</span
         >
         } @if (store.dayMoves(day.iso).length > (calendarView() === 'day' ? 8 : 2)) {
         <em
-          class="mt-[5px] block overflow-hidden text-[0.72rem] text-ellipsis whitespace-nowrap text-primary not-italic"
+          class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap text-primary not-italic"
           >{{ i18n.t('calendar.day.more', { count: store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2)
           }) }}</em
         >
@@ -119,7 +119,7 @@
     <h2 class="mt-0 text-base">{{ i18n.t('calendar.recurring.title') }}</h2>
     <ul class="mb-4 grid gap-1" [attr.aria-label]="i18n.t('calendar.recurring.title')">
       @for (recurrente of recurrences(); track recurrente.id) {
-      <li class="flex items-center justify-between gap-2 border-b border-border py-2 text-[0.74rem]">
+      <li class="flex items-center justify-between gap-2 border-b border-border py-2 text-xs">
         <span class="grid min-w-0">
           <b class="truncate font-medium">{{ recurrente.name }}</b>
           <small class="text-muted-foreground">{{ frecuencia(recurrente) }}</small>

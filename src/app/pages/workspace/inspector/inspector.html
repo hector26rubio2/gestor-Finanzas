@@ -50,7 +50,7 @@
         <b>{{ store.money(tarjeta.cardStatementTotal()) }}</b>
       </header>
       <div
-        class="flex items-center justify-between gap-2.5 [&>span]:grid [&>span]:gap-[3px] [&>span]:text-[0.72rem] [&>span]:text-muted-foreground [&_b]:text-foreground"
+        class="flex items-center justify-between gap-2.5 [&>span]:grid [&>span]:gap-[3px] [&>span]:text-xs [&>span]:text-muted-foreground [&_b]:text-foreground"
       >
         <span
           >{{ i18n.t('workspace.statement.cyclePurchases') }}
@@ -79,7 +79,7 @@
       @if (tarjeta.cardEstimatedInterest() === null) {
       <small class="text-muted-foreground">{{ i18n.t('workspace.statement.noRateNote') }}</small>
       } @if (tarjeta.saldosPorConcepto().length) {
-      <ul class="grid gap-1 text-[0.74rem]">
+      <ul class="grid gap-1 text-xs">
         @for (saldo of tarjeta.saldosPorConcepto(); track saldo.concepto) {
         <li class="flex justify-between gap-2">
           <span class="text-muted-foreground"
@@ -96,7 +96,7 @@
     <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.purchases.title')">
       <h3>{{ i18n.t('workspace.person.purchases.title') }}</h3>
       @for (compra of compras; track compra.id) {
-      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-[0.86rem]">
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
         <span class="min-w-0"
           ><b class="block truncate">{{ compra.description }}</b
           ><small class="text-muted-foreground">{{ compra.date }}</small></span
@@ -109,14 +109,14 @@
         >
       </div>
       } @empty {
-      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('workspace.person.purchases.empty') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.person.purchases.empty') }}</p>
       }
     </section>
     } @if (personSettlements(); as liquidaciones) {
     <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.settlements.title')">
       <h3>{{ i18n.t('workspace.person.settlements.title') }}</h3>
       @for (liquidacion of liquidaciones; track liquidacion.id) {
-      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-[0.86rem]">
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
         <span class="min-w-0"
           ><b class="block">{{ liquidacion.period.start }} → {{ liquidacion.period.end }}</b
           ><small class="text-muted-foreground"
@@ -129,7 +129,7 @@
         >
       </div>
       } @empty {
-      <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('workspace.person.settlements.empty') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.person.settlements.empty') }}</p>
       }
     </section>
     } }
@@ -213,7 +213,7 @@
           {{ i18n.t('workspace.cardPayment.back') }}
         </button>
       </header>
-      <label class="grid gap-1 text-[0.78rem] text-muted-foreground"
+      <label class="grid gap-1 text-xs text-muted-foreground"
         >{{ i18n.t('workspace.cardPayment.sourceAccount') }}
         <fin-select
           [options]="tarjeta.opcionesDeOrigen()"
@@ -252,7 +252,7 @@
       <button hlmBtn class="h-10" (click)="tarjeta.confirmarAbono()">
         <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
       </button>
-      <small class="text-[0.72rem] text-muted-foreground">{{ i18n.t('workspace.cardPayment.priorityNote') }}</small>
+      <small class="text-xs text-muted-foreground">{{ i18n.t('workspace.cardPayment.priorityNote') }}</small>
     </section>
     }
   </section></ng-template
