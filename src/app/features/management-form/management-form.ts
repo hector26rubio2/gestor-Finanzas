@@ -3,7 +3,7 @@ import { IconComponent } from '@ui/icon';
 import { IconPickerComponent } from '@ui/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
@@ -29,7 +29,6 @@ import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
     FieldComponent,
     SegmentedComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './management-form.html',
 })
 export class ManagementFormComponent {

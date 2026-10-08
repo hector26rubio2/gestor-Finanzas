@@ -1,5 +1,5 @@
 import { CdkDrag, CdkDragHandle } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, output } from '@angular/core';
+import { Component, ElementRef, computed, effect, inject, input, output } from '@angular/core';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
 import {
@@ -36,7 +36,6 @@ interface ResizeSession {
     '[style.--rows]': 'rows()',
     '[attr.data-flow-id]': 'item().id',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FlowItemComponent {
   protected readonly i18n = inject(I18nService);

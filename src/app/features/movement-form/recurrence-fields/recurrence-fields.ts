@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
+import { Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
@@ -7,7 +7,6 @@ import { FieldComponent } from '@ui/field/field';
 @Component({
   selector: 'fin-movement-recurrence-fields',
   imports: [FormsModule, UiSelectComponent, FieldComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './recurrence-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

@@ -1,9 +1,8 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { classes } from '@spartan-ng/helm/utils';
 
 @Component({
   selector: 'hlm-radio-indicator',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'data-slot': 'radio-group-indicator',
   },

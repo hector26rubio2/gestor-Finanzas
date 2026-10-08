@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { ChartComponent, ChartOption } from './chart';
 
 @Component({
   selector: 'fin-chart-card',
   imports: [ChartComponent, HlmCard],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block min-w-0' },
   template: `
     <div hlmCard class="h-full gap-0 p-4">

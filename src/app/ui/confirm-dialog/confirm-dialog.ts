@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
 
 @Component({
   selector: 'fin-confirm-dialog',
   imports: [HlmAlertDialogImports],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-alert-dialog [state]="open() ? 'open' : 'closed'" (stateChanged)="onStateChanged($event)">
       <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
   lucideArrowDown,
@@ -214,7 +214,6 @@ const ICONOS_POR_NOMBRE: Readonly<Record<string, string>> = ICONOS;
   selector: 'fin-icon',
   imports: [NgIcon],
   viewProviders: [provideIcons(REGISTRO)],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex size-[var(--icon-size,1.15em)] flex-none', 'aria-hidden': 'true' },
   template: `@if (icono(); as nombre) {
     <ng-icon [name]="nombre" size="100%" strokeWidth="1.75" />

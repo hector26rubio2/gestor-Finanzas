@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -77,7 +77,6 @@ const PUNTOS_DE_PARTIDA: readonly { id: string; clave: string; paleta: Omit<Borr
 @Component({
   selector: 'fin-theme-studio',
   imports: [FormsModule, HlmButton, HlmInput, HlmSliderImports, FieldComponent, IconComponent, ThemePreviewComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './theme-studio.html',
   host: { class: 'block' },
 })

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { ApiAdminUser } from '@core/api';
@@ -28,7 +28,6 @@ import { UserSheetComponent } from './user-sheet';
     UserSheetComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-admin-panel [title]="i18n.t('admin.users.title')" [subtitle]="i18n.t('admin.users.subtitle')">
       <app-admin-grid>

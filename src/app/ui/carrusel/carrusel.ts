@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  afterNextRender,
-  inject,
-  input,
-  signal,
-  viewChild,
-} from '@angular/core';
+import { Component, DestroyRef, ElementRef, afterNextRender, inject, input, signal, viewChild } from '@angular/core';
 import { HlmButtonImports } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon/icon';
@@ -18,7 +8,6 @@ const UMBRAL_DE_ARRASTRE = 4;
 @Component({
   selector: 'fin-carrusel',
   imports: [HlmButtonImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'relative flex min-w-0 shrink-0 items-center gap-1' },
   template: `
     <button

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
@@ -7,7 +7,6 @@ import { I18nService } from '@core/i18n';
 @Component({
   selector: 'fin-option-row',
   imports: [HlmSwitch, HlmCheckbox, HlmBadge],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex items-center justify-between gap-3 rounded-lg px-3 py-2 hover:bg-accent/60' },
   template: `
     <span class="flex min-w-0 flex-col gap-0.5">

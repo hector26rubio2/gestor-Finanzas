@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'fin-bank-card',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class:
       'relative flex aspect-[1.6/1] flex-col justify-between overflow-hidden rounded-2xl bg-[linear-gradient(135deg,color-mix(in_srgb,var(--card-color)_92%,#fff),color-mix(in_srgb,var(--card-color)_55%,#000))] px-[18px] py-4 text-start text-white shadow-[0_12px_24px_color-mix(in_srgb,var(--text)_16%,transparent)] after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(120deg,color-mix(in_srgb,#fff_18%,transparent)_0%,transparent_40%)]',

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output } from '@angular/core';
+import { Component, computed, effect, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmRadioGroupImports } from '@spartan-ng/helm/radio-group';
@@ -27,7 +27,6 @@ import { RESOURCE_FEATURE } from '@pages/admin/permission-picker/permission-sect
     SheetPanelComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
       [open]="!!user()"

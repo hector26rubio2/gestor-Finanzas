@@ -1,7 +1,7 @@
 import { IconComponent } from '@ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
@@ -88,7 +88,6 @@ const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'rec
     UiSelectComponent,
     FieldComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movement-form.html',
 })
 export class MovementFormComponent {

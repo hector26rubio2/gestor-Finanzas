@@ -1,17 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ContentChildren,
-  EventEmitter,
-  Output,
-  QueryList,
-  computed,
-  effect,
-  inject,
-  input,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, signal, untracked, output, contentChildren } from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -62,7 +49,6 @@ import {
     SearchFieldComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './data-table.html',
   host: {
     class:
@@ -71,9 +57,9 @@ import {
 })
 export class DataTableComponent {
   readonly i18n = inject(I18nService);
-  @ContentChildren(FinTableCellDirective) private cellTemplates!: QueryList<FinTableCellDirective>;
+  private readonly cellTemplates = contentChildren(FinTableCellDirective);
   cellTemplate(key: string) {
-    return this.cellTemplates?.find((t) => t.column === key)?.template ?? null;
+    return this.cellTemplates()?.find((t) => t.column() === key)?.template ?? null;
   }
   private static nextId = 0;
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
@@ -88,11 +74,11 @@ export class DataTableComponent {
   readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
   readonly urlKey = input<string | null>(null);
-  @Output() readonly rowSelected = new EventEmitter<TableRow>();
-  @Output() readonly selectionChange = new EventEmitter<TableRow[]>();
-  @Output() readonly pageSizeChange = new EventEmitter<number>();
-  @Output() readonly pageChange = new EventEmitter<number>();
-  @Output() readonly pinnedChange = new EventEmitter<readonly TableFilter[]>();
+  readonly rowSelected = output<TableRow>();
+  readonly selectionChange = output<TableRow[]>();
+  readonly pageSizeChange = output<number>();
+  readonly pageChange = output<number>();
+  readonly pinnedChange = output<readonly TableFilter[]>();
 
   readonly page = signal(0);
   private readonly selectedSize = signal<number | null>(null);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, model } from '@angular/core';
+import { Component, inject, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmInputGroupImports } from '@spartan-ng/helm/input-group';
 import { I18nService } from '@core/i18n';
@@ -7,7 +7,6 @@ import { IconComponent } from '@ui/icon/icon';
 @Component({
   selector: 'fin-search-field',
   imports: [FormsModule, HlmInputGroupImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <div hlmInputGroup>

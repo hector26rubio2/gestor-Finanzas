@@ -1,14 +1,5 @@
 import type { BooleanInput, NumberInput } from '@angular/cdk/coercion';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  booleanAttribute,
-  computed,
-  input,
-  model,
-  numberAttribute,
-  untracked,
-} from '@angular/core';
+import { Component, booleanAttribute, computed, input, model, numberAttribute, untracked } from '@angular/core';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { HlmPagination } from './hlm-pagination';
 import { HlmPaginationContent } from './hlm-pagination-content';
@@ -30,7 +21,6 @@ import { HlmPaginationPrevious } from './hlm-pagination-previous';
     HlmPaginationEllipsis,
     HlmSelectImports,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex items-center justify-between gap-2 px-4 py-2">
       <div class="flex items-center gap-1 text-sm text-nowrap text-gray-600">

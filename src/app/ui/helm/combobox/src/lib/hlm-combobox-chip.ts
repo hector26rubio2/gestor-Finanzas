@@ -1,5 +1,5 @@
 import type { BooleanInput } from '@angular/cdk/coercion';
-import { booleanAttribute, ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { booleanAttribute, Component, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideX } from '@ng-icons/lucide';
 import { BrnComboboxChip } from '@spartan-ng/brain/combobox';
@@ -10,7 +10,6 @@ import { HlmComboboxChipRemove } from './hlm-combobox-chip-remove';
   selector: 'hlm-combobox-chip',
   imports: [NgIcon, HlmComboboxChipRemove],
   providers: [provideIcons({ lucideX })],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: BrnComboboxChip, inputs: ['value'] }],
   host: { 'data-slot': 'combobox-chip' },
   template: `

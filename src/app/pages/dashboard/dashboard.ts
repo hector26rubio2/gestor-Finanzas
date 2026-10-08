@@ -3,7 +3,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CdkDropList } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { P } from '@core/session';
@@ -69,7 +69,6 @@ const KPI_HEIGHT = 120;
     FlowItemComponent,
     CreadorDeWidgetComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.html',
 })
 export class DashboardComponent extends DashboardKpis {

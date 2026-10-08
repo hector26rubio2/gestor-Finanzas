@@ -1,5 +1,5 @@
 import { HlmButton } from '@spartan-ng/helm/button';
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { MovementsBookService } from '@shared/movements';
 import { HeaderActionsService } from '@shared/header-actions.service';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
@@ -35,7 +35,6 @@ const paginasConMeta = [
     SinAccesoComponent,
     IconComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './workspace.html',
 })
 export class WorkspaceComponent {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { computed } from '@angular/core';
 import type { UiOption } from '@ui/select';
 import { FormsModule } from '@angular/forms';
@@ -12,7 +12,6 @@ import { NumericInputDirective } from '@ui/numeric-input';
 @Component({
   selector: 'fin-eventos-del-plan',
   imports: [NumericInputDirective, FormsModule, HlmButton, HlmInput, FieldComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './eventos-del-plan.html',
   host: { style: 'display: contents' },
 })

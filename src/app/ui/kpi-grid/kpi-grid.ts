@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Injectable, effect, inject, input, signal } from '@angular/core';
+import { Component, Injectable, effect, inject, input, signal } from '@angular/core';
 
 @Injectable()
 export class KpiGridContext {
@@ -7,7 +7,6 @@ export class KpiGridContext {
 
 @Component({
   selector: 'fin-kpi-grid',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   providers: [KpiGridContext],
   host: {
     class: 'flex flex-wrap gap-3 *:min-w-0 *:flex-[1_1_220px] max-[520px]:*:basis-full',

@@ -1,9 +1,9 @@
-import { Directive, Input, TemplateRef } from '@angular/core';
+import { Directive, TemplateRef, input } from '@angular/core';
 
 @Directive({
   selector: 'ng-template[finCell]',
 })
 export class FinTableCellDirective {
-  @Input('finCell') column = '';
+  readonly column = input('', { alias: 'finCell' });
   constructor(readonly template: TemplateRef<{ $implicit: Record<string, any> }>) {}
 }

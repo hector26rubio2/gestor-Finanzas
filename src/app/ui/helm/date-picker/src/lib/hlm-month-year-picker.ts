@@ -1,7 +1,6 @@
 import type { BooleanInput } from '@angular/cdk/coercion';
 import {
   booleanAttribute,
-  ChangeDetectionStrategy,
   Component,
   computed,
   contentChild,
@@ -35,7 +34,6 @@ export const HLM_MONTH_YEAR_PICKER_VALUE_ACCESSOR = {
     provideBrnDatePicker(HlmMonthYearPicker),
     provideBrnLabelable(HlmMonthYearPicker),
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [BrnFieldControl],
   host: { class: 'block' },
   template: `

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { IconComponent, IconName } from '@ui/icon/icon';
 
@@ -27,7 +27,6 @@ export function iconForCategory(name: string): IconName {
 @Component({
   selector: 'fin-category-badge',
   imports: [HlmBadgeImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'inline-flex' },
   template: `<span hlmBadge [variant]="variant()" class="h-6 gap-1.5 px-2.5 text-[0.78rem]">
     <fin-icon [name]="icon()" class="[--icon-size:13px]" />{{ name() }}

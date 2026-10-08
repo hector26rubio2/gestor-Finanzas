@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideChevronLeft, lucideChevronRight } from '@ng-icons/lucide';
 import { BrnCalendarImports, BrnCalendarRange, injectBrnCalendarI18n } from '@spartan-ng/brain/calendar';
@@ -12,7 +12,6 @@ import { classes, hlm } from '@spartan-ng/helm/utils';
   selector: 'hlm-calendar-range',
   imports: [BrnCalendarImports, NgIcon, HlmSelectImports, NgTemplateOutlet, HlmButtonImports],
   viewProviders: [provideIcons({ lucideChevronLeft, lucideChevronRight })],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [
     {
       directive: BrnCalendarRange,

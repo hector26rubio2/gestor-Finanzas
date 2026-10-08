@@ -2,7 +2,6 @@ import { type BooleanInput } from '@angular/cdk/coercion';
 import { isPlatformBrowser } from '@angular/common';
 import {
   booleanAttribute,
-  ChangeDetectionStrategy,
   Component,
   computed,
   DOCUMENT,
@@ -21,7 +20,6 @@ import type { ClassValue } from 'clsx';
 @Component({
   selector: 'hlm-radio',
   imports: [BrnRadio],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[attr.aria-label]': 'null',
     '[attr.aria-labelledby]': 'null',

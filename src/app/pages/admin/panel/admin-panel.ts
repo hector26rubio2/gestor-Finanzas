@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'app-admin-panel',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex min-w-0 flex-col overflow-hidden rounded-xl border border-border bg-card' },
   template: `
     <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-border px-5 py-4">

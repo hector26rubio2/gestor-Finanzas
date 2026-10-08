@@ -2,7 +2,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { CategoryBadgeComponent } from '@ui/category-badge';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { NgScrollbar } from 'ngx-scrollbar';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, inject, input } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { AppStore } from '@core/state';
 
 export interface CategoryListItem {
@@ -17,7 +17,6 @@ export interface CategoryListItem {
   selector: 'fin-category-list',
   host: { class: 'flex min-h-0 flex-1' },
   templateUrl: './category-list.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CategoryListComponent {
   private readonly store = inject(AppStore);
@@ -25,7 +24,7 @@ export class CategoryListComponent {
   readonly selected = input('all');
   readonly emptyText = input('');
   readonly ariaLabel = input('');
-  @Output() readonly pick = new EventEmitter<string>();
+  readonly pick = output<string>();
 
   money(value: number): string {
     return this.store.money(value);

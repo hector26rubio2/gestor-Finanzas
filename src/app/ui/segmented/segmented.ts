@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { IconComponent, IconName } from '@ui/icon/icon';
 
@@ -11,7 +11,6 @@ export interface SegmentedOption {
 @Component({
   selector: 'fin-segmented',
   imports: [HlmTabsImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-tabs [tab]="value()" (tabActivated)="valueChange.emit($event)">
       <hlm-tabs-list class="grid h-11 w-full auto-cols-fr grid-flow-col" [attr.aria-label]="ariaLabel()">

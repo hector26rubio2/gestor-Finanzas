@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { BrnSlider, BrnSliderImports, injectBrnSlider } from '@spartan-ng/brain/slider';
 import { classes } from '@spartan-ng/helm/utils';
 
 @Component({
   selector: 'hlm-slider, brn-slider [hlm]',
   imports: [BrnSliderImports],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [
     {
       directive: BrnSlider,

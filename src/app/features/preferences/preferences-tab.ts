@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ActivatedRoute } from '@angular/router';
@@ -35,7 +35,6 @@ type Seccion = (typeof SECCIONES)[number];
     IconComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './preferences-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })

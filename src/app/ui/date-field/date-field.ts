@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  forwardRef,
-  inject,
-  input,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, forwardRef, inject, input, signal, untracked } from '@angular/core';
 import { BrnCalendarI18nService, BrnCalendarI18nToken } from '@spartan-ng/brain/calendar';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
@@ -35,7 +25,6 @@ export function fromIsoDate(value: string): Date | undefined {
     { provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => DateFieldComponent), multi: true },
     { provide: BrnCalendarI18nToken, useFactory: () => new BrnCalendarI18nService() },
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <hlm-date-picker

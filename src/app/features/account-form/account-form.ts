@@ -1,16 +1,7 @@
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  Injector,
-  computed,
-  effect,
-  inject,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, Injector, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   AccountViewType,
@@ -57,7 +48,6 @@ export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
     FieldComponent,
     IconComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './account-form.html',
 })
 export class AccountFormComponent {

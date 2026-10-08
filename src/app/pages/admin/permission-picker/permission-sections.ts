@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
 import { I18nService } from '@core/i18n';
@@ -34,7 +24,6 @@ export const RESOURCE_FEATURE: Readonly<Record<string, string>> = {
 @Component({
   selector: 'app-permission-sections',
   imports: [HlmBadge, HlmSwitch, IconComponent, PermissionPickerComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-3' },
   template: `
     @for (group of visibleGroups(); track group.name) {

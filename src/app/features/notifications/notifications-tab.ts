@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { FinanceApiClient } from '@core/api';
@@ -22,7 +22,6 @@ type Filtro = 'all' | 'unread';
 @Component({
   selector: 'app-notifications-tab',
   imports: [HlmButton, HlmToggleGroupImports, IconComponent, EmptyStateComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './notifications-tab.html',
 })
 export class NotificationsTabComponent implements OnInit, OnDestroy {

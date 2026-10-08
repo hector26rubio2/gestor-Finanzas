@@ -1,4 +1,4 @@
-@if (showProduct) {
+@if (showProduct()) {
 <fin-field [label]="i18n.t('form.movement.field.loanProduct')">
   <fin-select
     name="loanProduct"
@@ -7,7 +7,7 @@
     [ariaLabel]="i18n.t('form.movement.field.loanProduct')"
   />
 </fin-field>
-} @if (showCardMode) {
+} @if (showCardMode()) {
 <fin-field [label]="i18n.t('form.movement.field.cardMode')">
   <fin-select
     name="cardMode"

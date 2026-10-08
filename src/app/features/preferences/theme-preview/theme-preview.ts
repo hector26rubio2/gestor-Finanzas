@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { I18nService } from '@core/i18n';
@@ -10,7 +10,6 @@ const BARRAS = [42, 68, 55, 80, 47, 90, 62];
 @Component({
   selector: 'fin-theme-preview',
   imports: [HlmButton, HlmBadge, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <div

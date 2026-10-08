@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 @Component({
   selector: 'fin-color-scale',
   host: { class: 'flex flex-1' },
   templateUrl: './color-scale.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ColorScaleComponent {
   readonly value = input('');

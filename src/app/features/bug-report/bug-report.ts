@@ -4,7 +4,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
@@ -70,7 +70,6 @@ function writeFab(position: FabPosition | null): void {
     IconComponent,
     OverlayComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(window:resize)': 'fab.set(clampFab(fab()))' },
   templateUrl: './bug-report.html',
 })

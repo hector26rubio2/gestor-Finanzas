@@ -1,15 +1,6 @@
 import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { NgTemplateOutlet } from '@angular/common';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  HostListener,
-  computed,
-  effect,
-  inject,
-  signal,
-} from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from '@core/session/permissions';
@@ -74,6 +65,10 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
 
 @Component({
   selector: 'app-root',
+  host: {
+    '(document:keydown)': 'atajoDeBusqueda($event)',
+    '(document:keydown.escape)': 'closeMobileMenu()',
+  },
   imports: [
     CommandPaletteComponent,
     NgTemplateOutlet,
@@ -109,7 +104,6 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
     HlmDropdownMenuLabel,
     HlmDropdownMenuTrigger,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
 })
 export class AppComponent {
@@ -211,14 +205,12 @@ export class AppComponent {
       .join('')
       .toUpperCase();
   }
-  @HostListener('document:keydown', ['$event'])
   atajoDeBusqueda(evento: KeyboardEvent): void {
     if ((evento.ctrlKey || evento.metaKey) && evento.key.toLowerCase() === 'k') {
       evento.preventDefault();
       this.paleta.alternar();
     }
   }
-  @HostListener('document:keydown.escape')
   closeMobileMenu(): void {
     this.sidebar.setOpenMobile(false);
   }

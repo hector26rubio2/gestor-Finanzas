@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, OnInit, booleanAttribute, inject, input } from '@angular/core';
+import { Directive, ElementRef, OnInit, booleanAttribute, inject, input } from '@angular/core';
 
 const TECLAS_DE_CONTROL = new Set([
   'Backspace',
@@ -16,6 +16,14 @@ const TECLAS_DE_CONTROL = new Set([
 
 @Directive({
   selector: 'input[type=number], input[finDigitos]',
+  host: {
+    '(keydown)': 'onKeydown($event)',
+    '(beforeinput)': 'onBeforeInput($event)',
+    '(paste)': 'onPaste($event)',
+    '(drop)': 'onDrop($event)',
+    '(wheel)': 'onWheel($event)',
+    '(blur)': 'onBlur()',
+  },
 })
 export class NumericInputDirective implements OnInit {
   private readonly input = inject<ElementRef<HTMLInputElement>>(ElementRef).nativeElement;
@@ -46,7 +54,6 @@ export class NumericInputDirective implements OnInit {
     return [...texto].every((caracter, i) => this.permitido(caracter, i));
   }
 
-  @HostListener('keydown', ['$event'])
   onKeydown(event: KeyboardEvent): void {
     if (event.ctrlKey || event.metaKey || event.altKey || TECLAS_DE_CONTROL.has(event.key)) return;
     if (event.key.length !== 1) return;
@@ -54,27 +61,22 @@ export class NumericInputDirective implements OnInit {
     if (!this.permitido(event.key, posicion)) event.preventDefault();
   }
 
-  @HostListener('beforeinput', ['$event'])
   onBeforeInput(event: InputEvent): void {
     if (event.data && !this.esNumero && !this.textoValido(event.data)) event.preventDefault();
   }
 
-  @HostListener('paste', ['$event'])
   onPaste(event: ClipboardEvent): void {
     if (!this.textoValido((event.clipboardData?.getData('text') ?? '').trim())) event.preventDefault();
   }
 
-  @HostListener('drop', ['$event'])
   onDrop(event: DragEvent): void {
     if (!this.textoValido((event.dataTransfer?.getData('text') ?? '').trim())) event.preventDefault();
   }
 
-  @HostListener('wheel', ['$event'])
   onWheel(event: WheelEvent): void {
     if (this.esNumero && document.activeElement === this.input) event.preventDefault();
   }
 
-  @HostListener('blur')
   onBlur(): void {
     const corregido = this.corregir(this.input.value);
     if (corregido === this.input.value) return;

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, input } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
@@ -11,15 +11,14 @@ import { NumericInputDirective } from '@ui/numeric-input';
 @Component({
   selector: 'fin-movement-financing-fields',
   imports: [NumericInputDirective, FormsModule, HlmInput, UiSelectComponent, FieldComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './financing-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
 })
 export class MovementFinancingFieldsComponent {
   @Input({ required: true }) model!: Record<string, any>;
-  @Input() showProduct = false;
-  @Input() showCardMode = false;
+  readonly showProduct = input(false);
+  readonly showCardMode = input(false);
 
   private readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);

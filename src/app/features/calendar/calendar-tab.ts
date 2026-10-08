@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
+import { Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -15,7 +15,6 @@ import { cardDues, creditCards } from '@features/accounts/card-insights';
 @Component({
   selector: 'app-calendar-tab',
   imports: [HlmButton, ConfirmDialogComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './calendar-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })

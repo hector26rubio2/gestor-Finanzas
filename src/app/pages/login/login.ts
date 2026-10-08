@@ -1,5 +1,5 @@
 import { Location } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -15,7 +15,6 @@ import { UiOption, UiSelectComponent } from '@ui/select';
 import { I18nService } from '@core/i18n';
 @Component({
   imports: [FormsModule, HlmButton, HlmInput, HlmLabel, IconComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './login.html',
 })
 export class LoginComponent {

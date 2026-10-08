@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { CommandPaletteService } from './command-palette.service';
 import { Router } from '@angular/router';
 import { HlmCommandImports } from '@spartan-ng/helm/command';
@@ -49,7 +49,6 @@ function escribiendo(destino: EventTarget | null): boolean {
 @Component({
   selector: 'fin-command-palette',
   imports: [HlmCommandImports, HlmKbdImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { '(document:keydown)': 'alPulsar($event)' },
   template: `
     <hlm-command-dialog
