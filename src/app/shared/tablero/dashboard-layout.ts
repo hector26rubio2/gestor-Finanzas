@@ -10,14 +10,14 @@ export interface FlowDefault {
   readonly height: number;
 }
 
-export const GRID_COLUMNS = 12;
-export const MIN_COLS = 2;
+const GRID_COLUMNS = 12;
+const MIN_COLS = 2;
 export const WIDGET_MIN_COLS = 3;
 export const KPI_MIN_COLS = 2;
 export const GRID_GAP = 20;
-export const ROW_UNIT = 10;
-export const MIN_ROW_HEIGHT = 100;
-export const MAX_ROW_HEIGHT = 1100;
+const ROW_UNIT = 10;
+const MIN_ROW_HEIGHT = 100;
+const MAX_ROW_HEIGHT = 1100;
 export const ROW_HEIGHT_STEP = 10;
 
 export function clampCols(cols: number, min = MIN_COLS): number {

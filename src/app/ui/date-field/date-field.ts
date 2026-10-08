@@ -8,13 +8,13 @@ import { CalendarLocale } from './calendar-locale';
 
 const NOON = 12;
 
-export function toIsoDate(date: Date): string {
+function toIsoDate(date: Date): string {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-export function fromIsoDate(value: string): Date | undefined {
+function fromIsoDate(value: string): Date | undefined {
   return value ? new Date(`${value}T${String(NOON).padStart(2, '0')}:00:00`) : undefined;
 }
 

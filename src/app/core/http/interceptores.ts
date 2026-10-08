@@ -13,7 +13,7 @@ import {
   esSobre,
 } from './cifrado';
 
-export const BANDERA_CIFRADO = 'security.payloadEncryption';
+const BANDERA_CIFRADO = 'security.payloadEncryption';
 
 const esConsultaPorPost = (url: string) => /\/search(\?|$)/.test(url);
 

@@ -2,7 +2,7 @@ import type { Movement } from './view-model';
 
 export type EfectoEconomico = NonNullable<Movement['effect']>;
 
-export function efectoDe(movimiento: Movement): EfectoEconomico {
+function efectoDe(movimiento: Movement): EfectoEconomico {
   if (movimiento.effect) return movimiento.effect;
   if (movimiento.movementSubtype || movimiento.kind === 'payment') return 'neutral';
   return movimiento.kind;

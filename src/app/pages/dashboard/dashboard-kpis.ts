@@ -23,7 +23,7 @@ import {
   tonoDeKpi,
 } from './kpis/kpi-formulas';
 
-export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [
+const FORMULAS_FILTRABLES: readonly KpiFormula[] = [
   'amount',
   'income',
   'expense',
@@ -35,7 +35,7 @@ export const FORMULAS_FILTRABLES: readonly KpiFormula[] = [
   'dailyIncome',
 ];
 
-export const DIMENSIONES_DE_FILTRO: readonly Dimension[] = [
+const DIMENSIONES_DE_FILTRO: readonly Dimension[] = [
   'category',
   'account',
   'kind',

@@ -1,6 +1,6 @@
 const pad = (value: number): string => String(value).padStart(2, '0');
 
-export function toIsoDate(date: Date): string {
+function toIsoDate(date: Date): string {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 

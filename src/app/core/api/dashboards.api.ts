@@ -21,7 +21,7 @@ export interface ApiDashboardMember {
   email: string;
 }
 
-export const PREFIJO_DE_VISTA = {
+const PREFIJO_DE_VISTA = {
   dashboard: '/api/v1/dashboards',
   'plan.deudas': '/api/v1/planning/plans/debts',
   'plan.compras': '/api/v1/planning/plans/purchases',
