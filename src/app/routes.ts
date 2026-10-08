@@ -4,6 +4,7 @@ import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/r
 import { filter, map, take } from 'rxjs';
 import { safeReturnPath } from '@core/session/return-url';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
+import { CLAVE_DE_PRECARGA } from '@core/routing/precarga';
 
 const guard: CanMatchFn = (route) => {
   const store = inject(AppStore);
@@ -86,9 +87,13 @@ export const routes: Routes = [
       canMatch: [guard],
       data: { capability: n.capability },
       loadComponent: () => import('@pages/workspace/workspace').then((m) => m.WorkspaceComponent),
-      children: [{ path: '', loadComponent: workspaceFeatureLoader[n.path] }],
+      children: [{ path: '', data: { [CLAVE_DE_PRECARGA]: n.path }, loadComponent: workspaceFeatureLoader[n.path] }],
     };
   }),
   { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
-  { path: '**', redirectTo: 'dashboard' },
+  {
+    path: '**',
+    title: 'notFound.title',
+    loadComponent: () => import('@pages/no-encontrada/no-encontrada').then((m) => m.NoEncontradaComponent),
+  },
 ];

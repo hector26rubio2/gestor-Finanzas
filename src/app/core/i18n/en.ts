@@ -460,6 +460,9 @@ export default {
   'sinSeccion.noSession.detail':
     'This screen explains why a session can end up without any sections. For that, you need to sign in.',
   'sinSeccion.noSession.goToLogin': 'Go to the sign-in screen',
+  'notFound.title': 'Page not found',
+  'notFound.detail': 'This address does not exist or has changed. Go back to the dashboard to continue.',
+  'notFound.goHome': 'Go to dashboard',
   'admin.title': 'Administration',
   'admin.subtitle': 'Govern access, rollouts and traceability from one place.',
   'admin.health.operational': 'Services operational',

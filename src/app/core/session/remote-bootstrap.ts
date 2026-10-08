@@ -13,6 +13,8 @@ import { P } from './permissions';
 import { I18nService } from '@core/i18n/i18n.service';
 import { SaldosService } from './saldos.service';
 
+const SONDEO_DE_SESION_MS = 5 * 60_000;
+
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
   private readonly api = inject(FinanceApiClient);
@@ -32,7 +34,7 @@ export class RemoteBootstrap {
     this.started = true;
     await this.initialize();
     if (this.destroyRef.destroyed) return;
-    const timer = window.setInterval(() => void this.pollSession(), 60_000);
+    const timer = window.setInterval(() => void this.pollSession(), SONDEO_DE_SESION_MS);
     const onFocus = () => void this.pollSession();
     window.addEventListener('focus', onFocus);
     this.destroyRef.onDestroy(() => {

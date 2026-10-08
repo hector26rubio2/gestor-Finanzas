@@ -1,3 +1,4 @@
+import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { NgTemplateOutlet } from '@angular/common';
 import {
   ChangeDetectionStrategy,
@@ -116,6 +117,7 @@ export class AppComponent {
   readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   readonly paleta = inject(CommandPaletteService);
+  readonly precarga = inject(PrecargaBajoDemanda);
   readonly P = P;
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
