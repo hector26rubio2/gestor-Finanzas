@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient, ApiWritesBus } from '@core/api';
 import type { Movement } from '@core/state';
 import { AppStore } from '@core/state';
+import { esEconomico, totalDeGastos, totalDeIngresos } from '@core/state/economia';
 import { parseMoney, sumBy } from '@core/utils';
 import { crearMovimientosDelPeriodo } from './movimientos-del-periodo';
 
@@ -50,22 +51,12 @@ export function variacion(serie: readonly number[]): number | null {
   return Math.abs(cambio) > VARIACION_MAXIMA_LEGIBLE ? null : cambio;
 }
 
-function esEconomico(m: Movement): boolean {
-  return !m.movementSubtype && m.kind !== 'payment';
-}
-
 function flujoLocal(rango: Rango, movs: readonly Movement[]): PuntoDeFlujo {
   const propios = movs.filter((m) => m.date >= rango.start && m.date <= rango.end);
   const economicos = propios.filter(esEconomico);
-  const income = sumBy(
-    economicos.filter((m) => m.kind === 'income'),
-    (m) => Math.max(0, m.amount),
-  );
-  const expense = sumBy(
-    economicos.filter((m) => m.kind === 'expense'),
-    (m) => -Math.min(0, m.amount),
-  );
-  return { rango, income, expense, net: sumBy(propios, (m) => m.amount), movs: propios };
+  const income = totalDeIngresos(economicos);
+  const expense = totalDeGastos(economicos);
+  return { rango, income, expense, net: income - expense, movs: propios };
 }
 
 export interface OpcionesDeFlujo {

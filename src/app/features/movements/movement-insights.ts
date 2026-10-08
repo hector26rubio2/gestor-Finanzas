@@ -1,4 +1,4 @@
-import { Movement } from '@core/state';
+import { Movement, esGasto } from '@core/state';
 
 export interface LongestInstallmentDebt {
   description: string;
@@ -11,7 +11,7 @@ export interface TopSpendingCategory {
   amount: number;
 }
 
-const isPlainExpense = (movement: Movement): boolean => movement.kind === 'expense' && !movement.movementSubtype;
+const isPlainExpense = esGasto;
 
 export function recurringExpenseCount(movements: readonly Movement[]): number {
   return movements.filter((movement) => isPlainExpense(movement) && movement.recurring).length;

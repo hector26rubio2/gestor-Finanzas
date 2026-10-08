@@ -34,10 +34,10 @@ export function comprasPendientes(
   prioridad: readonly CardBucket[] = PRIORIDAD_EN_PESOS,
 ): CompraPendiente[] {
   const cargos = movimientos
-    .filter((m) => m.kind === 'expense' && m.amount < 0)
+    .filter((m) => !m.anulado && m.kind === 'expense' && m.amount < 0)
     .sort((a, b) => a.date.localeCompare(b.date) || a.id.localeCompare(b.id));
   const pagos = sumBy(
-    movimientos.filter((m) => m.kind !== 'expense' && m.amount > 0),
+    movimientos.filter((m) => !m.anulado && m.kind !== 'expense' && m.amount > 0),
     (m) => m.amount,
   );
   const brutas = cargos.map((m) => {

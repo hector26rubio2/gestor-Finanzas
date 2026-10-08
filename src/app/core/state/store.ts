@@ -13,6 +13,7 @@ import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG } from '@core/utils/movement-kinds';
 import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { PREFERENCES } from './theme';
+import { totalDeGastos, totalDeIngresos } from './economia';
 
 export { applyTheme, PREFERENCES } from './theme';
 export type { Preferences } from './theme';
@@ -140,18 +141,8 @@ export class AppStore {
       )
       .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)),
   );
-  readonly income = computed(() =>
-    sumBy(
-      this.movements().filter((m) => m.kind === 'income' && !m.movementSubtype),
-      (m) => m.amount,
-    ),
-  );
-  readonly expense = computed(() =>
-    sumBy(
-      this.movements().filter((m) => m.kind === 'expense' && !m.movementSubtype),
-      (m) => -m.amount,
-    ),
-  );
+  readonly income = computed(() => totalDeIngresos(this.movements()));
+  readonly expense = computed(() => totalDeGastos(this.movements()));
   readonly unread = computed(() => this.data().notifications.filter((n) => !n.read).length);
   readonly history = signal<{ date: string; action: string }[]>([
     { date: todayIso(), action: 'Información financiera inicial cargada' },

@@ -3,7 +3,7 @@ import { UiOption } from '@ui/select';
 import { KpiFormula } from '@shared/tablero/dashboard.model';
 import { KpiDefinition } from '@shared/tablero/dashboard-layout.service';
 import type { Movement } from '@core/state';
-import { sumBy } from '@core/utils';
+import { esEconomico, esGasto, montoDeGasto, totalDeGastos, totalDeIngresos } from '@core/state/economia';
 import type { PuntoDeFlujo } from '@shared/historia';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
@@ -116,13 +116,10 @@ export function diasDelRango(rango: { start: string; end: string }): number {
 type Medir = (movs: readonly Movement[], medida: 'amount' | 'count' | 'average' | 'expense') => number;
 
 export function gastoFiltrado(movs: readonly Movement[], cumple: (m: Movement) => boolean): number {
-  return sumBy(
-    movs.filter((m) => m.amount < 0 && cumple(m)),
-    (m) => -m.amount,
-  );
+  return totalDeGastos(movs.filter(cumple));
 }
 
-const economicosDe = (movs: readonly Movement[]) => movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
+const economicosDe = (movs: readonly Movement[]) => movs.filter(esEconomico);
 
 export function valorDeKpiEnPunto(formula: KpiFormula, p: PuntoDeFlujo, medir: Medir): number | null {
   if (formula === 'amount') return p.net;
@@ -143,7 +140,7 @@ export function valorDeKpiEnPunto(formula: KpiFormula, p: PuntoDeFlujo, medir: M
   if (formula === 'expenseConcentration') {
     const porCategoria = new Map<string, number>();
     for (const m of economicos)
-      if (m.amount < 0) porCategoria.set(m.category, (porCategoria.get(m.category) ?? 0) - m.amount);
+      if (esGasto(m)) porCategoria.set(m.category, (porCategoria.get(m.category) ?? 0) + montoDeGasto(m));
     return (Math.max(0, ...porCategoria.values()) / gasto) * 100;
   }
   return null;
@@ -151,14 +148,8 @@ export function valorDeKpiEnPunto(formula: KpiFormula, p: PuntoDeFlujo, medir: M
 
 export function valorDeKpiSobre(formula: KpiFormula, movs: readonly Movement[], dias: number, medir: Medir): number {
   const economicos = economicosDe(movs);
-  const ingreso = sumBy(
-    economicos.filter((m) => m.kind === 'income'),
-    (m) => Math.max(0, m.amount),
-  );
-  const gasto = sumBy(
-    economicos.filter((m) => m.kind === 'expense'),
-    (m) => -Math.min(0, m.amount),
-  );
+  const ingreso = totalDeIngresos(economicos);
+  const gasto = totalDeGastos(economicos);
   if (formula === 'income') return ingreso;
   if (formula === 'expense') return gasto;
   if (formula === 'savingsRate') return ingreso > 0 ? ((ingreso - gasto) / ingreso) * 100 : 0;

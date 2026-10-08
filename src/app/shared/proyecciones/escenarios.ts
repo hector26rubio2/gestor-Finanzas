@@ -1,5 +1,13 @@
 import type { ApiObligation, ApiRecurrence } from '@core/api';
 import type { Account, Movement, Person } from '@core/state';
+import {
+  esEconomico,
+  esIngreso,
+  montoDeGasto,
+  montoDeIngreso,
+  totalDeGastos,
+  totalDeIngresos,
+} from '@core/state/economia';
 import { sumBy } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 import { type Deuda, type Flujo, type Palanca, cuotaFija, proyectar } from './amortizacion';
@@ -70,22 +78,12 @@ const mesAnterior = (mes: string, atras: number): string => {
 };
 
 function flujoDeMeses(movimientos: readonly Movement[], meses: readonly string[]): FlujoMensual {
-  const delPeriodo = movimientos.filter((m) => !m.movementSubtype && !m.loanRole && meses.includes(m.date.slice(0, 7)));
+  const delPeriodo = movimientos.filter((m) => esEconomico(m) && !m.loanRole && meses.includes(m.date.slice(0, 7)));
   const conDatos = new Set(delPeriodo.map((m) => m.date.slice(0, 7))).size;
   const divisor = Math.max(1, conDatos);
   return {
-    ingresoMensual: redondear(
-      sumBy(
-        delPeriodo.filter((m) => m.kind === 'income'),
-        (m) => m.amount,
-      ) / divisor,
-    ),
-    gastoMensual: redondear(
-      sumBy(
-        delPeriodo.filter((m) => m.kind === 'expense'),
-        (m) => Math.abs(m.amount),
-      ) / divisor,
-    ),
+    ingresoMensual: redondear(totalDeIngresos(delPeriodo) / divisor),
+    gastoMensual: redondear(totalDeGastos(delPeriodo) / divisor),
     mesesMedidos: conDatos,
   };
 }
@@ -104,17 +102,11 @@ export function lineasPorCategoria(movimientos: readonly Movement[], hoy: string
   const cerrados = Array.from({ length: meses }, (_, i) => mesAnterior(mesActual, i + 1));
   const conCerrados = movimientos.some((m) => cerrados.includes(m.date.slice(0, 7)));
   const ventana = conCerrados ? cerrados : [mesActual];
-  const delPeriodo = movimientos.filter(
-    (m) =>
-      !m.movementSubtype &&
-      !m.loanRole &&
-      (m.kind === 'income' || m.kind === 'expense') &&
-      ventana.includes(m.date.slice(0, 7)),
-  );
+  const delPeriodo = movimientos.filter((m) => esEconomico(m) && !m.loanRole && ventana.includes(m.date.slice(0, 7)));
   const divisor = Math.max(1, new Set(delPeriodo.map((m) => m.date.slice(0, 7))).size);
   const grupos = new Map<string, Movement[]>();
   for (const m of delPeriodo) {
-    const clave = `${m.kind}|${m.category || '—'}`;
+    const clave = `${esIngreso(m) ? 'income' : 'expense'}|${m.category || '—'}`;
     grupos.set(clave, [...(grupos.get(clave) ?? []), m]);
   }
   return [...grupos.entries()]
@@ -124,7 +116,7 @@ export function lineasPorCategoria(movimientos: readonly Movement[], hoy: string
         id: `categoria:${clave}`,
         nombre: categoria,
         tipo: kind === 'income' ? 'ingreso' : 'gasto',
-        monto: Math.round(sumBy(lista, (m) => Math.abs(m.amount)) / divisor),
+        monto: Math.round(sumBy(lista, (m) => montoDeIngreso(m) + montoDeGasto(m)) / divisor),
       };
     })
     .sort((a, b) => a.tipo.localeCompare(b.tipo) || b.monto - a.monto);

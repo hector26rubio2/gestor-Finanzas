@@ -1,4 +1,5 @@
 export * from './catalog-commands';
+export * from './economia';
 export * from './movement-commands';
 export * from './preferences-actions';
 export * from './store';
