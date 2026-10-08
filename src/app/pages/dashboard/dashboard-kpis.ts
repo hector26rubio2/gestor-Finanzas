@@ -322,7 +322,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
     this.newKpiDimension.set('none');
     this.newKpiFilterValue = '';
     this.kpiCreatorOpen.set(false);
-    this.store.log(this.i18n.t('dashboard.log.indicatorAdded', { label }));
+    this.store.toast.set(this.i18n.t('dashboard.log.indicatorAdded', { label }));
   }
   removeKpi(id: string) {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;

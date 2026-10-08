@@ -150,23 +150,38 @@
       hlmBtn
       variant="ghost"
       data-slot="agenda-item"
-      class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-primary border-dashed py-3 text-start text-[0.72rem] font-normal whitespace-normal text-foreground disabled:opacity-50 [&_b]:text-destructive"
+      class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-primary border-dashed py-3 text-start text-xs font-normal whitespace-normal text-foreground disabled:opacity-50 [&_b]:text-destructive"
       [disabled]="!can(P.calendario.proyecciones.crear)"
       (click)="materialize(item)"
     >
       <span>{{ i18n.t('calendar.agenda.projected', { name: item.recurrence.name }) }}</span
       ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
     </button>
-    } @for (m of store.data().movements.slice(0, 7); track m.id) {
+    } @for (vencimiento of vencimientos(); track vencimiento.account.id) {
     <button
       hlmBtn
       variant="ghost"
       data-slot="agenda-item"
-      class="h-auto w-full justify-between rounded-none border-b border-border py-3 text-start text-[0.72rem] font-normal whitespace-normal text-foreground [&_b]:text-destructive"
+      class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-warning py-3 text-start text-xs font-normal whitespace-normal text-foreground [&_b]:text-destructive"
+      (click)="store.inspect('account', vencimiento.account.id)"
+    >
+      <span
+        >{{ i18n.t('calendar.agenda.cardDue', { name: vencimiento.account.name, date: fechaCorta(vencimiento.date) })
+        }}</span
+      ><b>{{ store.money(-store.balance(vencimiento.account), vencimiento.account.currency) }}</b>
+    </button>
+    } @for (m of proximosMovimientos(); track m.id) {
+    <button
+      hlmBtn
+      variant="ghost"
+      data-slot="agenda-item"
+      class="h-auto w-full justify-between rounded-none border-b border-border py-3 text-start text-xs font-normal whitespace-normal text-foreground [&_b]:text-destructive"
       (click)="store.inspect('movement', m.id)"
     >
-      <span>{{ m.description }}</span><b>{{ store.money(m.amount) }}</b>
+      <span>{{ fechaCorta(m.date) }} · {{ m.description }}</span><b>{{ store.money(m.amount) }}</b>
     </button>
+    } @if (sinCompromisos()) {
+    <p class="text-sm text-muted-foreground">{{ i18n.t('calendar.agenda.empty') }}</p>
     }
   </aside>
 </section>

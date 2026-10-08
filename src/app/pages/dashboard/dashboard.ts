@@ -1,5 +1,6 @@
 import { DashboardPeriodo } from './periodo/dashboard-periodo';
 import { HlmButton } from '@spartan-ng/helm/button';
+import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { CdkDropList } from '@angular/cdk/drag-drop';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
@@ -42,6 +43,7 @@ const KPI_HEIGHT = 120;
   providers: [DashboardPeriodo],
   imports: [
     SelectorDeTablerosComponent,
+    HlmAlertImports,
     HlmButton,
     HlmInput,
     FormsModule,
@@ -104,6 +106,7 @@ export class DashboardComponent extends DashboardKpis {
     return { id: widget.id, cols: full ? 12 : 6, height: heights[widget.type] ?? 360 };
   }
 
+  readonly soloLectura = computed(() => !!this.store.user() && !this.caps.allows(P.movimientos.crear));
   readonly puedePersonalizar = computed(
     () =>
       !this.layout.soloLectura() &&
@@ -290,7 +293,7 @@ export class DashboardComponent extends DashboardKpis {
   agregarWidget(widget: Widget): void {
     this.edicion.agregar(widget);
     this.widgetCreatorOpen.set(false);
-    this.store.log(this.i18n.t('dashboard.log.widgetAdded', { title: widget.title }));
+    this.store.toast.set(this.i18n.t('dashboard.log.widgetAdded', { title: widget.title }));
   }
   tableRows(widget: Widget): Record<string, string>[] {
     return this.aggregate(widget).map((a) => ({ label: a.label, value: this.formatMeasure(a.value, widget) }));

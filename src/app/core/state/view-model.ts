@@ -34,6 +34,7 @@ export interface Account {
   openingBalance: number;
   limit?: number;
   lastFour?: string;
+  isDefault?: boolean;
   color?: string;
   institution?: string;
   cutDay?: number;

@@ -19,13 +19,6 @@ export { applyTheme, PREFERENCES } from './theme';
 export type { Preferences } from './theme';
 export { navigation } from './navigation';
 
-export interface DataProvider {
-  load(): ViewData;
-}
-export const DATA_PROVIDER = new InjectionToken<DataProvider>('DataProvider', {
-  providedIn: 'root',
-  factory: () => ({ load: createEmptyData }),
-});
 export interface CapabilitiesProvider {
   allows(capability: string): boolean;
 }
@@ -80,10 +73,9 @@ export interface CondicionesDeTarjeta {
 @Injectable({ providedIn: 'root' })
 export class AppStore {
   readonly runtime = inject(RUNTIME_CONFIG);
-  private provider = inject(DATA_PROVIDER);
   private injector = inject(Injector);
   private readonly i18n = inject(I18nService);
-  readonly data = signal(this.provider.load());
+  readonly data = signal<ViewData>(createEmptyData());
   readonly user = signal<SessionUser | null>(null);
   readonly remoteState = signal<'loading' | 'ready' | 'anonymous' | 'error'>('loading');
   readonly remoteError = signal('');
@@ -144,9 +136,6 @@ export class AppStore {
   readonly income = computed(() => totalDeIngresos(this.movements()));
   readonly expense = computed(() => totalDeGastos(this.movements()));
   readonly unread = computed(() => this.data().notifications.filter((n) => !n.read).length);
-  readonly history = signal<{ date: string; action: string }[]>([
-    { date: todayIso(), action: 'Información financiera inicial cargada' },
-  ]);
   readonly debt = computed(() =>
     sumBy(
       this.data().accounts.filter((a) => a.type === 'credit'),
@@ -202,16 +191,5 @@ export class AppStore {
   inspect(type: string, id: string) {
     const old = this.inspector();
     this.inspector.set({ type, id, previous: old ? { type: old.type, id: old.id } : undefined });
-  }
-  reset() {
-    this.data.set(this.provider.load());
-    this.query.set('');
-    this.period.set('all');
-    this.accountFilter.set('all');
-    this.toast.set('Información inicial restaurada.');
-  }
-  log(action: string, notify = true) {
-    this.history.update((h) => [{ date: new Date().toISOString().slice(0, 10), action }, ...h]);
-    if (notify) this.toast.set(action);
   }
 }

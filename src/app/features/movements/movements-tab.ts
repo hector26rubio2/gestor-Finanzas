@@ -203,6 +203,6 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
         })),
       ),
     );
-    this.store.toast.set(`${filas.length} movimientos exportados.`);
+    this.store.toast.set(this.i18n.t('movements.exportToast', { count: filas.length }));
   }
 }

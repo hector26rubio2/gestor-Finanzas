@@ -5,6 +5,8 @@ import {
   clearAppearanceOverrides,
   paletteOverrides,
   parsePalette,
+  variablesDePaleta,
+  contraste,
 } from './theme';
 
 const root = document.documentElement;
@@ -90,5 +92,12 @@ describe('restaurar la apariencia guardada', () => {
     const base = { ...DEFAULT_PALETTE, name: DEFAULT_PALETTE.name };
     expect(paletteOverrides(base)).toEqual({});
     expect(paletteOverrides({ ...base, surface: '#101010', radius: 8 })).toEqual({ surface: '#101010', radius: 8 });
+  });
+
+  it('elige color de texto con contraste WCAG para acentos personalizados', () => {
+    for (const accent of ['#8b95fa', '#4f46e5', '#f5c842', '#17804a']) {
+      const variables = variablesDePaleta({ accent, primary: accent, custom: true });
+      expect(contraste(variables['--accent-contrast'], accent)).toBeGreaterThanOrEqual(4.5);
+    }
   });
 });

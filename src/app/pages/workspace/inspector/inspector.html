@@ -132,16 +132,7 @@
       <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('workspace.person.settlements.empty') }}</p>
       }
     </section>
-    } } @if (can(P.cuentas.historial.ver)) {
-    <h3>{{ i18n.t('workspace.history.title') }}</h3>
-    <ol>
-      @for (h of store.history(); track $index) {
-      <li class="flex justify-between border-s-2 border-primary pb-[15px] ps-3.5 pt-1">
-        <b>{{ h.action }}</b><span class="text-[0.72rem] text-muted-foreground">{{ h.date }}</span>
-      </li>
-      }
-    </ol>
-    }
+    } }
     <footer class="mt-[22px] flex gap-[9px]">
       @if (store.inspector()?.type === 'movement') { @if (can(P.movimientos.editar)) {
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">

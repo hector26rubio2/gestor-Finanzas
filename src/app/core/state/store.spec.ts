@@ -184,8 +184,7 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     expect(store.money(1234)).not.toContain(',');
   });
 
-  it('el calendario y el historial arrancan en hoy, no en una fecha escrita en el código', () => {
+  it('el calendario arranca en hoy, no en una fecha escrita en el código', () => {
     expect(store.selectedCalendarDate()).toBe(todayIso());
-    expect(store.history()[0].date).toBe(todayIso());
   });
 });

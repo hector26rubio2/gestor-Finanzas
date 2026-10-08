@@ -78,7 +78,6 @@ export class MovementCommands {
         ),
       }));
       this.store.form.set(null);
-      this.store.log('Movimiento reclasificado en la API', false);
       return;
     }
     const account = this.store.account(input.accountId);
@@ -134,14 +133,6 @@ export class MovementCommands {
       });
       this.store.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
       this.store.form.set(null);
-      this.store.log(
-        input.kind === 'payment'
-          ? 'Abono registrado en la API'
-          : input.kind === 'advance'
-            ? 'Avance registrado en la API'
-            : 'Transferencia registrada en la API',
-        false,
-      );
       return;
     }
     const isIncome = input.kind === 'income';
@@ -193,7 +184,6 @@ export class MovementCommands {
     };
     this.store.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
     this.store.form.set(null);
-    this.store.log('Movimiento registrado en la API', false);
   }
 
   private async saveLoan(
@@ -258,6 +248,5 @@ export class MovementCommands {
     this.store.data.update((data) => ({ ...data, movements: [...movimientos, ...data.movements] }));
 
     this.store.form.set(null);
-    this.store.log(esCredito ? 'Crédito registrado' : 'Préstamo registrado', false);
   }
 }
