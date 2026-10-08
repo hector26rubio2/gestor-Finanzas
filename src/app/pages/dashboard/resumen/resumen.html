@@ -1,0 +1,185 @@
+@if (algunKpi()) { @if (datos().cargandoPeriodo() && !datos().movements().length) {
+<fin-skeleton tipo="kpi" />
+} @else {
+<fin-kpi-grid [compact]="false">
+  @if (verKpis().ingresos) {
+  <fin-kpi
+    icon="trendUp"
+    tone="success"
+    [label]="i18n.t('summary.kpi.income')"
+    [value]="dinero(datos().income())"
+    [delta]="cambioDeIngresos()"
+    [comparacion]="i18n.t('summary.kpi.vsPrevious')"
+  />
+  } @if (verKpis().gastos) {
+  <fin-kpi
+    icon="trendDown"
+    tone="danger"
+    [label]="i18n.t('summary.kpi.expense')"
+    [value]="dinero(datos().expense())"
+    [delta]="cambioDeGastos()"
+    [subirEsBueno]="false"
+    [comparacion]="i18n.t('summary.kpi.vsPrevious')"
+  />
+  } @if (verKpis().balance) {
+  <fin-kpi
+    icon="wallet"
+    [label]="i18n.t('summary.kpi.net')"
+    [value]="dinero(datos().net())"
+    [delta]="cambioDelNeto()"
+    [comparacion]="i18n.t('summary.kpi.vsPrevious')"
+  />
+  <fin-kpi
+    icon="percent"
+    [label]="i18n.t('summary.kpi.savings')"
+    [value]="tasaDeAhorro() === null ? '—' : tasaDeAhorro() + ' %'"
+    [delta]="cambioDeLaTasa()"
+    [comparacion]="i18n.t('summary.kpi.vsPrevious')"
+  />
+  }
+</fin-kpi-grid>
+} }
+<div class="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  @if (verFlujo()) {
+  <fin-chart-card
+    [title]="tituloDelFlujo()"
+    [description]="i18n.t('summary.flow.description')"
+    [option]="graficaDelFlujo()"
+    [hasData]="tramos().length > 0"
+    [empty]="i18n.t('summary.flow.empty')"
+    [height]="300"
+  />
+  } @if (verCategorias()) {
+  <section hlmCard class="min-w-0 gap-3 p-4" data-slot="categorias">
+    <h2 class="text-sm font-semibold">{{ i18n.t('summary.categories.title') }}</h2>
+    <div class="flex max-h-[300px] min-h-40 flex-1">
+      <fin-category-list
+        [items]="datos().categoryDistribution()"
+        [selected]="datos().globalCategory()"
+        [emptyText]="i18n.t('dashboard.widget.categories.empty')"
+        [ariaLabel]="i18n.t('dashboard.category.list.ariaLabel')"
+        (pick)="datos().alternarCategoria($event)"
+      />
+    </div>
+  </section>
+  }
+</div>
+<div class="grid min-w-0 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+  @if (verPresupuestos()) {
+  <section hlmCard class="min-w-0 gap-3 p-4" data-slot="presupuestos">
+    <header class="flex flex-wrap items-baseline justify-between gap-2">
+      <div>
+        <h2 class="text-sm font-semibold">{{ i18n.t('summary.budgets.title') }}</h2>
+        <p class="text-xs text-muted-foreground">{{ etiquetaDelMes() }}</p>
+      </div>
+      @if (puedeEditarPresupuestos()) {
+      <a hlmBtn variant="ghost" size="sm" routerLink="/settings" [queryParams]="{ section: 'budgets' }">
+        {{ i18n.t('summary.budgets.manage') }}<fin-icon name="next" />
+      </a>
+      }
+    </header>
+    @switch (presupuestos.estado()) { @case ('error') {
+    <p class="text-sm text-destructive" role="alert">{{ i18n.t('summary.budgets.error') }}</p>
+    } @case ('listo') { @if (presupuestosVisibles().length) {
+    <ul class="grid gap-3">
+      @for (fila of presupuestosVisibles(); track fila.categoria.id) { @if (fila.estado; as estado) {
+      <li class="grid gap-1.5">
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 text-xs">
+          <span class="min-w-0 truncate text-sm font-medium">{{ fila.categoria.name }}</span>
+          <span class="tabular-nums text-muted-foreground"
+            ><b class="text-foreground">{{ dinero(fila.gastado) }}</b> / {{ dinero(fila.limite ?? 0) }}</span
+          >
+        </div>
+        <fin-barra-de-avance
+          [porcentaje]="estado.porcentaje"
+          [nivel]="estado.nivel"
+          [etiqueta]="i18n.t('budgets.progress.aria', { name: fila.categoria.name, percent: estado.porcentaje })"
+        />
+        <p
+          class="text-xs"
+          [class.text-destructive]="estado.nivel === 'excedido'"
+          [class.text-warning]="estado.nivel === 'alerta'"
+          [class.text-muted-foreground]="estado.nivel === 'ok'"
+        >
+          {{ i18n.t('budgets.percentUsed', { percent: estado.porcentaje }) }} · {{ estado.diferencia >= 0 ?
+          i18n.t('budgets.remaining', { amount: dinero(estado.diferencia) }) : i18n.t('budgets.over', { amount:
+          dinero(-estado.diferencia) }) }}
+        </p>
+      </li>
+      } }
+    </ul>
+    @if (presupuestosOcultos() > 0) {
+    <p class="text-xs text-muted-foreground">{{ i18n.t('summary.budgets.more', { count: presupuestosOcultos() }) }}</p>
+    } } @else {
+    <fin-empty
+      icon="percent"
+      [title]="i18n.t('summary.budgets.title')"
+      [detail]="i18n.t(puedeEditarPresupuestos() ? 'summary.budgets.empty' : 'summary.budgets.emptyReadOnly')"
+    >
+      @if (puedeEditarPresupuestos()) {
+      <a hlmBtn variant="outline" size="sm" routerLink="/settings" [queryParams]="{ section: 'budgets' }">
+        {{ i18n.t('summary.budgets.manage') }}
+      </a>
+      }
+    </fin-empty>
+    } } @default {
+    <fin-skeleton tipo="lista" />
+    } }
+  </section>
+  }
+  <div class="grid min-w-0 content-start gap-4">
+    @if (variaciones().length) {
+    <section hlmCard class="min-w-0 gap-3 p-4" data-slot="variacion">
+      <h2 class="text-sm font-semibold">{{ i18n.t('summary.variation.title') }}</h2>
+      <table class="w-full text-xs">
+        <thead>
+          <tr class="text-muted-foreground">
+            <th scope="col" class="py-1 text-left font-medium">
+              <span class="sr-only">{{ i18n.t('summary.variation.title') }}</span>
+            </th>
+            <th scope="col" class="py-1 text-right font-medium">{{ i18n.t('summary.variation.previous') }}</th>
+            <th scope="col" class="py-1 text-right font-medium">{{ i18n.t('summary.variation.lastYear') }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of variaciones(); track fila.clave) {
+          <tr class="border-t border-border">
+            <th scope="row" class="py-2 text-left text-sm font-medium">{{ fila.etiqueta }}</th>
+            <td
+              class="py-2 text-right text-sm font-semibold tabular-nums"
+              [class]="claseDeVariacion(fila.contraPeriodo, fila.subirEsBueno)"
+            >
+              {{ porcentajeConSigno(fila.contraPeriodo) }}
+            </td>
+            <td
+              class="py-2 text-right text-sm font-semibold tabular-nums"
+              [class]="claseDeVariacion(fila.contraAnio, fila.subirEsBueno)"
+            >
+              {{ porcentajeConSigno(fila.contraAnio) }}
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+    } @if (verMovimientos()) {
+    <section hlmCard class="min-w-0 gap-2 p-4" data-slot="gasto-inusual">
+      <h2 class="text-sm font-semibold">{{ i18n.t('summary.unusual.title') }}</h2>
+      @if (inusual(); as caso) {
+      <div class="flex items-start gap-3">
+        <span class="grid size-8 flex-none place-items-center rounded-lg bg-warning/15 text-warning" aria-hidden="true">
+          <fin-icon name="trendUp" />
+        </span>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-medium">{{ caso.movimiento.description }}</p>
+          <p class="text-sm font-semibold tabular-nums">{{ dinero(caso.monto) }}</p>
+          <p class="text-xs text-muted-foreground">{{ i18n.t('summary.unusual.detail', { times: caso.veces }) }}</p>
+        </div>
+      </div>
+      } @else {
+      <p class="text-xs text-muted-foreground">{{ i18n.t('summary.unusual.none') }}</p>
+      }
+    </section>
+    }
+  </div>
+</div>

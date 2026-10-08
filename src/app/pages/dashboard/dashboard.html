@@ -6,8 +6,23 @@
       </h1>
       <p class="text-muted-foreground">{{ i18n.t('dashboard.subtitle') }}</p>
       <fin-selector-de-tableros class="mt-3" />
+      @if (!nadaQueMostrar()) {
+      <div class="mt-3 flex gap-2" role="group" [attr.aria-label]="i18n.t('dashboard.view.ariaLabel')">
+        @for (opcion of opcionesDeVista(); track opcion.value) {
+        <button
+          hlmBtn
+          type="button"
+          [variant]="vista() === opcion.value ? 'default' : 'outline'"
+          [attr.aria-pressed]="vista() === opcion.value"
+          (click)="cambiarVista(opcion.value)"
+        >
+          {{ opcion.label }}
+        </button>
+        }
+      </div>
+      }
     </div>
-    @if (puedePersonalizar()) {
+    @if (puedePersonalizar() && !enResumen()) {
     <button
       hlmBtn
       variant="outline"
@@ -71,7 +86,9 @@
     (accountTypeChange)="datos.changeAccountType($event)"
     (globalCategoryChange)="globalCategory.set($event)"
   />
-  } @if (algunKpi()) {
+  } @if (enResumen() && !nadaQueMostrar()) {
+  <fin-resumen [datos]="datos" />
+  } @else { @if (algunKpi()) {
   <fin-kpi-strip
     [fixedKpis]="fixedKpiItems()"
     [customKpis]="kpisPropios()"
@@ -397,7 +414,7 @@
     <span class="text-xs text-muted-foreground">{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
     } }
   </aside>
-  } @if (widgetCreatorOpen()) {
+  } } @if (widgetCreatorOpen()) {
   <fin-creador-de-widget
     [otherTypeOptions]="otherWidgetTypeOptions()"
     [dimensionOptions]="dimensionOptions()"

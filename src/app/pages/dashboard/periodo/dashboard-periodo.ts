@@ -137,6 +137,12 @@ export class DashboardPeriodo {
     ),
   );
 
+  readonly rangoDelAnioAnterior = computed(() => {
+    const ancla = new Date(`${this.anchor()}T12:00:00`);
+    ancla.setFullYear(ancla.getFullYear() - 1);
+    return rangoDe(isoDe(ancla), this.scale());
+  });
+
   readonly historiaEtiqueta = computed(() =>
     this.i18n.t(`kpi.history.${this.scale()}`, { count: PERIODOS_DE_HISTORIA }),
   );
