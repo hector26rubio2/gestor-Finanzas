@@ -1533,6 +1533,8 @@ export default {
   'command.footer.navigate': '↑↓ moverse',
   'command.footer.choose': 'Enter elegir',
   'command.footer.close': 'Esc cerrar',
+  'command.shortcut': 'Atajo: {keys}',
+  'command.footer.shortcuts': 'G ir a · N nuevo · / buscar',
   'admin.audit.trace.summary': 'Esta acción dejó {events} registros de auditoría y {errors} errores.',
   'admin.errors.drawer.viewAction': 'Ver todo lo que pasó en esta acción',
   'charts.type.bar': 'Barras verticales',

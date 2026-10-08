@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, u
 import { CommandPaletteService } from './command-palette.service';
 import { Router } from '@angular/router';
 import { HlmCommandImports } from '@spartan-ng/helm/command';
+import { HlmKbdImports } from '@spartan-ng/helm/kbd';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
 import { navigation } from '@core/state/navigation';
@@ -19,10 +20,37 @@ import {
 
 const MAX_MOVIMIENTOS = 8;
 
+const ATAJOS_DE_SECCION: Readonly<Record<string, string>> = {
+  dashboard: 'g d',
+  movements: 'g m',
+  calendar: 'g c',
+  accounts: 'g a',
+  people: 'g p',
+  portfolio: 'g i',
+  planning: 'g l',
+  reports: 'g r',
+  notifications: 'g n',
+  admin: 'g x',
+  settings: 'g s',
+};
+
+const PREFIJOS = new Set(['g', 'n']);
+const ESPERA_DEL_PREFIJO_MS = 1500;
+
+function escribiendo(destino: EventTarget | null): boolean {
+  if (!(destino instanceof HTMLElement)) return false;
+  return (
+    destino.isContentEditable ||
+    ['INPUT', 'TEXTAREA', 'SELECT'].includes(destino.tagName) ||
+    !!destino.closest('[role=dialog], [role=combobox], [role=listbox], [role=menu]')
+  );
+}
+
 @Component({
   selector: 'fin-command-palette',
-  imports: [HlmCommandImports, IconComponent],
+  imports: [HlmCommandImports, HlmKbdImports, IconComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { '(document:keydown)': 'alPulsar($event)' },
   template: `
     <hlm-command-dialog
       [state]="abierto() ? 'open' : 'closed'"
@@ -49,6 +77,17 @@ const MAX_MOVIMIENTOS = 8;
                       @if (item.hint) {
                         <span class="ms-auto truncate text-xs text-muted-foreground">{{ item.hint }}</span>
                       }
+                      @if (item.atajo) {
+                        <span
+                          class="flex flex-none gap-1"
+                          [class.ms-auto]="!item.hint"
+                          [attr.aria-label]="i18n.t('command.shortcut', { keys: item.atajo })"
+                        >
+                          @for (tecla of item.atajo.split(' '); track $index) {
+                            <kbd hlmKbd class="uppercase">{{ tecla }}</kbd>
+                          }
+                        </span>
+                      }
                     </button>
                   }
                 </hlm-command-group>
@@ -61,6 +100,7 @@ const MAX_MOVIMIENTOS = 8;
             <span>{{ i18n.t('command.footer.navigate') }}</span>
             <span>{{ i18n.t('command.footer.choose') }}</span>
             <span>{{ i18n.t('command.footer.close') }}</span>
+            <span class="ms-auto">{{ i18n.t('command.footer.shortcuts') }}</span>
           </footer>
         </hlm-command>
       }
@@ -138,6 +178,7 @@ export class CommandPaletteComponent {
         id: `nav-${item.path}`,
         label: this.i18n.t('nav.' + item.path),
         palabras: item.path,
+        atajo: ATAJOS_DE_SECCION[item.path],
         icon: item.icon as IconName,
         run: () => this.ir(item.path),
       })),
@@ -263,6 +304,45 @@ export class CommandPaletteComponent {
       { id: 'movimientos', label: this.i18n.t('command.group.movements'), items: this.movimientos() },
     ];
   });
+
+  private readonly porAtajo = computed(() => {
+    const contexto = this.contexto();
+    const mapa = new Map<string, Comando>();
+    for (const comando of [...comandosDeMovimiento(contexto), ...comandosDeRegistro(contexto), ...this.secciones()])
+      if (comando.atajo) mapa.set(comando.atajo, comando);
+    return mapa;
+  });
+
+  private prefijo: string | null = null;
+  private relojDelPrefijo: ReturnType<typeof setTimeout> | undefined;
+
+  private soltarPrefijo(): void {
+    this.prefijo = null;
+    clearTimeout(this.relojDelPrefijo);
+  }
+
+  alPulsar(evento: KeyboardEvent): void {
+    if (evento.defaultPrevented || evento.ctrlKey || evento.metaKey || evento.altKey) return;
+    if (this.abierto() || this.store.form() || escribiendo(evento.target)) return this.soltarPrefijo();
+    const tecla = evento.key.toLowerCase();
+    if (this.prefijo) {
+      const comando = this.porAtajo().get(`${this.prefijo} ${tecla}`);
+      this.soltarPrefijo();
+      if (!comando) return;
+      evento.preventDefault();
+      comando.run();
+      return;
+    }
+    if (PREFIJOS.has(tecla)) {
+      this.prefijo = tecla;
+      this.relojDelPrefijo = setTimeout(() => this.soltarPrefijo(), ESPERA_DEL_PREFIJO_MS);
+      return;
+    }
+    if (evento.key === '/' || evento.key === '?') {
+      evento.preventDefault();
+      this.servicio.abrir();
+    }
+  }
 
   elegirPrimero(): void {
     if (document.querySelector('[data-slot=command-item][data-selected]')) return;

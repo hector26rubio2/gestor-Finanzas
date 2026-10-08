@@ -1526,6 +1526,8 @@ export default {
   'command.footer.navigate': '↑↓ mover',
   'command.footer.choose': 'Enter escolher',
   'command.footer.close': 'Esc fechar',
+  'command.shortcut': 'Atalho: {keys}',
+  'command.footer.shortcuts': 'G ir para · N novo · / buscar',
   'admin.audit.trace.summary': 'Esta ação deixou {events} registros de auditoria e {errors} erros.',
   'admin.errors.drawer.viewAction': 'Ver tudo o que aconteceu nesta ação',
   'charts.type.bar': 'Barras verticais',
