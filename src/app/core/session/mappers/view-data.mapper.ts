@@ -31,7 +31,7 @@ export function toViewData(i18n: I18nService, catalog: MovementKindCatalog, sour
     movements: sources.movements.map((movement) => toMovement(i18n, catalog, movement)),
     people: toViewPeople(sources.people, sources.debts),
     investments: sources.investments.map(toViewInvestment),
-    notifications: sources.notifications.map(toViewNotification),
+    notifications: sources.notifications.map((notification) => toViewNotification(i18n, notification)),
     auditEvents: [],
     featureFlags: {},
   };

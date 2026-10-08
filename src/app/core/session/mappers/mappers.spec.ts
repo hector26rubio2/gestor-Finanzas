@@ -1,6 +1,6 @@
 import { ApiNotification } from '@core/api/api-client';
 import { tasaAnual } from './accounts.mapper';
-import { notificationDetail } from './notifications.mapper';
+import { notificationDetail, notificationTitle, toViewNotification } from './notifications.mapper';
 import { cuotaEnCurso, toMovement } from './movements.mapper';
 import type { ApiMovement } from '@core/api/ledger.api';
 import { CARD_BUCKET } from '@core/api/card-buckets';
@@ -12,6 +12,21 @@ function notificacion(payloadJson: string): ApiNotification {
   return { id: 'n1', kind: 'aviso', title: 'Aviso', payloadJson, readAt: null, createdAt: '2026-01-01' };
 }
 
+const notificationsI18n = {
+  t: (key: string, params?: Record<string, string | number>) => {
+    const messages: Record<string, string> = {
+      'notifications.kind.organization.updated.title': 'Organization updated',
+      'notifications.kind.organization.updated.detail': 'Added to {organization}',
+      'notifications.kind.roles.updated.title': 'Roles updated',
+      'notifications.kind.roles.updated.detail': 'Roles: {roles}',
+      'notifications.kind.roles.updated.removed': 'Roles removed',
+    };
+    return (messages[key] ?? key).replace(/\{(\w+)\}/g, (_match, name: string) =>
+      String(params?.[name] ?? `{${name}}`),
+    );
+  },
+} as unknown as I18nService;
+
 describe('mappers por dominio', () => {
   it('tasaAnual distingue tasa ausente de tasa cero', () => {
     expect(tasaAnual(null)).toBeUndefined();
@@ -21,9 +36,20 @@ describe('mappers por dominio', () => {
   });
 
   it('notificationDetail usa detail, luego description y cae al tipo', () => {
-    expect(notificationDetail(notificacion('{"detail":"Pago recibido"}'))).toBe('Pago recibido');
-    expect(notificationDetail(notificacion('{"description":"Corte"}'))).toBe('Corte');
-    expect(notificationDetail(notificacion('no es json'))).toBe('aviso');
+    expect(notificationDetail(notificationsI18n, notificacion('{"detail":"Pago recibido"}'))).toBe('Pago recibido');
+    expect(notificationDetail(notificationsI18n, notificacion('{"description":"Corte"}'))).toBe('Corte');
+    expect(notificationDetail(notificationsI18n, notificacion('no es json'))).toBe('aviso');
+  });
+
+  it('localiza tipos estables y conserva nombres recibidos como parámetros', () => {
+    const organization = withKind(notificacion('{"organizationName":"Ahorro"}'), 'organization.updated');
+    const roles = withKind(notificacion('{"roleNames":["Ahorro","Lectura"],"removed":false}'), 'roles.updated');
+    const removed = withKind(notificacion('{"roleNames":[],"removed":true}'), 'roles.updated');
+
+    expect(notificationTitle(notificationsI18n, organization)).toBe('Organization updated');
+    expect(notificationDetail(notificationsI18n, organization)).toBe('Added to Ahorro');
+    expect(toViewNotification(notificationsI18n, roles).detail).toBe('Roles: Ahorro, Lectura');
+    expect(notificationDetail(notificationsI18n, removed)).toBe('Roles removed');
   });
 
   it('cuotaEnCurso avanza por mes y no pasa del total', () => {
@@ -32,6 +58,10 @@ describe('mappers por dominio', () => {
     expect(cuotaEnCurso('2025-01-15', 6, '2026-03-01')).toBe(6);
   });
 });
+
+function withKind(notification: ApiNotification, kind: string): ApiNotification {
+  return { ...notification, kind };
+}
 
 describe('concepto de los cargos de tarjeta', () => {
   const cargo = (kind: number, cardBucket?: number): ApiMovement => ({
