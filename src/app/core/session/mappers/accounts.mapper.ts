@@ -13,6 +13,7 @@ export function toViewAccount(account: ApiAccount): Account {
     lastFour: account.lastFour ?? undefined,
     institution: account.institution ?? undefined,
     issuerId: account.issuerEntity?.id,
+    ...(account.isDefault ? { isDefault: true } : {}),
   };
 }
 

@@ -193,7 +193,8 @@ export function variablesDePaleta(palette: StoredPalette): Record<string, string
   const acento = variables['--accent'];
   if (acento) {
     variables['--accent-soft'] = `color-mix(in srgb, ${acento} 16%, var(--surface))`;
-    variables['--accent-contrast'] = luminancia(acento) > 0.45 ? '#111418' : '#ffffff';
+    variables['--accent-contrast'] =
+      contraste('#111418', acento) > contraste('#ffffff', acento) ? '#111418' : '#ffffff';
   }
   if (variables['--secondary']) variables['--panel'] = variables['--secondary'];
   if (variables['--text']) variables['--muted'] = `color-mix(in srgb, ${variables['--text']} 64%, var(--surface))`;

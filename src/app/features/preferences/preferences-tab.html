@@ -233,9 +233,6 @@
         <p class="text-[0.8rem] text-muted-foreground">{{ i18n.t('preferences.localData.description') }}</p>
       </header>
       <div class="flex flex-wrap gap-2.5">
-        <button hlmBtn variant="outline" [disabled]="!can(P.preferencias.datos.eliminar)" (click)="store.reset()">
-          <fin-icon name="undo" /> {{ i18n.t('preferences.localData.resetButton') }}
-        </button>
         <button hlmBtn variant="outline" (click)="logout()">{{ i18n.t('preferences.logoutButton') }}</button>
       </div>
     </article>

@@ -20,7 +20,13 @@
     </button>
     }
   </header>
-  @if (nadaQueMostrar()) {
+  @if (soloLectura()) {
+  <div hlmAlert data-slot="solo-lectura" role="status">
+    <fin-icon name="shield" />
+    <h2 hlmAlertTitle>{{ i18n.t('dashboard.readOnly.title') }}</h2>
+    <p hlmAlertDescription>{{ i18n.t('dashboard.readOnly.detail') }}</p>
+  </div>
+  } @if (nadaQueMostrar()) {
   <section
     data-slot="sin-acceso"
     class="grid justify-items-start gap-2 rounded-lg border border-border bg-card p-7"

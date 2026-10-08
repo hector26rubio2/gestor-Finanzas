@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
 
 type Pagina = number | 'hueco';
@@ -15,7 +16,7 @@ export function paginasVisibles(actual: number, total: number): Pagina[] {
 
 @Component({
   selector: 'fin-pager',
-  imports: [HlmPaginationImports],
+  imports: [HlmPaginationImports, HlmButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground' },
   template: `
@@ -24,33 +25,48 @@ export function paginasVisibles(actual: number, total: number): Pagina[] {
       <nav hlmPagination class="mx-0 w-auto" [attr.aria-label]="i18n.t('pager.ariaLabel')">
         <ul hlmPaginationContent>
           <li hlmPaginationItem>
-            <hlm-pagination-previous
-              [text]="i18n.t('admin.roles.pager.previous')"
-              [aria-label]="i18n.t('admin.roles.pager.previous')"
-              [attr.aria-disabled]="page() <= 1"
-              [class.pointer-events-none]="page() <= 1"
-              [class.opacity-50]="page() <= 1"
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              type="button"
+              [attr.aria-label]="i18n.t('admin.roles.pager.previous')"
+              [disabled]="page() <= 1"
               (click)="ir(page() - 1)"
-            />
+            >
+              ‹
+            </button>
           </li>
           @for (item of visibles(); track $index) {
             <li hlmPaginationItem>
               @if (item === 'hueco') {
                 <hlm-pagination-ellipsis />
               } @else {
-                <a hlmPaginationLink [isActive]="item === page()" (click)="ir(item)">{{ item }}</a>
+                <button
+                  hlmBtn
+                  variant="ghost"
+                  size="icon"
+                  type="button"
+                  [attr.aria-current]="item === page() ? 'page' : null"
+                  (click)="ir(item)"
+                >
+                  {{ item }}
+                </button>
               }
             </li>
           }
           <li hlmPaginationItem>
-            <hlm-pagination-next
-              [text]="i18n.t('admin.roles.pager.next')"
-              [aria-label]="i18n.t('admin.roles.pager.next')"
-              [attr.aria-disabled]="page() >= pages()"
-              [class.pointer-events-none]="page() >= pages()"
-              [class.opacity-50]="page() >= pages()"
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon"
+              type="button"
+              [attr.aria-label]="i18n.t('admin.roles.pager.next')"
+              [disabled]="page() >= pages()"
               (click)="ir(page() + 1)"
-            />
+            >
+              ›
+            </button>
           </li>
         </ul>
       </nav>

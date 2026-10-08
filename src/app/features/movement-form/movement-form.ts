@@ -134,7 +134,7 @@ export class MovementFormComponent {
     this.model = {
       kind: isMovementKind(context.kind) ? context.kind : '',
       date: m?.date ?? this.store.hoy(),
-      accountId: context.accountId ?? m?.accountId ?? '',
+      accountId: context.accountId ?? m?.accountId ?? this.cuentaPredeterminada(),
       targetId: context.targetId ?? '',
       description: m?.description ?? '',
       amount: Math.abs(m?.amount ?? 0),
@@ -213,6 +213,10 @@ export class MovementFormComponent {
     if (value !== 'normal') this.model.person = '';
     if (value === 'normal' || value === 'transfer' || value === 'advance') this.model.counterpartyId = '';
     if (!this.cuentaAdmitida(this.store.account(this.model.accountId)?.type)) this.model.accountId = '';
+  }
+
+  private cuentaPredeterminada(): string {
+    return this.store.data().accounts.find((cuenta) => cuenta.isDefault)?.id ?? '';
   }
 
   private cuentaAdmitida(tipo: string | undefined): boolean {

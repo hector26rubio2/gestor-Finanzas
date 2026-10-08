@@ -62,8 +62,12 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
       (confirmed)="confirmDelete()"
       (dismissed)="deleting.set(null)"
     />
-    <app-admin-panel [title]="i18n.t('admin.organizations.title')" [subtitle]="i18n.t('admin.organizations.subtitle')">
-      <div panelActions class="flex flex-wrap items-center gap-2">
+    <app-admin-panel
+      [title]="i18n.t('admin.organizations.title')"
+      [subtitle]="i18n.t('admin.organizations.subtitle')"
+      [fullWidthActions]="true"
+    >
+      <div panelActions class="ml-auto flex flex-wrap items-center gap-2">
         @if (canConsolidate()) {
           <button hlmBtn variant="outline" (click)="confirmingConsolidation.set(true)">
             <fin-icon name="layers" /> {{ i18n.t('admin.organizations.consolidate.action') }}

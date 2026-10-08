@@ -10,8 +10,14 @@
       />
     </div>
     }
-    <fin-field [label]="i18n.t('form.field.name')">
-      <input hlmInput name="name" [(ngModel)]="name" required />
+    <fin-field [label]="i18n.t('form.field.name')" [error]="erroresDeCampo().name ?? ''">
+      <input
+        hlmInput
+        name="name"
+        [(ngModel)]="name"
+        required
+        [attr.aria-invalid]="erroresDeCampo().name ? true : null"
+      />
     </fin-field>
     @if (kind() === 'category') {
     <fin-field [label]="i18n.t('form.management.field.categoryType')">
@@ -64,10 +70,19 @@
       />
     </fin-field>
     } @if (kind() === 'recurrence') {
-    <fin-field [label]="i18n.t('form.field.amount')">
-      <input hlmInput name="amount" type="number" min="1" [(ngModel)]="amount" required />
+    <fin-field [label]="i18n.t('form.field.amount')" [error]="erroresDeCampo().amount ?? ''">
+      <input
+        hlmInput
+        name="amount"
+        type="number"
+        min="1"
+        inputmode="decimal"
+        [(ngModel)]="amount"
+        required
+        [attr.aria-invalid]="erroresDeCampo().amount ? true : null"
+      />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.account')">
+    <fin-field [label]="i18n.t('form.management.field.account')" [error]="erroresDeCampo().account ?? ''">
       <fin-select
         name="account"
         [(ngModel)]="accountId"

@@ -234,7 +234,7 @@ export class DatosDelTablero {
   });
   promoteCategory(): void {
     this.globalCategory.set(this.localCategory());
-    this.store.log(this.i18n.t('dashboard.log.filterApplied', { value: this.localCategory() }));
+    this.store.toast.set(this.i18n.t('dashboard.log.filterApplied', { value: this.localCategory() }));
   }
   reset(): void {
     this.periodo.scale.set('month');

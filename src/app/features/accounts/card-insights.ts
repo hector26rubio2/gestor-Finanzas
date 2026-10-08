@@ -44,19 +44,22 @@ export function creditCards(accounts: readonly Account[]): Account[] {
   return accounts.filter((account) => account.type === 'credit');
 }
 
-export function nextCardDue(
-  cards: readonly Account[],
-  debtOf: (card: Account) => number,
-  today: string,
-): CardDue | null {
-  const due = cards
+export function cardDues(cards: readonly Account[], debtOf: (card: Account) => number, today: string): CardDue[] {
+  return cards
     .filter((card) => card.dueDay && debtOf(card) > 0)
     .map((card) => {
       const date = dueDateOnOrAfter(today, card.dueDay!);
       return { account: card, date, days: Math.round((startOfDay(date) - startOfDay(today)) / MS_PER_DAY) };
     })
     .sort((a, b) => a.days - b.days);
-  return due[0] ?? null;
+}
+
+export function nextCardDue(
+  cards: readonly Account[],
+  debtOf: (card: Account) => number,
+  today: string,
+): CardDue | null {
+  return cardDues(cards, debtOf, today)[0] ?? null;
 }
 
 export function mostUsedCard(

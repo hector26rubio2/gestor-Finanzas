@@ -12,7 +12,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
           <p class="text-sm text-muted-foreground">{{ subtitle() }}</p>
         }
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2" [class.w-full]="fullWidthActions()">
         <ng-content select="[panelActions]" />
       </div>
     </header>
@@ -22,4 +22,5 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 export class AdminPanelComponent {
   readonly title = input.required<string>();
   readonly subtitle = input('');
+  readonly fullWidthActions = input(false);
 }

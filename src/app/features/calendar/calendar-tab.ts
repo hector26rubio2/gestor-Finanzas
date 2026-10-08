@@ -10,6 +10,7 @@ import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
 import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
+import { cardDues, creditCards } from '@features/accounts/card-insights';
 
 @Component({
   selector: 'app-calendar-tab',
@@ -129,24 +130,50 @@ export class CalendarTabComponent implements OnInit {
   async loadCalendarProjection(): Promise<void> {
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
-    const fallos: string[] = [];
+    let fallaronProyecciones = false;
+    let fallaronRecurrentes = false;
 
     if (this.can(P.calendario.ver)) {
       try {
         this.projectedOccurrences.set(await firstValueFrom(this.api.projectedCalendar(start, end)));
       } catch {
-        fallos.push('las proyecciones');
+        fallaronProyecciones = true;
       }
     }
     if (this.can(P.calendario.recurrencias.listar)) {
       try {
         this.recurrences.set(await firstValueFrom(this.api.recurrences()));
       } catch {
-        fallos.push('las recurrencias');
+        fallaronRecurrentes = true;
       }
     }
 
-    if (fallos.length) this.store.toast.set(`No se pudieron cargar ${fallos.join(' ni ')} del calendario.`);
+    if (fallaronProyecciones && fallaronRecurrentes) this.store.toast.set(this.i18n.t('calendar.load.failedBoth'));
+    else if (fallaronProyecciones) this.store.toast.set(this.i18n.t('calendar.load.failedProjections'));
+    else if (fallaronRecurrentes) this.store.toast.set(this.i18n.t('calendar.load.failedRecurrences'));
+  }
+  readonly vencimientos = computed(() =>
+    cardDues(
+      creditCards(this.store.data().accounts),
+      (tarjeta) => Math.max(0, -this.store.balance(tarjeta)),
+      this.store.hoy(),
+    ),
+  );
+  readonly proximosMovimientos = computed(() => {
+    const hoy = this.store.hoy();
+    return this.delRango
+      .movimientos()
+      .filter((movimiento) => movimiento.date > hoy)
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(0, 7);
+  });
+  readonly sinCompromisos = computed(
+    () => !this.projectedOccurrences().length && !this.vencimientos().length && !this.proximosMovimientos().length,
+  );
+  fechaCorta(iso: string): string {
+    return new Intl.DateTimeFormat(this.locale(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
+      new Date(`${iso}T00:00:00Z`),
+    );
   }
   readonly porEliminar = signal<ApiRecurrence | null>(null);
   frecuencia(recurrente: ApiRecurrence): string {
@@ -174,7 +201,7 @@ export class CalendarTabComponent implements OnInit {
           idempotencyKey: crypto.randomUUID(),
         }),
       );
-      this.store.toast.set('Ocurrencia confirmada y registrada en el libro.');
+      this.store.toast.set(this.i18n.t('calendar.agenda.materialized'));
       await this.loadCalendarProjection();
       void this.movementsBook.loadMovementPage(1);
     } catch (error) {

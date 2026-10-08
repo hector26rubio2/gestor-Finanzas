@@ -38,6 +38,7 @@ export class ManagementFormComponent {
   private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
+  readonly erroresDeCampo = signal<{ readonly name?: string; readonly amount?: string; readonly account?: string }>({});
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
   readonly editingId = this.store.form()?.targetId ?? null;
   readonly title = computed(() => {
@@ -107,7 +108,7 @@ export class ManagementFormComponent {
   ]);
   instrument = 'CDT';
   currency = 'COP';
-  amount = 0;
+  amount: number | null = null;
   accountId = '';
   frequency = '3';
   start = new Date().toISOString().slice(0, 10);
@@ -141,6 +142,21 @@ export class ManagementFormComponent {
     }
   }
 
+  private camposValidos(): boolean {
+    const recurrente = this.kind() === 'recurrence';
+    const errores = {
+      ...(!this.name.trim() ? { name: this.i18n.t('form.management.error.nameRequired') } : {}),
+      ...(recurrente && !(Number(this.amount) > 0)
+        ? { amount: this.i18n.t('form.movement.error.amountPositive') }
+        : {}),
+      ...(recurrente && !this.store.account(this.accountId)
+        ? { account: this.i18n.t('form.recurrence.error.accountInvalid') }
+        : {}),
+    };
+    this.erroresDeCampo.set(errores);
+    return Object.keys(errores).length === 0;
+  }
+
   async save() {
     if (this.editingId) return this.saveChanges(this.editingId);
     try {
@@ -153,7 +169,7 @@ export class ManagementFormComponent {
       };
       const permiso = permisos[this.kind()];
       if (permiso && !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
-      if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+      if (!this.camposValidos()) return;
       if (this.kind() === 'category')
         await this.catalogCommands.createCategory(this.name, this.color, this.icon, this.categoryType);
       if (this.kind() === 'person')
@@ -163,7 +179,7 @@ export class ManagementFormComponent {
       if (this.kind() === 'recurrence')
         await this.catalogCommands.createRecurrence(
           this.name,
-          Number(this.amount),
+          Number(this.amount ?? 0),
           this.accountId,
           Number(this.frequency),
           this.start,

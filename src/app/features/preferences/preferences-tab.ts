@@ -200,7 +200,7 @@ export class PreferencesTabComponent implements OnInit {
   async setLocale(locale: string): Promise<void> {
     this.store.preferences.update((value) => ({ ...value, locale }));
     await this.i18n.load(locale);
-    this.store.log(this.i18n.t('preferences.localeUpdatedLog'));
+    this.store.toast.set(this.i18n.t('preferences.localeUpdatedLog'));
     this.persistPreferences();
   }
   setDensity(density: 'comfortable' | 'compact'): void {

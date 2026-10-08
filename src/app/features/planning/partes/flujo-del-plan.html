@@ -29,7 +29,7 @@
     <h4 class="text-[0.74rem] font-semibold">{{ i18n.t('planning.sim.flow.' + tipo) }}</h4>
     @for (linea of lineasDe(tipo); track linea.id) {
     <div
-      class="grid grid-cols-[auto_1fr_110px] items-center gap-2"
+      class="grid grid-cols-[auto_1fr_110px] items-center gap-2 [&_button[role=checkbox]]:size-6 pointer-coarse:[&_button[role=checkbox]]:size-11"
       [class.opacity-50]="!sim.lineaVigente(linea.id, linea.monto).incluida"
     >
       <hlm-checkbox
@@ -59,7 +59,7 @@
     <small class="text-[0.7rem] text-muted-foreground">{{ i18n.t('planning.sim.flow.recurringHint') }}</small>
     @for (recurrente of sim.recurrentes(); track recurrente.id) {
     <label
-      class="flex items-center gap-2 text-[0.74rem]"
+      class="flex min-h-6 items-center gap-2 text-[0.74rem] [&_button[role=checkbox]]:size-6 pointer-coarse:min-h-11 pointer-coarse:[&_button[role=checkbox]]:size-11"
       [class.line-through]="sim.recurrentesQuitados().has(recurrente.id)"
     >
       <hlm-checkbox

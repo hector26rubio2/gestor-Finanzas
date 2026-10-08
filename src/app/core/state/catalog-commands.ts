@@ -113,7 +113,6 @@ export class CatalogCommands {
         ],
       }));
       this.store.form.set(null);
-      this.store.log('Tarjeta creada en la API', false);
       return;
     }
     const accountRequest = {
@@ -167,7 +166,6 @@ export class CatalogCommands {
       }));
     }
     this.store.form.set(null);
-    this.store.log('Cuenta creada en la API', false);
   }
 
   async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
@@ -178,7 +176,7 @@ export class CatalogCommands {
     this.store.categories.update((items) => [...items, created]);
 
     this.store.form.set(null);
-    this.store.log(`Categoría ${name} creada`);
+    this.store.toast.set(this.i18n.t('toast.category.created', { name }));
   }
 
   async createPerson(
@@ -193,7 +191,9 @@ export class CatalogCommands {
       people: data.people.map((persona) => (persona.id === creada.id ? { ...persona, relationship } : persona)),
     }));
     this.store.form.set(null);
-    this.store.log(`${kind === 'institution' ? 'Entidad' : 'Persona'} ${name} creada`);
+    this.store.toast.set(
+      this.i18n.t(kind === 'institution' ? 'toast.institution.created' : 'toast.person.created', { name }),
+    );
   }
 
   async updateAccount(
@@ -263,7 +263,6 @@ export class CatalogCommands {
       accounts: data.accounts.map((item) => (item.id === account.id ? actualizada : item)),
     }));
     this.store.form.set(null);
-    this.store.log(`${account.type === 'credit' ? 'Tarjeta' : 'Cuenta'} ${name} actualizada`, false);
   }
 
   async updateCategory(id: string, changes: { name: string; color: string; icon: string }) {
@@ -289,7 +288,7 @@ export class CatalogCommands {
         ),
       }));
     this.store.form.set(null);
-    this.store.log(`Categoría ${guardada.name} actualizada`);
+    this.store.toast.set(this.i18n.t('toast.category.updated', { name: guardada.name }));
   }
 
   async updatePerson(
@@ -336,7 +335,7 @@ export class CatalogCommands {
       ),
     }));
     this.store.form.set(null);
-    this.store.log(`Persona ${name} actualizada`);
+    this.store.toast.set(this.i18n.t('toast.person.updated', { name }));
   }
 
   async updateInvestment(id: string, changes: { name: string; instrumentType: string }) {
@@ -364,7 +363,7 @@ export class CatalogCommands {
       ),
     }));
     this.store.form.set(null);
-    this.store.log(`Inversión ${name} actualizada`);
+    this.store.toast.set(this.i18n.t('toast.investment.updated', { name }));
   }
 
   async createInvestment(name: string, instrumentType: string, currency: string) {
@@ -391,7 +390,7 @@ export class CatalogCommands {
     }));
 
     this.store.form.set(null);
-    this.store.log(`Inversión ${name} creada`);
+    this.store.toast.set(this.i18n.t('toast.investment.created', { name }));
   }
 
   async createRecurrence(name: string, amount: number, accountId: string, frequency: number, start: string) {
@@ -415,6 +414,6 @@ export class CatalogCommands {
     );
 
     this.store.form.set(null);
-    this.store.log(`Recurrencia ${name} creada`);
+    this.store.toast.set(this.i18n.t('toast.recurrence.created', { name }));
   }
 }
