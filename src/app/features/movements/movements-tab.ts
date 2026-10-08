@@ -11,7 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { toCsv, downloadCsv, sumBy } from '@core/utils';
+import { toCsv, downloadCsv, sumBy, addDaysToIso } from '@core/utils';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -34,6 +34,8 @@ export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'ins
 export function movementsKpiHintKey(kpi: MovementsKpi): string {
   return `movements.kpi.page.${kpi}.hint`;
 }
+
+const DIAS_MAXIMOS_DEL_RESUMEN = 3650;
 
 @Component({
   selector: 'app-movements-tab',
@@ -66,7 +68,10 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly historia = crearHistoriaDeFlujo(this.rangos);
   private readonly rangoDelPeriodo = computed(() => {
     const periodo = this.store.period();
-    return [periodo === 'all' ? { start: '2000-01-01', end: this.store.hoy() } : monthRange(periodo)];
+    const hoy = this.store.hoy();
+    return [
+      periodo === 'all' ? { start: addDaysToIso(hoy, -DIAS_MAXIMOS_DEL_RESUMEN), end: hoy } : monthRange(periodo),
+    ];
   });
   private readonly totalDelPeriodo = crearHistoriaDeFlujo(this.rangoDelPeriodo);
   readonly totalesDelServidor = computed(() => {

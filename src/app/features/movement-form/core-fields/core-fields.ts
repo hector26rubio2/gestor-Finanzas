@@ -49,11 +49,14 @@ export class MovementCoreFieldsComponent {
   }
 
   targetAccountOptions(): readonly UiOption[] {
+    const origen = this.store.account(String(this.model['accountId'] ?? ''));
+    const mismaMoneda = (cuenta: Account) =>
+      this.operation !== 'transfer' || !origen || cuenta.currency === origen.currency;
     return [
       { value: '', label: this.i18n.t('form.actions.select') },
       ...this.store
         .data()
-        .accounts.filter((cuenta) => cuenta.type !== 'credit' && cuenta.id !== this.model['accountId'])
+        .accounts.filter((cuenta) => cuenta.type !== 'credit' && cuenta.id !== origen?.id && mismaMoneda(cuenta))
         .map((cuenta) => this.opcion(cuenta)),
     ];
   }
