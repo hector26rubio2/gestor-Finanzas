@@ -225,6 +225,12 @@
     }
   </div>
 
+  <div hlmTabsContent="budgets" class="min-h-0 flex-1 overflow-auto">
+    @if (seccion() === 'budgets') {
+    <fin-budgets-panel />
+    }
+  </div>
+
   <div hlmTabsContent="data" class="min-h-0 flex-1 overflow-auto">
     @if (seccion() === 'data') {
     <article hlmCard class="max-w-2xl gap-3 p-5">

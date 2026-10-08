@@ -9,3 +9,4 @@ export * from './purchases.api';
 export * from './recurrences.api';
 export * from './settlements.api';
 export * from './shared-api-types';
+export * from './budgets.api';

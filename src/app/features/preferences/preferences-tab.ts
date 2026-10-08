@@ -8,6 +8,7 @@ import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { FieldComponent } from '@ui/field';
+import { BudgetsPanelComponent } from '@features/budgets/budgets-panel';
 import { ThemeStudioComponent } from './theme-studio/theme-studio';
 import { CategoryIconComponent } from '@ui/category-icon';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -18,12 +19,13 @@ import { P, RemoteBootstrap } from '@core/session';
 import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
 import { I18nService } from '@core/i18n';
 
-const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'data'] as const;
+const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'budgets', 'data'] as const;
 type Seccion = (typeof SECCIONES)[number];
 
 @Component({
   selector: 'app-preferences-tab',
   imports: [
+    BudgetsPanelComponent,
     CategoryIconComponent,
     FormsModule,
     HlmButton,
@@ -92,6 +94,12 @@ export class PreferencesTabComponent implements OnInit {
         id: 'categories',
         label: 'preferences.sections.categories',
         icon: 'tag',
+        visible: this.can(P.cuentas.categorias.listar) && this.features.enabled('settings.categories'),
+      },
+      {
+        id: 'budgets',
+        label: 'preferences.sections.budgets',
+        icon: 'percent',
         visible: this.can(P.cuentas.categorias.listar) && this.features.enabled('settings.categories'),
       },
       { id: 'data', label: 'preferences.sections.data', icon: 'settings', visible: true },

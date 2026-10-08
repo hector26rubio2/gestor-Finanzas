@@ -1,0 +1,156 @@
+<article hlmCard class="gap-4 p-5" data-slot="presupuestos">
+  <header class="grid gap-1">
+    <h2 class="text-base font-semibold">{{ i18n.t('budgets.title') }}</h2>
+    <p class="text-xs text-muted-foreground">{{ i18n.t('budgets.description', { month: etiquetaDelMes() }) }}</p>
+  </header>
+  @if (!puedeEditar()) {
+  <div hlmAlert role="status" data-slot="solo-lectura">
+    <fin-icon name="shield" />
+    <p hlmAlertDescription>{{ i18n.t('budgets.readOnly') }}</p>
+  </div>
+  } @if (presupuestos.errorDeGuardado()) {
+  <div hlmAlert variant="destructive" role="alert" data-slot="error-de-guardado">
+    <p hlmAlertDescription>{{ presupuestos.errorDeGuardado() }}</p>
+  </div>
+  } @switch (presupuestos.estado()) { @case ('error') {
+  <div hlmAlert variant="destructive" role="alert" data-slot="error-de-carga">
+    <h3 hlmAlertTitle>{{ i18n.t('budgets.error.load') }}</h3>
+    <div hlmAlertDescription>
+      <button hlmBtn variant="outline" size="sm" type="button" (click)="presupuestos.recargar()">
+        {{ i18n.t('budgets.retry') }}
+      </button>
+    </div>
+  </div>
+  } @case ('listo') { @if (filas().length) { @if (resumen().cantidad) {
+  <dl class="flex flex-wrap gap-x-6 gap-y-1 text-xs text-muted-foreground" data-slot="resumen">
+    <div class="flex gap-1.5">
+      <dt>{{ i18n.t('budgets.summary.limit') }}</dt>
+      <dd class="font-semibold text-foreground tabular-nums">{{ dinero(resumen().limite) }}</dd>
+    </div>
+    <div class="flex gap-1.5">
+      <dt>{{ i18n.t('budgets.summary.spent') }}</dt>
+      <dd class="font-semibold text-foreground tabular-nums">{{ dinero(resumen().gastado) }}</dd>
+    </div>
+  </dl>
+  }
+  <ul class="grid gap-2" [attr.aria-label]="i18n.t('budgets.title')">
+    @for (fila of filas(); track fila.categoria.id) {
+    <li
+      class="grid gap-3 rounded-md border border-border px-3 py-3 md:grid-cols-[minmax(11rem,15rem)_minmax(0,1fr)_auto] md:items-center"
+      [attr.data-categoria]="fila.categoria.name"
+    >
+      <div class="flex min-w-0 items-center gap-2.5">
+        <span
+          class="grid size-7 flex-none place-items-center rounded-full text-sm"
+          [style.background]="fila.categoria.color"
+          aria-hidden="true"
+          ><fin-category-icon class="text-white" [icon]="fila.categoria.icon"
+        /></span>
+        <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ fila.categoria.name }}</span>
+      </div>
+      @if (editando() === fila.categoria.id) {
+      <form class="flex flex-wrap items-start gap-2 md:col-span-2" (submit)="guardar($event, fila)">
+        <fin-field
+          class="min-w-40 flex-1"
+          [label]="i18n.t('budgets.field.limit', { currency: store.baseCurrency() })"
+          [error]="errorDeCampo()"
+        >
+          <input
+            hlmInput
+            data-slot="limite"
+            type="number"
+            inputmode="decimal"
+            min="0"
+            step="any"
+            [value]="texto()"
+            (input)="escribir($event)"
+            [attr.aria-invalid]="errorDeCampo() ? true : null"
+          />
+        </fin-field>
+        <div class="flex gap-2 pt-6">
+          <button hlmBtn type="submit" [disabled]="presupuestos.guardando() === fila.categoria.id">
+            {{ i18n.t('budgets.save') }}
+          </button>
+          <button hlmBtn variant="outline" type="button" (click)="cancelar()">{{ i18n.t('budgets.cancel') }}</button>
+        </div>
+      </form>
+      } @else {
+      <div class="grid min-w-0 gap-1.5">
+        @if (fila.estado; as estado) {
+        <div class="flex flex-wrap items-baseline justify-between gap-x-3 text-xs">
+          <span class="tabular-nums"
+            ><b class="text-sm text-foreground">{{ dinero(fila.gastado) }}</b>
+            <span class="text-muted-foreground"> / {{ dinero(fila.limite ?? 0) }}</span></span
+          >
+          <span
+            class="font-semibold"
+            [class.text-destructive]="estado.nivel === 'excedido'"
+            [class.text-warning]="estado.nivel === 'alerta'"
+            [class.text-muted-foreground]="estado.nivel === 'ok'"
+            >{{ i18n.t('budgets.percentUsed', { percent: estado.porcentaje }) }} · {{ textoDeEstado(fila) }}</span
+          >
+        </div>
+        <fin-barra-de-avance
+          [porcentaje]="estado.porcentaje"
+          [nivel]="estado.nivel"
+          [etiqueta]="i18n.t('budgets.progress.aria', { name: fila.categoria.name, percent: estado.porcentaje })"
+        />
+        } @else if (fila.monedaAjena) {
+        <p class="text-xs text-warning" role="status">
+          {{ i18n.t('budgets.otherCurrency', { currency: fila.monedaAjena, base: store.baseCurrency() }) }}
+        </p>
+        } @else {
+        <p class="text-xs text-muted-foreground">
+          {{ i18n.t('budgets.noLimit') }} @if (fila.gastado > 0) { · {{ i18n.t('budgets.spentThisMonth', { amount:
+          dinero(fila.gastado) }) }} }
+        </p>
+        }
+      </div>
+      @if (puedeEditar()) {
+      <div class="flex items-center gap-1.5 md:justify-end">
+        <button
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          [attr.aria-label]="
+            i18n.t(tieneLimite(fila) ? 'budgets.editAria' : 'budgets.setAria', { name: fila.categoria.name })
+          "
+          (click)="editar(fila)"
+        >
+          <fin-icon [name]="tieneLimite(fila) ? 'edit' : 'plus'" />
+          {{ i18n.t(tieneLimite(fila) ? 'budgets.edit' : 'budgets.set') }}
+        </button>
+        @if (tieneLimite(fila)) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-sm"
+          type="button"
+          [attr.aria-label]="i18n.t('budgets.deleteAria', { name: fila.categoria.name })"
+          [disabled]="presupuestos.guardando() === fila.categoria.id"
+          (click)="porQuitar.set(fila)"
+        >
+          <fin-icon name="trash" />
+        </button>
+        }
+      </div>
+      } }
+    </li>
+    }
+  </ul>
+  } @else {
+  <fin-empty icon="tag" [title]="i18n.t('budgets.empty.title')" [detail]="i18n.t('budgets.empty.detail')" />
+  } } @default {
+  <fin-skeleton tipo="lista" />
+  } }
+</article>
+<fin-confirm-dialog
+  [open]="porQuitar() !== null"
+  [title]="i18n.t('budgets.confirm.title', { name: porQuitar()?.categoria?.name ?? '' })"
+  [description]="i18n.t('budgets.confirm.detail')"
+  [confirmLabel]="i18n.t('budgets.delete')"
+  [cancelLabel]="i18n.t('budgets.cancel')"
+  (confirmed)="quitar()"
+  (dismissed)="porQuitar.set(null)"
+/>
