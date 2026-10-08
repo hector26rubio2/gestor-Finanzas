@@ -468,6 +468,9 @@ export default {
   'sinSeccion.noSession.detail':
     'Cet écran explique pourquoi une session peut se retrouver sans sections. Pour cela, il faut se connecter.',
   'sinSeccion.noSession.goToLogin': "Aller à l'écran de connexion",
+  'notFound.title': 'Page introuvable',
+  'notFound.detail': "Cette adresse n'existe pas ou a changé. Revenez au tableau de bord pour continuer.",
+  'notFound.goHome': 'Aller au tableau de bord',
   'admin.title': 'Administration',
   'admin.subtitle': 'Gérez les accès, les déploiements et la traçabilité depuis un seul endroit.',
   'admin.health.operational': 'Services opérationnels',

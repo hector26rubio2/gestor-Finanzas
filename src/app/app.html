@@ -141,6 +141,8 @@
                     routerLinkActive="active"
                     [attr.aria-label]="i18n.t('nav.' + item.path)"
                     (click)="sidebar.setOpenMobile(false)"
+                    (mouseenter)="precarga.precargar(item.path)"
+                    (focus)="precarga.precargar(item.path)"
                     ><fin-icon [name]="item.icon" class="[--icon-size:19px]" /><span
                       class="group-data-[collapsed=true]/app:hidden"
                       >{{ i18n.t('nav.' + item.path) }}</span

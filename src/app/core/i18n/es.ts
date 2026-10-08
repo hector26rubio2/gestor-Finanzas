@@ -202,6 +202,9 @@ export default {
   'sinSeccion.noSession.detail':
     'Esta pantalla explica por qué una sesión puede quedarse sin secciones. Para eso hace falta iniciar sesión.',
   'sinSeccion.noSession.goToLogin': 'Ir a la pantalla de acceso',
+  'notFound.title': 'Página no encontrada',
+  'notFound.detail': 'La dirección no existe o cambió. Vuelve al tablero para seguir.',
+  'notFound.goHome': 'Ir al tablero',
 
   'form.actions.save': 'Guardar',
   'form.actions.cancel': 'Cancelar',

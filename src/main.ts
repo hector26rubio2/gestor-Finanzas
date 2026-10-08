@@ -3,7 +3,15 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { accionInterceptor } from '@core/http/accion';
 import { cifradoInterceptor, escriturasInterceptor } from '@core/http/interceptores';
 import { ErrorHandler, inject, provideAppInitializer } from '@angular/core';
-import { TitleStrategy, provideRouter, withNavigationErrorHandler } from '@angular/router';
+import {
+  TitleStrategy,
+  provideRouter,
+  withComponentInputBinding,
+  withNavigationErrorHandler,
+  withPreloading,
+  withViewTransitions,
+} from '@angular/router';
+import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { AppComponent } from '@app/app';
 import { API_TRANSPORT, HttpApiTransport } from '@core/api/api-client';
 import { patchConsole } from '@core/utils/console-buffer';
@@ -29,6 +37,9 @@ bootstrapApplication(AppComponent, {
       withNavigationErrorHandler((error) => {
         if (esChunkPerdido(error.error)) recargarPorVersionNueva(urlAbsoluta(error.url));
       }),
+      withComponentInputBinding(),
+      withPreloading(PrecargaBajoDemanda),
+      withViewTransitions({ skipInitialTransition: true }),
     ),
     { provide: ErrorHandler, useClass: FinanzasErrorHandler },
     { provide: TitleStrategy, useClass: FinanzasTitleStrategy },

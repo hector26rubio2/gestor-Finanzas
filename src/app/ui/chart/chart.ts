@@ -8,32 +8,11 @@ import {
   inject,
   input,
   output,
+  signal,
 } from '@angular/core';
 import * as echarts from 'echarts/core';
+import { BarChart, GaugeChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
 import {
-  BarChart,
-  BoxplotChart,
-  CandlestickChart,
-  ChordChart,
-  EffectScatterChart,
-  FunnelChart,
-  GaugeChart,
-  GraphChart,
-  HeatmapChart,
-  LineChart,
-  ParallelChart,
-  PictorialBarChart,
-  PieChart,
-  RadarChart,
-  SankeyChart,
-  ScatterChart,
-  SunburstChart,
-  ThemeRiverChart,
-  TreeChart,
-  TreemapChart,
-} from 'echarts/charts';
-import {
-  CalendarComponent,
   DataZoomComponent,
   DatasetComponent,
   TransformComponent,
@@ -42,10 +21,6 @@ import {
   MarkAreaComponent,
   MarkLineComponent,
   MarkPointComponent,
-  ParallelComponent,
-  PolarComponent,
-  RadarComponent,
-  SingleAxisComponent,
   ToolboxComponent,
   TooltipComponent,
   VisualMapComponent,
@@ -53,29 +28,14 @@ import {
 import { CanvasRenderer } from 'echarts/renderers';
 import { I18nService } from '@core/i18n';
 import { ChartThemeService } from './chart-theme';
+import { cargarModulos, modulosFaltantes } from './chart-modulos';
 
 echarts.use([
   BarChart,
-  BoxplotChart,
-  CandlestickChart,
-  ChordChart,
-  EffectScatterChart,
-  FunnelChart,
   GaugeChart,
-  GraphChart,
-  HeatmapChart,
   LineChart,
-  ParallelChart,
-  PictorialBarChart,
   PieChart,
-  RadarChart,
-  SankeyChart,
   ScatterChart,
-  SunburstChart,
-  ThemeRiverChart,
-  TreeChart,
-  TreemapChart,
-  CalendarComponent,
   DataZoomComponent,
   DatasetComponent,
   TransformComponent,
@@ -84,10 +44,6 @@ echarts.use([
   MarkAreaComponent,
   MarkLineComponent,
   MarkPointComponent,
-  ParallelComponent,
-  PolarComponent,
-  RadarComponent,
-  SingleAxisComponent,
   ToolboxComponent,
   TooltipComponent,
   VisualMapComponent,
@@ -119,6 +75,7 @@ export class ChartComponent implements OnDestroy {
   private readonly tema = inject(ChartThemeService);
   private grafica: echarts.ECharts | null = null;
   private observador: ResizeObserver | null = null;
+  private readonly modulosListos = signal(0);
 
   private readonly base = computed(() => {
     const p = this.tema.palette();
@@ -142,6 +99,12 @@ export class ChartComponent implements OnDestroy {
     effect(() => {
       const option = this.option();
       const base = this.base();
+      this.modulosListos();
+      const faltan = modulosFaltantes(option as object);
+      if (faltan.length) {
+        void cargarModulos(faltan).then(() => this.modulosListos.update((valor) => valor + 1));
+        return;
+      }
       const alto = this.height();
       const lienzo = this.host.nativeElement.querySelector('.lienzo') as HTMLElement | null;
       if (!lienzo) return;

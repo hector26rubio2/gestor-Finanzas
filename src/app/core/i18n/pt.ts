@@ -461,6 +461,9 @@ export default {
   'sinSeccion.noSession.detail':
     'Esta tela explica por que uma sessão pode ficar sem seções. Para isso, é preciso entrar.',
   'sinSeccion.noSession.goToLogin': 'Ir para a tela de acesso',
+  'notFound.title': 'Página não encontrada',
+  'notFound.detail': 'Este endereço não existe ou mudou. Volte ao painel para continuar.',
+  'notFound.goHome': 'Ir para o painel',
   'admin.title': 'Administração',
   'admin.subtitle': 'Governe acessos, lançamentos e rastreabilidade em um só lugar.',
   'admin.health.operational': 'Serviços operacionais',
