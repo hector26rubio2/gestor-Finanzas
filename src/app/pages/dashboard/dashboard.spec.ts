@@ -2,7 +2,7 @@ import { provideRouter } from '@angular/router';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiDashboard, FinanceApiClient } from '@core/api';
+import { ApiDashboard, BudgetsApi, FinanceApiClient } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
 import { DashboardComponent } from './dashboard';
@@ -37,6 +37,7 @@ describe('DashboardComponent y las cifras del servidor', () => {
           provide: RUNTIME_CONFIG,
           useValue: { apiBaseUrl: 'https://api.example.test' },
         },
+        { provide: BudgetsApi, useValue: { budgets: () => of([]) } },
         { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(dashboard)), ...api } },
       ],
     });
@@ -70,5 +71,57 @@ describe('DashboardComponent y las cifras del servidor', () => {
     fixture.detectChanges();
 
     expect(componente.income()).not.toBe(9000000);
+  });
+
+  describe('vista Resumen', () => {
+    const sinMovimientos = { items: [], page: 1, size: 100, total: 0, totalPages: 0, hasNext: false };
+
+    function montarListo() {
+      const api = { dashboard: vi.fn(() => of(dashboard)), movements: vi.fn(() => of(sinMovimientos)) };
+      const fixture = montar(api as Partial<FinanceApiClient>);
+      TestBed.inject(AppStore).remoteState.set('ready');
+      return { api, fixture };
+    }
+
+    const desdeDeLasLlamadas = (api: { dashboard: { mock: { calls: unknown[][] } } }) =>
+      api.dashboard.mock.calls.map((llamada) => llamada[0] as string);
+
+    it('no pide el año anterior mientras se ve el tablero', async () => {
+      const { api, fixture } = montarListo();
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(desdeDeLasLlamadas(api)).not.toContain(fixture.componentInstance.periodo.rangoDelAnioAnterior().start);
+    });
+
+    it('pide el año anterior solo al abrir el resumen', async () => {
+      const { api, fixture } = montarListo();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const antes = api.dashboard.mock.calls.length;
+
+      fixture.componentInstance.cambiarVista('resumen');
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      expect(api.dashboard.mock.calls.length).toBeGreaterThan(antes);
+      expect(desdeDeLasLlamadas(api)).toContain(fixture.componentInstance.periodo.rangoDelAnioAnterior().start);
+    });
+
+    it('ignora una vista desconocida y muestra el resumen en lugar de la cuadrícula', async () => {
+      const { fixture } = montarListo();
+      fixture.detectChanges();
+      await fixture.whenStable();
+      const componente = fixture.componentInstance;
+
+      componente.cambiarVista('otra');
+      expect(componente.vista()).toBe('tablero');
+
+      componente.cambiarVista('resumen');
+      fixture.detectChanges();
+      const raiz = fixture.nativeElement as HTMLElement;
+      expect(raiz.querySelector('fin-resumen')).not.toBeNull();
+      expect(raiz.querySelector('fin-flow-item')).toBeNull();
+    });
   });
 });

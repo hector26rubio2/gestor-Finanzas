@@ -15,6 +15,7 @@ export interface DatosDelTableroDeps {
   dimensionKey(movement: Movement, dimension: Dimension): { label: string };
   typeLabel(type: string): string;
   nadaQueMostrar(): boolean;
+  resumenActivo(): boolean;
 }
 
 export class DatosDelTablero {
@@ -85,6 +86,17 @@ export class DatosDelTablero {
       this.globalCategory() === 'all' &&
       this.seleccionSoloDeFecha(),
   });
+  readonly historialAnual = crearHistoriaDeFlujo(
+    computed(() => (this.deps.resumenActivo() ? [this.periodo.rangoDelAnioAnterior()] : [])),
+    {
+      incluir: (m) => this.coincideConFiltros(m),
+      usarServidor: () =>
+        this.accountId() === 'all' &&
+        this.accountType() === 'all' &&
+        this.globalCategory() === 'all' &&
+        this.seleccionSoloDeFecha(),
+    },
+  );
   readonly remote = signal<ApiDashboard | null>(null);
 
   private readonly cargaRemota = effect(() => {

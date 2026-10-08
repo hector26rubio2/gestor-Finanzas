@@ -11,6 +11,7 @@ const baseUrl = process.env.UI_TEST_URL ?? 'http://127.0.0.1:4300';
 
 const rutas = [
   'dashboard',
+  'dashboard?vista=resumen',
   'movements',
   'calendar',
   'accounts',
@@ -20,6 +21,7 @@ const rutas = [
   'reports',
   'notifications',
   'settings',
+  'settings?section=budgets',
   'admin',
 ];
 

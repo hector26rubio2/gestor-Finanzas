@@ -28,6 +28,8 @@ import { DashboardLayoutService } from '@shared/tablero/dashboard-layout.service
 import { SelectorDeTablerosComponent } from './tableros/selector-de-tableros';
 import { FlowDefault, WIDGET_MIN_COLS } from '@shared/tablero/dashboard-layout';
 import { FlowItemComponent } from './layout/flow-item/flow-item';
+import { ResumenComponent } from './resumen/resumen';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
 
 import { WidgetType, Dimension, Widget, TWO_DIMENSION_TYPES } from '@shared/tablero/dashboard.model';
 import { DashboardKpis } from './dashboard-kpis';
@@ -39,6 +41,8 @@ import { OpcionesDeGraficas, TIPOS_DEL_MOTOR } from '@shared/graficas';
 import { CreadorDeWidgetComponent } from './widgets/creador-de-widget/creador-de-widget';
 
 const KPI_HEIGHT = 120;
+const VISTAS_DEL_TABLERO = ['resumen', 'tablero'] as const;
+type VistaDelTablero = (typeof VISTAS_DEL_TABLERO)[number];
 
 @Component({
   providers: [DashboardPeriodo],
@@ -70,6 +74,7 @@ const KPI_HEIGHT = 120;
     CdkDropList,
     FlowItemComponent,
     CreadorDeWidgetComponent,
+    ResumenComponent,
   ],
   templateUrl: './dashboard.html',
 })
@@ -82,6 +87,18 @@ export class DashboardComponent extends DashboardKpis {
 
   readonly P = P;
   readonly customizing = signal(false);
+  readonly vista = signal<VistaDelTablero>('tablero');
+  private readonly urlDeLaVista = sincronizarConLaUrl('vista', this.vista, 'tablero', (valor) =>
+    VISTAS_DEL_TABLERO.includes(valor as VistaDelTablero),
+  );
+  readonly enResumen = computed(() => this.vista() === 'resumen');
+  readonly opcionesDeVista = computed<readonly { value: VistaDelTablero; label: string }[]>(() => [
+    { value: 'resumen', label: this.i18n.t('dashboard.view.summary') },
+    { value: 'tablero', label: this.i18n.t('dashboard.view.explore') },
+  ]);
+  cambiarVista(valor: string): void {
+    if (VISTAS_DEL_TABLERO.includes(valor as VistaDelTablero)) this.vista.set(valor as VistaDelTablero);
+  }
   readonly layout = inject(DashboardLayoutService);
   readonly widgetMinCols = WIDGET_MIN_COLS;
 
@@ -169,6 +186,7 @@ export class DashboardComponent extends DashboardKpis {
     dimensionKey: (movement, dimension) => this.dimensionKey(movement, dimension),
     typeLabel: (type) => this.typeLabel(type),
     nadaQueMostrar: () => this.nadaQueMostrar(),
+    resumenActivo: () => this.enResumen() && !this.nadaQueMostrar(),
   });
   readonly accountId = this.datos.accountId;
   readonly accountType = this.datos.accountType;

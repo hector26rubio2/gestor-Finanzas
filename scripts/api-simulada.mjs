@@ -31,6 +31,12 @@ const cuentas = [
   createdAt: ahora,
 }));
 
+const categorias = [
+  { id: 'c0000000-0000-0000-0000-000000000001', name: 'Mercado', type: 2, color: '#0d9488', icon: 'tag' },
+  { id: 'c0000000-0000-0000-0000-000000000002', name: 'Ocio', type: 2, color: '#d97706', icon: 'tag' },
+  { id: 'c0000000-0000-0000-0000-000000000003', name: 'Sueldo', type: 1, color: '#4f46e5', icon: 'tag' },
+].map((categoria) => ({ ...categoria, parent: null, isActive: true, createdAt: ahora }));
+
 const dinero = (monto) => ({ amount: monto.toFixed(2), currency: 'COP' });
 
 function movimiento(indice) {
@@ -126,6 +132,25 @@ export async function simularApi(context, { permisos = TODOS_LOS_PERMISOS, conDa
       }),
     );
   });
+  await context.route('**/api/v1/categories*', (route) => route.fulfill(json(conDatos ? categorias : [])));
+  await context.route('**/api/v1/budgets*', (route) =>
+    route.request().method() === 'GET'
+      ? route.fulfill(
+          json(
+            conDatos
+              ? [
+                  {
+                    id: 'b0000000-0000-0000-0000-000000000001',
+                    category: { id: categorias[0].id, name: categorias[0].name },
+                    monthlyLimit: dinero(500000),
+                    updatedAt: ahora,
+                  },
+                ]
+              : [],
+          ),
+        )
+      : route.fulfill({ status: 204, body: '' }),
+  );
   await context.route('**/api/v1/events*', (route) =>
     route.fulfill({ status: 200, contentType: 'text/event-stream', body: ': conectado\n\n' }),
   );

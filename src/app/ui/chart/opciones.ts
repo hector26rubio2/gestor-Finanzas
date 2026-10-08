@@ -194,3 +194,51 @@ export function medidor(palette: ChartPalette, porcentaje: number, etiqueta: str
     ],
   };
 }
+
+export interface FlujoConSaldo {
+  etiquetas: readonly string[];
+  ingresos: readonly number[];
+  gastos: readonly number[];
+  saldo: readonly number[];
+  nombres: { ingresos: string; gastos: string; saldo: string };
+}
+
+export function barrasConSaldo(
+  palette: ChartPalette,
+  flujo: FlujoConSaldo,
+  dinero: Dinero,
+  compacto: Dinero,
+): ChartOption {
+  return {
+    grid: { left: 8, right: 8, top: 36, bottom: 8, containLabel: true },
+    legend: { top: 0, textStyle: { color: palette.muted }, icon: 'circle', itemWidth: 10, itemHeight: 10 },
+    tooltip: { trigger: 'axis', valueFormatter: (valor: unknown) => dinero(Number(valor)) },
+    xAxis: ejeDeCategorias(palette, flujo.etiquetas),
+    yAxis: ejeDeValores(palette, compacto),
+    series: [
+      {
+        name: flujo.nombres.ingresos,
+        type: 'bar' as const,
+        data: [...flujo.ingresos],
+        barMaxWidth: 22,
+        itemStyle: { color: palette.success, borderRadius: [5, 5, 0, 0] },
+      },
+      {
+        name: flujo.nombres.gastos,
+        type: 'bar' as const,
+        data: [...flujo.gastos],
+        barMaxWidth: 22,
+        itemStyle: { color: palette.danger, borderRadius: [5, 5, 0, 0] },
+      },
+      {
+        name: flujo.nombres.saldo,
+        type: 'line' as const,
+        data: [...flujo.saldo],
+        smooth: 0.35,
+        symbolSize: 7,
+        lineStyle: { color: palette.accent, width: 2.5 },
+        itemStyle: { color: palette.accent },
+      },
+    ],
+  };
+}

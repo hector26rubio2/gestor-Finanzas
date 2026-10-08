@@ -10,6 +10,7 @@ const artifacts = join(webRoot, 'artifacts');
 const baseUrl = process.env.UI_TEST_URL ?? 'http://127.0.0.1:4300';
 const routes = [
   'dashboard',
+  'dashboard?vista=resumen',
   'movements',
   'calendar',
   'accounts',
@@ -20,6 +21,7 @@ const routes = [
   'notifications',
   'admin',
   'settings',
+  'settings?section=budgets',
 ];
 const viewports = [
   { width: 360, height: 780 },
@@ -105,7 +107,7 @@ function browserExecutable() {
 
 async function waitForRoute(page, route) {
   await page.goto(`${baseUrl}/${route}`, { waitUntil: 'domcontentloaded' });
-  await page.waitForURL(new RegExp(`/${route}(?:$|[?])`));
+  await page.waitForURL(new RegExp(`/${route.replace(/[?.]/g, (caracter) => `\\${caracter}`)}(?:$|[?&])`));
   try {
     await page.locator('[data-page], fin-sin-seccion').first().waitFor({ state: 'visible' });
   } catch {
@@ -227,7 +229,7 @@ async function testViewport(browser, viewport) {
       const overflow = await horizontalOverflow(page, `${viewportLabel} ${route}`);
       if (overflow) failures.push(overflow);
       await page.screenshot({
-        path: join(artifacts, viewport.label ?? String(viewport.width), `${route}.png`),
+        path: join(artifacts, viewport.label ?? String(viewport.width), `${route.replace(/[?=]/g, '-')}.png`),
         fullPage: true,
       });
     }
