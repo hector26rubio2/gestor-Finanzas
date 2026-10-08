@@ -1,7 +1,7 @@
 <div class="grid flex-1 content-center gap-4 p-1">
   @for (fila of rows(); track fila.label) {
   <div>
-    <div class="mb-1.5 flex justify-between gap-2.5 text-[0.82rem] text-muted-foreground">
+    <div class="mb-1.5 flex justify-between gap-2.5 text-xs text-muted-foreground">
       <span>{{ fila.label }}</span><b class="text-foreground">{{ fila.valueLabel }}</b>
     </div>
     <div class="h-2.5 overflow-hidden rounded-full bg-muted">

@@ -9,7 +9,7 @@ import { Component, input } from '@angular/core';
   },
   template: `
     <span class="flex items-start justify-between">
-      <span class="text-[0.68rem] font-bold tracking-widest opacity-85">{{ typeLabel() }}</span>
+      <span class="text-xs font-bold tracking-widest opacity-85">{{ typeLabel() }}</span>
       <i
         class="h-[22px] w-[30px] rounded-[5px] bg-[linear-gradient(135deg,#f6dfa3,#cf9f4c)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,#000_25%,transparent)]"
         aria-hidden="true"
@@ -17,7 +17,7 @@ import { Component, input } from '@angular/core';
     </span>
     <em class="text-[1.02rem] font-semibold tracking-[0.12em] not-italic">{{ numberLabel() }}</em>
     <span class="flex flex-col gap-1.5">
-      <b class="text-[0.92rem] font-bold">{{ name() }}</b>
+      <b class="text-sm font-bold">{{ name() }}</b>
       <small class="flex justify-between gap-2 opacity-90">
         {{ balanceLabel() }}
         <strong>{{ balance() }}</strong>

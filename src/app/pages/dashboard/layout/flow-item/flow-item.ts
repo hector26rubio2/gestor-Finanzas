@@ -24,6 +24,8 @@ interface ResizeSession {
   readonly containerWidth: number;
 }
 
+const COLUMNAS_MINIMAS_EN_PANTALLA_MEDIA = 6;
+
 @Component({
   selector: 'fin-flow-item',
   imports: [CdkDragHandle, IconComponent],
@@ -31,8 +33,9 @@ interface ResizeSession {
   templateUrl: './flow-item.html',
   host: {
     class:
-      'relative block min-w-0 pb-5 [grid-row:span_var(--rows)] col-span-12 min-[701px]:[grid-column:span_var(--cols)]',
+      'relative block min-w-0 pb-5 [grid-row:span_var(--rows)] col-span-12 min-[701px]:[grid-column:span_var(--cols-medio)] min-[1280px]:[grid-column:span_var(--cols)]',
     '[style.--cols]': 'item().cols',
+    '[style.--cols-medio]': 'columnasEnPantallaMedia()',
     '[style.--rows]': 'rows()',
     '[attr.data-flow-id]': 'item().id',
   },
@@ -50,6 +53,9 @@ export class FlowItemComponent {
   readonly moved = output<number>();
 
   protected readonly rows = computed(() => rowSpan(this.item().height));
+  protected readonly columnasEnPantallaMedia = computed(() =>
+    Math.max(this.item().cols, COLUMNAS_MINIMAS_EN_PANTALLA_MEDIA),
+  );
 
   constructor() {
     effect(() => {

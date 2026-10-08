@@ -1,6 +1,6 @@
 import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, computed, effect, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from '@core/session/permissions';
@@ -40,12 +40,14 @@ import {
 import { ADMIN_TABS } from '@pages/admin/admin-tabs';
 import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/avatar';
 import { HlmButton } from '@spartan-ng/helm/button';
-import { HlmProgress, HlmProgressIndicator } from '@spartan-ng/helm/progress';
+import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
+import { SkeletonComponent } from '@ui/skeleton';
 import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service';
 
 const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'person', 'investment', 'recurrence'];
 
 const GRUPOS_CERRADOS_KEY = 'finanzas.sidebar.grupos-cerrados';
+const RANGO_DE_TABLETA = '(min-width: 768px) and (max-width: 1199px)';
 
 function leerGruposCerrados(): ReadonlySet<string> {
   try {
@@ -76,8 +78,8 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
     HlmAvatarFallback,
     HlmAvatarImage,
     HlmButton,
-    HlmProgress,
-    HlmProgressIndicator,
+    HlmSkeleton,
+    SkeletonComponent,
     HlmSidebarGroup,
     HlmSidebarGroupContent,
     HlmSidebarGroupLabel,
@@ -135,6 +137,17 @@ export class AppComponent {
         if (ruta === '/admin') this.adminAbierto.set(true);
       }
     });
+    afterNextRender(() => this.usarRielEnTableta());
+  }
+
+  private usarRielEnTableta(): void {
+    if (typeof window.matchMedia !== 'function') return;
+    const tableta = window.matchMedia(RANGO_DE_TABLETA);
+    const preferida = this.sidebar.open();
+    const aplicar = () => this.sidebar.setOpen(tableta.matches ? false : preferida);
+    if (tableta.matches) aplicar();
+    tableta.addEventListener('change', aplicar);
+    this.destroyRef.onDestroy(() => tableta.removeEventListener('change', aplicar));
   }
 
   readonly pestanaAdmin = signal('summary');
@@ -167,6 +180,7 @@ export class AppComponent {
   readonly enLogin = signal(false);
   private readonly rutaActual = signal('');
 
+  readonly esqueletoDelMenu = [1, 2, 3, 4, 5, 6, 7, 8];
   readonly cargandoSesion = computed(() => this.store.remoteState() === 'loading');
 
   private readonly primeraRutaPermitida = computed(() => this.allowed()[0]?.path ?? 'dashboard');

@@ -1414,6 +1414,7 @@ export default {
   'kpi.history.week': 'Last {count} weeks',
   'kpi.history.month': 'Last {count} months',
   'kpi.history.year': 'Last {count} years',
+  'kpi.delta.vsPrevious': 'vs previous period',
   'dashboard.kpi.ranges.edit': 'Color ranges for {label}',
   'dashboard.kpi.ranges.title': 'Colors for “{label}”',
   'dashboard.kpi.ranges.enabled': 'Color by value',

@@ -17,7 +17,7 @@
     (cargar)="sim.restaurar($event.json)"
   />
   } @if (!visiblePlanningTabs().length) {
-  <p class="text-[0.85rem] text-muted-foreground">{{ i18n.t('planning.noAccess') }}</p>
+  <p class="text-sm text-muted-foreground">{{ i18n.t('planning.noAccess') }}</p>
   } @else {
   <section
     [hlmTabsContent]="planningTab()"
@@ -25,11 +25,9 @@
   >
     <aside class="flex min-w-0 flex-col gap-4 rounded-lg border border-border bg-card p-4">
       <header>
-        <span class="text-[0.72rem] font-bold tracking-widest text-primary"
-          >{{ i18n.t('planning.parametersLabel') }}</span
-        >
+        <span class="text-xs font-bold tracking-widest text-primary">{{ i18n.t('planning.parametersLabel') }}</span>
         <h2 class="mt-1 mb-1 text-[1.05rem]">{{ i18n.t('planning.sim.title.' + sufijo(planningTab())) }}</h2>
-        <p class="text-[0.76rem] leading-normal text-muted-foreground">
+        <p class="text-xs leading-normal text-muted-foreground">
           {{ i18n.t('planning.sim.helper.' + sufijo(planningTab())) }}
         </p>
       </header>
@@ -85,7 +83,7 @@
           />
         </fin-field>
       </div>
-      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.sim.purchase.note') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('planning.sim.purchase.note') }}</p>
       } @case ('Vacaciones') {
       <div class="grid grid-cols-2 gap-3">
         <fin-field [label]="i18n.t('planning.sim.goal.amount')" [full]="true">
@@ -148,7 +146,7 @@
           />
         </fin-field>
       </div>
-      <p class="text-[0.72rem] text-muted-foreground">
+      <p class="text-xs text-muted-foreground">
         {{ i18n.t('planning.sim.investment.current', { amount: money(sim.valorInvertido()) }) }}
       </p>
       } @default {
@@ -229,7 +227,7 @@
         </button>
         <div class="col-span-full flex flex-wrap gap-1.5 empty:hidden">
           @for (guardado of sim.escenariosGuardados(); track guardado.id) {
-          <span class="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[0.72rem]">
+          <span class="inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs">
             {{ guardado.nombre }}
             <button
               hlmBtn
@@ -252,14 +250,14 @@
       >
         @for (metrica of metricas(); track metrica.label) {
         <article class="grid min-w-0 gap-1 rounded-lg border border-border bg-card p-3.5">
-          <span class="text-[0.75rem] text-muted-foreground">{{ metrica.label }}</span>
+          <span class="text-xs text-muted-foreground">{{ metrica.label }}</span>
           <strong
             class="truncate text-[1.2rem]"
             [class.text-success]="metrica.tono === 'bien'"
             [class.text-destructive]="metrica.tono === 'mal'"
             >{{ metrica.value }}</strong
           >
-          <small class="text-[0.7rem] text-muted-foreground">{{ metrica.hint }}</small>
+          <small class="text-xs text-muted-foreground">{{ metrica.hint }}</small>
         </article>
         }
       </section>
@@ -372,7 +370,7 @@
           [height]="260"
         />
       </div>
-      <p class="text-[0.72rem] text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
     </div>
   </section>
   }

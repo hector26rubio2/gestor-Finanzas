@@ -26,6 +26,7 @@ import { ChartComponent, ChartThemeService, anillo, barrasAgrupadas, lineaConCer
 import { IconComponent } from '@ui/icon';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
+import { SkeletonComponent } from '@ui/skeleton';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
@@ -40,6 +41,7 @@ import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features
     IconComponent,
     KpiComponent,
     KpiGridComponent,
+    SkeletonComponent,
     UiSelectComponent,
   ],
   templateUrl: './reports-tab.html',

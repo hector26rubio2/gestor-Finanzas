@@ -8,7 +8,7 @@
     [ariaLabel]="i18n.t('dashboard.boards.label')"
   />
   @if (layout.soloLectura()) {
-  <span class="rounded-full border border-border px-2 py-0.5 text-[0.72rem] text-muted-foreground">
+  <span class="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
     {{ i18n.t('dashboard.boards.readOnly', { name: activo()?.owner?.name ?? '' }) }}
   </span>
   } @if (tableros.puedeCrear()) {
@@ -36,9 +36,9 @@
 @if (panel(); as abierto) {
 <form class="grid max-w-xl gap-2.5 rounded-lg border border-border bg-card p-3" (ngSubmit)="confirmar()">
   @if (abierto === 'compartir') {
-  <p class="text-[0.78rem] text-muted-foreground">{{ i18n.t('dashboard.boards.shareHint') }}</p>
+  <p class="text-xs text-muted-foreground">{{ i18n.t('dashboard.boards.shareHint') }}</p>
   @for (miembro of tableros.miembros(); track miembro.id) {
-  <label class="flex items-center gap-2 text-[0.82rem]">
+  <label class="flex items-center gap-2 text-xs">
     <hlm-checkbox [checked]="elegidos().has(miembro.id)" (checkedChange)="alternarMiembro(miembro.id, $event)" />
     <span class="flex-1">{{ miembro.name }}</span>
     <small class="text-muted-foreground">{{ miembro.email }}</small>
@@ -46,17 +46,17 @@
   } @empty {
   <small class="text-muted-foreground">{{ i18n.t('dashboard.boards.noMembers') }}</small>
   } } @else {
-  <label class="grid gap-1 text-[0.78rem] text-muted-foreground">
+  <label class="grid gap-1 text-xs text-muted-foreground">
     {{ i18n.t('dashboard.boards.name') }}
     <input hlmInput name="nombre" maxlength="60" required [ngModel]="nombre()" (ngModelChange)="nombre.set($event)" />
   </label>
   @if (abierto === 'nuevo') {
-  <label class="flex items-center gap-2 text-[0.8rem]">
+  <label class="flex items-center gap-2 text-xs">
     <hlm-checkbox [checked]="copiarActual()" (checkedChange)="copiarActual.set($event)" />
     {{ i18n.t('dashboard.boards.copyCurrent') }}
   </label>
   } } @if (error()) {
-  <p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+  <p class="text-xs text-destructive" role="alert">{{ error() }}</p>
   }
   <div class="flex justify-end gap-2">
     <button hlmBtn variant="ghost" size="sm" type="button" (click)="panel.set(null)">
@@ -66,7 +66,7 @@
   </div>
 </form>
 } @else if (error()) {
-<p class="text-[0.78rem] text-destructive" role="alert">{{ error() }}</p>
+<p class="text-xs text-destructive" role="alert">{{ error() }}</p>
 }
 
 <fin-confirm-dialog

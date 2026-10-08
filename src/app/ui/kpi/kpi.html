@@ -5,17 +5,6 @@
 >
   <div class="h-full rounded-full" [class]="progressClass()" [style.width.%]="progress()"></div>
 </div>
-} @if (hasSeries()) {
-<div
-  class="pointer-events-none absolute inset-x-px bottom-px z-0 h-[68%] overflow-hidden rounded-b-[inherit]"
-  aria-hidden="true"
->
-  @defer (on viewport) {
-  <fin-chart class="block h-full w-full !min-h-0" [option]="chispaOption()" height="fill" />
-  } @placeholder {
-  <span class="block h-full"></span>
-  }
-</div>
 }
 <div class="relative z-10 flex min-w-0 items-center gap-2.5">
   @if (icon()) {
@@ -23,12 +12,12 @@
     <fin-icon [name]="icon()" class="[--icon-size:17px]" />
   </span>
   }
-  <span class="line-clamp-2 min-w-0 flex-1 text-[0.78rem] leading-snug text-muted-foreground" [attr.title]="label()"
+  <span class="line-clamp-2 min-w-0 flex-1 text-xs leading-snug text-muted-foreground" [attr.title]="label()"
     >{{ label() }}</span
   >
   @if (delta() !== null) {
   <span
-    class="flex-none rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
+    class="flex-none rounded-full px-[7px] py-0.5 text-xs font-bold tabular-nums"
     [class]="deltaClass()"
     [attr.title]="deltaTitulo()"
   >
@@ -41,10 +30,23 @@
   [attr.title]="value()"
   >{{ value() }}</strong
 >
-@if (hint() || caption()) {
-<span class="relative z-10 truncate text-[0.72rem] text-muted-foreground" [attr.title]="hint()"
-  >{{ hint() }}@if (caption()) {<span> · {{ caption() }}</span>}</span
->
+@if (hint() || caption() || delta() !== null || hasSeries()) {
+<div class="relative z-10 flex min-w-0 items-center justify-between gap-2">
+  <span class="min-w-0 truncate text-xs text-muted-foreground" [attr.title]="hint()"
+    >{{ delta() !== null ? comparacionVisible() : hint() }}@if (caption() && delta() === null) {<span>
+      · {{ caption() }}</span
+    >}</span
+  >
+  @if (hasSeries()) {
+  <div class="pointer-events-none h-7 w-20 flex-none" aria-hidden="true">
+    @defer (on viewport) {
+    <fin-chart class="block h-full w-full !min-h-0" [option]="chispaOption()" height="fill" />
+    } @placeholder {
+    <span class="block h-full"></span>
+    }
+  </div>
+  }
+</div>
 } @if (hasSeries()) {
 <span class="sr-only">{{ i18n.t('kpi.sparkline.ariaLabel', { label: label() }) }}</span>
 } } @else { @if (icon() || delta() !== null) {
@@ -55,7 +57,7 @@
   </span>
   } @if (delta() !== null) {
   <span
-    class="ms-auto flex-none rounded-full px-[7px] py-0.5 text-[0.7rem] font-bold tabular-nums"
+    class="ms-auto flex-none rounded-full px-[7px] py-0.5 text-xs font-bold tabular-nums"
     [class]="deltaClass()"
     [attr.title]="deltaTitulo()"
   >
@@ -65,16 +67,14 @@
 </div>
 }
 <div class="flex min-w-0 flex-1 flex-col items-center justify-center">
-  <span class="text-[0.78rem] text-muted-foreground">{{ label() }}</span>
+  <span class="text-xs text-muted-foreground">{{ label() }}</span>
   <strong
     class="text-[clamp(1.12rem,1.55vw,1.55rem)] font-semibold tracking-[-0.04em] tabular-nums [overflow-wrap:anywhere]"
     >{{ value() }}</strong
   >
   <div class="flex w-full min-w-0 items-center justify-center gap-2.5">
     @if (hint()) {
-    <span class="overflow-hidden text-[0.72rem] text-ellipsis whitespace-nowrap text-muted-foreground"
-      >{{ hint() }}</span
-    >
+    <span class="overflow-hidden text-xs text-ellipsis whitespace-nowrap text-muted-foreground">{{ hint() }}</span>
     } @if (hasSeries()) { @defer (on viewport) {
     <fin-chart
       class="flex-none"

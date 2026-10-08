@@ -93,6 +93,7 @@
   --success: #6ee7b7;
 }
 :root[data-density='compact'] {
+  --text-xs: 12px;
   font-size: 14px;
 }
 @media (prefers-color-scheme: dark) {

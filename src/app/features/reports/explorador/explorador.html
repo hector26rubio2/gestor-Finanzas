@@ -44,9 +44,7 @@
     >
       <fin-icon name="previous" />
     </button>
-    <span class="min-w-44 px-2 text-center text-[0.84rem] font-medium" aria-live="polite"
-      >{{ etiquetaDelRango() }}</span
-    >
+    <span class="min-w-44 px-2 text-center text-xs font-medium" aria-live="polite">{{ etiquetaDelRango() }}</span>
     <button
       hlmBtn
       variant="outline"
@@ -93,7 +91,7 @@
     </fin-field>
   </div>
   <div class="ms-auto flex flex-wrap items-center gap-2">
-    <span class="text-[0.72rem] text-muted-foreground" role="status">
+    <span class="text-xs text-muted-foreground" role="status">
       {{ cargando() ? i18n.t('reports.explorer.loading') : i18n.t('reports.explorer.count', { count:
       movimientos().length }) }} @if (!completos()) { · {{ i18n.t('reports.explorer.partial') }} }
     </span>
