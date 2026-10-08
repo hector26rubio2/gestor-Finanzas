@@ -94,11 +94,11 @@ export default {
   'movements.kpi.page.income.hint': 'Receitas da página carregada; mude os filtros ou a página para ver outras.',
   'movements.kpi.page.expense.hint': 'Despesas da página carregada; mude os filtros ou a página para ver outras.',
   'movements.kpi.page.records.hint': 'Registros da página carregada; mude os filtros ou a página para ver outros.',
-  'movements.kpi.page.recurring.hint': 'Recorrentes da página carregada; mude os filtros ou a página para ver outros.',
+  'movements.kpi.page.recurring.hint':
+    'Gastos recorrentes do período e da conta selecionados ("tudo" usa os últimos 12 meses).',
   'movements.kpi.page.installments.hint':
-    '{name} · de {total} no total, conforme a página carregada; mude os filtros ou a página para ver outros.',
-  'movements.kpi.page.topCategory.hint':
-    '{amount} · conforme a página carregada; mude os filtros ou a página para ver outros.',
+    '{name} · de {total} no total, no período selecionado ("tudo" usa os últimos 12 meses).',
+  'movements.kpi.page.topCategory.hint': '{amount} · no período selecionado ("tudo" usa os últimos 12 meses).',
   'movements.kpi.installments.label': 'Parcelas a pagar',
   'movements.kpi.installments.value': '{count} parcelas',
   'movements.kpi.installments.hint': '{name} · de {total} no total',

@@ -4,6 +4,7 @@ import { ApiDashboard, FinanceApiClient, ApiWritesBus } from '@core/api';
 import type { Movement } from '@core/state';
 import { AppStore } from '@core/state';
 import { parseMoney, sumBy } from '@core/utils';
+import { crearMovimientosDelPeriodo } from './movimientos-del-periodo';
 
 export interface Rango {
   readonly start: string;
@@ -77,6 +78,12 @@ export function crearHistoriaDeFlujo(rangos: Signal<readonly Rango[]>, opciones:
   const api = inject(FinanceApiClient);
   const escrituras = inject(ApiWritesBus);
   const remota = signal<{ desde: string; hasta: string; puntos: ApiDashboard['series'] } | null>(null);
+  const rangoLocal = computed<Rango | null>(() => {
+    const lista = rangos();
+    const conServidor = opciones.usarServidor?.() ?? true;
+    return conServidor || !lista.length ? null : { start: lista[0].start, end: lista[lista.length - 1].end };
+  });
+  const locales = crearMovimientosDelPeriodo(rangoLocal);
 
   effect(() => {
     const lista = rangos();
@@ -108,7 +115,7 @@ export function crearHistoriaDeFlujo(rangos: Signal<readonly Rango[]>, opciones:
         return { rango, income, expense, net: income - expense, movs: null };
       });
     const incluir = opciones.incluir ?? (() => true);
-    const movs = store.data().movements.filter(incluir);
+    const movs = locales.movimientos().filter(incluir);
     return lista.map((rango) => flujoLocal(rango, movs));
   });
 }

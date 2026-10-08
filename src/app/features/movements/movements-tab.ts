@@ -11,7 +11,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { toCsv, downloadCsv, sumBy, addDaysToIso } from '@core/utils';
+import { toCsv, downloadCsv, sumBy, addDaysToIso, addMonthsToIso } from '@core/utils';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -25,7 +25,14 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
 import type { Movement } from '@core/state';
 import { monthRange } from '@core/api';
-import { PERIODOS_DE_HISTORIA, crearHistoriaDeFlujo, rangosMensuales, variacion } from '@shared/historia';
+import {
+  PERIODOS_DE_HISTORIA,
+  Rango,
+  crearHistoriaDeFlujo,
+  crearMovimientosDelPeriodo,
+  rangosMensuales,
+  variacion,
+} from '@shared/historia';
 import { MovementsBookService } from '@shared/movements';
 import { HeaderActionsService } from '@shared/header-actions.service';
 
@@ -61,9 +68,19 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly headerActions = inject(HeaderActionsService);
   readonly P = P;
-  readonly recurringExpenses = computed(() => recurringExpenseCount(this.store.movements()));
-  readonly longestDebt = computed(() => longestInstallmentDebt(this.store.data().movements));
-  readonly topCategory = computed(() => topSpendingCategory(this.store.movements()));
+  private readonly rangoDeIndicadores = computed<Rango>(() => {
+    const periodo = this.store.period();
+    const hoy = this.store.hoy();
+    return periodo === 'all' ? { start: addMonthsToIso(hoy, -12), end: hoy } : monthRange(periodo);
+  });
+  private readonly delPeriodo = crearMovimientosDelPeriodo(this.rangoDeIndicadores);
+  private readonly movimientosDeIndicadores = computed(() => {
+    const cuenta = this.store.accountFilter();
+    return this.delPeriodo.movimientos().filter((movimiento) => cuenta === 'all' || movimiento.accountId === cuenta);
+  });
+  readonly recurringExpenses = computed(() => recurringExpenseCount(this.movimientosDeIndicadores()));
+  readonly longestDebt = computed(() => longestInstallmentDebt(this.movimientosDeIndicadores()));
+  readonly topCategory = computed(() => topSpendingCategory(this.movimientosDeIndicadores()));
   private readonly rangos = computed(() => rangosMensuales(PERIODOS_DE_HISTORIA, this.store.hoy()));
   private readonly historia = crearHistoriaDeFlujo(this.rangos);
   private readonly rangoDelPeriodo = computed(() => {

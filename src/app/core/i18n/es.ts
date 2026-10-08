@@ -360,10 +360,11 @@ export default {
   'movements.kpi.page.income.hint': 'Ingresos de la página cargada; cambia filtros o página para ver otros.',
   'movements.kpi.page.expense.hint': 'Gastos de la página cargada; cambia filtros o página para ver otros.',
   'movements.kpi.page.records.hint': 'Registros de la página cargada; cambia filtros o página para ver otros.',
-  'movements.kpi.page.recurring.hint': 'Recurrentes de la página cargada; cambia filtros o página para ver otros.',
+  'movements.kpi.page.recurring.hint':
+    'Gastos recurrentes del periodo y la cuenta seleccionados (con «todo», los últimos 12 meses).',
   'movements.kpi.page.installments.hint':
-    '{name} · de {total} en total, según la página cargada; cambia filtros o página para ver otros.',
-  'movements.kpi.page.topCategory.hint': '{amount} · según la página cargada; cambia filtros o página para ver otros.',
+    '{name} · de {total} en total, en el periodo seleccionado (con «todo», los últimos 12 meses).',
+  'movements.kpi.page.topCategory.hint': '{amount} · en el periodo seleccionado (con «todo», los últimos 12 meses).',
   'movements.kpi.installments.label': 'Cuotas por pagar',
   'movements.kpi.installments.value': '{count} cuotas',
   'movements.kpi.installments.hint': '{name} · de {total} en total',

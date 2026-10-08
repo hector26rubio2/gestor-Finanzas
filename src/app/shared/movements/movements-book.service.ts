@@ -30,7 +30,6 @@ export class MovementsBookService {
   private movementRequest = 0;
 
   readonly pinned = signal<readonly TableFilter[]>([]);
-  readonly movementCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
   readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
     { value: 'all', label: this.i18n.t('movements.filters.accountType.all') },
     ...Object.entries(ACCOUNT_TYPE_LABEL_KEYS).map(([value, key]) => ({

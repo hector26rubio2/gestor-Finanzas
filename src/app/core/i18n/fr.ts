@@ -98,11 +98,11 @@ export default {
   'movements.kpi.page.records.hint':
     'Enregistrements de la page chargée ; changez les filtres ou la page pour en voir d’autres.',
   'movements.kpi.page.recurring.hint':
-    'Récurrents de la page chargée ; changez les filtres ou la page pour en voir d’autres.',
+    'Dépenses récurrentes de la période et du compte sélectionnés (« tout » utilise les 12 derniers mois).',
   'movements.kpi.page.installments.hint':
-    '{name} · sur {total} au total, selon la page chargée ; changez les filtres ou la page pour en voir d’autres.',
+    '{name} · sur {total} au total, sur la période sélectionnée (« tout » utilise les 12 derniers mois).',
   'movements.kpi.page.topCategory.hint':
-    '{amount} · selon la page chargée ; changez les filtres ou la page pour en voir d’autres.',
+    '{amount} · sur la période sélectionnée (« tout » utilise les 12 derniers mois).',
   'movements.kpi.installments.label': 'Échéances restantes',
   'movements.kpi.installments.value': '{count} échéances',
   'movements.kpi.installments.hint': '{name} · sur {total} au total',

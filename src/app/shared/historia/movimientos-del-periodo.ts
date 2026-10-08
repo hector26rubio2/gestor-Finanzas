@@ -58,6 +58,11 @@ export function crearMovimientosDelPeriodo(rango: Signal<Rango | null>): Movimie
     return store.data().movements.filter((m) => m.date >= actual.start && m.date <= actual.end);
   });
 
+  effect(() => {
+    const cargados = movimientos();
+    untracked(() => store.recordarMovimientos(cargados));
+  });
+
   return {
     movimientos,
     cargando: cargando.asReadonly(),
