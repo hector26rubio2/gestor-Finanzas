@@ -4,9 +4,11 @@ import { ApiNotification } from '@core/api/api-client';
 export function toViewNotification(notification: ApiNotification): ViewData['notifications'][number] {
   return {
     id: notification.id,
+    kind: notification.kind,
     title: notification.title,
     detail: notificationDetail(notification),
     read: notification.readAt !== null,
+    createdAt: notification.createdAt,
   };
 }
 

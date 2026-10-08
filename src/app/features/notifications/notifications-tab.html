@@ -1,29 +1,96 @@
-<section class="grid overflow-auto rounded-lg border border-border bg-card">
-  @for (n of store.data().notifications; track n.id) {
-  <article class="flex flex-wrap items-center gap-3.5 border-b border-border px-4.5 py-4 last:border-b-0">
-    <span
-      role="img"
-      class="size-2.5 flex-none rounded-full border-[1.5px]"
-      [class]="n.read ? 'border-input' : 'border-primary bg-primary'"
-      [attr.aria-label]="n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread')"
-    ></span>
-    <div class="min-w-0">
-      <h2 class="text-sm" [class]="n.read ? 'font-medium text-muted-foreground' : 'font-bold text-foreground'">
-        {{ n.title }}
-      </h2>
-      <p class="mt-1 text-xs text-muted-foreground [overflow-wrap:anywhere]">{{ n.detail }}</p>
-    </div>
-    @if (n.id === 'notice-purchase') {
-    <button hlmBtn class="ms-auto flex-none" (click)="reviewNotification(n.id)">
-      {{ i18n.t('notifications.reviewButton') }}
-    </button>
-    } @else if (can(P.notificaciones.editar)) {
-    <button hlmBtn variant="ghost" class="ms-auto flex-none" (click)="mark(n.id)">
-      {{ i18n.t('notifications.markReadButton') }}
+<section class="grid gap-4">
+  <hlm-toggle-group
+    type="single"
+    variant="outline"
+    spacing="2"
+    class="w-max"
+    [attr.aria-label]="i18n.t('notifications.filter.label')"
+    [value]="filtro()"
+  >
+    @for (opcion of opciones(); track opcion.value) {
+    <button
+      hlmToggleGroupItem
+      type="button"
+      [value]="opcion.value"
+      class="h-10 rounded-full px-4 data-[state=on]:border-primary data-[state=on]:bg-accent data-[state=on]:text-primary"
+      (click)="cambiarFiltro(opcion.value)"
+    >
+      {{ opcion.label }}
+      <span class="rounded-full bg-muted px-1.5 text-xs tabular-nums">{{ opcion.total }}</span>
     </button>
     }
-  </article>
+  </hlm-toggle-group>
+
+  @for (grupo of grupos(); track grupo.clave) {
+  <section class="grid gap-2" [attr.aria-labelledby]="'notificaciones-' + grupo.clave">
+    <h2
+      [id]="'notificaciones-' + grupo.clave"
+      class="px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
+    >
+      {{ grupo.titulo }}
+    </h2>
+    <ul class="grid overflow-hidden rounded-xl border border-border bg-card">
+      @for (n of grupo.elementos; track n.id) {
+      <li
+        class="relative flex items-start gap-3.5 border-b border-border px-4 py-3.5 transition-colors last:border-b-0 hover:bg-accent/40"
+        [class.bg-primary/5]="!n.read"
+      >
+        @if (!n.read) {
+        <span class="absolute inset-y-2 left-0 w-1 rounded-r-full bg-primary" aria-hidden="true"></span>
+        }
+        <span
+          class="grid size-10 flex-none place-items-center rounded-lg [--icon-size:18px]"
+          [class]="n.read ? 'bg-muted text-muted-foreground' : 'bg-primary/10 text-primary'"
+          aria-hidden="true"
+        >
+          <fin-icon [name]="icono(n)" />
+        </span>
+        <div class="grid min-w-0 flex-1 gap-0.5">
+          <div class="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <h3
+              class="text-sm"
+              [class]="n.read ? 'font-medium text-muted-foreground' : 'font-semibold text-foreground'"
+            >
+              {{ n.title }}
+            </h3>
+            <span class="sr-only"
+              >{{ n.read ? i18n.t('notifications.state.read') : i18n.t('notifications.state.unread') }}</span
+            >
+            <time
+              class="text-xs text-muted-foreground tabular-nums"
+              [attr.datetime]="n.createdAt"
+              [title]="fechaCompleta(n)"
+            >
+              {{ cuando(n) }}
+            </time>
+          </div>
+          <p class="text-sm text-muted-foreground [overflow-wrap:anywhere]">{{ n.detail }}</p>
+        </div>
+        @if (!n.read && puedeMarcar) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon"
+          type="button"
+          class="size-10 flex-none"
+          [disabled]="marcando().has(n.id)"
+          [title]="i18n.t('notifications.markReadButton')"
+          [attr.aria-label]="i18n.t('notifications.markReadAria', { title: n.title })"
+          (click)="mark(n.id)"
+        >
+          <fin-icon name="check" />
+        </button>
+        }
+      </li>
+      }
+    </ul>
+  </section>
   } @empty {
-  <p class="p-4 text-sm text-muted-foreground">{{ i18n.t('notifications.empty') }}</p>
+  <fin-empty
+    class="rounded-xl border border-dashed border-border bg-card"
+    icon="notifications"
+    [title]="i18n.t('notifications.empty.title')"
+    [detail]="filtro() === 'unread' ? i18n.t('notifications.emptyUnread') : i18n.t('notifications.empty')"
+  />
   }
 </section>

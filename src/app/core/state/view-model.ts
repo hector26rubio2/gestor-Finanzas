@@ -88,9 +88,11 @@ export interface AuditEvent {
 }
 export interface AppNotification {
   id: string;
+  kind: string;
   title: string;
   detail: string;
   read: boolean;
+  createdAt: string;
 }
 export interface ViewData {
   movements: Movement[];

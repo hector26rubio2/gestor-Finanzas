@@ -194,12 +194,12 @@
 
     <div class="flex min-w-0 flex-col gap-3">
       <section
-        class="grid grid-cols-[repeat(3,minmax(0,1fr))_auto] items-end gap-3 max-[900px]:grid-cols-1 rounded-lg border border-border bg-card px-3.5 py-2.5"
+        class="grid grid-cols-[repeat(auto-fit,minmax(10rem,1fr))] items-end gap-3 rounded-lg border border-border bg-card px-3.5 py-2.5"
         [attr.aria-label]="i18n.t('planning.sim.toolbar')"
       >
         <fin-field [label]="i18n.t('planning.sim.view.label')">
           <fin-select
-            class="w-40"
+            class="w-full"
             [options]="vistas()"
             [ngModel]="sim.vista()"
             (ngModelChange)="sim.vista.set($event)"
@@ -208,7 +208,7 @@
         </fin-field>
         <fin-field [label]="i18n.t('planning.sim.compare.measure')">
           <fin-select
-            class="w-48"
+            class="w-full"
             [options]="medidas()"
             [ngModel]="sim.medidaDeComparacion()"
             (ngModelChange)="sim.medidaDeComparacion.set($event)"
@@ -218,7 +218,7 @@
         <fin-field [label]="i18n.t('planning.sim.compare.name')">
           <input
             hlmInput
-            class="w-48"
+            class="w-full"
             [ngModel]="nombreDeEscenario()"
             (ngModelChange)="nombreDeEscenario.set($event)"
             [placeholder]="i18n.t('planning.sim.compare.placeholder')"
@@ -255,7 +255,7 @@
           <span class="text-[0.75rem] text-muted-foreground">{{ metrica.label }}</span>
           <strong
             class="truncate text-[1.2rem]"
-            [class.text-emerald-600]="metrica.tono === 'bien'"
+            [class.text-success]="metrica.tono === 'bien'"
             [class.text-destructive]="metrica.tono === 'mal'"
             >{{ metrica.value }}</strong
           >
