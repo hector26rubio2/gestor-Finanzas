@@ -6,6 +6,8 @@ export interface Movement {
   accountId: string;
   category: string;
   kind: 'income' | 'expense' | 'payment';
+  effect?: 'income' | 'expense' | 'neutral';
+  anulado?: boolean;
   amount: number;
   status: 'confirmed' | 'pending';
   person?: string;

@@ -29,6 +29,15 @@ describe('extracto de tarjeta', () => {
     expect(compras.find((c) => c.id === 'mercado')?.pendiente).toBe(200_000);
   });
 
+  it('una compra anulada y su reverso no quedan pendientes', () => {
+    const compras = comprasPendientes([
+      mov({ id: 'anulada', date: '2026-09-03', amount: -500_000, anulado: true }),
+      mov({ id: 'reverso', date: '2026-09-04', amount: 500_000, anulado: true }),
+      mov({ id: 'mercado', date: '2026-09-05', amount: -300_000 }),
+    ]);
+    expect(compras.map((c) => c.id)).toEqual(['mercado']);
+  });
+
   it('un pago ya hecho respeta la prioridad propia de la tarjeta', () => {
     const movimientos = [
       mov({ id: 'contado', date: '2026-09-01', amount: -200_000 }),

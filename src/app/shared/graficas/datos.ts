@@ -1,4 +1,5 @@
 import type { Movement } from '@core/state';
+import { totalDeGastos, totalDeIngresos } from '@core/state/economia';
 import type { Agregado, Cruce, Dimension, Enlace, Granularidad, Measure, Nodo } from './modelo';
 
 export interface ContextoDeDatos {
@@ -119,11 +120,11 @@ export function valorDeMedida(filas: readonly Movement[], medida: Measure): numb
     case 'amount':
       return suma(filas.map((m) => Math.abs(m.amount)));
     case 'net':
-      return suma(filas.map((m) => m.amount));
+      return totalDeIngresos(filas) - totalDeGastos(filas);
     case 'expense':
-      return suma(filas.filter((m) => m.amount < 0).map((m) => -m.amount));
+      return totalDeGastos(filas);
     case 'income':
-      return suma(filas.filter((m) => m.amount > 0).map((m) => m.amount));
+      return totalDeIngresos(filas);
     case 'count':
       return filas.length;
     case 'average':

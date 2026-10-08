@@ -100,7 +100,7 @@ export class InspectorCard {
   ]);
   readonly cardStatementPurchases = computed(() => {
     const periodo = this.periodoActual();
-    const compras = this.movimientosDeTarjeta().filter((m) => m.kind === 'expense' && m.amount < 0);
+    const compras = this.movimientosDeTarjeta().filter((m) => !m.anulado && m.kind === 'expense' && m.amount < 0);
     const delPeriodo = periodo
       ? compras.filter((m) => m.date >= periodo.range.start && m.date <= periodo.range.end)
       : compras.filter((m) => m.date.slice(0, 7) === this.store.hoy().slice(0, 7));

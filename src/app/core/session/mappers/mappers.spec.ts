@@ -6,6 +6,7 @@ import type { ApiMovement } from '@core/api/ledger.api';
 import { CARD_BUCKET } from '@core/api/card-buckets';
 import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils/movement-kinds';
+import { totalDeGastos, totalDeIngresos } from '@core/state/economia';
 
 function notificacion(payloadJson: string): ApiNotification {
   return { id: 'n1', kind: 'aviso', title: 'Aviso', payloadJson, readAt: null, createdAt: '2026-01-01' };
@@ -69,5 +70,47 @@ describe('concepto de los cargos de tarjeta', () => {
       cargo(MovementKind.cardPurchase, CARD_BUCKET.zeroRatePurchases),
     );
     expect(compra.cardBucket).toBe(CARD_BUCKET.zeroRatePurchases);
+  });
+});
+
+describe('reversos y efecto económico', () => {
+  const gasto = (cambios: Partial<ApiMovement> = {}): ApiMovement => ({
+    id: 'g1',
+    date: '2026-09-25',
+    kind: MovementKind.expense,
+    effect: 2,
+    flow: 2,
+    amount: {
+      original: { amount: '100000', currency: 'COP' },
+      base: { amount: '100000', currency: 'COP' },
+      rate: '1',
+      rateAsOf: '2026-09-25',
+    },
+    links: { account: 'cuenta-1' },
+    linkNames: {},
+    origin: 0,
+    description: 'Mercado',
+    createdAt: '2026-09-25T12:00:00Z',
+    reversalOf: null,
+    reversedBy: null,
+    purchaseApr: null,
+    ...cambios,
+  });
+  const i18n = { t: (clave: string) => clave } as unknown as I18nService;
+
+  it('el reverso invierte el signo para que el gasto y su reverso sumen cero', () => {
+    const original = toMovement(i18n, EMPTY_KIND_CATALOG, gasto({ reversedBy: 'g2' }));
+    const reverso = toMovement(i18n, EMPTY_KIND_CATALOG, gasto({ id: 'g2', reversalOf: 'g1' }));
+    expect(original.amount).toBe(-100000);
+    expect(reverso.amount).toBe(100000);
+    expect(totalDeGastos([original, reverso])).toBe(0);
+  });
+
+  it('el efecto viene del API y define gasto e ingreso', () => {
+    const transferencia = toMovement(i18n, EMPTY_KIND_CATALOG, gasto({ effect: 0, kind: MovementKind.transferOut }));
+    const ingreso = toMovement(i18n, EMPTY_KIND_CATALOG, gasto({ effect: 1, flow: 1, kind: MovementKind.income }));
+    expect(transferencia.effect).toBe('neutral');
+    expect(totalDeGastos([transferencia])).toBe(0);
+    expect(totalDeIngresos([ingreso])).toBe(100000);
   });
 });

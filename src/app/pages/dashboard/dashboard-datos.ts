@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient } from '@core/api';
 import { parseMoney, sumBy } from '@core/utils';
 import { I18nService } from '@core/i18n';
-import { AppStore } from '@core/state';
+import { AppStore, esGasto, montoDeGasto, montoDeIngreso, totalDeGastos, totalDeIngresos } from '@core/state';
 import type { Movement } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { UiOption } from '@ui/select';
@@ -112,7 +112,7 @@ export class DatosDelTablero {
     [
       ...new Set(
         this.base()
-          .filter((m) => m.kind === 'expense' && !m.movementSubtype)
+          .filter(esGasto)
           .map((m) => m.category),
       ),
     ].sort(),
@@ -125,23 +125,17 @@ export class DatosDelTablero {
   readonly income = computed(() => {
     const remoto = this.remoteAplicable();
     if (remoto) return parseMoney(remoto.period.income);
-    return sumBy(
-      this.movements().filter((m) => m.kind === 'income' && !m.movementSubtype),
-      (m) => Math.max(0, m.amount),
-    );
+    return totalDeIngresos(this.movements());
   });
   readonly expense = computed(() => {
     const remoto = this.remoteAplicable();
     if (remoto) return parseMoney(remoto.period.expense);
-    return sumBy(
-      this.movements().filter((m) => m.kind === 'expense' && !m.movementSubtype),
-      (m) => -Math.min(0, m.amount),
-    );
+    return totalDeGastos(this.movements());
   });
   readonly net = computed(() => {
     const remoto = this.remoteAplicable();
     if (remoto) return parseMoney(remoto.period.net);
-    return sumBy(this.movements(), (m) => m.amount);
+    return totalDeIngresos(this.movements()) - totalDeGastos(this.movements());
   });
 
   private readonly remoteAplicable = computed(() => {
@@ -160,8 +154,8 @@ export class DatosDelTablero {
         }))
       : this.movements().map((m) => ({
           date: m.date,
-          income: m.kind === 'income' && !m.movementSubtype && m.amount > 0 ? m.amount : 0,
-          expense: m.kind === 'expense' && !m.movementSubtype && m.amount < 0 ? -m.amount : 0,
+          income: montoDeIngreso(m),
+          expense: montoDeGasto(m),
         }));
     const map = new Map<string, { key: string; label: string; income: number; expense: number }>();
     for (const m of puntos) {
@@ -187,13 +181,8 @@ export class DatosDelTablero {
   readonly categoryDistribution = computed(() => {
     const totals = new Map<string, number>();
     for (const m of this.movements())
-      if (
-        m.kind === 'expense' &&
-        !m.movementSubtype &&
-        m.amount < 0 &&
-        (this.localCategory() === 'all' || m.category === this.localCategory())
-      )
-        totals.set(m.category, (totals.get(m.category) ?? 0) - m.amount);
+      if (esGasto(m) && (this.localCategory() === 'all' || m.category === this.localCategory()))
+        totals.set(m.category, (totals.get(m.category) ?? 0) + montoDeGasto(m));
     const total = sumBy([...totals.values()], (value) => value),
       colors = ['#4f46e5', '#e11d48', '#d97706', '#0ea5e9', '#0d9488', '#64748b'];
     return [...totals]
@@ -210,12 +199,7 @@ export class DatosDelTablero {
       .map((a) => ({
         ...a,
         typeLabel: this.deps.typeLabel(a.type),
-        amount: -sumBy(
-          this.movements().filter(
-            (m) => m.accountId === a.id && m.kind === 'expense' && !m.movementSubtype && m.amount < 0,
-          ),
-          (m) => m.amount,
-        ),
+        amount: totalDeGastos(this.movements().filter((m) => m.accountId === a.id)),
       }))
       .filter((a) => a.amount > 0)
       .sort((a, b) => b.amount - a.amount),

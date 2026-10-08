@@ -1,5 +1,5 @@
 import { Signal, computed, inject, signal } from '@angular/core';
-import { Movement } from '@core/state';
+import { Movement, esEconomico } from '@core/state';
 import { PuntoDeFlujo, variacion } from '@shared/historia';
 import { P } from '@core/session';
 import { sumBy } from '@core/utils';
@@ -170,7 +170,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
   }
   kpiValue(formula: KpiFormula): number {
     const movs = this.movements();
-    const economicos = movs.filter((m) => !m.movementSubtype && m.kind !== 'payment');
+    const economicos = movs.filter(esEconomico);
     if (formula === 'savingsRate' || formula === 'expenseShare') {
       const ingreso = this.income();
       if (ingreso <= 0) return 0;

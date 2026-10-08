@@ -165,7 +165,7 @@ export function buildWidgetCatalog(i18n: I18nService): Widget[] {
       kicker: i18n.t('dashboard.widget.gallery.kicker'),
       type: 'table',
       dimension: 'person',
-      measure: 'amount',
+      measure: 'expense',
       wide: false,
     },
     {

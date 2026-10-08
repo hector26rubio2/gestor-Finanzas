@@ -5,8 +5,17 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { ExploradorDeReportesComponent } from './explorador/explorador';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
-import type { Account, Movement } from '@core/state';
-import { CAPABILITIES, AppStore } from '@core/state';
+import type { Account } from '@core/state';
+import {
+  CAPABILITIES,
+  AppStore,
+  esEconomico,
+  esGasto,
+  montoDeGasto,
+  montoDeIngreso,
+  totalDeGastos,
+  totalDeIngresos,
+} from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { addMonthsToIso, downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
 import { HeaderActionsService } from '@shared/header-actions.service';
@@ -19,8 +28,6 @@ import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
-
-const esEconomico = (movement: Movement) => !movement.movementSubtype && movement.kind !== 'payment';
 
 @Component({
   selector: 'app-reports-tab',
@@ -92,15 +99,10 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly cargando = this.delPeriodo.cargando;
   readonly reportMovements = this.delPeriodo.movimientos;
   private readonly economicos = computed(() => this.reportMovements().filter(esEconomico));
-  private readonly gastos = computed(() => this.economicos().filter((movement) => movement.amount < 0));
+  private readonly gastos = computed(() => this.economicos().filter(esGasto));
 
-  readonly reportIncome = computed(() =>
-    sumBy(
-      this.economicos().filter((movement) => movement.amount > 0),
-      (movement) => movement.amount,
-    ),
-  );
-  readonly reportExpenses = computed(() => -sumBy(this.gastos(), (movement) => movement.amount));
+  readonly reportIncome = computed(() => totalDeIngresos(this.economicos()));
+  readonly reportExpenses = computed(() => totalDeGastos(this.gastos()));
   readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
   readonly reportSavingsRate = computed(() =>
     this.reportIncome() ? `${Math.round((this.reportNet() / this.reportIncome()) * 100)} %` : '0 %',
@@ -119,8 +121,8 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     for (const movement of this.economicos()) {
       const mes = movement.date.slice(0, 7);
       const valores = agrupados.get(mes) ?? { income: 0, expense: 0 };
-      if (movement.amount >= 0) valores.income += movement.amount;
-      else valores.expense -= movement.amount;
+      valores.income += montoDeIngreso(movement);
+      valores.expense += montoDeGasto(movement);
       agrupados.set(mes, valores);
     }
     const nombre = this.nombreDeMes();
@@ -138,7 +140,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly reportCategories = computed(() => {
     const totales = new Map<string, number>();
     for (const movement of this.gastos())
-      totales.set(movement.category, (totales.get(movement.category) ?? 0) - movement.amount);
+      totales.set(movement.category, (totales.get(movement.category) ?? 0) + montoDeGasto(movement));
     const total = sumBy([...totales.values()], (valor) => valor);
     return [...totales.entries()]
       .sort(([, izquierda], [, derecha]) => derecha - izquierda)
@@ -244,10 +246,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     const total = this.reportExpenses();
     const lista: string[] = [];
     if (total > 0) {
-      const fijos = -sumBy(
-        this.gastos().filter((movement) => !!movement.recurring),
-        (movement) => movement.amount,
-      );
+      const fijos = totalDeGastos(this.gastos().filter((movement) => !!movement.recurring));
       lista.push(t('reports.insights.variableShare', { percent: Math.round(((total - fijos) / total) * 100) }));
     } else {
       lista.push(t('reports.insights.noExpenses'));
@@ -276,7 +275,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     const porMes = (mes: string) => {
       const totales = new Map<string, number>();
       for (const movement of this.gastos().filter((m) => m.date.startsWith(mes)))
-        totales.set(movement.category, (totales.get(movement.category) ?? 0) - movement.amount);
+        totales.set(movement.category, (totales.get(movement.category) ?? 0) + montoDeGasto(movement));
       return totales;
     };
     const antes = porMes(anterior);
