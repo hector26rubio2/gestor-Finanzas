@@ -1,10 +1,10 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { ApiMovement, FinanceApiClient, monthRange } from '@core/api';
+import { FinanceApiClient, monthRange } from '@core/api';
 import { UiOption } from '@ui/select';
-import { P } from '@core/session';
+import { P, toMovement } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
-import { parseMoney, classifyFamily, signOf } from '@core/utils';
+import { parseMoney } from '@core/utils';
 import { TABLE_ALL_FIELDS, TableFilter } from '@ui/data-table';
 import { I18nService } from '@core/i18n';
 import type { Account } from '@core/state';
@@ -28,6 +28,7 @@ export class MovementsBookService {
     return this.capabilities.allows(permiso);
   }
   private movementRequest = 0;
+  private readonly cursores = new Map<number, string>();
 
   readonly pinned = signal<readonly TableFilter[]>([]);
   readonly accountTypeOptions = computed<readonly UiOption[]>(() => [
@@ -178,15 +179,22 @@ export class MovementsBookService {
     return id === 'all' ? null : (this.store.account(id) ?? { id, type: 'savings' as const });
   }
 
+  private cursorPara(page: number): string | undefined {
+    const siguiente = page === this.store.remoteMovementPage() + 1 ? this.store.remoteMovementCursor() : null;
+    return this.cursores.get(page) ?? siguiente ?? undefined;
+  }
+
   async loadMovementPage(page: number): Promise<void> {
     if (!this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
     this.movementsLoading.set(true);
+    if (page === 1) this.cursores.clear();
     try {
       const period = this.store.period();
       const result = await firstValueFrom(
         this.api.movements({
           page,
+          after: this.cursorPara(page),
           pageSize: this.store.remoteMovementSize(),
           search: this.store.query() || undefined,
           accountId: this.cuentaFiltrada()?.type === 'credit' ? undefined : this.cuentaFiltrada()?.id,
@@ -198,16 +206,25 @@ export class MovementsBookService {
         }),
       );
       if (request !== this.movementRequest) return;
+      const catalogo = this.store.kindCatalog();
       this.store.data.update((data) => ({
         ...data,
-        movements: result.items.map((item) => this.toRemoteMovement(item)),
+        movements: result.items.map((item) => toMovement(this.i18n, catalogo, item)),
       }));
-      this.store.remoteMovementPage.set(result.page);
+      if (result.nextCursor) this.cursores.set(page + 1, result.nextCursor);
+      this.store.remoteMovementCursor.set(result.nextCursor ?? null);
+      this.store.remoteMovementPage.set(page);
       this.store.remoteMovementSize.set(result.size);
-      this.store.remoteMovementTotal.set(result.total);
+      if (result.total !== null) this.store.remoteMovementTotal.set(result.total);
+      if (result.totals)
+        this.store.remoteMovementTotals.set({
+          income: parseMoney(result.totals.income),
+          expense: parseMoney(result.totals.expense),
+        });
+      else if (page === 1) this.store.remoteMovementTotals.set(null);
     } catch (error) {
       if (request !== this.movementRequest) return;
-      this.store.toast.set(error instanceof Error ? error.message : 'No se pudo cargar la página solicitada.');
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('movements.error.loadPage'));
     } finally {
       if (request === this.movementRequest) this.movementsLoading.set(false);
     }
@@ -215,23 +232,6 @@ export class MovementsBookService {
   changeMovementPageSize(size: number): void {
     this.store.remoteMovementSize.set(size);
     void this.loadMovementPage(1);
-  }
-  private toRemoteMovement(source: ApiMovement): import('@core/state/view-model').Movement {
-    const amount = parseMoney(source.amount.base) * signOf(source.flow, source.effect);
-    const family = this.store.kindCatalog().family(source.kind, source.effect, source.flow);
-    return {
-      id: source.id,
-      date: source.date,
-      description: source.description ?? this.i18n.t('movements.fallback.noDescription'),
-      accountId: source.links['account'] ?? source.links['card'] ?? '',
-      category: source.linkNames['category']?.name ?? this.i18n.t('movements.fallback.noCategory'),
-      ...classifyFamily(family, amount),
-      amount,
-      status: 'confirmed',
-      person: source.linkNames['counterparty']?.name,
-      ownership: source.links['counterparty'] ? 'loaned' : 'own',
-      recurring: Boolean(source.links['recurrence']),
-    };
   }
   inspectMovement(row: Record<string, unknown>): void {
     this.store.inspect('movement', String(row['id']));

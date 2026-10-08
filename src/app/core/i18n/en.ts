@@ -1065,6 +1065,7 @@ export default {
   'reports.csv.periodRow': 'Period;{months} months',
   'reports.exportToast': 'Report exported.',
   'movements.exportToast': '{count} movements exported.',
+  'movements.error.loadPage': 'Could not load the requested page.',
   'toast.category.created': 'Category {name} created.',
   'toast.category.updated': 'Category {name} updated.',
   'toast.person.created': 'Person {name} created.',

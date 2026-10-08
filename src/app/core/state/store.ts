@@ -85,6 +85,8 @@ export class AppStore {
   readonly remoteMovementPage = signal(1);
   readonly remoteMovementSize = signal(25);
   readonly remoteMovementTotal = signal(0);
+  readonly remoteMovementCursor = signal<string | null>(null);
+  readonly remoteMovementTotals = signal<{ readonly income: number; readonly expense: number } | null>(null);
   readonly featureFlags = signal<Record<string, boolean>>(this.data().featureFlags);
   readonly featureFlagsLoaded = signal(false);
   readonly kindCatalog = signal(EMPTY_KIND_CATALOG);

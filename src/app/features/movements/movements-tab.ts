@@ -96,8 +96,12 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
     const punto = this.totalDelPeriodo()[0];
     return sinFiltros && punto && !punto.movs ? punto : null;
   });
-  readonly ingresosMostrados = computed(() => this.totalesDelServidor()?.income ?? this.store.income());
-  readonly gastosMostrados = computed(() => this.totalesDelServidor()?.expense ?? this.store.expense());
+  readonly ingresosMostrados = computed(
+    () => this.store.remoteMovementTotals()?.income ?? this.totalesDelServidor()?.income ?? this.store.income(),
+  );
+  readonly gastosMostrados = computed(
+    () => this.store.remoteMovementTotals()?.expense ?? this.totalesDelServidor()?.expense ?? this.store.expense(),
+  );
   readonly registrosMostrados = computed(() => this.store.remoteMovementTotal());
   readonly historiaEtiqueta = computed(() => this.i18n.t('kpi.history.month', { count: PERIODOS_DE_HISTORIA }));
   readonly variacion = variacion;
@@ -123,7 +127,8 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
     return this.capabilities.allows(permiso);
   }
   hintDe(kpi: MovementsKpi): string {
-    if (this.totalesDelServidor() && (kpi === 'income' || kpi === 'expense')) return 'movements.kpi.selectionHint';
+    const totalesExactos = this.store.remoteMovementTotals() ?? this.totalesDelServidor();
+    if (totalesExactos && (kpi === 'income' || kpi === 'expense')) return 'movements.kpi.selectionHint';
     if (kpi === 'records') return 'movements.kpi.selectionHint';
     return movementsKpiHintKey(kpi);
   }

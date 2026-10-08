@@ -72,16 +72,19 @@ export function crearMovimientosDelPeriodo(rango: Signal<Rango | null>): Movimie
 
 async function traerTodos(api: FinanceApiClient, rango: Rango): Promise<{ movs: ApiMovement[]; completos: boolean }> {
   const movs: ApiMovement[] = [];
+  let cursor: string | undefined;
   for (let pagina = 1; pagina <= PAGINAS_MAXIMAS; pagina++) {
     const respuesta = await firstValueFrom(
       api.movements({
         page: pagina,
         pageSize: TAMANO_DE_PAGINA,
+        after: cursor,
         filter: { range: { start: rango.start, end: rango.end } },
       }),
     );
     movs.push(...respuesta.items);
     if (!respuesta.hasNext) return { movs, completos: true };
+    cursor = respuesta.nextCursor ?? undefined;
   }
   return { movs, completos: false };
 }

@@ -16,12 +16,14 @@ export async function traerMovimientosDeTarjetas(
 ): Promise<Movement[]> {
   if (!tarjetas.length) return [];
   const movimientos: Movement[] = [];
+  let cursor: string | undefined;
   for (let pagina = 1; pagina <= PAGINAS_MAXIMAS; pagina++) {
     const respuesta = await firstValueFrom(
-      api.movements({ page: pagina, pageSize: TAMANO_DE_PAGINA, filter: { cards: [...tarjetas] } }),
+      api.movements({ page: pagina, pageSize: TAMANO_DE_PAGINA, after: cursor, filter: { cards: [...tarjetas] } }),
     );
     movimientos.push(...respuesta.items.map((m) => toMovement(i18n, catalogo, m)));
     if (!respuesta.hasNext) break;
+    cursor = respuesta.nextCursor ?? undefined;
   }
   return movimientos;
 }

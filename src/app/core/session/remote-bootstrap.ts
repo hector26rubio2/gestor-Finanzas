@@ -8,7 +8,7 @@ import { toViewData } from './mappers/view-data.mapper';
 import { toViewUser } from './mappers/session.mapper';
 import { AppStore } from '@core/state/store';
 import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
-import { setCurrencyCatalog } from '@core/utils/money';
+import { parseMoney, setCurrencyCatalog } from '@core/utils/money';
 import { P } from './permissions';
 import { I18nService } from '@core/i18n/i18n.service';
 import { SaldosService } from './saldos.service';
@@ -158,7 +158,13 @@ export class RemoteBootstrap {
     );
     this.store.remoteMovementPage.set(raw.movements.page);
     this.store.remoteMovementSize.set(raw.movements.size);
-    this.store.remoteMovementTotal.set(raw.movements.total);
+    this.store.remoteMovementTotal.set(raw.movements.total ?? 0);
+    this.store.remoteMovementCursor.set(raw.movements.nextCursor ?? null);
+    this.store.remoteMovementTotals.set(
+      raw.movements.totals
+        ? { income: parseMoney(raw.movements.totals.income), expense: parseMoney(raw.movements.totals.expense) }
+        : null,
+    );
     this.store.categories.set(raw.categories);
     if (raw.preferences) {
       const preferences = raw.preferences;
