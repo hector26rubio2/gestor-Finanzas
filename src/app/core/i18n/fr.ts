@@ -1542,6 +1542,8 @@ export default {
   'command.footer.navigate': '↑↓ naviguer',
   'command.footer.choose': 'Entrée choisir',
   'command.footer.close': 'Échap fermer',
+  'command.shortcut': 'Raccourci : {keys}',
+  'command.footer.shortcuts': 'G aller à · N nouveau · / chercher',
   'admin.audit.trace.summary': "Cette action a laissé {events} entrées d'audit et {errors} erreurs.",
   'admin.errors.drawer.viewAction': "Voir tout ce qui s'est passé dans cette action",
   'charts.type.bar': 'Barres verticales',

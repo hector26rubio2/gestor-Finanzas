@@ -8,6 +8,7 @@ export interface Comando {
   label: string;
   hint?: string;
   palabras?: string;
+  atajo?: string;
   icon: IconName;
   run: () => void;
 }
@@ -27,6 +28,7 @@ export interface ContextoDeComandos {
 
 interface Receta {
   id: string;
+  atajo?: string;
   clave: string;
   palabras: string;
   icon: IconName;
@@ -38,6 +40,7 @@ interface Receta {
 const MOVIMIENTOS: readonly Receta[] = [
   {
     id: 'crear-gasto',
+    atajo: 'n g',
     clave: 'command.create.expense',
     palabras: 'gasto compra pago nuevo expense purchase',
     icon: 'trendDown',
@@ -46,6 +49,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-ingreso',
+    atajo: 'n i',
     clave: 'command.create.income',
     palabras: 'ingreso salario venta income salary',
     icon: 'trendUp',
@@ -54,6 +58,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-transferencia',
+    atajo: 'n t',
     clave: 'command.create.transfer',
     palabras: 'transferencia mover cuentas transfer',
     icon: 'movements',
@@ -62,6 +67,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-recibida',
+    atajo: 'n r',
     clave: 'command.create.received',
     palabras: 'transferencia recibida me enviaron received',
     icon: 'download',
@@ -70,6 +76,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-avance',
+    atajo: 'n a',
     clave: 'command.create.advance',
     palabras: 'avance efectivo tarjeta cash advance',
     icon: 'accounts',
@@ -79,6 +86,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-pago-tarjeta',
+    atajo: 'n p',
     clave: 'command.create.cardPayment',
     palabras: 'pago tarjeta abono extracto card payment',
     icon: 'check',
@@ -87,6 +95,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-prestamo',
+    atajo: 'n l',
     clave: 'command.create.loanGiven',
     palabras: 'prestamo presté prestar loan lend',
     icon: 'people',
@@ -95,6 +104,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-prestamo-recibido',
+    atajo: 'n b',
     clave: 'command.create.loanReceived',
     palabras: 'prestamo me prestaron deuda borrowed',
     icon: 'people',
@@ -103,6 +113,7 @@ const MOVIMIENTOS: readonly Receta[] = [
   },
   {
     id: 'crear-credito',
+    atajo: 'n k',
     clave: 'command.create.credit',
     palabras: 'credito banco hipotecario vehiculo libre inversion loan bank',
     icon: 'wallet',
@@ -114,6 +125,7 @@ const MOVIMIENTOS: readonly Receta[] = [
 const REGISTROS: readonly Receta[] = [
   {
     id: 'crear-cuenta',
+    atajo: 'n c',
     clave: 'command.create.account',
     palabras: 'cuenta ahorro efectivo billetera account',
     icon: 'wallet',
@@ -182,7 +194,14 @@ const TEMAS: readonly { tema: Preferences['theme']; clave: string }[] = [
 function construir(recetas: readonly Receta[], c: ContextoDeComandos): Comando[] {
   return recetas
     .filter((r) => r.permisos.every((permiso) => c.permite(permiso)) && (!r.bandera || c.bandera(r.bandera)))
-    .map((r) => ({ id: r.id, label: c.t(r.clave), palabras: r.palabras, icon: r.icon, run: () => r.run(c) }));
+    .map((r) => ({
+      id: r.id,
+      label: c.t(r.clave),
+      palabras: r.palabras,
+      atajo: r.atajo,
+      icon: r.icon,
+      run: () => r.run(c),
+    }));
 }
 
 export function comandosDeMovimiento(c: ContextoDeComandos): Comando[] {

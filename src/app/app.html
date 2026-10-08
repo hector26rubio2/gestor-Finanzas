@@ -280,6 +280,6 @@
 <app-bug-report />
 } } @placeholder {
 <ng-container *ngTemplateOutlet="cargando" />
-} } @if (paleta.solicitada()) { @defer {
+} } @if (store.user() && !enLogin()) { @defer (on idle; when paleta.solicitada()) {
 <fin-command-palette />
 } }
