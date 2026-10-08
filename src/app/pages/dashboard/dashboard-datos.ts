@@ -35,7 +35,9 @@ export class DatosDelTablero {
     sincronizarConLaUrl('tipo', this.accountType, 'all', (v) => ['all', 'credit', 'savings', 'cash'].includes(v)),
     sincronizarConLaUrl('categoria', this.globalCategory, 'all'),
   ];
-  readonly allCategories = computed(() => [...new Set(this.store.data().movements.map((m) => m.category))].sort());
+  readonly allCategories = computed(() =>
+    [...new Set(this.store.categories().map((categoria) => categoria.name))].sort((a, b) => a.localeCompare(b)),
+  );
   readonly accountOptions = computed(() =>
     this.store.data().accounts.filter((a) => this.accountType() === 'all' || a.type === this.accountType()),
   );

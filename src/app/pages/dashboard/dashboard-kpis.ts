@@ -91,7 +91,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
   readonly filterValueOptions = computed<readonly UiOption[]>(() => {
     const dimension = this.newKpiDimension();
     if (dimension === 'none') return [];
-    const valores = new Set(this.store.data().movements.map((m) => this.dimensionKey(m, dimension).label));
+    const valores = new Set(this.movements().map((m) => this.dimensionKey(m, dimension).label));
     return [...valores].sort((a, b) => a.localeCompare(b)).map((valor) => ({ value: valor, label: valor }));
   });
   readonly usedKpiKeys = computed(

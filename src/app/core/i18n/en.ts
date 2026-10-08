@@ -94,10 +94,11 @@ export default {
   'movements.kpi.page.income.hint': 'Income from the loaded page; change filters or page to see others.',
   'movements.kpi.page.expense.hint': 'Expenses from the loaded page; change filters or page to see others.',
   'movements.kpi.page.records.hint': 'Records from the loaded page; change filters or page to see others.',
-  'movements.kpi.page.recurring.hint': 'Recurring from the loaded page; change filters or page to see others.',
+  'movements.kpi.page.recurring.hint':
+    'Recurring expenses for the selected period and account ("all" uses the last 12 months).',
   'movements.kpi.page.installments.hint':
-    '{name} · of {total} in total, from the loaded page; change filters or page to see others.',
-  'movements.kpi.page.topCategory.hint': '{amount} · from the loaded page; change filters or page to see others.',
+    '{name} · of {total} in total, in the selected period ("all" uses the last 12 months).',
+  'movements.kpi.page.topCategory.hint': '{amount} · in the selected period ("all" uses the last 12 months).',
   'movements.kpi.installments.label': 'Installments left',
   'movements.kpi.installments.value': '{count} installments',
   'movements.kpi.installments.hint': '{name} · of {total} in total',

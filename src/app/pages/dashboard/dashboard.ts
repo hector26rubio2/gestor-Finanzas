@@ -239,7 +239,7 @@ export class DashboardComponent extends DashboardKpis {
   }
   readonly selectedMovement = computed(() => {
     const s = this.store.inspector();
-    return s?.type === 'movement' ? this.store.data().movements.find((m) => m.id === s.id) : undefined;
+    return s?.type === 'movement' ? this.store.movimiento(s.id) : undefined;
   });
   readonly columns = computed(() => [
     { key: 'date', label: this.i18n.t('dashboard.detail.date') },

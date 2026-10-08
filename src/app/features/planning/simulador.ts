@@ -89,7 +89,7 @@ export class SimuladorDePlanificacion {
     deudasActuales(
       this.store.data().accounts,
       this.store.data().people,
-      this.store.data().movements,
+      this.movimientosDeTarjetas() ?? [],
       (c) => this.store.balance(c),
       this.obligaciones(),
       this.hoy(),

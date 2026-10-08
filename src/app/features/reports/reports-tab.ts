@@ -8,8 +8,9 @@ import { P } from '@core/session';
 import type { Account, Movement } from '@core/state';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
-import { downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
+import { addMonthsToIso, downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
 import { HeaderActionsService } from '@shared/header-actions.service';
+import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { compactMoney as formatCompactMoney, SIN_DATO } from '@shared/utils';
 import { ChartComponent, ChartThemeService, anillo, barrasAgrupadas, lineaConCero, medidor } from '@ui/chart';
@@ -76,15 +77,20 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     ['3', '6', '12'].includes(v),
   );
 
-  private readonly periodos = computed(() =>
-    [...new Set(this.store.data().movements.map((movement) => movement.date.slice(0, 7)))]
-      .sort()
-      .slice(-Number(this.reportPeriod())),
-  );
-  readonly reportMovements = computed(() => {
-    const periodos = new Set(this.periodos());
-    return this.store.data().movements.filter((movement) => periodos.has(movement.date.slice(0, 7)));
+  private readonly periodos = computed(() => {
+    const hoy = this.store.hoy();
+    const meses = Number(this.reportPeriod());
+    return Array.from({ length: meses }, (_, indice) =>
+      addMonthsToIso(`${hoy.slice(0, 7)}-01`, indice - meses + 1).slice(0, 7),
+    );
   });
+  private readonly rangoDelReporte = computed<Rango>(() => ({
+    start: `${this.periodos()[0]}-01`,
+    end: this.store.hoy(),
+  }));
+  private readonly delPeriodo = crearMovimientosDelPeriodo(this.rangoDelReporte);
+  readonly cargando = this.delPeriodo.cargando;
+  readonly reportMovements = this.delPeriodo.movimientos;
   private readonly economicos = computed(() => this.reportMovements().filter(esEconomico));
   private readonly gastos = computed(() => this.economicos().filter((movement) => movement.amount < 0));
 
@@ -107,7 +113,9 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   });
 
   readonly reportSeries = computed(() => {
-    const agrupados = new Map<string, { income: number; expense: number }>();
+    const agrupados = new Map<string, { income: number; expense: number }>(
+      this.periodos().map((mes) => [mes, { income: 0, expense: 0 }]),
+    );
     for (const movement of this.economicos()) {
       const mes = movement.date.slice(0, 7);
       const valores = agrupados.get(mes) ?? { income: 0, expense: 0 };

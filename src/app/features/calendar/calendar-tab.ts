@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, effect, signal, untracked, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -94,10 +94,6 @@ export class CalendarTabComponent implements OnInit {
   });
   private readonly delRango = crearMovimientosDelPeriodo(this.rangoVisible);
   readonly cargandoRango = this.delRango.cargando;
-  private readonly recordarDelRango = effect(() => {
-    const movimientos = this.delRango.movimientos();
-    untracked(() => this.store.recordarMovimientos(movimientos));
-  });
   readonly visibleCalendarDays = computed(() => {
     const view = this.calendarView();
     const days = this.calendarDays();
