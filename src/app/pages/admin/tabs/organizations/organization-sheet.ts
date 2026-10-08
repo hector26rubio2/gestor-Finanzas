@@ -1,15 +1,5 @@
 import { IconComponent } from '@ui/icon';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -38,7 +28,6 @@ import { AdminFlagsStore } from '@pages/admin/stores/admin-flags.store';
     OptionRowComponent,
     SheetPanelComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
       [open]="!!organization()"

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { DataTableComponent } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
@@ -13,7 +13,6 @@ import { ChartCardComponent, ChartThemeService, anillo, barrasHorizontales } fro
 @Component({
   selector: 'app-portfolio-tab',
   imports: [ChartCardComponent, DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './portfolio-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })

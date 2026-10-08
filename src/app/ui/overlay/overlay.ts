@@ -1,7 +1,7 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { NgScrollbar } from 'ngx-scrollbar';
-import { ChangeDetectionStrategy, Component, inject, input, output } from '@angular/core';
+import { Component, inject, input, output } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
@@ -19,7 +19,6 @@ import { IconComponent } from '@ui/icon/icon';
     HlmSheetImports,
     IconComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <ng-template #body><ng-content /></ng-template>
     @if (mode() === 'modal') {

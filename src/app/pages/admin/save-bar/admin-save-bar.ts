@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon';
@@ -8,7 +8,6 @@ import { AdminCommands } from '@pages/admin/stores/admin-commands';
 @Component({
   selector: 'app-admin-save-bar',
   imports: [HlmButton, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'sticky bottom-4 z-30 block' },
   template: `
     @if (store.dirty() || store.failures().length) {

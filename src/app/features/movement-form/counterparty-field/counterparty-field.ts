@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, inject, signal } from '@angular/core';
+import { Component, Input, inject, signal, input } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -15,14 +15,13 @@ import { CounterpartyScope } from '@features/movement-form/movement-visibility-b
 @Component({
   selector: 'fin-movement-counterparty-field',
   imports: [FormsModule, UiSelectComponent, FieldComponent, HlmButton, HlmInput, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './counterparty-field.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
 })
 export class MovementCounterpartyFieldComponent {
   @Input({ required: true }) model!: Record<string, any>;
-  @Input({ required: true }) scope!: CounterpartyScope;
+  readonly scope = input.required<CounterpartyScope>();
 
   private readonly store = inject(AppStore);
 
@@ -45,11 +44,14 @@ export class MovementCounterpartyFieldComponent {
   opciones(): readonly UiOption[] {
     const personas = this.store
       .data()
-      .people.filter((persona) => this.scope === 'any' || (persona.kind ?? 'person') === this.scope)
+      .people.filter((persona) => {
+        const scope = this.scope();
+        return scope === 'any' || (persona.kind ?? 'person') === scope;
+      })
       .map((persona) => ({
         value: persona.id,
         label:
-          this.scope === 'any' && persona.kind === 'institution'
+          this.scope() === 'any' && persona.kind === 'institution'
             ? `${persona.name} · ${this.i18n.t('people.kind.institution')}`
             : persona.name,
       }));
@@ -61,7 +63,7 @@ export class MovementCounterpartyFieldComponent {
   }
 
   private tipoNuevo(): PersonKind {
-    return this.scope === 'institution' ? 'institution' : 'person';
+    return this.scope() === 'institution' ? 'institution' : 'person';
   }
 
   textoAgregar(): string {

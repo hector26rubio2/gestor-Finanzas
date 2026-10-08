@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 
 export interface StatusBarRow {
   label: string;
@@ -11,7 +11,6 @@ export interface StatusBarRow {
   selector: 'fin-status-bars',
   host: { class: 'flex flex-1' },
   templateUrl: './status-bars.html',
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class StatusBarsComponent {
   readonly rows = input<readonly StatusBarRow[]>([]);

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -15,7 +15,6 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
 @Component({
   selector: 'app-admin-permission-catalog',
   imports: [FormsModule, HlmButton, HlmInput, IconComponent, AdminPanelComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-admin-panel
       [title]="i18n.t('admin.permissions.catalog.title')"

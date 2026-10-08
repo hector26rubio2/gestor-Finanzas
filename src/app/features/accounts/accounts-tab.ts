@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CarruselComponent } from '@ui/carrusel';
 import { DataTableComponent } from '@ui/data-table';
@@ -48,7 +48,6 @@ import { addDaysToIso } from '@core/utils';
     TableZoneComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './accounts-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })

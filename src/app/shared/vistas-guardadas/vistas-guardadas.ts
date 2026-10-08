@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-  Injector,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked, Injector } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
@@ -50,7 +39,6 @@ type Panel = 'nuevo' | 'renombrar' | 'compartir' | null;
 @Component({
   selector: 'fin-vistas-guardadas',
   imports: [FormsModule, HlmButton, HlmCheckbox, HlmInput, ConfirmDialogComponent, IconComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'grid gap-2' },
   templateUrl: './vistas-guardadas.html',
 })

@@ -1,6 +1,6 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ChangeDetectionStrategy, Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, input } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { FieldComponent } from '@ui/field/field';
@@ -13,14 +13,13 @@ import { NumericInputDirective } from '@ui/numeric-input';
 @Component({
   selector: 'fin-movement-installment-fields',
   imports: [NumericInputDirective, HlmButton, HlmInput, FormsModule, FieldComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './installment-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
 })
 export class MovementInstallmentFieldsComponent {
   @Input({ required: true }) model!: Record<string, any>;
-  @Input() currentEditable = false;
+  readonly currentEditable = input(false);
   readonly i18n = inject(I18nService);
   private readonly store = inject(AppStore);
 

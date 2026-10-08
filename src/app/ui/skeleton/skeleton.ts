@@ -1,11 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { I18nService } from '@core/i18n';
 
 @Component({
   selector: 'fin-skeleton',
   imports: [HlmSkeleton],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block rounded-lg bg-card p-6' },
   template: `
     <span role="status" class="sr-only">{{ i18n.t('skeleton.loading') }}</span>

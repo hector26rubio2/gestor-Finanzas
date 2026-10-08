@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideSearch } from '@ng-icons/lucide';
 import { BrnCommandInput } from '@spartan-ng/brain/command';
@@ -9,7 +9,6 @@ import { classes } from '@spartan-ng/helm/utils';
   selector: 'hlm-command-input',
   imports: [HlmInputGroupImports, NgIcon, BrnCommandInput],
   providers: [provideIcons({ lucideSearch })],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'data-slot': 'command-input-wrapper',
   },

@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { Component, input } from '@angular/core';
 import { HlmFieldImports } from '@spartan-ng/helm/field';
 
 @Component({
   selector: 'fin-field',
   imports: [HlmFieldImports],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'contents' },
   template: `
     <div hlmField class="min-w-0 gap-2" [class.col-span-full]="full()" [attr.data-invalid]="error() ? true : null">

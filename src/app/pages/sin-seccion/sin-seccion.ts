@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { IconComponent } from '@ui/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { RouterLink } from '@angular/router';
@@ -9,7 +9,6 @@ import { I18nService } from '@core/i18n';
 @Component({
   selector: 'fin-sin-seccion',
   imports: [IconComponent, HlmButton, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './sin-seccion.html',
   host: {
     class:

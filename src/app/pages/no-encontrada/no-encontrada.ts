@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
@@ -6,7 +6,6 @@ import { I18nService } from '@core/i18n';
 @Component({
   selector: 'fin-no-encontrada',
   imports: [HlmButton, RouterLink],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class:
       'mx-auto my-12 grid max-w-[60ch] justify-items-start gap-3 rounded-lg border border-border bg-card p-8 text-foreground',

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 
 @Component({
   selector: 'fin-widget-card',
@@ -7,7 +7,6 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
     '[class]': 'hostClass()',
     '[class.col-span-full]': 'wide()',
   },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WidgetCardComponent {
   readonly kicker = input.required<string>();

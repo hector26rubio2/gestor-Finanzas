@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -38,7 +38,6 @@ export interface VistaEditable {
     ConfiguradorVisualComponent,
     GaleriaVisualComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-overlay [title]="titulo()" mode="modal" [wide]="true" (closed)="cerrar.emit()">
       <form class="grid gap-4" (submit)="enviar($event)">

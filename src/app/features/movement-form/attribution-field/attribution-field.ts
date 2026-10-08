@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, Input, computed, inject } from '@angular/core';
+import { Component, Input, computed, inject } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state/store';
@@ -8,7 +8,6 @@ import { UiOption, UiSelectComponent } from '@ui/select/select';
 @Component({
   selector: 'fin-movement-attribution-field',
   imports: [FormsModule, UiSelectComponent, FieldComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-field [label]="i18n.t('form.movement.field.person')">
       <fin-select

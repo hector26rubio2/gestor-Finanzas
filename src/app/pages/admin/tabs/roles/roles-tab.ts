@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
@@ -35,7 +35,6 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
     PermissionCatalogComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-admin-panel [title]="i18n.t('admin.roles.title')" [subtitle]="i18n.t('admin.roles.subtitle')">
       <div panelActions class="flex flex-wrap items-center gap-2">

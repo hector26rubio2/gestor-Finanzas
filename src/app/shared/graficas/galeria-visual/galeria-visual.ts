@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, inject, model } from '@angular/core';
+import { Component, inject, model } from '@angular/core';
 import { I18nService } from '@core/i18n';
 import { OpcionesDeGraficas } from '@shared/graficas/opciones-de-graficas';
 
 @Component({
   selector: 'fin-galeria-visual',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <div class="flex flex-col gap-3" role="radiogroup" [attr.aria-label]="i18n.t('charts.picker.label')">

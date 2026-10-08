@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmSwitch } from '@spartan-ng/helm/switch';
@@ -29,7 +29,6 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
     UiSelectComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-admin-panel [title]="i18n.t('admin.flags.title')" [subtitle]="i18n.t('admin.flags.hierarchyNote')">
       <div panelActions class="flex flex-wrap items-center gap-2">

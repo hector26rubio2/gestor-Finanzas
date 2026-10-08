@@ -1,15 +1,5 @@
 import { IconComponent } from '@ui/icon';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-  untracked,
-} from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -39,7 +29,6 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
     SheetPanelComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <fin-sheet-panel
       [wide]="true"

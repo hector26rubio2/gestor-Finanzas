@@ -1,13 +1,4 @@
-import {
-  AfterViewInit,
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  OnInit,
-  computed,
-  inject,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -56,7 +47,6 @@ const DIAS_MAXIMOS_DEL_RESUMEN = 3650;
     UiSelectComponent,
     SkeletonComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './movements-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })

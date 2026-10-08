@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
@@ -84,7 +84,6 @@ interface ReporteGuardado {
     UiSelectComponent,
     VistasGuardadasComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './explorador.html',
   host: { class: 'flex flex-col gap-3.5' },
 })

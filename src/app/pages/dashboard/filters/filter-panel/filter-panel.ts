@@ -4,7 +4,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmPopoverImports } from '@spartan-ng/helm/popover';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { IconComponent } from '@ui/icon';
-import { ChangeDetectionStrategy, Component, EventEmitter, Output, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { UiOption, UiSelectComponent } from '@ui/select';
@@ -40,7 +40,6 @@ const ANIOS_ATRAS = 15;
   ],
   templateUrl: './filter-panel.html',
   host: { style: 'display: contents' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class FilterPanelComponent {
   readonly scales = input.required<readonly { value: Scale; label: string }[]>();
@@ -107,17 +106,17 @@ export class FilterPanelComponent {
     else this.globalCategoryChange.emit(valor);
   }
 
-  @Output() readonly clear = new EventEmitter<void>();
-  @Output() readonly clearSelection = new EventEmitter<void>();
-  @Output() readonly scaleChange = new EventEmitter<Scale>();
-  @Output() readonly shiftPeriod = new EventEmitter<number>();
-  @Output() readonly togglePeriodPicker = new EventEmitter<void>();
-  @Output() readonly closePeriodPicker = new EventEmitter<void>();
-  @Output() readonly yearChange = new EventEmitter<string>();
-  @Output() readonly monthChange = new EventEmitter<string>();
-  @Output() readonly weekOfMonthChange = new EventEmitter<string>();
-  @Output() readonly dayChange = new EventEmitter<string>();
-  @Output() readonly accountIdChange = new EventEmitter<string>();
-  @Output() readonly accountTypeChange = new EventEmitter<string>();
-  @Output() readonly globalCategoryChange = new EventEmitter<string>();
+  readonly clear = output<void>();
+  readonly clearSelection = output<void>();
+  readonly scaleChange = output<Scale>();
+  readonly shiftPeriod = output<number>();
+  readonly togglePeriodPicker = output<void>();
+  readonly closePeriodPicker = output<void>();
+  readonly yearChange = output<string>();
+  readonly monthChange = output<string>();
+  readonly weekOfMonthChange = output<string>();
+  readonly dayChange = output<string>();
+  readonly accountIdChange = output<string>();
+  readonly accountTypeChange = output<string>();
+  readonly globalCategoryChange = output<string>();
 }

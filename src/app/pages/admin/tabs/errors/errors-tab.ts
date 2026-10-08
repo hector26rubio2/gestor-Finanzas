@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -31,7 +31,6 @@ import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
     UiSelectComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rounded-xl border border-border bg-card">
       <header class="flex flex-wrap items-end justify-between gap-3 p-4">

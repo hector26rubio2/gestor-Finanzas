@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -64,7 +64,6 @@ interface Metrica {
     FlujoDelPlanComponent,
   ],
   providers: [SimuladorDePlanificacion],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './planning-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -45,7 +45,6 @@ function sinTipo(config: ConfiguracionVisual): Omit<ConfiguracionVisual, 'tipo'>
     ConfiguradorVisualComponent,
     GaleriaVisualComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './creador-de-widget.html',
 })
 export class CreadorDeWidgetComponent {

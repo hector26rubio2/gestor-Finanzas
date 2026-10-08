@@ -1,12 +1,11 @@
 import { HlmScrollAreaImports } from '@spartan-ng/helm/scroll-area';
 import { NgScrollbar } from 'ngx-scrollbar';
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 
 @Component({
   selector: 'fin-sheet-panel',
   imports: [HlmSheetImports, NgScrollbar, HlmScrollAreaImports],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-sheet side="right" [state]="open() ? 'open' : 'closed'" (stateChanged)="onStateChanged($event)">
       <hlm-sheet-content

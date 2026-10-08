@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output, signal } from '@angular/core';
+import { Component, computed, inject, input, output, signal } from '@angular/core';
 import { HlmBadgeImports } from '@spartan-ng/helm/badge';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -22,7 +22,6 @@ export interface BulkChange {
 @Component({
   selector: 'app-permission-picker',
   imports: [FormsModule, HlmBadgeImports, HlmButton, HlmComboboxImports, IconComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-col gap-3' },
   template: `
     <hlm-combobox-multiple

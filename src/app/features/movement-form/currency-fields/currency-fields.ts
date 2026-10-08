@@ -1,5 +1,5 @@
 import { HlmInput } from '@spartan-ng/helm/input';
-import { ChangeDetectionStrategy, Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
+import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
@@ -10,7 +10,6 @@ import { FieldComponent } from '@ui/field/field';
 @Component({
   selector: 'fin-movement-currency-fields',
   imports: [HlmInput, FormsModule, NumericInputDirective, FieldComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './currency-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

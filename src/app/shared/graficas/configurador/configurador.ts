@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model } from '@angular/core';
+import { Component, computed, inject, input, model } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { I18nService } from '@core/i18n';
@@ -12,7 +12,6 @@ import { NumericInputDirective } from '@ui/numeric-input';
 @Component({
   selector: 'fin-configurador-visual',
   imports: [NumericInputDirective, FormsModule, HlmInput, FieldComponent, UiSelectComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'grid grid-cols-2 gap-3 max-[520px]:grid-cols-1' },
   template: `
     @if (conTipo()) {

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCalendar, lucideX } from '@ng-icons/lucide';
 import {
@@ -14,7 +14,6 @@ import { injectHlmDatePickerMultiConfig } from './hlm-date-picker-multi.token';
   selector: 'hlm-date-multi-input',
   imports: [HlmInputGroupImports, NgIcon],
   providers: [provideIcons({ lucideCalendar, lucideX }), provideBrnDatePickerTrigger(HlmDateMultiInput)],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [HlmInputGroup],
   template: `
     <input

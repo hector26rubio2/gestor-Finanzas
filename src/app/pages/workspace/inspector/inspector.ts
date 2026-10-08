@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { IconComponent } from '@ui/icon';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -43,7 +43,6 @@ import {
     OverlayComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './inspector.html',
 })
 export class InspectorComponent {

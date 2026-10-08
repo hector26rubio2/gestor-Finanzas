@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { lucideCheck } from '@ng-icons/lucide';
 import { BrnComboboxItem } from '@spartan-ng/brain/combobox';
@@ -8,7 +8,6 @@ import { classes } from '@spartan-ng/helm/utils';
   selector: 'hlm-combobox-item',
   imports: [NgIcon],
   providers: [provideIcons({ lucideCheck })],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   hostDirectives: [{ directive: BrnComboboxItem, inputs: ['id', 'disabled', 'value'] }],
   host: { 'data-slot': 'combobox-item' },
   template: `

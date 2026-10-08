@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { HlmPaginationImports } from '@spartan-ng/helm/pagination';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
@@ -17,7 +17,6 @@ export function paginasVisibles(actual: number, total: number): Pagina[] {
 @Component({
   selector: 'fin-pager',
   imports: [HlmPaginationImports, HlmButton],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground' },
   template: `
     <span>{{ summary() }}</span>

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { I18nService } from '@core/i18n';
 import { IconComponent, IconName } from '@ui/icon/icon';
 import { ChartComponent } from '@ui/chart/chart';
@@ -17,7 +17,6 @@ function suavizar(serie: readonly number[], puntos: number): number[] {
 @Component({
   selector: 'fin-kpi',
   imports: [ChartComponent, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './kpi.html',
   host: { '[class]': 'hostClass()' },
 })

@@ -1,14 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  computed,
-  effect,
-  forwardRef,
-  inject,
-  input,
-  signal,
-} from '@angular/core';
+import { Component, ElementRef, computed, effect, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmSelectImports } from '@spartan-ng/helm/select';
 import { I18nService } from '@core/i18n';
@@ -27,7 +17,6 @@ export interface UiOption {
   selector: 'fin-select',
   imports: [HlmSelectImports],
   providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => UiSelectComponent), multi: true }],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <hlm-select [value]="bound()" [disabled]="isDisabled()" [itemToString]="labelOf" (valueChange)="choose($event)">

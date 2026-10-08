@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { HlmBadge } from '@spartan-ng/helm/badge';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { I18nService } from '@core/i18n';
@@ -33,7 +33,6 @@ interface SummaryKpi {
     IconComponent,
   ],
   host: { class: 'flex min-w-0 flex-col gap-4' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="grid grid-cols-1 gap-4 min-[480px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-5">
       @for (kpi of kpis(); track kpi.label) {

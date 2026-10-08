@@ -1,15 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  ElementRef,
-  OnDestroy,
-  computed,
-  effect,
-  inject,
-  input,
-  output,
-  signal,
-} from '@angular/core';
+import { Component, ElementRef, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import * as echarts from 'echarts/core';
 import { BarChart, GaugeChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
 import {
@@ -54,7 +43,6 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 
 @Component({
   selector: 'fin-chart',
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block w-full',
     '[class.h-full]': 'llena()',

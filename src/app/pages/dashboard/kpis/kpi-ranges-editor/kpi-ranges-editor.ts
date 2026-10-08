@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, output, signal } from '@angular/core';
+import { Component, inject, input, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -22,7 +22,6 @@ import { NumericInputDirective } from '@ui/numeric-input';
     IconComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-popover [state]="abierto() ? 'open' : 'closed'" (stateChanged)="alCambiarEstado($event)">
       <button

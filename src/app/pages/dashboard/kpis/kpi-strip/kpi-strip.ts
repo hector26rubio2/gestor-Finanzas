@@ -1,15 +1,6 @@
 import { HlmButton } from '@spartan-ng/helm/button';
 import { CdkDropList, CdkDragDrop } from '@angular/cdk/drag-drop';
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Output,
-  computed,
-  inject,
-  input,
-  output,
-} from '@angular/core';
+import { Component, computed, inject, input, output } from '@angular/core';
 import { I18nService } from '@core/i18n';
 import { IconComponent, IconName } from '@ui/icon';
 import { KpiComponent } from '@ui/kpi';
@@ -57,7 +48,6 @@ export const CUSTOM_KPI_PREFIX = 'custom:';
   imports: [HlmButton, CdkDropList, FlowItemComponent, KpiComponent, IconComponent, KpiRangesEditorComponent],
   templateUrl: './kpi-strip.html',
   host: { style: 'display: contents' },
-  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class KpiStripComponent {
   readonly i18n = inject(I18nService);
@@ -72,8 +62,8 @@ export class KpiStripComponent {
   readonly resize = output<KpiResize>();
   readonly move = output<KpiMove>();
   readonly drop = output<{ from: number; to: number }>();
-  @Output() readonly removeKpi = new EventEmitter<string>();
-  @Output() readonly openCreator = new EventEmitter<void>();
+  readonly removeKpi = output<string>();
+  readonly openCreator = output<void>();
   readonly rangesChange = output<{ id: string; ranges: KpiRanges | null | undefined }>();
 
   private readonly cards = computed(() => {

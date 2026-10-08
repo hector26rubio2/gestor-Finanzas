@@ -12,7 +12,7 @@
     [ariaLabel]="sourceAccountLabel()"
   />
 </fin-field>
-@if (showTargetAccount) {
+@if (showTargetAccount()) {
 <fin-field [label]="targetAccountLabel()">
   <fin-select
     name="targetId"

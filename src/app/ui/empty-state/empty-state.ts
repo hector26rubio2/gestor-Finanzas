@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { HlmEmptyImports } from '@spartan-ng/helm/empty';
 import { I18nService } from '@core/i18n';
 import { IconComponent, IconName } from '@ui/icon/icon';
@@ -6,7 +6,6 @@ import { IconComponent, IconName } from '@ui/icon/icon';
 @Component({
   selector: 'fin-empty',
   imports: [HlmEmptyImports, IconComponent],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <div hlmEmpty class="min-h-[180px]">

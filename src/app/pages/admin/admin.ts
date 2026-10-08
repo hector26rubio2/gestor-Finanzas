@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { I18nService } from '@core/i18n';
 import { CAPABILITIES } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
@@ -17,6 +17,7 @@ import { UsersTabComponent } from './tabs/users/users-tab';
 
 @Component({
   selector: 'app-admin',
+  host: { '(window:beforeunload)': 'warnBeforeUnload($event)' },
   imports: [
     AdminSaveBarComponent,
     AuditTabComponent,
@@ -29,7 +30,6 @@ import { UsersTabComponent } from './tabs/users/users-tab';
     UsersTabComponent,
   ],
   providers: [ADMIN_STORE_PROVIDERS],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="flex w-full min-w-0 flex-col gap-4" data-page="admin">
       <header>
@@ -107,7 +107,6 @@ export class AdminComponent implements OnInit {
     resolve(allowed);
   }
 
-  @HostListener('window:beforeunload', ['$event'])
   warnBeforeUnload(event: BeforeUnloadEvent): void {
     if (this.store.dirty()) event.preventDefault();
   }

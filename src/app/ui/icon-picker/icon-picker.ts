@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, input, model, signal } from '@angular/core';
+import { Component, computed, inject, input, model, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -11,7 +11,6 @@ import { ICONOS_DE_CATEGORIA, NOMBRES_DE_ICONO, iconoDeCategoria } from '@ui/cat
   selector: 'fin-icon-picker',
   imports: [NgIcon, HlmButton, HlmInput, HlmPopoverImports, CategoryIconComponent],
   providers: [provideIcons(ICONOS_DE_CATEGORIA)],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <hlm-popover [state]="abierto() ? 'open' : 'closed'" (stateChanged)="abierto.set($event === 'open')">
       <button

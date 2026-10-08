@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
@@ -42,7 +42,6 @@ import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features
     KpiGridComponent,
     UiSelectComponent,
   ],
-  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './reports-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })
