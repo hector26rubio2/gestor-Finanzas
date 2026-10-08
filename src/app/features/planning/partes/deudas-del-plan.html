@@ -1,5 +1,5 @@
 <div class="grid gap-2">
-  <div class="flex items-center justify-between gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
     <h3 class="text-[0.8rem] font-semibold">{{ i18n.t('planning.sim.debts') }}</h3>
     <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarDeuda()">
       {{ i18n.t('planning.sim.debt.add') }}
@@ -7,13 +7,17 @@
   </div>
   @for (deuda of sim.deudasReales(); track deuda.id) {
   <article class="grid gap-2 rounded-md border border-border p-2.5" [class.opacity-50]="sim.excluidas().has(deuda.id)">
-    <label class="flex items-center gap-2 text-[0.78rem] font-medium">
-      <hlm-checkbox [checked]="!sim.excluidas().has(deuda.id)" (checkedChange)="sim.alternarDeuda(deuda.id, $event)" />
-      <span class="truncate">{{ deuda.nombre }}</span>
-      <small class="ml-auto text-muted-foreground">{{ i18n.t('planning.sim.kind.' + deuda.tipo) }}</small>
+    <label class="flex min-w-0 items-center gap-2 text-[0.78rem] font-medium">
+      <hlm-checkbox
+        [checked]="!sim.excluidas().has(deuda.id)"
+        [aria-label]="deuda.nombre"
+        (checkedChange)="sim.alternarDeuda(deuda.id, $event)"
+      />
+      <span class="min-w-0 truncate" [title]="deuda.nombre">{{ deuda.nombre }}</span>
+      <small class="ml-auto shrink-0 text-muted-foreground">{{ i18n.t('planning.sim.kind.' + deuda.tipo) }}</small>
     </label>
     @if (!sim.excluidas().has(deuda.id)) {
-    <div class="grid grid-cols-3 gap-2">
+    <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)] items-end gap-2">
       <fin-field [label]="i18n.t('planning.sim.field.balance')">
         <input
           hlmInput
@@ -61,7 +65,7 @@
         {{ i18n.t('planning.sim.remove') }}
       </button>
     </div>
-    <div class="grid grid-cols-3 gap-2">
+    <div class="grid grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,0.8fr)] items-end gap-2">
       <fin-field [label]="i18n.t('planning.sim.field.balance')">
         <input
           hlmInput

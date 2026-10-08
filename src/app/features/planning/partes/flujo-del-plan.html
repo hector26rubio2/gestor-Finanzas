@@ -34,7 +34,7 @@
     >
       <hlm-checkbox
         [checked]="sim.lineaVigente(linea.id, linea.monto).incluida"
-        [attr.aria-label]="linea.nombre"
+        [aria-label]="linea.nombre"
         (checkedChange)="sim.ajustarLinea(linea.id, { incluida: $event }, linea.monto)"
       />
       <span class="truncate text-[0.74rem]" [title]="linea.nombre">{{ linea.nombre }}</span>
@@ -64,10 +64,11 @@
     >
       <hlm-checkbox
         [checked]="!sim.recurrentesQuitados().has(recurrente.id)"
+        [aria-label]="recurrente.nombre"
         (checkedChange)="sim.alternarRecurrente(recurrente.id, !$event)"
       />
       <span class="flex-1 truncate">{{ recurrente.nombre }}</span>
-      <small [class.text-emerald-600]="recurrente.tipo === 'ingreso'"
+      <small [class.text-success]="recurrente.tipo === 'ingreso'"
         >{{ recurrente.tipo === 'ingreso' ? '+' : '−' }}{{ money(recurrente.monto) }}</small
       >
     </label>
