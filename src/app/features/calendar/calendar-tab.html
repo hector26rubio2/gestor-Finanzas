@@ -24,7 +24,7 @@
         role="group"
         [attr.aria-label]="i18n.t('calendar.nav.scaleAriaLabel')"
       >
-        @for (view of calendarViews; track view.value) {
+        @for (view of calendarViews(); track view.value) {
         <button
           hlmBtn
           variant="ghost"
@@ -58,7 +58,7 @@
       class="grid flex-1 grid-cols-4 gap-2.5 p-3.5 max-[700px]:grid-cols-2"
       [attr.aria-label]="i18n.t('calendar.year.ariaLabel')"
     >
-      @for (month of calendarMonths; track month.value) {
+      @for (month of calendarMonths(); track month.value) {
       <button
         hlmBtn
         variant="outline"

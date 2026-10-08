@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, computed, signal, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, computed, effect, signal, untracked, OnInit } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -8,6 +8,7 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
+import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 
 @Component({
@@ -47,22 +48,28 @@ export class CalendarTabComponent implements OnInit {
     this.i18n.t('calendar.weekday.sat'),
     this.i18n.t('calendar.weekday.sun'),
   ]);
-  readonly calendarYear = signal(2026);
-  readonly calendarMonth = signal(7);
-  readonly calendarViews = [
-    { value: 'day', label: 'Día' },
-    { value: 'week', label: 'Semana' },
-    { value: 'month', label: 'Mes' },
-    { value: 'year', label: 'Año' },
-  ] as const;
+  private readonly locale = computed(() => this.store.preferences().locale);
+  private readonly fechaInicial = new Date(`${this.store.selectedCalendarDate()}T00:00:00Z`);
+  readonly calendarYear = signal(this.fechaInicial.getUTCFullYear());
+  readonly calendarMonth = signal(this.fechaInicial.getUTCMonth());
+  readonly calendarViews = computed(() =>
+    (['day', 'week', 'month', 'year'] as const).map((value) => ({
+      value,
+      label: this.i18n.t(`calendar.view.${value}`),
+    })),
+  );
   readonly calendarView = signal<'day' | 'week' | 'month' | 'year'>('month');
   private readonly urlDelCalendario = sincronizarConLaUrl('vista', this.calendarView, 'month', (v) =>
     ['day', 'week', 'month', 'year'].includes(v),
   );
-  readonly calendarMonths = Array.from({ length: 12 }, (_, value) => ({
-    value,
-    label: new Intl.DateTimeFormat('es-CO', { month: 'long' }).format(new Date(Date.UTC(2026, value, 1))),
-  }));
+  readonly calendarMonths = computed(() =>
+    Array.from({ length: 12 }, (_, value) => ({
+      value,
+      label: new Intl.DateTimeFormat(this.locale(), { month: 'long', timeZone: 'UTC' }).format(
+        new Date(Date.UTC(2026, value, 1)),
+      ),
+    })),
+  );
   readonly calendarDays = computed(() => {
     const year = this.calendarYear();
     const month = this.calendarMonth();
@@ -75,9 +82,21 @@ export class CalendarTabComponent implements OnInit {
         iso,
         day: date.getUTCDate(),
         current: date.getUTCMonth() === month,
-        label: new Intl.DateTimeFormat('es-CO', { dateStyle: 'full', timeZone: 'UTC' }).format(date),
+        label: new Intl.DateTimeFormat(this.locale(), { dateStyle: 'full', timeZone: 'UTC' }).format(date),
       };
     });
+  });
+  private readonly rangoVisible = computed<Rango>(() => {
+    const year = this.calendarYear();
+    if (this.calendarView() === 'year') return { start: `${year}-01-01`, end: `${year}-12-31` };
+    const days = this.calendarDays();
+    return { start: days[0].iso, end: days[days.length - 1].iso };
+  });
+  private readonly delRango = crearMovimientosDelPeriodo(this.rangoVisible);
+  readonly cargandoRango = this.delRango.cargando;
+  private readonly recordarDelRango = effect(() => {
+    const movimientos = this.delRango.movimientos();
+    untracked(() => this.store.recordarMovimientos(movimientos));
   });
   readonly visibleCalendarDays = computed(() => {
     const view = this.calendarView();
@@ -96,14 +115,15 @@ export class CalendarTabComponent implements OnInit {
     const date = new Date(`${this.store.selectedCalendarDate()}T00:00:00Z`);
     const view = this.calendarView();
     if (view === 'year') return String(this.calendarYear());
-    if (view === 'day') return new Intl.DateTimeFormat('es-CO', { dateStyle: 'long', timeZone: 'UTC' }).format(date);
+    if (view === 'day')
+      return new Intl.DateTimeFormat(this.locale(), { dateStyle: 'long', timeZone: 'UTC' }).format(date);
     if (view === 'week') {
       const days = this.visibleCalendarDays();
       return days.length
-        ? `${days[0].day}–${days.at(-1)?.day} de ${this.calendarMonths[this.calendarMonth()].label}`
+        ? `${days[0].day}–${days.at(-1)?.day} · ${this.calendarMonths()[this.calendarMonth()].label}`
         : '';
     }
-    return `${this.calendarMonths[this.calendarMonth()].label} ${this.calendarYear()}`;
+    return `${this.calendarMonths()[this.calendarMonth()].label} ${this.calendarYear()}`;
   });
 
   ngOnInit(): void {
@@ -197,7 +217,7 @@ export class CalendarTabComponent implements OnInit {
   }
   monthMovementCount(month: number): number {
     const prefix = `${this.calendarYear()}-${String(month + 1).padStart(2, '0')}`;
-    return this.store.data().movements.filter((movement) => movement.date.startsWith(prefix)).length;
+    return this.delRango.movimientos().filter((movement) => movement.date.startsWith(prefix)).length;
   }
   selectCalendarDay(iso: string): void {
     this.store.selectedCalendarDate.set(iso);

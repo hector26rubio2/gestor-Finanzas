@@ -77,9 +77,7 @@ export class InspectorComponent {
     const date = this.store.calendarReturnDate();
     if (date) this.store.inspect('day', date);
   }
-  readonly selectedMovement = computed(() =>
-    this.store.data().movements.find((m) => m.id === this.store.inspector()?.id),
-  );
+  readonly selectedMovement = computed(() => this.store.movimiento(this.store.inspector()?.id));
   readonly selectedAccount = computed(() => this.store.account(this.store.inspector()?.id ?? ''));
   readonly isAccountInspector = computed(() => {
     const type = this.store.inspector()?.type;

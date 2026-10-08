@@ -144,6 +144,7 @@ export class RemoteBootstrap {
     const raw = this.raw;
     const catalog = new MovementKindCatalog(raw.movementKinds);
     this.store.kindCatalog.set(catalog);
+    this.store.movimientosCargados.set(new Map());
     this.store.data.set(
       toViewData(this.i18n, catalog, {
         accounts: raw.accounts,
@@ -289,6 +290,7 @@ export class RemoteBootstrap {
     this.store.user.set(null);
     this.store.form.set(null);
     this.store.inspector.set(null);
+    this.store.movimientosCargados.set(new Map());
     await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 

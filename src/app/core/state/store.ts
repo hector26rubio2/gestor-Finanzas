@@ -183,9 +183,27 @@ export class AppStore {
   balance(account: Account) {
     return this.saldosDelServidor()?.get(account.id) ?? accountBalance(account, this.data().movements);
   }
+  readonly movimientosCargados = signal<ReadonlyMap<string, Movement>>(new Map());
+  private readonly movimientosConocidos = computed(() => {
+    const todos = new Map(this.movimientosCargados());
+    for (const movimiento of this.data().movements) todos.set(movimiento.id, movimiento);
+    return [...todos.values()];
+  });
+  recordarMovimientos(movimientos: readonly Movement[]): void {
+    if (!movimientos.length) return;
+    this.movimientosCargados.update((actuales) => {
+      const siguiente = new Map(actuales);
+      for (const movimiento of movimientos) siguiente.set(movimiento.id, movimiento);
+      return siguiente;
+    });
+  }
+  movimiento(id: string | undefined): Movement | undefined {
+    if (!id) return undefined;
+    return this.data().movements.find((m) => m.id === id) ?? this.movimientosCargados().get(id);
+  }
   dayMoves(date: string | number) {
     const iso = typeof date === 'number' ? `${todayIso().slice(0, 7)}-${String(date).padStart(2, '0')}` : date;
-    return this.data().movements.filter((movement) => movement.date === iso);
+    return this.movimientosConocidos().filter((movement) => movement.date === iso);
   }
   open(kind = '', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
     this.form.set({ kind, accountId, targetId, movement, notificationId });
