@@ -15,8 +15,7 @@
         ‹
       </button>
       <div class="grid min-w-[170px] max-[700px]:order-first max-[700px]:w-full">
-        <span class="text-xs tracking-[0.12em] text-muted-foreground"
-          >{{ i18n.t('calendar.nav.periodLabel') }}</span
+        <span class="text-xs tracking-[0.12em] text-muted-foreground">{{ i18n.t('calendar.nav.periodLabel') }}</span
         ><strong class="font-display text-base capitalize">{{ calendarTitle() }}</strong>
       </div>
       <div
@@ -101,8 +100,7 @@
           >{{ m.description }}</span
         >
         } @if (store.dayMoves(day.iso).length > (calendarView() === 'day' ? 8 : 2)) {
-        <em
-          class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap text-primary not-italic"
+        <em class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap text-primary not-italic"
           >{{ i18n.t('calendar.day.more', { count: store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2)
           }) }}</em
         >

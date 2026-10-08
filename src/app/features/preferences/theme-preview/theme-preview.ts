@@ -72,9 +72,7 @@ const BARRAS = [42, 68, 55, 80, 47, 90, 62];
           </li>
         </ul>
         <div class="flex flex-wrap gap-2">
-          <span
-            class="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs text-muted-foreground"
-          >
+          <span class="flex-1 rounded-md border border-input bg-background px-2.5 py-1.5 text-xs text-muted-foreground">
             {{ i18n.t('preferences.preview.search') }}
           </span>
           <button hlmBtn variant="outline" size="sm" type="button" tabindex="-1">

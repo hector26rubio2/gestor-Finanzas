@@ -8,9 +8,7 @@
       (valueChange)="setKind($event)"
     />
     @if (!model['kind']) {
-    <p class="px-1 py-[22px] text-center text-sm text-muted-foreground">
-      {{ i18n.t('form.movement.chooseTypeHint') }}
-    </p>
+    <p class="px-1 py-[22px] text-center text-sm text-muted-foreground">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
     } @else {
     <div class="flex flex-col gap-1.5">
       <fin-field [label]="i18n.t('form.movement.field.operationType')">
