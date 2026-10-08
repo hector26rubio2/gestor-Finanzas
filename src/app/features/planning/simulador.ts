@@ -35,7 +35,7 @@ import {
 
 export type { AjusteDeDeuda, EventoDelEscenario } from './simulador-estado';
 
-export const ID_DE_LA_COMPRA = 'compra:simulada';
+const ID_DE_LA_COMPRA = 'compra:simulada';
 const RENDIMIENTO_SUPUESTO = 8;
 const MESES_MINIMOS = 12;
 

@@ -6,11 +6,11 @@ import { PERIODOS_DE_HISTORIA } from '@shared/historia';
 import type { UiOption } from '@ui/select/select';
 import type { Scale } from '@shared/tablero/dashboard.model';
 
-export function isoDe(d: Date): string {
+function isoDe(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function rangoDe(ancla: string, escala: Scale): { start: string; end: string } {
+function rangoDe(ancla: string, escala: Scale): { start: string; end: string } {
   const a = new Date(`${ancla}T12:00:00`);
   let start: Date, end: Date;
   if (escala === 'day') {
@@ -32,7 +32,7 @@ export function rangoDe(ancla: string, escala: Scale): { start: string; end: str
   return { start: isoDe(start), end: isoDe(end) };
 }
 
-export function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
+function desplazarAncla(ancla: string, escala: Scale, pasos: number): string {
   const date = new Date(`${ancla}T12:00:00`);
   if (escala === 'year') date.setFullYear(date.getFullYear() + pasos);
   else if (escala === 'month') {

@@ -69,7 +69,7 @@ export function fromMinor(minor: number, currency: string = baseCurrency()): num
   return decimals === 0 ? minor : minor / 10 ** decimals;
 }
 
-export function minorOf(value: number, currency: string = baseCurrency()): number {
+function minorOf(value: number, currency: string = baseCurrency()): number {
   if (!Number.isFinite(value)) return 0;
   return Math.round(value * 10 ** decimalsFor(currency));
 }

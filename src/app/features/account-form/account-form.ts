@@ -28,7 +28,7 @@ export function permisoParaEditarCuenta(tipo: AccountViewType): string {
   return tipo === 'credit' ? P.cuentas.tarjetas.editar : P.cuentas.editar;
 }
 
-export function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
+function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
   if (tipo === 'credit') return P.cuentas.tarjetas.crear;
   if (tipo === 'savings' || tipo === 'checking') return P.cuentas.ahorro.crear;
   if (tipo === 'cash' || tipo === 'wallet') return P.cuentas.efectivo.crear;

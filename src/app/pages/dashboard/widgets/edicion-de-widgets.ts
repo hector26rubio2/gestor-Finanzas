@@ -20,7 +20,7 @@ const CAMPOS_EDITABLES = [
   'goalMax',
 ] as const;
 
-export function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[]): Widget[] {
+function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[]): Widget[] {
   const porId = new Map(guardados.map((guardado) => [guardado.id, guardado]));
   const base = catalogo.map((widget) => {
     const cambios = porId.get(widget.id);

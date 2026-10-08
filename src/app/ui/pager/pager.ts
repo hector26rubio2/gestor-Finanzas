@@ -7,7 +7,7 @@ type Pagina = number | 'hueco';
 
 const VECINAS = 1;
 
-export function paginasVisibles(actual: number, total: number): Pagina[] {
+function paginasVisibles(actual: number, total: number): Pagina[] {
   const paginas = new Set([1, total]);
   for (let p = actual - VECINAS; p <= actual + VECINAS; p++) if (p >= 1 && p <= total) paginas.add(p);
   const ordenadas = [...paginas].sort((a, b) => a - b);

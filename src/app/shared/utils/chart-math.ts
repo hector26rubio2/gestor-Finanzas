@@ -6,8 +6,3 @@ export function compactMoney(value: number, locale: string): string {
     maximumFractionDigits: 1,
   }).format(value);
 }
-
-export function acumulada(serie: readonly number[]): number[] {
-  let suma = 0;
-  return serie.map((valor) => (suma += valor));
-}

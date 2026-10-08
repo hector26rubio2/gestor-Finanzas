@@ -140,7 +140,7 @@ export function valorDeMedida(filas: readonly Movement[], medida: Measure): numb
   }
 }
 
-export function seOrdenaPorClave(dim: Dimension): boolean {
+function seOrdenaPorClave(dim: Dimension): boolean {
   return DIMENSIONES_ORDENADAS_POR_CLAVE.includes(dim);
 }
 
@@ -238,8 +238,8 @@ export function enlaces(
   return { nodos: [...new Set(lista.flatMap((e) => [e.source, e.target]))], enlaces: lista };
 }
 
-export const PREFIJO_ORIGEN = 'o|';
-export const PREFIJO_DESTINO = 'd|';
+const PREFIJO_ORIGEN = 'o|';
+const PREFIJO_DESTINO = 'd|';
 export const sinPrefijo = (nombre: string) => nombre.slice(2);
 
 export function distribucion(

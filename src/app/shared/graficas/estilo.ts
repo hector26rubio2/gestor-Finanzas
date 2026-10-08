@@ -146,7 +146,3 @@ export function herramientas(palette: ChartPalette, titulo: string, cambiar?: re
     },
   };
 }
-
-export function sombraSuave(color: string) {
-  return { shadowBlur: 14, shadowColor: conAlfa(color, 0.35), shadowOffsetY: 4 };
-}
