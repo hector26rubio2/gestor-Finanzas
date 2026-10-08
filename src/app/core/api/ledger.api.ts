@@ -2,7 +2,14 @@ import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '@core/http/api-http-client';
 import { ApiMovementKindSpec, CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import { API_ROUTES } from './api-routes';
-import { ApiConvertedMoney, ApiLinkRef, ApiMoney, ApiPage, MovementQuery, monthRange } from './shared-api-types';
+import {
+  ApiConvertedMoney,
+  ApiLinkRef,
+  ApiMoney,
+  ApiMovementPage,
+  MovementQuery,
+  monthRange,
+} from './shared-api-types';
 
 export type MovementKindValue = (typeof MovementKind)[keyof typeof MovementKind];
 export type EconomicEffectValue = (typeof EconomicEffect)[keyof typeof EconomicEffect];
@@ -103,7 +110,7 @@ export class LedgerApi {
 
   movements(query: MovementQuery) {
     const range = query.period ? monthRange(query.period) : undefined;
-    return this.transport.request<ApiPage<ApiMovement>, unknown>({
+    return this.transport.request<ApiMovementPage<ApiMovement>, unknown>({
       method: 'POST',
       path: API_ROUTES.movementSearch,
       body: {
@@ -116,6 +123,7 @@ export class LedgerApi {
         page: { page: query.page, size: query.pageSize },
         sortBy: 0,
         direction: 1,
+        after: query.after,
       },
     });
   }

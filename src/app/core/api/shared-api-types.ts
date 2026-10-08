@@ -7,9 +7,27 @@ export interface ApiPage<T> {
   hasNext: boolean;
 }
 
+export interface ApiMovementTotals {
+  income: ApiMoney;
+  expense: ApiMoney;
+  net: ApiMoney;
+}
+
+export interface ApiMovementPage<T> {
+  items: readonly T[];
+  page: number;
+  size: number;
+  total: number | null;
+  totalPages: number;
+  hasNext: boolean;
+  nextCursor?: string | null;
+  totals?: ApiMovementTotals | null;
+}
+
 export interface MovementQuery {
   page: number;
   pageSize: number;
+  after?: string;
   period?: string;
   accountId?: string;
   search?: string;
