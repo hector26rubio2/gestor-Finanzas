@@ -1,0 +1,103 @@
+name: E2E
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: finanzas
+          POSTGRES_PASSWORD: finanzas
+          POSTGRES_DB: finanzas_e2e_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U finanzas -d finanzas_e2e_ci"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      API_BASE_URL: http://localhost:5198
+      E2E_BASE_URL: http://localhost:4300
+      PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
+      NG_CLI_ANALYTICS: 'false'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Código del API
+        uses: actions/checkout@v4
+        with:
+          repository: hector26rubio2/v2-api-finanzas
+          ref: main
+          token: ${{ secrets.E2E_API_REPO_TOKEN }}
+          path: api
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Compilar el API
+        run: dotnet build api/src/Finanzas.Host --configuration Release
+      - name: Credenciales de la cuenta de prueba
+        run: |
+          propietario="$(openssl rand -hex 16)"
+          lector="$(openssl rand -hex 16)"
+          echo "::add-mask::$propietario"
+          echo "::add-mask::$lector"
+          {
+            echo "E2E_USER=e2e-propietario"
+            echo "E2E_PASSWORD=$propietario"
+            echo "E2E_VIEWER_USER=e2e-lector"
+            echo "E2E_VIEWER_PASSWORD=$lector"
+          } >> "$GITHUB_ENV"
+      - name: Levantar el API
+        run: |
+          export ASPNETCORE_ENVIRONMENT=Development
+          export ASPNETCORE_URLS="$API_BASE_URL"
+          export ConnectionStrings__Finanzas="Host=localhost;Port=5432;Database=finanzas_e2e_ci;Username=finanzas;Password=finanzas"
+          export Security__PasswordLogin__Enabled=true
+          export Security__PasswordLogin__Accounts__0__UserName="$E2E_USER"
+          export Security__PasswordLogin__Accounts__0__Email="e2e-propietario@finanzas.test"
+          export Security__PasswordLogin__Accounts__0__Name="Propietario E2E"
+          export Security__PasswordLogin__Accounts__0__Password="$E2E_PASSWORD"
+          export Security__PasswordLogin__Accounts__1__UserName="$E2E_VIEWER_USER"
+          export Security__PasswordLogin__Accounts__1__Email="e2e-lector@finanzas.test"
+          export Security__PasswordLogin__Accounts__1__Name="Lector E2E"
+          export Security__PasswordLogin__Accounts__1__Password="$E2E_VIEWER_PASSWORD"
+          export SuperAdmin__Email="e2e-propietario@finanzas.test"
+          nohup dotnet run --project api/src/Finanzas.Host --configuration Release --no-build --no-launch-profile > api.log 2>&1 &
+          for intento in $(seq 1 60); do
+            if curl -fsS "$API_BASE_URL/api/v1/auth/methods" > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat api.log
+          exit 1
+      - name: Pruebas E2E
+        run: pnpm e2e
+      - name: Informe y trazas
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: informe-e2e
+          path: |
+            e2e/informe/
+            e2e/resultados/
+            api.log
+          retention-days: 7

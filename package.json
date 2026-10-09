@@ -16,7 +16,9 @@
     "test:ui": "node scripts/visual-test.mjs",
     "test:permisos": "node scripts/permisos-por-seccion.mjs",
     "test:a11y": "node scripts/accesibilidad.mjs",
-    "diagramas": "node scripts/diagramas.mjs"
+    "diagramas": "node scripts/diagramas.mjs",
+    "e2e": "playwright test -c e2e/playwright.config.ts",
+    "e2e:local": "node scripts/e2e-local.mjs"
   },
   "dependencies": {
     "@angular/cdk": "22.2.2",
@@ -43,6 +45,7 @@
     "@angular/build": "^22.2.2",
     "@angular/cli": "^22.2.2",
     "@angular/compiler-cli": "^22.2.1",
+    "@playwright/test": "1.62.1",
     "@spartan-ng/cli": "1.4.1",
     "@tailwindcss/postcss": "^4.3.3",
     "@typescript-eslint/eslint-plugin": "^8.68.0",
