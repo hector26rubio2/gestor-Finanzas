@@ -36,9 +36,9 @@ jobs:
       PLAYWRIGHT_CHROMIUM_EXECUTABLE: /usr/bin/google-chrome
       NG_CLI_ANALYTICS: 'false'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Código del API
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: hector26rubio2/v2-api-finanzas
           ref: main
