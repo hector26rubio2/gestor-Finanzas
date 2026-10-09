@@ -36,3 +36,7 @@ export function formatDateTimeLong(iso: string | Date | null | undefined, locale
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
 }
+
+export function fechaDeReverso(fechaDelMovimiento: string, hoy: string = todayIso()): string {
+  return fechaDelMovimiento > hoy ? fechaDelMovimiento : hoy;
+}

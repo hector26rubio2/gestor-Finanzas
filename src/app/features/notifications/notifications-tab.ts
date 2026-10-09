@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { FinanceApiClient } from '@core/api';
@@ -38,6 +38,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
     [...this.store.data().notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   );
   readonly sinLeer = computed(() => this.todas().filter((n) => !n.read).length);
+  private readonly publicarSinLeer = effect(() => this.headerActions.sinLeer.set(this.sinLeer()));
   readonly opciones = computed<readonly { value: Filtro; label: string; total: number }[]>(() => [
     { value: 'all', label: this.i18n.t('notifications.filter.all'), total: this.todas().length },
     { value: 'unread', label: this.i18n.t('notifications.filter.unread'), total: this.sinLeer() },
@@ -55,6 +56,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.headerActions.readAll.set(null);
+    this.headerActions.sinLeer.set(0);
   }
 
   cambiarFiltro(valor: string): void {
