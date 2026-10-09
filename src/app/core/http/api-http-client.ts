@@ -10,6 +10,7 @@ export interface ApiRequest<TBody = unknown> {
   path: string;
   body?: TBody;
   params?: Readonly<Record<string, string | number | boolean | undefined>>;
+  responseType?: 'blob';
 }
 
 export interface ApiTransport {
@@ -60,14 +61,18 @@ export class HttpApiTransport implements ApiTransport {
     const send = (csrfToken?: string) => {
       let headers = new HttpHeaders({ Accept: 'application/json' });
       if (csrfToken) headers = headers.set('X-CSRF-Token', csrfToken);
-      return this.http.request<TResponse>(request.method, `${this.config.apiBaseUrl}${request.path}`, {
+      const options = {
         body: request.body,
         params,
         headers,
         context: new HttpContext(),
         withCredentials: true,
         timeout: REQUEST_TIMEOUT_MS,
-      });
+      };
+      const url = `${this.config.apiBaseUrl}${request.path}`;
+      return request.responseType === 'blob'
+        ? (this.http.request(request.method, url, { ...options, responseType: 'blob' }) as Observable<TResponse>)
+        : this.http.request<TResponse>(request.method, url, options);
     };
 
     const response$ = unsafe

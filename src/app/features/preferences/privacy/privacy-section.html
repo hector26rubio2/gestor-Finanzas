@@ -1,0 +1,65 @@
+<div class="grid max-w-2xl gap-4">
+  <article hlmCard class="gap-3 p-5">
+    <header>
+      <h2 class="text-base font-semibold">{{ i18n.t('privacy.export.title') }}</h2>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('privacy.export.description') }}</p>
+    </header>
+    <div class="flex flex-wrap gap-2.5">
+      <button hlmBtn variant="outline" type="button" [disabled]="exporting()" (click)="exportData()">
+        {{ exporting() ? i18n.t('privacy.export.busy') : i18n.t('privacy.export.button') }}
+      </button>
+    </div>
+  </article>
+
+  <article hlmCard class="gap-3 border-destructive/40 p-5">
+    <header>
+      <h2 class="text-base font-semibold">{{ i18n.t('privacy.delete.title') }}</h2>
+      <p class="text-xs text-muted-foreground">{{ i18n.t('privacy.delete.description') }}</p>
+    </header>
+    <div class="flex flex-wrap gap-2.5">
+      <button hlmBtn variant="destructive" type="button" (click)="openDialog()">
+        {{ i18n.t('privacy.delete.button') }}
+      </button>
+    </div>
+  </article>
+</div>
+
+<hlm-alert-dialog [state]="dialogOpen() ? 'open' : 'closed'" (stateChanged)="onDialogState($event)">
+  <hlm-alert-dialog-content *hlmAlertDialogPortal="let ctx">
+    <hlm-alert-dialog-header>
+      <h2 hlmAlertDialogTitle>{{ i18n.t('privacy.delete.dialogTitle') }}</h2>
+      <p hlmAlertDialogDescription>{{ i18n.t('privacy.delete.dialogDescription', { email: accountEmail() }) }}</p>
+    </hlm-alert-dialog-header>
+    <div class="grid gap-2">
+      <label for="privacy-delete-email" class="text-xs font-medium text-muted-foreground">
+        {{ i18n.t('privacy.delete.emailLabel') }}
+      </label>
+      <input
+        id="privacy-delete-email"
+        hlmInput
+        type="email"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+        [value]="typedEmail()"
+        [attr.aria-invalid]="errorMessage() ? true : null"
+        [attr.aria-describedby]="errorMessage() ? 'privacy-delete-error' : null"
+        (input)="onEmailInput($event)"
+      />
+      @if (errorMessage()) {
+      <p id="privacy-delete-error" class="text-xs text-destructive" role="alert">{{ errorMessage() }}</p>
+      }
+    </div>
+    <hlm-alert-dialog-footer>
+      <button hlmAlertDialogCancel>{{ i18n.t('privacy.delete.cancel') }}</button>
+      <button
+        hlmAlertDialogAction
+        variant="destructive"
+        [disabled]="!confirmationMatches() || deleting()"
+        (click)="deleteAccount(ctx)"
+      >
+        {{ deleting() ? i18n.t('privacy.delete.busy') : i18n.t('privacy.delete.confirm') }}
+      </button>
+    </hlm-alert-dialog-footer>
+  </hlm-alert-dialog-content>
+</hlm-alert-dialog>

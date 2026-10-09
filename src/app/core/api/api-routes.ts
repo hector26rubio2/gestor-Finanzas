@@ -2,6 +2,8 @@ export const API_ROUTES = {
   csrf: '/api/v1/auth/csrf',
   organizationMembers: '/api/v1/organization/members',
   logout: '/api/v1/auth/logout',
+  me: '/api/v1/me',
+  meExport: '/api/v1/me/export',
   authMethods: '/api/v1/auth/methods',
   passwordLogin: '/api/v1/auth/login',
   session: '/api/v1/session',

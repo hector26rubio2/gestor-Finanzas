@@ -1509,6 +1509,30 @@ export default {
   'preferences.sections.organization': 'Organização',
   'preferences.sections.categories': 'Categorias',
   'preferences.sections.data': 'Dados e sessão',
+  'preferences.sections.privacy': 'Privacidade',
+  'privacy.export.title': 'Exportar meus dados',
+  'privacy.export.description':
+    'Baixe um arquivo JSON com suas contas, cartões, movimentos, categorias, pessoas, dívidas, investimentos, orçamentos e preferências de cada organização.',
+  'privacy.export.button': 'Exportar meus dados',
+  'privacy.export.busy': 'Preparando arquivo…',
+  'privacy.export.done': 'Seus dados foram baixados.',
+  'privacy.export.error': 'Não foi possível exportar seus dados. Tente novamente.',
+  'privacy.delete.title': 'Excluir minha conta',
+  'privacy.delete.description':
+    'Exclui permanentemente sua conta e todos os seus dados financeiros. Não é possível desfazer.',
+  'privacy.delete.button': 'Excluir minha conta',
+  'privacy.delete.dialogTitle': 'Excluir sua conta?',
+  'privacy.delete.dialogDescription':
+    'Seus dados serão apagados permanentemente e sua sessão será encerrada. Para confirmar, digite seu e-mail ({email}).',
+  'privacy.delete.emailLabel': 'Seu e-mail',
+  'privacy.delete.cancel': 'Cancelar',
+  'privacy.delete.confirm': 'Excluir definitivamente',
+  'privacy.delete.busy': 'Excluindo…',
+  'privacy.delete.error.soleOwner':
+    'Você é o único proprietário de uma organização com outros membros. Defina outro proprietário ou remova os demais antes de excluir sua conta.',
+  'privacy.delete.error.superAdmin': 'A conta de superadministração não pode ser excluída por aqui.',
+  'privacy.delete.error.mismatch': 'O e-mail não corresponde ao da sua conta.',
+  'privacy.delete.error.generic': 'Não foi possível excluir a conta. Tente novamente.',
   'preferences.studio.title': 'Crie seu tema',
   'preferences.studio.description':
     'Ajuste cores e bordas. As mudanças ficam só na prévia até salvar; ao salvar valem para todo o app, só para você.',

@@ -9,6 +9,7 @@ import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { FieldComponent } from '@ui/field';
 import { BudgetsPanelComponent } from '@features/budgets/budgets-panel';
+import { PrivacySectionComponent } from './privacy/privacy-section';
 import { ThemeStudioComponent } from './theme-studio/theme-studio';
 import { CategoryIconComponent } from '@ui/category-icon';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -19,7 +20,7 @@ import { P, RemoteBootstrap } from '@core/session';
 import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
 import { I18nService } from '@core/i18n';
 
-const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'budgets', 'data'] as const;
+const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'budgets', 'data', 'privacy'] as const;
 type Seccion = (typeof SECCIONES)[number];
 
 @Component({
@@ -34,6 +35,7 @@ type Seccion = (typeof SECCIONES)[number];
     HlmTabsImports,
     FieldComponent,
     ThemeStudioComponent,
+    PrivacySectionComponent,
     IconComponent,
     UiSelectComponent,
   ],
@@ -103,6 +105,7 @@ export class PreferencesTabComponent implements OnInit {
         visible: this.can(P.cuentas.categorias.listar) && this.features.enabled('settings.categories'),
       },
       { id: 'data', label: 'preferences.sections.data', icon: 'settings', visible: true },
+      { id: 'privacy', label: 'preferences.sections.privacy', icon: 'shield', visible: true },
     ].filter((item) => item.visible),
   );
 
