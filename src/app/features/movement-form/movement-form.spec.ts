@@ -70,3 +70,36 @@ describe('formulario de movimiento: el modelo se escribe con un contrato', () =>
     expect(componente.effectiveKind()).toBe('transfer');
   });
 });
+
+describe('formulario de movimiento: errores por campo', () => {
+  beforeEach(() => TestBed.resetTestingModule());
+
+  it('al guardar vacío marca cada campo faltante en vez de un solo error global', async () => {
+    const componente = prepararFormulario();
+    componente.setKind('expense');
+
+    await componente.submit();
+
+    expect(componente.errores.de('amount')).not.toBe('');
+    expect(componente.errores.de('accountId')).not.toBe('');
+    expect(componente.errores.de('description')).not.toBe('');
+    expect(componente.errores.de('date')).toBe('');
+    expect(componente.error()).not.toBe('');
+  });
+
+  it('al corregir un campo se limpia solo su error', async () => {
+    const componente = prepararFormulario();
+    await componente.submit();
+
+    const entrada = document.createElement('input');
+    entrada.setAttribute('name', 'amount');
+    componente.alEditar({ target: entrada } as unknown as Event);
+
+    expect(componente.errores.de('amount')).toBe('');
+    expect(componente.errores.de('description')).not.toBe('');
+  });
+
+  it('no trae una tasa de cambio quemada: arranca vacía hasta conocer la TRM', () => {
+    expect(prepararFormulario().model.exchangeRate).toBe(0);
+  });
+});

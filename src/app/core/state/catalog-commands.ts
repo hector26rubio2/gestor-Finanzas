@@ -2,7 +2,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Account, Person, PersonKind } from './view-model';
 import { FinanceApiClient, viewTypeToAccountKind } from '@core/api/api-client';
-import { parseMoney } from '@core/utils/money';
+import { baseCurrency, parseMoney } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
 import { anualDesdeMensual } from '@core/utils/tasas';
 import { COUNTERPARTY_KIND } from '@core/api/people.api';
@@ -16,7 +16,7 @@ function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unknown {
     ...(credito.paymentPriority ? { paymentPriority: credito.paymentPriority } : {}),
     ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
     ...(credito.monthlyFee !== undefined
-      ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: 'COP' } : null }
+      ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: baseCurrency() } : null }
       : {}),
     ...(credito.dualCurrency !== undefined ? { dualCurrency: credito.dualCurrency } : {}),
   };
@@ -52,7 +52,7 @@ export class CatalogCommands {
     name: string,
     type: Account['type'],
     opening: number,
-    currency = 'COP',
+    currency = baseCurrency(),
     exchangeRate?: number,
     credit?: CondicionesDeTarjeta,
     lastFour?: string,

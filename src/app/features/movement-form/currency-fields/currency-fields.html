@@ -1,8 +1,16 @@
-<fin-field [label]="i18n.t('form.movement.field.originalAmount')">
-  <input hlmInput type="number" name="originalAmount" min="0" step="0.01" [(ngModel)]="model['originalAmount']" />
+<fin-field [label]="i18n.t('form.movement.field.originalAmount')" campo="originalAmount">
+  <input
+    hlmInput
+    type="number"
+    inputmode="decimal"
+    name="originalAmount"
+    min="0"
+    step="0.01"
+    [(ngModel)]="model['originalAmount']"
+  />
 </fin-field>
-<fin-field [label]="i18n.t('form.movement.field.exchangeRate')">
-  <input hlmInput type="number" name="exchangeRate" min="0" [(ngModel)]="model['exchangeRate']" />
+<fin-field [label]="i18n.t('form.movement.field.exchangeRate')" campo="exchangeRate">
+  <input hlmInput type="number" inputmode="decimal" name="exchangeRate" min="0" [(ngModel)]="model['exchangeRate']" />
 </fin-field>
 <p class="col-span-full text-xs font-normal text-muted-foreground">
   {{ i18n.t('form.movement.field.officialTrm') }}: @if (officialTrmLoading()) { {{ i18n.t('form.movement.trm.loading')

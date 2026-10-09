@@ -21,7 +21,7 @@ import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
-import { AsyncActionService } from '@core/utils';
+import { AsyncActionService, baseCurrency, isForeignCurrency, opcionesDeMoneda } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 
 export function permisoParaEditarCuenta(tipo: AccountViewType): string {
@@ -68,11 +68,8 @@ export class AccountFormComponent {
       .filter((option) => this.capabilities.allows(option.permiso)),
   );
   type: AccountViewType = this.store.form()?.accountType ?? 'savings';
-  currency = 'COP';
-  readonly currencyOptions = computed<readonly UiOption[]>(() => [
-    { value: 'COP', label: this.i18n.t('form.currency.cop') },
-    { value: 'USD', label: this.i18n.t('form.currency.usd') },
-  ]);
+  currency = baseCurrency();
+  readonly currencyOptions = computed<readonly UiOption[]>(() => opcionesDeMoneda((clave) => this.i18n.t(clave)));
   readonly bimoneda = signal(false);
   readonly monedaDePrioridad = signal<'pesos' | 'dolares'>('pesos');
   readonly monedasDePrioridad = computed<readonly UiOption[]>(() => [
@@ -137,7 +134,9 @@ export class AccountFormComponent {
   });
   readonly vistaPrevia = computed(() => {
     const prioridad =
-      this.editing?.currency && this.editing.currency !== 'COP' ? this.prioridadEnDolares() : this.prioridadEnPesos();
+      this.editing?.currency && isForeignCurrency(this.editing.currency)
+        ? this.prioridadEnDolares()
+        : this.prioridadEnPesos();
     const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta(), prioridad), prioridad);
     return aplicarAbono(saldos, this.abonoDePrueba());
   });

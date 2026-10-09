@@ -9,7 +9,7 @@ import {
   claveDeConcepto,
   completarPrioridad,
 } from '@core/api';
-import { parseMoney, sumBy } from '@core/utils';
+import { isForeignCurrency, parseMoney, sumBy } from '@core/utils';
 import { I18nService } from '@core/i18n';
 import { toMovement } from '@core/session';
 import type { Account, Movement } from '@core/state';
@@ -54,8 +54,8 @@ export class InspectorCard {
 
   readonly prioridadDeTarjeta = computed(() => {
     const tarjeta = this.tarjeta();
-    return tarjeta?.currency && tarjeta.currency !== 'COP'
-      ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
+    return isForeignCurrency(tarjeta?.currency)
+      ? completarPrioridad(tarjeta?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
       : completarPrioridad(tarjeta?.paymentPriority, PRIORIDAD_EN_PESOS);
   });
   readonly comprasPendientes = computed(() =>

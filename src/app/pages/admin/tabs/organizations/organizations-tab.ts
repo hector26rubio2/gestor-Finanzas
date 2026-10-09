@@ -1,3 +1,4 @@
+import { baseCurrency } from '@core/utils';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { HlmBadge } from '@spartan-ng/helm/badge';
@@ -202,7 +203,7 @@ export class OrganizationsTabComponent {
   readonly confirmingConsolidation = signal(false);
   readonly search = signal('');
   readonly name = signal('');
-  readonly currency = signal('COP');
+  readonly currency = signal(baseCurrency());
   readonly currencyOptions = computed<readonly UiOption[]>(() =>
     this.app.currencyCatalog().map((moneda) => ({ value: moneda.code, label: moneda.code })),
   );

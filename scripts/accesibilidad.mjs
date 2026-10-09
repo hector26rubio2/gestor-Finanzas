@@ -108,7 +108,7 @@ async function auditar(page, etiqueta) {
 }
 
 async function revisarEscenario(browser, escenario) {
-  const context = await browser.newContext({ viewport: escenario.viewport, colorScheme: escenario.colorScheme });
+  const context = await browser.newContext({ locale: 'es-CO', viewport: escenario.viewport, colorScheme: escenario.colorScheme });
   await simularApi(context);
   const page = await context.newPage();
   const fallos = [];

@@ -8,7 +8,7 @@ import {
   totalDeGastos,
   totalDeIngresos,
 } from '@core/state/economia';
-import { sumBy } from '@core/utils';
+import { isForeignCurrency, sumBy } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 import { type Deuda, type Flujo, type Palanca, cuotaFija, proyectar } from './amortizacion';
 import { CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
@@ -262,10 +262,9 @@ export function deudasDeTarjeta(
   etiqueta: (concepto: number) => string,
 ): DeudaActual[] {
   const tasaTarjeta = tarjeta.annualRate ? mensualDesdeAnual(tarjeta.annualRate) : TASA_MENSUAL_SUPUESTA_TARJETA;
-  const prioridad =
-    tarjeta.currency && tarjeta.currency !== 'COP'
-      ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
-      : completarPrioridad(tarjeta.paymentPriority, PRIORIDAD_EN_PESOS);
+  const prioridad = isForeignCurrency(tarjeta.currency)
+    ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
+    : completarPrioridad(tarjeta.paymentPriority, PRIORIDAD_EN_PESOS);
   const compras = comprasPendientes(
     movimientos.filter((m) => m.accountId === tarjeta.id),
     prioridad,

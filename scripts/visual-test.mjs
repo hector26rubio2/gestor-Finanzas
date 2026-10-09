@@ -205,7 +205,7 @@ async function exerciseInteractions(page) {
 }
 
 async function testViewport(browser, viewport) {
-  const context = await browser.newContext({ viewport, colorScheme: 'light' });
+  const context = await browser.newContext({ locale: 'es-CO', viewport, colorScheme: 'light' });
   const page = await context.newPage();
   await simularApi(context);
   const consoleErrors = [];

@@ -118,7 +118,7 @@ function browserExecutable() {
 }
 
 async function revisar(browser, ruta, permiso) {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const context = await browser.newContext({ locale: 'es-CO', viewport: { width: 1280, height: 900 } });
   try {
     await context.route('**/api/v1/**', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: '[]' }),

@@ -7,6 +7,7 @@ import {
   baseCurrency as monedaBase,
   currencyCatalog as catalogoDeMonedas,
   formatAmount,
+  formatNumber,
   sumBy,
 } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
@@ -154,6 +155,9 @@ export class AppStore {
   readonly currencyCatalog = catalogoDeMonedas;
   money(value: number, currency = this.baseCurrency()) {
     return formatAmount(value, currency, this.preferences().locale);
+  }
+  number(value: number, maximumFractionDigits = 0) {
+    return formatNumber(value, this.preferences().locale, maximumFractionDigits);
   }
   account(id: string) {
     return this.data().accounts.find((a) => a.id === id);

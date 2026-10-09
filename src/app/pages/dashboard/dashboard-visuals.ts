@@ -120,7 +120,7 @@ export abstract class DashboardVisuals {
   }
 
   formatMeasure(value: number, widget: Pick<Widget, 'measure'>): string {
-    return (widget.measure ?? 'expense') === 'count' ? Math.round(value).toLocaleString() : this.store.money(value);
+    return (widget.measure ?? 'expense') === 'count' ? this.store.number(value) : this.store.money(value);
   }
 
   protected aggregate(

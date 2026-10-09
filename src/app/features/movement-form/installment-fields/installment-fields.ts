@@ -6,6 +6,7 @@ import { I18nService } from '@core/i18n';
 import { FieldComponent } from '@ui/field/field';
 import { AppStore } from '@core/state/store';
 import { mensualDesdeAnual } from '@core/utils/tasas';
+import { isForeignCurrency } from '@core/utils/money';
 import { CARD_BUCKET, TIPOS_DE_COMPRA, claveDeConcepto } from '@core/api/card-buckets';
 import { UiSelectComponent, type UiOption } from '@ui/select/select';
 import { NumericInputDirective } from '@ui/numeric-input';
@@ -67,7 +68,7 @@ export class MovementInstallmentFieldsComponent {
     this.model['cardBucket'] = tipo;
     if (tipo === CARD_BUCKET.zeroRatePurchases) this.model['installmentRate'] = 0;
     if (tipo === CARD_BUCKET.singleInstallmentPurchases) this.model['installmentTotal'] = 1;
-    if (tipo === CARD_BUCKET.internationalPurchases && this.model['originalCurrency'] === 'COP')
+    if (tipo === CARD_BUCKET.internationalPurchases && !isForeignCurrency(this.model['originalCurrency']))
       this.model['originalCurrency'] = 'USD';
   }
 

@@ -2,7 +2,7 @@ import { I18nService } from '@core/i18n';
 import { Movement } from '@core/state/view-model';
 import { ApiMovement } from '@core/api/api-client';
 import { CARD_BUCKET } from '@core/api/card-buckets';
-import { parseAmount, parseMoney, parseRate } from '@core/utils/money';
+import { baseCurrency, parseAmount, parseMoney, parseRate } from '@core/utils/money';
 import {
   CashFlow,
   classifyFamily,
@@ -34,7 +34,7 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     person: source.linkNames['counterparty']?.name,
     ownership: source.links['counterparty'] ? 'loaned' : 'own',
     recurring: Boolean(source.links['recurrence']),
-    originalCurrency: source.amount.original.currency === 'USD' ? 'USD' : 'COP',
+    originalCurrency: source.amount.original.currency?.trim().toUpperCase() || baseCurrency(),
     originalAmount: parseAmount(source.amount.original.amount, source.amount.original.currency),
     exchangeRate: parseRate(source.amount.rate),
     ...(source.installments

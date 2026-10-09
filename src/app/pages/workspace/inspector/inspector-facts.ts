@@ -1,5 +1,5 @@
 import type { Account, Movement, ViewData } from '@core/state';
-import { formatReturnRate } from '@core/utils';
+import { baseCurrency, formatReturnRate, isForeignCurrency } from '@core/utils';
 import { SIN_DATO } from '@shared/utils';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
@@ -9,12 +9,13 @@ type Investment = ViewData['investments'][number];
 export interface InspectorFactsContext {
   t: Translate;
   money: (value: number) => string;
+  number: (value: number, maximumFractionDigits?: number) => string;
   accountName: (id: string) => string | undefined;
 }
 
 export type InspectorFact = readonly [string, string];
 
-export function hechosDeMovimiento(m: Movement, { t, accountName }: InspectorFactsContext): InspectorFact[] {
+export function hechosDeMovimiento(m: Movement, { t, accountName, number }: InspectorFactsContext): InspectorFact[] {
   return [
     [t('workspace.inspector.facts.date'), m.date],
     [t('workspace.inspector.facts.account'), accountName(m.accountId) ?? SIN_DATO],
@@ -44,17 +45,18 @@ export function hechosDeMovimiento(m: Movement, { t, accountName }: InspectorFac
     [t('workspace.inspector.facts.loan'), t(claveDePrestamo(m.loanRole))],
     [
       t('workspace.inspector.facts.originalCurrency'),
-      m.originalCurrency === 'USD'
+      isForeignCurrency(m.originalCurrency)
         ? t('workspace.inspector.facts.originalCurrencyValue', {
-            amount: m.originalAmount ?? 0,
-            rate: m.exchangeRate ?? 0,
+            currency: m.originalCurrency ?? '',
+            amount: number(m.originalAmount ?? 0, 2),
+            rate: number(m.exchangeRate ?? 0, 2),
           })
-        : 'COP',
+        : (m.originalCurrency ?? baseCurrency()),
     ],
   ];
 }
 
-export function hechosDeCuenta(a: Account, { t, money }: InspectorFactsContext): InspectorFact[] {
+export function hechosDeCuenta(a: Account, { t, money, number }: InspectorFactsContext): InspectorFact[] {
   const noAplica = t('workspace.inspector.facts.notApplicable');
   return [
     [t('workspace.inspector.facts.lastFour'), a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
@@ -62,7 +64,8 @@ export function hechosDeCuenta(a: Account, { t, money }: InspectorFactsContext):
     [
       t('workspace.inspector.facts.referenceRate'),
       a.currency === 'USD'
-        ? (a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'))
+        ? ((a.exchangeRate === undefined ? undefined : number(a.exchangeRate, 2)) ??
+          t('workspace.inspector.facts.undefined'))
         : noAplica,
     ],
     [t('workspace.inspector.facts.cutoff'), a.cutDay ? String(a.cutDay) : noAplica],

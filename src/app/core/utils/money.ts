@@ -114,6 +114,26 @@ export function formatReturnRate(value: number, cost: number): string {
   return tasa === null ? '—' : `${tasa.toFixed(1)} %`;
 }
 
+export function isForeignCurrency(currency: string | null | undefined): boolean {
+  const code = (currency ?? '').trim().toUpperCase();
+  return code !== '' && code !== baseCurrency().trim().toUpperCase();
+}
+
+export function opcionesDeMoneda(
+  traducir: (clave: string) => string,
+): readonly { readonly value: string; readonly label: string }[] {
+  const base = baseCurrency().trim().toUpperCase();
+  return [base, ...['COP', 'USD'].filter((codigo) => codigo !== base)].map((codigo) => {
+    const clave = `form.currency.${codigo.toLowerCase()}`;
+    const etiqueta = traducir(clave);
+    return { value: codigo, label: etiqueta === clave ? codigo : etiqueta };
+  });
+}
+
+export function formatNumber(value: number, locale: string, maximumFractionDigits = 0): string {
+  return new Intl.NumberFormat(locale, { maximumFractionDigits }).format(Number.isFinite(value) ? value : 0);
+}
+
 export function formatAmount(value: number, currency: string, locale: string): string {
   const decimals = decimalsFor(currency);
   return new Intl.NumberFormat(locale, {

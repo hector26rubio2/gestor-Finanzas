@@ -5,6 +5,9 @@ import {
   currencyCatalog,
   decimalsFor,
   formatAmount,
+  formatNumber,
+  isForeignCurrency,
+  opcionesDeMoneda,
   fromMinor,
   LOCAL_CURRENCIES,
   parseAmount,
@@ -119,5 +122,35 @@ describe('money', () => {
     setCurrencyCatalog([]);
     expect(decimalsFor('JPY')).toBe(0);
     expect(currencyCatalog().some((option) => option.code === 'COP')).toBe(true);
+  });
+});
+
+describe('moneda y números según la sesión', () => {
+  afterEach(() => baseCurrency.set(BASE_CURRENCY));
+
+  it('una moneda es extranjera cuando difiere de la base de la sesión', () => {
+    expect(isForeignCurrency('USD')).toBe(true);
+    expect(isForeignCurrency('cop')).toBe(false);
+    expect(isForeignCurrency('')).toBe(false);
+    expect(isForeignCurrency(undefined)).toBe(false);
+    baseCurrency.set('EUR');
+    expect(isForeignCurrency('COP')).toBe(true);
+    expect(isForeignCurrency('EUR')).toBe(false);
+  });
+
+  it('formatea números con el idioma pedido y no con el del navegador', () => {
+    expect(formatNumber(1234567, 'es-CO')).toBe('1.234.567');
+    expect(formatNumber(1234567, 'en-US')).toBe('1,234,567');
+    expect(formatNumber(1234.5, 'en-US', 2)).toBe('1,234.5');
+    expect(formatNumber(Number.NaN, 'en-US')).toBe('0');
+  });
+
+  it('las opciones de moneda ponen la base primero sin repetir', () => {
+    const traducir = (clave: string) => (clave === 'form.currency.cop' ? 'COP · Peso' : clave);
+    expect(opcionesDeMoneda(traducir).map((o) => o.value)).toEqual(['COP', 'USD']);
+    expect(opcionesDeMoneda(traducir)[0].label).toBe('COP · Peso');
+    expect(opcionesDeMoneda(traducir)[1].label).toBe('USD');
+    baseCurrency.set('USD');
+    expect(opcionesDeMoneda(traducir).map((o) => o.value)).toEqual(['USD', 'COP']);
   });
 });

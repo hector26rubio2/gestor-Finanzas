@@ -178,7 +178,7 @@
   </span>
   }
   <p class="ms-auto text-xs text-muted-foreground max-[780px]:w-full" role="status" aria-live="polite">
-    {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: movementsCount().toLocaleString() }) }}
+    {{ i18n.t('dashboard.filters.summary', { period: periodLabel(), count: store.number(movementsCount()) }) }}
   </p>
   @if (hasFilters()) {
   <button hlmBtn variant="ghost" type="button" class="gap-2" (click)="clear.emit()">

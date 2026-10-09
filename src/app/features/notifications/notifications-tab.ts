@@ -14,6 +14,7 @@ import { agruparPorFecha, haceCuanto } from './notification-dates';
 
 const ICONO_POR_TIPO: Readonly<Record<string, IconName>> = {
   'permissions.updated': 'shield',
+  'roles.updated': 'shield',
   'organization.updated': 'organization',
 };
 

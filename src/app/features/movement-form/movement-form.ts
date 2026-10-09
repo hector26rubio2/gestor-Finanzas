@@ -1,7 +1,7 @@
 import { IconComponent } from '@ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, ElementRef, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
@@ -19,8 +19,10 @@ import { MovementCounterpartyFieldComponent } from './counterparty-field/counter
 import { MovementFinancingFieldsComponent } from './financing-fields/financing-fields';
 import { MovementFieldVisibility, MovementVisibilityBuilder } from './movement-visibility-builder';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
-import { FieldComponent } from '@ui/field/field';
+import { ErroresDeFormulario, FieldComponent } from '@ui/field';
+import { erroresPorCampo } from '@core/http/api-http-client';
 import { AsyncActionService } from '@core/utils/async-action.service';
+import { baseCurrency, opcionesDeMoneda } from '@core/utils/money';
 import { Movement } from '@core/state/view-model';
 
 const MOVEMENT_KINDS = ['', 'income', 'expense', 'payment'] as const;
@@ -41,7 +43,7 @@ export type MovementFormModel = {
   category: string;
   person: string;
   counterpartyId: string;
-  amount: number;
+  amount: number | null;
   id?: string;
   notificationId?: string;
   ownership: Movement['ownership'];
@@ -64,6 +66,22 @@ const isMovementKind = (value: string): value is MovementKind => MOVEMENT_KINDS.
 
 const isMovementOperationType = (value: string): value is MovementOperationType =>
   MOVEMENT_OPERATION_TYPES.some((operationType) => operationType === value);
+
+const CAMPOS_DE_LA_API: Readonly<Record<string, string>> = {
+  'amount.amount': 'amount',
+  'amount.original.amount': 'originalAmount',
+  'links.account': 'accountId',
+  'links.card': 'accountId',
+  'links.category': 'category',
+  'links.counterparty': 'counterpartyId',
+  sourceAccount: 'accountId',
+  destinationAccount: 'targetId',
+  account: 'accountId',
+  card: 'targetId',
+  rate: 'exchangeRate',
+  installments: 'installmentTotal',
+  apr: 'installmentRate',
+};
 
 const OPERACIONES_DE_GASTO: readonly MovementOperationType[] = ['normal', 'transfer', 'advance', 'loan'];
 const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'received', 'loan', 'credit'];
@@ -89,6 +107,7 @@ const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'rec
     FieldComponent,
   ],
   templateUrl: './movement-form.html',
+  providers: [ErroresDeFormulario],
 })
 export class MovementFormComponent {
   readonly store = inject(AppStore);
@@ -97,6 +116,9 @@ export class MovementFormComponent {
   private readonly features = inject(FEATURES);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
+  readonly errores = inject(ErroresDeFormulario);
+  private readonly anfitrion = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly injector = inject(Injector);
   readonly actions = inject(AsyncActionService);
   readonly saveActionKey = 'movement:save';
 
@@ -136,7 +158,7 @@ export class MovementFormComponent {
       accountId: context.accountId ?? m?.accountId ?? this.cuentaPredeterminada(),
       targetId: context.targetId ?? '',
       description: m?.description ?? '',
-      amount: Math.abs(m?.amount ?? 0),
+      amount: m ? Math.abs(m.amount) : null,
       category: m?.category ?? '',
       person: m?.person ?? '',
       counterpartyId: '',
@@ -151,9 +173,9 @@ export class MovementFormComponent {
       loanProduct: m?.loanProduct ?? 'personal',
       cardMode: 'purchase',
       operationType: m ? operacionDe(m) : operacionPedida(context.operationType, context.kind),
-      originalCurrency: m?.originalCurrency ?? 'COP',
+      originalCurrency: m?.originalCurrency ?? baseCurrency(),
       originalAmount: m?.originalAmount ?? 0,
-      exchangeRate: m?.exchangeRate ?? 4168.35,
+      exchangeRate: m?.exchangeRate ?? 0,
     };
   }
 
@@ -239,18 +261,15 @@ export class MovementFormComponent {
       .build();
   }
 
-  readonly monedasDeCompra = computed<readonly UiOption[]>(() => [
-    { value: 'COP', label: this.i18n.t('form.currency.cop') },
-    { value: 'USD', label: this.i18n.t('form.currency.usd') },
-  ]);
+  readonly monedasDeCompra = computed<readonly UiOption[]>(() => opcionesDeMoneda((clave) => this.i18n.t(clave)));
 
-  monedaDeCompra(): 'COP' | 'USD' {
+  monedaDeCompra(): string {
     const tarjeta = this.store.account(this.model.accountId);
-    if (tarjeta?.type === 'credit' && !tarjeta.dualCurrency) return tarjeta.currency === 'USD' ? 'USD' : 'COP';
-    return this.model.originalCurrency === 'USD' ? 'USD' : 'COP';
+    if (tarjeta?.type === 'credit' && !tarjeta.dualCurrency) return tarjeta.currency === 'USD' ? 'USD' : baseCurrency();
+    return this.model.originalCurrency === 'USD' ? 'USD' : baseCurrency();
   }
 
-  elegirMonedaDeCompra(moneda: 'COP' | 'USD'): void {
+  elegirMonedaDeCompra(moneda: string): void {
     this.model.originalCurrency = moneda;
   }
 
@@ -284,22 +303,60 @@ export class MovementFormComponent {
       throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
     if (this.model.kind === 'income' && source?.type === 'credit')
       throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
+  }
+
+  private erroresDeCampos(): Record<string, string> {
+    const t = (clave: string) => this.i18n.t(clave);
+    const operacion = this.model.operationType;
+    const origen = this.store.account(this.model.accountId);
+    const errores: Record<string, string> = {};
+    if (!this.model.date) errores['date'] = t('form.movement.error.dateRequired');
+    if (!(Number(this.model.amount) > 0)) errores['amount'] = t('form.movement.error.amountPositive');
+    if (!origen) errores['accountId'] = t('form.movement.error.accountInvalid');
+    if (this.visibility().showTargetAccount) {
+      const destino = this.store.account(this.model.targetId);
+      if (!destino || destino.id === origen?.id) errores['targetId'] = t('form.movement.error.targetDifferent');
+    }
+    if (!this.model.description.trim()) errores['description'] = t('form.movement.error.descriptionRequired');
     if ((operacion === 'loan' || operacion === 'credit' || operacion === 'received') && !this.model.counterpartyId)
-      throw new Error(this.i18n.t('form.movement.error.counterpartyRequired'));
+      errores['counterpartyId'] = t('form.movement.error.counterpartyRequired');
     const tasa = Number(this.model.monthlyRate ?? 0);
     if ((operacion === 'loan' || operacion === 'credit') && (!Number.isFinite(tasa) || tasa < 0 || tasa > 100))
-      throw new Error(this.i18n.t('form.movement.error.rateInvalid'));
+      errores['monthlyRate'] = t('form.movement.error.rateInvalid');
+    if (this.visibility().showCurrency) {
+      if (!(Number(this.model.originalAmount) > 0))
+        errores['originalAmount'] = t('form.movement.error.originalAmountPositive');
+      if (!(Number(this.model.exchangeRate) > 0))
+        errores['exchangeRate'] = t('form.movement.error.exchangeRatePositive');
+    }
+    return errores;
+  }
+
+  private mostrarErrores(errores: Readonly<Record<string, string>>): void {
+    this.errores.definir(errores);
+    this.error.set(this.i18n.t('form.movement.error.reviewFields'));
+    afterNextRender(() => this.anfitrion.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus(), {
+      injector: this.injector,
+    });
+  }
+
+  alEditar(evento: Event): void {
+    const campo = evento.target instanceof HTMLElement ? evento.target.getAttribute('name') : null;
+    if (campo) this.errores.limpiar(campo);
   }
 
   async submit() {
     try {
       this.error.set('');
+      const faltantes = this.erroresDeCampos();
+      this.errores.definir(faltantes);
+      if (Object.keys(faltantes).length > 0) return this.mostrarErrores(faltantes);
       this.validar();
       const kind = this.effectiveKind();
       const originalCurrency = this.visibility().showCurrency ? 'USD' : this.monedaDeCompra();
       await this.actions.run(
         this.saveActionKey,
-        () => this.movementCommands.save({ ...this.model, kind, originalCurrency }),
+        () => this.movementCommands.save({ ...this.model, amount: Number(this.model.amount), kind, originalCurrency }),
         {
           loading: this.i18n.t('form.movement.toast.loading'),
           success: this.i18n.t('form.movement.toast.success'),
@@ -307,6 +364,8 @@ export class MovementFormComponent {
         },
       );
     } catch (e) {
+      const deLaApi = erroresPorCampo(e, CAMPOS_DE_LA_API);
+      if (Object.keys(deLaApi).length > 0) return this.mostrarErrores(deLaApi);
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }
   }

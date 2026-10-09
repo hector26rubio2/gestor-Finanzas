@@ -32,3 +32,7 @@ if (typeof window !== 'undefined') {
 if (typeof Element !== 'undefined' && typeof Element.prototype.scrollIntoView !== 'function') {
   Element.prototype.scrollIntoView = () => undefined;
 }
+
+if (typeof navigator !== 'undefined') {
+  Object.defineProperty(navigator, 'languages', { value: ['es-CO'], configurable: true });
+}

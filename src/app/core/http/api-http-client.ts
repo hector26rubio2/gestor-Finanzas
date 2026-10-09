@@ -24,6 +24,7 @@ export interface ApiProblem {
   status?: number;
   detail?: string;
   code?: string;
+  errors?: Readonly<Record<string, readonly string[]>>;
 }
 
 export class ApiRequestError extends Error {
@@ -33,6 +34,27 @@ export class ApiRequestError extends Error {
   ) {
     super(problem.detail || problem.title || `La API respondió ${status}.`);
   }
+}
+
+export function erroresPorCampo(
+  error: unknown,
+  alias: Readonly<Record<string, string>> = {},
+): Readonly<Record<string, string>> {
+  const bruto = error instanceof ApiRequestError ? error.problem.errors : undefined;
+  if (!bruto || typeof bruto !== 'object') return {};
+  const resultado: Record<string, string> = {};
+  for (const [clave, mensajes] of Object.entries(bruto)) {
+    const mensaje = Array.isArray(mensajes) ? mensajes.find((texto) => typeof texto === 'string' && texto) : undefined;
+    if (!mensaje) continue;
+    const campo = nombreDeCampo(clave);
+    resultado[alias[campo] ?? campo] ??= mensaje;
+  }
+  return resultado;
+}
+
+function nombreDeCampo(clave: string): string {
+  const limpio = clave.replace(/^\$\.?/, '').replace(/\[\d+\]/g, '');
+  return limpio.length === 0 ? limpio : limpio.charAt(0).toLowerCase() + limpio.slice(1);
 }
 
 const REQUEST_TIMEOUT_MS = 30_000;
