@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addMonthsToIso, formatDateTime, todayIso } from './dates';
+import { addMonthsToIso, fechaDeReverso, formatDateTime, todayIso } from './dates';
 
 describe('fechas', () => {
   it('hoy se escribe con la fecha local, sin desfase de zona horaria', () => {
@@ -21,5 +21,19 @@ describe('fechas', () => {
   it('un valor vacío o inválido no rompe la vista', () => {
     expect(formatDateTime(null, 'es-CO')).toBe('');
     expect(formatDateTime('no es fecha', 'es-CO')).toBe('');
+  });
+});
+
+describe('fecha de reverso', () => {
+  it('usa hoy cuando el movimiento ya pasó', () => {
+    expect(fechaDeReverso('2026-09-01', '2026-10-08')).toBe('2026-10-08');
+  });
+
+  it('usa la fecha del movimiento cuando está en el futuro', () => {
+    expect(fechaDeReverso('2026-12-01', '2026-10-08')).toBe('2026-12-01');
+  });
+
+  it('un movimiento de hoy se revierte hoy', () => {
+    expect(fechaDeReverso('2026-10-08', '2026-10-08')).toBe('2026-10-08');
   });
 });

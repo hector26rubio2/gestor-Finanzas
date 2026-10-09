@@ -12,5 +12,7 @@ updates:
     schedule:
       interval: weekly
     groups:
+      codeql:
+        patterns: ["github/codeql-action/*"]
       actions-menores:
         update-types: [minor, patch]

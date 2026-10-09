@@ -59,8 +59,8 @@ function escribiendo(destino: EventTarget | null): boolean {
       dialogContentClass="w-[min(40rem,calc(100vw-2rem))]"
     >
       @if (abierto()) {
-        <hlm-command [filter]="aceptarTodo" (searchChange)="buscado.set($event)" (keydown.enter)="elegirPrimero()">
-          <hlm-command-input [placeholder]="i18n.t('command.placeholder')" />
+        <hlm-command [filter]="aceptarTodo" (searchChange)="buscado.set($event)">
+          <hlm-command-input [placeholder]="i18n.t('command.placeholder')" (keydown.enter)="confirmar($event)" />
           <div hlmCommandList class="max-h-[min(64vh,32rem)]">
             @if (!hayResultados()) {
               <p class="py-6 text-center text-sm text-muted-foreground">{{ i18n.t('command.empty') }}</p>
@@ -341,10 +341,12 @@ export class CommandPaletteComponent {
     }
   }
 
-  elegirPrimero(): void {
-    if (document.querySelector('[data-slot=command-item][data-selected]')) return;
-    const primero = this.grupos().find((grupo) => grupo.items.length)?.items[0];
-    if (primero) this.elegir(primero);
+  confirmar(evento: Event): void {
+    evento.stopPropagation();
+    const activo = document.querySelector('[data-slot=command-item][data-selected]')?.getAttribute('data-value');
+    const items = this.grupos().flatMap((grupo) => grupo.items);
+    const elegido = items.find((item) => item.id === activo) ?? items[0];
+    if (elegido) this.elegir(elegido);
   }
 
   elegir(item: Comando): void {

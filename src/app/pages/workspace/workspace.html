@@ -41,7 +41,7 @@
         <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'notifications' && can(P.notificaciones.editar)) {
-      <button hlmBtn variant="outline" size="lg" (click)="readAll()">
+      <button hlmBtn variant="outline" size="lg" [disabled]="!puedeMarcarTodas()" (click)="readAll()">
         {{ i18n.t('workspace.actions.markAllRead') }}
       </button>
       }

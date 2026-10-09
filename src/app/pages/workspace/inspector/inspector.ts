@@ -7,7 +7,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { FinanceApiClient } from '@core/api';
 import type { ApiSharedPurchase, ApiSettlement } from '@core/api';
-import { parseMoney } from '@core/utils';
+import { fechaDeReverso, parseMoney } from '@core/utils';
 import { I18nService } from '@core/i18n';
 import { PERMISO_DE_REVERSO, familiaDeMovimiento, P } from '@core/session';
 import { permisoParaEditarCuenta } from '@features/account-form';
@@ -191,7 +191,7 @@ export class InspectorComponent {
     try {
       await firstValueFrom(
         this.api.reverseMovement(movement.id, {
-          date: new Date().toISOString().slice(0, 10),
+          date: fechaDeReverso(movement.date),
           reason: 'Reversado desde la aplicación',
         }),
       );

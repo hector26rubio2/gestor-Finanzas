@@ -87,6 +87,8 @@ export class WorkspaceComponent {
     this.headerActions.exportMovements()?.();
   }
 
+  readonly puedeMarcarTodas = this.headerActions.puedeMarcarTodas;
+
   readAll(): void {
     this.headerActions.readAll()?.();
   }
