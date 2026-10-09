@@ -7,6 +7,7 @@ import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
 import { AppStore } from '@core/state/store';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
+import { arranqueDe } from '@testing/arranque-de-prueba';
 
 describe('cerrar sesion', () => {
   function montar(api: Partial<FinanceApiClient> = {}) {
@@ -54,20 +55,20 @@ describe('cerrar sesion', () => {
       expiresAt: '',
       permissions: ['dashboard.ver'],
     };
-    const session = vi.fn(() => of(sesion));
+    const bootstrap = vi.fn(() => of(arranqueDe(sesion)));
     const arranque = montar({
       logout: vi.fn(() => of(void 0)),
-      session,
+      bootstrap,
     } as unknown as Partial<FinanceApiClient>);
     const store = TestBed.inject(AppStore);
     store.user.set(USUARIO_DE_PRUEBA);
 
     await arranque.cerrarSesion();
-    const llamadasAlCerrar = session.mock.calls.length;
+    const llamadasAlCerrar = bootstrap.mock.calls.length;
 
     await arranque.pollSession();
 
-    expect(session.mock.calls.length).toBe(llamadasAlCerrar);
+    expect(bootstrap.mock.calls.length).toBe(llamadasAlCerrar);
     expect(store.user()).toBeNull();
   });
 

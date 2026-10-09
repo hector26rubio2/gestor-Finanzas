@@ -5,6 +5,7 @@ export const API_ROUTES = {
   authMethods: '/api/v1/auth/methods',
   passwordLogin: '/api/v1/auth/login',
   session: '/api/v1/session',
+  bootstrap: '/api/v1/bootstrap',
   currencies: '/api/v1/currencies',
   accounts: '/api/v1/accounts',
   accountsWithOpening: '/api/v1/accounts/with-opening',

@@ -214,6 +214,7 @@ export class MovementsBookService {
       if (result.nextCursor) this.cursores.set(page + 1, result.nextCursor);
       this.store.remoteMovementCursor.set(result.nextCursor ?? null);
       this.store.remoteMovementPage.set(page);
+      this.store.movimientosListos.set(true);
       this.store.remoteMovementSize.set(result.size);
       if (result.total !== null) this.store.remoteMovementTotal.set(result.total);
       if (result.totals)
@@ -228,6 +229,9 @@ export class MovementsBookService {
     } finally {
       if (request === this.movementRequest) this.movementsLoading.set(false);
     }
+  }
+  async asegurarPrimeraPagina(): Promise<void> {
+    if (!this.store.movimientosListos()) await this.loadMovementPage(1);
   }
   changeMovementPageSize(size: number): void {
     this.store.remoteMovementSize.set(size);

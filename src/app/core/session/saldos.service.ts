@@ -14,12 +14,20 @@ export class SaldosService {
   private readonly api = inject(FinanceApiClient);
   private readonly escrituras = inject(ApiWritesBus);
   private temporizador: ReturnType<typeof setTimeout> | null = null;
+  private versionVista: number | null = null;
 
   constructor() {
     effect(() => {
-      this.escrituras.version();
-      const listo = this.store.remoteState() === 'ready';
-      if (!listo) return;
+      const version = this.escrituras.version();
+      if (this.store.remoteState() !== 'ready') {
+        this.versionVista = null;
+        return;
+      }
+      if (this.versionVista === null || version === this.versionVista) {
+        this.versionVista = version;
+        return;
+      }
+      this.versionVista = version;
       untracked(() => this.programar());
     });
   }
@@ -35,7 +43,7 @@ export class SaldosService {
   async refrescar(): Promise<void> {
     const hoy = todayIso();
     try {
-      const tablero = await firstValueFrom(this.api.dashboard(`${hoy.slice(0, 8)}01`, hoy));
+      const tablero = await firstValueFrom(this.api.dashboard(hoy, hoy));
       const saldos = new Map<string, number>();
       for (const cuenta of tablero.accounts ?? []) saldos.set(cuenta.account.id, parseMoney(cuenta.balance));
       for (const tarjeta of tablero.cards ?? []) saldos.set(tarjeta.card.id, -parseMoney(tarjeta.debt));

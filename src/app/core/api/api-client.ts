@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { AccountsApi } from './accounts.api';
 import { AdministrationApi } from './administration.api';
+import { BootstrapApi } from './bootstrap.api';
 import { CardsApi } from './cards.api';
 import { CategoriesApi } from './categories.api';
 import { InvestmentsApi } from './investments.api';
@@ -31,6 +32,8 @@ export { API_ROUTES } from './api-routes';
 export type { ApiPage, MovementQuery, ApiMoney, ApiLinkRef, ApiConvertedMoney } from './shared-api-types';
 
 export { SessionApi } from './session.api';
+export { BootstrapApi } from './bootstrap.api';
+export type { ApiBootstrap, ApiBootstrapPart, ApiBootstrapOmission, ApiBootstrapBalances } from './bootstrap.api';
 export type { ApiUser, ApiOrganization, ApiSession, ApiCurrency, ApiAuthMethods } from './session.api';
 export { AccountsApi, ApiAccountKind, accountKindToViewType, viewTypeToAccountKind } from './accounts.api';
 export type { ApiAccount, ApiAccountOpening, AccountViewType, AccountKindViewType } from './accounts.api';
@@ -80,6 +83,7 @@ export { SettlementsApi } from './settlements.api';
 @Injectable({ providedIn: 'root' })
 export class FinanceApiClient {
   private readonly sessionApi = inject(SessionApi);
+  private readonly bootstrapApi = inject(BootstrapApi);
   private readonly accountsApi = inject(AccountsApi);
   private readonly ledgerApi = inject(LedgerApi);
   private readonly cardsApi = inject(CardsApi);
@@ -95,6 +99,9 @@ export class FinanceApiClient {
   private readonly purchasesApi = inject(PurchasesApi);
   private readonly settlementsApi = inject(SettlementsApi);
 
+  bootstrap(asOf: string) {
+    return this.bootstrapApi.bootstrap(asOf);
+  }
   session() {
     return this.sessionApi.session();
   }

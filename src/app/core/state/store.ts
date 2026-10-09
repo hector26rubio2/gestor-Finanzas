@@ -82,6 +82,7 @@ export class AppStore {
   readonly disenoDelServidor = signal<{ readonly json: string | null } | null>(null);
   readonly organization = signal<{ id: string; name: string } | null>(null);
   readonly organizations = signal<readonly { id: string; name: string }[]>([]);
+  readonly movimientosListos = signal(false);
   readonly remoteMovementPage = signal(1);
   readonly remoteMovementSize = signal(25);
   readonly remoteMovementTotal = signal(0);
@@ -137,7 +138,10 @@ export class AppStore {
   );
   readonly income = computed(() => totalDeIngresos(this.movements()));
   readonly expense = computed(() => totalDeGastos(this.movements()));
-  readonly unread = computed(() => this.data().notifications.filter((n) => !n.read).length);
+  readonly sinLeerFueraDeLista = signal(0);
+  readonly unread = computed(
+    () => this.data().notifications.filter((n) => !n.read).length + this.sinLeerFueraDeLista(),
+  );
   readonly debt = computed(() =>
     sumBy(
       this.data().accounts.filter((a) => a.type === 'credit'),

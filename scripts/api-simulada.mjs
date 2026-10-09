@@ -95,6 +95,46 @@ export function sesionConPermisos(permisos) {
   };
 }
 
+const PERMISO_DE_PARTE = {
+  currencies: 'sesion.monedas.listar',
+  movementKinds: 'movimientos.clases.listar',
+  accounts: 'cuentas.ver',
+  cards: 'cuentas.tarjetas.listar',
+  categories: 'cuentas.categorias.listar',
+  people: 'personas.ver',
+  preferences: 'preferencias.ver',
+};
+
+export function construirArranque(sesion, banderas, datos = {}) {
+  const permisos = new Set(sesion.permissions);
+  const omitted = [];
+  const parte = (nombre, valor) => {
+    if (permisos.has(PERMISO_DE_PARTE[nombre])) return valor;
+    omitted.push({ part: nombre, reason: 'forbidden' });
+    return null;
+  };
+  const conCuentas = permisos.has(PERMISO_DE_PARTE.accounts);
+  const conTarjetas = permisos.has(PERMISO_DE_PARTE.cards);
+  if (!conCuentas && !conTarjetas) omitted.push({ part: 'balances', reason: 'forbidden' });
+  return {
+    session: sesion,
+    featureFlags: banderas,
+    currencies: parte('currencies', []),
+    movementKinds: parte('movementKinds', datos.movementKinds ?? []),
+    accounts: parte('accounts', datos.accounts ?? []),
+    cards: parte('cards', []),
+    categories: parte('categories', []),
+    people: parte('people', []),
+    preferences: parte('preferences', null),
+    notifications: { unreadCount: 0, latest: [] },
+    balances:
+      conCuentas || conTarjetas
+        ? { asOf: '2026-01-31', accounts: conCuentas ? [] : null, cards: conTarjetas ? [] : null }
+        : null,
+    omitted,
+  };
+}
+
 const json = (cuerpo) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(cuerpo) });
 
 export async function simularApi(context, { permisos = TODOS_LOS_PERMISOS, conDatos = true } = {}) {
@@ -105,6 +145,16 @@ export async function simularApi(context, { permisos = TODOS_LOS_PERMISOS, conDa
       contentType: 'application/javascript',
       body: `window.__FINANZAS_CONFIG__ = { apiBaseUrl: '${API_SIMULADA}' };`,
     }),
+  );
+  await context.route('**/api/v1/bootstrap*', (route) =>
+    route.fulfill(
+      json(
+        construirArranque(sesionConPermisos(permisos), banderas, {
+          movementKinds: clases,
+          accounts: conDatos ? cuentas : [],
+        }),
+      ),
+    ),
   );
   await context.route('**/api/v1/session', (route) => route.fulfill(json(sesionConPermisos(permisos))));
   await context.route('**/api/v1/feature-flags*', (route) => route.fulfill(json(banderas)));
