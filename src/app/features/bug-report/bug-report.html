@@ -3,9 +3,12 @@
   size="icon-lg"
   type="button"
   class="fixed z-40 size-[52px] cursor-grab touch-none rounded-full p-0 shadow-pop active:cursor-grabbing"
+  data-sin-captura
+  [class.animate-pulse]="preparando()"
   [style.right.px]="fab().right"
   [style.bottom.px]="fab().bottom"
-  [attr.aria-label]="i18n.t('bugReport.fab.label')"
+  [attr.aria-label]="preparando() ? i18n.t('bugReport.fab.preparing') : i18n.t('bugReport.fab.label')"
+  [attr.aria-busy]="preparando()"
   [attr.title]="i18n.t('bugReport.fab.move')"
   (pointerdown)="startFabDrag($event)"
   (pointermove)="moveFab($event)"
@@ -158,11 +161,14 @@
       @if (capturingScreenshot()) {
       <p class="text-sm text-muted-foreground">{{ i18n.t('bugReport.screenshot.capturing') }}</p>
       } @else if (includeScreenshot() && screenshotDataUrl()) {
-      <img
-        class="max-h-56 w-full rounded-lg border border-border object-cover object-top"
-        [src]="screenshotDataUrl()"
-        [alt]="i18n.t('bugReport.screenshot.previewAlt')"
-      />
+      <figure class="grid gap-1.5">
+        <img
+          class="max-h-72 w-full rounded-lg border border-border bg-muted object-contain object-top"
+          [src]="screenshotDataUrl()"
+          [alt]="i18n.t('bugReport.screenshot.previewAlt')"
+        />
+        <figcaption class="text-xs text-muted-foreground">{{ i18n.t('bugReport.screenshot.caption') }}</figcaption>
+      </figure>
       } @else if (screenshotTooLarge()) {
       <p class="text-sm text-muted-foreground">{{ i18n.t('bugReport.screenshot.tooLarge') }}</p>
       } @else if (screenshotFailed()) {
@@ -172,6 +178,17 @@
         <div>
           <dt>{{ i18n.t('bugReport.review.page') }}</dt>
           <dd>{{ i18n.t('bugReport.review.pageValue') }}</dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('bugReport.review.requests') }}</dt>
+          <dd class="tabular-nums" [class.text-destructive]="resumenTecnico().fallidas > 0">
+            {{ i18n.t('bugReport.review.requestsValue', { count: resumenTecnico().peticiones, failed:
+            resumenTecnico().fallidas }) }}
+          </dd>
+        </div>
+        <div>
+          <dt>{{ i18n.t('bugReport.review.navigation') }}</dt>
+          <dd class="tabular-nums">{{ resumenTecnico().pantallas }}</dd>
         </div>
         <div>
           <dt>{{ i18n.t('bugReport.review.console') }}</dt>
