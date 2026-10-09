@@ -1516,6 +1516,30 @@ export default {
   'preferences.sections.organization': 'Organización',
   'preferences.sections.categories': 'Categorías',
   'preferences.sections.data': 'Datos y sesión',
+  'preferences.sections.privacy': 'Privacidad',
+  'privacy.export.title': 'Exportar mis datos',
+  'privacy.export.description':
+    'Descarga un archivo JSON con tus cuentas, tarjetas, movimientos, categorías, personas, deudas, inversiones, presupuestos y preferencias de cada organización.',
+  'privacy.export.button': 'Exportar mis datos',
+  'privacy.export.busy': 'Preparando archivo…',
+  'privacy.export.done': 'Tus datos se descargaron.',
+  'privacy.export.error': 'No se pudo exportar tu información. Inténtalo de nuevo.',
+  'privacy.delete.title': 'Eliminar mi cuenta',
+  'privacy.delete.description':
+    'Borra tu cuenta y todos tus datos financieros de forma permanente. No se puede deshacer.',
+  'privacy.delete.button': 'Eliminar mi cuenta',
+  'privacy.delete.dialogTitle': '¿Eliminar tu cuenta?',
+  'privacy.delete.dialogDescription':
+    'Se borrarán de forma permanente tus datos y se cerrará tu sesión. Para confirmar, escribe tu correo ({email}).',
+  'privacy.delete.emailLabel': 'Tu correo',
+  'privacy.delete.cancel': 'Cancelar',
+  'privacy.delete.confirm': 'Eliminar definitivamente',
+  'privacy.delete.busy': 'Eliminando…',
+  'privacy.delete.error.soleOwner':
+    'Eres el único propietario de una organización con más miembros. Asigna otro propietario o retira a los demás antes de eliminar tu cuenta.',
+  'privacy.delete.error.superAdmin': 'La cuenta de superadministración no se puede eliminar desde aquí.',
+  'privacy.delete.error.mismatch': 'El correo no coincide con el de tu cuenta.',
+  'privacy.delete.error.generic': 'No se pudo eliminar la cuenta. Inténtalo de nuevo.',
   'preferences.studio.title': 'Crea tu tema',
   'preferences.studio.description':
     'Ajusta colores y bordes. Los cambios solo se ven en la vista previa hasta que guardes; al guardar se aplican a toda la aplicación y solo para ti.',

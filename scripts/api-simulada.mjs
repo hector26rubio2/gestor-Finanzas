@@ -109,6 +109,10 @@ export async function simularApi(context, { permisos = TODOS_LOS_PERMISOS, conDa
   await context.route('**/api/v1/session', (route) => route.fulfill(json(sesionConPermisos(permisos))));
   await context.route('**/api/v1/feature-flags*', (route) => route.fulfill(json(banderas)));
   await context.route('**/api/v1/movement-kinds*', (route) => route.fulfill(json(clases)));
+  await context.route('**/api/v1/me/export', (route) =>
+    route.fulfill(json({ format: 'finanzas-export', version: 1, organizations: [] })),
+  );
+  await context.route('**/api/v1/me', (route) => route.fulfill({ status: 204 }));
   await context.route('**/api/v1/preferences*', (route) => route.fulfill(json(null)));
   await context.route('**/api/v1/accounts*', (route) => route.fulfill(json(conDatos ? cuentas : [])));
   await context.route('**/api/v1/movements/search*', (route) =>

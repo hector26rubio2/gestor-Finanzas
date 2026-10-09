@@ -1526,6 +1526,30 @@ export default {
   'preferences.sections.organization': 'Organisation',
   'preferences.sections.categories': 'Catégories',
   'preferences.sections.data': 'Données et session',
+  'preferences.sections.privacy': 'Confidentialité',
+  'privacy.export.title': 'Exporter mes données',
+  'privacy.export.description':
+    'Téléchargez un fichier JSON avec vos comptes, cartes, mouvements, catégories, personnes, dettes, investissements, budgets et préférences de chaque organisation.',
+  'privacy.export.button': 'Exporter mes données',
+  'privacy.export.busy': 'Préparation du fichier…',
+  'privacy.export.done': 'Vos données ont été téléchargées.',
+  'privacy.export.error': 'Impossible d’exporter vos données. Réessayez.',
+  'privacy.delete.title': 'Supprimer mon compte',
+  'privacy.delete.description':
+    'Supprime définitivement votre compte et toutes vos données financières. Cette action est irréversible.',
+  'privacy.delete.button': 'Supprimer mon compte',
+  'privacy.delete.dialogTitle': 'Supprimer votre compte ?',
+  'privacy.delete.dialogDescription':
+    'Vos données seront effacées définitivement et vous serez déconnecté. Pour confirmer, saisissez votre e-mail ({email}).',
+  'privacy.delete.emailLabel': 'Votre e-mail',
+  'privacy.delete.cancel': 'Annuler',
+  'privacy.delete.confirm': 'Supprimer définitivement',
+  'privacy.delete.busy': 'Suppression…',
+  'privacy.delete.error.soleOwner':
+    'Vous êtes l’unique propriétaire d’une organisation comptant d’autres membres. Désignez un autre propriétaire ou retirez les autres avant de supprimer votre compte.',
+  'privacy.delete.error.superAdmin': 'Le compte de super-administration ne peut pas être supprimé ici.',
+  'privacy.delete.error.mismatch': 'L’e-mail ne correspond pas à celui de votre compte.',
+  'privacy.delete.error.generic': 'Impossible de supprimer le compte. Réessayez.',
   'preferences.studio.title': 'Créez votre thème',
   'preferences.studio.description':
     "Ajustez couleurs et coins. Les changements restent dans l'aperçu jusqu'à l'enregistrement ; ils s'appliquent alors à toute l'application, pour vous seul.",

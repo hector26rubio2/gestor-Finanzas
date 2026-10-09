@@ -15,6 +15,7 @@ import { NotificationsApi } from './notifications.api';
 import { ObligationsApi } from './obligations.api';
 import { PeopleApi } from './people.api';
 import { PreferencesApi } from './preferences.api';
+import { PrivacyApi } from './privacy.api';
 import { PurchasesApi } from './purchases.api';
 import { RecurrencesApi } from './recurrences.api';
 import { ReportingApi } from './reporting.api';
@@ -56,6 +57,7 @@ export type { ApiInvestment } from './investments.api';
 export { ReportingApi } from './reporting.api';
 export type { ApiPeriodPoint, ApiCategoryTotal, ApiDashboard } from './reporting.api';
 export { PreferencesApi } from './preferences.api';
+export { PrivacyApi } from './privacy.api';
 export type { ApiPreference, ApiFeatureFlag } from './preferences.api';
 export { NotificationsApi } from './notifications.api';
 export type { ApiNotification } from './notifications.api';
@@ -89,6 +91,7 @@ export class FinanceApiClient {
   private readonly investmentsApi = inject(InvestmentsApi);
   private readonly reportingApi = inject(ReportingApi);
   private readonly preferencesApi = inject(PreferencesApi);
+  private readonly privacyApi = inject(PrivacyApi);
   private readonly notificationsApi = inject(NotificationsApi);
   private readonly administrationApi = inject(AdministrationApi);
   private readonly recurrencesApi = inject(RecurrencesApi);
@@ -202,6 +205,12 @@ export class FinanceApiClient {
   }
   createCashAdvance(request: CreateCashAdvanceBody) {
     return this.ledgerApi.createCashAdvance(request);
+  }
+  exportMyData() {
+    return this.privacyApi.exportMyData();
+  }
+  deleteMyAccount(confirmation: string) {
+    return this.privacyApi.deleteMyAccount(confirmation);
   }
   preferences() {
     return this.preferencesApi.preferences();
