@@ -1,5 +1,5 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
-  ><form class="flex flex-col gap-5" (ngSubmit)="submit()">
+  ><form class="flex flex-col gap-5" (ngSubmit)="submit()" (input)="alEditar($event)" (change)="alEditar($event)">
     @let vis = visibility();
     <fin-segmented
       [value]="model['kind']"
@@ -58,7 +58,7 @@
       } @if (vis.showCurrency) {
       <fin-movement-currency-fields [model]="model" />
       }
-      <fin-field [label]="i18n.t('form.movement.field.description')" [full]="true">
+      <fin-field [label]="i18n.t('form.movement.field.description')" [full]="true" campo="description">
         <input hlmInput type="text" name="description" [(ngModel)]="model['description']" required />
       </fin-field>
     </div>

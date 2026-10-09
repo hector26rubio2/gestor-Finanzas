@@ -137,6 +137,7 @@ export class InspectorComponent {
     const contexto: InspectorFactsContext = {
       t: (key, params) => this.i18n.t(key, params),
       money: (value) => this.store.money(value),
+      number: (value, decimales) => this.store.number(value, decimales),
       accountName: (id) => this.store.account(id)?.name,
     };
     const movimiento = this.selectedMovement();
@@ -234,7 +235,7 @@ export class InspectorComponent {
           counterparty: person.id,
           period: { start, end: today },
           cutOff: today,
-          currency: 'COP',
+          currency: this.store.baseCurrency(),
         }),
       );
       this.store.toast.set(this.i18n.t('workspace.messages.settlementIssued', { name: person.name }));

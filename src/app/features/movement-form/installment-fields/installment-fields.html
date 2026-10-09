@@ -7,10 +7,11 @@
     [ariaLabel]="i18n.t('form.movement.field.cardBucket')"
   />
 </fin-field>
-<fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
+<fin-field [label]="i18n.t('form.movement.field.installmentTotal')" campo="installmentTotal">
   <input
     hlmInput
     type="number"
+    inputmode="numeric"
     name="installmentTotal"
     min="1"
     max="120"
@@ -23,10 +24,11 @@
   <input hlmInput type="number" name="installmentCurrent" min="1" step="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
 } @if (conCuotas()) {
-<fin-field [label]="i18n.t('form.movement.field.installmentRate')">
+<fin-field [label]="i18n.t('form.movement.field.installmentRate')" campo="installmentRate">
   <input
     hlmInput
     type="number"
+    inputmode="decimal"
     name="installmentRate"
     min="0"
     max="100"

@@ -12,18 +12,11 @@
     [hint]="i18n.t('portfolio.kpi.investments.hint')"
   />
   <fin-kpi
-    [label]="i18n.t('portfolio.kpi.return.label')"
-    icon="trendUp"
-    tone="success"
-    [value]="investmentReturn()"
-    [hint]="i18n.t('portfolio.kpi.return.hint')"
-  />
-  <fin-kpi
     [label]="i18n.t('portfolio.kpi.gain.label')"
     icon="trendUp"
     tone="success"
     [value]="store.money(investmentGain())"
-    [hint]="i18n.t('portfolio.kpi.gain.hint')"
+    [hint]="i18n.t('portfolio.kpi.gain.hint', { rate: investmentReturn() })"
   />
 </fin-kpi-grid>
 <section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">

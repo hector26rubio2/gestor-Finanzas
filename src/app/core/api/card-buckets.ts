@@ -1,3 +1,5 @@
+import { isForeignCurrency } from '@core/utils/money';
+
 export const CARD_BUCKET = {
   pastDue: 1,
   fees: 2,
@@ -67,7 +69,7 @@ export function conceptoDeCompra(opciones: {
 }): CardBucket | null {
   if (opciones.kind !== 'expense') return null;
   if (opciones.cardBucket && CLAVE_DE_CONCEPTO.has(opciones.cardBucket)) return opciones.cardBucket as CardBucket;
-  const extranjera = !!opciones.originalCurrency && opciones.originalCurrency !== 'COP';
+  const extranjera = isForeignCurrency(opciones.originalCurrency);
   if (opciones.movementSubtype === 'advance')
     return extranjera ? CARD_BUCKET.internationalCashAdvances : CARD_BUCKET.cashAdvances;
   if (extranjera) return CARD_BUCKET.internationalPurchases;

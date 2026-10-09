@@ -2,7 +2,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Movement, Person } from './view-model';
 import { FinanceApiClient } from '@core/api/api-client';
-import { parseMoney } from '@core/utils/money';
+import { isForeignCurrency, parseMoney } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
 import { CashFlow, EconomicEffect, MovementKind, signOf } from '@core/utils/movement-kinds';
 import { anualDesdeMensual } from '@core/utils/tasas';
@@ -146,7 +146,7 @@ export class MovementCommands {
         effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
         flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
         amount: {
-          amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
+          amount: String(isForeignCurrency(input.originalCurrency) ? input.originalAmount : input.amount),
           currency: input.originalCurrency ?? account.currency,
         },
         links: {
@@ -154,8 +154,8 @@ export class MovementCommands {
           ...(categoria ? { category: categoria.id } : {}),
           ...(persona ? { counterparty: persona.id } : {}),
         },
-        rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
-        rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
+        rate: isForeignCurrency(input.originalCurrency) ? String(input.exchangeRate) : undefined,
+        rateAsOf: isForeignCurrency(input.originalCurrency) ? input.date : undefined,
         description: input.description,
         idempotencyKey: crypto.randomUUID(),
         purchaseApr: isCard ? aprPropia : undefined,

@@ -28,6 +28,20 @@ export interface Preferences {
   custom: boolean;
   customSaved?: TemaPropio;
 }
+export const IDIOMAS_ADMITIDOS = ['es-CO', 'en-US', 'pt-BR', 'fr-FR'] as const;
+
+export function idiomaInicial(preferidos: readonly string[] = navigator.languages ?? []): string {
+  for (const preferido of preferidos) {
+    const exacto = IDIOMAS_ADMITIDOS.find((idioma) => idioma.toLowerCase() === preferido.toLowerCase());
+    if (exacto) return exacto;
+    const mismoIdioma = IDIOMAS_ADMITIDOS.find(
+      (idioma) => idioma.split('-')[0] === preferido.split('-')[0].toLowerCase(),
+    );
+    if (mismoIdioma) return mismoIdioma;
+  }
+  return IDIOMAS_ADMITIDOS[0];
+}
+
 export const PREFERENCES = new InjectionToken('Preferences', {
   providedIn: 'root',
   factory: () =>
@@ -35,7 +49,7 @@ export const PREFERENCES = new InjectionToken('Preferences', {
       theme: 'system',
       accent: '#4f46e5',
       font: 'Public Sans, system-ui, sans-serif',
-      locale: 'es-CO',
+      locale: idiomaInicial(),
       density: 'comfortable',
       radius: 16,
       name: 'Mi tema indigo',

@@ -24,6 +24,7 @@ export interface KpisFijosContexto {
   allows(permiso: string): boolean;
   t(key: string): string;
   money(value: number): string;
+  number(value: number): string;
   periodLabel: string;
   net: number;
   income: number;
@@ -82,7 +83,7 @@ export function construirKpisFijos(ctx: KpisFijosContexto): FixedKpiItem[] {
       label: ctx.t('dashboard.kpi.count.label'),
       icon: 'movements',
       tone: 'accent',
-      value: ctx.count.toLocaleString(),
+      value: ctx.number(ctx.count),
       hint: ctx.t('dashboard.kpi.count.hint'),
       subirEsBueno: true,
     },

@@ -29,6 +29,7 @@ export class MovementCurrencyFieldsComponent implements OnInit {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
         this.officialTrm.set(value);
+        if (value && !Number(this.model['exchangeRate'])) this.model['exchangeRate'] = value;
         this.officialTrmLoading.set(false);
       });
   }

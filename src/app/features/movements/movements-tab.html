@@ -23,7 +23,7 @@
   <fin-kpi
     [label]="i18n.t('movements.kpi.records.label')"
     icon="movements"
-    [value]="registrosMostrados().toLocaleString()"
+    [value]="store.number(registrosMostrados())"
     [hint]="i18n.t(hintDe('records'))"
     [series]="recordsSeries()"
     [delta]="variacion(recordsSeries())"
@@ -61,9 +61,15 @@
   />
 </fin-kpi-grid>
 <fin-table-zone class="relative" [attr.aria-busy]="book.movementsLoading()">
-  @if (book.movementsLoading()) {
+  @if (book.movementsLoading()) { @if (book.movementRows().length === 0) {
   <fin-skeleton class="absolute inset-0 z-[2] overflow-hidden opacity-90" />
-  }
+  } @else {
+  <div
+    class="pointer-events-none absolute inset-x-0 top-0 z-[2] h-0.5 animate-pulse bg-primary"
+    role="progressbar"
+    [attr.aria-label]="i18n.t('skeleton.loading')"
+  ></div>
+  } }
   <fin-table
     urlKey="pagina"
     [columns]="book.movementColumns()"

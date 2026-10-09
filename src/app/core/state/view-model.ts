@@ -21,7 +21,7 @@ export interface Movement {
   loanRole?: 'lent' | 'borrowed' | 'repayment';
   loanProduct?: 'personal' | 'mortgage' | 'vehicle' | 'education' | 'other';
   movementSubtype?: 'transfer' | 'advance';
-  originalCurrency?: 'COP' | 'USD';
+  originalCurrency?: string;
   originalAmount?: number;
   exchangeRate?: number;
 }

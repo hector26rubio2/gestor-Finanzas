@@ -7,6 +7,7 @@ import { IconComponent } from '@ui/icon';
 import { Component, computed, inject, input, output } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { I18nService } from '@core/i18n';
+import { AppStore } from '@core/state/store';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
 
@@ -64,6 +65,7 @@ export class FilterPanelComponent {
   readonly selectionLabel = input('');
 
   readonly i18n = inject(I18nService);
+  readonly store = inject(AppStore);
 
   readonly yearOptions = computed<readonly UiOption[]>(() => {
     const actual = new Date().getFullYear();

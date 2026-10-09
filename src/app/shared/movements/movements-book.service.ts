@@ -4,7 +4,7 @@ import { FinanceApiClient, monthRange } from '@core/api';
 import { UiOption } from '@ui/select';
 import { P, toMovement } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
-import { parseMoney } from '@core/utils';
+import { isForeignCurrency, parseMoney } from '@core/utils';
 import { TABLE_ALL_FIELDS, TableFilter } from '@ui/data-table';
 import { I18nService } from '@core/i18n';
 import type { Account } from '@core/state';
@@ -154,13 +154,13 @@ export class MovementsBookService {
             ? this.i18n.t('movements.column.recurrence.yearly')
             : this.i18n.t('movements.column.recurrence.monthly')
         : this.i18n.t('movements.column.recurrence.none'),
-      currency:
-        m.originalCurrency === 'USD'
-          ? this.i18n.t('movements.column.currency.usdRate', {
-              amount: m.originalAmount?.toLocaleString('en-US') ?? '',
-              rate: m.exchangeRate?.toLocaleString('es-CO') ?? '',
-            })
-          : (this.store.account(m.accountId)?.currency ?? 'COP'),
+      currency: isForeignCurrency(m.originalCurrency)
+        ? this.i18n.t('movements.column.currency.usdRate', {
+            currency: m.originalCurrency ?? '',
+            amount: m.originalAmount === undefined ? '' : this.store.number(m.originalAmount, 2),
+            rate: m.exchangeRate === undefined ? '' : this.store.number(m.exchangeRate, 2),
+          })
+        : (this.store.account(m.accountId)?.currency ?? this.store.baseCurrency()),
       amount: this.store.money(m.amount),
       raw: m,
     })),

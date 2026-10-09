@@ -1,5 +1,6 @@
 import type { Movement } from '@core/state';
 import { totalDeGastos, totalDeIngresos } from '@core/state/economia';
+import { baseCurrency } from '@core/utils/money';
 import type { Agregado, Cruce, Dimension, Enlace, Granularidad, Measure, Nodo } from './modelo';
 
 export interface ContextoDeDatos {
@@ -105,7 +106,7 @@ export function etiquetaDeDimension(m: Movement, dim: Dimension, ctx: ContextoDe
         ),
       );
     case 'currency':
-      return igual(m.originalCurrency ?? 'COP');
+      return igual(m.originalCurrency ?? baseCurrency());
     case 'person':
       return igual(m.person ?? ctx.t('dashboard.person.none'));
   }

@@ -130,6 +130,7 @@ export class DashboardComponent extends DashboardKpis {
       allows: (permiso) => this.caps.allows(permiso),
       t: (key) => this.i18n.t(key),
       money: (value) => this.store.money(value),
+      number: (value) => this.store.number(value),
       periodLabel: this.periodo.periodLabel(),
       net: this.net(),
       income: this.income(),

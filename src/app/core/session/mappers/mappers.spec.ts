@@ -6,6 +6,7 @@ import type { ApiMovement } from '@core/api/ledger.api';
 import { CARD_BUCKET } from '@core/api/card-buckets';
 import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG, MovementKind } from '@core/utils/movement-kinds';
+import { baseCurrency } from '@core/utils/money';
 import { totalDeGastos, totalDeIngresos } from '@core/state/economia';
 
 function notificacion(payloadJson: string): ApiNotification {
@@ -50,6 +51,12 @@ describe('mappers por dominio', () => {
     expect(notificationDetail(notificationsI18n, organization)).toBe('Added to Ahorro');
     expect(toViewNotification(notificationsI18n, roles).detail).toBe('Roles: Ahorro, Lectura');
     expect(notificationDetail(notificationsI18n, removed)).toBe('Roles removed');
+  });
+
+  it('un aviso con clave sin traducción conserva el título que mandó la API', () => {
+    const legado = withKind(notificacion('{"detail":"Un administrador te movió"}'), 'permissions.updated');
+    expect(notificationTitle(notificationsI18n, legado)).toBe('Aviso');
+    expect(notificationDetail(notificationsI18n, legado)).toBe('Un administrador te movió');
   });
 
   it('cuotaEnCurso avanza por mes y no pasa del total', () => {
@@ -142,5 +149,44 @@ describe('reversos y efecto económico', () => {
     expect(transferencia.effect).toBe('neutral');
     expect(totalDeGastos([transferencia])).toBe(0);
     expect(totalDeIngresos([ingreso])).toBe(100000);
+  });
+});
+
+describe('moneda original del movimiento', () => {
+  const compra = (moneda: string): ApiMovement => ({
+    id: 'c9',
+    date: '2026-09-25',
+    kind: MovementKind.expense,
+    effect: 2,
+    flow: 2,
+    amount: {
+      original: { amount: '10', currency: moneda },
+      base: { amount: '45000', currency: 'COP' },
+      rate: '4500',
+      rateAsOf: '2026-09-25',
+    },
+    links: { account: 'cuenta-1' },
+    linkNames: {},
+    origin: 0,
+    description: 'Compra',
+    createdAt: '2026-09-25T12:00:00Z',
+    reversalOf: null,
+    reversedBy: null,
+    purchaseApr: null,
+  });
+  const i18n = { t: (clave: string) => clave } as unknown as I18nService;
+
+  it('conserva monedas distintas de COP y USD en vez de convertirlas a COP', () => {
+    expect(toMovement(i18n, EMPTY_KIND_CATALOG, compra('EUR')).originalCurrency).toBe('EUR');
+    expect(toMovement(i18n, EMPTY_KIND_CATALOG, compra('usd')).originalCurrency).toBe('USD');
+  });
+
+  it('sin moneda original usa la moneda base de la sesión', () => {
+    baseCurrency.set('USD');
+    try {
+      expect(toMovement(i18n, EMPTY_KIND_CATALOG, compra('')).originalCurrency).toBe('USD');
+    } finally {
+      baseCurrency.set('COP');
+    }
   });
 });

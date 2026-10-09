@@ -1,3 +1,5 @@
+import { baseCurrency, opcionesDeMoneda } from '@core/utils';
+import { erroresPorCampo } from '@core/http/api-http-client';
 import { DateFieldComponent } from '@ui/date-field';
 import { IconComponent } from '@ui/icon';
 import { IconPickerComponent } from '@ui/icon-picker';
@@ -13,6 +15,14 @@ import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
+
+const CAMPOS_DE_LA_API: Readonly<Record<string, string>> = {
+  'amount.amount': 'amount',
+  'template.amount.amount': 'amount',
+  'template.links.account': 'account',
+  'links.account': 'account',
+  accountId: 'account',
+};
 
 @Component({
   selector: 'fin-management-form',
@@ -92,10 +102,7 @@ export class ManagementFormComponent {
     { value: 'Acción', label: this.i18n.t('form.management.instrument.stock') },
     { value: 'Criptoactivo', label: this.i18n.t('form.management.instrument.crypto') },
   ]);
-  readonly currencyOptions = computed<readonly UiOption[]>(() => [
-    { value: 'COP', label: this.i18n.t('form.currency.cop') },
-    { value: 'USD', label: this.i18n.t('form.currency.usd') },
-  ]);
+  readonly currencyOptions = computed<readonly UiOption[]>(() => opcionesDeMoneda((clave) => this.i18n.t(clave)));
   readonly frequencyOptions = computed<readonly UiOption[]>(() => [
     { value: '2', label: this.i18n.t('form.frequency.weekly') },
     { value: '3', label: this.i18n.t('form.frequency.monthly') },
@@ -106,7 +113,7 @@ export class ManagementFormComponent {
     ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
   ]);
   instrument = 'CDT';
-  currency = 'COP';
+  currency = baseCurrency();
   amount: number | null = null;
   accountId = '';
   frequency = '3';
@@ -184,8 +191,19 @@ export class ManagementFormComponent {
           this.start,
         );
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
+      this.mostrarError(error);
     }
+  }
+
+  private mostrarError(error: unknown): void {
+    const deLaApi = erroresPorCampo(error, CAMPOS_DE_LA_API);
+    const { name, amount, account } = deLaApi;
+    if (name || amount || account) {
+      this.erroresDeCampo.set({ name, amount, account });
+      this.error.set(this.i18n.t('form.movement.error.reviewFields'));
+      return;
+    }
+    this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
   }
 
   private async saveChanges(id: string) {
@@ -211,7 +229,7 @@ export class ManagementFormComponent {
       if (this.kind() === 'investment')
         await this.catalogCommands.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
     } catch (error) {
-      this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
+      this.mostrarError(error);
     }
   }
 }
