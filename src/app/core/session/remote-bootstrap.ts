@@ -1,19 +1,31 @@
-import { DestroyRef, Injectable, inject } from '@angular/core';
-import { Observable, catchError, firstValueFrom, forkJoin, map, of } from 'rxjs';
-import { ApiCurrency, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
+import { DestroyRef, Injectable, effect, inject, untracked } from '@angular/core';
+import { firstValueFrom } from 'rxjs';
+import { ApiBootstrap, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
 import { MovementKindCatalog } from '@core/utils/movement-kinds';
 import { Router } from '@angular/router';
-import { Rebanada, SLICES, PERMISO_DE, RawData, emptyRaw, identidadDe, mismaLista } from './remote-slices';
+import {
+  Carga,
+  PERMISO_DE_CARGA,
+  RawData,
+  avisosDe,
+  emptyRaw,
+  fusionarCatalogos,
+  huellaDeCatalogos,
+  identidadDe,
+  mismaLista,
+} from './remote-slices';
 import { toViewData } from './mappers/view-data.mapper';
 import { toViewUser } from './mappers/session.mapper';
 import { AppStore } from '@core/state/store';
 import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
 import { parseMoney, setCurrencyCatalog } from '@core/utils/money';
-import { P } from './permissions';
+import { todayIso } from '@core/utils/dates';
 import { I18nService } from '@core/i18n/i18n.service';
+import { Movement } from '@core/state/view-model';
 import { SaldosService } from './saldos.service';
 
-const SONDEO_DE_SESION_MS = 5 * 60_000;
+const INTERVALO_MINIMO_AL_ENFOCAR_MS = 60_000;
+const PARTES_SIN_AVISO = new Set(['currencies', 'notifications', 'balances']);
 
 @Injectable({ providedIn: 'root' })
 export class RemoteBootstrap {
@@ -29,33 +41,50 @@ export class RemoteBootstrap {
 
   private cerradaAProposito = false;
 
+  private identidad: string | null = null;
+  private permisos = new Set<string>();
+  private refrescando = false;
+  private raw: RawData = emptyRaw();
+  private huella = '';
+  private ultimaRevision = 0;
+  private generacion = 0;
+  private readonly cargadas = new Set<Carga>();
+  private readonly enCurso = new Map<Carga, Promise<void>>();
+
+  constructor() {
+    effect(() => {
+      const tipo = this.store.inspector()?.type;
+      untracked(() => {
+        if (tipo === 'person') void this.asegurar('debts');
+        if (tipo === 'investment') void this.asegurar('investments');
+      });
+    });
+  }
+
   async start(): Promise<void> {
     if (this.started) return;
     this.started = true;
     await this.initialize();
     if (this.destroyRef.destroyed) return;
-    const timer = window.setInterval(() => void this.pollSession(), SONDEO_DE_SESION_MS);
-    const onFocus = () => void this.pollSession();
-    window.addEventListener('focus', onFocus);
+    const alEnfocar = () => {
+      if (Date.now() - this.ultimaRevision >= INTERVALO_MINIMO_AL_ENFOCAR_MS) void this.cargarSesion();
+    };
+    window.addEventListener('focus', alEnfocar);
     this.destroyRef.onDestroy(() => {
-      window.clearInterval(timer);
-      window.removeEventListener('focus', onFocus);
+      window.removeEventListener('focus', alEnfocar);
       this.canal?.close();
       this.canal = null;
     });
     this.escucharCambiosDeAcceso();
   }
 
-  private identidad: string | null = null;
-  private permisos = new Set<string>();
-  private refrescando = false;
-  private raw: RawData = emptyRaw();
-
   async initialize(): Promise<void> {
     this.cerradaAProposito = false;
+    this.generacion++;
     this.store.remoteState.set('loading');
     try {
-      const session = await firstValueFrom(this.api.session());
+      const boot = await firstValueFrom(this.api.bootstrap(todayIso()));
+      const session = boot.session;
 
       if (!session.permissions?.length) {
         this.store.remoteError.set(this.i18n.t('session.error.noPermissions'));
@@ -63,26 +92,23 @@ export class RemoteBootstrap {
         this.store.user.set(null);
         return;
       }
+      if (!boot.featureFlags) throw new Error('No fue posible cargar la API.');
 
       this.identidad = identidadDe(session);
       this.permisos = new Set(session.permissions);
-
-      const claves = SLICES.filter((clave) => this.permisos.has(PERMISO_DE[clave]));
-      const sinCatalogo = of<readonly ApiCurrency[] | null>(null);
-      const result = await firstValueFrom(
-        forkJoin({
-          datos: this.pedirRebanadas(claves),
-          featureFlags: this.api.featureFlags(),
-          notifications: this.api.notifications().pipe(catchError(() => of([]))),
-          monedas: this.permisos.has(P.sesion.monedas.listar)
-            ? this.api.currencies().pipe(catchError(() => sinCatalogo))
-            : sinCatalogo,
-        }),
-      );
-      this.raw = { ...emptyRaw(), ...result.datos, notifications: result.notifications };
-      if (result.monedas?.length) setCurrencyCatalog(result.monedas);
-      this.aplicarDatos();
-      this.aplicarSesion(session, result.featureFlags);
+      this.cargadas.clear();
+      this.enCurso.clear();
+      this.huella = huellaDeCatalogos(boot);
+      this.ultimaRevision = Date.now();
+      this.raw = fusionarCatalogos(emptyRaw(), boot);
+      this.reiniciarMovimientos();
+      if (boot.currencies?.length) setCurrencyCatalog(boot.currencies);
+      this.aplicarAvisos(boot);
+      this.aplicarDatos([]);
+      this.aplicarSaldos(boot);
+      this.aplicarSesion(session, boot.featureFlags);
+      if (boot.omitted.some((omision) => omision.reason === 'failed' && !PARTES_SIN_AVISO.has(omision.part)))
+        this.store.toast.set(this.i18n.t('shell.partialLoad'));
       this.store.remoteState.set('ready');
       this.escucharCambiosDeAcceso();
     } catch (error) {
@@ -99,74 +125,59 @@ export class RemoteBootstrap {
     }
   }
 
-  private pedirRebanadas(claves: readonly Rebanada[]): Observable<Partial<RawData>> {
-    if (!claves.length) return of({});
-    let fallos = 0;
-    const pedidas: Record<string, Observable<unknown>> = {};
-    for (const clave of claves) {
-      pedidas[clave] = this.pedir(clave).pipe(
-        catchError(() => {
-          fallos++;
-          return of(emptyRaw()[clave]);
-        }),
-      );
-    }
-    return forkJoin(pedidas).pipe(
-      map((datos) => {
-        if (fallos) this.store.toast.set(this.i18n.t('shell.partialLoad'));
-        return datos as Partial<RawData>;
-      }),
-    );
+  async asegurar(...claves: Carga[]): Promise<void> {
+    await Promise.all(claves.map((clave) => this.cargarBajoDemanda(clave)));
   }
 
-  private pedir(clave: Rebanada): Observable<unknown> {
+  private cargarBajoDemanda(clave: Carga): Promise<void> {
+    if (this.store.remoteState() !== 'ready' || this.cargadas.has(clave)) return Promise.resolve();
+    const permiso = PERMISO_DE_CARGA[clave];
+    if (permiso && !this.permisos.has(permiso)) return Promise.resolve();
+    const pendiente = this.enCurso.get(clave);
+    if (pendiente) return pendiente;
+    const generacion = this.generacion;
+    const carga = this.traer(clave)
+      .then((datos) => {
+        if (generacion !== this.generacion) return;
+        this.raw = { ...this.raw, ...datos };
+        this.cargadas.add(clave);
+        if (clave === 'notifications') this.store.sinLeerFueraDeLista.set(0);
+        this.aplicarDatos(this.store.data().movements);
+      })
+      .catch(() => {
+        if (generacion === this.generacion) this.store.toast.set(this.i18n.t('shell.partialLoad'));
+      })
+      .finally(() => {
+        if (this.enCurso.get(clave) === carga) this.enCurso.delete(clave);
+      });
+    this.enCurso.set(clave, carga);
+    return carga;
+  }
+
+  private async traer(clave: Carga): Promise<Partial<RawData>> {
     switch (clave) {
-      case 'movementKinds':
-        return this.api.movementKinds();
-      case 'accounts':
-        return this.api.accounts();
-      case 'cards':
-        return this.api.cards();
-      case 'categories':
-        return this.api.categories();
-      case 'people':
-        return this.api.people();
       case 'debts':
-        return this.api.debts();
+        return { debts: await firstValueFrom(this.api.debts()) };
       case 'investments':
-        return this.api.investments();
-      case 'movements':
-        return this.api.movements({ page: 1, pageSize: 25 });
-      case 'preferences':
-        return this.api.preferences();
+        return { investments: await firstValueFrom(this.api.investments()) };
+      case 'notifications':
+        return { notifications: await firstValueFrom(this.api.notifications()) };
     }
   }
 
-  private aplicarDatos(): void {
-    const raw = this.raw;
-    const catalog = new MovementKindCatalog(raw.movementKinds);
-    this.store.kindCatalog.set(catalog);
+  private reiniciarMovimientos(): void {
     this.store.movimientosCargados.set(new Map());
-    this.store.data.set(
-      toViewData(this.i18n, catalog, {
-        accounts: raw.accounts,
-        cards: raw.cards,
-        movements: raw.movements.items,
-        people: raw.people,
-        debts: raw.debts,
-        investments: raw.investments,
-        notifications: raw.notifications,
-      }),
-    );
-    this.store.remoteMovementPage.set(raw.movements.page);
-    this.store.remoteMovementSize.set(raw.movements.size);
-    this.store.remoteMovementTotal.set(raw.movements.total ?? 0);
-    this.store.remoteMovementCursor.set(raw.movements.nextCursor ?? null);
-    this.store.remoteMovementTotals.set(
-      raw.movements.totals
-        ? { income: parseMoney(raw.movements.totals.income), expense: parseMoney(raw.movements.totals.expense) }
-        : null,
-    );
+    this.store.movimientosListos.set(false);
+    this.store.remoteMovementPage.set(1);
+    this.store.remoteMovementTotal.set(0);
+    this.store.remoteMovementCursor.set(null);
+    this.store.remoteMovementTotals.set(null);
+  }
+
+  private aplicarDatos(movimientos: Movement[]): void {
+    const raw = this.raw;
+    this.store.kindCatalog.set(new MovementKindCatalog(raw.movementKinds));
+    this.store.data.set(toViewData(this.i18n, raw, movimientos));
     this.store.categories.set(raw.categories);
     if (raw.preferences) {
       const preferences = raw.preferences;
@@ -194,7 +205,25 @@ export class RemoteBootstrap {
     }
   }
 
-  private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[]): void {
+  private aplicarAvisos(boot: ApiBootstrap): void {
+    const { recientes, sinLeerFueraDeLista } = avisosDe(boot);
+    this.raw = { ...this.raw, notifications: recientes };
+    this.store.sinLeerFueraDeLista.set(sinLeerFueraDeLista);
+  }
+
+  private aplicarSaldos(boot: ApiBootstrap): void {
+    const balances = boot.balances;
+    if (!balances) {
+      this.store.saldosDelServidor.set(null);
+      return;
+    }
+    const saldos = new Map<string, number>();
+    for (const cuenta of balances.accounts ?? []) saldos.set(cuenta.account.id, parseMoney(cuenta.balance));
+    for (const tarjeta of balances.cards ?? []) saldos.set(tarjeta.cardId, -parseMoney(tarjeta.debt));
+    this.store.saldosDelServidor.set(saldos);
+  }
+
+  private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[] | null): void {
     const user = toViewUser(session);
     const actual = this.store.user();
     const igual =
@@ -217,6 +246,7 @@ export class RemoteBootstrap {
     if (JSON.stringify(organizations) !== JSON.stringify(this.store.organizations()))
       this.store.organizations.set(organizations);
 
+    if (!flags) return;
     const banderas = Object.fromEntries(flags.map((flag) => [flag.key, flag.isEnabled]));
     if (JSON.stringify(banderas) !== JSON.stringify(this.store.featureFlags())) this.store.featureFlags.set(banderas);
     this.store.featureFlagsLoaded.set(true);
@@ -226,8 +256,10 @@ export class RemoteBootstrap {
     if (this.cerradaAProposito) return;
     if (this.store.remoteState() === 'loading' || this.refrescando) return;
     this.refrescando = true;
+    this.ultimaRevision = Date.now();
     try {
-      const [session, flags] = await firstValueFrom(forkJoin([this.api.session(), this.api.featureFlags()]));
+      const boot = await firstValueFrom(this.api.bootstrap(todayIso()));
+      const session = boot.session;
       if (this.identidad !== null && identidadDe(session) !== this.identidad) {
         this.refrescando = false;
         await this.initialize();
@@ -235,17 +267,33 @@ export class RemoteBootstrap {
       }
 
       const ahora = new Set(session.permissions ?? []);
-      const concedidas = SLICES.filter((c) => ahora.has(PERMISO_DE[c]) && !this.permisos.has(PERMISO_DE[c]));
-      const retiradas = SLICES.filter((c) => !ahora.has(PERMISO_DE[c]) && this.permisos.has(PERMISO_DE[c]));
+      const retiradas = [...this.cargadas].filter((clave) => {
+        const permiso = PERMISO_DE_CARGA[clave];
+        return permiso !== null && !ahora.has(permiso);
+      });
       const vacio = emptyRaw();
-      for (const clave of retiradas) this.raw = { ...this.raw, [clave]: vacio[clave] };
-      if (concedidas.length) {
-        const nuevas = await firstValueFrom(this.pedirRebanadas(concedidas));
-        this.raw = { ...this.raw, ...nuevas };
+      for (const clave of retiradas) {
+        this.cargadas.delete(clave);
+        this.raw = { ...this.raw, [clave]: vacio[clave] };
       }
       this.permisos = ahora;
-      if (concedidas.length || retiradas.length) this.aplicarDatos();
-      this.aplicarSesion(session, flags);
+
+      const huella = huellaDeCatalogos(boot);
+      if (huella !== this.huella || retiradas.length) {
+        this.huella = huella;
+        const avisosCompletos = this.cargadas.has('notifications') ? this.raw.notifications : null;
+        this.raw = fusionarCatalogos(this.raw, boot);
+        this.aplicarAvisos(boot);
+        if (avisosCompletos) {
+          this.raw = { ...this.raw, notifications: avisosCompletos };
+          this.store.sinLeerFueraDeLista.set(0);
+          this.cargadas.delete('notifications');
+        }
+        this.aplicarDatos(this.store.data().movements);
+        this.aplicarSaldos(boot);
+        if (avisosCompletos) void this.asegurar('notifications');
+      }
+      this.aplicarSesion(session, boot.featureFlags);
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) {
         this.store.user.set(null);
@@ -283,9 +331,12 @@ export class RemoteBootstrap {
 
   async cerrarSesion(): Promise<void> {
     this.cerradaAProposito = true;
+    this.generacion++;
     this.identidad = null;
     this.permisos = new Set();
     this.raw = emptyRaw();
+    this.cargadas.clear();
+    this.enCurso.clear();
     this.canal?.close();
     this.canal = null;
 
@@ -298,7 +349,7 @@ export class RemoteBootstrap {
     this.store.user.set(null);
     this.store.form.set(null);
     this.store.inspector.set(null);
-    this.store.movimientosCargados.set(new Map());
+    this.reiniciarMovimientos();
     await this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 

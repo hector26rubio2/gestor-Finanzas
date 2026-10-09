@@ -7,6 +7,7 @@ import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
+import { arranqueDe } from '@testing/arranque-de-prueba';
 
 describe('permisos granulares', () => {
   beforeEach(() => {
@@ -102,7 +103,7 @@ describe('sesión sin permisos', () => {
   beforeEach(() => TestBed.resetTestingModule());
 
   it('lo dice en vez de dejar la aplicación vacía en silencio', async () => {
-    const api = { session: vi.fn(() => of(sesionSinPermisos)) };
+    const api = { bootstrap: vi.fn(() => of(arranqueDe(sesionSinPermisos))) };
     TestBed.configureTestingModule({
       providers: [
         { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
@@ -120,7 +121,7 @@ describe('sesión sin permisos', () => {
 
   it('un 401 sigue tratándose como visitante anónimo, no como error', async () => {
     const api = {
-      session: vi.fn(() => throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' }))),
+      bootstrap: vi.fn(() => throwError(() => new ApiRequestError(401, { status: 401, title: 'Unauthorized' }))),
     };
     TestBed.configureTestingModule({
       providers: [

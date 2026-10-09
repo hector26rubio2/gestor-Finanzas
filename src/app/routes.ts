@@ -1,8 +1,10 @@
 import { Injector, Type, inject } from '@angular/core';
 import { toObservable } from '@angular/core/rxjs-interop';
-import { CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
+import { CanActivateFn, CanDeactivateFn, CanMatchFn, Router, Routes, UrlTree } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 import { safeReturnPath } from '@core/session/return-url';
+import { RemoteBootstrap } from '@core/session/remote-bootstrap';
+import type { Carga } from '@core/session/remote-slices';
 import { CAPABILITIES, AppStore, FEATURES, navigation } from '@core/state/store';
 import { CLAVE_DE_PRECARGA } from '@core/routing/precarga';
 
@@ -54,6 +56,36 @@ const workspaceFeatureLoader: Record<string, () => Promise<Type<unknown>>> = {
   settings: () => import('@features/preferences/preferences-tab').then((m) => m.PreferencesTabComponent),
 };
 
+interface CargaDeRuta {
+  readonly movimientos?: boolean;
+  readonly datos?: readonly Carga[];
+}
+
+const CARGAS_POR_RUTA: Readonly<Record<string, CargaDeRuta>> = {
+  movements: { movimientos: true },
+  calendar: { movimientos: true },
+  accounts: { movimientos: true },
+  people: { datos: ['debts'] },
+  portfolio: { datos: ['investments'] },
+  planning: { datos: ['debts', 'investments'] },
+  reports: { datos: ['investments'] },
+  notifications: { datos: ['notifications'] },
+};
+
+const cargarAlEntrar =
+  (ruta: string): CanActivateFn =>
+  async () => {
+    const carga = CARGAS_POR_RUTA[ruta];
+    if (!carga) return true;
+    const injector = inject(Injector);
+    if (carga.datos) void injector.get(RemoteBootstrap).asegurar(...carga.datos);
+    if (carga.movimientos) {
+      const { MovementsBookService } = await import('@shared/movements/movements-book.service');
+      void injector.get(MovementsBookService).asegurarPrimeraPagina();
+    }
+    return true;
+  };
+
 const sinCambiosPendientes: CanDeactivateFn<{ puedeSalir(): boolean | Promise<boolean> }> = (component) =>
   component.puedeSalir();
 
@@ -85,6 +117,7 @@ export const routes: Routes = [
       path: n.path,
       title: `nav.${n.path}`,
       canMatch: [guard],
+      canActivate: [cargarAlEntrar(n.path)],
       data: { capability: n.capability },
       loadComponent: () => import('@pages/workspace/workspace').then((m) => m.WorkspaceComponent),
       children: [{ path: '', data: { [CLAVE_DE_PRECARGA]: n.path }, loadComponent: workspaceFeatureLoader[n.path] }],

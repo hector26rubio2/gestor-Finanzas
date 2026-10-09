@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { chromium } from 'playwright-core';
+import { construirArranque } from './api-simulada.mjs';
 
 const baseUrl = process.env.UI_TEST_URL ?? 'http://127.0.0.1:4300';
 const apiBaseUrl = 'http://api.invalido.local';
@@ -130,8 +131,12 @@ async function revisar(browser, ruta, permiso) {
         body: `window.__FINANZAS_CONFIG__ = { apiBaseUrl: '${apiBaseUrl}' };`,
       }),
     );
-    await context.route('**/api/v1/session', (route) =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(sesion(permiso)) }),
+    await context.route('**/api/v1/bootstrap*', (route) =>
+      route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify(construirArranque(sesion(permiso), banderas)),
+      }),
     );
     await context.route('**/api/v1/feature-flags*', (route) =>
       route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(banderas) }),
