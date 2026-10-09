@@ -3,7 +3,10 @@ import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '@core/api';
 import { RUNTIME_CONFIG } from '@core/session';
+import { RegistroDePeticiones } from '@core/http/registro-de-peticiones';
 import { BugReportButtonComponent } from './bug-report';
+
+vi.mock('modern-screenshot', () => ({ domToWebp: vi.fn(async () => 'data:image/webp;base64,UklGRiQAAABXRUJQ') }));
 
 describe('botón flotante de reportes', () => {
   beforeEach(() => {
@@ -30,7 +33,7 @@ describe('botón flotante de reportes', () => {
     expect(montar().component.fab()).toEqual({ right: 24, bottom: 24 });
   });
 
-  it('arrastrarlo cambia la posición, la guarda y no abre el formulario', () => {
+  it('arrastrarlo cambia la posición, la guarda y no abre el formulario', async () => {
     const { component } = montar();
     component.startFabDrag(puntero(500, 500));
     component.moveFab(puntero(400, 450));
@@ -38,19 +41,27 @@ describe('botón flotante de reportes', () => {
 
     expect(component.fab()).toEqual({ right: 124, bottom: 74 });
     component.press();
+    expect(component.preparando()).toBe(false);
     expect(component.open()).toBe(false);
     expect(JSON.parse(localStorage.getItem('finanzas.bug-report.fab.v1') ?? 'null')).toEqual(component.fab());
     component.press();
-    expect(component.open()).toBe(true);
+    await vi.waitFor(() => expect(component.open()).toBe(true));
   });
 
-  it('un toque sin arrastre abre el formulario', () => {
+  it('un toque sin arrastre abre el formulario', async () => {
     const { component } = montar();
     component.startFabDrag(puntero(10, 10));
     component.moveFab(puntero(11, 11));
     component.endFabDrag();
     component.press();
+    await vi.waitFor(() => expect(component.open()).toBe(true));
+  });
+
+  it('toma la captura en WebP antes de abrir el formulario', async () => {
+    const { component } = montar();
+    await component.launch();
     expect(component.open()).toBe(true);
+    expect(component.screenshotDataUrl()?.startsWith('data:image/webp')).toBe(true);
   });
 
   it('con teclado se mueve con Alt y flechas y Alt+Inicio lo restablece', () => {
@@ -96,7 +107,7 @@ describe('reporte con cuestionario', () => {
     const fixture = TestBed.createComponent(BugReportButtonComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
-    component.launch();
+    await component.launch();
     fixture.detectChanges();
     await fixture.whenStable();
 
@@ -120,11 +131,44 @@ describe('reporte con cuestionario', () => {
     expect(component.githubIssueUrl()).toBe('https://github.com/x/y/issues/1');
   });
 
+  it('envía las últimas peticiones, la navegación y la captura para rastrear el fallo', async () => {
+    TestBed.inject(RegistroDePeticiones).agregar({
+      at: '10:00:00',
+      method: 'POST',
+      path: '/api/v1/movements/search',
+      status: 500,
+      ms: 900,
+      action: 'accion-1',
+      code: 'server.error',
+    });
+    const fixture = TestBed.createComponent(BugReportButtonComponent);
+    fixture.detectChanges();
+    const component = fixture.componentInstance;
+    await component.launch();
+    expect(component.resumenTecnico()).toEqual({ peticiones: 1, fallidas: 1, pantallas: 0 });
+
+    component.title = 'Falla la búsqueda';
+    component.description = 'El libro no carga';
+    await component.submit();
+
+    const api = TestBed.inject(FinanceApiClient) as unknown as { reportBug: ReturnType<typeof vi.fn> };
+    const enviado = api.reportBug.mock.calls[0][0] as { systemInfoJson: string; screenshotBase64?: string };
+    const info = JSON.parse(enviado.systemInfoJson) as {
+      requests: { status: number }[];
+      navigation: string[];
+      timezone: string;
+    };
+    expect(info.requests[0].status).toBe(500);
+    expect(info.navigation).toEqual([]);
+    expect(info.timezone).toBeTruthy();
+    expect(enviado.screenshotBase64).toBe('UklGRiQAAABXRUJQ');
+  });
+
   it('no envía sin título o sin descripción', async () => {
     const fixture = TestBed.createComponent(BugReportButtonComponent);
     fixture.detectChanges();
     const component = fixture.componentInstance;
-    component.launch();
+    await component.launch();
     component.title = 'Solo título';
     await component.submit();
     expect(component.done()).toBe(false);

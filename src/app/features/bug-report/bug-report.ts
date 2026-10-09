@@ -1,4 +1,7 @@
 import { AccionDeUsuario } from '@core/http/accion';
+import { CODIGO_CANCELADA, RegistroDePeticiones } from '@core/http/registro-de-peticiones';
+import { HistorialDeNavegacion } from '@core/routing/historial-de-navegacion';
+import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { BrnQuestionnaireImports } from '@spartan-ng/brain/questionnaire';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmTextarea } from '@spartan-ng/helm/textarea';
@@ -18,6 +21,14 @@ import { UiOption } from '@ui/select/select';
 import { OverlayComponent } from '@ui/overlay/overlay';
 
 const MAX_SCREENSHOT_BASE64_CHARS = 700_000;
+const ESCALA_MINIMA = 1.5;
+const ESCALA_MAXIMA = 2;
+const SIN_CAPTURA = 'data-sin-captura';
+
+function conexion(): string | null {
+  const red = (navigator as Navigator & { connection?: { effectiveType?: string } }).connection;
+  return red?.effectiveType ?? null;
+}
 
 const FAB_POSITION_KEY = 'finanzas.bug-report.fab.v1';
 const FAB_SIZE = 52;
@@ -80,6 +91,10 @@ export class BugReportButtonComponent {
   private readonly consoleBuffer = inject(ConsoleBufferService);
   private readonly router = inject(Router);
   private readonly accion = inject(AccionDeUsuario);
+  private readonly peticiones = inject(RegistroDePeticiones);
+  private readonly navegacion = inject(HistorialDeNavegacion);
+  private readonly config = inject(RUNTIME_CONFIG);
+  private readonly inicioDeSesion = Date.now();
   private accionReportada: string | null = null;
   readonly i18n = inject(I18nService);
 
@@ -88,6 +103,8 @@ export class BugReportButtonComponent {
   private suppressClick = false;
 
   readonly open = signal(false);
+  readonly preparando = signal(false);
+  readonly resumenTecnico = signal({ peticiones: 0, fallidas: 0, pantallas: 0 });
   readonly done = signal(false);
   readonly activeItem = signal<string | null>(null);
   readonly sending = signal(false);
@@ -169,12 +186,22 @@ export class BugReportButtonComponent {
       this.suppressClick = false;
       return;
     }
-    this.launch();
+    void this.launch();
   }
 
-  launch(): void {
+  async launch(): Promise<void> {
+    if (this.preparando() || this.open()) return;
     this.reset();
     this.accionReportada = this.accion.ultimaConActividad();
+    const peticiones = this.peticiones.ultimas();
+    this.resumenTecnico.set({
+      peticiones: peticiones.length,
+      fallidas: peticiones.filter((p) => p.status >= 400 || (p.status === 0 && p.code !== CODIGO_CANCELADA)).length,
+      pantallas: this.navegacion.recientes().length,
+    });
+    this.preparando.set(true);
+    await this.captureScreenshot();
+    this.preparando.set(false);
     this.open.set(true);
   }
 
@@ -199,7 +226,6 @@ export class BugReportButtonComponent {
 
   itemChanged(name: string | null): void {
     this.activeItem.set(name);
-    if (name === 'review') void this.captureScreenshot();
   }
 
   private get canSubmit(): boolean {
@@ -207,26 +233,30 @@ export class BugReportButtonComponent {
   }
 
   private async captureScreenshot(): Promise<void> {
-    if (!this.includeScreenshot() || this.screenshotDataUrl()) return;
+    if (this.screenshotDataUrl()) return;
     this.capturingScreenshot.set(true);
     try {
-      const { domToJpeg } = await import('modern-screenshot');
-      const densidad = Math.min(Math.max(window.devicePixelRatio || 1, 1), 2);
+      const { domToWebp } = await import('modern-screenshot');
+      const densidad = Math.min(Math.max(window.devicePixelRatio || 1, ESCALA_MINIMA), ESCALA_MAXIMA);
       const intentos = [
         { scale: densidad, quality: 0.92 },
+        { scale: densidad, quality: 0.85 },
         { scale: Math.max(1, densidad * 0.75), quality: 0.85 },
         { scale: 1, quality: 0.8 },
-        { scale: 0.8, quality: 0.75 },
       ];
       let dataUrl = '';
       for (const intento of intentos) {
-        dataUrl = await domToJpeg(document.documentElement, {
+        dataUrl = await domToWebp(document.documentElement, {
           ...intento,
           width: window.innerWidth,
           height: window.innerHeight,
           style: { transform: `translate(${-window.scrollX}px, ${-window.scrollY}px)` },
           backgroundColor: getComputedStyle(document.body).backgroundColor,
-          filter: (node) => !(node instanceof HTMLElement && node.classList.contains('cdk-overlay-container')),
+          filter: (node) =>
+            !(
+              node instanceof HTMLElement &&
+              (node.classList.contains('cdk-overlay-container') || node.hasAttribute(SIN_CAPTURA))
+            ),
         });
         if (dataUrl.length - dataUrl.indexOf(',') - 1 <= MAX_SCREENSHOT_BASE64_CHARS) break;
       }
@@ -256,7 +286,6 @@ export class BugReportButtonComponent {
 
   toggleScreenshot(include: boolean): void {
     this.includeScreenshot.set(include);
-    if (!include) this.screenshotDataUrl.set(null);
   }
 
   private collectSystemInfo(): Record<string, unknown> {
@@ -270,8 +299,21 @@ export class BugReportButtonComponent {
       url: this.router.url,
       timestamp: new Date().toISOString(),
       appVersion: APP_VERSION,
+      commit: this.config.commit ?? null,
       user: this.store.user()?.email ?? null,
       organization: this.store.organization()?.name ?? null,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      theme: this.store.preferences().theme,
+      density: this.store.preferences().density,
+      online: navigator.onLine,
+      connection: conexion(),
+      uptimeSeconds: Math.round((Date.now() - this.inicioDeSesion) / 1000),
+      permissionCount: this.store.user()?.capabilities.length ?? 0,
+      featureFlags: Object.entries(this.store.featureFlags())
+        .filter(([, activa]) => activa)
+        .map(([clave]) => clave),
+      navigation: this.navegacion.recientes(),
+      requests: this.peticiones.ultimas(),
     };
   }
 

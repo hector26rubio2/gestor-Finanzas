@@ -1,6 +1,8 @@
 import { bootstrapApplication } from '@angular/platform-browser';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { accionInterceptor } from '@core/http/accion';
+import { registroDePeticionesInterceptor } from '@core/http/registro-de-peticiones';
+import { HistorialDeNavegacion } from '@core/routing/historial-de-navegacion';
 import { cifradoInterceptor, escriturasInterceptor } from '@core/http/interceptores';
 import { ErrorHandler, inject, provideAppInitializer } from '@angular/core';
 import {
@@ -43,10 +45,13 @@ bootstrapApplication(AppComponent, {
     ),
     { provide: ErrorHandler, useClass: FinanzasErrorHandler },
     { provide: TitleStrategy, useClass: FinanzasTitleStrategy },
-    provideHttpClient(withInterceptors([accionInterceptor, escriturasInterceptor, cifradoInterceptor])),
+    provideHttpClient(
+      withInterceptors([accionInterceptor, registroDePeticionesInterceptor, escriturasInterceptor, cifradoInterceptor]),
+    ),
     { provide: API_TRANSPORT, useClass: HttpApiTransport },
     provideAppInitializer(() => inject(I18nService).load(inject(PREFERENCES)().locale)),
     provideAppInitializer(() => inject(ErrorReporter).start()),
+    provideAppInitializer(() => inject(HistorialDeNavegacion).iniciar()),
     provideAppInitializer(() => inject(RemoteBootstrap).start()),
   ],
 }).catch(console.error);
