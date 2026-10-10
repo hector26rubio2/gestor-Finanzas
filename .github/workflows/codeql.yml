@@ -1,3 +1,4 @@
+```yaml
 name: CodeQL
 
 on:
@@ -17,22 +18,28 @@ concurrency:
 
 jobs:
   analizar:
+    name: Analizar JavaScript y TypeScript
     runs-on: ubuntu-latest
     timeout-minutes: 30
+
     permissions:
       contents: read
       security-events: write
       actions: read
+
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
-      - uses: github/codeql-action/init@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
         with:
           languages: javascript-typescript
           build-mode: none
 
-      - uses: github/codeql-action/analyze@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2
+      - name: Analizar código
+        uses: github/codeql-action/analyze@v3
         with:
           category: /language:javascript-typescript
