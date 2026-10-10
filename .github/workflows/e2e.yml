@@ -46,12 +46,12 @@ jobs:
 
     steps:
       - name: Descargar frontend
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
 
       - name: Descargar API para E2E
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: hector26rubio2/v2-api-finanzas
           ref: main
