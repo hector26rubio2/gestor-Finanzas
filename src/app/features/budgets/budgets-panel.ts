@@ -9,6 +9,7 @@ import {
   signal,
   untracked,
 } from '@angular/core';
+import { FormField, FormRoot, form, validate } from '@angular/forms/signals';
 import { HlmAlertImports } from '@spartan-ng/helm/alert';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
@@ -36,6 +37,8 @@ import { crearGastoPorCategoria, rangoDelMes } from './gasto-del-mes';
     ConfirmDialogComponent,
     EmptyStateComponent,
     FieldComponent,
+    FormField,
+    FormRoot,
     HlmAlertImports,
     HlmButton,
     HlmCard,
@@ -83,8 +86,21 @@ export class BudgetsPanelComponent {
   });
 
   readonly editando = signal<string | null>(null);
-  readonly texto = signal('');
-  readonly errorDeCampo = signal('');
+  readonly modelo = signal({ limite: '' });
+  readonly formulario = form(
+    this.modelo,
+    (campo) =>
+      validate(campo.limite, ({ value }) =>
+        limiteDeTexto(value(), this.store.baseCurrency()) === null
+          ? { kind: 'limite', message: this.i18n.t('budgets.error.invalid') }
+          : undefined,
+      ),
+    { name: 'presupuesto', submission: { action: async () => this.guardar() } },
+  );
+  readonly errorDeCampo = computed(() => {
+    const estado = this.formulario.limite();
+    return estado.touched() ? (estado.errors()[0]?.message ?? '') : '';
+  });
   readonly porQuitar = signal<FilaDePresupuesto | null>(null);
 
   private readonly cargaInicial = effect(() => {
@@ -97,9 +113,9 @@ export class BudgetsPanelComponent {
   }
 
   editar(fila: FilaDePresupuesto): void {
-    this.errorDeCampo.set('');
     this.presupuestos.errorDeGuardado.set('');
-    this.texto.set(fila.limite !== null ? String(fila.limite) : '');
+    this.modelo.set({ limite: fila.limite !== null ? String(fila.limite) : '' });
+    this.formulario().reset();
     this.editando.set(fila.categoria.id);
     afterNextRender(() => this.host.nativeElement.querySelector<HTMLInputElement>('input[data-slot=limite]')?.focus(), {
       injector: this.injector,
@@ -108,20 +124,12 @@ export class BudgetsPanelComponent {
 
   cancelar(): void {
     this.editando.set(null);
-    this.errorDeCampo.set('');
   }
 
-  escribir(evento: Event): void {
-    this.texto.set((evento.target as HTMLInputElement).value);
-  }
-
-  async guardar(evento: Event, fila: FilaDePresupuesto): Promise<void> {
-    evento.preventDefault();
-    const limite = limiteDeTexto(this.texto(), this.store.baseCurrency());
-    if (limite === null) {
-      this.errorDeCampo.set(this.i18n.t('budgets.error.invalid'));
-      return;
-    }
+  async guardar(): Promise<void> {
+    const fila = this.filas().find((candidata) => candidata.categoria.id === this.editando());
+    const limite = limiteDeTexto(this.modelo().limite, this.store.baseCurrency());
+    if (!fila || limite === null) return;
     if (await this.presupuestos.fijar(fila.categoria.id, limite)) {
       this.cancelar();
       this.store.toast.set(this.i18n.t('budgets.toast.saved', { name: fila.categoria.name }));

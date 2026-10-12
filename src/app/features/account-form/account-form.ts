@@ -1,8 +1,9 @@
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
+import { NgTemplateOutlet } from '@angular/common';
 import { Component, Injector, computed, effect, inject, signal, untracked } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, FormRoot, form, type FieldTree } from '@angular/forms/signals';
 import {
   AccountViewType,
   type CardBucket,
@@ -23,9 +24,29 @@ import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { AsyncActionService } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
+import { type DatosDeCuenta, esquemaDeCuenta } from './account-form.schema';
 
 export function permisoParaEditarCuenta(tipo: AccountViewType): string {
   return tipo === 'credit' ? P.cuentas.tarjetas.editar : P.cuentas.editar;
+}
+
+function datosIniciales(cuenta: Account | null, tipoNuevo: AccountViewType): DatosDeCuenta {
+  return {
+    name: cuenta?.name ?? 'Ahorro principal',
+    type: cuenta?.type ?? tipoNuevo,
+    currency: cuenta?.currency ?? 'COP',
+    opening: 0,
+    lastFour: cuenta?.lastFour ?? '',
+    exchangeRate: 4168.35,
+    issuerId: cuenta?.issuerId ?? '',
+    limit: cuenta?.limit ?? 5000000,
+    cutDay: cuenta?.cutDay ?? 20,
+    dueDay: cuenta?.dueDay ?? 5,
+    monthlyRate: cuenta?.annualRate !== undefined ? mensualDesdeAnual(cuenta.annualRate) : 2.11,
+    monthlyFee: cuenta?.monthlyFee ?? 0,
+    monedaDePrioridad: 'pesos',
+    abonoDePrueba: 300000,
+  };
 }
 
 function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
@@ -41,7 +62,9 @@ function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
     HlmButton,
     HlmCheckbox,
     HlmInput,
-    FormsModule,
+    FormField,
+    FormRoot,
+    NgTemplateOutlet,
     OverlayComponent,
     UiSelectComponent,
     NumericInputDirective,
@@ -56,7 +79,13 @@ export class AccountFormComponent {
   private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
-  name = 'Ahorro principal';
+  readonly editing = this.store.form()?.account ?? null;
+  readonly modelo = signal(datosIniciales(this.editing, this.store.form()?.accountType ?? 'savings'));
+  readonly formulario = form(
+    this.modelo,
+    esquemaDeCuenta((clave) => this.i18n.t(clave)),
+    { name: 'cuenta', submission: { action: async () => this.save() } },
+  );
 
   readonly accountTypes = computed(() =>
     (['savings', 'checking', 'cash', 'wallet', 'other', 'credit'] as const)
@@ -67,28 +96,31 @@ export class AccountFormComponent {
       }))
       .filter((option) => this.capabilities.allows(option.permiso)),
   );
-  type: AccountViewType = this.store.form()?.accountType ?? 'savings';
-  currency = 'COP';
   readonly currencyOptions = computed<readonly UiOption[]>(() => [
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
     { value: 'USD', label: this.i18n.t('form.currency.usd') },
   ]);
-  readonly bimoneda = signal(false);
-  readonly monedaDePrioridad = signal<'pesos' | 'dolares'>('pesos');
+  readonly bimoneda = signal(this.editing?.dualCurrency === true);
   readonly monedasDePrioridad = computed<readonly UiOption[]>(() => [
     { value: 'pesos', label: this.i18n.t('form.account.priority.local') },
     { value: 'dolares', label: this.i18n.t('form.account.priority.foreign') },
   ]);
-  readonly prioridadEnPesos = signal<CardBucket[]>([...PRIORIDAD_EN_PESOS]);
-  readonly prioridadEnDolares = signal<CardBucket[]>([...PRIORIDAD_EN_DOLARES]);
+  readonly prioridadEnPesos = signal<CardBucket[]>(
+    completarPrioridad(this.editing?.paymentPriority, PRIORIDAD_EN_PESOS),
+  );
+  readonly prioridadEnDolares = signal<CardBucket[]>(
+    completarPrioridad(this.editing?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
+  );
   private prioridadActiva() {
-    const moneda = this.bimoneda() ? this.monedaDePrioridad() : this.currency === 'USD' ? 'dolares' : 'pesos';
+    const { currency, monedaDePrioridad } = this.modelo();
+    const moneda = this.bimoneda() ? monedaDePrioridad : currency === 'USD' ? 'dolares' : 'pesos';
     return moneda === 'pesos' ? this.prioridadEnPesos : this.prioridadEnDolares;
   }
 
   alternarBimoneda(valor: boolean): void {
     this.bimoneda.set(valor);
-    if (!valor) this.monedaDePrioridad.set(this.currency === 'USD' ? 'dolares' : 'pesos');
+    if (!valor)
+      this.modelo.update((datos) => ({ ...datos, monedaDePrioridad: datos.currency === 'USD' ? 'dolares' : 'pesos' }));
   }
   readonly paymentPriorityOrder = computed(() => this.prioridadActiva()());
   etiquetaDeConcepto(concepto: number): string {
@@ -119,10 +151,10 @@ export class AccountFormComponent {
     });
   }
   esTarjeta(): boolean {
-    return (this.editing?.type ?? this.type) === 'credit';
+    return this.modelo().type === 'credit';
   }
   private readonly injector = inject(Injector);
-  readonly abonoDePrueba = signal(300000);
+  readonly abonoDePrueba = computed(() => this.modelo().abonoDePrueba ?? 0);
   private readonly comprasDeLaTarjeta = signal<readonly Movement[]>([]);
   private readonly traerCompras = effect(() => {
     const tarjeta = this.editing;
@@ -154,13 +186,6 @@ export class AccountFormComponent {
     const activa = this.prioridadActiva();
     activa.set(activa === this.prioridadEnPesos ? [...PRIORIDAD_EN_PESOS] : [...PRIORIDAD_EN_DOLARES]);
   }
-  exchangeRate = 4168.35;
-  opening = 0;
-  limit = 5000000;
-  cutDay = 20;
-  dueDay = 5;
-  monthlyRate = 2.11;
-  issuerId = '';
   readonly issuerOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('form.account.issuer.none') },
     ...this.store
@@ -168,11 +193,8 @@ export class AccountFormComponent {
       .people.filter((persona) => persona.kind === 'institution')
       .map((persona) => ({ value: persona.id, label: persona.name })),
   ]);
-  monthlyFee = 0;
   readonly actions = inject(AsyncActionService);
-  readonly editing = this.store.form()?.account ?? null;
   readonly saveActionKey = this.editing ? `account:update:${this.editing.id}` : 'account:create';
-  lastFour = '';
   readonly title = computed(() =>
     this.i18n.t(
       this.editing
@@ -184,53 +206,50 @@ export class AccountFormComponent {
   );
   readonly typeLabel = computed(() => (this.editing ? this.i18n.t(`form.account.type.${this.editing.type}`) : ''));
 
-  constructor() {
-    const account = this.editing;
-    if (!account) return;
-    this.name = account.name;
-    this.type = account.type;
-    this.currency = account.currency;
-    this.lastFour = account.lastFour ?? '';
-    if (account.limit !== undefined) this.limit = account.limit;
-    if (account.cutDay !== undefined) this.cutDay = account.cutDay;
-    if (account.dueDay !== undefined) this.dueDay = account.dueDay;
-    if (account.annualRate !== undefined) this.monthlyRate = mensualDesdeAnual(account.annualRate);
-    this.issuerId = account.issuerId ?? '';
-    this.monthlyFee = account.monthlyFee ?? 0;
-    this.bimoneda.set(account.dualCurrency === true);
-    this.prioridadEnPesos.set(completarPrioridad(account.paymentPriority, PRIORIDAD_EN_PESOS));
-    this.prioridadEnDolares.set(completarPrioridad(account.foreignPaymentPriority, PRIORIDAD_EN_DOLARES));
+  mensaje(campo: FieldTree<unknown>): string {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? '') : '';
+  }
+
+  escribirAbono(evento: Event): void {
+    const valor = (evento.target as HTMLInputElement).value;
+    this.modelo.update((datos) => ({ ...datos, abonoDePrueba: Number(valor) || 0 }));
   }
 
   closed = () => this.store.form.set(null);
+  private datosDeCredito(datos: DatosDeCuenta) {
+    return {
+      limit: Number(datos.limit),
+      cutDay: Number(datos.cutDay),
+      dueDay: Number(datos.dueDay),
+      monthlyRate: Number(datos.monthlyRate),
+      issuerId: datos.issuerId,
+      paymentPriority: this.prioridadEnPesos(),
+      foreignPaymentPriority: this.prioridadEnDolares(),
+      monthlyFee: Number(datos.monthlyFee) || 0,
+      dualCurrency: this.bimoneda(),
+    };
+  }
+
   async save() {
     if (this.editing) return this.saveChanges(this.editing);
+    const datos = this.modelo();
     try {
       this.error.set('');
-      const permiso = permisoParaTipoDeCuenta(this.type);
+      const permiso = permisoParaTipoDeCuenta(datos.type);
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
       await this.actions.run(
         this.saveActionKey,
         () =>
           this.catalogCommands.createAccount(
-            this.name,
-            this.type,
-            this.type === 'credit' ? 0 : Number(this.opening),
-            this.currency,
-            Number(this.exchangeRate),
-            {
-              limit: Number(this.limit),
-              cutDay: Number(this.cutDay),
-              dueDay: Number(this.dueDay),
-              monthlyRate: Number(this.monthlyRate),
-              issuerId: this.issuerId,
-              paymentPriority: this.prioridadEnPesos(),
-              foreignPaymentPriority: this.prioridadEnDolares(),
-              monthlyFee: Number(this.monthlyFee) || 0,
-              dualCurrency: this.bimoneda(),
-            },
-            this.lastFour,
-            this.type === 'credit' ? undefined : this.issuerId,
+            datos.name,
+            datos.type,
+            datos.type === 'credit' ? 0 : Number(datos.opening),
+            datos.currency,
+            Number(datos.exchangeRate),
+            this.datosDeCredito(datos),
+            datos.lastFour,
+            datos.type === 'credit' ? undefined : datos.issuerId,
           ),
         {
           loading: this.i18n.t('form.account.toast.loading'),
@@ -244,6 +263,7 @@ export class AccountFormComponent {
   }
 
   private async saveChanges(account: Account) {
+    const datos = this.modelo();
     try {
       this.error.set('');
       if (!this.capabilities.allows(permisoParaEditarCuenta(account.type)))
@@ -252,20 +272,10 @@ export class AccountFormComponent {
         this.saveActionKey,
         () =>
           this.catalogCommands.updateAccount(account, {
-            name: this.name,
-            lastFour: this.lastFour,
-            issuerId: this.issuerId,
-            credit: {
-              limit: Number(this.limit),
-              cutDay: Number(this.cutDay),
-              dueDay: Number(this.dueDay),
-              monthlyRate: Number(this.monthlyRate),
-              issuerId: this.issuerId,
-              paymentPriority: this.prioridadEnPesos(),
-              foreignPaymentPriority: this.prioridadEnDolares(),
-              monthlyFee: Number(this.monthlyFee) || 0,
-              dualCurrency: this.bimoneda(),
-            },
+            name: datos.name,
+            lastFour: datos.lastFour,
+            issuerId: datos.issuerId,
+            credit: this.datosDeCredito(datos),
           }),
         {
           loading: this.i18n.t('form.account.toast.updating'),

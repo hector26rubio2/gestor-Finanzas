@@ -1,52 +1,44 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
-  <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" (ngSubmit)="save()">
+  <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" [formRoot]="formulario">
     @if (kind() === 'person') {
     <div class="col-span-full max-[500px]:col-auto">
       <fin-segmented
-        [value]="personKind"
+        [value]="modelo().personKind"
         [options]="personKindOptions()"
         [ariaLabel]="i18n.t('form.management.field.personKind')"
         (valueChange)="elegirTipoDePersona($event)"
       />
     </div>
     }
-    <fin-field [label]="i18n.t('form.field.name')" [error]="erroresDeCampo().name ?? ''">
-      <input
-        hlmInput
-        name="name"
-        [(ngModel)]="name"
-        required
-        [attr.aria-invalid]="erroresDeCampo().name ? true : null"
-      />
+    <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
+      <input hlmInput [formField]="formulario.name" />
     </fin-field>
     @if (kind() === 'category') {
     <fin-field [label]="i18n.t('form.management.field.categoryType')">
       <fin-select
-        name="categoryType"
-        [(ngModel)]="categoryType"
+        [formField]="formulario.categoryType"
         [disabled]="!!editingId"
         [options]="categoryTypeOptions()"
         [ariaLabel]="i18n.t('form.management.field.categoryTypeAria')"
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.color')">
-      <input name="color" type="color" [(ngModel)]="color" />
+      <input type="color" [formField]="formulario.color" />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.icon')">
       @defer (on idle) {
-      <fin-icon-picker [(value)]="icon" [color]="color" [label]="i18n.t('form.management.field.icon')" />
+      <fin-icon-picker [(value)]="icon" [color]="modelo().color" [label]="i18n.t('form.management.field.icon')" />
       } @placeholder {
       <span class="block h-9 rounded-md border border-border"></span>
       }
     </fin-field>
-    } @if (kind() === 'person' && personKind === 'person') {
-    <fin-field [label]="i18n.t('form.management.field.email')">
-      <input hlmInput name="email" type="email" [(ngModel)]="email" />
+    } @if (kind() === 'person' && modelo().personKind === 'person') {
+    <fin-field [label]="i18n.t('form.management.field.email')" [error]="mensaje(formulario.email)">
+      <input hlmInput type="email" [formField]="formulario.email" />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.relationship')">
       <fin-select
-        name="relationship"
-        [(ngModel)]="relationship"
+        [formField]="formulario.relationship"
         [options]="relationshipOptions()"
         [ariaLabel]="i18n.t('form.management.field.relationshipAria')"
       />
@@ -54,52 +46,39 @@
     } @if (kind() === 'investment') {
     <fin-field [label]="i18n.t('form.management.field.instrument')">
       <fin-select
-        name="instrument"
-        [(ngModel)]="instrument"
+        [formField]="formulario.instrument"
         [options]="instrumentOptions()"
         [ariaLabel]="i18n.t('form.management.field.instrumentAria')"
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.currency')">
       <fin-select
-        name="currency"
-        [(ngModel)]="currency"
+        [formField]="formulario.currency"
         [disabled]="!!editingId"
         [options]="currencyOptions()"
         [ariaLabel]="i18n.t('form.management.field.currencyAria')"
       />
     </fin-field>
     } @if (kind() === 'recurrence') {
-    <fin-field [label]="i18n.t('form.field.amount')" [error]="erroresDeCampo().amount ?? ''">
-      <input
-        hlmInput
-        name="amount"
-        type="number"
-        min="1"
-        inputmode="decimal"
-        [(ngModel)]="amount"
-        required
-        [attr.aria-invalid]="erroresDeCampo().amount ? true : null"
-      />
+    <fin-field [label]="i18n.t('form.field.amount')" [error]="mensaje(formulario.amount)">
+      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.amount" />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.account')" [error]="erroresDeCampo().account ?? ''">
+    <fin-field [label]="i18n.t('form.management.field.account')" [error]="mensaje(formulario.accountId)">
       <fin-select
-        name="account"
-        [(ngModel)]="accountId"
+        [formField]="formulario.accountId"
         [options]="accountOptions()"
         [ariaLabel]="i18n.t('form.management.field.accountAria')"
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.frequency.label')">
       <fin-select
-        name="frequency"
-        [(ngModel)]="frequency"
+        [formField]="formulario.frequency"
         [options]="frequencyOptions()"
         [ariaLabel]="i18n.t('form.frequency.label')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.start')">
-      <fin-date-field name="start" [(ngModel)]="start" required />
+    <fin-field [label]="i18n.t('form.management.field.start')" [error]="mensaje(formulario.start)">
+      <fin-date-field [formField]="formulario.start" />
     </fin-field>
     } @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>

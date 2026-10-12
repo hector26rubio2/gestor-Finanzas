@@ -11,8 +11,8 @@ test.describe('Catálogos y registros', () => {
     await ir(page, 'accounts');
     await atajo(page, 'n', 'c');
     const formulario = dialogo(page);
-    await formulario.locator('input[name=name]').fill(`E2E Cuenta nómina ${corrida}`);
-    await formulario.locator('input[name=opening]').fill('500000');
+    await formulario.locator('input[name="cuenta.name"]').fill(`E2E Cuenta nómina ${corrida}`);
+    await formulario.locator('input[name="cuenta.opening"]').fill('500000');
     await guardarDialogo(page, vigilancia, /POST .*accounts/);
     await expect(formulario).toBeHidden();
     const respuesta = await page.request.get(`${apiUrl}/api/v1/accounts`);

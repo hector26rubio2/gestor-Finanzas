@@ -14,7 +14,7 @@ function toIsoDate(date: Date): string {
   return `${date.getFullYear()}-${month}-${day}`;
 }
 
-function fromIsoDate(value: string): Date | undefined {
+function fromIsoDate(value: string | undefined): Date | undefined {
   return value ? new Date(`${value}T${String(NOON).padStart(2, '0')}:00:00`) : undefined;
 }
 
@@ -49,8 +49,8 @@ export class DateFieldComponent implements ControlValueAccessor {
   private readonly preferences = inject(PREFERENCES);
   private readonly calendarLocale = inject(CalendarLocale);
   readonly placeholder = input('');
-  readonly min = input('');
-  readonly max = input('');
+  readonly min = input<string | undefined>('');
+  readonly max = input<string | undefined>('');
   readonly minDate = computed(() => fromIsoDate(this.min()));
   readonly maxDate = computed(() => fromIsoDate(this.max()));
   private readonly calendarioGlobal = inject(BrnCalendarI18nService);
