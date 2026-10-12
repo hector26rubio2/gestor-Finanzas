@@ -1,14 +1,10 @@
 import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
-import type { ApiLinkRef, ApiMoney } from './shared-api-types';
+import type { EsquemaApi } from './generado/esquemas';
+import type { ApiMoney } from './shared-api-types';
 
-export interface ApiBudget {
-  id: string;
-  category: ApiLinkRef;
-  monthlyLimit: ApiMoney;
-  updatedAt: string;
-}
+export type ApiBudget = EsquemaApi<'BudgetDto'>;
 
 @Injectable({ providedIn: 'root' })
 export class BudgetsApi {

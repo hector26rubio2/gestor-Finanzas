@@ -1,25 +1,11 @@
 import { inject, Injectable } from '@angular/core';
 import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
+import type { EsquemaApi } from './generado/esquemas';
 
-export interface ApiPreference {
-  userId: string;
-  language: string;
-  theme: string;
-  font: string;
-  density: string;
-  baseCurrency: string;
-  customThemeJson: string | null;
-  dashboardLayoutJson: string | null;
-  updatedAt: string;
-}
+export type ApiPreference = EsquemaApi<'UserPreferenceDto'>;
 
-export interface ApiFeatureFlag {
-  key: string;
-  isEnabled: boolean;
-  audienceJson: string | null;
-  updatedAt: string;
-}
+export type ApiFeatureFlag = EsquemaApi<'FeatureFlagDto'>;
 
 @Injectable({ providedIn: 'root' })
 export class PreferencesApi {
