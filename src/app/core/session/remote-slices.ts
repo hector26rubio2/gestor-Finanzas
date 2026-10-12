@@ -1,19 +1,10 @@
-import {
-  ApiBootstrap,
-  ApiBootstrapPart,
-  ApiDebtPosition,
-  ApiInvestment,
-  ApiNotification,
-  ApiSession,
-} from '@core/api/api-client';
+import { ApiBootstrap, ApiBootstrapPart, ApiInvestment, ApiNotification, ApiSession } from '@core/api/api-client';
 import { P } from './permissions';
 
-export type Carga = 'debts' | 'investments' | 'notifications';
+export type Carga = 'investments';
 
 export const PERMISO_DE_CARGA: Readonly<Record<Carga, string | null>> = {
-  debts: P.personas.deudas.listar,
   investments: P.patrimonio.ver,
-  notifications: null,
 };
 
 export interface RawData {
@@ -23,8 +14,6 @@ export interface RawData {
   categories: NonNullable<ApiBootstrap['categories']>;
   people: NonNullable<ApiBootstrap['people']>;
   preferences: ApiBootstrap['preferences'];
-  notifications: readonly ApiNotification[];
-  debts: readonly ApiDebtPosition[];
   investments: readonly ApiInvestment[];
 }
 
@@ -36,8 +25,6 @@ export function emptyRaw(): RawData {
     categories: [],
     people: [],
     preferences: null,
-    notifications: [],
-    debts: [],
     investments: [],
   };
 }
@@ -71,9 +58,7 @@ export function fusionarCatalogos(previo: RawData, boot: ApiBootstrap): RawData 
   };
 }
 
-export function avisosDe(boot: ApiBootstrap): { recientes: readonly ApiNotification[]; sinLeerFueraDeLista: number } {
+export function avisosDe(boot: ApiBootstrap): { recientes: readonly ApiNotification[]; sinLeer: number } {
   const resumen = boot.notifications;
-  if (!resumen) return { recientes: [], sinLeerFueraDeLista: 0 };
-  const sinLeerRecientes = resumen.latest.filter((aviso) => aviso.readAt === null).length;
-  return { recientes: resumen.latest, sinLeerFueraDeLista: Math.max(0, resumen.unreadCount - sinLeerRecientes) };
+  return { recientes: resumen?.latest ?? [], sinLeer: resumen?.unreadCount ?? 0 };
 }

@@ -55,7 +55,6 @@ export class RemoteBootstrap {
     effect(() => {
       const tipo = this.store.inspector()?.type;
       untracked(() => {
-        if (tipo === 'person') void this.asegurar('debts');
         if (tipo === 'investment') void this.asegurar('investments');
       });
     });
@@ -141,7 +140,6 @@ export class RemoteBootstrap {
         if (generacion !== this.generacion) return;
         this.raw = { ...this.raw, ...datos };
         this.cargadas.add(clave);
-        if (clave === 'notifications') this.store.sinLeerFueraDeLista.set(0);
         this.aplicarDatos(this.store.data().movements);
       })
       .catch(() => {
@@ -156,12 +154,8 @@ export class RemoteBootstrap {
 
   private async traer(clave: Carga): Promise<Partial<RawData>> {
     switch (clave) {
-      case 'debts':
-        return { debts: await firstValueFrom(this.api.debts()) };
       case 'investments':
         return { investments: await firstValueFrom(this.api.investments()) };
-      case 'notifications':
-        return { notifications: await firstValueFrom(this.api.notifications()) };
     }
   }
 
@@ -177,7 +171,7 @@ export class RemoteBootstrap {
   private aplicarDatos(movimientos: Movement[]): void {
     const raw = this.raw;
     this.store.kindCatalog.set(new MovementKindCatalog(raw.movementKinds));
-    this.store.data.set(toViewData(this.i18n, raw, movimientos));
+    this.store.data.set(toViewData(raw, movimientos));
     this.store.categories.set(raw.categories);
     if (raw.preferences) {
       const preferences = raw.preferences;
@@ -206,9 +200,9 @@ export class RemoteBootstrap {
   }
 
   private aplicarAvisos(boot: ApiBootstrap): void {
-    const { recientes, sinLeerFueraDeLista } = avisosDe(boot);
-    this.raw = { ...this.raw, notifications: recientes };
-    this.store.sinLeerFueraDeLista.set(sinLeerFueraDeLista);
+    const { recientes, sinLeer } = avisosDe(boot);
+    this.store.avisosRecientes.set(recientes);
+    this.store.sinLeerDelArranque.set(sinLeer);
   }
 
   private aplicarSaldos(boot: ApiBootstrap): void {
@@ -281,17 +275,10 @@ export class RemoteBootstrap {
       const huella = huellaDeCatalogos(boot);
       if (huella !== this.huella || retiradas.length) {
         this.huella = huella;
-        const avisosCompletos = this.cargadas.has('notifications') ? this.raw.notifications : null;
         this.raw = fusionarCatalogos(this.raw, boot);
         this.aplicarAvisos(boot);
-        if (avisosCompletos) {
-          this.raw = { ...this.raw, notifications: avisosCompletos };
-          this.store.sinLeerFueraDeLista.set(0);
-          this.cargadas.delete('notifications');
-        }
         this.aplicarDatos(this.store.data().movements);
         this.aplicarSaldos(boot);
-        if (avisosCompletos) void this.asegurar('notifications');
       }
       this.aplicarSesion(session, boot.featureFlags);
     } catch (error) {

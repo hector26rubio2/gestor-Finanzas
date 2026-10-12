@@ -102,7 +102,6 @@ export interface ViewData {
   accounts: Account[];
   people: Person[];
   investments: Investment[];
-  notifications: AppNotification[];
   auditEvents: AuditEvent[];
   featureFlags: Record<string, boolean>;
 }
@@ -113,7 +112,6 @@ export function createEmptyData(): ViewData {
     accounts: [],
     people: [],
     investments: [],
-    notifications: [],
     auditEvents: [],
     featureFlags: {},
   };

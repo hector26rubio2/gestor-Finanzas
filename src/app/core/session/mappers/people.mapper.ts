@@ -9,19 +9,26 @@ export interface ApiPersonSummary {
   kind?: number;
 }
 
-export function toViewPeople(
-  people: readonly ApiPersonSummary[],
+export function toViewPeople(people: readonly ApiPersonSummary[]): ViewData['people'] {
+  return people.map((person) => ({
+    id: person.id,
+    name: person.displayName,
+    kind: person.kind === COUNTERPARTY_KIND.institution ? ('institution' as const) : ('person' as const),
+    owed: 0,
+    owing: 0,
+  }));
+}
+
+export function conPosicionesDeDeuda(
+  people: ViewData['people'],
   debts: readonly ApiDebtPosition[],
 ): ViewData['people'] {
+  if (!debts.length) return people;
   const debtByPerson = new Map(debts.map((debt) => [debt.counterparty.id, debt]));
   return people.map((person) => {
     const position = debtByPerson.get(person.id);
-    return {
-      id: person.id,
-      name: person.displayName,
-      kind: person.kind === COUNTERPARTY_KIND.institution ? ('institution' as const) : ('person' as const),
-      owed: parseMoney(position?.receivable),
-      owing: parseMoney(position?.ownDebt),
-    };
+    return position
+      ? { ...person, owed: parseMoney(position.receivable), owing: parseMoney(position.ownDebt) }
+      : person;
   });
 }

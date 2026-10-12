@@ -1,11 +1,8 @@
-import { ViewData } from '@core/state/view-model';
+import { AppNotification } from '@core/state/view-model';
 import { ApiNotification } from '@core/api/api-client';
 import { I18nService } from '@core/i18n';
 
-export function toViewNotification(
-  i18n: I18nService,
-  notification: ApiNotification,
-): ViewData['notifications'][number] {
+export function toViewNotification(i18n: I18nService, notification: ApiNotification): AppNotification {
   return {
     id: notification.id,
     kind: notification.kind,

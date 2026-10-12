@@ -90,7 +90,7 @@ describe('RemoteBootstrap', () => {
     expect(TestBed.inject(AppStore).user()?.capabilities).toEqual(session.permissions);
   });
 
-  it('movimientos, deudas e inversiones no se piden al arrancar', async () => {
+  it('movimientos e inversiones no se piden al arrancar', async () => {
     const api = apiCon(() => arranqueDe(session));
     const bootstrap = montar(api);
     const store = TestBed.inject(AppStore);
@@ -99,37 +99,34 @@ describe('RemoteBootstrap', () => {
 
     expect(store.data().movements).toEqual([]);
     expect(store.movimientosListos()).toBe(false);
-    expect(api.debts).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
   });
 
-  it('las deudas se piden una sola vez al necesitarlas y completan a las personas', async () => {
-    const conDeudas = { ...session, permissions: [...session.permissions, P.personas.ver, P.personas.deudas.listar] };
-    const api = apiCon(() => arranqueDe(conDeudas, { people: [{ id: 'p1', displayName: 'Camilo' } as never] }), {
-      debts: vi.fn(() =>
-        of([{ counterparty: { id: 'p1', name: 'Camilo' }, receivable: money('500'), ownDebt: money('20') }]),
-      ),
-    });
-    const bootstrap = montar(api);
+  it('los avisos del arranque dan el contador y la lista reciente sin pedir nada más', async () => {
+    const aviso = {
+      id: 'a',
+      kind: 'k',
+      title: 'a',
+      payloadJson: '{}',
+      readAt: null,
+      createdAt: '2026-01-01T00:00:00Z',
+    };
+    const api = apiCon(() => arranqueDe(session, { notifications: { unreadCount: 5, latest: [aviso] } }));
+    await montar(api).initialize();
     const store = TestBed.inject(AppStore);
-    await bootstrap.initialize();
-    expect(store.data().people[0]).toMatchObject({ name: 'Camilo', owed: 0, owing: 0 });
 
-    await Promise.all([bootstrap.asegurar('debts'), bootstrap.asegurar('debts')]);
-    await bootstrap.asegurar('debts');
-
-    expect(api.debts).toHaveBeenCalledOnce();
-    expect(store.data().people[0]).toMatchObject({ name: 'Camilo', owed: 500, owing: 20 });
+    expect(store.unread()).toBe(5);
+    expect(store.avisosRecientes()).toEqual([aviso]);
+    expect(api.notifications).not.toHaveBeenCalled();
   });
 
-  it('sin el permiso de deudas o inversiones no se piden', async () => {
+  it('sin el permiso de inversiones no se piden', async () => {
     const api = apiCon(() => arranqueDe(session));
     const bootstrap = montar(api);
     await bootstrap.initialize();
 
-    await bootstrap.asegurar('debts', 'investments');
+    await bootstrap.asegurar('investments');
 
-    expect(api.debts).not.toHaveBeenCalled();
     expect(api.investments).not.toHaveBeenCalled();
   });
 
@@ -180,33 +177,6 @@ describe('RemoteBootstrap', () => {
     await bootstrap.asegurar('investments');
 
     expect(investments).toHaveBeenCalledTimes(2);
-  });
-
-  it('los avisos sin leer cuentan los que no caben en la lista reciente', async () => {
-    const aviso = (id: string, readAt: string | null) => ({
-      id,
-      kind: 'k',
-      title: id,
-      payloadJson: '{}',
-      readAt,
-      createdAt: '2026-01-01T00:00:00Z',
-    });
-    const completos = [aviso('a', null), aviso('b', null), aviso('c', null), aviso('d', '2026-01-02T00:00:00Z')];
-    const api = apiCon(
-      () => arranqueDe(session, { notifications: { unreadCount: 5, latest: [aviso('a', null), aviso('d', 'x')] } }),
-      {
-        notifications: vi.fn(() => of(completos)),
-      },
-    );
-    const bootstrap = montar(api);
-    const store = TestBed.inject(AppStore);
-
-    await bootstrap.initialize();
-    expect(store.unread()).toBe(5);
-
-    await bootstrap.asegurar('notifications');
-    expect(store.data().notifications).toHaveLength(4);
-    expect(store.unread()).toBe(3);
   });
 
   it('los saldos del arranque quedan como saldos del servidor, con las tarjetas en negativo', async () => {
@@ -278,27 +248,6 @@ describe('RemoteBootstrap', () => {
 
     expect(store.data().people).toEqual([]);
     expect(store.remoteState()).toBe('ready');
-  });
-
-  it('retirar el permiso de deudas descarta las deudas ya cargadas', async () => {
-    const conDeudas = { ...session, permissions: [...session.permissions, P.personas.ver, P.personas.deudas.listar] };
-    let current = conDeudas;
-    const personas = [{ id: 'p1', displayName: 'Camilo' } as never];
-    const api = apiCon(() => arranqueDe(current, { people: personas }), {
-      debts: vi.fn(() =>
-        of([{ counterparty: { id: 'p1', name: 'Camilo' }, receivable: money('500'), ownDebt: money('0') }]),
-      ),
-    });
-    const bootstrap = montar(api);
-    const store = TestBed.inject(AppStore);
-    await bootstrap.initialize();
-    await bootstrap.asegurar('debts');
-    expect(store.data().people[0].owed).toBe(500);
-
-    current = { ...conDeudas, permissions: conDeudas.permissions.filter((p) => p !== P.personas.deudas.listar) };
-    await bootstrap.pollSession();
-
-    expect(store.data().people[0].owed).toBe(0);
   });
 
   it('un cambio de banderas se aplica sin recargar', async () => {

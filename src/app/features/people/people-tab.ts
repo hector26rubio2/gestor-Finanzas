@@ -9,6 +9,7 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
 import { sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
+import { PeopleStore } from './people.store';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
@@ -21,6 +22,12 @@ export class PeopleTabComponent {
   readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
+  private readonly people = inject(PeopleStore);
+
+  constructor() {
+    this.people.solicitar();
+  }
+
   readonly P = P;
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
@@ -36,7 +43,7 @@ export class PeopleTabComponent {
     { key: 'payment', label: this.i18n.t('people.column.payment') },
   ]);
   readonly peopleRows = computed(() =>
-    this.store.data().people.map((p) => ({
+    this.people.personas().map((p) => ({
       id: p.id,
       name: p.name,
       kind: this.i18n.t(p.kind === 'institution' ? 'people.kind.institution' : 'people.kind.person'),
@@ -55,7 +62,7 @@ export class PeopleTabComponent {
   );
   private readonly temaGrafica = inject(ChartThemeService);
   private readonly conSaldo = computed(() =>
-    [...this.store.data().people]
+    [...this.people.personas()]
       .filter((p) => p.owed > 0 || p.owing > 0)
       .sort((a, b) => b.owed + b.owing - (a.owed + a.owing))
       .slice(0, 8),
@@ -75,10 +82,10 @@ export class PeopleTabComponent {
       (valor) => compactMoney(valor, this.store.preferences().locale),
     );
   });
-  readonly peopleOwed = computed(() => sumBy(this.store.data().people, (p) => p.owed));
-  readonly peopleOwing = computed(() => sumBy(this.store.data().people, (p) => p.owing));
+  readonly peopleOwed = computed(() => sumBy(this.people.personas(), (p) => p.owed));
+  readonly peopleOwing = computed(() => sumBy(this.people.personas(), (p) => p.owing));
   readonly slowestPayer = computed(() => {
-    const conDatos = this.store.data().people.filter((p) => p.averagePaymentDays != null);
+    const conDatos = this.people.personas().filter((p) => p.averagePaymentDays != null);
     const person = [...conDatos].sort((a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0))[0];
     return {
       name: person?.name ?? this.i18n.t('people.noData'),

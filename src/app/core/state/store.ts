@@ -2,7 +2,7 @@ import { todayIso } from '@core/utils/dates';
 import { computed, inject, Injectable, InjectionToken, Injector, signal } from '@angular/core';
 import { notifier } from '@core/notifications/notifier';
 import { Account, accountBalance, createEmptyData, ViewData, SessionUser, Movement, PersonKind } from './view-model';
-import { ApiCategory } from '@core/api/api-client';
+import { ApiCategory, ApiNotification } from '@core/api/api-client';
 import {
   baseCurrency as monedaBase,
   currencyCatalog as catalogoDeMonedas,
@@ -138,10 +138,10 @@ export class AppStore {
   );
   readonly income = computed(() => totalDeIngresos(this.movements()));
   readonly expense = computed(() => totalDeGastos(this.movements()));
-  readonly sinLeerFueraDeLista = signal(0);
-  readonly unread = computed(
-    () => this.data().notifications.filter((n) => !n.read).length + this.sinLeerFueraDeLista(),
-  );
+  readonly avisosRecientes = signal<readonly ApiNotification[]>([]);
+  readonly sinLeerDelArranque = signal(0);
+  readonly sinLeerCargados = signal<number | null>(null);
+  readonly unread = computed(() => this.sinLeerCargados() ?? this.sinLeerDelArranque());
   readonly debt = computed(() =>
     sumBy(
       this.data().accounts.filter((a) => a.type === 'credit'),
