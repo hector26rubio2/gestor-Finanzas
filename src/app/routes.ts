@@ -65,11 +65,9 @@ const CARGAS_POR_RUTA: Readonly<Record<string, CargaDeRuta>> = {
   movements: { movimientos: true },
   calendar: { movimientos: true },
   accounts: { movimientos: true },
-  people: { datos: ['debts'] },
   portfolio: { datos: ['investments'] },
-  planning: { datos: ['debts', 'investments'] },
+  planning: { datos: ['investments'] },
   reports: { datos: ['investments'] },
-  notifications: { datos: ['notifications'] },
 };
 
 const cargarAlEntrar =

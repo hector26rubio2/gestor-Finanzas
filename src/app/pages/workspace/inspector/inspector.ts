@@ -1,6 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { IconComponent } from '@ui/icon';
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -11,6 +11,7 @@ import { fechaDeReverso, parseMoney } from '@core/utils';
 import { I18nService } from '@core/i18n';
 import { PERMISO_DE_REVERSO, familiaDeMovimiento, P } from '@core/session';
 import { permisoParaEditarCuenta } from '@features/account-form';
+import { PeopleStore } from '@features/people';
 import type { Account, Movement } from '@core/state';
 import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
 import { MovementsBookService } from '@shared/movements';
@@ -89,7 +90,15 @@ export class InspectorComponent {
   typeCardLabel(type: Account['type']): string {
     return this.i18n.t(`accounts.cards.type.${type}`);
   }
-  readonly selectedPerson = computed(() => this.store.data().people.find((p) => p.id === this.store.inspector()?.id));
+  private readonly people = inject(PeopleStore);
+  private readonly destruccion = inject(DestroyRef);
+  private readonly deudasDePersona = effect(() => {
+    const inspeccionaPersona = this.store.inspector()?.type === 'person';
+    untracked(() =>
+      inspeccionaPersona ? this.people.solicitar(this.destruccion) : this.people.soltar(this.destruccion),
+    );
+  });
+  readonly selectedPerson = computed(() => this.people.personas().find((p) => p.id === this.store.inspector()?.id));
   readonly selectedInvestment = computed(() =>
     this.store.data().investments.find((i) => i.id === this.store.inspector()?.id),
   );

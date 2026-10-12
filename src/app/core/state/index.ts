@@ -2,6 +2,7 @@ export * from './catalog-commands';
 export * from './economia';
 export * from './movement-commands';
 export * from './preferences-actions';
+export * from './recurso-remoto';
 export * from './store';
 export * from './theme';
 export * from './view-model';

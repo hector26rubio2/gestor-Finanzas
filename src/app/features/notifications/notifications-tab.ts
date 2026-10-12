@@ -4,6 +4,7 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { FinanceApiClient } from '@core/api';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
+import { NotificationsStore } from './notifications.store';
 import type { AppNotification } from '@core/state/view-model';
 import { I18nService } from '@core/i18n';
 import { HeaderActionsService } from '@shared/header-actions.service';
@@ -28,6 +29,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   readonly store = inject(AppStore);
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
+  private readonly notifications = inject(NotificationsStore);
   private readonly headerActions = inject(HeaderActionsService);
   readonly i18n = inject(I18nService);
   readonly puedeMarcar = this.capabilities.allows(P.notificaciones.editar);
@@ -35,7 +37,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   readonly marcando = signal<ReadonlySet<string>>(new Set());
 
   private readonly todas = computed(() =>
-    [...this.store.data().notifications].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
+    [...this.notifications.items()].sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   );
   readonly sinLeer = computed(() => this.todas().filter((n) => !n.read).length);
   private readonly publicarSinLeer = effect(() => this.headerActions.sinLeer.set(this.sinLeer()));
@@ -50,6 +52,10 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
       titulo: this.i18n.t(`notifications.group.${grupo.clave}`),
     }));
   });
+
+  constructor() {
+    this.notifications.solicitar();
+  }
 
   ngOnInit(): void {
     this.headerActions.readAll.set(() => void this.readAll());
@@ -79,14 +85,12 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
 
   async readAll(): Promise<void> {
     try {
-      const unread = this.store.data().notifications.filter((item) => !item.read);
+      const unread = this.notifications.items().filter((item) => !item.read);
       await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
+      this.notifications.marcarLeidas(new Set(unread.map((item) => item.id)));
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.bulkUpdateError'));
-      return;
     }
-
-    this.store.data.update((d) => ({ ...d, notifications: d.notifications.map((n) => ({ ...n, read: true })) }));
   }
 
   async mark(id: string): Promise<void> {
@@ -104,9 +108,6 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.store.data.update((d) => ({
-      ...d,
-      notifications: d.notifications.map((n) => (n.id === id ? { ...n, read: true } : n)),
-    }));
+    this.notifications.marcarLeidas(new Set([id]));
   }
 }

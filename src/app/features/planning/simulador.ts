@@ -2,6 +2,7 @@ import { Injectable, computed, inject, linkedSignal, signal } from '@angular/cor
 import { claveDeConcepto } from '@core/api';
 import type { EscenarioGuardado, MedidaDeComparacion, VistaDeGrafica } from '@shared/proyecciones';
 import { AppStore } from '@core/state';
+import { PeopleStore } from '@features/people';
 import { crearMovimientosDelPeriodo } from '@shared/historia';
 import { I18nService } from '@core/i18n';
 import { addDaysToIso, addMonthsToIso, sumBy } from '@core/utils';
@@ -46,6 +47,11 @@ const nuevoId = (prefijo: string) => `${prefijo}:${Date.now().toString(36)}${(se
 export class SimuladorDePlanificacion {
   private readonly store = inject(AppStore);
   private readonly i18n = inject(I18nService);
+  private readonly people = inject(PeopleStore);
+
+  constructor() {
+    this.people.solicitar();
+  }
 
   readonly hoy = computed(() => this.store.hoy());
   readonly manana = computed(() => addDaysToIso(this.hoy(), 1));
@@ -88,7 +94,7 @@ export class SimuladorDePlanificacion {
   readonly deudasReales = computed(() =>
     deudasActuales(
       this.store.data().accounts,
-      this.store.data().people,
+      this.people.personas(),
       this.movimientosDeTarjetas() ?? [],
       (c) => this.store.balance(c),
       this.obligaciones(),
