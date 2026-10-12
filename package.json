@@ -16,6 +16,7 @@
     "test:ui": "node scripts/visual-test.mjs",
     "test:permisos": "node scripts/permisos-por-seccion.mjs",
     "test:a11y": "node scripts/accesibilidad.mjs",
+    "api:tipos": "openapi-typescript openapi/v1.json -o src/app/core/api/generado/esquema.d.ts",
     "diagramas": "node scripts/diagramas.mjs",
     "e2e": "playwright test -c e2e/playwright.config.ts",
     "e2e:local": "node scripts/e2e-local.mjs"
@@ -53,6 +54,7 @@
     "axe-core": "4.13.0",
     "eslint": "^10.9.1",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "7.13.0",
     "playwright-core": "^1.62.1",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",

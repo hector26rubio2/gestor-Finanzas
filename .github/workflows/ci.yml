@@ -34,6 +34,11 @@ jobs:
       - name: Instalar dependencias
         run: pnpm install --frozen-lockfile
 
+      - name: Verificar tipos generados de la API
+        run: |
+          pnpm api:tipos
+          git diff --exit-code -- src/app/core/api/generado
+
       - name: Lint
         run: pnpm lint
 
