@@ -4,7 +4,7 @@ import { IconPickerComponent } from '@ui/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormField, FormRoot, form, type FieldTree } from '@angular/forms/signals';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore, PersonKind, CatalogCommands } from '@core/state';
@@ -13,6 +13,7 @@ import { UiOption, UiSelectComponent } from '@ui/select';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
+import { type DatosDeGestion, esquemaDeGestion } from './management-form.schema';
 
 @Component({
   selector: 'fin-management-form',
@@ -22,7 +23,8 @@ import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
     DateFieldComponent,
     HlmButton,
     HlmInput,
-    FormsModule,
+    FormField,
+    FormRoot,
     OverlayComponent,
     UiSelectComponent,
     NumericInputDirective,
@@ -37,7 +39,6 @@ export class ManagementFormComponent {
   private readonly catalogCommands = inject(CatalogCommands);
   readonly i18n = inject(I18nService);
   readonly error = signal('');
-  readonly erroresDeCampo = signal<{ readonly name?: string; readonly amount?: string; readonly account?: string }>({});
   readonly kind = computed(() => this.store.form()?.kind ?? 'category');
   readonly editingId = this.store.form()?.targetId ?? null;
   readonly title = computed(() => {
@@ -55,28 +56,53 @@ export class ManagementFormComponent {
         };
     return titulos[this.kind()] ?? this.i18n.t('form.management.title.default');
   });
-  name = '';
-  color = '#4f46e5';
+  readonly modelo = signal<DatosDeGestion>({
+    name: '',
+    color: '#4f46e5',
+    categoryType: 'expense',
+    email: '',
+    relationship: 'Otro',
+    personKind: (this.store.form()?.personKind as PersonKind | undefined) ?? 'person',
+    instrument: 'CDT',
+    currency: 'COP',
+    amount: null,
+    accountId: '',
+    frequency: '3',
+    start: new Date().toISOString().slice(0, 10),
+  });
+  readonly formulario = form(
+    this.modelo,
+    esquemaDeGestion({
+      traducir: (clave) => this.i18n.t(clave),
+      esRecurrencia: () => this.kind() === 'recurrence',
+      esPersona: () => this.kind() === 'person',
+      cuentaValida: (id) => !!this.store.account(id),
+    }),
+    { name: 'gestion', submission: { action: async () => this.save() } },
+  );
   icon = 'tag';
-  categoryType: 'income' | 'expense' = 'expense';
   readonly categoryTypeOptions = computed<readonly UiOption[]>(() => [
     { value: 'expense', label: this.i18n.t('form.management.categoryType.expense') },
     { value: 'income', label: this.i18n.t('form.management.categoryType.income') },
   ]);
-  email = '';
-  relationship: import('@core/state/view-model').Person['relationship'] = 'Otro';
-  personKind: PersonKind = (this.store.form()?.personKind as PersonKind | undefined) ?? 'person';
   readonly personKindOptions = computed<readonly SegmentedOption[]>(() => [
     { value: 'person', label: this.i18n.t('people.kind.person'), icon: 'users' },
     { value: 'institution', label: this.i18n.t('people.kind.institution'), icon: 'bank' },
   ]);
 
   elegirTipoDePersona(valor: string): void {
-    this.personKind = valor === 'institution' ? 'institution' : 'person';
+    const personKind = valor === 'institution' ? 'institution' : 'person';
+    this.modelo.update((datos) => ({ ...datos, personKind }));
+  }
+
+  mensaje(campo: FieldTree<unknown>): string {
+    const estado = campo();
+    return estado.touched() ? (estado.errors()[0]?.message ?? '') : '';
   }
 
   private correoDePersona(): string {
-    return this.personKind === 'person' ? this.email : '';
+    const { personKind, email } = this.modelo();
+    return personKind === 'person' ? email : '';
   }
   readonly relationshipOptions = computed<readonly UiOption[]>(() => [
     { value: 'Familia', label: this.i18n.t('form.management.relationship.family') },
@@ -105,12 +131,6 @@ export class ManagementFormComponent {
     { value: '', label: this.i18n.t('form.actions.select') },
     ...this.store.data().accounts.map((account) => ({ value: account.id, label: account.name })),
   ]);
-  instrument = 'CDT';
-  currency = 'COP';
-  amount: number | null = null;
-  accountId = '';
-  frequency = '3';
-  start = new Date().toISOString().slice(0, 10);
 
   constructor() {
     const id = this.editingId;
@@ -119,45 +139,40 @@ export class ManagementFormComponent {
     if (kind === 'category') {
       const category = this.store.categories().find((item) => item.id === id);
       if (!category) return;
-      this.name = category.name;
-      this.color = category.color;
       this.icon = category.icon;
-      this.categoryType = category.type === 1 ? 'income' : 'expense';
+      this.modelo.update((datos) => ({
+        ...datos,
+        name: category.name,
+        color: category.color,
+        categoryType: category.type === 1 ? 'income' : 'expense',
+      }));
     }
     if (kind === 'person') {
       const person = this.store.data().people.find((item) => item.id === id);
       if (!person) return;
-      this.name = person.name;
-      this.email = person.email ?? '';
-      this.relationship = person.relationship ?? 'Otro';
-      this.personKind = person.kind ?? 'person';
+      this.modelo.update((datos) => ({
+        ...datos,
+        name: person.name,
+        email: person.email ?? '',
+        relationship: person.relationship ?? 'Otro',
+        personKind: person.kind ?? 'person',
+      }));
     }
     if (kind === 'investment') {
       const investment = this.store.data().investments.find((item) => item.id === id);
       if (!investment) return;
-      this.name = investment.name;
-      this.instrument = investment.type;
-      this.currency = investment.currency;
+      this.modelo.update((datos) => ({
+        ...datos,
+        name: investment.name,
+        instrument: investment.type,
+        currency: investment.currency,
+      }));
     }
-  }
-
-  private camposValidos(): boolean {
-    const recurrente = this.kind() === 'recurrence';
-    const errores = {
-      ...(!this.name.trim() ? { name: this.i18n.t('form.management.error.nameRequired') } : {}),
-      ...(recurrente && !(Number(this.amount) > 0)
-        ? { amount: this.i18n.t('form.movement.error.amountPositive') }
-        : {}),
-      ...(recurrente && !this.store.account(this.accountId)
-        ? { account: this.i18n.t('form.recurrence.error.accountInvalid') }
-        : {}),
-    };
-    this.erroresDeCampo.set(errores);
-    return Object.keys(errores).length === 0;
   }
 
   async save() {
     if (this.editingId) return this.saveChanges(this.editingId);
+    const datos = this.modelo();
     try {
       this.error.set('');
       const permisos: Record<string, string> = {
@@ -168,20 +183,24 @@ export class ManagementFormComponent {
       };
       const permiso = permisos[this.kind()];
       if (permiso && !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
-      if (!this.camposValidos()) return;
       if (this.kind() === 'category')
-        await this.catalogCommands.createCategory(this.name, this.color, this.icon, this.categoryType);
+        await this.catalogCommands.createCategory(datos.name, datos.color, this.icon, datos.categoryType);
       if (this.kind() === 'person')
-        await this.catalogCommands.createPerson(this.name, this.correoDePersona(), this.relationship, this.personKind);
+        await this.catalogCommands.createPerson(
+          datos.name,
+          this.correoDePersona(),
+          datos.relationship,
+          datos.personKind,
+        );
       if (this.kind() === 'investment')
-        await this.catalogCommands.createInvestment(this.name, this.instrument, this.currency);
+        await this.catalogCommands.createInvestment(datos.name, datos.instrument, datos.currency);
       if (this.kind() === 'recurrence')
         await this.catalogCommands.createRecurrence(
-          this.name,
-          Number(this.amount ?? 0),
-          this.accountId,
-          Number(this.frequency),
-          this.start,
+          datos.name,
+          Number(datos.amount ?? 0),
+          datos.accountId,
+          Number(datos.frequency),
+          datos.start,
         );
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
@@ -189,6 +208,7 @@ export class ManagementFormComponent {
   }
 
   private async saveChanges(id: string) {
+    const datos = this.modelo();
     try {
       this.error.set('');
       const permisos: Record<string, string> = {
@@ -198,18 +218,18 @@ export class ManagementFormComponent {
       };
       const permiso = permisos[this.kind()];
       if (!permiso || !this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.error.forbidden'));
-      if (!this.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+      if (!datos.name.trim()) throw new Error(this.i18n.t('form.management.error.nameRequired'));
       if (this.kind() === 'category')
-        await this.catalogCommands.updateCategory(id, { name: this.name, color: this.color, icon: this.icon });
+        await this.catalogCommands.updateCategory(id, { name: datos.name, color: datos.color, icon: this.icon });
       if (this.kind() === 'person')
         await this.catalogCommands.updatePerson(id, {
-          name: this.name,
+          name: datos.name,
           email: this.correoDePersona(),
-          relationship: this.relationship,
-          kind: this.personKind,
+          relationship: datos.relationship,
+          kind: datos.personKind,
         });
       if (this.kind() === 'investment')
-        await this.catalogCommands.updateInvestment(id, { name: this.name, instrumentType: this.instrument });
+        await this.catalogCommands.updateInvestment(id, { name: datos.name, instrumentType: datos.instrument });
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }

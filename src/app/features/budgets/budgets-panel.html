@@ -49,7 +49,7 @@
         <span class="min-w-0 flex-1 truncate text-sm font-medium">{{ fila.categoria.name }}</span>
       </div>
       @if (editando() === fila.categoria.id) {
-      <form class="flex flex-wrap items-start gap-2 md:col-span-2" (submit)="guardar($event, fila)">
+      <form class="flex flex-wrap items-start gap-2 md:col-span-2" [formRoot]="formulario">
         <fin-field
           class="min-w-40 flex-1"
           [label]="i18n.t('budgets.field.limit', { currency: store.baseCurrency() })"
@@ -60,11 +60,8 @@
             data-slot="limite"
             type="number"
             inputmode="decimal"
-            min="0"
             step="any"
-            [value]="texto()"
-            (input)="escribir($event)"
-            [attr.aria-invalid]="errorDeCampo() ? true : null"
+            [formField]="formulario.limite"
           />
         </fin-field>
         <div class="flex gap-2 pt-6">

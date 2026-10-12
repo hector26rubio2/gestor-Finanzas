@@ -124,4 +124,48 @@ describe('BudgetsPanelComponent', () => {
     expect(fila(raiz, 'Mercado')?.querySelector('[role=progressbar]')).toBeNull();
     expect(fila(raiz, 'Mercado')?.querySelector('[role=status]')?.textContent).toContain('USD');
   });
+
+  it('el error del límite aparece al enviar, marca el campo y desaparece al corregirlo', async () => {
+    const setBudget = vi.fn((categoryId: string, limite: { amount: string; currency: string }) =>
+      of(presupuesto(categoryId, limite.amount, limite.currency)),
+    );
+    const { fixture, raiz } = await montar([P.cuentas.categorias.listar, P.cuentas.categorias.editar], [], {
+      setBudget,
+    });
+
+    fila(raiz, 'Ocio')?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+    const campo = raiz.querySelector<HTMLInputElement>('input[data-slot=limite]')!;
+    expect(raiz.querySelector('form [role=alert]')).toBeNull();
+    campo.value = '0';
+    campo.dispatchEvent(new Event('input'));
+    raiz.querySelector<HTMLButtonElement>('button[type=submit]')?.click();
+    fixture.detectChanges();
+
+    expect(campo.getAttribute('aria-invalid')).toBe('true');
+    campo.value = '500';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(campo.getAttribute('aria-invalid')).not.toBe('true');
+    expect(raiz.querySelector('form [role=alert]')).toBeNull();
+  });
+
+  it('al reabrir el editor no arrastra el error de la edición anterior', async () => {
+    const { fixture, raiz } = await montar([P.cuentas.categorias.listar, P.cuentas.categorias.editar], [], {
+      setBudget: vi.fn(),
+    });
+
+    fila(raiz, 'Ocio')?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+    raiz.querySelector<HTMLButtonElement>('button[type=submit]')?.click();
+    fixture.detectChanges();
+    expect(raiz.querySelector('form [role=alert]')).not.toBeNull();
+    fixture.componentInstance.cancelar();
+    fixture.detectChanges();
+    fila(raiz, 'Ocio')?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+
+    expect(raiz.querySelector('form [role=alert]')).toBeNull();
+  });
 });

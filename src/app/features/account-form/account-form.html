@@ -1,113 +1,71 @@
 <fin-overlay [title]="title()" mode="modal" (closed)="closed()"
-  ><form class="grid grid-cols-2 gap-[18px] max-[500px]:grid-cols-1" (ngSubmit)="save()">
+  ><form class="grid grid-cols-2 gap-[18px] max-[500px]:grid-cols-1" [formRoot]="formulario">
     @if (editing) {
     <fin-field [label]="i18n.t('form.account.field.type')">
       <input hlmInput name="typeLabel" [value]="typeLabel()" disabled />
     </fin-field>
-    <fin-field [label]="i18n.t('form.field.name')">
-      <input hlmInput name="name" [(ngModel)]="name" required />
+    <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
+      <input hlmInput [formField]="formulario.name" />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.currency')">
-      <input hlmInput name="currencyLabel" [value]="currency" disabled />
+      <input hlmInput name="currencyLabel" [value]="modelo().currency" disabled />
     </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.lastFour')">
-      <input
-        hlmInput
-        name="lastFour"
-        [(ngModel)]="lastFour"
-        finDigitos
-        inputmode="numeric"
-        maxlength="4"
-        pattern="[0-9]{4}"
-        autocomplete="off"
-      />
+    <fin-field [label]="i18n.t('form.account.field.lastFour')" [error]="mensaje(formulario.lastFour)">
+      <input hlmInput [formField]="formulario.lastFour" finDigitos inputmode="numeric" autocomplete="off" />
     </fin-field>
-    @if (type !== 'cash') {
+    @if (modelo().type !== 'cash') {
     <fin-field [label]="i18n.t('form.account.field.issuer')">
       <fin-select
-        name="issuerId"
-        [(ngModel)]="issuerId"
+        data-campo="issuerId"
+        [formField]="formulario.issuerId"
         [options]="issuerOptions()"
         [ariaLabel]="i18n.t('form.account.field.issuer')"
       />
     </fin-field>
-    } @if (type === 'credit') {
-    <fin-field [label]="i18n.t('form.account.field.limit')">
-      <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.cutDay')">
-      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" step="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.dueDay')">
-      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" step="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
-      <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
-    </fin-field>
+    } @if (modelo().type === 'credit') {
+    <ng-container *ngTemplateOutlet="camposDeCredito" />
     } } @else {
     <fin-field [label]="i18n.t('form.account.field.type')">
       <fin-select
-        name="type"
-        [(ngModel)]="type"
+        [formField]="formulario.type"
         [options]="accountTypes()"
         [ariaLabel]="i18n.t('form.account.field.typeAria')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.field.name')">
-      <input hlmInput name="name" [(ngModel)]="name" required />
+    <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
+      <input hlmInput [formField]="formulario.name" />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.currency')">
       <fin-select
-        name="currency"
-        [(ngModel)]="currency"
+        [formField]="formulario.currency"
         [options]="currencyOptions()"
         [ariaLabel]="i18n.t('form.field.currency')"
       />
     </fin-field>
-    @if (type !== 'credit') {
+    @if (modelo().type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.opening')">
-      <input hlmInput name="opening" [(ngModel)]="opening" type="number" />
+      <input hlmInput [formField]="formulario.opening" type="number" />
     </fin-field>
     }
-    <fin-field [label]="i18n.t('form.account.field.lastFour')">
-      <input
-        hlmInput
-        name="lastFourNew"
-        [(ngModel)]="lastFour"
-        finDigitos
-        inputmode="numeric"
-        maxlength="4"
-        pattern="[0-9]{4}"
-        autocomplete="off"
-      />
+    <fin-field [label]="i18n.t('form.account.field.lastFour')" [error]="mensaje(formulario.lastFour)">
+      <input hlmInput [formField]="formulario.lastFour" finDigitos inputmode="numeric" autocomplete="off" />
     </fin-field>
-    @if (currency === 'USD' && type !== 'credit') {
-    <fin-field [label]="i18n.t('form.account.field.exchangeRate')">
-      <input hlmInput name="exchangeRate" [(ngModel)]="exchangeRate" type="number" min="1" />
+    @if (modelo().currency === 'USD' && modelo().type !== 'credit') {
+    <fin-field [label]="i18n.t('form.account.field.exchangeRate')" [error]="mensaje(formulario.exchangeRate)">
+      <input hlmInput [formField]="formulario.exchangeRate" type="number" />
     </fin-field>
-    } @if (type !== 'cash') {
+    } @if (modelo().type !== 'cash') {
     <fin-field [label]="i18n.t('form.account.field.issuer')">
       <fin-select
-        name="issuerId"
-        [(ngModel)]="issuerId"
+        data-campo="issuerId"
+        [formField]="formulario.issuerId"
         [options]="issuerOptions()"
         [ariaLabel]="i18n.t('form.account.field.issuer')"
       />
     </fin-field>
-    } @if (type === 'credit') {
-    <fin-field [label]="i18n.t('form.account.field.limit')">
-      <input hlmInput name="limit" [(ngModel)]="limit" type="number" min="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.cutDay')">
-      <input hlmInput name="cutDay" [(ngModel)]="cutDay" type="number" min="1" max="31" step="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.dueDay')">
-      <input hlmInput name="dueDay" [(ngModel)]="dueDay" type="number" min="1" max="31" step="1" required />
-    </fin-field>
-    <fin-field [label]="i18n.t('form.account.field.monthlyRate')">
-      <input hlmInput name="monthlyRate" [(ngModel)]="monthlyRate" type="number" min="0" max="100" step="0.01" />
-    </fin-field>
-    } @if (type !== 'credit') {
+    } @if (modelo().type === 'credit') {
+    <ng-container *ngTemplateOutlet="camposDeCredito" />
+    } @if (modelo().type !== 'credit') {
     <p class="col-span-full rounded-[10px] bg-accent p-3 text-xs max-[500px]:col-auto">
       {{ i18n.t('form.account.hint.opening') }}
     </p>
@@ -117,17 +75,15 @@
       <span>{{ i18n.t('form.account.field.dualCurrency') }}</span>
       <small class="text-muted-foreground">{{ i18n.t('form.account.hint.dualCurrency') }}</small>
     </label>
-    <fin-field [label]="i18n.t('form.account.field.monthlyFee')">
-      <input hlmInput name="monthlyFee" [(ngModel)]="monthlyFee" type="number" min="0" step="1000" />
+    <fin-field [label]="i18n.t('form.account.field.monthlyFee')" [error]="mensaje(formulario.monthlyFee)">
+      <input hlmInput [formField]="formulario.monthlyFee" type="number" step="1000" />
     </fin-field>
     <fin-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
       <div class="flex flex-wrap items-center justify-between gap-2">
         @if (bimoneda()) {
         <fin-select
           class="w-56"
-          name="monedaDePrioridad"
-          [ngModel]="monedaDePrioridad()"
-          (ngModelChange)="monedaDePrioridad.set($event)"
+          [formField]="formulario.monedaDePrioridad"
           [options]="monedasDePrioridad()"
           [ariaLabel]="i18n.t('form.account.priority.currency')"
         />
@@ -205,8 +161,8 @@
             type="number"
             min="0"
             step="10000"
-            [ngModel]="abonoDePrueba()"
-            (ngModelChange)="abonoDePrueba.set(+$event || 0)"
+            [value]="abonoDePrueba()"
+            (input)="escribirAbono($event)"
           />
         </label>
         }
@@ -252,3 +208,17 @@
     </footer>
   </form></fin-overlay
 >
+<ng-template #camposDeCredito>
+  <fin-field [label]="i18n.t('form.account.field.limit')" [error]="mensaje(formulario.limit)">
+    <input hlmInput [formField]="formulario.limit" type="number" />
+  </fin-field>
+  <fin-field [label]="i18n.t('form.account.field.cutDay')" [error]="mensaje(formulario.cutDay)">
+    <input hlmInput [formField]="formulario.cutDay" type="number" step="1" />
+  </fin-field>
+  <fin-field [label]="i18n.t('form.account.field.dueDay')" [error]="mensaje(formulario.dueDay)">
+    <input hlmInput [formField]="formulario.dueDay" type="number" step="1" />
+  </fin-field>
+  <fin-field [label]="i18n.t('form.account.field.monthlyRate')" [error]="mensaje(formulario.monthlyRate)">
+    <input hlmInput [formField]="formulario.monthlyRate" type="number" step="0.01" />
+  </fin-field>
+</ng-template>
