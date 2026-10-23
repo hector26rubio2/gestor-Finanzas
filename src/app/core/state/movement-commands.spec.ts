@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { ApiMovement, ApiOperation } from '@core/api/ledger.api';
 import { MovementCommands } from '@core/state';
 import { Movement } from '@core/state/view-model';
+import { ModeloDeDatos } from '@testing/datos-de-prueba';
 import { CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import { describe, expect, it } from 'vitest';
-import { datosDe } from '../../testing/datos-de-prueba';
-import { pruebaRender } from '../../testing/prueba-render';
-import { TransportFalso } from '../../testing/transport-falso';
+import { datosDe } from '@testing/datos-de-prueba';
+import { pruebaRender } from '@testing/prueba-render';
+import { TransportFalso } from '@testing/transport-falso';
 
 @Component({ selector: 'prueba-comandos-movimiento', template: '' })
 class ComponenteVacio {
@@ -430,32 +431,90 @@ describe('MovementCommands.save — validaciones de negocio', () => {
 });
 
 describe('MovementCommands.save — invalidación del listado remoto', () => {
-  it('tras cada comando exitoso, página/total/cursor y totales vuelven a cero para forzar recarga', async () => {
-    const transport = new TransportFalso().responder('PUT /api/v1/movements/mov-1/classification', {
-      body: apiMovement({ id: 'mov-1' }),
-    });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
-      data: datosDe(),
-      transport,
-    });
+  interface OpcionesValidacion {
+    transport: TransportFalso;
+    data?: ModeloDeDatos;
+    comando: (comandos: MovementCommands) => Promise<void>;
+  }
+
+  async function esperarValidacionInvalidacion({
+    transport,
+    data = datosDe(),
+    comando,
+  }: OpcionesValidacion): Promise<void> {
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data, transport });
     cambios();
     envenenarListado(store);
-
-    await component.comandos.save({
-      id: 'mov-1',
-      kind: 'expense',
-      date: '2026-09-25',
-      description: 'Edición',
-      accountId: 'cuenta-1',
-      amount: 45900,
-      category: 'Mercado',
-    });
-
+    await comando(component.comandos);
     expect(store.movimientosListos()).toBe(false);
     expect(store.remoteMovementPage()).toBe(1);
     expect(store.remoteMovementTotal()).toBe(0);
     expect(store.remoteMovementCursor()).toBeNull();
     expect(store.remoteMovementTotals()).toBeNull();
+  }
+
+  it('tras un alta simple exitosa, página/total/cursor y totales vuelven a cero para forzar recarga', async () => {
+    await esperarValidacionInvalidacion({
+      transport: new TransportFalso().responder('POST /api/v1/movements', {
+        body: apiMovement({ id: 'mov-simple', links: { account: 'cuenta-2' } }),
+      }),
+      comando: (comandos) =>
+        comandos.save({
+          kind: 'expense',
+          date: '2026-10-01',
+          description: 'Almuerzo',
+          accountId: 'cuenta-2',
+          amount: 45900,
+          category: 'Mercado',
+        }),
+    });
+  });
+
+  it('tras una compra con tarjeta exitosa, página/total/cursor y totales vuelven a cero para forzar recarga', async () => {
+    await esperarValidacionInvalidacion({
+      transport: new TransportFalso().responder('POST /api/v1/movements', {
+        body: apiMovement({ id: 'mov-tarjeta', links: { card: 'tarjeta-1' } }),
+      }),
+      data: datosDe({
+        accounts: [
+          { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 5000000 },
+        ],
+        people: [],
+      }),
+      comando: (comandos) =>
+        comandos.save({
+          kind: 'expense',
+          date: '2026-10-01',
+          description: 'Nevera',
+          accountId: 'tarjeta-1',
+          amount: 45900,
+          category: 'Mercado',
+        }),
+    });
+  });
+
+  it('tras un préstamo exitoso, página/total/cursor y totales vuelven a cero para forzar recarga', async () => {
+    await esperarValidacionInvalidacion({
+      transport: new TransportFalso().responder('POST /api/v1/loans', {
+        body: {
+          obligation: { id: 'obligacion-1', counterparty: { id: 'persona-1', name: 'Camilo' }, dueOn: null },
+          terms: { product: 0, monthlyRate: null, termMonths: null, cardMode: null },
+          movements: [apiMovement({ id: 'pata-deuda', flow: CashFlow.outflow, amount: montoDe('100000') })],
+        },
+      }),
+      data: datosDe({ movements: [], people: [{ id: 'persona-1', name: 'Camilo', owed: 0, owing: 0 }] }),
+      comando: (comandos) =>
+        comandos.save({
+          kind: 'expense',
+          date: '2026-10-01',
+          description: 'Préstamo',
+          accountId: 'cuenta-1',
+          amount: 100000,
+          category: 'Préstamos',
+          counterpartyId: 'persona-1',
+          operationType: 'credit',
+        }),
+    });
   });
 
   it('un comando que falla no invalida el listado remoto', async () => {
@@ -525,8 +584,12 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
     const transport = new TransportFalso().responder('POST /api/v1/operations/transfers', {
       error: { status: 500, code: 'internal.error' },
     });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      data: datosDe({ movements: [] }),
+      transport,
+    });
     cambios();
+    envenenarListado(store);
     const antes = store.data().movements;
 
     await expect(
@@ -542,6 +605,12 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
     ).rejects.toThrow();
 
     expect(store.data().movements).toEqual(antes);
+    // el listado remoto queda intacto: la invalidación solo aplica si el comando salió bien
+    expect(store.movimientosListos()).toBe(true);
+    expect(store.remoteMovementPage()).toBe(3);
+    expect(store.remoteMovementTotal()).toBe(42);
+    expect(store.remoteMovementCursor()).toBe('cursor-7');
+    expect(store.remoteMovementTotals()).toEqual({ income: 500, expense: 300 });
   });
 
   it('form no se cierra tras fallar el envío: queda como estaba antes del intento', async () => {
