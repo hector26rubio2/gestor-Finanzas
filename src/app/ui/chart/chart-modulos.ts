@@ -1,4 +1,3 @@
-import * as echarts from 'echarts/core';
 /**
  * Registro bajo demanda de módulos de echarts: cada entrada se resuelve con un
  * `import()` dinámico (los módulos de `echarts/lib` se auto-registran al
