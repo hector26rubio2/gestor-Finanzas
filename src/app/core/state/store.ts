@@ -124,18 +124,23 @@ export class AppStore {
   readonly calendarReturnDate = signal<string | null>(null);
   readonly selectedCalendarDate = signal(todayIso());
   readonly cardPaymentMode = signal(false);
-  readonly movements = computed(() =>
-    this.data()
-      .movements.filter(
-        (m) =>
-          (this.period() === 'all' || m.date.startsWith(this.period())) &&
-          (this.accountFilter() === 'all' || m.accountId === this.accountFilter()) &&
-          `${m.description} ${m.category} ${m.person ?? ''}`
-            .toLocaleLowerCase()
-            .includes(this.query().toLocaleLowerCase()),
-      )
-      .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id)),
-  );
+  readonly movements = computed(() => {
+    // Simplificación (ticket 21): el literal de búsqueda se calcula una vez por
+    // recálculo (antes se recalculaba toLocaleLowerCase() por movimiento) y los
+    // filtros activos se leen una sola vez. Sigue siendo un computed() puro.
+    const periodo = this.period();
+    const filtroDeCuenta = this.accountFilter();
+    const consulta = this.query().toLocaleLowerCase();
+    const sinConsulta = consulta === '';
+    const filtrados = this.data().movements.filter(
+      (m) =>
+        (periodo === 'all' || m.date.startsWith(periodo)) &&
+        (filtroDeCuenta === 'all' || m.accountId === filtroDeCuenta) &&
+        (sinConsulta ||
+          `${m.description} ${m.category} ${m.person ?? ''}`.toLocaleLowerCase().includes(consulta)),
+    );
+    return filtrados.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
+  });
   readonly income = computed(() => totalDeIngresos(this.movements()));
   readonly expense = computed(() => totalDeGastos(this.movements()));
   readonly avisosRecientes = signal<readonly ApiNotification[]>([]);
@@ -166,14 +171,75 @@ export class AppStore {
   hoy(): string {
     return todayIso();
   }
+  /**
+   * Simplificación (ticket 21): saldo por cuenta en UNA sola pasada sobre los
+   * movimientos y una sobre las cuentas (O(N + K)); antes cada `balance()`
+   * recorre N movimientos (K×N por recálculo) alimentando deuda y disponible.
+   * Sigue siendo un computed() puro: sin cachés ni invalidación manual.
+   */
+  private readonly saldosPorCuenta = computed(() => {
+    const datos = this.data();
+    const sumas = new Map<string, number>();
+    for (const movimiento of datos.movements) {
+      if (movimiento.status !== 'confirmed') continue;
+      sumas.set(movimiento.accountId, (sumas.get(movimiento.accountId) ?? 0) + movimiento.amount);
+    }
+    const saldos = new Map<string, number>();
+    for (const cuenta of datos.accounts) {
+      saldos.set(cuenta.id, cuenta.openingBalance + (sumas.get(cuenta.id) ?? 0));
+    }
+    return saldos;
+  });
   balance(account: Account) {
-    return this.saldosDelServidor()?.get(account.id) ?? accountBalance(account, this.data().movements);
+    // Paridad con el modo anterior: saldo del servidor si existe; si la cuenta no
+    // está en data().accounts (cuenta hipotética de un formulario), el cálculo clásico.
+    return (
+      this.saldosDelServidor()?.get(account.id) ??
+      this.saldosPorCuenta().get(account.id) ??
+      accountBalance(account, this.data().movements)
+    );
   }
   readonly movimientosCargados = signal<ReadonlyMap<string, Movement>>(new Map());
-  private readonly movimientosConocidos = computed(() => {
-    const todos = new Map(this.movimientosCargados());
-    for (const movimiento of this.data().movements) todos.set(movimiento.id, movimiento);
-    return [...todos.values()];
+  /**
+   * Simplificación (ticket 21): unión de lo recordado con la página sin clonar el
+   * Map de recordados: la página manda sobre un id recordado y el orden sigue
+   * siendo el de recordados + los nuevos de la página. Computed puro.
+   *
+   * Invariante de fusión: la página manda sobre un id recordado, los recordados
+   * van primero y un id repetido dentro de la página colapsa a su primera
+   * posición con el último valor. Público sólo lectura: los consumidores no
+   * deben mutar el array devuelto (es compartido entre lecturas).
+   */
+  readonly movimientosConocidos = computed(() => {
+    const recordados = this.movimientosCargados();
+    const deLaPagina = this.data().movements;
+    if (recordados.size === 0) return [...deLaPagina];
+    const deLaPaginaPorId = new Map(deLaPagina.map((movimiento) => [movimiento.id, movimiento]));
+    const conocidos: Movement[] = [];
+    for (const [id, recordado] of recordados) {
+      conocidos.push(deLaPaginaPorId.get(id) ?? recordado);
+    }
+    // El Map de la página colapsa ids repetidos (primera posición, último valor),
+    // igual que hacía el Map del algoritmo anterior.
+    for (const [id, movimiento] of deLaPaginaPorId) {
+      if (!recordados.has(id)) conocidos.push(movimiento);
+    }
+    return conocidos;
+  });
+  /**
+   * Simplificación (ticket 21): índice día → movimientos derivado con un computed()
+   * puro (sin cachés imperativas). Cada clic de calendario pasa de filtrar todo el
+   * histórico (O(n)) a una búsqueda O(1). El array por día es compartido: los
+   * consumidores (calendario, inspector) sólo lo leen (length, slice, @for).
+   */
+  private readonly porDia = computed(() => {
+    const indice = new Map<string, Movement[]>();
+    for (const movimiento of this.movimientosConocidos()) {
+      const lista = indice.get(movimiento.date);
+      if (lista) lista.push(movimiento);
+      else indice.set(movimiento.date, [movimiento]);
+    }
+    return indice;
   });
   recordarMovimientos(movimientos: readonly Movement[]): void {
     if (!movimientos.length) return;
@@ -189,7 +255,7 @@ export class AppStore {
   }
   dayMoves(date: string | number) {
     const iso = typeof date === 'number' ? `${todayIso().slice(0, 7)}-${String(date).padStart(2, '0')}` : date;
-    return this.movimientosConocidos().filter((movement) => movement.date === iso);
+    return this.porDia().get(iso) ?? [];
   }
   open(kind = '', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
     this.form.set({ kind, accountId, targetId, movement, notificationId });
