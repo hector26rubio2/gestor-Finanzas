@@ -1,43 +1,16 @@
 import { Component, ElementRef, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import * as echarts from 'echarts/core';
-import { BarChart, GaugeChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
-import {
-  DataZoomComponent,
-  DatasetComponent,
-  TransformComponent,
-  GridComponent,
-  LegendComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  VisualMapComponent,
-} from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { I18nService } from '@core/i18n';
 import { ChartThemeService } from './chart-theme';
 import { cargarModulos, modulosFaltantes } from './chart-modulos';
 
-echarts.use([
-  BarChart,
-  GaugeChart,
-  LineChart,
-  PieChart,
-  ScatterChart,
-  DataZoomComponent,
-  DatasetComponent,
-  TransformComponent,
-  GridComponent,
-  LegendComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  VisualMapComponent,
-  CanvasRenderer,
-]);
+/**
+ * Único registro eager: el renderizador de lienzo es necesario para cualquier
+ * gráfica. Los tipos/componentes viven en `chart-modulos.ts` y se cargan
+ * bajo demanda según lo que pida cada opción.
+ */
+echarts.use([CanvasRenderer]);
 
 export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 
