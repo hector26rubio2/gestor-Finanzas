@@ -40,7 +40,6 @@ export default {
   'session.error.noPermissions': "Vous n'avez pas la permission de vous connecter à cette application.",
   'login.authError': "La connexion avec Google n'a pas pu aboutir. Réessayez.",
   'login.localAccessNote': 'Accès local · Informations protégées sur cet appareil',
-
   'kpi.sparkline.ariaLabel': '{label} : tendance de la période',
   'kpi.delta.more': '{value} de plus que la période précédente',
   'kpi.delta.less': '{value} de moins que la période précédente',
