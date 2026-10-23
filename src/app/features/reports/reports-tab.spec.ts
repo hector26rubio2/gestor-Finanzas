@@ -1,6 +1,5 @@
 import { provideRouter } from '@angular/router';
 import type { Provider as CoreProvider } from '@angular/core';
-import { addMonthsToIso } from '@core/utils';
 import { P } from '@core/session';
 import { CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import type { ApiMovement } from '@core/api';
@@ -56,7 +55,8 @@ function movimientoRemoto(fecha: string, monto = '45900.00'): ApiMovement {
  *
  * Los cálculos puros ya viven (y se cubren) en shared/proyecciones; este spec
  * describe el comportamiento de la pestaña:
- *  - qué pide al servidor al iniciar y al cambiar el rango de meses;
+ *  - qué pide al servidor al iniciar y al cambiar el rango de meses (resumen y
+ *    explorador);
  *  - render mínimo con datos y estado vacío;
  *  - la granularidad del explorador es un cálculo local (no emite peticiones).
  */
@@ -82,10 +82,7 @@ describe('reports-tab: peticiones de datos al servidor', () => {
         path: '/api/v1/movements/search',
         body: {
           filter: {
-            range: {
-              start: `${addMonthsToIso(`${store.hoy().slice(0, 7)}-01`, -5).slice(0, 7)}-01`,
-              end: store.hoy(),
-            },
+            range: { start: inicioDeRangoDe(hoyDe(store), 6), end: hoyDe(store) },
           },
           page: { page: 1, size: 100 },
           sortBy: 0,
@@ -109,15 +106,13 @@ describe('reports-tab: peticiones de datos al servidor', () => {
     cambios();
     await estable();
 
-    const hoy = store.hoy();
-    const inicioEsperado = (meses: number) =>
-      `${addMonthsToIso(`${hoy.slice(0, 7)}-01`, -meses + 1).slice(0, 7)}-01`;
+    const hoy = hoyDe(store);
     const rangoDe = (peticion: { body?: unknown }) => (peticion.body as CuerpoDeBusqueda)?.filter?.range;
     expect(transport.peticiones.length).toBe(3);
     expect(transport.peticiones.map(rangoDe)).toEqual([
-      { start: inicioEsperado(6), end: hoy },
-      { start: inicioEsperado(12), end: hoy },
-      { start: inicioEsperado(3), end: hoy },
+      { start: inicioDeRangoDe(hoy, 6), end: hoy },
+      { start: inicioDeRangoDe(hoy, 12), end: hoy },
+      { start: inicioDeRangoDe(hoy, 3), end: hoy },
     ]);
   });
 
@@ -137,6 +132,49 @@ describe('reports-tab: peticiones de datos al servidor', () => {
     const [primeraPeticion, segundaPeticion] = transport.peticiones;
     expect((segundaPeticion.body as CuerpoDeBusqueda)?.after).toBe('cursor-1');
     expect((primeraPeticion.body as CuerpoDeBusqueda)?.after).toBeUndefined();
+  });
+});
+
+describe('explorador de reportes: peticiones al cambiar el rango', () => {
+  it('cambiar el preset reemite la búsqueda con el rango nuevo del preset (year)', async () => {
+    const transport = new TransportFalso()
+      .responder(RUTA_BUSQUEDA, () => ({ body: { ...PAGINA_VACIA } }))
+      .responder('GET /api/v1/reports/saved', { body: [] });
+    const { component, store, transport: t, cambios, estable } = pruebaRender(ExploradorDeReportesComponent, {
+      session: sesionDe(),
+      data: datosDe(),
+      transport,
+      providers: PROVEEDORES,
+    });
+    cambios();
+    await estable();
+    // Al montar, además del periodo inicial, el explorador carga la vista guardada del servidor.
+    expect(t.peticiones.map((p) => `${p.method} ${p.path}`)).toEqual([
+      'POST /api/v1/movements/search',
+      'GET /api/v1/reports/saved',
+    ]);
+
+    const anio = hoyDe(store).slice(0, 4);
+    component.preset.set('year');
+    cambios();
+    await estable();
+
+    expect(t.peticiones.length).toBe(3);
+    const nueva = t.peticiones.filter((p) => p.path === '/api/v1/movements/search')[1];
+    expect(nueva.method).toBe('POST');
+    expect(nueva.path).toBe('/api/v1/movements/search');
+    expect(nueva.body).toEqual({
+      filter: {
+        range: {
+          // Año calendario del ancla (hoy del store): 1 de enero → 31 de diciembre.
+          start: `${anio}-01-01`,
+          end: `${anio}-12-31`,
+        },
+      },
+      page: { page: 1, size: 100 },
+      sortBy: 0,
+      direction: 1,
+    });
   });
 });
 
@@ -225,4 +263,23 @@ describe('explorador de reportes: granularidad y filtros locales', () => {
 
 function diasAtras(iso: string, dias: number): string {
   return new Date(Date.parse(`${iso}T12:00:00Z`) - dias * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** Hoy según el store, fijado en un punto del spec (no puede cambiar de día a mitad del test). */
+function hoyDe(store: { hoy(): string }): string {
+  return store.hoy();
+}
+
+/**
+ * Helper spec-local (independiente de @core/utils): primer día del mes que está
+ * N-1 meses antes del mes de `hoy`, para N meses de ventana. Cálculo puro en
+ * UTC sobre el día 1, así un bug en la reconstrucción de rangos de producción
+ * ya no se autovalida con la misma función que se intenta testear.
+ */
+function inicioDeRangoDe(hoy: string, meses: number): string {
+  const [anio, mes] = hoy.slice(0, 7).split('-').map(Number);
+  // mes es 1..12: el mes destino en índice UTC 0-based es (mes - 1) - (meses - 1);
+  // el desbordamiento de año lo resuelve Date.UTC.
+  const destino = new Date(Date.UTC(anio, mes - meses, 1));
+  return `${destino.getUTCFullYear()}-${String(destino.getUTCMonth() + 1).padStart(2, '0')}-01`;
 }
