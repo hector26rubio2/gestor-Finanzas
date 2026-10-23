@@ -8,7 +8,7 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
-import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
+import { Rango, crearMovimientosDelPeriodo, crearResumenDelAnio } from '@shared/historia';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { cardDues, creditCards } from '@features/accounts/card-insights';
 
@@ -89,14 +89,23 @@ export class CalendarTabComponent implements OnInit {
       };
     });
   });
-  private readonly rangoVisible = computed<Rango>(() => {
-    const year = this.calendarYear();
-    if (this.calendarView() === 'year') return { start: `${year}-01-01`, end: `${year}-12-31` };
+  /**
+   * Ticket 25: la vista anual ya no deriva movimientos del año entero. Aquí el rango
+   * queda nulo (la derivación en ventana del delRango se detiene) y el resumen anual
+   * acota el trabajo: conteos por metadatos y agenda O(proximos).
+   */
+  private readonly rangoAnual = computed<Rango>(() => ({
+    start: `${this.calendarYear()}-01-01`,
+    end: `${this.calendarYear()}-12-31`,
+  }));
+  private readonly resumenAnual = crearResumenDelAnio(computed(() => (this.calendarView() === 'year' ? this.rangoAnual() : null)));
+  private readonly rangoVisible = computed<Rango | null>(() => {
+    if (this.calendarView() === 'year') return null;
     const days = this.calendarDays();
     return { start: days[0].iso, end: days[days.length - 1].iso };
   });
   private readonly delRango = crearMovimientosDelPeriodo(this.rangoVisible);
-  readonly cargandoRango = this.delRango.cargando;
+  readonly cargandoRango = computed(() => this.delRango.cargando() || this.resumenAnual.cargando());
   readonly visibleCalendarDays = computed(() => {
     const view = this.calendarView();
     const days = this.calendarDays();
@@ -163,8 +172,10 @@ export class CalendarTabComponent implements OnInit {
   );
   readonly proximosMovimientos = computed(() => {
     const hoy = this.store.hoy();
-    return this.delRango
-      .movimientos()
+    // Ticket 25: en la vista anual la agenda sale del resumen acotado (≤ 7 derivados);
+    // en el resto de vistas, de la ventana del periodo visible (sin cambio de conducta).
+    const fuente = this.calendarView() === 'year' ? this.resumenAnual.proximos() : this.delRango.movimientos();
+    return fuente
       .filter((movimiento) => movimiento.date > hoy)
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 7);
@@ -241,6 +252,9 @@ export class CalendarTabComponent implements OnInit {
     void this.loadCalendarProjection();
   }
   monthMovementCount(month: number): number {
+    // Ticket 25: en la vista anual los conteos salen del resumen acotado (O(conteos),
+    // sin derivar movimientos); en el resto de vistas, de la ventana del periodo.
+    if (this.calendarView() === 'year') return this.resumenAnual.conteosPorMes()[month] ?? 0;
     const prefix = `${this.calendarYear()}-${String(month + 1).padStart(2, '0')}`;
     return this.delRango.movimientos().filter((movement) => movement.date.startsWith(prefix)).length;
   }

@@ -70,7 +70,8 @@ export function crearMovimientosDelPeriodo(rango: Signal<Rango | null>): Movimie
   };
 }
 
-async function traerTodos(api: FinanceApiClient, rango: Rango): Promise<{ movs: ApiMovement[]; completos: boolean }> {
+/** Export para el resumen anual del calendario: mismo contrato de paginación. */
+export async function traerTodos(api: FinanceApiClient, rango: Rango): Promise<{ movs: ApiMovement[]; completos: boolean }> {
   const movs: ApiMovement[] = [];
   let cursor: string | undefined;
   for (let pagina = 1; pagina <= PAGINAS_MAXIMAS; pagina++) {
