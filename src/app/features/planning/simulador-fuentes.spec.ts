@@ -99,6 +99,25 @@ describe('simulador: fuentes de deudas y flujos', () => {
     expect(component.fuentes.recurrentesApi()).toEqual([]);
   });
 
+  it('permiso mixto: obligaciones cargan aunque los recurrentes están vedados', async () => {
+    const transport = new TransportFalso().responder('GET /api/v1/obligations', {
+      body: [obligacion('o2', '1500000') as never],
+    });
+    const { component, estable } = montar({
+      transport,
+      // solo obligaciones: el permiso de recurrentes queda fuera
+      session: sesionDe().conCapacidad(P.personas.obligaciones.listar),
+      data: datosDe(),
+    });
+
+    await estable();
+    expect(component.fuentes.obligaciones().map((o) => o.id)).toEqual(['o2']);
+    expect(transport.peticiones.map((p) => p.path)).toContain('/api/v1/obligations');
+    // sin permiso no se pide y la fuente queda vacía
+    expect(transport.peticiones.map((p) => p.path)).not.toContain('/api/v1/recurrences');
+    expect(component.fuentes.recurrentesApi()).toEqual([]);
+  });
+
   it('un fallo del API deja la fuente vacía en vez de romper el simulador', async () => {
     const transport = new TransportFalso().responder(/^GET \/api\/v1\//, {
       error: { status: 500, code: 'server.error' },

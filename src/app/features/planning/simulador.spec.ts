@@ -226,6 +226,25 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     expect(sim.eventos()).toHaveLength(1);
   });
 
+  it('un evento de abono llega a la proyección: el apoyo baja el saldo y el interés del escenario', async () => {
+    const { sim, idTarjeta } = await simuladorListo();
+    // eventos aislados: sin plan de abonos y sin otros ajustes
+    expect(sim.abonoMensual()).toBe(0);
+    const serieAntes = sim.escenario().deudas.find((d) => d.id === idTarjeta)!;
+    const interesAntes = sim.escenario().interesTotal;
+
+    sim.agregarEvento('abono');
+    sim.editarEvento(sim.eventos()[0].id, { mes: 3, monto: 500_000 });
+    expect(sim.eventos()[0]).toMatchObject({ tipo: 'abono', mes: 3, monto: 500_000 });
+
+    const serieDespues = sim.escenario().deudas.find((d) => d.id === idTarjeta)!;
+    // el abono extra del mes 3 se refleja en el saldo del mes 6: baja más de lo abonado
+    // (el interés ahorrado se suma a la caída) y el interés total del escenario baja
+    expect(serieDespues.saldo[6]).toBeLessThan(serieAntes.saldo[6] - 400_000);
+    expect(serieDespues.saldo[6]).toBeGreaterThan(serieAntes.saldo[6] - 700_000);
+    expect(sim.escenario().interesTotal).toBeLessThan(interesAntes);
+  });
+
   it('el escenario con plan compara contra el base: menos interés y cuota para liquidar', async () => {
     const { sim, idTarjeta } = await simuladorListo();
     const abono = saldoTrasCuotas(SALDO_TARJETA, tasaTarjeta, CUOTAS_SUPUESTAS, 1);
@@ -293,6 +312,13 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     expect(sim.cambiosDeFlujo()[0]).toMatchObject({ monto: 300_000, desde: 3 });
     sim.quitarCambio(ingreso.id);
     expect(sim.cambiosDeFlujo()).toHaveLength(1);
+  });
+
+  it('restablecer también vuelve el orden de abono a la tasa, como parte del armado del plan', async () => {
+    const { sim } = await simuladorListo();
+    sim.orden.set('saldo');
+    sim.restablecer();
+    expect(sim.orden()).toBe('tasa');
   });
 
   it('al salir y volver a la pantalla el estado se recupera del guardado', async () => {
