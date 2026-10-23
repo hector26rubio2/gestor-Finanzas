@@ -7,7 +7,7 @@ import { CAPABILITIES, AppStore } from '@core/state';
 import { parseMoney } from '@core/utils';
 import { TABLE_ALL_FIELDS, TableFilter } from '@ui/data-table';
 import { I18nService } from '@core/i18n';
-import type { Account } from '@core/state';
+import type { Account, Movement } from '@core/state';
 
 const ACCOUNT_TYPE_LABEL_KEYS: Record<Account['type'], string> = {
   savings: 'movements.filters.accountType.savings',
@@ -207,9 +207,10 @@ export class MovementsBookService {
       );
       if (request !== this.movementRequest) return;
       const catalogo = this.store.kindCatalog();
+      const pagina = result.items.map((item) => toMovement(this.i18n, catalogo, item));
       this.store.data.update((data) => ({
         ...data,
-        movements: result.items.map((item) => toMovement(this.i18n, catalogo, item)),
+        movements: this.fusionarSiRefetchInvalidado(data.movements, pagina),
       }));
       if (result.nextCursor) this.cursores.set(page + 1, result.nextCursor);
       this.store.remoteMovementCursor.set(result.nextCursor ?? null);
@@ -229,6 +230,32 @@ export class MovementsBookService {
     } finally {
       if (request === this.movementRequest) this.movementsLoading.set(false);
     }
+  }
+  /**
+   * Ticket 27: un refetch NUNCA debe borrar del libro un movimiento que acababa de
+   * verse en la sesión (alta con fecha vieja: no entra en la página 1 remota y el
+   * reemplazo directo lo hacía desaparecer, aunque los KPIs del servidor sí lo
+   * contaban). Si el refetch es por listado invalidado (tras un comando, el guard de
+   * navegación) y la vista no filtra en servidor (sin pinned/search/cuenta), conserva
+   * id-único los movimientos que ya estaban junto a la página nueva. La página remota
+   * manda sobre cualquier id repetido.
+   *
+   * La navegación normal (paginación con cursor, cambio de filtros/periodo/tamaño)
+   * pide con `movimientosListos` activo: ahí la página remota manda sola.
+   */
+  private fusionarSiRefetchInvalidado(actuales: readonly Movement[], pagina: readonly Movement[]): Movement[] {
+    if (this.listadoFiltradoEnServidor()) return [...pagina];
+    const enPagina = new Set(pagina.map((movimiento) => movimiento.id));
+    const conservados = actuales.filter((movimiento) => !enPagina.has(movimiento.id));
+    return conservados.length ? [...pagina, ...conservados] : [...pagina];
+  }
+  private listadoFiltradoEnServidor(): boolean {
+    return (
+      this.store.movimientosListos() ||
+      this.pinned().length > 0 ||
+      !!this.store.query() ||
+      this.store.accountFilter() !== 'all'
+    );
   }
   async asegurarPrimeraPagina(): Promise<void> {
     if (!this.store.movimientosListos()) await this.loadMovementPage(1);
