@@ -43,6 +43,9 @@ export function saldoTrasCuotas(capital: number, tasaMensual: number, cuotas: nu
   return redondear(Math.max(0, capital * factor - (cuota * (factor - 1)) / i));
 }
 
+const tasaMensualDeTarjeta = (tarjeta: Account): number =>
+  tarjeta.annualRate ? mensualDesdeAnual(tarjeta.annualRate) : TASA_MENSUAL_SUPUESTA_TARJETA;
+
 const cuotasRestantesDeTarjeta = (tarjeta: Account, movimientos: readonly Movement[]): number => {
   const restantes = movimientos
     .filter((m) => m.accountId === tarjeta.id && m.installmentTotal && m.installmentTotal > 1)
@@ -50,7 +53,16 @@ const cuotasRestantesDeTarjeta = (tarjeta: Account, movimientos: readonly Moveme
   return restantes.length ? Math.max(1, ...restantes) : CUOTAS_SUPUESTAS;
 };
 
-/** Puerto de deuda: fuentes de datos intercambiables que producen `DeudaActual`. */
+// Puerto de deuda del módulo `proyecciones` — fuentes de datos intercambiables que
+// producen `DeudaActual` (adaptadores por fuente abajo).
+//
+// Estrategia de exportación en dos capítulos, intencional:
+//  1. `escenarios.ts` reexporta los símbolos legacy (constantes TASA_*/CUOTAS_SUPUESTAS,
+//     `saldoTrasCuotas`, `DeudaActual`, `TarjetasPorConcepto`) para no romper consumidores
+//     que importan de `./escenarios`.
+//  2. `index.ts` reexporta el puerto desde este archivo con nombres explícitos (`export *`
+//     en el barrel reexporta esos nombres por dos rutas y TS2308 lo rechaza). Paso manual:
+//     al agregar un símbolo NUEVO aquí, añádelo a la lista explícita de `index.ts`.
 
 export interface PuertaDeObligaciones {
   readonly obligaciones: readonly ApiObligation[];
@@ -90,7 +102,7 @@ export interface PuertaDeTarjeta {
 
 export function DeudaDeTarjetas(fuente: PuertaDeTarjeta): DeudaActual[] {
   const { tarjeta, saldoTotal, movimientos, etiqueta } = fuente;
-  const tasaTarjeta = tarjeta.annualRate ? mensualDesdeAnual(tarjeta.annualRate) : TASA_MENSUAL_SUPUESTA_TARJETA;
+  const tasaTarjeta = tasaMensualDeTarjeta(tarjeta);
   const prioridad =
     tarjeta.currency && tarjeta.currency !== 'COP'
       ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
@@ -154,7 +166,7 @@ export function DeudaDeTarjetaSimple(fuente: PuertaDeTarjetaSimple): DeudaActual
     nombre: tarjeta.name,
     tipo: 'tarjeta',
     saldo: redondear(saldo),
-    tasaMensual: tarjeta.annualRate ? mensualDesdeAnual(tarjeta.annualRate) : TASA_MENSUAL_SUPUESTA_TARJETA,
+    tasaMensual: tasaMensualDeTarjeta(tarjeta),
     tasaConocida: Boolean(tarjeta.annualRate),
     cuotas: cuotasRestantesDeTarjeta(tarjeta, movimientos),
   };

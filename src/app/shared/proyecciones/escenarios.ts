@@ -218,6 +218,8 @@ export function deudasDeTarjeta(
   return DeudaDeTarjetas({ tarjeta, saldoTotal, movimientos, etiqueta });
 }
 
+// Los 7 parámetros agrupados son intencional: es la fachada de compatibilidad que mantiene
+// la firma que consumen el simulador y specs; no convertirlo en options-object todavía.
 export function deudasActuales(
   cuentas: readonly Account[],
   personas: readonly Person[],
