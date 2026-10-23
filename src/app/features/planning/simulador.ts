@@ -317,6 +317,9 @@ export class SimuladorDePlanificacion {
     this.hipoteticas.set([]);
     this.eventos.set([]);
     this.abonoMensual.set(0);
+    // el orden de abono también es parte del armado del plan: sin esto,
+    // restaurar(null) lo dejaba espurio mientras restaurar(json) lo normalizaba
+    this.orden.set('tasa');
     this.recorte.set(0);
     this.ajustesDeLinea.set({});
     this.recurrentesQuitados.set(new Set());
