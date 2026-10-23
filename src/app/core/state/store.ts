@@ -204,6 +204,11 @@ export class AppStore {
    * Simplificación (ticket 21): unión de lo recordado con la página sin clonar el
    * Map de recordados: la página manda sobre un id recordado y el orden sigue
    * siendo el de recordados + los nuevos de la página. Computed puro.
+   *
+   * Invariante de fusión: la página manda sobre un id recordado, los recordados
+   * van primero y un id repetido dentro de la página colapsa a su primera
+   * posición con el último valor. Público sólo lectura: los consumidores no
+   * deben mutar el array devuelto (es compartido entre lecturas).
    */
   readonly movimientosConocidos = computed(() => {
     const recordados = this.movimientosCargados();

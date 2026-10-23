@@ -140,9 +140,7 @@ describe('AppStore: paridad de recalculos (ticket 21)', () => {
     const store = sembrar(movimientos);
     store.recordarMovimientos([gasto('rec-1', '2026-08-03', { accountId: 'ca' }), { ...movimientos[0], description: 'vieja' }]);
 
-    const conocidos: Movement[] = (store as unknown as { movimientosConocidos?: { (): Movement[] } })
-      .movimientosConocidos?.() ?? [];
-    if (!conocidos.length) return; // ref usable sólo tras activar el dato derivado (privado hoy)
+    const conocidos: Movement[] = store.movimientosConocidos();
     const mapa = new Map(store.movimientosCargados());
     for (const m of store.data().movements) mapa.set(m.id, m);
     expect(conocidos).toEqual([...mapa.values()]);
@@ -192,7 +190,8 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
 
   /** Reproducción fiel del algoritmo previo (antes del ticket 21): Map de conocidos
    *  reconstruido desde cero por recálculo, filtrado O(n) por día y K recorridos
-   *  de N para el saldo de cada cuenta. */
+   *  de N para el saldo de cada cuenta. Oracle deliberadamente independiente: no
+   *  importa internals del store, o la paridad pasaría por definición (tautología). */
   function recalcularAlModoAntiguo(
     data: { movements: Movement[]; accounts: Account[] },
     cargados: ReadonlyMap<string, Movement>,
@@ -233,6 +232,9 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
     const cargados = new Map(store.movimientosCargados());
     const veces = 5;
 
+    // Franqueza de la medición: sólo el ciclo 1 invalida saldosPorCuenta y porDia
+    // (y el par de valores de period se acierta en memo desde el ciclo 3); los
+    // siguientes ciclos son en su mayoría aciertos de memo del computed.
     const medirStore = () => {
       store.period.set(store.period() === 'all' ? '2026-01' : 'all');
       void store.movements();
@@ -245,6 +247,9 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
       return store;
     };
 
+    const primerCiclo = performance.now();
+    medirStore();
+    const costoPrimerCiclo = performance.now() - primerCiclo;
     const modoNuevo = medir(medirStore, veces);
     const modoAntiguo = medir(
       () => recalcularAlModoAntiguo(store.data(), cargados, 'mercado'),
@@ -252,10 +257,13 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
     );
 
     /* impresión informal (la uses/CI no hacen estricta la medición, el presupuesto es holgado) */
-    // eslint-disable-next-line no-console
-    console.log(`[ticket 21] modo nuevo ${modoNuevo.toFixed(2)} ms · modo antiguo ${modoAntiguo.toFixed(2)} ms`);
+    console.log(
+      `[ticket 21] primer ciclo ${costoPrimerCiclo.toFixed(2)} ms · ciclo típico (mayoría aciertos de memo) ` +
+        `${modoNuevo.toFixed(2)} ms · ciclo réplica del modo antiguo ${modoAntiguo.toFixed(2)} ms`,
+    );
     expect(modoNuevo).toBeLessThan(300);
     expect(modoNuevo).toBeLessThan(modoAntiguo * 2 + 10);
+    expect(costoPrimerCiclo).toBeLessThan(300);
   });
 });
 
