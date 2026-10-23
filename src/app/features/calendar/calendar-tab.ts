@@ -70,12 +70,15 @@ export class CalendarTabComponent implements OnInit {
       ),
     })),
   );
+  /** Tope de la grilla de días: 6 semanas × 7 días, sin importar el rango pedido. */
+  static readonly DIAS_GRID_MAX = 42;
+
   readonly calendarDays = computed(() => {
     const year = this.calendarYear();
     const month = this.calendarMonth();
     const first = new Date(Date.UTC(year, month, 1));
     const offset = (first.getUTCDay() + 6) % 7;
-    return Array.from({ length: 42 }, (_, index) => {
+    return Array.from({ length: CalendarTabComponent.DIAS_GRID_MAX }, (_, index) => {
       const date = new Date(Date.UTC(year, month, index - offset + 1));
       const iso = date.toISOString().slice(0, 10);
       return {

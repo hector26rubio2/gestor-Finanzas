@@ -1,43 +1,16 @@
 import { Component, ElementRef, OnDestroy, computed, effect, inject, input, output, signal } from '@angular/core';
 import * as echarts from 'echarts/core';
-import { BarChart, GaugeChart, LineChart, PieChart, ScatterChart } from 'echarts/charts';
-import {
-  DataZoomComponent,
-  DatasetComponent,
-  TransformComponent,
-  GridComponent,
-  LegendComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  VisualMapComponent,
-} from 'echarts/components';
 import { CanvasRenderer } from 'echarts/renderers';
 import { I18nService } from '@core/i18n';
 import { ChartThemeService } from './chart-theme';
 import { cargarModulos, modulosFaltantes } from './chart-modulos';
 
-echarts.use([
-  BarChart,
-  GaugeChart,
-  LineChart,
-  PieChart,
-  ScatterChart,
-  DataZoomComponent,
-  DatasetComponent,
-  TransformComponent,
-  GridComponent,
-  LegendComponent,
-  MarkAreaComponent,
-  MarkLineComponent,
-  MarkPointComponent,
-  ToolboxComponent,
-  TooltipComponent,
-  VisualMapComponent,
-  CanvasRenderer,
-]);
+/**
+ * Único registro eager: el renderizador de lienzo es necesario para cualquier
+ * gráfica. Los tipos/componentes viven en `chart-modulos.ts` y se cargan
+ * bajo demanda según lo que pida cada opción.
+ */
+echarts.use([CanvasRenderer]);
 
 export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 
@@ -90,7 +63,14 @@ export class ChartComponent implements OnDestroy {
       this.modulosListos();
       const faltan = modulosFaltantes(option as object);
       if (faltan.length) {
-        void cargarModulos(faltan).then(() => this.modulosListos.update((valor) => valor + 1));
+        void cargarModulos(faltan)
+          .then(() => this.modulosListos.update((valor) => valor + 1))
+          .catch((error: unknown) => {
+            // Sin esto, un import rechazado deja el lienzo en blanco y sin aviso.
+            // No se toca `modulosListos`: la gráfica (si ya se pintó) queda como estaba
+            // y solo se reintenta ante un cambio de opción.
+            console.warn(`[fin-chart] no se pudieron cargar módulos de echarts: ${faltan.join(', ')}`, error);
+          });
         return;
       }
       const alto = this.height();
