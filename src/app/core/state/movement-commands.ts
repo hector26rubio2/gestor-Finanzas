@@ -77,6 +77,7 @@ export class MovementCommands {
             : item,
         ),
       }));
+      this.invalidarListadoRemoto();
       this.store.form.set(null);
       return;
     }
@@ -132,6 +133,7 @@ export class MovementCommands {
         };
       });
       this.store.data.update((data) => ({ ...data, movements: [...created, ...data.movements] }));
+      this.invalidarListadoRemoto();
       this.store.form.set(null);
       return;
     }
@@ -184,6 +186,7 @@ export class MovementCommands {
     };
     this.store.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
     this.store.form.set(null);
+    this.invalidarListadoRemoto();
   }
 
   private async saveLoan(
@@ -247,6 +250,23 @@ export class MovementCommands {
     }));
     this.store.data.update((data) => ({ ...data, movements: [...movimientos, ...data.movements] }));
 
+    this.invalidarListadoRemoto();
     this.store.form.set(null);
+  }
+
+  /**
+   * Tras un comando exitoso el listado remoto quedó atrás: obliga a que el libro
+   * de movimientos recargue desde la página 1 (ver MovementsBookService).
+   *
+   * Distinto de `RemoteBootstrap.reiniciarMovimientos`: deliberadamente NO limpia
+   * `movimientosCargados`, para que los movimientos optimistas ya conocidos
+   * (calendario/día) sobrevivan mientras el libro recarga.
+   */
+  private invalidarListadoRemoto(): void {
+    this.store.movimientosListos.set(false);
+    this.store.remoteMovementPage.set(1);
+    this.store.remoteMovementCursor.set(null);
+    this.store.remoteMovementTotals.set(null);
+    this.store.remoteMovementTotal.set(0);
   }
 }
