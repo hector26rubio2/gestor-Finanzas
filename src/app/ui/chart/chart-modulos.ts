@@ -56,6 +56,7 @@ function seriesDe(opcion: object): Record<string, unknown>[] {
 }
 
 interface Contexto {
+  series: Record<string, unknown>[];
   clavesSuperiores: Set<string>;
   tipoSeries: string[];
   clavesDeSeries: string[];
@@ -65,6 +66,7 @@ function contextoDe(opcion: object): Contexto {
   const clavesSuperiores = new Set(Object.keys(opcion));
   const series = seriesDe(opcion);
   return {
+    series,
     clavesSuperiores,
     tipoSeries: series.flatMap((serie) => (typeof serie['type'] === 'string' ? [serie['type'] as string] : [])),
     clavesDeSeries: series.flatMap((serie) => Object.keys(serie)),
@@ -72,16 +74,16 @@ function contextoDe(opcion: object): Contexto {
 }
 
 export function modulosFaltantes(opcion: object): string[] {
-  const { clavesSuperiores, tipoSeries, clavesDeSeries } = contextoDe(opcion);
+  const { series, clavesSuperiores, tipoSeries, clavesDeSeries } = contextoDe(opcion);
   const pedidos = new Set<string>(['tooltip', ...tipoSeries, ...clavesSuperiores, ...clavesDeSeries]);
   // Los ejes requieren el sistema de coordenadas de rejilla implícito.
   if (clavesSuperiores.has('xAxis') || clavesSuperiores.has('yAxis')) pedidos.add('grid');
-  // series con coordinateSystem 'polar' (o ejes polares) requieren el componente polar.
+  // series puestas sobre coordenadas polares requieren el componente polar.
   const usaPolar =
     clavesSuperiores.has('polar') ||
     clavesSuperiores.has('angleAxis') ||
     clavesSuperiores.has('radiusAxis') ||
-    clavesDeSeries.includes('coordinateSystem');
+    series.some((serie) => serie['coordinateSystem'] === 'polar');
   if (usaPolar) pedidos.add('polar');
   return [...pedidos].filter(
     (nombre) => nombre in MODULOS_BAJO_DEMANDA && !cargados.has(nombre),

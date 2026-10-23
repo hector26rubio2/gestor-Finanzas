@@ -99,7 +99,7 @@ export class CalendarTabComponent implements OnInit {
   readonly cargandoRango = this.delRango.cargando;
   readonly visibleCalendarDays = computed(() => {
     const view = this.calendarView();
-    const days = this.calendarDays().slice(0, CalendarTabComponent.DIAS_GRID_MAX);
+    const days = this.calendarDays();
     if (view === 'month') return days;
     const selected = this.store.selectedCalendarDate();
     const selectedIndex = Math.max(
