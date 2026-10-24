@@ -2,7 +2,17 @@ import { Component, inject } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import type { Account, Movement, Person } from '@core/state';
 import { mensualDesdeAnual } from '@core/utils/tasas';
-import { CUOTAS_SUPUESTAS, TASA_MENSUAL_SUPUESTA_CREDITO, cuotaFija, saldoTrasCuotas } from '@shared/proyecciones';
+import { CARD_BUCKET } from '@core/api';
+import {
+  CUOTAS_SUPUESTAS,
+  TASA_MENSUAL_SUPUESTA_CREDITO,
+  cuotaFija,
+  saldoTrasCuotas,
+  DeudaDeTarjetaSimple,
+  DeudaDeTarjetas,
+  proyectar,
+  type Deuda,
+} from '@shared/proyecciones';
 import { datosDe } from '@testing/datos-de-prueba';
 import { pruebaRender } from '@testing/prueba-render';
 import { sesionDe } from '@testing/sesion-de-prueba';
@@ -44,6 +54,13 @@ const TASA_BANCO = TASA_MENSUAL_SUPUESTA_CREDITO;
 const SALDO_TARJETA = 2_000_000;
 const SALDO_BANCO = 1_000_000;
 
+// Pin de formato de ids de deuda (ticket 29). En este harness los movimientos de tarjeta
+// se resuelven vacíos (TransportFalso responde items: []), así que producción pasa por el
+// camino "movimientos resueltos" (DeudaDeTarjetas): todo el saldo total cae en el resto con
+// concepto fees (CARD_BUCKET.fees = 2), sin sufijo de tasa en ese segmento. Pinamos ese id
+// exacto en lugar de resolverlo con find(!), que podía ocultar roturas de contrato.
+const ID_TARJETA = `tarjeta:tarjeta-1:${CARD_BUCKET.fees}`;
+
 describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () => {
   function montar() {
     return pruebaRender(HostSimulador, {
@@ -59,7 +76,9 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     const { component, estable } = montar();
     await estable();
     const sim = component.sim;
-    const idTarjeta = sim.deudasReales().find((d) => d.tipo === 'tarjeta')!.id;
+    const idTarjeta = ID_TARJETA;
+    // el id pinado debe existir realmente en las deudas del simulador
+    expect(sim.deudasReales().map((d) => d.id)).toContain(idTarjeta);
     return { sim, idTarjeta };
   }
 
@@ -226,23 +245,88 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     expect(sim.eventos()).toHaveLength(1);
   });
 
-  it('un evento de abono llega a la proyección: el apoyo baja el saldo y el interés del escenario', async () => {
+  it('un evento de abono aterriza exactamente donde el oráculo (proyectar) lo pone: pin de mes 3 @ 500k', async () => {
     const { sim, idTarjeta } = await simuladorListo();
     // eventos aislados: sin plan de abonos y sin otros ajustes
     expect(sim.abonoMensual()).toBe(0);
     const serieAntes = sim.escenario().deudas.find((d) => d.id === idTarjeta)!;
-    const interesAntes = sim.escenario().interesTotal;
+    const bancoAntes = sim.escenario().deudas.find((d) => d.id === 'persona:p-banco')!;
 
     sim.agregarEvento('abono');
     sim.editarEvento(sim.eventos()[0].id, { mes: 3, monto: 500_000 });
     expect(sim.eventos()[0]).toMatchObject({ tipo: 'abono', mes: 3, monto: 500_000 });
 
     const serieDespues = sim.escenario().deudas.find((d) => d.id === idTarjeta)!;
-    // el abono extra del mes 3 se refleja en el saldo del mes 6: baja más de lo abonado
-    // (el interés ahorrado se suma a la caída) y el interés total del escenario baja
-    expect(serieDespues.saldo[6]).toBeLessThan(serieAntes.saldo[6] - 400_000);
-    expect(serieDespues.saldo[6]).toBeGreaterThan(serieAntes.saldo[6] - 700_000);
-    expect(sim.escenario().interesTotal).toBeLessThan(interesAntes);
+    const bancoDespues = sim.escenario().deudas.find((d) => d.id === 'persona:p-banco')!;
+
+    // ---- Oráculo: la MISMA `proyectar` que consume producción (amortizacion.simularDeuda),
+    // con la deuda de entrada idéntica a la que arma el simulador y la palanca del evento.
+    // La fila de saldo de una deuda no depende del flujo, así que el flujo es neutro aquí.
+    const deudaDelOraculo: Deuda = {
+      id: idTarjeta,
+      nombre: 'Visa',
+      tipo: 'tarjeta',
+      saldo: SALDO_TARJETA,
+      tasaMensual: tasaTarjeta,
+      cuotas: CUOTAS_SUPUESTAS,
+    };
+    const flujoNeutro = { ingresoMensual: 0, gastoMensual: 0, recorteDeGasto: 0, metaDeAhorro: 0 };
+    // pin de la serie base: sin eventos, el simulador y el oráculo coinciden exactamente
+    const baseDelOraculo = proyectar([deudaDelOraculo], [], flujoNeutro, serieAntes.saldo.length);
+    const serieBaseDelOraculo = baseDelOraculo.deudas[0];
+    expect(serieAntes.saldo).toEqual(serieBaseDelOraculo.saldo);
+    expect(serieAntes.interes).toEqual(serieBaseDelOraculo.interes);
+
+    // pin de la serie con el evento mes 3 @ 500_000
+    const oraculo = proyectar(
+      [deudaDelOraculo],
+      [{ tipo: 'abono', id: 'evento-pin', deudaId: idTarjeta, mes: 3, monto: 500_000 }],
+      flujoNeutro,
+      serieAntes.saldo.length,
+    );
+    const serieOraculo = oraculo.deudas[0];
+    expect(serieDespues.saldo).toEqual(serieOraculo.saldo);
+    expect(serieDespues.abonos).toEqual(serieOraculo.abonos);
+    expect(sim.escenario().deudas.find((d) => d.id === idTarjeta)!.interes).toEqual(serieOraculo.interes);
+
+    // exactos derivados del oráculo:
+    // 1) el abono se registra exactamente en el mes 3, una única vez
+    expect(serieAntes.abonos[3]).toBe(0);
+    expect(serieDespues.abonos[3]).toBe(500_000);
+    expect(serieDespues.abonos.filter((v) => v !== 0)).toEqual([500_000]);
+    // 2) cero cambio en los meses no afectados (antes del abono) y en la persona ajena
+    expect(serieDespues.saldo.slice(0, 3)).toEqual(serieAntes.saldo.slice(0, 3));
+    expect(serieDespues.interes.slice(0, 4)).toEqual(serieAntes.interes.slice(0, 4));
+    expect(bancoDespues.saldo).toEqual(bancoAntes.saldo);
+    // 3) del mes 3 en adelante el desplazamiento del saldo compone con la tasa: el oráculo
+    //    reutiliza la misma evolución de pendiente (cuota fija, interés sobre el pendiente,
+    //    el abono sale al final del mes), así que la diferencia exacta es 500_000·(1+t)^(m−3)
+    //    — pinnada bit-exacto contra las series del oráculo arriba; aquí el pin numérico
+    //    queda a ±0.01 por el redondeo por mes del oráculo (honestidad: eso es propiedad del
+    //    oráculo, no del SUT).
+    for (let mes = 3; mes < serieAntes.saldo.length; mes++) {
+      if (serieDespues.saldo[mes] > 0 && serieAntes.saldo[mes] > 0) {
+        const desplzamiento = 500_000 * (1 + tasaTarjeta / 100) ** (mes - 3);
+        expect(serieDespues.saldo[mes]).toBeCloseTo(serieAntes.saldo[mes] - desplzamiento, 1);
+      }
+    }
+    // y los meses donde el pendiente ya no cubre el abono siguen el oráculo (liquidación anticipada)
+    for (let mes = 3; mes < serieAntes.saldo.length; mes++) {
+      if (serieAntes.saldo[mes] <= 500_005 && serieAntes.saldo[mes] > 0) {
+        expect(serieDespues.saldo[mes]).toBe(0);
+      }
+    }
+    expect(serieDespues.saldo.length).toBe(serieOraculo.saldo.length);
+    // el ahorro de interés del escenario (solo la tarjeta cambia) es exactamente el del oráculo
+    const ahorroInteresOraculo = baseDelOraculo.interesTotal - oraculo.interesTotal;
+    const redondear = (valor: number) => Math.round(valor * 100) / 100;
+    expect(sim.escenario().interesTotal).toBe(
+      redondear(
+        serieAntes.interes.reduce((s, v) => s + v, 0) +
+          bancoAntes.interes.reduce((s, v) => s + v, 0) -
+          ahorroInteresOraculo,
+      ),
+    );
   });
 
   it('el escenario con plan compara contra el base: menos interés y cuota para liquidar', async () => {
@@ -349,5 +433,27 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     sim.restaurar('{truncado');
     expect(sim.abonoMensual()).toBe(0);
     expect(sim.escenariosGuardados()).toEqual([]);
+  });
+});
+
+// Pin de contrato de ids de deuda (ticket 29): los dos caminos del puerto de deuda producen
+// formatos distintos y ambos son pinnables porque los inputs son deterministas.
+describe('formato de ids del puerto de deuda (pin del ticket 29)', () => {
+  it('camino saldoTotal (sin movimientos resueltos): el id es el identificador de la cuenta', () => {
+    const deuda = DeudaDeTarjetaSimple({ tarjeta: TARJETA, saldo: SALDO_TARJETA, movimientos: [] });
+    expect(deuda.id).toBe('tarjeta:tarjeta-1');
+    expect(deuda.tasaMensual).toBe(tasaTarjeta);
+  });
+
+  it('camino movimientos resueltos (los specs del simulador): con movimientos vacíos el total cae al resto de fees', () => {
+    const deudas = DeudaDeTarjetas({
+      tarjeta: TARJETA,
+      saldoTotal: SALDO_TARJETA,
+      movimientos: [],
+      etiqueta: (concepto) => `concepto:${concepto}`,
+    });
+    expect(deudas.map((d) => d.id)).toEqual([`tarjeta:tarjeta-1:${CARD_BUCKET.fees}`]);
+    expect(deudas[0].grupo).toBe('tarjeta:tarjeta-1');
+    expect(deudas[0].saldo).toBe(SALDO_TARJETA);
   });
 });
