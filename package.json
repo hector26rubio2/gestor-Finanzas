@@ -10,6 +10,8 @@
     "start": "ng serve --port 4300",
     "build": "ng build",
     "iconos:categorias": "node scripts/generar-iconos-categoria.mjs",
+    "i18n:gen": "node scripts/i18n.mjs",
+    "i18n:check": "node scripts/i18n.mjs --check",
     "test": "ng test --watch=false",
     "lint": "eslint src --config eslint.config.cjs",
     "format:check": "prettier --check src",

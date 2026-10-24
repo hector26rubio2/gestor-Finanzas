@@ -26,6 +26,8 @@ En GitHub Pages el workflow `deploy.yml` escribe ese archivo con la variable de 
 | `pnpm build` | Build de producción (`dist/`) |
 | `pnpm test` | Pruebas unitarias (Vitest vía `ng test`) |
 | `pnpm lint` · `pnpm format:check` | ESLint y Prettier |
+| `pnpm i18n:gen` | Normaliza los 4 catálogos de i18n (`en.ts` es el maestro de orden; falla si falta o sobra una clave en algún idioma) |
+| `pnpm i18n:check` | Igual que `i18n:gen` pero sin escribir: falla si los catálogos difieren de lo generado |
 | `pnpm test:ui` | Capturas de las 11 rutas en 9 tamaños de pantalla contra una API simulada |
 | `pnpm test:a11y` | Accesibilidad con axe (claro, oscuro, móvil) |
 | `pnpm test:permisos` | Cada sección abre solo con su permiso |
