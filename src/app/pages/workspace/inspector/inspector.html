@@ -300,8 +300,8 @@
     </header>
     <dl class="grid grid-cols-3 gap-2 text-xs [&_dd]:font-semibold [&_dd]:tabular-nums [&_dt]:text-muted-foreground">
       <div class="min-w-0">
-        <dt>{{ i18n.t('workspace.statement.installment') }}</dt>
-        <dd>{{ store.money(tarjeta.nextInstallments()) }}</dd>
+        <dt>{{ i18n.t('workspace.statement.totalDebt') }}</dt>
+        <dd>{{ store.money(tarjeta.cardDebt()) }}</dd>
       </div>
       <div class="min-w-0">
         <dt>{{ i18n.t('workspace.statement.minimumPayment') }}</dt>

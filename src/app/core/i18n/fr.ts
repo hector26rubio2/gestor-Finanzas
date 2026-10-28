@@ -424,7 +424,7 @@ export default {
   'workspace.inspector.facts.variation': 'Variation',
   'workspace.inspector.facts.operations': 'Opérations',
   'workspace.statement.title': 'RELEVÉ ESTIMÉ',
-  'workspace.statement.installment': 'Échéance du mois',
+  'workspace.statement.totalDebt': 'Dette totale',
   'workspace.statement.dueDate': "Date d'échéance",
   'workspace.statement.day': 'Jour {day}',
   'workspace.dayMovements.title': 'Mouvements du jour',

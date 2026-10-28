@@ -418,7 +418,7 @@ export default {
   'workspace.inspector.facts.variation': 'Variação',
   'workspace.inspector.facts.operations': 'Operações',
   'workspace.statement.title': 'EXTRATO ESTIMADO',
-  'workspace.statement.installment': 'Parcela do mês',
+  'workspace.statement.totalDebt': 'Dívida total',
   'workspace.statement.dueDate': 'Data de vencimento',
   'workspace.statement.day': 'Dia {day}',
   'workspace.dayMovements.title': 'Transações do dia',
