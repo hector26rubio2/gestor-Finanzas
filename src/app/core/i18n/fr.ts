@@ -531,7 +531,6 @@ export default {
   'admin.users.directAccess': 'Accès direct',
   'admin.users.assignedSuffix': 'attribuées',
   'admin.users.noAccess': 'Aucun accès',
-  'admin.users.manageAriaLabel': "Gérer l'utilisateur",
   'admin.users.countLabel': '{count} utilisateurs',
   'admin.pager.singlePage': 'Page 1 sur 1',
   'admin.roles.title': 'Rôles et permissions',

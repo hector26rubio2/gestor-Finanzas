@@ -147,7 +147,7 @@ import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
               type="button"
               class="font-mono"
               [attr.title]="i18n.t('admin.audit.trace.filterBy')"
-              [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + row.raw.traceId"
+              [attr.aria-label]="i18n.t('admin.audit.trace.filterBy') + ': ' + row.raw.traceId.slice(0, 12)"
               (click)="$event.stopPropagation(); filterByTrace(row.raw.traceId)"
             >
               <fin-icon name="filter" /> {{ row.raw.traceId.slice(0, 12) }}

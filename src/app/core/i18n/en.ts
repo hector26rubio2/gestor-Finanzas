@@ -524,7 +524,6 @@ export default {
   'admin.users.directAccess': 'Direct access',
   'admin.users.assignedSuffix': 'assigned',
   'admin.users.noAccess': 'No access',
-  'admin.users.manageAriaLabel': 'Manage user',
   'admin.users.countLabel': '{count} users',
   'admin.pager.singlePage': 'Page 1 of 1',
   'admin.roles.title': 'Roles and capabilities',

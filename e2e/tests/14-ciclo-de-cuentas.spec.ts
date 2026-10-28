@@ -47,7 +47,9 @@ async function reglasDe(page: Page, kind: number): Promise<{ effect: number; flo
 }
 
 async function leer<T>(page: Page, ruta: string): Promise<T> {
-  return (await (await page.request.get(`${apiUrl}${ruta}`)).json()) as T;
+  const respuesta = await page.request.get(`${apiUrl}${ruta}`);
+  expect(respuesta.ok(), `${ruta}: ${respuesta.status()}`).toBeTruthy();
+  return (await respuesta.json()) as T;
 }
 
 async function capturar(page: Page, info: TestInfo, nombre: string): Promise<void> {

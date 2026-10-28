@@ -249,14 +249,10 @@
           <span class="sr-only min-[780px]:hidden">{{ i18n.t('shell.search') }}</span>
           <span class="max-[780px]:hidden">{{ i18n.t('shell.searchShort') }}</span>
           <kbd hlmKbdGroup class="max-[780px]:hidden"><kbd hlmKbd>Ctrl</kbd><kbd hlmKbd>K</kbd></kbd></button
-        ><a
-          hlmBtn
-          variant="outline"
-          size="icon"
-          routerLink="/notifications"
-          class="relative"
-          [attr.aria-label]="i18n.t('nav.notifications')"
-          ><fin-icon name="notifications" class="[--icon-size:18px]" />
+        ><a hlmBtn variant="outline" size="icon" routerLink="/notifications" class="relative"
+          ><fin-icon name="notifications" class="[--icon-size:18px]" /><span class="sr-only"
+            >{{ i18n.t('nav.notifications') }}</span
+          >
           @if (store.unread()) {
           <span
             class="absolute -top-1.5 -right-[5px] rounded-full bg-primary px-[5px] py-0.5 text-xs text-primary-foreground"
