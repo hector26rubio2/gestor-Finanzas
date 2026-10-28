@@ -70,6 +70,15 @@ export class InspectorComponent {
   readonly tarjeta = new InspectorCard(() => this.selectedAccount());
   readonly origenDelMovimiento = new OrigenDelMovimiento();
   readonly recientes = new InspectorRecientes(() => (this.isAccountInspector() ? this.selectedAccount() : undefined));
+  fechaCorta(iso: string): string {
+    const fecha = new Date(`${iso.slice(0, 10)}T00:00:00Z`);
+    if (Number.isNaN(fecha.getTime())) return iso;
+    return new Intl.DateTimeFormat(this.store.preferences().locale, {
+      day: 'numeric',
+      month: 'short',
+      timeZone: 'UTC',
+    }).format(fecha);
+  }
   verTodosLosMovimientos(id: string) {
     this.store.inspector.set(null);
     this.store.accountFilter.set(id);
