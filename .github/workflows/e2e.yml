@@ -65,7 +65,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Configurar pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Configurar Node.js
         uses: actions/setup-node@v4
