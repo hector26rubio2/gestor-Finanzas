@@ -21,7 +21,18 @@ Devuelve movimientos/cuentas/personas/categorías con valores por defecto sensat
 
 ```ts
 const datos = datosDe({
-  movements: [{ id: 'm1', date: '2026-10-01', description: 'X', accountId: 'cuenta-1', category: 'Mercado', kind: 'expense', amount: -1000, status: 'confirmed' }],
+  movements: [
+    {
+      id: 'm1',
+      date: '2026-10-01',
+      description: 'X',
+      accountId: 'cuenta-1',
+      category: 'Mercado',
+      kind: 'expense',
+      amount: -1000,
+      status: 'confirmed',
+    },
+  ],
   accounts: [{ id: 'cuenta-1', name: 'Banco', type: 'checking', currency: 'COP', openingBalance: 0 }],
 }); // categorías remotas van en overrides.categories (store.categories)
 datos.aplicarEn(store);
@@ -48,9 +59,9 @@ así se detectan rutas no previstas. Nunca toca HttpClient real.
 
 ```ts
 const { fixture, component, store, transport } = pruebaRender(MiComponente, {
-  session: sesionDe().conCapacidad('x'),  // aplica user + remoteState en el store
-  data: datosDe(),                         // siembra data()/categories() en el store
-  providers: [provideRouter([])],          // extra opcional
+  session: sesionDe().conCapacidad('x'), // aplica user + remoteState en el store
+  data: datosDe(), // siembra data()/categories() en el store
+  providers: [provideRouter([])], // extra opcional
 });
 fixture.detectChanges(); // o usar los helpers `cambios()` del retorno
 ```

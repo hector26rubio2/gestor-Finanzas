@@ -98,7 +98,9 @@ export class CalendarTabComponent implements OnInit {
     start: `${this.calendarYear()}-01-01`,
     end: `${this.calendarYear()}-12-31`,
   }));
-  private readonly resumenAnual = crearResumenDelAnio(computed(() => (this.calendarView() === 'year' ? this.rangoAnual() : null)));
+  private readonly resumenAnual = crearResumenDelAnio(
+    computed(() => (this.calendarView() === 'year' ? this.rangoAnual() : null)),
+  );
   private readonly rangoVisible = computed<Rango | null>(() => {
     if (this.calendarView() === 'year') return null;
     const days = this.calendarDays();

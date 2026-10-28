@@ -15,7 +15,6 @@ const RUTA_BUSQUEDA = 'POST /api/v1/movements/search';
 const PAGINA_VACIA = { items: [], page: 1, size: 100, total: 0, totalPages: 0, hasNext: false };
 const PROVEEDORES: Array<CoreProvider> = [provideRouter([]) as unknown as CoreProvider];
 
-
 interface CuerpoDeBusqueda {
   filter?: { range?: { start: string; end: string } };
   page?: { page: number; size: number };
@@ -117,12 +116,10 @@ describe('reports-tab: peticiones de datos al servidor', () => {
   });
 
   it('una página con hasNext encadena la página siguiente con el cursor recibido', async () => {
-    const transport = new TransportFalso().responder(
-      RUTA_BUSQUEDA,
-      (peticion) =>
-        (peticion.body as CuerpoDeBusqueda)?.page?.page === 1
-          ? { body: { ...PAGINA_VACIA, hasNext: true, nextCursor: 'cursor-1' } }
-          : { body: { ...PAGINA_VACIA } },
+    const transport = new TransportFalso().responder(RUTA_BUSQUEDA, (peticion) =>
+      (peticion.body as CuerpoDeBusqueda)?.page?.page === 1
+        ? { body: { ...PAGINA_VACIA, hasNext: true, nextCursor: 'cursor-1' } }
+        : { body: { ...PAGINA_VACIA } },
     );
     const { cambios, estable } = montar(transport);
     cambios();
@@ -140,7 +137,13 @@ describe('explorador de reportes: peticiones al cambiar el rango', () => {
     const transport = new TransportFalso()
       .responder(RUTA_BUSQUEDA, () => ({ body: { ...PAGINA_VACIA } }))
       .responder('GET /api/v1/reports/saved', { body: [] });
-    const { component, store, transport: t, cambios, estable } = pruebaRender(ExploradorDeReportesComponent, {
+    const {
+      component,
+      store,
+      transport: t,
+      cambios,
+      estable,
+    } = pruebaRender(ExploradorDeReportesComponent, {
       session: sesionDe(),
       data: datosDe(),
       transport,
@@ -181,11 +184,7 @@ describe('explorador de reportes: peticiones al cambiar el rango', () => {
 describe('reports-tab: render mínimo', () => {
   function montarResumen(transport: TransportFalso, datos = datosDe({ movements: [] })) {
     return pruebaRender(ReportsTabComponent, {
-      session: sesionDe().conCapacidad(
-        P.reportes.comparativo.ver,
-        P.reportes.categorias.ver,
-        P.reportes.tendencia.ver,
-      ),
+      session: sesionDe().conCapacidad(P.reportes.comparativo.ver, P.reportes.categorias.ver, P.reportes.tendencia.ver),
       data: datos,
       transport,
       providers: PROVEEDORES,
@@ -232,7 +231,13 @@ describe('reports-tab: render mínimo', () => {
 describe('explorador de reportes: granularidad y filtros locales', () => {
   it('el preset define la granularidad y los filtros locales (cuenta/categoría/flujo) no reemiten peticiones', async () => {
     const transport = new TransportFalso().responder(RUTA_BUSQUEDA, () => ({ body: { ...PAGINA_VACIA } }));
-    const { component, store, transport: t, cambios, estable } = pruebaRender(ExploradorDeReportesComponent, {
+    const {
+      component,
+      store,
+      transport: t,
+      cambios,
+      estable,
+    } = pruebaRender(ExploradorDeReportesComponent, {
       session: sesionDe(),
       data: datosDe(),
       transport,

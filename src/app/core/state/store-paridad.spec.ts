@@ -79,9 +79,7 @@ function proyeccionEsperada(data: { movements: Movement[] }, filtros: Filtros) {
       (filtros.accountFilter === 'all' || m.accountId === filtros.accountFilter) &&
       `${m.description} ${m.category} ${m.person ?? ''}`.toLocaleLowerCase().includes(consulta),
   );
-  const ordenados = [...filtrados].sort(
-    (a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id),
-  );
+  const ordenados = [...filtrados].sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   return { ordenados, income: totalDeIngresos(ordenados), expense: totalDeGastos(ordenados) };
 }
 
@@ -138,7 +136,10 @@ describe('AppStore: paridad de recalculos (ticket 21)', () => {
   it('movimientosConocidos une lo recordado con la página y la página manda', () => {
     const movimientos = fixtureSembrado();
     const store = sembrar(movimientos);
-    store.recordarMovimientos([gasto('rec-1', '2026-08-03', { accountId: 'ca' }), { ...movimientos[0], description: 'vieja' }]);
+    store.recordarMovimientos([
+      gasto('rec-1', '2026-08-03', { accountId: 'ca' }),
+      { ...movimientos[0], description: 'vieja' },
+    ]);
 
     const conocidos: Movement[] = store.movimientosConocidos();
     const mapa = new Map(store.movimientosCargados());
@@ -150,7 +151,9 @@ describe('AppStore: paridad de recalculos (ticket 21)', () => {
     const store = sembrar(fixtureSembrado());
     const base = [...store.movements()];
     store.query.set('sem');
-    expect([...store.movements()]).toEqual(proyeccionEsperada(store.data(), { period: 'all', accountFilter: 'all', query: 'sem' }).ordenados);
+    expect([...store.movements()]).toEqual(
+      proyeccionEsperada(store.data(), { period: 'all', accountFilter: 'all', query: 'sem' }).ordenados,
+    );
     store.query.set('');
     expect([...store.movements()]).toEqual(base);
   });
@@ -251,10 +254,7 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
     medirStore();
     const costoPrimerCiclo = performance.now() - primerCiclo;
     const modoNuevo = medir(medirStore, veces);
-    const modoAntiguo = medir(
-      () => recalcularAlModoAntiguo(store.data(), cargados, 'mercado'),
-      veces,
-    );
+    const modoAntiguo = medir(() => recalcularAlModoAntiguo(store.data(), cargados, 'mercado'), veces);
 
     /* impresión informal (la uses/CI no hacen estricta la medición, el presupuesto es holgado) */
     console.log(
@@ -266,4 +266,3 @@ describe('AppStore: medición de trabajo por recálculo (ticket 21)', () => {
     expect(costoPrimerCiclo).toBeLessThan(300);
   });
 });
-

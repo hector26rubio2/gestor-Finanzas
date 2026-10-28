@@ -164,9 +164,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     sim.alternarDeuda('persona:p-banco', false);
     expect(sim.deudasDeHoy().map((d) => d.id)).toEqual([idTarjeta]);
     sim.abonoMensual.set(800_000);
-    expect(
-      sim.planDeAbono().some((p) => p.tipo === 'abono' && p.deudaId === 'persona:p-banco'),
-    ).toBe(false);
+    expect(sim.planDeAbono().some((p) => p.tipo === 'abono' && p.deudaId === 'persona:p-banco')).toBe(false);
     expect(sim.deudaTotal()).toBe(2_000_000);
     // volver a incluirla la regresa
     sim.alternarDeuda('persona:p-banco', true);
@@ -178,9 +176,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     sim.ajustar('persona:p-banco', { saldo: 0 });
     expect(sim.deudasDeHoy().find((d) => d.id === 'persona:p-banco')?.saldo).toBe(0);
     sim.abonoMensual.set(800_000);
-    expect(
-      sim.planDeAbono().some((p) => p.tipo === 'abono' && p.deudaId === 'persona:p-banco'),
-    ).toBe(false);
+    expect(sim.planDeAbono().some((p) => p.tipo === 'abono' && p.deudaId === 'persona:p-banco')).toBe(false);
   });
 
   it('el ajuste de una hipotética cambia la deuda misma, sin registros de ajuste', async () => {
@@ -233,7 +229,10 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     // la tasa del evento baja medio punto sobre la deuda elegida
     expect(eventos[1]).toMatchObject({ tasaMensual: Math.max(0, tasaTarjeta - 0.5) });
     expect(
-      sim.palancas().filter((p) => p.tipo === 'tasa').map((p) => (p.tipo === 'tasa' ? p.mes : -1)),
+      sim
+        .palancas()
+        .filter((p) => p.tipo === 'tasa')
+        .map((p) => (p.tipo === 'tasa' ? p.mes : -1)),
     ).toContain(3);
 
     sim.editarEvento(eventos[0].id, { mes: 5, monto: 250_000 });
@@ -346,7 +345,10 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     );
     expect(sim.mesesAlObjetivo()).toBe(24);
     expect(
-      sim.planDeAbono().filter((p) => p.tipo === 'abono').some((p) => p.deudaId === idTarjeta),
+      sim
+        .planDeAbono()
+        .filter((p) => p.tipo === 'abono')
+        .some((p) => p.deudaId === idTarjeta),
     ).toBe(true);
   });
 
