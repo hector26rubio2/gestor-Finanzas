@@ -189,7 +189,7 @@ export class InspectorComponent {
   }
   askDeactivateAccount(): void {
     const account = this.selectedAccount();
-    if (!account || account.type === 'credit') return;
+    if (!account) return;
     this.confirmKind.set('deactivateAccount');
     this.pendingConfirm.set({ kind: 'deactivateAccount', account, restore: this.store.inspector() });
     this.store.inspector.set(null);
@@ -334,16 +334,34 @@ export class InspectorComponent {
     if (!account) return;
     this.store.form.set({ kind: 'account', account });
   }
+  private async desactivarTarjeta(tarjeta: Account) {
+    const actual = (await firstValueFrom(this.api.cards())).find((card) => card.id === tarjeta.id);
+    if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+    await firstValueFrom(
+      this.api.updateCard(tarjeta.id, {
+        name: actual.name,
+        creditLimit: actual.creditLimit,
+        cycle: actual.cycle,
+        terms: actual.terms,
+        issuer: actual.issuer,
+        lastFour: actual.lastFour,
+        isActive: false,
+        issuerEntity: actual.issuerEntity?.id ?? null,
+      }),
+    );
+  }
   async deactivateAccount(account: Account) {
     try {
-      await firstValueFrom(
-        this.api.updateAccount(account.id, {
-          name: account.name,
-          lastFour: account.lastFour ?? null,
-          isDefault: false,
-          isActive: false,
-        }),
-      );
+      if (account.type === 'credit') await this.desactivarTarjeta(account);
+      else
+        await firstValueFrom(
+          this.api.updateAccount(account.id, {
+            name: account.name,
+            lastFour: account.lastFour ?? null,
+            isDefault: false,
+            isActive: false,
+          }),
+        );
       this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
       this.store.inspector.set(null);
       this.store.toast.set(this.i18n.t('workspace.messages.accountDeactivated'));

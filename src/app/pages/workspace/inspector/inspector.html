@@ -155,7 +155,8 @@
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedAccount()">
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.editAccount') }}
       </button>
-      } @if (store.inspector()?.type === 'account' && can(P.cuentas.deshabilitar)) {
+      } @if ((store.inspector()?.type === 'account' || store.inspector()?.type === 'card') && !store.cardPaymentMode()
+      && can(P.cuentas.deshabilitar)) {
       <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askDeactivateAccount()">
         <fin-icon name="pause" /> {{ i18n.t('workspace.actions.deactivateAccount') }}
       </button>
