@@ -20,11 +20,44 @@ const ANIO = 2026;
  * mostrando exactamente lo mismo.
  */
 const SEMILLAS_DEL_ANIO: Movement[] = [
-  { id: 'mov-ene-2', date: `${ANIO}-01-02`, description: 'compra de enero', accountId: 'cuenta-2', category: 'Mercado', kind: 'expense', amount: -1000, status: 'confirmed' },
-  { id: 'mov-may-15', date: `${ANIO}-05-15`, description: 'compra de mayo', accountId: 'cuenta-2', category: 'Mercado', kind: 'expense', amount: -2500, status: 'confirmed' },
-  { id: 'mov-dic-30', date: `${ANIO}-12-30`, description: 'compra de diciembre', accountId: 'cuenta-2', category: 'Mercado', kind: 'expense', amount: -3000, status: 'confirmed' },
+  {
+    id: 'mov-ene-2',
+    date: `${ANIO}-01-02`,
+    description: 'compra de enero',
+    accountId: 'cuenta-2',
+    category: 'Mercado',
+    kind: 'expense',
+    amount: -1000,
+    status: 'confirmed',
+  },
+  {
+    id: 'mov-may-15',
+    date: `${ANIO}-05-15`,
+    description: 'compra de mayo',
+    accountId: 'cuenta-2',
+    category: 'Mercado',
+    kind: 'expense',
+    amount: -2500,
+    status: 'confirmed',
+  },
+  {
+    id: 'mov-dic-30',
+    date: `${ANIO}-12-30`,
+    description: 'compra de diciembre',
+    accountId: 'cuenta-2',
+    category: 'Mercado',
+    kind: 'expense',
+    amount: -3000,
+    status: 'confirmed',
+  },
 ];
-const CUENTA_AGENDA = { id: 'cuenta-2', name: 'Efectivo', type: 'cash' as const, currency: 'COP', openingBalance: 100000 };
+const CUENTA_AGENDA = {
+  id: 'cuenta-2',
+  name: 'Efectivo',
+  type: 'cash' as const,
+  currency: 'COP',
+  openingBalance: 100000,
+};
 
 const proveedores: Provider[] = [provideRouter([]) as unknown as Provider];
 
@@ -74,7 +107,10 @@ const rangoDe = (peticion: { body?: unknown }) =>
 /** Responde paginado, respetando el rango pedido en el body (para no entregar跨 rango). */
 function respuestaPaginada(items: ApiMovement[]) {
   return (peticion: { body?: unknown }) => {
-    const cuerpo = peticion.body as { page?: { page?: number; size?: number }; filter?: { range?: { start?: string; end?: string } } };
+    const cuerpo = peticion.body as {
+      page?: { page?: number; size?: number };
+      filter?: { range?: { start?: string; end?: string } };
+    };
     const numero = Math.max(1, cuerpo?.page?.page ?? 1);
     const tamano = cuerpo?.page?.size ?? 100;
     const enRango = items.filter((m) => {
@@ -83,7 +119,9 @@ function respuestaPaginada(items: ApiMovement[]) {
     });
     const rebanada = enRango.slice((numero - 1) * tamano, numero * tamano);
     const haySiguiente = numero < Math.ceil(enRango.length / tamano);
-    return { body: { items: rebanada, hasNext: haySiguiente, ...(haySiguiente ? { nextCursor: String(numero) } : null) } };
+    return {
+      body: { items: rebanada, hasNext: haySiguiente, ...(haySiguiente ? { nextCursor: String(numero) } : null) },
+    };
   };
 }
 

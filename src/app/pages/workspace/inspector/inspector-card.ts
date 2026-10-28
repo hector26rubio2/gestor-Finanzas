@@ -10,6 +10,7 @@ import {
   completarPrioridad,
 } from '@core/api';
 import { parseMoney, sumBy } from '@core/utils';
+import { AsyncActionService } from '@core/utils/async-action.service';
 import { I18nService } from '@core/i18n';
 import { toMovement } from '@core/session';
 import type { Account, Movement } from '@core/state';
@@ -29,6 +30,7 @@ export class InspectorCard {
   private readonly api = inject(FinanceApiClient);
   private readonly escrituras = inject(ApiWritesBus);
   private readonly movementCommands = inject(MovementCommands);
+  private readonly acciones = inject(AsyncActionService);
 
   constructor(private readonly tarjeta: () => Account | undefined) {}
 
@@ -79,6 +81,8 @@ export class InspectorCard {
     aplicarAbono(this.saldosPorConcepto(), Math.min(this.cardPaymentAmount(), this.cardDebt() || Infinity)),
   );
   readonly appliedPayment = computed(() => sumBy(this.paymentAllocation(), (row) => row.aplicado));
+  readonly motivoDeAbono = signal('');
+  readonly saldoAFavor = computed(() => Math.max(0, this.cardPaymentAmount() - this.appliedPayment()));
   readonly paymentAllocationRows = computed(() =>
     this.paymentAllocation().map((row, indice) => ({
       id: String(row.concepto),
@@ -137,16 +141,32 @@ export class InspectorCard {
 
   async confirmarAbono(): Promise<void> {
     const card = this.tarjeta();
-    if (!card || this.appliedPayment() <= 0) return;
-    await this.movementCommands.save({
-      kind: 'payment',
-      date: this.store.hoy(),
-      accountId: this.cuentaDeOrigen(),
-      targetId: card.id,
-      description: `Abono a ${card.name}`,
-      amount: this.appliedPayment(),
-      category: 'Pago de tarjeta',
-    });
+    if (!card) return;
+    const guardado = await this.acciones
+      .run(
+        'card:payment',
+        () =>
+          this.movementCommands.save({
+            kind: 'payment',
+            date: this.store.hoy(),
+            accountId: this.cuentaDeOrigen(),
+            targetId: card.id,
+            description: this.motivoDeAbono().trim() || `Abono a ${card.name}`,
+            amount: this.cardPaymentAmount(),
+            category: 'Pago de tarjeta',
+          }),
+        {
+          loading: this.i18n.t('form.movement.toast.loading'),
+          success: this.i18n.t('form.movement.toast.success'),
+          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+        },
+      )
+      .then(
+        () => true,
+        () => false,
+      );
+    if (!guardado) return;
+    this.motivoDeAbono.set('');
     this.store.inspect('card', card.id);
     this.store.cardPaymentMode.set(false);
   }

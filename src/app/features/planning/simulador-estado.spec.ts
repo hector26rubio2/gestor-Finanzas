@@ -148,7 +148,10 @@ describe('serializarEstado / aplicarEstado: estado del simulador', () => {
     expect(destino.metaFecha()).toBe('2027-12-25');
     expect(destino.inversionAporte()).toBe(50_000);
 
-    aplicarEstado(destino, { version: 1, inversion: { inicial: 5_000_000, aporte: 100_000, tasa: 7, fecha: '2029-01-01' } });
+    aplicarEstado(destino, {
+      version: 1,
+      inversion: { inicial: 5_000_000, aporte: 100_000, tasa: 7, fecha: '2029-01-01' },
+    });
     expect(destino.inversionInicial()).toBe(5_000_000);
     expect(destino.compraMonto()).toBe(900_000);
   });

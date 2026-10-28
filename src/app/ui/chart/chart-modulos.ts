@@ -84,9 +84,7 @@ export function modulosFaltantes(opcion: object): string[] {
     clavesSuperiores.has('radiusAxis') ||
     series.some((serie) => serie['coordinateSystem'] === 'polar');
   if (usaPolar) pedidos.add('polar');
-  return [...pedidos].filter(
-    (nombre) => nombre in MODULOS_BAJO_DEMANDA && !cargados.has(nombre),
-  );
+  return [...pedidos].filter((nombre) => nombre in MODULOS_BAJO_DEMANDA && !cargados.has(nombre));
 }
 
 export async function cargarModulos(nombres: readonly string[]): Promise<void> {

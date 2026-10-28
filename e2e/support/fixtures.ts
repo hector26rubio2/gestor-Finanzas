@@ -23,7 +23,7 @@ export class Vigilancia {
 
   fallosInesperados(): string[] {
     if (!this.sinSesionPermitida) return this.fallosDeRed;
-    return this.fallosDeRed.filter((fallo) => !/^401 GET [/]api[/]v1[/](session|events)/.test(fallo));
+    return this.fallosDeRed.filter((fallo) => !/^401 GET [/]api[/]v1[/](session|events|bootstrap)/.test(fallo));
   }
 
   erroresDeConsolaInesperados(): string[] {
