@@ -8,10 +8,15 @@ import { ChartComponent, ChartOption } from './chart';
   host: { class: 'block min-w-0' },
   template: `
     <div hlmCard class="h-full gap-0 p-4">
-      <h2 class="text-sm font-semibold">{{ title() }}</h2>
-      @if (description()) {
-        <p class="mt-0.5 text-xs text-muted-foreground">{{ description() }}</p>
-      }
+      <header class="flex flex-wrap items-start justify-between gap-2">
+        <div class="min-w-0">
+          <h2 class="text-sm font-semibold">{{ title() }}</h2>
+          @if (description()) {
+            <p class="mt-0.5 text-xs text-muted-foreground">{{ description() }}</p>
+          }
+        </div>
+        <ng-content select="[finChartAcciones]" />
+      </header>
       @if (hasData()) {
         <fin-chart class="mt-2" [option]="option()" [height]="height()" [ariaLabel]="title()" />
       } @else {

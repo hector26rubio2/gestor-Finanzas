@@ -153,12 +153,15 @@
     [hasData]="cuentasConDatos()"
     [empty]="i18n.t('accounts.chart.empty')"
   />
-  <fin-chart-card
-    [title]="i18n.t('accounts.chart.cardsTitle')"
-    [option]="cardsOption()"
-    [hasData]="tarjetasConDatos()"
-    [empty]="sinDeudaTexto()"
-  />
+  <fin-chart-card [title]="flujoTitulo()" [option]="flujoOption()" [hasData]="flujoConDatos()" [empty]="flujoVacio()">
+    <fin-segmented
+      finChartAcciones
+      [value]="vistaDeFlujo()"
+      [options]="opcionesDeFlujo()"
+      [ariaLabel]="i18n.t('accounts.chart.flow.label')"
+      (valueChange)="elegirVistaDeFlujo($event)"
+    />
+  </fin-chart-card>
 </section>
 <fin-table-zone class="min-h-[360px]">
   <fin-table

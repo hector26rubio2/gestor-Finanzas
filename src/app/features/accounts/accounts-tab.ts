@@ -13,6 +13,7 @@ import { KpiComponent } from '@ui/kpi';
 import { HlmToggleGroupImports } from '@spartan-ng/helm/toggle-group';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { SearchFieldComponent } from '@ui/search-field';
+import { SegmentedComponent } from '@ui/segmented';
 import { TableZoneComponent } from '@ui/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { UiSelectComponent } from '@ui/select';
@@ -52,6 +53,7 @@ import { addDaysToIso } from '@core/utils';
     KpiComponent,
     KpiGridComponent,
     SearchFieldComponent,
+    SegmentedComponent,
     TableZoneComponent,
     UiSelectComponent,
   ],
@@ -130,21 +132,31 @@ export class AccountsTabComponent implements OnDestroy {
   private readonly deudaPendiente = computed(() =>
     deudaPendienteComoMovimientos(this.cards(), this.movimientosDeTarjetas()),
   );
-  readonly tarjetasConDatos = computed(() => this.deudaPendiente().length > 0);
-  readonly sinDeudaTexto = computed(() =>
-    this.i18n.t(this.cards().length ? 'accounts.chart.noDebt' : 'accounts.chart.noCards'),
+  readonly vistaDeFlujo = signal<'spend' | 'debt'>('spend');
+  readonly opcionesDeFlujo = computed(() => [
+    { value: 'spend', label: this.i18n.t('accounts.chart.flow.spend') },
+    { value: 'debt', label: this.i18n.t('accounts.chart.flow.debt') },
+  ]);
+  elegirVistaDeFlujo(valor: string): void {
+    this.vistaDeFlujo.set(valor === 'debt' ? 'debt' : 'spend');
+  }
+  private readonly movimientosDelFlujo = computed(() =>
+    this.vistaDeFlujo() === 'debt' ? this.deudaPendiente() : this.ultimos30.movimientos(),
   );
-  readonly cardsOption = computed(() =>
+  readonly flujoConDatos = computed(() =>
+    this.movimientosDelFlujo().some((movimiento) => movimiento.kind === 'expense' && movimiento.amount < 0),
+  );
+  readonly flujoTitulo = computed(() =>
+    this.i18n.t(this.vistaDeFlujo() === 'debt' ? 'accounts.chart.cardsTitle' : 'accounts.chart.spendTitle'),
+  );
+  readonly flujoVacio = computed(() =>
+    this.i18n.t(this.vistaDeFlujo() === 'debt' ? 'accounts.chart.noDebt' : 'accounts.chart.noSpend'),
+  );
+  readonly flujoOption = computed(() =>
     construirVisual({
       config: { tipo: 'sankey', dimension: 'account', dimension2: 'category', measure: 'expense' },
-      movs: this.deudaPendiente(),
-      entorno: crearEntorno(
-        this.store,
-        this.i18n,
-        this.temaGrafica.palette(),
-        'month',
-        this.i18n.t('accounts.chart.cardsTitle'),
-      ),
+      movs: this.movimientosDelFlujo(),
+      entorno: crearEntorno(this.store, this.i18n, this.temaGrafica.palette(), 'month', this.flujoTitulo()),
     }),
   );
 
