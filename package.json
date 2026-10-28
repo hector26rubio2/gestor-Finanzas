@@ -21,7 +21,9 @@
     "api:tipos": "openapi-typescript openapi/v1.json -o src/app/core/api/generado/esquema.d.ts",
     "diagramas": "node scripts/diagramas.mjs",
     "e2e": "playwright test -c e2e/playwright.config.ts",
-    "e2e:local": "node scripts/e2e-local.mjs"
+    "e2e:local": "node scripts/e2e-local.mjs",
+    "prepare": "husky",
+    "typecheck": "tsc --noEmit -p tsconfig.app.json && tsc --noEmit -p tsconfig.spec.json"
   },
   "dependencies": {
     "@angular/cdk": "22.2.2",
@@ -55,7 +57,9 @@
     "@typescript-eslint/parser": "^8.68.0",
     "axe-core": "4.13.0",
     "eslint": "^10.9.1",
+    "husky": "^9.1.7",
     "jsdom": "^29.1.1",
+    "lint-staged": "^17.6.0",
     "openapi-typescript": "7.13.0",
     "playwright-core": "^1.62.1",
     "prettier": "^3.9.6",
