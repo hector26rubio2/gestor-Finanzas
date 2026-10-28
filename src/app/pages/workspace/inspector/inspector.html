@@ -13,15 +13,22 @@
       [class]="isAccountInspector() && selectedAccount() ? 'flex items-start gap-6 max-[700px]:flex-col' : 'flex flex-col gap-4'"
     >
       @if (isAccountInspector() && selectedAccount(); as a) {
-      <fin-bank-card
-        class="flex-[0_0_260px] max-w-[260px] self-center max-[700px]:w-full max-[700px]:max-w-[320px]"
-        [color]="a.color ?? 'var(--accent)'"
-        [typeLabel]="typeCardLabel(a.type)"
-        [numberLabel]="a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour')"
-        [name]="a.name"
-        [balanceLabel]="a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel')"
-        [balance]="store.money(displayBalance(a))"
-      />
+      <div
+        class="flex max-w-[260px] flex-[0_0_260px] flex-col gap-3 max-[700px]:w-full max-[700px]:max-w-none max-[700px]:items-center"
+      >
+        <fin-bank-card
+          class="w-full max-[700px]:max-w-[320px]"
+          [color]="a.color ?? 'var(--accent)'"
+          [typeLabel]="typeCardLabel(a.type)"
+          [numberLabel]="a.lastFour ? '•••• •••• •••• ' + a.lastFour : i18n.t('accounts.cards.noLastFour')"
+          [name]="a.name"
+          [balanceLabel]="a.type === 'credit' ? i18n.t('accounts.cards.debtLabel') : i18n.t('accounts.cards.balanceLabel')"
+          [balance]="store.money(displayBalance(a))"
+        />
+        @if (store.inspector()?.type === 'card' && !store.cardPaymentMode()) {
+        <ng-container *ngTemplateOutlet="extractoCompacto" />
+        }
+      </div>
       }
       <div class="min-w-0 flex-1">
         <span class="block text-[2rem] font-bold text-primary">{{ inspectorAmount() }}</span>
@@ -36,61 +43,37 @@
         </dl>
       </div>
     </div>
-    @if (store.inspector()?.type === 'card' && !store.cardPaymentMode()) {
-    <section class="my-4 grid gap-3 rounded-xl border border-primary/30 bg-accent p-3.5">
-      <header class="flex items-center justify-between gap-2.5">
-        <div>
-          <span>{{ i18n.t('workspace.statement.title') }}</span>
-          <h3 class="mt-[3px]">
-            @if (tarjeta.periodoActual(); as periodo) { {{ i18n.t('workspace.statement.cutoffOn', { date:
-            periodo.statementDate }) }} } @else { {{ i18n.t('workspace.statement.nextCutoff', { day:
-            selectedAccount()?.cutDay ?? '' }) }} }
-          </h3>
-        </div>
-        <b>{{ store.money(tarjeta.cardStatementTotal()) }}</b>
+    @if (isAccountInspector() && !store.cardPaymentMode() && selectedAccount(); as a) {
+    <section class="grid gap-1" [attr.aria-label]="i18n.t('workspace.recent.title')">
+      <header class="flex items-center justify-between gap-2">
+        <h3 class="text-sm font-semibold">{{ i18n.t('workspace.recent.title') }}</h3>
+        <button hlmBtn variant="link" size="sm" type="button" (click)="verTodosLosMovimientos(a.id)">
+          {{ i18n.t('workspace.recent.seeAll') }}
+        </button>
       </header>
-      <div
-        class="flex items-center justify-between gap-2.5 [&>span]:grid [&>span]:gap-[3px] [&>span]:text-xs [&>span]:text-muted-foreground [&_b]:text-foreground"
-      >
-        <span
-          >{{ i18n.t('workspace.statement.cyclePurchases') }}
-          <b>{{ store.money(tarjeta.cardStatementPurchases()) }}</b></span
-        >
-        <span
-          >{{ i18n.t('workspace.statement.nextInstallments') }}
-          <b>{{ store.money(tarjeta.nextInstallments()) }}</b></span
-        >
-        @if (tarjeta.cardEstimatedInterest(); as interes) {
-        <span>{{ i18n.t('workspace.statement.estimatedInterest') }} <b>{{ store.money(interes) }}</b></span>
-        }
-        <span
-          >{{ i18n.t('workspace.statement.dueDate') }}
-          <b
-            >{{ tarjeta.periodoActual()?.dueDate ?? i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay
-            ?? '' }) }}</b
-          ></span
-        >
-        @if (tarjeta.pagoMinimo(); as minimo) {
-        <span>{{ i18n.t('workspace.statement.minimumPayment') }} <b>{{ store.money(minimo) }}</b></span>
-        } @if (tarjeta.cuotaDeManejo() > 0) {
-        <span>{{ i18n.t('workspace.statement.monthlyFee') }} <b>{{ store.money(tarjeta.cuotaDeManejo()) }}</b></span>
-        }
-      </div>
-      @if (tarjeta.cardEstimatedInterest() === null) {
-      <small class="text-muted-foreground">{{ i18n.t('workspace.statement.noRateNote') }}</small>
-      } @if (tarjeta.saldosPorConcepto().length) {
-      <ul class="grid gap-1 text-xs">
-        @for (saldo of tarjeta.saldosPorConcepto(); track saldo.concepto) {
-        <li class="flex justify-between gap-2">
-          <span class="text-muted-foreground"
-            >{{ tarjeta.etiquetaDeConcepto(saldo.concepto) }} · {{ saldo.compras.length }}</span
+      <ul class="grid">
+        @for (m of recientes.movimientos(); track m.id) {
+        <li>
+          <button
+            type="button"
+            class="flex w-full items-baseline justify-between gap-3 border-b border-border px-1 py-2 text-start text-sm hover:bg-accent/60"
+            (click)="store.inspect('movement', m.id)"
           >
-          <b>{{ store.money(saldo.saldo) }}</b>
+            <span class="min-w-0"
+              ><b class="block truncate">{{ m.description }}</b
+              ><small class="text-muted-foreground">{{ m.date }}</small></span
+            >
+            <b class="flex-none tabular-nums" [class]="m.amount < 0 ? 'text-destructive' : 'text-success'"
+              >{{ store.money(m.amount) }}</b
+            >
+          </button>
+        </li>
+        } @empty {
+        <li class="py-2 text-xs text-muted-foreground">
+          {{ i18n.t(recientes.cargando() ? 'workspace.recent.loading' : 'workspace.recent.empty') }}
         </li>
         }
       </ul>
-      }
-      <small class="text-muted-foreground">{{ i18n.t('workspace.statement.estimateNote') }}</small>
     </section>
     } @if (store.inspector()?.type === 'person') { @if (personPurchases(); as compras) {
     <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.purchases.title')">
@@ -280,3 +263,74 @@
   (confirmed)="confirmPending()"
   (dismissed)="dismissPending()"
 />
+<ng-template #extractoCompacto>
+  <section
+    class="grid w-full gap-2 rounded-xl border border-primary/30 bg-accent p-3 text-xs"
+    [attr.aria-label]="i18n.t('workspace.statement.title')"
+  >
+    <header class="flex items-start justify-between gap-2">
+      <div class="min-w-0">
+        <span class="text-[11px] tracking-wide text-muted-foreground uppercase"
+          >{{ i18n.t('workspace.statement.title') }}</span
+        >
+        <b class="block text-sm">
+          @if (tarjeta.periodoActual(); as periodo) { {{ i18n.t('workspace.statement.cutoffOn', { date:
+          periodo.statementDate }) }} } @else { {{ i18n.t('workspace.statement.nextCutoff', { day:
+          selectedAccount()?.cutDay ?? '' }) }} }
+        </b>
+      </div>
+      <b class="flex-none text-sm tabular-nums">{{ store.money(tarjeta.cardStatementTotal()) }}</b>
+    </header>
+    <dl
+      class="grid grid-cols-2 gap-x-3 gap-y-1.5 [&_dd]:font-semibold [&_dd]:tabular-nums [&_dt]:text-muted-foreground"
+    >
+      <div>
+        <dt>{{ i18n.t('workspace.statement.cyclePurchases') }}</dt>
+        <dd>{{ store.money(tarjeta.cardStatementPurchases()) }}</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('workspace.statement.nextInstallments') }}</dt>
+        <dd>{{ store.money(tarjeta.nextInstallments()) }}</dd>
+      </div>
+      <div>
+        <dt>{{ i18n.t('workspace.statement.dueDate') }}</dt>
+        <dd>
+          {{ tarjeta.periodoActual()?.dueDate ?? i18n.t('workspace.statement.day', { day: selectedAccount()?.dueDay ??
+          '' }) }}
+        </dd>
+      </div>
+      @if (tarjeta.pagoMinimo(); as minimo) {
+      <div>
+        <dt>{{ i18n.t('workspace.statement.minimumPayment') }}</dt>
+        <dd>{{ store.money(minimo) }}</dd>
+      </div>
+      } @if (tarjeta.cardEstimatedInterest(); as interes) {
+      <div>
+        <dt>{{ i18n.t('workspace.statement.estimatedInterest') }}</dt>
+        <dd>{{ store.money(interes) }}</dd>
+      </div>
+      } @if (tarjeta.cuotaDeManejo() > 0) {
+      <div>
+        <dt>{{ i18n.t('workspace.statement.monthlyFee') }}</dt>
+        <dd>{{ store.money(tarjeta.cuotaDeManejo()) }}</dd>
+      </div>
+      }
+    </dl>
+    @if (tarjeta.saldosPorConcepto().length) {
+    <ul class="grid gap-1 border-t border-primary/20 pt-2">
+      @for (saldo of tarjeta.saldosPorConcepto(); track saldo.concepto) {
+      <li class="flex justify-between gap-2">
+        <span class="text-muted-foreground"
+          >{{ tarjeta.etiquetaDeConcepto(saldo.concepto) }} · {{ saldo.compras.length }}</span
+        >
+        <b class="tabular-nums">{{ store.money(saldo.saldo) }}</b>
+      </li>
+      }
+    </ul>
+    }
+    <small class="text-[11px] leading-snug text-muted-foreground">
+      {{ i18n.t(tarjeta.cardEstimatedInterest() === null ? 'workspace.statement.noRateNote' :
+      'workspace.statement.estimateNote') }}
+    </small>
+  </section>
+</ng-template>

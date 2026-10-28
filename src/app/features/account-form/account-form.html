@@ -15,11 +15,15 @@
     </fin-field>
     @if (modelo().type !== 'cash') {
     <fin-field [label]="i18n.t('form.account.field.issuer')">
-      <fin-select
+      <fin-select-or-create
         data-campo="issuerId"
-        [formField]="formulario.issuerId"
         [options]="issuerOptions()"
+        [value]="modelo().issuerId"
         [ariaLabel]="i18n.t('form.account.field.issuer')"
+        [placeholder]="i18n.t('form.account.issuer.placeholder')"
+        [canCreate]="puedeCrearEmisor()"
+        (valueChange)="elegirEmisor($event)"
+        (create)="crearEmisor($event)"
       />
     </fin-field>
     } @if (modelo().type === 'credit') {
@@ -33,7 +37,7 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
-      <input hlmInput [formField]="formulario.name" />
+      <input hlmInput [formField]="formulario.name" [placeholder]="i18n.t('form.account.field.namePlaceholder')" />
     </fin-field>
     <fin-field [label]="i18n.t('form.field.currency')">
       <fin-select
@@ -56,11 +60,15 @@
     </fin-field>
     } @if (modelo().type !== 'cash') {
     <fin-field [label]="i18n.t('form.account.field.issuer')">
-      <fin-select
+      <fin-select-or-create
         data-campo="issuerId"
-        [formField]="formulario.issuerId"
         [options]="issuerOptions()"
+        [value]="modelo().issuerId"
         [ariaLabel]="i18n.t('form.account.field.issuer')"
+        [placeholder]="i18n.t('form.account.issuer.placeholder')"
+        [canCreate]="puedeCrearEmisor()"
+        (valueChange)="elegirEmisor($event)"
+        (create)="crearEmisor($event)"
       />
     </fin-field>
     } @if (modelo().type === 'credit') {

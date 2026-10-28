@@ -48,7 +48,7 @@ describe('formulario de cuenta nueva', () => {
 
     expect(vista.querySelector('input[name="cuenta.opening"]')).not.toBeNull();
     expect(vista.querySelector('input[name="cuenta.limit"]')).toBeNull();
-    expect(vista.querySelector('fin-select[data-campo="issuerId"]')).not.toBeNull();
+    expect(vista.querySelector('fin-select-or-create[data-campo="issuerId"]')).not.toBeNull();
   });
 
   async function escribir(fixture: ComponentFixture<AccountFormComponent>, nombre: string, valor: string) {

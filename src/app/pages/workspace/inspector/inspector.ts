@@ -21,6 +21,7 @@ import { DataTableComponent } from '@ui/data-table';
 import { OverlayComponent } from '@ui/overlay';
 import { UiSelectComponent } from '@ui/select';
 import { InspectorCard } from './inspector-card';
+import { InspectorRecientes } from './inspector-recientes';
 import {
   InspectorFactsContext,
   hechosDeCuenta,
@@ -68,6 +69,12 @@ export class InspectorComponent {
   }
 
   readonly tarjeta = new InspectorCard(() => this.selectedAccount());
+  readonly recientes = new InspectorRecientes(() => (this.isAccountInspector() ? this.selectedAccount() : undefined));
+  verTodosLosMovimientos(id: string) {
+    this.store.inspector.set(null);
+    this.store.accountFilter.set(id);
+    void this.movementsBook.loadMovementPage(1);
+  }
 
   openDayMovement(id: string) {
     this.store.calendarReturnDate.set(this.store.inspector()?.id ?? this.store.selectedCalendarDate());

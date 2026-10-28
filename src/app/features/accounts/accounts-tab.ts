@@ -1,4 +1,11 @@
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, effect, inject, signal, untracked } from '@angular/core';
+import { ApiWritesBus, FinanceApiClient } from '@core/api';
+import type { Movement } from '@core/state';
+import { traerMovimientosDeTarjetas } from '@shared/tarjetas';
+import { construirVisual, crearEntorno } from '@shared/graficas';
+import { deudaPendienteComoMovimientos } from './deuda-por-categoria';
+
+const CUENTAS_EN_COLUMNAS = 6;
 import { FormsModule } from '@angular/forms';
 import { CarruselComponent } from '@ui/carrusel';
 import { DataTableComponent } from '@ui/data-table';
@@ -13,7 +20,7 @@ import { AppStore, CAPABILITIES, Account } from '@core/state';
 import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
 import { compactMoney } from '@shared/utils';
-import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
+import { ChartCardComponent, ChartThemeService, barrasAgrupadas, barrasHorizontales } from '@ui/chart';
 import {
   HEALTHY_UTILIZATION_PERCENT,
   creditCards,
@@ -91,7 +98,8 @@ export class AccountsTabComponent implements OnDestroy {
       .map((account) => ({ nombre: account.name, saldo: this.store.balance(account) }))
       .sort((a, b) => b.saldo - a.saldo)
       .slice(0, 8);
-    return barrasHorizontales(
+    const barras = cuentas.length <= CUENTAS_EN_COLUMNAS ? barrasAgrupadas : barrasHorizontales;
+    return barras(
       palette,
       cuentas.map((cuenta) => cuenta.nombre),
       [
@@ -106,29 +114,39 @@ export class AccountsTabComponent implements OnDestroy {
     );
   });
   readonly cuentasConDatos = computed(() => this.cuentasDeSaldo().length > 0);
-  readonly tarjetasConDatos = computed(() => this.cards().length > 0);
-  readonly cardsOption = computed(() => {
-    const palette = this.temaGrafica.palette();
-    const tarjetas = this.cards().slice(0, 8);
-    return barrasHorizontales(
-      palette,
-      tarjetas.map((card) => card.name),
-      [
-        {
-          nombre: this.i18n.t('accounts.chart.debt'),
-          valores: tarjetas.map((card) => this.debtOf(card)),
-          color: palette.danger,
-        },
-        {
-          nombre: this.i18n.t('accounts.chart.limit'),
-          valores: tarjetas.map((card) => card.limit ?? 0),
-          color: palette.line,
-        },
-      ],
-      this.dinero,
-      this.compacto,
-    );
+  private readonly api = inject(FinanceApiClient);
+  private readonly escrituras = inject(ApiWritesBus);
+  private readonly movimientosDeTarjetas = signal<readonly Movement[]>([]);
+  private readonly traerMovimientosDeTarjetas = effect(() => {
+    const ids = this.cards().map((card) => card.id);
+    this.escrituras.version();
+    const catalogo = this.store.kindCatalog();
+    untracked(() => {
+      void traerMovimientosDeTarjetas(this.api, this.i18n, catalogo, ids)
+        .then((movimientos) => this.movimientosDeTarjetas.set(movimientos))
+        .catch(() => this.movimientosDeTarjetas.set([]));
+    });
   });
+  private readonly deudaPendiente = computed(() =>
+    deudaPendienteComoMovimientos(this.cards(), this.movimientosDeTarjetas()),
+  );
+  readonly tarjetasConDatos = computed(() => this.deudaPendiente().length > 0);
+  readonly sinDeudaTexto = computed(() =>
+    this.i18n.t(this.cards().length ? 'accounts.chart.noDebt' : 'accounts.chart.noCards'),
+  );
+  readonly cardsOption = computed(() =>
+    construirVisual({
+      config: { tipo: 'sankey', dimension: 'account', dimension2: 'category', measure: 'expense' },
+      movs: this.deudaPendiente(),
+      entorno: crearEntorno(
+        this.store,
+        this.i18n,
+        this.temaGrafica.palette(),
+        'month',
+        this.i18n.t('accounts.chart.cardsTitle'),
+      ),
+    }),
+  );
 
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | Account['type']>('all');

@@ -19,6 +19,7 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
+import { UiSelectOrCreateComponent } from '@ui/select-or-create';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
@@ -32,7 +33,7 @@ export function permisoParaEditarCuenta(tipo: AccountViewType): string {
 
 function datosIniciales(cuenta: Account | null, tipoNuevo: AccountViewType): DatosDeCuenta {
   return {
-    name: cuenta?.name ?? 'Ahorro principal',
+    name: cuenta?.name ?? '',
     type: cuenta?.type ?? tipoNuevo,
     currency: cuenta?.currency ?? 'COP',
     opening: 0,
@@ -67,6 +68,7 @@ function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
     NgTemplateOutlet,
     OverlayComponent,
     UiSelectComponent,
+    UiSelectOrCreateComponent,
     NumericInputDirective,
     FieldComponent,
     IconComponent,
@@ -186,13 +188,28 @@ export class AccountFormComponent {
     const activa = this.prioridadActiva();
     activa.set(activa === this.prioridadEnPesos ? [...PRIORIDAD_EN_PESOS] : [...PRIORIDAD_EN_DOLARES]);
   }
-  readonly issuerOptions = computed<readonly UiOption[]>(() => [
-    { value: '', label: this.i18n.t('form.account.issuer.none') },
-    ...this.store
+  readonly issuerOptions = computed<readonly UiOption[]>(() =>
+    this.store
       .data()
       .people.filter((persona) => persona.kind === 'institution')
       .map((persona) => ({ value: persona.id, label: persona.name })),
-  ]);
+  );
+  readonly puedeCrearEmisor = computed(() => this.capabilities.allows(P.personas.crear));
+
+  elegirEmisor(issuerId: string): void {
+    this.modelo.update((datos) => ({ ...datos, issuerId }));
+  }
+
+  async crearEmisor(nombre: string): Promise<void> {
+    const creado = await this.actions
+      .run(`account:issuer:${nombre}`, () => this.catalogCommands.createCounterparty(nombre, 'institution'), {
+        loading: this.i18n.t('form.account.issuer.creating'),
+        success: this.i18n.t('form.account.issuer.created', { name: nombre }),
+        error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+      })
+      .catch(() => null);
+    if (creado) this.elegirEmisor(creado.id);
+  }
   readonly actions = inject(AsyncActionService);
   readonly saveActionKey = this.editing ? `account:update:${this.editing.id}` : 'account:create';
   readonly title = computed(() =>
