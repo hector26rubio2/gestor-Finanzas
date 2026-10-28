@@ -136,8 +136,7 @@ export class AppStore {
       (m) =>
         (periodo === 'all' || m.date.startsWith(periodo)) &&
         (filtroDeCuenta === 'all' || m.accountId === filtroDeCuenta) &&
-        (sinConsulta ||
-          `${m.description} ${m.category} ${m.person ?? ''}`.toLocaleLowerCase().includes(consulta)),
+        (sinConsulta || `${m.description} ${m.category} ${m.person ?? ''}`.toLocaleLowerCase().includes(consulta)),
     );
     return filtrados.sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id));
   });
