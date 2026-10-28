@@ -32,7 +32,10 @@ export interface ResumenDelAnio {
  *
  * `rangoAnual === null` (fuera de la vista anual) no hace fetch ni deriva nada.
  */
-export function crearResumenDelAnio(rangoAnual: Signal<Rango | null>, maximoProximos = MAXIMO_DE_PROXIMOS): ResumenDelAnio {
+export function crearResumenDelAnio(
+  rangoAnual: Signal<Rango | null>,
+  maximoProximos = MAXIMO_DE_PROXIMOS,
+): ResumenDelAnio {
   const store = inject(AppStore);
   const api = inject(FinanceApiClient);
   const i18n = inject(I18nService);

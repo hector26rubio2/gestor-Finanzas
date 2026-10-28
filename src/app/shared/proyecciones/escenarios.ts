@@ -236,11 +236,7 @@ export function deudasActuales(
         ? deudasDeTarjeta(c, redondear(-saldo(c)), porConcepto.movimientos, porConcepto.etiqueta)
         : [DeudaDeTarjetaSimple({ tarjeta: c, saldo: -saldo(c), movimientos })],
     );
-  return [
-    ...tarjetas,
-    ...DeudaDeObligaciones({ obligaciones, hoy }),
-    ...DeudaPorAcreedor({ personas, obligaciones }),
-  ];
+  return [...tarjetas, ...DeudaDeObligaciones({ obligaciones, hoy }), ...DeudaPorAcreedor({ personas, obligaciones })];
 }
 
 const grupoDe = (deuda: Deuda) => deuda.grupo ?? deuda.id;
