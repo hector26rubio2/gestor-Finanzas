@@ -17,7 +17,6 @@ import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
 import { MovementsBookService } from '@shared/movements';
 import { BankCardComponent } from '@ui/bank-card';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
-import { DataTableComponent } from '@ui/data-table';
 import { OverlayComponent } from '@ui/overlay';
 import { UiSelectComponent } from '@ui/select';
 import { InspectorCard } from './inspector-card';
@@ -42,7 +41,6 @@ import {
     HlmInput,
     BankCardComponent,
     ConfirmDialogComponent,
-    DataTableComponent,
     OverlayComponent,
     UiSelectComponent,
   ],

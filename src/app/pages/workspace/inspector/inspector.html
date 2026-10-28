@@ -13,7 +13,7 @@
     <button hlmBtn variant="outline" size="sm" class="self-start" type="button" (click)="origenDelMovimiento.volver()">
       {{ i18n.t('workspace.inspector.backTo', { name: cuenta.name }) }}
     </button>
-    }
+    } @if (!store.cardPaymentMode()) {
     <div
       [class]="isAccountInspector() && selectedAccount() ? 'flex items-start gap-6 max-[700px]:flex-col' : 'flex flex-col gap-4'"
     >
@@ -48,7 +48,7 @@
         </dl>
       </div>
     </div>
-    @if (isAccountInspector() && !store.cardPaymentMode() && selectedAccount(); as a) {
+    } @if (isAccountInspector() && !store.cardPaymentMode() && selectedAccount(); as a) {
     <section class="grid gap-1" [attr.aria-label]="i18n.t('workspace.recent.title')">
       <header class="flex items-center justify-between gap-2">
         <h3 class="text-sm font-semibold">{{ i18n.t('workspace.recent.title') }}</h3>
@@ -191,32 +191,36 @@
       {{ i18n.t('workspace.dayMovements.backLink') }}
     </button>
     } @if (store.inspector()?.type === 'card' && store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-    <section class="mt-[18px] grid gap-4 border-t border-border pt-[18px]">
-      <header class="flex items-center justify-between gap-3">
-        <div>
-          <span>{{ i18n.t('workspace.cardPayment.title') }}</span>
-          <h3 class="mt-1">{{ i18n.t('workspace.cardPayment.question') }}</h3>
+    <section class="grid min-w-0 gap-4">
+      <header class="flex min-w-0 items-center justify-between gap-3">
+        <div class="min-w-0">
+          <span class="text-xs tracking-wide text-muted-foreground uppercase"
+            >{{ i18n.t('workspace.cardPayment.title') }}</span
+          >
+          <h3 class="mt-1 truncate">{{ selectedAccount()?.name }}</h3>
         </div>
         <button hlmBtn variant="outline" size="sm" (click)="store.cardPaymentMode.set(false)">
           {{ i18n.t('workspace.cardPayment.back') }}
         </button>
       </header>
-      <label class="grid gap-1 text-xs text-muted-foreground"
-        >{{ i18n.t('workspace.cardPayment.sourceAccount') }}
-        <fin-select
-          [options]="tarjeta.opcionesDeOrigen()"
-          [ngModel]="tarjeta.cuentaDeOrigen()"
-          (ngModelChange)="tarjeta.cuentaDeOrigen.set($event)"
-          [ariaLabel]="i18n.t('workspace.cardPayment.sourceAccount')"
-      /></label>
-      <label class="grid gap-1.5 text-muted-foreground"
-        >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
-          hlmInput
-          type="number"
-          min="1"
-          [ngModel]="tarjeta.cardPaymentAmount()"
-          (ngModelChange)="tarjeta.cardPaymentAmount.set(+$event)"
-      /></label>
+      <div class="grid min-w-0 gap-3 sm:grid-cols-2">
+        <label class="grid min-w-0 gap-1.5 text-muted-foreground"
+          >{{ i18n.t('workspace.cardPayment.sourceAccount') }}
+          <fin-select
+            [options]="tarjeta.opcionesDeOrigen()"
+            [ngModel]="tarjeta.cuentaDeOrigen()"
+            (ngModelChange)="tarjeta.cuentaDeOrigen.set($event)"
+            [ariaLabel]="i18n.t('workspace.cardPayment.sourceAccount')"
+        /></label>
+        <label class="grid min-w-0 gap-1.5 text-muted-foreground"
+          >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
+            hlmInput
+            type="number"
+            min="1"
+            [ngModel]="tarjeta.cardPaymentAmount()"
+            (ngModelChange)="tarjeta.cardPaymentAmount.set(+$event)"
+        /></label>
+      </div>
       <label class="grid gap-1.5 text-muted-foreground"
         >{{ i18n.t('workspace.cardPayment.reasonLabel') }}<input
           hlmInput
@@ -227,7 +231,7 @@
           (ngModelChange)="tarjeta.motivoDeAbono.set($event)"
       /></label>
       <div
-        class="flex items-center justify-between gap-3 [&_b]:text-foreground [&>span]:grid [&>span]:flex-1 [&>span]:gap-[5px] [&>span]:rounded-[10px] [&>span]:border [&>span]:border-border [&>span]:p-3 [&>span]:text-muted-foreground"
+        class="grid min-w-0 grid-cols-3 gap-3 text-xs max-[520px]:grid-cols-1 [&_b]:text-sm [&_b]:text-foreground [&_b]:tabular-nums [&>span]:grid [&>span]:min-w-0 [&>span]:gap-[5px] [&>span]:rounded-[10px] [&>span]:border [&>span]:border-border [&>span]:p-3 [&>span]:text-muted-foreground"
       >
         <span>{{ i18n.t('workspace.cardPayment.debtBefore') }} <b>{{ store.money(tarjeta.cardDebt()) }}</b></span
         ><span
@@ -242,15 +246,28 @@
         {{ i18n.t('workspace.cardPayment.creditBalance', { amount: store.money(tarjeta.saldoAFavor()) }) }}
       </p>
       }
-      <div class="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        <fin-table
-          [columns]="tarjeta.paymentAllocationColumns()"
-          [rows]="tarjeta.paymentAllocationRows()"
-          [selectable]="false"
-          [showFooter]="false"
-          [ariaLabel]="i18n.t('workspace.cardPayment.title')"
-        />
-      </div>
+      <table class="w-full min-w-0 table-fixed text-xs" [attr.aria-label]="i18n.t('workspace.cardPayment.title')">
+        <thead class="text-muted-foreground">
+          <tr class="border-b border-border [&>th]:py-2 [&>th]:font-medium">
+            @for (columna of tarjeta.paymentAllocationColumns().slice(1); track columna.key; let primera = $first) {
+            <th [class]="primera ? 'w-[40%] text-start' : 'text-end'">{{ columna.label }}</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (fila of tarjeta.paymentAllocationRows(); track fila.id) {
+          <tr class="border-b border-border [&>td]:py-2 [&>td]:tabular-nums">
+            <td class="truncate" [attr.title]="fila.description">{{ fila.order }}. {{ fila.description }}</td>
+            <td class="text-end">{{ fila.installment }}</td>
+            <td class="text-end">{{ fila.before }}</td>
+            <td class="text-end font-semibold" [class.text-primary]="fila.applied !== store.money(0)">
+              {{ fila.applied }}
+            </td>
+            <td class="text-end">{{ fila.after }}</td>
+          </tr>
+          }
+        </tbody>
+      </table>
       <button hlmBtn class="h-10" (click)="tarjeta.confirmarAbono()">
         <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
       </button>
