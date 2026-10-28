@@ -9,6 +9,11 @@
 }
 <ng-template #inspector
   ><section class="flex flex-col gap-4">
+    @if (origenDelMovimiento.cuentaDeOrigen(); as cuenta) {
+    <button hlmBtn variant="outline" size="sm" class="self-start" type="button" (click)="origenDelMovimiento.volver()">
+      {{ i18n.t('workspace.inspector.backTo', { name: cuenta.name }) }}
+    </button>
+    }
     <div
       [class]="isAccountInspector() && selectedAccount() ? 'flex items-start gap-6 max-[700px]:flex-col' : 'flex flex-col gap-4'"
     >
@@ -57,7 +62,7 @@
           <button
             type="button"
             class="flex w-full items-baseline justify-between gap-3 border-b border-border px-1 py-2 text-start text-sm hover:bg-accent/60"
-            (click)="store.inspect('movement', m.id)"
+            (click)="origenDelMovimiento.abrirMovimiento(m.id)"
           >
             <span class="min-w-0"
               ><b class="block truncate">{{ m.description }}</b

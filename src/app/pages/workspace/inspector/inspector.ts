@@ -22,6 +22,7 @@ import { OverlayComponent } from '@ui/overlay';
 import { UiSelectComponent } from '@ui/select';
 import { InspectorCard } from './inspector-card';
 import { InspectorRecientes } from './inspector-recientes';
+import { OrigenDelMovimiento } from './origen-del-movimiento';
 import {
   InspectorFactsContext,
   hechosDeCuenta,
@@ -69,6 +70,7 @@ export class InspectorComponent {
   }
 
   readonly tarjeta = new InspectorCard(() => this.selectedAccount());
+  readonly origenDelMovimiento = new OrigenDelMovimiento();
   readonly recientes = new InspectorRecientes(() => (this.isAccountInspector() ? this.selectedAccount() : undefined));
   verTodosLosMovimientos(id: string) {
     this.store.inspector.set(null);
@@ -154,6 +156,7 @@ export class InspectorComponent {
       t: (key, params) => this.i18n.t(key, params),
       money: (value) => this.store.money(value),
       accountName: (id) => this.store.account(id)?.name,
+      accountType: (id) => this.store.account(id)?.type,
     };
     const movimiento = this.selectedMovement();
     if (movimiento) return hechosDeMovimiento(movimiento, contexto);
