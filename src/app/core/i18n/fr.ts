@@ -1962,6 +1962,8 @@ export default {
   'form.account.priority.reset': "Utiliser l'ordre de la banque",
   'workspace.statement.minimumPayment': 'Paiement minimum',
   'workspace.cardPayment.sourceAccount': 'Payer depuis',
+  'workspace.cardPayment.oldestFirstNote':
+    'Cette carte règle d’abord la dette la plus ancienne ; la banque ne permet pas d’affecter le versement à un achat précis.',
   'workspace.cardPayment.priorityNote':
     "Le paiement suit l'ordre de priorité de la carte ; la banque ne permet pas de le diriger vers un achat.",
   'workspace.cardPayment.table.bucket': 'Poste',
@@ -2023,6 +2025,9 @@ export default {
   'accounts.selected.payment': 'Enregistrer un paiement',
   'form.account.field.dualCurrency': 'Carte bidevise (pesos et dollars)',
   'form.account.hint.dualCurrency': 'Sinon, elle n’accepte que des achats dans sa devise.',
+  'form.account.field.applyPriority': 'Appliquer l’ordre de priorité',
+  'form.account.hint.applyPriority': 'Le versement est réparti dans l’ordre ci-dessous.',
+  'form.account.hint.oldestFirst': 'Le versement règle d’abord la dette la plus ancienne.',
   'form.movement.field.purchaseCurrency': 'Devise de l’achat',
   'form.account.field.monthlyFee': 'Cotisation mensuelle',
   'form.account.preview.title': 'Comment un paiement serait appliqué',

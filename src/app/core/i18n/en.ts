@@ -1946,6 +1946,8 @@ export default {
   'form.account.priority.reset': "Use the bank's order",
   'workspace.statement.minimumPayment': 'Minimum payment',
   'workspace.cardPayment.sourceAccount': 'Pay from',
+  'workspace.cardPayment.oldestFirstNote':
+    'This card pays the oldest debt first; the bank does not let you direct a payment to a specific purchase.',
   'workspace.cardPayment.priorityNote':
     "The payment follows the card's priority order; the bank does not allow directing it to a single purchase.",
   'workspace.cardPayment.table.bucket': 'Concept',
@@ -2006,6 +2008,9 @@ export default {
   'accounts.selected.payment': 'Record payment',
   'form.account.field.dualCurrency': 'Dual-currency card (COP and USD)',
   'form.account.hint.dualCurrency': 'If unchecked, it only accepts purchases in its own currency.',
+  'form.account.field.applyPriority': 'Apply priority order',
+  'form.account.hint.applyPriority': 'Payments are split in the order below.',
+  'form.account.hint.oldestFirst': 'Payments go to the oldest debt first.',
   'form.movement.field.purchaseCurrency': 'Purchase currency',
   'form.account.field.monthlyFee': 'Monthly card fee',
   'form.account.preview.title': 'How a payment would be applied',

@@ -52,6 +52,7 @@ export class AccountsCommands {
             foreignPaymentPriority: credit.foreignPaymentPriority ?? null,
             monthlyFee: credit.monthlyFee ? { amount: String(credit.monthlyFee), currency } : null,
             dualCurrency: credit.dualCurrency === true,
+            applyPaymentPriority: credit.applyPaymentPriority !== false,
           },
           lastFour: digitos ?? null,
           issuerEntity: credit.issuerId || null,
@@ -161,6 +162,9 @@ export class AccountsCommands {
             ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
             monthlyFee: credito.monthlyFee || undefined,
             ...(credito.dualCurrency === undefined ? {} : { dualCurrency: credito.dualCurrency }),
+            ...(credito.applyPaymentPriority === undefined
+              ? {}
+              : { applyPaymentPriority: credito.applyPaymentPriority }),
           }
         : changes.issuerId === undefined
           ? {}

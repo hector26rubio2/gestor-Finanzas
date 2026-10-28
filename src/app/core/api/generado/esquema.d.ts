@@ -1903,6 +1903,8 @@ export interface components {
             monthlyFee?: null | components["schemas"]["MoneyDto"];
             /** @default false */
             dualCurrency: boolean;
+            /** @default true */
+            applyPaymentPriority: boolean;
         };
         CashFlowDto: number;
         CategoryDto: {

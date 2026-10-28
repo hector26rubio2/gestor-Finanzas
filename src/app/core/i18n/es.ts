@@ -1951,6 +1951,8 @@ export default {
   'form.account.priority.reset': 'Usar el orden del banco',
   'workspace.statement.minimumPayment': 'Pago mínimo',
   'workspace.cardPayment.sourceAccount': 'Pagar desde',
+  'workspace.cardPayment.oldestFirstNote':
+    'Esta tarjeta paga primero la deuda más vieja; el banco no permite dirigir el abono a una compra puntual.',
   'workspace.cardPayment.priorityNote':
     'El abono se reparte en el orden de prioridad de la tarjeta; el banco no permite dirigirlo a una compra puntual.',
   'workspace.cardPayment.table.bucket': 'Concepto',
@@ -2012,6 +2014,9 @@ export default {
   'accounts.selected.payment': 'Registrar abono',
   'form.account.field.dualCurrency': 'Tarjeta bimoneda (pesos y dólares)',
   'form.account.hint.dualCurrency': 'Si no la marcas, solo admite compras en su moneda.',
+  'form.account.field.applyPriority': 'Aplicar orden de prioridad',
+  'form.account.hint.applyPriority': 'El abono se reparte en el orden de abajo.',
+  'form.account.hint.oldestFirst': 'El abono paga primero la deuda más vieja.',
   'form.movement.field.purchaseCurrency': 'Moneda de la compra',
   'form.account.field.monthlyFee': 'Cuota de manejo mensual',
   'form.account.preview.title': 'Así se aplicaría un abono',

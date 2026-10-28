@@ -12,9 +12,7 @@
   "paths": {
     "/api/v1/crypto/public-key": {
       "get": {
-        "tags": [
-          "Finanzas.Host"
-        ],
+        "tags": ["Finanzas.Host"],
         "operationId": "CryptoPublicKey",
         "responses": {
           "200": {
@@ -32,9 +30,7 @@
     },
     "/api/v1/bug-reports": {
       "post": {
-        "tags": [
-          "Telemetría"
-        ],
+        "tags": ["Telemetría"],
         "operationId": "CreateBugReport",
         "requestBody": {
           "content": {
@@ -72,9 +68,7 @@
     },
     "/api/v1/client-errors": {
       "post": {
-        "tags": [
-          "Telemetría"
-        ],
+        "tags": ["Telemetría"],
         "operationId": "ReportClientError",
         "requestBody": {
           "content": {
@@ -112,9 +106,7 @@
     },
     "/api/v1/auth/csrf": {
       "get": {
-        "tags": [
-          "Autenticación"
-        ],
+        "tags": ["Autenticación"],
         "operationId": "GetCsrfToken",
         "responses": {
           "200": {
@@ -132,9 +124,7 @@
     },
     "/api/v1/auth/google": {
       "get": {
-        "tags": [
-          "Autenticación"
-        ],
+        "tags": ["Autenticación"],
         "operationId": "LoginWithGoogle",
         "parameters": [
           {
@@ -154,9 +144,7 @@
     },
     "/api/v1/auth/logout": {
       "post": {
-        "tags": [
-          "Autenticación"
-        ],
+        "tags": ["Autenticación"],
         "operationId": "Logout",
         "responses": {
           "204": {
@@ -167,9 +155,7 @@
     },
     "/api/v1/auth/methods": {
       "get": {
-        "tags": [
-          "Autenticación"
-        ],
+        "tags": ["Autenticación"],
         "operationId": "GetAuthMethods",
         "responses": {
           "200": {
@@ -187,9 +173,7 @@
     },
     "/api/v1/auth/login": {
       "post": {
-        "tags": [
-          "Autenticación"
-        ],
+        "tags": ["Autenticación"],
         "operationId": "LoginWithPassword",
         "requestBody": {
           "content": {
@@ -216,9 +200,7 @@
     },
     "/api/v1/session": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSession",
         "responses": {
           "200": {
@@ -236,9 +218,7 @@
     },
     "/api/v1/session/revoke-all": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "RevokeAllSessions",
         "responses": {
           "204": {
@@ -249,9 +229,7 @@
     },
     "/api/v1/me/export": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ExportMyData",
         "responses": {
           "200": {
@@ -262,9 +240,7 @@
     },
     "/api/v1/me": {
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteMyAccount",
         "requestBody": {
           "content": {
@@ -305,9 +281,7 @@
     },
     "/api/v1/bootstrap": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetBootstrap",
         "parameters": [
           {
@@ -338,9 +312,7 @@
     },
     "/api/v1/accounts": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetAccounts",
         "responses": {
           "200": {
@@ -359,9 +331,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateAccount",
         "requestBody": {
           "content": {
@@ -399,9 +369,7 @@
     },
     "/api/v1/accounts/{id}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateAccount",
         "parameters": [
           {
@@ -450,9 +418,7 @@
     },
     "/api/v1/accounts/with-opening": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateAccountWithOpening",
         "requestBody": {
           "content": {
@@ -490,9 +456,7 @@
     },
     "/api/v1/movements/search": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "SearchMovements",
         "requestBody": {
           "content": {
@@ -530,9 +494,7 @@
     },
     "/api/v1/movements/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetMovement",
         "parameters": [
           {
@@ -571,9 +533,7 @@
     },
     "/api/v1/movements": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateMovement",
         "requestBody": {
           "content": {
@@ -611,9 +571,7 @@
     },
     "/api/v1/movements/{id}/classification": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ReclassifyMovement",
         "parameters": [
           {
@@ -662,9 +620,7 @@
     },
     "/api/v1/movements/{id}/reversal": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ReverseMovement",
         "parameters": [
           {
@@ -713,9 +669,7 @@
     },
     "/api/v1/operations/transfers": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateTransfer",
         "requestBody": {
           "content": {
@@ -753,9 +707,7 @@
     },
     "/api/v1/operations/card-payments": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateCardPayment",
         "requestBody": {
           "content": {
@@ -793,9 +745,7 @@
     },
     "/api/v1/operations/cash-advances": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateCashAdvance",
         "requestBody": {
           "content": {
@@ -833,9 +783,7 @@
     },
     "/api/v1/movement-kinds": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetMovementKinds",
         "responses": {
           "200": {
@@ -856,9 +804,7 @@
     },
     "/api/v1/dashboard": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDashboard",
         "parameters": [
           {
@@ -904,9 +850,7 @@
     },
     "/api/v1/cards": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetCards",
         "responses": {
           "200": {
@@ -925,9 +869,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateCard",
         "requestBody": {
           "content": {
@@ -965,9 +907,7 @@
     },
     "/api/v1/cards/{id}/status": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetCardStatus",
         "parameters": [
           {
@@ -1014,9 +954,7 @@
     },
     "/api/v1/cards/{id}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateCard",
         "parameters": [
           {
@@ -1065,9 +1003,7 @@
     },
     "/api/v1/categories": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetCategories",
         "responses": {
           "200": {
@@ -1086,9 +1022,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateCategory",
         "requestBody": {
           "content": {
@@ -1126,9 +1060,7 @@
     },
     "/api/v1/categories/{id}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateCategory",
         "parameters": [
           {
@@ -1177,9 +1109,7 @@
     },
     "/api/v1/budgets": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetBudgets",
         "responses": {
           "200": {
@@ -1200,9 +1130,7 @@
     },
     "/api/v1/budgets/{categoryId}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "SetBudget",
         "parameters": [
           {
@@ -1249,9 +1177,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteBudget",
         "parameters": [
           {
@@ -1273,9 +1199,7 @@
     },
     "/api/v1/people": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetPeople",
         "responses": {
           "200": {
@@ -1294,9 +1218,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreatePerson",
         "requestBody": {
           "content": {
@@ -1334,9 +1256,7 @@
     },
     "/api/v1/people/{id}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdatePerson",
         "parameters": [
           {
@@ -1385,9 +1305,7 @@
     },
     "/api/v1/people/debt-positions": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDebtPositions",
         "parameters": [
           {
@@ -1418,9 +1336,7 @@
     },
     "/api/v1/obligations": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetObligations",
         "responses": {
           "200": {
@@ -1441,9 +1357,7 @@
     },
     "/api/v1/loans": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateLoan",
         "requestBody": {
           "content": {
@@ -1491,9 +1405,7 @@
     },
     "/api/v1/investments": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetInvestments",
         "parameters": [
           {
@@ -1522,9 +1434,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateInvestment",
         "requestBody": {
           "content": {
@@ -1562,9 +1472,7 @@
     },
     "/api/v1/investments/{id}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateInvestment",
         "parameters": [
           {
@@ -1613,9 +1521,7 @@
     },
     "/api/v1/notifications": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetNotifications",
         "parameters": [
           {
@@ -1645,9 +1551,7 @@
     },
     "/api/v1/notifications/{id}/read": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "MarkNotificationRead",
         "parameters": [
           {
@@ -1696,9 +1600,7 @@
     },
     "/api/v1/admin/audit": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetAuditEvents",
         "parameters": [
           {
@@ -1706,10 +1608,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -1718,10 +1617,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -1752,9 +1648,7 @@
     },
     "/api/v1/admin/feature-flags/{key}": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "SetFeatureFlag",
         "parameters": [
           {
@@ -1802,9 +1696,7 @@
     },
     "/api/v1/recurrences": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetRecurrences",
         "responses": {
           "200": {
@@ -1823,9 +1715,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateRecurrence",
         "requestBody": {
           "content": {
@@ -1863,9 +1753,7 @@
     },
     "/api/v1/calendar/projected": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetProjectedOccurrences",
         "parameters": [
           {
@@ -1916,9 +1804,7 @@
     },
     "/api/v1/recurrences/{id}": {
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeactivateRecurrence",
         "parameters": [
           {
@@ -1947,9 +1833,7 @@
     },
     "/api/v1/recurrences/{id}/materializations": {
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "MaterializeRecurrence",
         "parameters": [
           {
@@ -1998,9 +1882,7 @@
     },
     "/api/v1/shared-purchases": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSharedPurchases",
         "responses": {
           "200": {
@@ -2019,9 +1901,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateSharedPurchase",
         "requestBody": {
           "content": {
@@ -2059,9 +1939,7 @@
     },
     "/api/v1/settlements": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSettlements",
         "responses": {
           "200": {
@@ -2080,9 +1958,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "IssueSettlement",
         "requestBody": {
           "content": {
@@ -2120,9 +1996,7 @@
     },
     "/api/v1/preferences": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetPreferences",
         "responses": {
           "200": {
@@ -2138,9 +2012,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdatePreferences",
         "requestBody": {
           "content": {
@@ -2188,9 +2060,7 @@
     },
     "/api/v1/preferences/dashboard-layout": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "SaveDashboardLayout",
         "requestBody": {
           "content": {
@@ -2228,9 +2098,7 @@
     },
     "/api/v1/feature-flags": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetFeatureFlags",
         "responses": {
           "200": {
@@ -2251,9 +2119,7 @@
     },
     "/api/v1/dashboards": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDashboards",
         "responses": {
           "200": {
@@ -2272,9 +2138,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateDashboard",
         "requestBody": {
           "content": {
@@ -2312,9 +2176,7 @@
     },
     "/api/v1/dashboards/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDashboardMembers",
         "responses": {
           "200": {
@@ -2335,9 +2197,7 @@
     },
     "/api/v1/dashboards/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedDashboard",
         "parameters": [
           {
@@ -2374,9 +2234,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateDashboard",
         "parameters": [
           {
@@ -2433,9 +2291,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteDashboard",
         "parameters": [
           {
@@ -2464,9 +2320,7 @@
     },
     "/api/v1/dashboards/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ShareDashboard",
         "parameters": [
           {
@@ -2525,9 +2379,7 @@
     },
     "/api/v1/planning/plans/debts": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDebtPlans",
         "responses": {
           "200": {
@@ -2546,9 +2398,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateDebtPlan",
         "requestBody": {
           "content": {
@@ -2586,9 +2436,7 @@
     },
     "/api/v1/planning/plans/debts/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetDebtPlanMembers",
         "responses": {
           "200": {
@@ -2609,9 +2457,7 @@
     },
     "/api/v1/planning/plans/debts/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedDebtPlan",
         "parameters": [
           {
@@ -2648,9 +2494,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateDebtPlan",
         "parameters": [
           {
@@ -2707,9 +2551,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteDebtPlan",
         "parameters": [
           {
@@ -2738,9 +2580,7 @@
     },
     "/api/v1/planning/plans/debts/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ShareDebtPlan",
         "parameters": [
           {
@@ -2799,9 +2639,7 @@
     },
     "/api/v1/planning/plans/purchases": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetPurchasePlans",
         "responses": {
           "200": {
@@ -2820,9 +2658,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreatePurchasePlan",
         "requestBody": {
           "content": {
@@ -2860,9 +2696,7 @@
     },
     "/api/v1/planning/plans/purchases/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetPurchasePlanMembers",
         "responses": {
           "200": {
@@ -2883,9 +2717,7 @@
     },
     "/api/v1/planning/plans/purchases/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedPurchasePlan",
         "parameters": [
           {
@@ -2922,9 +2754,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdatePurchasePlan",
         "parameters": [
           {
@@ -2981,9 +2811,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeletePurchasePlan",
         "parameters": [
           {
@@ -3012,9 +2840,7 @@
     },
     "/api/v1/planning/plans/purchases/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "SharePurchasePlan",
         "parameters": [
           {
@@ -3073,9 +2899,7 @@
     },
     "/api/v1/planning/plans/vacations": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetVacationPlans",
         "responses": {
           "200": {
@@ -3094,9 +2918,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateVacationPlan",
         "requestBody": {
           "content": {
@@ -3134,9 +2956,7 @@
     },
     "/api/v1/planning/plans/vacations/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetVacationPlanMembers",
         "responses": {
           "200": {
@@ -3157,9 +2977,7 @@
     },
     "/api/v1/planning/plans/vacations/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedVacationPlan",
         "parameters": [
           {
@@ -3196,9 +3014,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateVacationPlan",
         "parameters": [
           {
@@ -3255,9 +3071,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteVacationPlan",
         "parameters": [
           {
@@ -3286,9 +3100,7 @@
     },
     "/api/v1/planning/plans/vacations/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ShareVacationPlan",
         "parameters": [
           {
@@ -3347,9 +3159,7 @@
     },
     "/api/v1/planning/plans/investments": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetInvestmentPlans",
         "responses": {
           "200": {
@@ -3368,9 +3178,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateInvestmentPlan",
         "requestBody": {
           "content": {
@@ -3408,9 +3216,7 @@
     },
     "/api/v1/planning/plans/investments/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetInvestmentPlanMembers",
         "responses": {
           "200": {
@@ -3431,9 +3237,7 @@
     },
     "/api/v1/planning/plans/investments/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedInvestmentPlan",
         "parameters": [
           {
@@ -3470,9 +3274,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateInvestmentPlan",
         "parameters": [
           {
@@ -3529,9 +3331,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteInvestmentPlan",
         "parameters": [
           {
@@ -3560,9 +3360,7 @@
     },
     "/api/v1/planning/plans/investments/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ShareInvestmentPlan",
         "parameters": [
           {
@@ -3621,9 +3419,7 @@
     },
     "/api/v1/reports/saved": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedReports",
         "responses": {
           "200": {
@@ -3642,9 +3438,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "CreateSavedReport",
         "requestBody": {
           "content": {
@@ -3682,9 +3476,7 @@
     },
     "/api/v1/reports/saved/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedReportMembers",
         "responses": {
           "200": {
@@ -3705,9 +3497,7 @@
     },
     "/api/v1/reports/saved/{id}": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetSavedSavedReport",
         "parameters": [
           {
@@ -3744,9 +3534,7 @@
         }
       },
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "UpdateSavedReport",
         "parameters": [
           {
@@ -3803,9 +3591,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "DeleteSavedReport",
         "parameters": [
           {
@@ -3834,9 +3620,7 @@
     },
     "/api/v1/reports/saved/{id}/shares": {
       "put": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "ShareSavedReport",
         "parameters": [
           {
@@ -3895,9 +3679,7 @@
     },
     "/api/v1/organization/members": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetOrganizationMembers",
         "responses": {
           "200": {
@@ -3916,9 +3698,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "InviteOrganizationMember",
         "requestBody": {
           "content": {
@@ -3956,9 +3736,7 @@
     },
     "/api/v1/currencies": {
       "get": {
-        "tags": [
-          "Finanzas v1"
-        ],
+        "tags": ["Finanzas v1"],
         "operationId": "GetCurrencies",
         "responses": {
           "200": {
@@ -3979,9 +3757,7 @@
     },
     "/api/v1/superadmin/users": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminUsers",
         "parameters": [
           {
@@ -3996,10 +3772,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -4008,10 +3781,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -4032,9 +3802,7 @@
     },
     "/api/v1/superadmin/users/{id}/active": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetUserActive",
         "parameters": [
           {
@@ -4073,9 +3841,7 @@
     },
     "/api/v1/superadmin/capabilities": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminCapabilities",
         "responses": {
           "200": {
@@ -4096,9 +3862,7 @@
     },
     "/api/v1/superadmin/permissions": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminPermissions",
         "responses": {
           "200": {
@@ -4119,9 +3883,7 @@
     },
     "/api/v1/superadmin/permissions/{code}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetPermissionDescription",
         "parameters": [
           {
@@ -4159,9 +3921,7 @@
     },
     "/api/v1/superadmin/organizations": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminOrganizations",
         "parameters": [
           {
@@ -4169,10 +3929,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -4181,10 +3938,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -4203,9 +3957,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminCreateOrganization",
         "requestBody": {
           "content": {
@@ -4243,9 +3995,7 @@
     },
     "/api/v1/superadmin/organizations/{id}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminUpdateOrganization",
         "parameters": [
           {
@@ -4302,9 +4052,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminDeleteOrganization",
         "parameters": [
           {
@@ -4343,9 +4091,7 @@
     },
     "/api/v1/superadmin/organizations/{id}/default": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetDefaultOrganization",
         "parameters": [
           {
@@ -4394,9 +4140,7 @@
     },
     "/api/v1/superadmin/organizations/consolidate": {
       "post": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminConsolidateOrganizations",
         "parameters": [
           {
@@ -4433,9 +4177,7 @@
     },
     "/api/v1/superadmin/organizations/{id}/members": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminOrganizationMembers",
         "parameters": [
           {
@@ -4475,9 +4217,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminAddOrganizationMember",
         "parameters": [
           {
@@ -4526,9 +4266,7 @@
     },
     "/api/v1/superadmin/organizations/{id}/feature-flags": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminOrganizationFlags",
         "parameters": [
           {
@@ -4570,9 +4308,7 @@
     },
     "/api/v1/superadmin/organizations/{id}/feature-flags/{key}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetOrganizationFlag",
         "parameters": [
           {
@@ -4639,9 +4375,7 @@
     },
     "/api/v1/superadmin/users/{id}/organization": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminMoveUserOrganization",
         "parameters": [
           {
@@ -4690,9 +4424,7 @@
     },
     "/api/v1/superadmin/roles": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminRoles",
         "parameters": [
           {
@@ -4708,10 +4440,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -4720,10 +4449,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -4742,9 +4468,7 @@
         }
       },
       "post": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminCreateRole",
         "requestBody": {
           "content": {
@@ -4782,9 +4506,7 @@
     },
     "/api/v1/superadmin/roles/{id}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminUpdateRole",
         "parameters": [
           {
@@ -4831,9 +4553,7 @@
         }
       },
       "delete": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminDeleteRole",
         "parameters": [
           {
@@ -4862,9 +4582,7 @@
     },
     "/api/v1/superadmin/roles/{id}/active": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetRoleActive",
         "parameters": [
           {
@@ -4903,9 +4621,7 @@
     },
     "/api/v1/superadmin/users/{id}/roles": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminAssignRoles",
         "parameters": [
           {
@@ -4947,9 +4663,7 @@
     },
     "/api/v1/superadmin/feature-flags": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminFlags",
         "responses": {
           "200": {
@@ -4970,9 +4684,7 @@
     },
     "/api/v1/superadmin/feature-flags/{key}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminSetFlag",
         "parameters": [
           {
@@ -5020,9 +4732,7 @@
     },
     "/api/v1/superadmin/audit": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminAudit",
         "parameters": [
           {
@@ -5098,10 +4808,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -5110,10 +4817,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -5134,9 +4838,7 @@
     },
     "/api/v1/superadmin/errors": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminErrors",
         "parameters": [
           {
@@ -5165,10 +4867,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           },
@@ -5177,10 +4876,7 @@
             "in": "query",
             "schema": {
               "pattern": "^-?(?:0|[1-9]\\d*)$",
-              "type": [
-                "integer",
-                "string"
-              ],
+              "type": ["integer", "string"],
               "format": "int32"
             }
           }
@@ -5201,9 +4897,7 @@
     },
     "/api/v1/superadmin/errors/{id}": {
       "put": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminResolveError",
         "parameters": [
           {
@@ -5252,9 +4946,7 @@
     },
     "/api/v1/superadmin/errors/{id}/screenshot": {
       "get": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminErrorScreenshot",
         "parameters": [
           {
@@ -5283,9 +4975,7 @@
     },
     "/api/v1/superadmin/errors/{id}/github-issue": {
       "post": {
-        "tags": [
-          "Superadministración"
-        ],
+        "tags": ["Superadministración"],
         "operationId": "SuperAdminCreateErrorGithubIssue",
         "parameters": [
           {
@@ -5326,11 +5016,7 @@
   "components": {
     "schemas": {
       "AccountBalanceDto": {
-        "required": [
-          "account",
-          "balance",
-          "asOf"
-        ],
+        "required": ["account", "balance", "asOf"],
         "type": "object",
         "properties": {
           "account": {
@@ -5346,17 +5032,7 @@
         }
       },
       "AccountDto": {
-        "required": [
-          "id",
-          "name",
-          "kind",
-          "currency",
-          "institution",
-          "lastFour",
-          "isDefault",
-          "isActive",
-          "createdAt"
-        ],
+        "required": ["id", "name", "kind", "currency", "institution", "lastFour", "isDefault", "isActive", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -5373,16 +5049,10 @@
             "type": "string"
           },
           "institution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isDefault": {
             "type": "boolean"
@@ -5410,10 +5080,7 @@
         "type": "integer"
       },
       "AccountOpeningDto": {
-        "required": [
-          "account",
-          "openingMovement"
-        ],
+        "required": ["account", "openingMovement"],
         "type": "object",
         "properties": {
           "account": {
@@ -5425,9 +5092,7 @@
         }
       },
       "AddOrganizationMemberRequest": {
-        "required": [
-          "userId"
-        ],
+        "required": ["userId"],
         "type": "object",
         "properties": {
           "userId": {
@@ -5459,10 +5124,7 @@
             "format": "uuid"
           },
           "userId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "action": {
@@ -5472,58 +5134,37 @@
             "type": "string"
           },
           "entityId": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "traceId": {
             "type": "string"
           },
           "changesJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "actorUserId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "AdminFeatureFlagDto": {
-        "required": [
-          "key",
-          "organizationId",
-          "userId",
-          "isEnabled",
-          "updatedAt"
-        ],
+        "required": ["key", "organizationId", "userId", "isEnabled", "updatedAt"],
         "type": "object",
         "properties": {
           "key": {
             "type": "string"
           },
           "organizationId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "userId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "isEnabled": {
@@ -5582,16 +5223,7 @@
         }
       },
       "AdminOrganizationDto": {
-        "required": [
-          "id",
-          "name",
-          "slug",
-          "baseCurrency",
-          "isActive",
-          "isDefault",
-          "memberCount",
-          "createdAt"
-        ],
+        "required": ["id", "name", "slug", "baseCurrency", "isActive", "isDefault", "memberCount", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -5615,10 +5247,7 @@
           },
           "memberCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "createdAt": {
@@ -5628,12 +5257,7 @@
         }
       },
       "AdminOrganizationFlagDto": {
-        "required": [
-          "key",
-          "isEnabled",
-          "source",
-          "organizationValue"
-        ],
+        "required": ["key", "isEnabled", "source", "organizationValue"],
         "type": "object",
         "properties": {
           "key": {
@@ -5646,10 +5270,7 @@
             "type": "string"
           },
           "organizationValue": {
-            "type": [
-              "null",
-              "boolean"
-            ]
+            "type": ["null", "boolean"]
           },
           "globalEnabled": {
             "type": "boolean",
@@ -5683,10 +5304,7 @@
             "type": "string"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "capabilities": {
             "type": "array",
@@ -5745,10 +5363,7 @@
             "format": "date-time"
           },
           "lastSeenAt": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date-time"
           },
           "memberships": {
@@ -5760,10 +5375,7 @@
         }
       },
       "AnonymousTypeOfbooleanAndboolean": {
-        "required": [
-          "google",
-          "password"
-        ],
+        "required": ["google", "password"],
         "type": "object",
         "properties": {
           "google": {
@@ -5775,24 +5387,16 @@
         }
       },
       "AnonymousTypeOfstring": {
-        "required": [
-          "token"
-        ],
+        "required": ["token"],
         "type": "object",
         "properties": {
           "token": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "AssignShareRequest": {
-        "required": [
-          "counterparty",
-          "basis"
-        ],
+        "required": ["counterparty", "basis"],
         "type": "object",
         "properties": {
           "counterparty": {
@@ -5825,10 +5429,7 @@
         }
       },
       "AssignUserRolesRequest": {
-        "required": [
-          "organizationId",
-          "roleIds"
-        ],
+        "required": ["organizationId", "roleIds"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -5845,16 +5446,7 @@
         }
       },
       "AuditEventDto": {
-        "required": [
-          "id",
-          "userId",
-          "action",
-          "entityType",
-          "entityId",
-          "traceId",
-          "changesJson",
-          "createdAt"
-        ],
+        "required": ["id", "userId", "action", "entityType", "entityId", "traceId", "changesJson", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -5862,10 +5454,7 @@
             "format": "uuid"
           },
           "userId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "action": {
@@ -5875,39 +5464,26 @@
             "type": "string"
           },
           "entityId": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "traceId": {
             "type": "string"
           },
           "changesJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "actorUserId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "BalancesDto": {
-        "required": [
-          "asOf",
-          "accounts",
-          "cards"
-        ],
+        "required": ["asOf", "accounts", "cards"],
         "type": "object",
         "properties": {
           "asOf": {
@@ -5915,19 +5491,13 @@
             "format": "date"
           },
           "accounts": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/AccountBalanceDto"
             }
           },
           "cards": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CardDebtDto"
             }
@@ -5935,36 +5505,23 @@
         }
       },
       "BillingCycleDto": {
-        "required": [
-          "statementDay",
-          "paymentDueDay"
-        ],
+        "required": ["statementDay", "paymentDueDay"],
         "type": "object",
         "properties": {
           "statementDay": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "paymentDueDay": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           }
         }
       },
       "BillingPeriodDto": {
-        "required": [
-          "range",
-          "statementDate",
-          "dueDate"
-        ],
+        "required": ["range", "statementDate", "dueDate"],
         "type": "object",
         "properties": {
           "range": {
@@ -6001,64 +5558,43 @@
             "$ref": "#/components/schemas/SessionDto"
           },
           "featureFlags": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/FeatureFlagDto"
             }
           },
           "currencies": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CurrencyDto"
             }
           },
           "movementKinds": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/MovementKindSpecDto"
             }
           },
           "accounts": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/AccountDto"
             }
           },
           "cards": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CreditCardDto"
             }
           },
           "categories": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CategoryDto"
             }
           },
           "people": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CounterpartyDto"
             }
@@ -6102,10 +5638,7 @@
         }
       },
       "BootstrapOmissionDto": {
-        "required": [
-          "part",
-          "reason"
-        ],
+        "required": ["part", "reason"],
         "type": "object",
         "properties": {
           "part": {
@@ -6117,12 +5650,7 @@
         }
       },
       "BudgetDto": {
-        "required": [
-          "id",
-          "category",
-          "monthlyLimit",
-          "updatedAt"
-        ],
+        "required": ["id", "category", "monthlyLimit", "updatedAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -6161,10 +5689,7 @@
             "type": "string"
           },
           "stepsToReproduce": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "severity": {
             "type": "string"
@@ -6173,65 +5698,40 @@
             "type": "string"
           },
           "consoleLogJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "systemInfoJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "screenshotBase64": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "traceId": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "BugReportResultDto": {
-        "required": [
-          "error",
-          "githubIssueUrl"
-        ],
+        "required": ["error", "githubIssueUrl"],
         "type": "object",
         "properties": {
           "error": {
             "$ref": "#/components/schemas/ClientErrorDto"
           },
           "githubIssueUrl": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "githubStatus": {
             "type": "string",
             "default": "disabled"
           },
           "githubDetail": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CapabilityDescriptorDto": {
-        "required": [
-          "key",
-          "module",
-          "description"
-        ],
+        "required": ["key", "module", "description"],
         "type": "object",
         "properties": {
           "key": {
@@ -6252,10 +5752,7 @@
         "type": "integer"
       },
       "CardDebtDto": {
-        "required": [
-          "cardId",
-          "debt"
-        ],
+        "required": ["cardId", "debt"],
         "type": "object",
         "properties": {
           "cardId": {
@@ -6268,15 +5765,7 @@
         }
       },
       "CardStatusDto": {
-        "required": [
-          "card",
-          "debt",
-          "availableCredit",
-          "utilization",
-          "currentPeriod",
-          "minimumPayment",
-          "asOf"
-        ],
+        "required": ["card", "debt", "availableCredit", "utilization", "currentPeriod", "minimumPayment", "asOf"],
         "type": "object",
         "properties": {
           "card": {
@@ -6342,26 +5831,17 @@
           },
           "gracePeriodDays": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "paymentPriority": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CardBalanceBucketDto"
             }
           },
           "foreignPaymentPriority": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CardBalanceBucketDto"
             }
@@ -6379,6 +5859,10 @@
           "dualCurrency": {
             "type": "boolean",
             "default": false
+          },
+          "applyPaymentPriority": {
+            "type": "boolean",
+            "default": true
           }
         }
       },
@@ -6386,16 +5870,7 @@
         "type": "integer"
       },
       "CategoryDto": {
-        "required": [
-          "id",
-          "name",
-          "type",
-          "color",
-          "icon",
-          "parent",
-          "isActive",
-          "createdAt"
-        ],
+        "required": ["id", "name", "type", "color", "icon", "parent", "isActive", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -6415,10 +5890,7 @@
             "type": "string"
           },
           "parent": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "isActive": {
@@ -6431,12 +5903,7 @@
         }
       },
       "CategoryTotalDto": {
-        "required": [
-          "category",
-          "type",
-          "total",
-          "movementCount"
-        ],
+        "required": ["category", "type", "total", "movementCount"],
         "type": "object",
         "properties": {
           "category": {
@@ -6450,10 +5917,7 @@
           },
           "movementCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           }
         }
@@ -6489,17 +5953,11 @@
             "format": "uuid"
           },
           "organizationId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "userId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "source": {
@@ -6512,87 +5970,52 @@
             "type": "string"
           },
           "contextJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "status": {
             "type": "string"
           },
           "resolution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "resolvedAt": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date-time"
           },
           "title": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "severity": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "stepsToReproduce": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "url": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "hasScreenshot": {
             "type": "boolean"
           },
           "githubIssueUrl": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "githubIssueNumber": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "traceId": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "ConsolidateOrganizationsResultDto": {
-        "required": [
-          "targetOrganizationId",
-          "movedUsers",
-          "archivedOrganizations"
-        ],
+        "required": ["targetOrganizationId", "movedUsers", "archivedOrganizations"],
         "type": "object",
         "properties": {
           "targetOrganizationId": {
@@ -6601,38 +6024,24 @@
           },
           "movedUsers": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "archivedOrganizations": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "deletedOrganizations": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32",
             "default": 0
           }
         }
       },
       "ConvertedMoneyDto": {
-        "required": [
-          "original",
-          "base",
-          "rate",
-          "rateAsOf"
-        ],
+        "required": ["original", "base", "rate", "rateAsOf"],
         "type": "object",
         "properties": {
           "original": {
@@ -6651,16 +6060,7 @@
         }
       },
       "CounterpartyDto": {
-        "required": [
-          "id",
-          "displayName",
-          "alias",
-          "email",
-          "phone",
-          "notes",
-          "isActive",
-          "createdAt"
-        ],
+        "required": ["id", "displayName", "alias", "email", "phone", "notes", "isActive", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -6671,28 +6071,16 @@
             "type": "string"
           },
           "alias": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "email": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "phone": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
             "type": "boolean"
@@ -6711,11 +6099,7 @@
         "default": 1
       },
       "CreateAccountRequest": {
-        "required": [
-          "name",
-          "kind",
-          "currency"
-        ],
+        "required": ["name", "kind", "currency"],
         "type": "object",
         "properties": {
           "name": {
@@ -6728,36 +6112,23 @@
             "type": "string"
           },
           "institution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isDefault": {
             "type": "boolean",
             "default": false
           },
           "issuerEntity": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "CreateAccountWithOpeningRequest": {
-        "required": [
-          "account",
-          "openingBalance",
-          "date"
-        ],
+        "required": ["account", "openingBalance", "date"],
         "type": "object",
         "properties": {
           "account": {
@@ -6771,40 +6142,26 @@
             "format": "date"
           },
           "rate": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "rateAsOf": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateAdminOrganizationRequest": {
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "baseCurrency": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isDefault": {
             "type": "boolean",
@@ -6813,12 +6170,7 @@
         }
       },
       "CreateAdminRoleRequest": {
-        "required": [
-          "organizationId",
-          "name",
-          "description",
-          "capabilities"
-        ],
+        "required": ["organizationId", "name", "description", "capabilities"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -6829,10 +6181,7 @@
             "type": "string"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "capabilities": {
             "type": "array",
@@ -6841,10 +6190,7 @@
             }
           },
           "permissions": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string"
             }
@@ -6852,12 +6198,7 @@
         }
       },
       "CreateCardPaymentRequest": {
-        "required": [
-          "date",
-          "amount",
-          "account",
-          "card"
-        ],
+        "required": ["date", "amount", "account", "card"],
         "type": "object",
         "properties": {
           "date": {
@@ -6876,26 +6217,15 @@
             "format": "uuid"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateCashAdvanceRequest": {
-        "required": [
-          "date",
-          "amount",
-          "card",
-          "account"
-        ],
+        "required": ["date", "amount", "card", "account"],
         "type": "object",
         "properties": {
           "date": {
@@ -6914,44 +6244,25 @@
             "format": "uuid"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "installments": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "apr": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
+            "type": ["null", "number", "string"],
             "format": "double"
           }
         }
       },
       "CreateCategoryRequest": {
-        "required": [
-          "name",
-          "type",
-          "color",
-          "icon"
-        ],
+        "required": ["name", "type", "color", "icon"],
         "type": "object",
         "properties": {
           "name": {
@@ -6967,46 +6278,29 @@
             "type": "string"
           },
           "parent": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "CreateCounterpartyRequest": {
-        "required": [
-          "displayName"
-        ],
+        "required": ["displayName"],
         "type": "object",
         "properties": {
           "displayName": {
             "type": "string"
           },
           "alias": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "email": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "phone": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "kind": {
             "$ref": "#/components/schemas/CounterpartyKindDto"
@@ -7014,13 +6308,7 @@
         }
       },
       "CreateCreditCardRequest": {
-        "required": [
-          "name",
-          "currency",
-          "creditLimit",
-          "cycle",
-          "terms"
-        ],
+        "required": ["name", "currency", "creditLimit", "cycle", "terms"],
         "type": "object",
         "properties": {
           "name": {
@@ -7039,57 +6327,35 @@
             "$ref": "#/components/schemas/CardTermsDto"
           },
           "issuer": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "issuerEntity": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "CreateDashboardRequest": {
-        "required": [
-          "name"
-        ],
+        "required": ["name"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "layoutJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "copyFrom": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "CreateInvestmentPositionRequest": {
-        "required": [
-          "name",
-          "instrumentType",
-          "currency",
-          "risk"
-        ],
+        "required": ["name", "instrumentType", "currency", "risk"],
         "type": "object",
         "properties": {
           "name": {
@@ -7105,26 +6371,15 @@
             "$ref": "#/components/schemas/RiskLevelDto"
           },
           "symbol": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "institution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateLoanRequest": {
-        "required": [
-          "date",
-          "direction",
-          "counterparty",
-          "amount"
-        ],
+        "required": ["date", "direction", "counterparty", "amount"],
         "type": "object",
         "properties": {
           "date": {
@@ -7142,17 +6397,11 @@
             "$ref": "#/components/schemas/MoneyDto"
           },
           "account": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "card": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "cardMode": {
@@ -7170,45 +6419,24 @@
           },
           "monthlyRate": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
+            "type": ["null", "number", "string"],
             "format": "double"
           },
           "termMonths": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateMovementRequest": {
-        "required": [
-          "date",
-          "kind",
-          "effect",
-          "flow",
-          "amount",
-          "links"
-        ],
+        "required": ["date", "kind", "effect", "flow", "amount", "links"],
         "type": "object",
         "properties": {
           "date": {
@@ -7231,46 +6459,26 @@
             "$ref": "#/components/schemas/MovementLinksDto"
           },
           "rate": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "rateAsOf": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "purchaseApr": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
+            "type": ["null", "number", "string"],
             "format": "double"
           },
           "installments": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "cardBucket": {
@@ -7286,13 +6494,7 @@
         }
       },
       "CreateRecurrenceRequest": {
-        "required": [
-          "name",
-          "movementTemplate",
-          "amount",
-          "target",
-          "schedule"
-        ],
+        "required": ["name", "movementTemplate", "amount", "target", "schedule"],
         "type": "object",
         "properties": {
           "name": {
@@ -7313,10 +6515,7 @@
         }
       },
       "CreateSharedPurchaseRequest": {
-        "required": [
-          "purchaseMovement",
-          "shares"
-        ],
+        "required": ["purchaseMovement", "shares"],
         "type": "object",
         "properties": {
           "purchaseMovement": {
@@ -7330,20 +6529,12 @@
             }
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "CreateTransferRequest": {
-        "required": [
-          "date",
-          "amount",
-          "sourceAccount",
-          "destinationAccount"
-        ],
+        "required": ["date", "amount", "sourceAccount", "destinationAccount"],
         "type": "object",
         "properties": {
           "date": {
@@ -7362,16 +6553,10 @@
             "format": "uuid"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -7410,16 +6595,10 @@
             "$ref": "#/components/schemas/CardTermsDto"
           },
           "issuer": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
             "type": "boolean"
@@ -7441,11 +6620,7 @@
         }
       },
       "CurrencyDto": {
-        "required": [
-          "code",
-          "minorUnits",
-          "isBase"
-        ],
+        "required": ["code", "minorUnits", "isBase"],
         "type": "object",
         "properties": {
           "code": {
@@ -7453,10 +6628,7 @@
           },
           "minorUnits": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "isBase": {
@@ -7465,14 +6637,7 @@
         }
       },
       "DashboardDto": {
-        "required": [
-          "period",
-          "accounts",
-          "cards",
-          "topCategories",
-          "series",
-          "asOf"
-        ],
+        "required": ["period", "accounts", "cards", "topCategories", "series", "asOf"],
         "type": "object",
         "properties": {
           "period": {
@@ -7509,11 +6674,7 @@
         }
       },
       "DashboardMemberDto": {
-        "required": [
-          "id",
-          "name",
-          "email"
-        ],
+        "required": ["id", "name", "email"],
         "type": "object",
         "properties": {
           "id": {
@@ -7529,10 +6690,7 @@
         }
       },
       "DateRangeDto": {
-        "required": [
-          "start",
-          "end"
-        ],
+        "required": ["start", "end"],
         "type": "object",
         "properties": {
           "start": {
@@ -7549,12 +6707,7 @@
         "type": "integer"
       },
       "DebtPositionDto": {
-        "required": [
-          "counterparty",
-          "ownDebt",
-          "receivable",
-          "asOf"
-        ],
+        "required": ["counterparty", "ownDebt", "receivable", "asOf"],
         "type": "object",
         "properties": {
           "counterparty": {
@@ -7573,9 +6726,7 @@
         }
       },
       "DeleteAccountRequest": {
-        "required": [
-          "confirmation"
-        ],
+        "required": ["confirmation"],
         "type": "object",
         "properties": {
           "confirmation": {
@@ -7587,12 +6738,7 @@
         "type": "integer"
       },
       "FeatureFlagDto": {
-        "required": [
-          "key",
-          "isEnabled",
-          "audienceJson",
-          "updatedAt"
-        ],
+        "required": ["key", "isEnabled", "audienceJson", "updatedAt"],
         "type": "object",
         "properties": {
           "key": {
@@ -7602,10 +6748,7 @@
             "type": "boolean"
           },
           "audienceJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "updatedAt": {
             "type": "string",
@@ -7614,11 +6757,7 @@
         }
       },
       "InterestPolicyDto": {
-        "required": [
-          "kind",
-          "rate",
-          "period"
-        ],
+        "required": ["kind", "rate", "period"],
         "type": "object",
         "properties": {
           "kind": {
@@ -7636,10 +6775,7 @@
         "type": "integer"
       },
       "InterestPolicyTermDto": {
-        "required": [
-          "effectiveFrom",
-          "policy"
-        ],
+        "required": ["effectiveFrom", "policy"],
         "type": "object",
         "properties": {
           "effectiveFrom": {
@@ -7689,16 +6825,10 @@
             "$ref": "#/components/schemas/RiskLevelDto"
           },
           "symbol": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "institution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "quantity": {
             "type": "string"
@@ -7753,21 +6883,14 @@
         }
       },
       "InviteToOrganizationRequest": {
-        "required": [
-          "email",
-          "displayName",
-          "roleIds"
-        ],
+        "required": ["email", "displayName", "roleIds"],
         "type": "object",
         "properties": {
           "email": {
             "type": "string"
           },
           "displayName": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "roleIds": {
             "type": "array",
@@ -7779,12 +6902,7 @@
         }
       },
       "IssueSettlementRequest": {
-        "required": [
-          "counterparty",
-          "period",
-          "cutOff",
-          "currency"
-        ],
+        "required": ["counterparty", "period", "cutOff", "currency"],
         "type": "object",
         "properties": {
           "counterparty": {
@@ -7804,10 +6922,7 @@
         }
       },
       "LinkRefDto": {
-        "required": [
-          "id",
-          "name"
-        ],
+        "required": ["id", "name"],
         "type": "object",
         "properties": {
           "id": {
@@ -7820,11 +6935,7 @@
         }
       },
       "LlavePublicaDto": {
-        "required": [
-          "keyId",
-          "algorithm",
-          "spki"
-        ],
+        "required": ["keyId", "algorithm", "spki"],
         "type": "object",
         "properties": {
           "keyId": {
@@ -7842,11 +6953,7 @@
         "type": "integer"
       },
       "LoanDto": {
-        "required": [
-          "obligation",
-          "terms",
-          "movements"
-        ],
+        "required": ["obligation", "terms", "movements"],
         "type": "object",
         "properties": {
           "obligation": {
@@ -7867,12 +6974,7 @@
         "type": "integer"
       },
       "LoanTermsDto": {
-        "required": [
-          "product",
-          "monthlyRate",
-          "termMonths",
-          "cardMode"
-        ],
+        "required": ["product", "monthlyRate", "termMonths", "cardMode"],
         "type": "object",
         "properties": {
           "product": {
@@ -7880,20 +6982,12 @@
           },
           "monthlyRate": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
+            "type": ["null", "number", "string"],
             "format": "double"
           },
           "termMonths": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "cardMode": {
@@ -7909,10 +7003,7 @@
         }
       },
       "LoginRequest": {
-        "required": [
-          "userName",
-          "password"
-        ],
+        "required": ["userName", "password"],
         "type": "object",
         "properties": {
           "userName": {
@@ -7933,9 +7024,7 @@
         }
       },
       "MaterializeRecurrenceRequest": {
-        "required": [
-          "occurrence"
-        ],
+        "required": ["occurrence"],
         "type": "object",
         "properties": {
           "occurrence": {
@@ -7953,18 +7042,12 @@
             ]
           },
           "idempotencyKey": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "MoneyDto": {
-        "required": [
-          "amount",
-          "currency"
-        ],
+        "required": ["amount", "currency"],
         "type": "object",
         "properties": {
           "amount": {
@@ -8023,45 +7106,28 @@
             "$ref": "#/components/schemas/MovementOriginDto"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
             "format": "date-time"
           },
           "reversalOf": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "reversedBy": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "purchaseApr": {
             "pattern": "^-?(?:0|[1-9]\\d*)(?:\\.\\d+)?$",
-            "type": [
-              "null",
-              "number",
-              "string"
-            ],
+            "type": ["null", "number", "string"],
             "format": "double"
           },
           "installments": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "cardBucket": {
@@ -8090,134 +7156,89 @@
             ]
           },
           "kinds": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/MovementKindDto"
             }
           },
           "effects": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/EconomicEffectDto"
             }
           },
           "flows": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/CashFlowDto"
             }
           },
           "origins": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "$ref": "#/components/schemas/MovementOriginDto"
             }
           },
           "accounts": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "cards": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "categories": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "counterparties": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "obligations": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "positions": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "recurrences": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string",
               "format": "uuid"
             }
           },
           "text": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "minAmountBase": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "maxAmountBase": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "uncategorized": {
-            "type": [
-              "null",
-              "boolean"
-            ]
+            "type": ["null", "boolean"]
           },
           "reversals": {
             "$ref": "#/components/schemas/ReversalFilterDto"
@@ -8359,66 +7380,39 @@
         "type": "object",
         "properties": {
           "operation": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "account": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "card": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "category": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "counterparty": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "obligation": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "recurrence": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "position": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "sharedPurchase": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
@@ -8427,15 +7421,7 @@
         "type": "integer"
       },
       "MovementPageDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total",
-          "hasNext",
-          "nextCursor",
-          "totals"
-        ],
+        "required": ["items", "page", "size", "total", "hasNext", "nextCursor", "totals"],
         "type": "object",
         "properties": {
           "items": {
@@ -8446,37 +7432,24 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "hasNext": {
             "type": "boolean"
           },
           "nextCursor": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "totals": {
             "oneOf": [
@@ -8490,10 +7463,7 @@
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           }
         }
@@ -8528,10 +7498,7 @@
             "$ref": "#/components/schemas/SortDirectionDto"
           },
           "after": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -8540,11 +7507,7 @@
         "default": 0
       },
       "MovementTotalsDto": {
-        "required": [
-          "income",
-          "expense",
-          "net"
-        ],
+        "required": ["income", "expense", "net"],
         "type": "object",
         "properties": {
           "income": {
@@ -8559,9 +7522,7 @@
         }
       },
       "MoveUserOrganizationRequest": {
-        "required": [
-          "organizationId"
-        ],
+        "required": ["organizationId"],
         "type": "object",
         "properties": {
           "organizationId": {
@@ -8571,14 +7532,7 @@
         }
       },
       "NotificationDto": {
-        "required": [
-          "id",
-          "kind",
-          "title",
-          "payloadJson",
-          "readAt",
-          "createdAt"
-        ],
+        "required": ["id", "kind", "title", "payloadJson", "readAt", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -8595,10 +7549,7 @@
             "type": "string"
           },
           "readAt": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date-time"
           },
           "createdAt": {
@@ -8608,18 +7559,12 @@
         }
       },
       "NotificationSummaryDto": {
-        "required": [
-          "unreadCount",
-          "latest"
-        ],
+        "required": ["unreadCount", "latest"],
         "type": "object",
         "properties": {
           "unreadCount": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "latest": {
@@ -8679,10 +7624,7 @@
             "format": "date"
           },
           "dueOn": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "allocationRule": {
@@ -8692,33 +7634,21 @@
             "type": "boolean"
           },
           "card": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "account": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "status": {
             "$ref": "#/components/schemas/ObligationStatusDto"
           },
           "closedThrough": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "principalOutstanding": {
@@ -8781,31 +7711,19 @@
             "$ref": "#/components/schemas/MoneyDto"
           },
           "movement": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "reversalOf": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "reversedBy": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "note": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
@@ -8823,14 +7741,7 @@
         "type": "integer"
       },
       "OperationDto": {
-        "required": [
-          "id",
-          "kind",
-          "date",
-          "description",
-          "createdAt",
-          "legs"
-        ],
+        "required": ["id", "kind", "date", "description", "createdAt", "legs"],
         "type": "object",
         "properties": {
           "id": {
@@ -8845,10 +7756,7 @@
             "format": "date"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "createdAt": {
             "type": "string",
@@ -8866,14 +7774,7 @@
         "type": "integer"
       },
       "OrganizationDto": {
-        "required": [
-          "id",
-          "name",
-          "slug",
-          "baseCurrency",
-          "isActive",
-          "createdAt"
-        ],
+        "required": ["id", "name", "slug", "baseCurrency", "isActive", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -8899,15 +7800,7 @@
         }
       },
       "OrganizationMemberDto": {
-        "required": [
-          "membershipId",
-          "userId",
-          "displayName",
-          "email",
-          "status",
-          "roles",
-          "createdAt"
-        ],
+        "required": ["membershipId", "userId", "displayName", "email", "status", "roles", "createdAt"],
         "type": "object",
         "properties": {
           "membershipId": {
@@ -8940,12 +7833,7 @@
         }
       },
       "PageDtoOfAdminAuditDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -8956,34 +7844,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -8992,12 +7868,7 @@
         }
       },
       "PageDtoOfAdminOrganizationDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -9008,34 +7879,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -9044,12 +7903,7 @@
         }
       },
       "PageDtoOfAdminRoleDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -9060,34 +7914,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -9096,12 +7938,7 @@
         }
       },
       "PageDtoOfAdminUserDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -9112,34 +7949,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -9148,12 +7973,7 @@
         }
       },
       "PageDtoOfAuditEventDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -9164,34 +7984,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -9200,12 +8008,7 @@
         }
       },
       "PageDtoOfClientErrorDto": {
-        "required": [
-          "items",
-          "page",
-          "size",
-          "total"
-        ],
+        "required": ["items", "page", "size", "total"],
         "type": "object",
         "properties": {
           "items": {
@@ -9216,34 +8019,22 @@
           },
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "total": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "totalPages": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "hasNext": {
@@ -9256,19 +8047,13 @@
         "properties": {
           "page": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32",
             "default": 1
           },
           "size": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32",
             "default": 50
           }
@@ -9278,9 +8063,7 @@
         "type": "integer"
       },
       "PercentageDto": {
-        "required": [
-          "rate"
-        ],
+        "required": ["rate"],
         "type": "object",
         "properties": {
           "rate": {
@@ -9289,12 +8072,7 @@
         }
       },
       "PeriodPointDto": {
-        "required": [
-          "date",
-          "income",
-          "expense",
-          "net"
-        ],
+        "required": ["date", "income", "expense", "net"],
         "type": "object",
         "properties": {
           "date": {
@@ -9313,12 +8091,7 @@
         }
       },
       "PeriodResultDto": {
-        "required": [
-          "income",
-          "expense",
-          "net",
-          "period"
-        ],
+        "required": ["income", "expense", "net", "period"],
         "type": "object",
         "properties": {
           "income": {
@@ -9339,13 +8112,7 @@
         "type": "integer"
       },
       "PermissionDescriptorDto": {
-        "required": [
-          "code",
-          "resource",
-          "action",
-          "level",
-          "description"
-        ],
+        "required": ["code", "resource", "action", "level", "description"],
         "type": "object",
         "properties": {
           "code": {
@@ -9372,47 +8139,26 @@
         "type": "object",
         "properties": {
           "type": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "title": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "status": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "detail": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "instance": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "ProjectedOccurrenceDto": {
-        "required": [
-          "recurrence",
-          "occurrence",
-          "amount",
-          "kind"
-        ],
+        "required": ["recurrence", "occurrence", "amount", "kind"],
         "type": "object",
         "properties": {
           "recurrence": {
@@ -9431,12 +8177,7 @@
         }
       },
       "PurchaseAllocationDto": {
-        "required": [
-          "shares",
-          "assignedTotal",
-          "holderPortion",
-          "roundingAdjustment"
-        ],
+        "required": ["shares", "assignedTotal", "holderPortion", "roundingAdjustment"],
         "type": "object",
         "properties": {
           "shares": {
@@ -9457,13 +8198,7 @@
         }
       },
       "PurchaseShareDto": {
-        "required": [
-          "counterparty",
-          "basis",
-          "percent",
-          "fixedAmount",
-          "obligation"
-        ],
+        "required": ["counterparty", "basis", "percent", "fixedAmount", "obligation"],
         "type": "object",
         "properties": {
           "counterparty": {
@@ -9493,10 +8228,7 @@
             ]
           },
           "obligation": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
@@ -9505,24 +8237,15 @@
         "type": "integer"
       },
       "ReclassifyMovementRequest": {
-        "required": [
-          "category",
-          "description"
-        ],
+        "required": ["category", "description"],
         "type": "object",
         "properties": {
           "category": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -9571,17 +8294,11 @@
             "$ref": "#/components/schemas/MovementLinksDto"
           },
           "sourceAccount": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "destinationAccount": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "schedule": {
@@ -9591,10 +8308,7 @@
             "type": "boolean"
           },
           "nextOccurrence": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "materializedOccurrences": {
@@ -9617,11 +8331,7 @@
         "type": "integer"
       },
       "RecurrenceMaterializationDto": {
-        "required": [
-          "occurrence",
-          "operation",
-          "movements"
-        ],
+        "required": ["occurrence", "operation", "movements"],
         "type": "object",
         "properties": {
           "occurrence": {
@@ -9629,10 +8339,7 @@
             "format": "date"
           },
           "operation": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "movements": {
@@ -9645,14 +8352,7 @@
         }
       },
       "RecurrenceScheduleDto": {
-        "required": [
-          "frequency",
-          "interval",
-          "start",
-          "end",
-          "dayOfMonth",
-          "dayOfWeek"
-        ],
+        "required": ["frequency", "interval", "start", "end", "dayOfMonth", "dayOfWeek"],
         "type": "object",
         "properties": {
           "frequency": {
@@ -9660,10 +8360,7 @@
           },
           "interval": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "start": {
@@ -9671,19 +8368,12 @@
             "format": "date"
           },
           "end": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "date"
           },
           "dayOfMonth": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "null",
-              "integer",
-              "string"
-            ],
+            "type": ["null", "integer", "string"],
             "format": "int32"
           },
           "dayOfWeek": {
@@ -9699,12 +8389,7 @@
         }
       },
       "ReportClientErrorRequest": {
-        "required": [
-          "source",
-          "fingerprint",
-          "message",
-          "contextJson"
-        ],
+        "required": ["source", "fingerprint", "message", "contextJson"],
         "type": "object",
         "properties": {
           "source": {
@@ -9717,43 +8402,27 @@
             "type": "string"
           },
           "contextJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "traceId": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "ResolveClientErrorRequest": {
-        "required": [
-          "status",
-          "resolution"
-        ],
+        "required": ["status", "resolution"],
         "type": "object",
         "properties": {
           "status": {
             "type": "string"
           },
           "resolution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "ResolvedShareDto": {
-        "required": [
-          "share",
-          "amount",
-          "roundingAdjustment"
-        ],
+        "required": ["share", "amount", "roundingAdjustment"],
         "type": "object",
         "properties": {
           "share": {
@@ -9771,9 +8440,7 @@
         "type": "integer"
       },
       "ReverseMovementRequest": {
-        "required": [
-          "date"
-        ],
+        "required": ["date"],
         "type": "object",
         "properties": {
           "date": {
@@ -9781,10 +8448,7 @@
             "format": "date"
           },
           "reason": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -9792,27 +8456,16 @@
         "type": "integer"
       },
       "SaveDashboardLayoutRequest": {
-        "required": [
-          "layoutJson"
-        ],
+        "required": ["layoutJson"],
         "type": "object",
         "properties": {
           "layoutJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "SessionDto": {
-        "required": [
-          "user",
-          "organization",
-          "capabilities",
-          "organizations",
-          "expiresAt"
-        ],
+        "required": ["user", "organization", "capabilities", "organizations", "expiresAt"],
         "type": "object",
         "properties": {
           "user": {
@@ -9842,10 +8495,7 @@
             "default": false
           },
           "permissions": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string"
             }
@@ -9853,25 +8503,15 @@
         }
       },
       "SetAdminFeatureFlagRequest": {
-        "required": [
-          "organizationId",
-          "userId",
-          "isEnabled"
-        ],
+        "required": ["organizationId", "userId", "isEnabled"],
         "type": "object",
         "properties": {
           "organizationId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "userId": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "isEnabled": {
@@ -9880,9 +8520,7 @@
         }
       },
       "SetBudgetRequest": {
-        "required": [
-          "monthlyLimit"
-        ],
+        "required": ["monthlyLimit"],
         "type": "object",
         "properties": {
           "monthlyLimit": {
@@ -9891,26 +8529,19 @@
         }
       },
       "SetFeatureFlagRequest": {
-        "required": [
-          "isEnabled"
-        ],
+        "required": ["isEnabled"],
         "type": "object",
         "properties": {
           "isEnabled": {
             "type": "boolean"
           },
           "audienceJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "SetOrganizationFlagRequest": {
-        "required": [
-          "isEnabled"
-        ],
+        "required": ["isEnabled"],
         "type": "object",
         "properties": {
           "isEnabled": {
@@ -9919,23 +8550,16 @@
         }
       },
       "SetPermissionDescriptionRequest": {
-        "required": [
-          "description"
-        ],
+        "required": ["description"],
         "type": "object",
         "properties": {
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "SetRoleActiveRequest": {
-        "required": [
-          "isActive"
-        ],
+        "required": ["isActive"],
         "type": "object",
         "properties": {
           "isActive": {
@@ -9999,10 +8623,7 @@
           },
           "formulaVersion": {
             "pattern": "^-?(?:0|[1-9]\\d*)$",
-            "type": [
-              "integer",
-              "string"
-            ],
+            "type": ["integer", "string"],
             "format": "int32"
           },
           "lines": {
@@ -10018,14 +8639,7 @@
         }
       },
       "SettlementLineDto": {
-        "required": [
-          "obligation",
-          "entry",
-          "type",
-          "date",
-          "principalDelta",
-          "interestDelta"
-        ],
+        "required": ["obligation", "entry", "type", "date", "principalDelta", "interestDelta"],
         "type": "object",
         "properties": {
           "obligation": {
@@ -10052,9 +8666,7 @@
         }
       },
       "SetUserActiveRequest": {
-        "required": [
-          "isActive"
-        ],
+        "required": ["isActive"],
         "type": "object",
         "properties": {
           "isActive": {
@@ -10066,9 +8678,7 @@
         "type": "integer"
       },
       "ShareDashboardRequest": {
-        "required": [
-          "users"
-        ],
+        "required": ["users"],
         "type": "object",
         "properties": {
           "users": {
@@ -10081,16 +8691,7 @@
         }
       },
       "SharedPurchaseDto": {
-        "required": [
-          "id",
-          "purchaseMovement",
-          "card",
-          "date",
-          "total",
-          "description",
-          "allocation",
-          "createdAt"
-        ],
+        "required": ["id", "purchaseMovement", "card", "date", "total", "description", "allocation", "createdAt"],
         "type": "object",
         "properties": {
           "id": {
@@ -10112,10 +8713,7 @@
             "$ref": "#/components/schemas/MoneyDto"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "allocation": {
             "$ref": "#/components/schemas/PurchaseAllocationDto"
@@ -10131,29 +8729,17 @@
         "default": 1
       },
       "UpdateAccountRequest": {
-        "required": [
-          "name",
-          "institution",
-          "lastFour",
-          "isDefault",
-          "isActive"
-        ],
+        "required": ["name", "institution", "lastFour", "isDefault", "isActive"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "institution": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isDefault": {
             "type": "boolean"
@@ -10162,10 +8748,7 @@
             "type": "boolean"
           },
           "issuerEntity": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
@@ -10174,35 +8757,22 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
-            "type": [
-              "null",
-              "boolean"
-            ]
+            "type": ["null", "boolean"]
           }
         }
       },
       "UpdateAdminRoleRequest": {
-        "required": [
-          "name",
-          "description",
-          "capabilities"
-        ],
+        "required": ["name", "description", "capabilities"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "description": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "capabilities": {
             "type": "array",
@@ -10211,10 +8781,7 @@
             }
           },
           "permissions": {
-            "type": [
-              "null",
-              "array"
-            ],
+            "type": ["null", "array"],
             "items": {
               "type": "string"
             }
@@ -10222,13 +8789,7 @@
         }
       },
       "UpdateCategoryRequest": {
-        "required": [
-          "name",
-          "color",
-          "icon",
-          "parent",
-          "isActive"
-        ],
+        "required": ["name", "color", "icon", "parent", "isActive"],
         "type": "object",
         "properties": {
           "name": {
@@ -10241,10 +8802,7 @@
             "type": "string"
           },
           "parent": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           },
           "isActive": {
@@ -10253,42 +8811,23 @@
         }
       },
       "UpdateCounterpartyRequest": {
-        "required": [
-          "displayName",
-          "alias",
-          "email",
-          "phone",
-          "notes",
-          "isActive"
-        ],
+        "required": ["displayName", "alias", "email", "phone", "notes", "isActive"],
         "type": "object",
         "properties": {
           "displayName": {
             "type": "string"
           },
           "alias": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "email": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "phone": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "notes": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
             "type": "boolean"
@@ -10306,15 +8845,7 @@
         }
       },
       "UpdateCreditCardRequest": {
-        "required": [
-          "name",
-          "creditLimit",
-          "cycle",
-          "terms",
-          "issuer",
-          "lastFour",
-          "isActive"
-        ],
+        "required": ["name", "creditLimit", "cycle", "terms", "issuer", "lastFour", "isActive"],
         "type": "object",
         "properties": {
           "name": {
@@ -10330,45 +8861,29 @@
             "$ref": "#/components/schemas/CardTermsDto"
           },
           "issuer": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "lastFour": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
             "type": "boolean"
           },
           "issuerEntity": {
-            "type": [
-              "null",
-              "string"
-            ],
+            "type": ["null", "string"],
             "format": "uuid"
           }
         }
       },
       "UpdateDashboardRequest": {
-        "required": [
-          "name",
-          "layoutJson",
-          "isPinned"
-        ],
+        "required": ["name", "layoutJson", "isPinned"],
         "type": "object",
         "properties": {
           "name": {
             "type": "string"
           },
           "layoutJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isPinned": {
             "type": "boolean"
@@ -10376,13 +8891,7 @@
         }
       },
       "UpdateInvestmentPositionRequest": {
-        "required": [
-          "name",
-          "instrumentType",
-          "risk",
-          "symbol",
-          "isActive"
-        ],
+        "required": ["name", "instrumentType", "risk", "symbol", "isActive"],
         "type": "object",
         "properties": {
           "name": {
@@ -10395,10 +8904,7 @@
             "$ref": "#/components/schemas/RiskLevelDto"
           },
           "symbol": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "isActive": {
             "type": "boolean"
@@ -10406,13 +8912,7 @@
         }
       },
       "UpdateUserPreferenceRequest": {
-        "required": [
-          "language",
-          "theme",
-          "font",
-          "density",
-          "baseCurrency"
-        ],
+        "required": ["language", "theme", "font", "density", "baseCurrency"],
         "type": "object",
         "properties": {
           "language": {
@@ -10431,20 +8931,12 @@
             "type": "string"
           },
           "customThemeJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
       "UserDto": {
-        "required": [
-          "id",
-          "displayName",
-          "email",
-          "isActive"
-        ],
+        "required": ["id", "displayName", "email", "isActive"],
         "type": "object",
         "properties": {
           "id": {
@@ -10461,10 +8953,7 @@
             "type": "boolean"
           },
           "pictureUrl": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },
@@ -10502,16 +8991,10 @@
             "type": "string"
           },
           "customThemeJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "dashboardLayoutJson": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           },
           "updatedAt": {
             "type": "string",
@@ -10520,13 +9003,7 @@
         }
       },
       "ValuationDto": {
-        "required": [
-          "id",
-          "date",
-          "value",
-          "source",
-          "reference"
-        ],
+        "required": ["id", "date", "value", "source", "reference"],
         "type": "object",
         "properties": {
           "id": {
@@ -10544,10 +9021,7 @@
             "$ref": "#/components/schemas/ValuationSourceDto"
           },
           "reference": {
-            "type": [
-              "null",
-              "string"
-            ]
+            "type": ["null", "string"]
           }
         }
       },

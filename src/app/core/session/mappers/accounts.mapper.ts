@@ -33,6 +33,7 @@ export function cardToViewAccount(card: ApiCard): Account {
     foreignPaymentPriority: completarPrioridad(card.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
     ...(card.terms?.monthlyFee ? { monthlyFee: parseMoney(card.terms.monthlyFee) } : {}),
     dualCurrency: card.terms?.dualCurrency === true,
+    applyPaymentPriority: card.terms?.applyPaymentPriority !== false,
     issuerId: card.issuerEntity?.id,
   };
 }

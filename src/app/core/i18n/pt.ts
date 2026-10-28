@@ -1945,6 +1945,8 @@ export default {
   'form.account.priority.reset': 'Usar a ordem do banco',
   'workspace.statement.minimumPayment': 'Pagamento mínimo',
   'workspace.cardPayment.sourceAccount': 'Pagar de',
+  'workspace.cardPayment.oldestFirstNote':
+    'Este cartão quita primeiro a dívida mais antiga; o banco não permite direcionar o pagamento a uma compra específica.',
   'workspace.cardPayment.priorityNote':
     'O pagamento segue a ordem de prioridade do cartão; o banco não permite direcioná-lo a uma compra.',
   'workspace.cardPayment.table.bucket': 'Conceito',
@@ -2004,6 +2006,9 @@ export default {
   'accounts.selected.payment': 'Registrar pagamento',
   'form.account.field.dualCurrency': 'Cartão bimoeda (pesos e dólares)',
   'form.account.hint.dualCurrency': 'Se desmarcado, só aceita compras na sua moeda.',
+  'form.account.field.applyPriority': 'Aplicar ordem de prioridade',
+  'form.account.hint.applyPriority': 'O pagamento é distribuído na ordem abaixo.',
+  'form.account.hint.oldestFirst': 'O pagamento quita primeiro a dívida mais antiga.',
   'form.movement.field.purchaseCurrency': 'Moeda da compra',
   'form.account.field.monthlyFee': 'Anuidade mensal',
   'form.account.preview.title': 'Como um pagamento seria aplicado',

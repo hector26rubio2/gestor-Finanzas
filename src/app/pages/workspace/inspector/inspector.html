@@ -271,7 +271,10 @@
       <button hlmBtn class="h-10" (click)="tarjeta.confirmarAbono()">
         <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
       </button>
-      <small class="text-xs text-muted-foreground">{{ i18n.t('workspace.cardPayment.priorityNote') }}</small>
+      <small class="text-xs text-muted-foreground"
+        >{{ i18n.t(tarjeta.porAntiguedad() ? 'workspace.cardPayment.oldestFirstNote' :
+        'workspace.cardPayment.priorityNote') }}</small
+      >
     </section>
     }
   </section></ng-template

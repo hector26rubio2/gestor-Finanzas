@@ -149,4 +149,33 @@ describe('formulario de cuenta nueva', () => {
     expect(actualizar).toHaveBeenCalledOnce();
     expect(actualizar.mock.calls[0][1]).toMatchObject({ name: 'Visa Oro', credit: { cutDay: 10, dualCurrency: true } });
   });
+
+  it('sin orden de prioridad oculta la lista y guarda que paga la deuda más vieja', async () => {
+    const tarjeta: Account = {
+      id: 't1',
+      name: 'Visa',
+      type: 'credit',
+      currency: 'COP',
+      openingBalance: 0,
+      limit: 2000000,
+      cutDay: 10,
+      dueDay: 25,
+      annualRate: 30,
+    };
+    const { fixture, vista } = await abrirFormulario('credit', tarjeta);
+    const actualizar = vi.spyOn(TestBed.inject(CatalogCommands), 'updateAccount').mockResolvedValue(undefined);
+    const componente = fixture.componentInstance;
+    const lista = () => vista.querySelector('ol[aria-label]');
+
+    expect(componente.aplicarPrioridad()).toBe(true);
+    expect(lista()).not.toBeNull();
+
+    componente.aplicarPrioridad.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(lista()).toBeNull();
+
+    await enviar(fixture);
+    expect(actualizar.mock.calls[0][1]).toMatchObject({ credit: { applyPaymentPriority: false } });
+  });
 });

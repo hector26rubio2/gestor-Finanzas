@@ -14,7 +14,13 @@ import {
   completarPrioridad,
 } from '@core/api';
 import { Account, CAPABILITIES, AppStore, type Movement, CatalogCommands } from '@core/state';
-import { aplicarAbono, comprasPendientes, saldosPorConcepto, traerMovimientosDeTarjetas } from '@shared/tarjetas';
+import {
+  aplicarAbono,
+  comprasPendientes,
+  ordenDeAbono,
+  saldosPorConcepto,
+  traerMovimientosDeTarjetas,
+} from '@shared/tarjetas';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { OverlayComponent } from '@ui/overlay';
@@ -103,6 +109,7 @@ export class AccountFormComponent {
     { value: 'USD', label: this.i18n.t('form.currency.usd') },
   ]);
   readonly bimoneda = signal(this.editing?.dualCurrency === true);
+  readonly aplicarPrioridad = signal(this.editing?.applyPaymentPriority !== false);
   readonly monedasDePrioridad = computed<readonly UiOption[]>(() => [
     { value: 'pesos', label: this.i18n.t('form.account.priority.local') },
     { value: 'dolares', label: this.i18n.t('form.account.priority.foreign') },
@@ -170,10 +177,11 @@ export class AccountFormComponent {
     });
   });
   readonly vistaPrevia = computed(() => {
-    const prioridad =
+    const configurada =
       this.editing?.currency && this.editing.currency !== 'COP' ? this.prioridadEnDolares() : this.prioridadEnPesos();
+    const prioridad = ordenDeAbono(configurada, this.aplicarPrioridad());
     const saldos = saldosPorConcepto(comprasPendientes(this.comprasDeLaTarjeta(), prioridad), prioridad);
-    return aplicarAbono(saldos, this.abonoDePrueba());
+    return aplicarAbono(saldos, this.abonoDePrueba(), !this.aplicarPrioridad());
   });
   dinero(valor: number): string {
     return this.store.money(valor);
@@ -245,6 +253,7 @@ export class AccountFormComponent {
       foreignPaymentPriority: this.prioridadEnDolares(),
       monthlyFee: Number(datos.monthlyFee) || 0,
       dualCurrency: this.bimoneda(),
+      applyPaymentPriority: this.aplicarPrioridad(),
     };
   }
 

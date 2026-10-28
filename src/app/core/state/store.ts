@@ -68,6 +68,7 @@ export interface CondicionesDeTarjeta {
   foreignPaymentPriority?: readonly number[];
   monthlyFee?: number;
   dualCurrency?: boolean;
+  applyPaymentPriority?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })

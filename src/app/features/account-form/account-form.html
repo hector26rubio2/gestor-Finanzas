@@ -86,6 +86,14 @@
     <fin-field [label]="i18n.t('form.account.field.monthlyFee')" [error]="mensaje(formulario.monthlyFee)">
       <input hlmInput [formField]="formulario.monthlyFee" type="number" step="1000" />
     </fin-field>
+    <label class="col-span-full flex items-center gap-2 text-xs font-medium">
+      <hlm-checkbox [checked]="aplicarPrioridad()" (checkedChange)="aplicarPrioridad.set($event)" />
+      <span>{{ i18n.t('form.account.field.applyPriority') }}</span>
+      <small class="text-muted-foreground"
+        >{{ i18n.t(aplicarPrioridad() ? 'form.account.hint.applyPriority' : 'form.account.hint.oldestFirst') }}</small
+      >
+    </label>
+    @if (aplicarPrioridad()) {
     <fin-field [label]="i18n.t('form.account.field.paymentPriority')" [full]="true">
       <div class="flex flex-wrap items-center justify-between gap-2">
         @if (bimoneda()) {
@@ -148,6 +156,7 @@
       </ol>
       <small class="text-xs text-muted-foreground">{{ i18n.t('form.account.priorityHint') }}</small>
     </fin-field>
+    }
     <section
       class="col-span-full grid gap-2 rounded-[10px] border border-border p-3"
       [attr.aria-label]="i18n.t('form.account.preview.title')"

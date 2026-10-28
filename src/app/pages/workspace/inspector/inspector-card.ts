@@ -15,7 +15,7 @@ import { I18nService } from '@core/i18n';
 import { toMovement } from '@core/session';
 import type { Account, Movement } from '@core/state';
 import { AppStore, MovementCommands } from '@core/state';
-import { aplicarAbono, comprasPendientes, saldosPorConcepto } from '@shared/tarjetas';
+import { aplicarAbono, comprasPendientes, ordenDeAbono, saldosPorConcepto } from '@shared/tarjetas';
 
 interface ApiCardStatus {
   debt: { amount: string; currency: string };
@@ -60,10 +60,10 @@ export class InspectorCard {
       ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
       : completarPrioridad(tarjeta?.paymentPriority, PRIORIDAD_EN_PESOS);
   });
-  readonly comprasPendientes = computed(() =>
-    comprasPendientes(this.movimientosDeTarjeta(), this.prioridadDeTarjeta()),
-  );
-  readonly saldosPorConcepto = computed(() => saldosPorConcepto(this.comprasPendientes(), this.prioridadDeTarjeta()));
+  readonly porAntiguedad = computed(() => this.tarjeta()?.applyPaymentPriority === false);
+  private readonly ordenDeAbono = computed(() => ordenDeAbono(this.prioridadDeTarjeta(), !this.porAntiguedad()));
+  readonly comprasPendientes = computed(() => comprasPendientes(this.movimientosDeTarjeta(), this.ordenDeAbono()));
+  readonly saldosPorConcepto = computed(() => saldosPorConcepto(this.comprasPendientes(), this.ordenDeAbono()));
   readonly cardDebt = computed(() => {
     const estado = this.estadoDeTarjeta();
     if (estado) return parseMoney(estado.debt);
@@ -78,7 +78,11 @@ export class InspectorCard {
   });
   readonly periodoActual = computed(() => this.estadoDeTarjeta()?.currentPeriod ?? null);
   readonly paymentAllocation = computed(() =>
-    aplicarAbono(this.saldosPorConcepto(), Math.min(this.cardPaymentAmount(), this.cardDebt() || Infinity)),
+    aplicarAbono(
+      this.saldosPorConcepto(),
+      Math.min(this.cardPaymentAmount(), this.cardDebt() || Infinity),
+      this.porAntiguedad(),
+    ),
   );
   readonly appliedPayment = computed(() => sumBy(this.paymentAllocation(), (row) => row.aplicado));
   readonly motivoDeAbono = signal('');

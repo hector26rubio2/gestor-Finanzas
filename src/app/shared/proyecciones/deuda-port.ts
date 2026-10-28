@@ -4,7 +4,7 @@ import { CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPriorid
 import { mensualDesdeAnual } from '@core/utils/tasas';
 import { sumBy } from '@core/utils';
 import { type Deuda, cuotaFija } from './amortizacion';
-import { type CompraPendiente, comprasPendientes, saldosPorConcepto } from '@shared/tarjetas/extracto';
+import { type CompraPendiente, comprasPendientes, ordenDeAbono, saldosPorConcepto } from '@shared/tarjetas/extracto';
 
 export const TASA_MENSUAL_SUPUESTA_TARJETA = 2.5;
 export const TASA_MENSUAL_SUPUESTA_CREDITO = 1.5;
@@ -103,10 +103,11 @@ export interface PuertaDeTarjeta {
 export function DeudaDeTarjetas(fuente: PuertaDeTarjeta): DeudaActual[] {
   const { tarjeta, saldoTotal, movimientos, etiqueta } = fuente;
   const tasaTarjeta = tasaMensualDeTarjeta(tarjeta);
-  const prioridad =
+  const prioridadConfigurada =
     tarjeta.currency && tarjeta.currency !== 'COP'
       ? completarPrioridad(tarjeta.foreignPaymentPriority, PRIORIDAD_EN_DOLARES)
       : completarPrioridad(tarjeta.paymentPriority, PRIORIDAD_EN_PESOS);
+  const prioridad = ordenDeAbono(prioridadConfigurada, tarjeta.applyPaymentPriority !== false);
   const compras = comprasPendientes(
     movimientos.filter((m) => m.accountId === tarjeta.id),
     prioridad,

@@ -1,6 +1,6 @@
 import { PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
 import type { Account, Movement } from '@core/state';
-import { comprasPendientes } from '@shared/tarjetas';
+import { comprasPendientes, ordenDeAbono } from '@shared/tarjetas';
 
 function prioridadDe(tarjeta: Account) {
   return tarjeta.currency && tarjeta.currency !== 'COP'
@@ -15,7 +15,8 @@ export function deudaPendienteComoMovimientos(
   const porId = new Map(movimientos.map((movimiento) => [movimiento.id, movimiento]));
   return tarjetas.flatMap((tarjeta) => {
     const propios = movimientos.filter((movimiento) => movimiento.accountId === tarjeta.id);
-    return comprasPendientes(propios, prioridadDe(tarjeta)).flatMap((compra) => {
+    const orden = ordenDeAbono(prioridadDe(tarjeta), tarjeta.applyPaymentPriority !== false);
+    return comprasPendientes(propios, orden).flatMap((compra) => {
       const original = porId.get(compra.id);
       return original ? [{ ...original, amount: -compra.pendiente }] : [];
     });
