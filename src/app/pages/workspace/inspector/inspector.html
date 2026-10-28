@@ -229,6 +229,15 @@
           [ngModel]="tarjeta.cardPaymentAmount()"
           (ngModelChange)="tarjeta.cardPaymentAmount.set(+$event)"
       /></label>
+      <label class="grid gap-1.5 text-muted-foreground"
+        >{{ i18n.t('workspace.cardPayment.reasonLabel') }}<input
+          hlmInput
+          type="text"
+          maxlength="200"
+          [placeholder]="i18n.t('workspace.cardPayment.reasonPlaceholder')"
+          [ngModel]="tarjeta.motivoDeAbono()"
+          (ngModelChange)="tarjeta.motivoDeAbono.set($event)"
+      /></label>
       <div
         class="flex items-center justify-between gap-3 [&_b]:text-foreground [&>span]:grid [&>span]:flex-1 [&>span]:gap-[5px] [&>span]:rounded-[10px] [&>span]:border [&>span]:border-border [&>span]:p-3 [&>span]:text-muted-foreground"
       >
@@ -240,6 +249,11 @@
           <b>{{ store.money(Math.max(0, tarjeta.cardDebt() - tarjeta.appliedPayment())) }}</b></span
         >
       </div>
+      @if (tarjeta.saldoAFavor() > 0) {
+      <p class="rounded-[10px] border border-border bg-accent p-3 text-sm" role="status">
+        {{ i18n.t('workspace.cardPayment.creditBalance', { amount: store.money(tarjeta.saldoAFavor()) }) }}
+      </p>
+      }
       <div class="[scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         <fin-table
           [columns]="tarjeta.paymentAllocationColumns()"

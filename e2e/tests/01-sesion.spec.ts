@@ -1,4 +1,4 @@
-import { credencialesPropietario } from '../support/entorno';
+import { credencialesCierre, credencialesPropietario } from '../support/entorno';
 import { expect, test } from '../support/fixtures';
 
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -36,8 +36,12 @@ test.describe('Sesión', () => {
     await expect(page).toHaveURL(/\/login/);
   });
 
-  test('SES-14 cerrar sesión vuelve al login y exige autenticarse otra vez', async ({ page, vigilancia }) => {
-    const { usuario, clave } = credencialesPropietario();
+  test('SES-14 cerrar sesión vuelve al login y exige autenticarse otra vez', async ({ page }) => {
+    test.skip(
+      !credencialesCierre(),
+      'Requiere E2E_CIERRE_USER/E2E_CIERRE_PASSWORD: cuenta dedicada, porque el logout rota el sello de seguridad del usuario y mataría la sesión compartida de los demás tests.',
+    );
+    const { usuario, clave } = credencialesCierre()!;
     await escribirCredenciales(page, usuario, clave);
     await expect(page).toHaveURL(/\/dashboard/);
     await page.locator('[data-slot=profile-trigger]').click();
