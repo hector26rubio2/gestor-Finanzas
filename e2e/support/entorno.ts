@@ -29,6 +29,8 @@ export function credencialesPropietario(): Credenciales {
 
 export const credencialesLector = (): Credenciales | null => credenciales('E2E_VIEWER');
 
+export const credencialesCierre = (): Credenciales | null => credenciales('E2E_CIERRE');
+
 export const hayEstadoLector = (): boolean => existsSync(estadoLector);
 
 export const identificadorDeCorrida = (process.env.E2E_RUN_ID ?? Date.now().toString(36)).toLowerCase();
