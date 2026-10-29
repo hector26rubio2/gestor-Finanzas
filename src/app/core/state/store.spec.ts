@@ -68,13 +68,21 @@ describe('AppStore en modo API', () => {
         payloads.push(request);
         return of(respuesta);
       }),
+      createSharedPurchase: vi.fn(() => of({})),
     });
+    store.data.update((data) => ({
+      ...data,
+      accounts: [
+        ...data.accounts,
+        { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 1000000 },
+      ],
+    }));
 
     await TestBed.inject(MovementCommands).save({
       kind: 'expense',
       date: '2026-09-25',
       description: 'Mercado del sábado',
-      accountId: 'cuenta-1',
+      accountId: 'tarjeta-1',
       amount: 45900,
       category: 'Mercado',
       person: 'Camilo',
@@ -82,7 +90,7 @@ describe('AppStore en modo API', () => {
 
     expect(payloads).toHaveLength(1);
     expect(payloads[0].links).toEqual({
-      account: 'cuenta-1',
+      card: 'tarjeta-1',
       category: 'categoria-1',
       counterparty: 'persona-1',
     });
