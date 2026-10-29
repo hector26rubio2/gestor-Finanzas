@@ -24,6 +24,7 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     date: source.date,
     description: source.description ?? i18n.t('movements.fallback.noDescription'),
     accountId,
+    accountName: (source.linkNames['account'] ?? source.linkNames['card'])?.name,
     category: source.linkNames['category']?.name ?? i18n.t('movements.fallback.noCategory'),
     ...(source.kind === MovementKind.cardCashAdvance
       ? { kind: amount < 0 ? ('expense' as const) : ('income' as const), movementSubtype: 'advance' as const }

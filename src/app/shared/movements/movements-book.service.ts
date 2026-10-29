@@ -139,7 +139,7 @@ export class MovementsBookService {
       date: this.formatDate(m.date),
       dateIso: m.date,
       description: m.description,
-      account: this.store.account(m.accountId)?.name,
+      account: this.store.account(m.accountId)?.name ?? m.accountName,
       product: this.i18n.t(
         `movements.column.product.${this.store.account(m.accountId)?.type === 'credit' ? 'credit' : 'debit'}`,
       ),
