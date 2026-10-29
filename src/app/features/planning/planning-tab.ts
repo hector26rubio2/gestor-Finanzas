@@ -163,7 +163,7 @@ export class PlanningTabComponent {
     this.conVista(saldosEnElTiempo(this.sim.base(), this.sim.escenario(), this.sim.eventos(), this.entorno())),
   );
   readonly graficaMesAMes = computed(() =>
-    this.conVista(mesAMes(this.sim.escenario(), this.sim.flujoMensual(), this.entorno())),
+    this.conVista(mesAMes(this.sim.escenario(), this.sim.flujoMensual(), this.entorno(), this.sim.recorte())),
   );
   readonly graficaDeComparacion = computed(() =>
     this.conVista(
