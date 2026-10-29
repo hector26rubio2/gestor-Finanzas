@@ -659,13 +659,19 @@ describe('CatalogCommands — inversiones', () => {
     });
     cambios();
 
-    await component.comandos.createInvestment('CEFAS', 'savings', 'COP');
+    await component.comandos.createInvestment('CEFAS', 'savings', 'COP', {
+      risk: 3,
+      symbol: 'CEFA',
+      institution: 'Banco',
+    });
 
     expect(transport.peticiones[0].body).toEqual({
       name: 'CEFAS',
       instrumentType: 'savings',
       currency: 'COP',
-      risk: 2,
+      risk: 3,
+      symbol: 'CEFA',
+      institution: 'Banco',
     });
     const inversion = store.data().investments[0];
     expect(inversion).toMatchObject({
@@ -675,8 +681,10 @@ describe('CatalogCommands — inversiones', () => {
       value: 1200000,
       currency: 'COP',
       units: 0,
-      risk: 'Medio',
-      liquidity: 'Programada',
+      risk: 'Alto',
+      symbol: 'CEFA',
+      institution: 'Banco',
+      sinValoracion: false,
     });
     expect(store.toast.revision()).toBeGreaterThan(0);
   });
@@ -725,6 +733,8 @@ describe('CatalogCommands — inversiones', () => {
             units: 0,
             risk: 'Alto',
             liquidity: 'Programada',
+            netContributions: 0,
+            sinValoracion: true,
           },
         ],
       }),
@@ -732,16 +742,113 @@ describe('CatalogCommands — inversiones', () => {
     });
     cambios();
 
-    await component.comandos.updateInvestment('inversion-1', { name: 'Bonos', instrumentType: 'cdt' });
+    await component.comandos.updateInvestment('inversion-1', {
+      name: 'Bonos',
+      instrumentType: 'cdt',
+      risk: 1,
+      symbol: 'BON',
+    });
 
     expect(transport.peticiones[1].body).toMatchObject({
       name: 'Bonos',
       instrumentType: 'cdt',
-      risk: 3,
-      symbol: 'CEFA-X',
+      risk: 1,
+      symbol: 'BON',
+      isActive: true,
     });
-    expect(store.data().investments[0]).toMatchObject({ name: 'Bonos', type: 'cdt' });
+    expect(store.data().investments[0]).toMatchObject({ name: 'Bonos', type: 'cdt', risk: 'Bajo', symbol: 'BON' });
     expect(store.form()).toBeNull();
+  });
+});
+
+describe('CatalogCommands — operaciones y valorizaciones de inversión', () => {
+  it('registerInvestmentOperation: POST con monto en la moneda de la inversión y cierra el formulario', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/investments/inv-1/operations', {
+      body: { movement: 'm1', type: 1, date: '2026-10-29', amount: { amount: '500.00', currency: 'USD' } },
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+    store.form.set({ kind: 'investment-operation', targetId: 'inv-1' });
+    store.movimientosListos.set(true);
+
+    await component.comandos.registerInvestmentOperation('inv-1', {
+      type: 1,
+      date: '2026-10-29',
+      amount: 500,
+      currency: 'USD',
+      account: 'cuenta-usd',
+      description: 'Aporte',
+    });
+
+    expect(transport.peticiones[0].body).toMatchObject({
+      type: 1,
+      date: '2026-10-29',
+      amount: { amount: '500', currency: 'USD' },
+      account: 'cuenta-usd',
+      description: 'Aporte',
+    });
+    expect(transport.peticiones[0].body).not.toHaveProperty('quantity');
+    expect(store.form()).toBeNull();
+    expect(store.movimientosListos()).toBe(false);
+  });
+
+  it('registerInvestmentOperation en compra envía cantidad y precio unitario', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/investments/inv-1/operations', {
+      body: { movement: null, type: 3, date: '2026-10-29', amount: { amount: '1000', currency: 'COP' } },
+    });
+    const { component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+
+    await component.comandos.registerInvestmentOperation('inv-1', {
+      type: 3,
+      date: '2026-10-29',
+      amount: 1000,
+      currency: 'COP',
+      quantity: 10,
+      unitPrice: 100,
+    });
+
+    expect(transport.peticiones[0].body).toMatchObject({
+      type: 3,
+      quantity: '10',
+      unitPrice: { amount: '100', currency: 'COP' },
+    });
+  });
+
+  it('addInvestmentValuation: POST valorización y cierra el formulario', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/investments/inv-1/valuations', {
+      body: { id: 'v1', date: '2026-10-29', value: { amount: '1200', currency: 'COP' }, source: 3, reference: null },
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+    store.form.set({ kind: 'investment-valuation', targetId: 'inv-1' });
+
+    await component.comandos.addInvestmentValuation('inv-1', {
+      date: '2026-10-29',
+      value: 1200,
+      currency: 'COP',
+      source: 3,
+      reference: 'extracto',
+    });
+
+    expect(transport.peticiones[0].body).toMatchObject({
+      date: '2026-10-29',
+      value: { amount: '1200', currency: 'COP' },
+      source: 3,
+      reference: 'extracto',
+    });
+    expect(store.form()).toBeNull();
+  });
+
+  it('lista operaciones y valorizaciones de una inversión', async () => {
+    const transport = new TransportFalso()
+      .responder('GET /api/v1/investments/inv-1/operations', { body: [{ type: 1 }] })
+      .responder('GET /api/v1/investments/inv-1/valuations', { body: [{ id: 'v1' }, { id: 'v2' }] });
+    const { component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+
+    expect(await component.comandos.investmentOperations('inv-1')).toHaveLength(1);
+    expect(await component.comandos.investmentValuations('inv-1')).toHaveLength(2);
   });
 });
 

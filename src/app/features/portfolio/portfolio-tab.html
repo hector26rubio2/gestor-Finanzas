@@ -45,5 +45,13 @@
     [columns]="investmentColumns()"
     [rows]="investmentRows()"
     (rowSelected)="store.inspect('investment', $event['id'])"
-  />
+  >
+    <ng-template finCell="value" let-row>
+      @if (row.sinValoracion) {
+      <span class="underline decoration-dotted" [attr.title]="i18n.t('portfolio.value.noValuation')"
+        >{{ row.value }} *</span
+      >
+      } @else { {{ row.value }} }
+    </ng-template>
+  </fin-table>
 </fin-table-zone>

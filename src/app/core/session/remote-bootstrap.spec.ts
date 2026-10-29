@@ -7,6 +7,7 @@ import { arranqueDe } from '@testing/arranque-de-prueba';
 import { P } from './permissions';
 import { RemoteBootstrap } from './remote-bootstrap';
 import { RUNTIME_CONFIG } from './runtime';
+import { ApiWritesBus } from '@core/api/api-writes';
 import { AppStore } from '@core/state/store';
 
 describe('RemoteBootstrap', () => {
@@ -159,6 +160,33 @@ describe('RemoteBootstrap', () => {
     expect(inversion.value - inversion.cost).toBeCloseTo(0.1, 10);
     expect(inversion.risk).toBeUndefined();
     expect(inversion.institution).toBeUndefined();
+  });
+
+  it('una escritura recarga las inversiones ya cargadas', async () => {
+    const conPatrimonio = { ...session, permissions: [...session.permissions, P.patrimonio.ver] };
+    const investments = vi.fn(() => of([]));
+    const api = apiCon(() => arranqueDe(conPatrimonio), { investments });
+    const bootstrap = montar(api);
+    await bootstrap.initialize();
+    await bootstrap.asegurar('investments');
+    TestBed.tick();
+
+    TestBed.inject(ApiWritesBus).notify();
+    TestBed.tick();
+    await vi.waitFor(() => expect(investments).toHaveBeenCalledTimes(2));
+  });
+
+  it('una escritura no pide inversiones que nunca se cargaron', async () => {
+    const conPatrimonio = { ...session, permissions: [...session.permissions, P.patrimonio.ver] };
+    const api = apiCon(() => arranqueDe(conPatrimonio));
+    const bootstrap = montar(api);
+    await bootstrap.initialize();
+    TestBed.tick();
+
+    TestBed.inject(ApiWritesBus).notify();
+    TestBed.tick();
+
+    expect(api.investments).not.toHaveBeenCalled();
   });
 
   it('un fallo al cargar bajo demanda avisa y se reintenta en la siguiente entrada', async () => {

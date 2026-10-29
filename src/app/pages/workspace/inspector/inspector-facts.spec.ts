@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import type { Account, Movement } from '@core/state';
+import type { Account, Movement, ViewData } from '@core/state';
 import es from '@core/i18n/es';
-import { hechosDeCuenta, hechosDeMovimiento } from './inspector-facts';
+import { hechosDeCuenta, hechosDeInversion, hechosDeMovimiento } from './inspector-facts';
 
 const cuentas: Record<string, Account> = {
   ahorros: { id: 'ahorros', name: 'Ahorros', type: 'savings', currency: 'COP' } as Account,
@@ -71,5 +71,55 @@ describe('hechosDeCuenta', () => {
     const tarjeta = { ...cuentas['visa'], cutDay: 15, dueDay: 30, limit: 1_000 } as Account;
     expect(new Map(hechosDeCuenta(tarjeta, contexto)).get(deTarjeta[0])).toBe('15');
     deTarjeta.forEach((etiqueta) => expect(etiquetas(tarjeta)).toContain(etiqueta));
+  });
+});
+
+describe('hechosDeInversion', () => {
+  const contextoConMoneda = {
+    ...contexto,
+    money: (valor: number, moneda = 'COP') => `${moneda} ${valor}`,
+  };
+  const inversion: ViewData['investments'][number] = {
+    id: 'i1',
+    name: 'ETF',
+    type: 'Fondo',
+    currency: 'USD',
+    cost: 1000,
+    value: 1200,
+    netContributions: 900,
+    units: 2.5,
+    risk: 'Alto',
+    institution: 'Broker',
+    valuedAt: '2026-10-01',
+    sinValoracion: false,
+  };
+  const hechos = (i: ViewData['investments'][number]) => new Map(hechosDeInversion(i, contextoConMoneda));
+
+  it('muestra instrumento, riesgo, institución, unidades y montos en la moneda de la inversión', () => {
+    const mapa = hechos(inversion);
+
+    expect(mapa.get('Instrumento')).toBe('Fondo');
+    expect(mapa.get('Riesgo')).toBe('Alto');
+    expect(mapa.get('Institución')).toBe('Broker');
+    expect(mapa.get('Unidades')).toBe('2.5');
+    expect(mapa.get('Aportes netos')).toBe('USD 900');
+    expect(mapa.get('Costo')).toBe('USD 1000');
+    expect(mapa.get('Valor')).toBe('USD 1200');
+    expect(mapa.get('Ganancia no realizada')).toBe('USD 200');
+    expect(mapa.get('Última valorización')).toBe('2026-10-01');
+  });
+
+  it('sin valorización lo dice y no inventa ganancia', () => {
+    const mapa = hechos({ ...inversion, value: 1000, valuedAt: undefined, sinValoracion: true });
+
+    expect(mapa.get('Última valorización')).toBe('Sin valorización');
+    expect(mapa.get('Ganancia no realizada')).toBe('USD 0');
+  });
+
+  it('sin institución ni riesgo muestra el marcador de sin dato', () => {
+    const mapa = hechos({ ...inversion, institution: undefined, risk: undefined });
+
+    expect(mapa.get('Institución')).toBe('—');
+    expect(mapa.get('Riesgo')).toBe('—');
   });
 });

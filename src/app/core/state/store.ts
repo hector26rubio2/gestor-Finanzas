@@ -241,6 +241,14 @@ export class AppStore {
     }
     return indice;
   });
+  invalidarListadoDeMovimientos(): void {
+    this.movimientosListos.set(false);
+    this.remoteMovementPage.set(1);
+    this.remoteMovementCursor.set(null);
+    this.remoteMovementTotals.set(null);
+    this.remoteMovementTotal.set(0);
+  }
+
   recordarMovimientos(movimientos: readonly Movement[]): void {
     if (!movimientos.length) return;
     this.movimientosCargados.update((actuales) => {

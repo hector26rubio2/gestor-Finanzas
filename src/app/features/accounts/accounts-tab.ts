@@ -3,6 +3,7 @@ import { ApiWritesBus, FinanceApiClient } from '@core/api';
 import type { Movement } from '@core/state';
 import { traerMovimientosDeTarjetas } from '@shared/tarjetas';
 import { filtrarCuentas } from './filtrar-cuentas';
+import { aplicarSiVigente, crearUltimaPeticion } from './ultima-peticion';
 import { construirVisual, crearEntorno } from '@shared/graficas';
 import { deudaPendienteComoMovimientos } from './deuda-por-categoria';
 
@@ -120,23 +121,21 @@ export class AccountsTabComponent implements OnDestroy {
   private readonly api = inject(FinanceApiClient);
   private readonly escrituras = inject(ApiWritesBus);
   private readonly movimientosDeTarjetas = signal<readonly Movement[]>([]);
-  private peticionDeTarjetas = 0;
+  private readonly ultimaPeticionDeTarjetas = crearUltimaPeticion();
   private readonly traerMovimientosDeTarjetas = effect(() => {
     const ids = this.cards().map((card) => card.id);
     this.escrituras.version();
     const catalogo = this.store.kindCatalog();
     untracked(() => {
-      const peticion = ++this.peticionDeTarjetas;
-      const esVigente = () => peticion === this.peticionDeTarjetas;
-      void traerMovimientosDeTarjetas(this.api, this.i18n, catalogo, ids)
-        .then((movimientos) => {
-          if (esVigente()) this.movimientosDeTarjetas.set(movimientos);
-        })
-        .catch(() => {
-          if (!esVigente()) return;
+      void aplicarSiVigente(
+        traerMovimientosDeTarjetas(this.api, this.i18n, catalogo, ids),
+        this.ultimaPeticionDeTarjetas.iniciar(),
+        (movimientos) => this.movimientosDeTarjetas.set(movimientos),
+        () => {
           this.movimientosDeTarjetas.set([]);
           this.store.toast.set(this.i18n.t('accounts.cards.loadError'));
-        });
+        },
+      );
     });
   });
   private readonly deudaPendiente = computed(() =>

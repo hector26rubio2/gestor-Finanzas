@@ -58,4 +58,8 @@
 <fin-account-form />
 } @if (['category', 'person', 'investment', 'recurrence'].includes(store.form()?.kind ?? '')) {
 <fin-management-form />
+} @if (store.form()?.kind === 'investment-operation') {
+<fin-investment-operation />
+} @if (store.form()?.kind === 'investment-valuation') {
+<fin-investment-valuation />
 }

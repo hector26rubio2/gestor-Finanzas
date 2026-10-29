@@ -9,6 +9,8 @@ const inversion = (value: number, cost: number, currency: string): Investment =>
   value,
   cost,
   currency,
+  netContributions: 0,
+  sinValoracion: false,
 });
 
 describe('resumenCartera', () => {

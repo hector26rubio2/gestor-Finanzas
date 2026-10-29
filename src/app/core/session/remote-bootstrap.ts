@@ -1,5 +1,6 @@
 import { DestroyRef, Injectable, effect, inject, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
+import { ApiWritesBus } from '@core/api/api-writes';
 import { ApiBootstrap, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
 import { MovementKindCatalog } from '@core/utils/movement-kinds';
 import { Router } from '@angular/router';
@@ -34,6 +35,7 @@ export class RemoteBootstrap {
   private readonly router = inject(Router);
   private readonly i18n = inject(I18nService);
   private readonly saldos = inject(SaldosService);
+  private readonly escrituras = inject(ApiWritesBus);
   private readonly destroyRef = inject(DestroyRef);
   private started = false;
 
@@ -56,6 +58,15 @@ export class RemoteBootstrap {
       const tipo = this.store.inspector()?.type;
       untracked(() => {
         if (tipo === 'investment') void this.asegurar('investments');
+      });
+    });
+    let versionVista = this.escrituras.version();
+    effect(() => {
+      const version = this.escrituras.version();
+      untracked(() => {
+        if (version === versionVista) return;
+        versionVista = version;
+        void this.recargar('investments');
       });
     });
   }
@@ -126,6 +137,17 @@ export class RemoteBootstrap {
 
   async asegurar(...claves: Carga[]): Promise<void> {
     await Promise.all(claves.map((clave) => this.cargarBajoDemanda(clave)));
+  }
+
+  private async recargar(clave: Carga): Promise<void> {
+    if (this.store.remoteState() !== 'ready' || !this.cargadas.has(clave)) return;
+    const generacion = this.generacion;
+    try {
+      const datos = await this.traer(clave);
+      if (generacion !== this.generacion) return;
+      this.raw = { ...this.raw, ...datos };
+      this.aplicarDatos(this.store.data().movements);
+    } catch {}
   }
 
   private cargarBajoDemanda(clave: Carga): Promise<void> {

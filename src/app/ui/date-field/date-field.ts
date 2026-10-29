@@ -1,4 +1,15 @@
-import { Component, computed, effect, forwardRef, inject, input, signal, untracked } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  afterRenderEffect,
+  computed,
+  effect,
+  forwardRef,
+  inject,
+  input,
+  signal,
+  untracked,
+} from '@angular/core';
 import { BrnCalendarI18nService, BrnCalendarI18nToken } from '@spartan-ng/brain/calendar';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import { HlmDatePickerImports } from '@spartan-ng/helm/date-picker';
@@ -49,6 +60,15 @@ export class DateFieldComponent implements ControlValueAccessor {
   private readonly preferences = inject(PREFERENCES);
   private readonly calendarLocale = inject(CalendarLocale);
   readonly placeholder = input('');
+  readonly ariaLabel = input('');
+  private readonly anfitrion = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
+  private readonly etiquetaDelBoton = afterRenderEffect(() => {
+    const etiqueta = this.ariaLabel();
+    const boton = this.anfitrion.querySelector('button');
+    if (!boton) return;
+    if (etiqueta) boton.setAttribute('aria-label', etiqueta);
+    else boton.removeAttribute('aria-label');
+  });
   readonly min = input<string | undefined>('');
   readonly max = input<string | undefined>('');
   readonly minDate = computed(() => fromIsoDate(this.min()));

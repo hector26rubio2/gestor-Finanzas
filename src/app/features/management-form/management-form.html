@@ -11,7 +11,7 @@
     </div>
     }
     <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
-      <input hlmInput [formField]="formulario.name" />
+      <input hlmInput [formField]="formulario.name" [attr.aria-label]="i18n.t('form.field.name')" />
     </fin-field>
     @if (kind() === 'category') {
     <fin-field [label]="i18n.t('form.management.field.categoryType')">
@@ -59,7 +59,31 @@
         [ariaLabel]="i18n.t('form.management.field.currencyAria')"
       />
     </fin-field>
-    } @if (kind() === 'recurrence') {
+    <fin-field [label]="i18n.t('form.management.field.risk')">
+      <fin-select
+        [formField]="formulario.risk"
+        [options]="riskOptions()"
+        [ariaLabel]="i18n.t('form.management.field.risk')"
+      />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.management.field.symbol')">
+      <input
+        hlmInput
+        [formField]="formulario.symbol"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.management.field.symbol')"
+      />
+    </fin-field>
+    @if (!editingId) {
+    <fin-field [label]="i18n.t('form.management.field.institution')">
+      <input
+        hlmInput
+        [formField]="formulario.institution"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.management.field.institution')"
+      />
+    </fin-field>
+    } } @if (kind() === 'recurrence') {
     <fin-field [label]="i18n.t('form.field.amount')" [error]="mensaje(formulario.amount)">
       <input hlmInput type="number" inputmode="decimal" [formField]="formulario.amount" />
     </fin-field>
