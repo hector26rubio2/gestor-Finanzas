@@ -61,9 +61,13 @@ test.describe('Formulario de movimiento', () => {
       await formulario.locator('button[type=submit]').click();
       await expect(formulario).toBeHidden();
       await expect
-        .poll(async () => (await buscarMovimientos(page, descripcion)).map((m) => Number(m.amount.original.amount)), {
-          message: 'el monto editado debe quedar guardado',
-        })
+        .poll(
+          async () =>
+            (await buscarMovimientos(page, descripcion))
+              .filter((m) => !m.reversedBy)
+              .map((m) => Number(m.amount.original.amount)),
+          { message: 'el monto editado debe quedar guardado y el original quedar reversado' },
+        )
         .toEqual([99_000]);
     }
   });
