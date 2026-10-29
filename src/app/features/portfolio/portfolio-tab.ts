@@ -5,10 +5,11 @@ import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { AppStore } from '@core/state';
-import { formatReturnRate, sumBy } from '@core/utils';
+import { formatReturnRate } from '@core/utils';
 import { I18nService } from '@core/i18n';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { ChartCardComponent, ChartThemeService, anillo, barrasHorizontales } from '@ui/chart';
+import { resumenCartera } from './resumen-cartera';
 
 @Component({
   selector: 'app-portfolio-tab',
@@ -41,15 +42,25 @@ export class PortfolioTabComponent {
       return: formatReturnRate(i.value, i.cost),
     })),
   );
-  readonly investmentValue = computed(() => sumBy(this.store.data().investments, (i) => i.value));
-  readonly investmentGain = computed(() => sumBy(this.store.data().investments, (i) => i.value - i.cost));
+  readonly resumen = computed(() => resumenCartera(this.store.data().investments, this.store.baseCurrency()));
+  readonly investmentValue = computed(() => this.resumen().valor);
+  readonly investmentGain = computed(() => this.resumen().ganancia);
+  readonly gainTone = computed(() => (this.investmentGain() < 0 ? ('danger' as const) : ('success' as const)));
+  readonly gainIcon = computed(() => (this.investmentGain() < 0 ? ('trendDown' as const) : ('trendUp' as const)));
+  readonly valueHint = computed(() => {
+    const base = this.i18n.t('portfolio.kpi.investments.hint');
+    const otras = this.resumen().otrasMonedas;
+    if (otras.length === 0) return base;
+    const fuera = otras.map((o) => this.store.money(o.valor, o.moneda)).join(' · ');
+    return `${base} · ${this.i18n.t('portfolio.kpi.investments.otherCurrencies', { value: fuera })}`;
+  });
   private readonly temaGrafica = inject(ChartThemeService);
   private readonly dinero = (valor: number) => this.store.money(valor);
   private readonly compacto = (valor: number) => compactMoney(valor, this.store.preferences().locale);
   readonly hasInvestments = computed(() => this.store.data().investments.some((i) => i.value > 0 || i.cost > 0));
   readonly distributionOption = computed(() => {
     const porTipo = new Map<string, number>();
-    for (const inversion of this.store.data().investments)
+    for (const inversion of this.store.data().investments.filter((i) => i.currency === this.store.baseCurrency()))
       porTipo.set(inversion.type, (porTipo.get(inversion.type) ?? 0) + inversion.value);
     return anillo(
       this.temaGrafica.palette(),
@@ -72,11 +83,5 @@ export class PortfolioTabComponent {
       this.compacto,
     );
   });
-  readonly investmentReturn = computed(() => {
-    const cartera = this.store.data().investments;
-    return formatReturnRate(
-      sumBy(cartera, (i) => i.value),
-      sumBy(cartera, (i) => i.cost),
-    );
-  });
+  readonly investmentReturn = computed(() => formatReturnRate(this.resumen().valor, this.resumen().costo));
 }

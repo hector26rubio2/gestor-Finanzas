@@ -17,7 +17,7 @@ import {
   totalDeIngresos,
 } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
-import { addMonthsToIso, downloadCsv, toCsv, todayIso, sumBy } from '@core/utils';
+import { addMonthsToIso, downloadCsv, toCsv, sumBy } from '@core/utils';
 import { HeaderActionsService } from '@shared/header-actions.service';
 import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -28,6 +28,7 @@ import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { SkeletonComponent } from '@ui/skeleton';
 import { UiOption, UiSelectComponent } from '@ui/select';
+import { tasaDeAhorro } from './tasa-de-ahorro';
 import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
 @Component({
@@ -105,9 +106,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly reportIncome = computed(() => totalDeIngresos(this.economicos()));
   readonly reportExpenses = computed(() => totalDeGastos(this.gastos()));
   readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
-  readonly reportSavingsRate = computed(() =>
-    this.reportIncome() ? `${Math.round((this.reportNet() / this.reportIncome()) * 100)} %` : '0 %',
-  );
+  readonly reportSavingsRate = computed(() => tasaDeAhorro(this.reportIncome(), this.reportNet()));
   readonly reportAverageExpense = computed(() => this.reportExpenses() / Number(this.reportPeriod()));
 
   private readonly nombreDeMes = computed(() => {
@@ -229,7 +228,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
     ),
   );
   readonly nextDue = computed(() => {
-    const proximo = nextCardDue(this.tarjetas(), this.deudaDe, todayIso());
+    const proximo = nextCardDue(this.tarjetas(), this.deudaDe, this.store.hoy());
     if (!proximo) return null;
     const fecha = new Intl.DateTimeFormat(this.store.preferences().locale, { day: 'numeric', month: 'short' }).format(
       new Date(proximo.date),

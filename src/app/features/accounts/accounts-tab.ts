@@ -2,6 +2,7 @@ import { Component, OnDestroy, computed, effect, inject, signal, untracked } fro
 import { ApiWritesBus, FinanceApiClient } from '@core/api';
 import type { Movement } from '@core/state';
 import { traerMovimientosDeTarjetas } from '@shared/tarjetas';
+import { filtrarCuentas } from './filtrar-cuentas';
 import { construirVisual, crearEntorno } from '@shared/graficas';
 import { deudaPendienteComoMovimientos } from './deuda-por-categoria';
 
@@ -119,14 +120,23 @@ export class AccountsTabComponent implements OnDestroy {
   private readonly api = inject(FinanceApiClient);
   private readonly escrituras = inject(ApiWritesBus);
   private readonly movimientosDeTarjetas = signal<readonly Movement[]>([]);
+  private peticionDeTarjetas = 0;
   private readonly traerMovimientosDeTarjetas = effect(() => {
     const ids = this.cards().map((card) => card.id);
     this.escrituras.version();
     const catalogo = this.store.kindCatalog();
     untracked(() => {
+      const peticion = ++this.peticionDeTarjetas;
+      const esVigente = () => peticion === this.peticionDeTarjetas;
       void traerMovimientosDeTarjetas(this.api, this.i18n, catalogo, ids)
-        .then((movimientos) => this.movimientosDeTarjetas.set(movimientos))
-        .catch(() => this.movimientosDeTarjetas.set([]));
+        .then((movimientos) => {
+          if (esVigente()) this.movimientosDeTarjetas.set(movimientos);
+        })
+        .catch(() => {
+          if (!esVigente()) return;
+          this.movimientosDeTarjetas.set([]);
+          this.store.toast.set(this.i18n.t('accounts.cards.loadError'));
+        });
     });
   });
   private readonly deudaPendiente = computed(() =>
@@ -162,19 +172,14 @@ export class AccountsTabComponent implements OnDestroy {
 
   readonly accountQuery = signal('');
   readonly accountType = signal<'all' | Account['type']>('all');
-  readonly filteredAccounts = computed(() => {
-    const query = this.accountQuery().trim().toLocaleLowerCase('es');
-    const type = this.accountType();
-    return this.store
-      .data()
-      .accounts.filter(
-        (account) =>
-          (type === 'all' || account.type === type) &&
-          (!query ||
-            account.name.toLocaleLowerCase('es').includes(query) ||
-            (account.lastFour ?? '').toLocaleLowerCase('es').includes(query)),
-      );
-  });
+  readonly filteredAccounts = computed(() =>
+    filtrarCuentas(
+      this.store.data().accounts,
+      this.accountQuery(),
+      this.accountType(),
+      this.store.preferences().locale,
+    ),
+  );
   readonly selectedAccountFilter = computed(() => this.store.accountFilter());
   readonly cuentaSeleccionada = computed(() => {
     const id = this.store.accountFilter();

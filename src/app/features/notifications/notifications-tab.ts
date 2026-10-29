@@ -58,7 +58,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.headerActions.readAll.set(() => void this.readAll());
+    if (this.puedeMarcar) this.headerActions.readAll.set(() => void this.readAll());
   }
   ngOnDestroy(): void {
     this.headerActions.readAll.set(null);
@@ -84,13 +84,14 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   }
 
   async readAll(): Promise<void> {
-    try {
-      const unread = this.notifications.items().filter((item) => !item.read);
-      await Promise.all(unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))));
-      this.notifications.marcarLeidas(new Set(unread.map((item) => item.id)));
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('notifications.bulkUpdateError'));
-    }
+    if (!this.puedeMarcar) return;
+    const unread = this.notifications.items().filter((item) => !item.read);
+    const resultados = await Promise.allSettled(
+      unread.map((item) => firstValueFrom(this.api.markNotificationRead(item.id))),
+    );
+    const exitosas = unread.filter((_, indice) => resultados[indice].status === 'fulfilled');
+    if (exitosas.length > 0) this.notifications.marcarLeidas(new Set(exitosas.map((item) => item.id)));
+    if (exitosas.length < unread.length) this.store.toast.set(this.i18n.t('notifications.updateError'));
   }
 
   async mark(id: string): Promise<void> {
