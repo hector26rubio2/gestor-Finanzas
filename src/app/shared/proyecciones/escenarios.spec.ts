@@ -107,7 +107,7 @@ describe('escenarios de planificación', () => {
     expect(tasaPromedioDeInversiones([], 8)).toBe(8);
   });
 
-  it('convierte los créditos del API en deudas con el saldo amortizado a hoy', () => {
+  it('convierte los créditos del API en deudas con el saldo pendiente que ya entrega el API', () => {
     const credito = {
       id: 'o1',
       counterparty: { id: 'banco', name: 'Banco Uno' },
@@ -117,7 +117,7 @@ describe('escenarios de planificación', () => {
       dueOn: '2027-03-15',
       description: 'Crédito libre inversión',
       status: 1,
-      totalOutstanding: { amount: '12000000', currency: 'COP' },
+      totalOutstanding: { amount: '6000000', currency: 'COP' },
       interestPolicies: [{ effectiveFrom: '2026-03-15', policy: { kind: 1, rate: { rate: '0.015' }, period: 2 } }],
     };
     const cobrada = { ...credito, id: 'o2', direction: 1 as const };
@@ -130,9 +130,8 @@ describe('escenarios de planificación', () => {
       cuotas: 6,
       tasaConocida: true,
     });
-    expect(deuda.saldo).toBeCloseTo(saldoTrasCuotas(12_000_000, 1.5, 12, 6), 2);
-    expect(deuda.saldo).toBeLessThan(12_000_000);
-    const personas = [{ id: 'banco', name: 'Banco Uno', kind: 'institution' as const, owed: 0, owing: 12_000_000 }];
+    expect(deuda.saldo).toBe(6_000_000);
+    const personas = [{ id: 'banco', name: 'Banco Uno', kind: 'institution' as const, owed: 0, owing: 6_000_000 }];
     const todas = deudasActuales([], personas, [], () => 0, [credito], '2026-09-20');
     expect(todas.map((d) => d.id)).toEqual(['obligacion:o1']);
   });

@@ -84,7 +84,7 @@ export function DeudaDeObligaciones(fuente: PuertaDeObligaciones): DeudaActual[]
         id: `obligacion:${o.id}`,
         nombre: o.description?.trim() || o.counterparty.name,
         tipo: 'credito',
-        saldo: plazo ? saldoTrasCuotas(capital, tasaMensual, plazo, pagadas) : capital,
+        saldo: capital,
         tasaMensual,
         tasaConocida: Boolean(vigente),
         cuotas: plazo ? Math.max(1, plazo - pagadas) : CUOTAS_SUPUESTAS,
