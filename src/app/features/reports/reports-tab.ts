@@ -6,6 +6,7 @@ import { ExploradorDeReportesComponent } from './explorador/explorador';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import type { Account } from '@core/state';
+import { fechaDeVencimiento } from './fecha-de-vencimiento';
 import {
   CAPABILITIES,
   AppStore,
@@ -230,9 +231,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly nextDue = computed(() => {
     const proximo = nextCardDue(this.tarjetas(), this.deudaDe, this.store.hoy());
     if (!proximo) return null;
-    const fecha = new Intl.DateTimeFormat(this.store.preferences().locale, { day: 'numeric', month: 'short' }).format(
-      new Date(proximo.date),
-    );
+    const fecha = fechaDeVencimiento(proximo.date, this.store.preferences().locale);
     return { fecha, tarjeta: proximo.account.name };
   });
   readonly estimatedInterest = computed(() => {
