@@ -143,8 +143,7 @@ export class AppComponent {
   private usarRielEnTableta(): void {
     if (typeof window.matchMedia !== 'function') return;
     const tableta = window.matchMedia(RANGO_DE_TABLETA);
-    const preferida = this.sidebar.open();
-    const aplicar = () => this.sidebar.setOpen(tableta.matches ? false : preferida);
+    const aplicar = () => this.sidebar.applyWithoutPersisting(tableta.matches ? false : this.sidebar.persistedOpen());
     if (tableta.matches) aplicar();
     tableta.addEventListener('change', aplicar);
     this.destroyRef.onDestroy(() => tableta.removeEventListener('change', aplicar));
