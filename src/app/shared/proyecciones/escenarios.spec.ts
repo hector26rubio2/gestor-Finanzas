@@ -89,6 +89,23 @@ describe('escenarios de planificación', () => {
     expect(escenario.mesSinDeudas!).toBeLessThan(base.mesSinDeudas!);
   });
 
+  it('el abono arranca cuando la única deuda empieza en un mes futuro', () => {
+    const deudas = [
+      {
+        id: 'compra',
+        nombre: 'Compra',
+        tipo: 'hipotetica' as const,
+        saldo: 1_000_000,
+        tasaMensual: 1,
+        cuotas: 12,
+        desdeMes: 3,
+      },
+    ];
+    const palancas = planDeAbonos(deudas, flujo, 12, 100_000, 'tasa');
+    expect(palancas[0]).toMatchObject({ tipo: 'abono', deudaId: 'compra', mes: 3, monto: 100_000 });
+    expect(palancas.every((p) => p.mes >= 3)).toBe(true);
+  });
+
   it('calcula la cuota que hace falta para terminar en un plazo', () => {
     const deudas = [{ id: 'c', nombre: 'C', tipo: 'credito' as const, saldo: 1_200_000, tasaMensual: 0, cuotas: 24 }];
     expect(cuotaParaTerminarEn(deudas, 12)).toBe(100_000);

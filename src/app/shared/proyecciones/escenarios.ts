@@ -282,7 +282,7 @@ export function planDeAbonos(
       palancas.push({ tipo: 'abono', id: `abono:${deuda.id}:${mes}`, deudaId: deuda.id, mes, monto });
       disponible = redondear(disponible - monto);
     }
-    if (disponible === abonoMensual) break;
+    if (disponible === abonoMensual && !deudas.some((d) => (d.desdeMes ?? 0) > mes)) break;
   }
   return palancas;
 }
