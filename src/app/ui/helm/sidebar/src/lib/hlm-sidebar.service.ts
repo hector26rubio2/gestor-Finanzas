@@ -92,6 +92,14 @@ export class HlmSidebarService {
     this._document.cookie = `${this._config.sidebarCookieName}=${open}; path=/; max-age=${this._config.sidebarCookieMaxAge}`;
   }
 
+  public applyWithoutPersisting(open: boolean): void {
+    this._open.set(open);
+  }
+
+  public persistedOpen(): boolean {
+    return this.readCookie() ?? this._config.defaultOpen;
+  }
+
   public setOpenMobile(open: boolean): void {
     if (this._isMobile()) {
       this._openMobile.set(open);
@@ -111,11 +119,18 @@ export class HlmSidebarService {
   }
 
   private restoreStateFromCookie(): void {
+    const persisted = this.readCookie();
+    if (persisted !== undefined) {
+      this._open.set(persisted);
+    }
+  }
+
+  private readCookie(): boolean | undefined {
     const cookieString = isPlatformServer(this._platformId)
       ? this._request?.headers.get('cookie')
       : this._document.cookie;
 
-    if (!cookieString) return;
+    if (!cookieString) return undefined;
 
     const prefix = `${this._config.sidebarCookieName}=`;
     const cookieValue = cookieString
@@ -124,8 +139,6 @@ export class HlmSidebarService {
       .find((c) => c.startsWith(prefix))
       ?.slice(prefix.length);
 
-    if (cookieValue !== undefined) {
-      this._open.set(cookieValue === 'true');
-    }
+    return cookieValue === undefined ? undefined : cookieValue === 'true';
   }
 }
