@@ -70,6 +70,7 @@
       <div class="mx-0.5 mb-[7px]">
         <button
           data-slot="profile-trigger"
+          data-tour="perfil"
           type="button"
           class="flex w-full items-center gap-[9px] rounded-[11px] border border-transparent bg-transparent p-[7px] text-start text-foreground hover:bg-accent group-data-[collapsed=true]/app:justify-center group-data-[collapsed=true]/app:px-0 group-data-[collapsed=true]/app:py-1.5"
           [hlmDropdownMenuTrigger]="profileMenu"
@@ -118,11 +119,12 @@
             ><small class="overflow-hidden text-ellipsis text-muted-foreground">{{ store.user()?.email }}</small>
           </div>
           <a hlmDropdownMenuItem routerLink="/settings">{{ i18n.t('shell.profile') }}</a>
+          <button hlmDropdownMenuItem type="button" (triggered)="verTutorial()">{{ i18n.t('tutorial.menu') }}</button>
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
       <div class="nav-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
-        <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
+        <nav id="primary-navigation" data-tour="navegacion" [attr.aria-label]="i18n.t('shell.primaryNav')">
           @for (group of groups(); track group) {
           <div hlmSidebarGroup class="p-0">
             <button
@@ -242,6 +244,7 @@
           hlmBtn
           variant="outline"
           class="gap-2 px-2.5 text-muted-foreground"
+          data-tour="buscar"
           [attr.aria-keyshortcuts]="'Control+K'"
           (click)="paleta.abrir()"
         >
@@ -249,7 +252,7 @@
           <span class="sr-only min-[769px]:hidden">{{ i18n.t('shell.search') }}</span>
           <span class="max-[769px]:hidden">{{ i18n.t('shell.searchShort') }}</span>
           <kbd hlmKbdGroup class="max-[769px]:hidden"><kbd hlmKbd>Ctrl</kbd><kbd hlmKbd>K</kbd></kbd></button
-        ><a hlmBtn variant="outline" size="icon" routerLink="/notifications" class="relative"
+        ><a hlmBtn variant="outline" size="icon" routerLink="/notifications" class="relative" data-tour="notificaciones"
           ><fin-icon name="notifications" class="[--icon-size:18px]" /><span class="sr-only"
             >{{ i18n.t('nav.notifications') }}</span
           >
@@ -264,6 +267,7 @@
         <button
           hlmBtn
           class="px-3 font-semibold"
+          data-tour="nuevo-movimiento"
           [attr.aria-label]="i18n.t('shell.newMovement')"
           (click)="store.open()"
         >
@@ -291,4 +295,6 @@
 <ng-container *ngTemplateOutlet="cargando" />
 } } @if (store.user() && !enLogin()) { @defer (on idle; when paleta.solicitada()) {
 <fin-command-palette />
+} } @if (store.user() && !enLogin() && tutorial.oferta()) { @defer (on immediate) {
+<fin-oferta-del-tutorial />
 } }

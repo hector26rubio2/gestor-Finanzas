@@ -1,6 +1,6 @@
 import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, DestroyRef, afterNextRender, computed, effect, inject, signal } from '@angular/core';
+import { Component, DestroyRef, afterNextRender, computed, effect, inject, signal, untracked } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { P } from '@core/session/permissions';
@@ -13,6 +13,8 @@ import { TablerosService } from '@pages/dashboard/tableros/tableros.service';
 import { BugReportButtonComponent } from '@features/bug-report/bug-report';
 import { CommandPaletteComponent } from '@shared/command-palette/command-palette';
 import { CommandPaletteService } from '@shared/command-palette/command-palette.service';
+import { OfertaDelTutorialComponent } from '@shared/tutorial/oferta-del-tutorial';
+import { TutorialService } from '@shared/tutorial';
 import { MovementFormComponent } from '@features/movement-form/movement-form';
 import { HlmToaster } from '@spartan-ng/helm/sonner';
 import { HlmKbdImports } from '@spartan-ng/helm/kbd';
@@ -81,6 +83,7 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
   },
   imports: [
     CommandPaletteComponent,
+    OfertaDelTutorialComponent,
     NgTemplateOutlet,
     HlmAvatar,
     HlmAvatarFallback,
@@ -121,6 +124,7 @@ export class AppComponent {
   readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   readonly paleta = inject(CommandPaletteService);
+  readonly tutorial = inject(TutorialService);
   readonly precarga = inject(PrecargaBajoDemanda);
   readonly P = P;
   private router = inject(Router);
@@ -198,6 +202,11 @@ export class AppComponent {
     void this.router.navigateByUrl(volver ?? '/' + this.primeraRutaPermitida());
   });
 
+  private readonly ofrecerTutorial = effect(() => {
+    if (this.store.remoteState() !== 'ready' || !this.store.user() || this.enLogin()) return;
+    untracked(() => this.tutorial.ofrecerSiEsPrimeraVez());
+  });
+
   private readonly reubicarSiSeCierraLaRuta = effect(() => {
     if (this.store.remoteState() !== 'ready' || !this.store.user() || this.enLogin()) return;
     const abiertas = this.allowed().map((entrada) => entrada.path);
@@ -231,6 +240,10 @@ export class AppComponent {
       evento.preventDefault();
       this.paleta.alternar();
     }
+  }
+  verTutorial(): void {
+    const origen = document.querySelector<HTMLElement>('[data-slot=profile-trigger]') ?? undefined;
+    setTimeout(() => void this.tutorial.iniciar(undefined, origen));
   }
   closeMobileMenu(): void {
     this.sidebar.setOpenMobile(false);

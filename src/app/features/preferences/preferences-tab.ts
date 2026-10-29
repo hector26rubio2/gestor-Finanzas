@@ -7,6 +7,8 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCard } from '@spartan-ng/helm/card';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { HlmTabsImports } from '@spartan-ng/helm/tabs';
+import { HlmSwitchImports } from '@spartan-ng/helm/switch';
+import { TutorialService } from '@shared/tutorial';
 import { FieldComponent } from '@ui/field';
 import { BudgetsPanelComponent } from '@features/budgets/budgets-panel';
 import { PrivacySectionComponent } from './privacy/privacy-section';
@@ -20,7 +22,16 @@ import { P, RemoteBootstrap } from '@core/session';
 import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
 import { I18nService } from '@core/i18n';
 
-const SECCIONES = ['appearance', 'studio', 'organization', 'categories', 'budgets', 'data', 'privacy'] as const;
+const SECCIONES = [
+  'appearance',
+  'studio',
+  'organization',
+  'categories',
+  'budgets',
+  'data',
+  'privacy',
+  'tutorial',
+] as const;
 type Seccion = (typeof SECCIONES)[number];
 
 @Component({
@@ -33,6 +44,7 @@ type Seccion = (typeof SECCIONES)[number];
     HlmCard,
     HlmInput,
     HlmTabsImports,
+    HlmSwitchImports,
     FieldComponent,
     ThemeStudioComponent,
     PrivacySectionComponent,
@@ -47,6 +59,7 @@ export class PreferencesTabComponent implements OnInit {
   private readonly preferencesActions = inject(PreferencesActions);
   private readonly capabilities = inject(CAPABILITIES);
   readonly features = inject(FEATURES);
+  readonly tutorial = inject(TutorialService);
   private readonly arranque = inject(RemoteBootstrap);
   private api = inject(FinanceApiClient);
   readonly i18n = inject(I18nService);
@@ -106,6 +119,7 @@ export class PreferencesTabComponent implements OnInit {
       },
       { id: 'data', label: 'preferences.sections.data', icon: 'settings', visible: true },
       { id: 'privacy', label: 'preferences.sections.privacy', icon: 'shield', visible: true },
+      { id: 'tutorial', label: 'preferences.sections.tutorial', icon: 'info', visible: true },
     ].filter((item) => item.visible),
   );
 
@@ -224,6 +238,12 @@ export class PreferencesTabComponent implements OnInit {
       .catch((error) =>
         this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),
       );
+  }
+  verTutorial(): void {
+    void this.tutorial.iniciar();
+  }
+  ofrecerAlEntrar(valor: boolean): void {
+    this.tutorial.cambiarAlEntrar(valor);
   }
   async logout(): Promise<void> {
     await this.arranque.cerrarSesion();

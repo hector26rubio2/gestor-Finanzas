@@ -2190,4 +2190,128 @@ export default {
   'summary.variation.lastYear': 'Last year',
   'summary.variation.none': 'no data',
   'summary.categories.title': 'Spending by category',
+  'tutorial.next': 'Next',
+  'tutorial.previous': 'Back',
+  'tutorial.done': 'Finish',
+  'tutorial.progress': 'Step {{current}} of {{total}}',
+  'tutorial.offer.title': 'Would you like a tour of the app?',
+  'tutorial.offer.text':
+    'We will point out the key controls on each page. You can see it later from Preferences, the profile menu or the command palette.',
+  'tutorial.offer.yes': 'Yes, show me',
+  'tutorial.offer.no': 'Not now',
+  'tutorial.menu': 'Tutorial',
+  'tutorial.command': 'Watch this page’s tutorial',
+  'preferences.sections.tutorial': 'Tutorial',
+  'tutorial.settings.title': 'Guided tutorial',
+  'tutorial.settings.description': 'A tour that points out the key controls of the page you are on.',
+  'tutorial.settings.start': 'Watch tutorial',
+  'tutorial.settings.onEnter': 'Offer the tutorial on sign-in',
+  'tutorial.settings.onEnterHint': 'It is only offered the first time you sign in.',
+  'tutorial.step.navegacion.title': 'Navigation menu',
+  'tutorial.step.navegacion.text':
+    'All sections live here: dashboard, movements, calendar, accounts, people, portfolio, planning and reports. Collapse it with the button above.',
+  'tutorial.step.buscar.title': 'Search and commands',
+  'tutorial.step.buscar.text':
+    'Open the palette with Ctrl K: jump to a section, find movements, create records or change the theme without the mouse.',
+  'tutorial.step.nuevo-movimiento.title': 'New movement',
+  'tutorial.step.nuevo-movimiento.text': 'Record an expense, income, transfer, loan or payment from any page.',
+  'tutorial.step.notificaciones.title': 'Notifications',
+  'tutorial.step.notificaciones.text':
+    'Alerts about due dates, payments and changes. The number shows how many are unread.',
+  'tutorial.step.perfil.title': 'Profile and preferences',
+  'tutorial.step.perfil.text': 'Open your preferences, watch this tutorial again or sign out.',
+  'tutorial.step.reportar.title': 'Report a problem',
+  'tutorial.step.reportar.text':
+    'If something breaks or you have an idea, this button sends a report with a screenshot. Drag it if it is in the way.',
+  'tutorial.step.dashboard-vista.title': 'Summary or Explore',
+  'tutorial.step.dashboard-vista.text':
+    'Summary gives the big picture of the period; Explore opens indicators and charts for detailed analysis.',
+  'tutorial.step.dashboard-periodo.title': 'Period',
+  'tutorial.step.dashboard-periodo.text':
+    'Pick the scale (day, week, month, year), move with the arrows or open the picker to jump to another date.',
+  'tutorial.step.dashboard-filtros.title': 'Filters',
+  'tutorial.step.dashboard-filtros.text':
+    'Limit the whole dashboard by account, account type or category. Active filters appear as chips you can remove.',
+  'tutorial.step.dashboard-personalizar.title': 'Customize',
+  'tutorial.step.dashboard-personalizar.text':
+    'Reorder, resize, add or remove indicators and charts to build your own dashboard.',
+  'tutorial.step.movimientos-kpis.title': 'Indicators',
+  'tutorial.step.movimientos-kpis.text':
+    'Income, expenses, number of records, recurring items, pending installments and the heaviest category of the period.',
+  'tutorial.step.tabla-busqueda.title': 'Search',
+  'tutorial.step.tabla-busqueda.text':
+    'Type to search and press Enter to pin it as a filter. The selector beside it chooses the column to search.',
+  'tutorial.step.tabla-filtros.title': 'Table filters',
+  'tutorial.step.tabla-filtros.text':
+    'Filter by the values of a column, such as type or category. Combine several and clear them at once.',
+  'tutorial.step.tabla-columnas.title': 'Columns',
+  'tutorial.step.tabla-columnas.text': 'Choose which columns to show in the table.',
+  'tutorial.step.movimientos-tabla.title': 'Movements table',
+  'tutorial.step.movimientos-tabla.text':
+    'All your records for the period. Sort with the headers and open a row to see details, edit or delete it.',
+  'tutorial.step.movimientos-exportar.title': 'Export to CSV',
+  'tutorial.step.movimientos-exportar.text': 'Download the filtered movements to open them in a spreadsheet.',
+  'tutorial.step.calendario-anterior.title': 'Previous period',
+  'tutorial.step.calendario-anterior.text': 'Go back one day, week, month or year depending on the chosen view.',
+  'tutorial.step.calendario-vistas.title': 'Views',
+  'tutorial.step.calendario-vistas.text': 'Switch between day, week, month and year.',
+  'tutorial.step.calendario-hoy.title': 'Today',
+  'tutorial.step.calendario-hoy.text': 'Jump back to today in one click.',
+  'tutorial.step.calendario-siguiente.title': 'Next period',
+  'tutorial.step.calendario-siguiente.text': 'Move forward to see what is coming.',
+  'tutorial.step.calendario-agenda.title': 'Agenda',
+  'tutorial.step.calendario-agenda.text':
+    'Your upcoming commitments: projected payments, card due dates and scheduled movements.',
+  'tutorial.step.calendario-recurrentes.title': 'Recurring',
+  'tutorial.step.calendario-recurrentes.text':
+    'Subscriptions and payments that repeat. They show up on the calendar without recording them every time.',
+  'tutorial.step.cuentas-nueva.title': 'New account',
+  'tutorial.step.cuentas-nueva.text': 'Create a savings, cash, wallet or credit card account.',
+  'tutorial.step.cuentas-tarjetas.title': 'Accounts and cards',
+  'tutorial.step.cuentas-tarjetas.text':
+    'Tap one to see its balance, debt, available limit and cut and due dates. “All” clears the selection.',
+  'tutorial.step.cuentas-abono.title': 'Record a payment',
+  'tutorial.step.cuentas-abono.text': 'With a card selected, record a payment toward its debt from another account.',
+  'tutorial.step.cuentas-tabla.title': 'Accounts table',
+  'tutorial.step.cuentas-tabla.text': 'The detail of each account. Open a row to see its movements and edit it.',
+  'tutorial.step.personas-nueva.title': 'New person',
+  'tutorial.step.personas-nueva.text':
+    'Add someone you share expenses or debts with. “New institution” is for banks and organizations.',
+  'tutorial.step.personas-tabla.title': 'People and debts',
+  'tutorial.step.personas-tabla.text':
+    'Who owes you and whom you owe. “View debts” on a row expands each debt, its installment and what is pending.',
+  'tutorial.step.inversiones-nueva.title': 'New investment',
+  'tutorial.step.inversiones-nueva.text': 'Record a CD, fund, stock or other asset to track its value.',
+  'tutorial.step.inversiones-tabla.title': 'Your investments',
+  'tutorial.step.inversiones-tabla.text':
+    'Open an investment to see its detail and, from there, record an operation (deposit or withdrawal) or a valuation.',
+  'tutorial.step.planificacion-pestanas.title': 'Simulation types',
+  'tutorial.step.planificacion-pestanas.text':
+    'Each tab simulates something different: an installment purchase, a savings goal, an investment or getting out of debt.',
+  'tutorial.step.planificacion-parametros.title': 'Scenario inputs',
+  'tutorial.step.planificacion-parametros.text':
+    'Change the values and the results recalculate instantly. “Reset” goes back to the defaults.',
+  'tutorial.step.planificacion-escenarios.title': 'Compare scenarios',
+  'tutorial.step.planificacion-escenarios.text':
+    'Save the current scenario under a name and compare it with others to decide which suits you.',
+  'tutorial.step.planificacion-resultados.title': 'Results',
+  'tutorial.step.planificacion-resultados.text':
+    'The scenario’s key figures and, below them, charts of how it evolves.',
+  'tutorial.step.reportes-pestanas.title': 'Summary or Explorer',
+  'tutorial.step.reportes-pestanas.text':
+    'Summary shows the period’s balance; Explorer lets you cross the data any way you like.',
+  'tutorial.step.reportes-periodo.title': 'Report period',
+  'tutorial.step.reportes-periodo.text': 'Pick the range to analyze; indicators and charts update.',
+  'tutorial.step.reportes-exportar.title': 'Export to CSV',
+  'tutorial.step.reportes-exportar.text': 'Download the report to share it or work on it in a spreadsheet.',
+  'tutorial.step.notificaciones-filtro.title': 'Filter alerts',
+  'tutorial.step.notificaciones-filtro.text': 'Switch between all, unread and other notification categories.',
+  'tutorial.step.notificaciones-marcar.title': 'Mark all as read',
+  'tutorial.step.notificaciones-marcar.text': 'Clear the unread counter in one go.',
+  'tutorial.step.preferencias-secciones.title': 'Preferences sections',
+  'tutorial.step.preferencias-secciones.text':
+    'Appearance, custom theme, organization, categories, budgets, data and privacy.',
+  'tutorial.step.preferencias-tutorial.title': 'Tutorial',
+  'tutorial.step.preferencias-tutorial.text':
+    'From here you can repeat the tour and decide whether it is offered when you sign in.',
 } as const;

@@ -74,7 +74,7 @@
     >{{ i18n.t('accounts.filters.resultsCount', { count: filteredAccounts().length }) }}</span
   >
 </section>
-<fin-carrusel [ariaLabel]="i18n.t('accounts.cards.listAriaLabel')">
+<fin-carrusel data-tour="cuentas-tarjetas" [ariaLabel]="i18n.t('accounts.cards.listAriaLabel')">
   <hlm-toggle-group
     type="single"
     variant="outline"
@@ -139,7 +139,7 @@
       {{ i18n.t('accounts.selected.detail') }}
     </button>
     @if (cuenta.type === 'credit' && puedePagar()) {
-    <button hlmBtn size="sm" type="button" (click)="registrarAbono(cuenta.id)">
+    <button hlmBtn size="sm" type="button" data-tour="cuentas-abono" (click)="registrarAbono(cuenta.id)">
       {{ i18n.t('accounts.selected.payment') }}
     </button>
     }
@@ -163,7 +163,7 @@
     />
   </fin-chart-card>
 </section>
-<fin-table-zone class="min-h-[360px]">
+<fin-table-zone data-tour="cuentas-tabla" class="min-h-[360px]">
   <fin-table
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"

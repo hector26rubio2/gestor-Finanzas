@@ -2211,4 +2211,134 @@ export default {
   'summary.variation.lastYear': 'Année précédente',
   'summary.variation.none': 'pas de données',
   'summary.categories.title': 'Dépenses par catégorie',
+  'tutorial.next': 'Suivant',
+  'tutorial.previous': 'Précédent',
+  'tutorial.done': 'Terminer',
+  'tutorial.progress': 'Étape {{current}} sur {{total}}',
+  'tutorial.offer.title': 'Voulez-vous une visite guidée de l’application ?',
+  'tutorial.offer.text':
+    'Nous vous montrons les contrôles importants de chaque page. Vous pourrez le revoir depuis les Préférences, le menu du profil ou la palette de commandes.',
+  'tutorial.offer.yes': 'Oui, montrez-moi',
+  'tutorial.offer.no': 'Pas maintenant',
+  'tutorial.menu': 'Tutoriel',
+  'tutorial.command': 'Voir le tutoriel de cette page',
+  'preferences.sections.tutorial': 'Tutoriel',
+  'tutorial.settings.title': 'Tutoriel guidé',
+  'tutorial.settings.description': 'Une visite qui signale les contrôles importants de la page où vous êtes.',
+  'tutorial.settings.start': 'Voir le tutoriel',
+  'tutorial.settings.onEnter': 'Proposer le tutoriel à la connexion',
+  'tutorial.settings.onEnterHint': 'Il n’est proposé que la première fois.',
+  'tutorial.step.navegacion.title': 'Menu de navigation',
+  'tutorial.step.navegacion.text':
+    'Toutes les sections sont ici : tableau de bord, mouvements, calendrier, comptes, personnes, patrimoine, planification et rapports. Réduisez-le avec le bouton du dessus.',
+  'tutorial.step.buscar.title': 'Recherche et commandes',
+  'tutorial.step.buscar.text':
+    'Ouvrez la palette avec Ctrl K : accédez à une section, cherchez des mouvements, créez des enregistrements ou changez de thème sans souris.',
+  'tutorial.step.nuevo-movimiento.title': 'Nouveau mouvement',
+  'tutorial.step.nuevo-movimiento.text':
+    'Enregistrez une dépense, un revenu, un virement, un prêt ou un paiement depuis n’importe quelle page.',
+  'tutorial.step.notificaciones.title': 'Notifications',
+  'tutorial.step.notificaciones.text':
+    'Alertes d’échéances, de paiements et de changements. Le nombre indique combien ne sont pas lues.',
+  'tutorial.step.perfil.title': 'Profil et préférences',
+  'tutorial.step.perfil.text': 'Ouvrez vos préférences, revoyez ce tutoriel ou déconnectez-vous.',
+  'tutorial.step.reportar.title': 'Signaler un problème',
+  'tutorial.step.reportar.text':
+    'Si quelque chose ne va pas ou si vous avez une idée, ce bouton envoie un rapport avec une capture. Vous pouvez le déplacer.',
+  'tutorial.step.dashboard-vista.title': 'Résumé ou Explorer',
+  'tutorial.step.dashboard-vista.text':
+    'Résumé donne la vue d’ensemble de la période ; Explorer ouvre les indicateurs et graphiques pour une analyse détaillée.',
+  'tutorial.step.dashboard-periodo.title': 'Période',
+  'tutorial.step.dashboard-periodo.text':
+    'Choisissez l’échelle (jour, semaine, mois, année), avancez avec les flèches ou ouvrez le sélecteur pour changer de date.',
+  'tutorial.step.dashboard-filtros.title': 'Filtres',
+  'tutorial.step.dashboard-filtros.text':
+    'Limitez tout le tableau par compte, type de compte ou catégorie. Les filtres actifs apparaissent comme des étiquettes à retirer.',
+  'tutorial.step.dashboard-personalizar.title': 'Personnaliser',
+  'tutorial.step.dashboard-personalizar.text':
+    'Réorganisez, redimensionnez, ajoutez ou retirez indicateurs et graphiques pour composer votre tableau.',
+  'tutorial.step.movimientos-kpis.title': 'Indicateurs',
+  'tutorial.step.movimientos-kpis.text':
+    'Revenus, dépenses, nombre d’enregistrements, récurrents, échéances en attente et catégorie la plus lourde de la période.',
+  'tutorial.step.tabla-busqueda.title': 'Recherche',
+  'tutorial.step.tabla-busqueda.text':
+    'Tapez pour chercher et appuyez sur Entrée pour l’épingler comme filtre. Le sélecteur voisin choisit la colonne.',
+  'tutorial.step.tabla-filtros.title': 'Filtres du tableau',
+  'tutorial.step.tabla-filtros.text':
+    'Filtrez par les valeurs d’une colonne, comme le type ou la catégorie. Combinez-en plusieurs et effacez-les d’un coup.',
+  'tutorial.step.tabla-columnas.title': 'Colonnes',
+  'tutorial.step.tabla-columnas.text': 'Choisissez les colonnes à afficher dans le tableau.',
+  'tutorial.step.movimientos-tabla.title': 'Tableau des mouvements',
+  'tutorial.step.movimientos-tabla.text':
+    'Tous vos enregistrements de la période. Triez avec les en-têtes et ouvrez une ligne pour voir le détail, la modifier ou la supprimer.',
+  'tutorial.step.movimientos-exportar.title': 'Exporter en CSV',
+  'tutorial.step.movimientos-exportar.text': 'Téléchargez les mouvements filtrés pour les ouvrir dans un tableur.',
+  'tutorial.step.calendario-anterior.title': 'Période précédente',
+  'tutorial.step.calendario-anterior.text': 'Reculez d’un jour, d’une semaine, d’un mois ou d’une année selon la vue.',
+  'tutorial.step.calendario-vistas.title': 'Vues',
+  'tutorial.step.calendario-vistas.text': 'Passez du jour à la semaine, au mois et à l’année.',
+  'tutorial.step.calendario-hoy.title': 'Aujourd’hui',
+  'tutorial.step.calendario-hoy.text': 'Revenez à la date du jour en un clic.',
+  'tutorial.step.calendario-siguiente.title': 'Période suivante',
+  'tutorial.step.calendario-siguiente.text': 'Avancez pour voir ce qui arrive.',
+  'tutorial.step.calendario-agenda.title': 'Agenda',
+  'tutorial.step.calendario-agenda.text':
+    'Vos prochains engagements : paiements prévus, échéances de cartes et mouvements programmés.',
+  'tutorial.step.calendario-recurrentes.title': 'Récurrents',
+  'tutorial.step.calendario-recurrentes.text':
+    'Abonnements et paiements qui se répètent. Ils apparaissent au calendrier sans les saisir à chaque fois.',
+  'tutorial.step.cuentas-nueva.title': 'Nouveau compte',
+  'tutorial.step.cuentas-nueva.text': 'Créez un compte d’épargne, d’espèces, un portefeuille ou une carte de crédit.',
+  'tutorial.step.cuentas-tarjetas.title': 'Comptes et cartes',
+  'tutorial.step.cuentas-tarjetas.text':
+    'Touchez-en une pour voir son solde, sa dette, son plafond disponible et son cycle. « Toutes » efface la sélection.',
+  'tutorial.step.cuentas-abono.title': 'Enregistrer un paiement',
+  'tutorial.step.cuentas-abono.text':
+    'Avec une carte sélectionnée, enregistrez un paiement de sa dette depuis un autre compte.',
+  'tutorial.step.cuentas-tabla.title': 'Tableau des comptes',
+  'tutorial.step.cuentas-tabla.text':
+    'Le détail de chaque compte. Ouvrez une ligne pour voir ses mouvements et la modifier.',
+  'tutorial.step.personas-nueva.title': 'Nouvelle personne',
+  'tutorial.step.personas-nueva.text':
+    'Ajoutez quelqu’un avec qui vous partagez dépenses ou dettes. « Nouvelle entité » sert aux banques et institutions.',
+  'tutorial.step.personas-tabla.title': 'Personnes et dettes',
+  'tutorial.step.personas-tabla.text':
+    'Qui vous doit et à qui vous devez. « Voir les dettes » sur une ligne déplie chaque dette, son échéance et le solde.',
+  'tutorial.step.inversiones-nueva.title': 'Nouvel investissement',
+  'tutorial.step.inversiones-nueva.text':
+    'Enregistrez un dépôt, un fonds, une action ou un autre actif pour suivre sa valeur.',
+  'tutorial.step.inversiones-tabla.title': 'Vos investissements',
+  'tutorial.step.inversiones-tabla.text':
+    'Ouvrez un investissement pour voir son détail et, de là, enregistrer une opération (apport ou retrait) ou une valorisation.',
+  'tutorial.step.planificacion-pestanas.title': 'Types de simulation',
+  'tutorial.step.planificacion-pestanas.text':
+    'Chaque onglet simule autre chose : un achat à crédit, un objectif d’épargne, un investissement ou la sortie de dettes.',
+  'tutorial.step.planificacion-parametros.title': 'Entrées du scénario',
+  'tutorial.step.planificacion-parametros.text':
+    'Modifiez les valeurs et les résultats se recalculent aussitôt. « Réinitialiser » revient aux valeurs initiales.',
+  'tutorial.step.planificacion-escenarios.title': 'Comparer les scénarios',
+  'tutorial.step.planificacion-escenarios.text':
+    'Enregistrez le scénario actuel sous un nom et comparez-le aux autres pour choisir.',
+  'tutorial.step.planificacion-resultados.title': 'Résultats',
+  'tutorial.step.planificacion-resultados.text':
+    'Les chiffres clés du scénario et, dessous, les graphiques de son évolution.',
+  'tutorial.step.reportes-pestanas.title': 'Résumé ou Explorateur',
+  'tutorial.step.reportes-pestanas.text':
+    'Résumé montre le bilan de la période ; Explorateur permet de croiser les données à votre guise.',
+  'tutorial.step.reportes-periodo.title': 'Période du rapport',
+  'tutorial.step.reportes-periodo.text':
+    'Choisissez la plage à analyser ; indicateurs et graphiques se mettent à jour.',
+  'tutorial.step.reportes-exportar.title': 'Exporter en CSV',
+  'tutorial.step.reportes-exportar.text': 'Téléchargez le rapport pour le partager ou le travailler dans un tableur.',
+  'tutorial.step.notificaciones-filtro.title': 'Filtrer les avis',
+  'tutorial.step.notificaciones-filtro.text':
+    'Basculez entre toutes, non lues et d’autres catégories de notifications.',
+  'tutorial.step.notificaciones-marcar.title': 'Tout marquer comme lu',
+  'tutorial.step.notificaciones-marcar.text': 'Remettez le compteur de non lues à zéro d’un coup.',
+  'tutorial.step.preferencias-secciones.title': 'Sections des préférences',
+  'tutorial.step.preferencias-secciones.text':
+    'Apparence, thème personnalisé, organisation, catégories, budgets, données et confidentialité.',
+  'tutorial.step.preferencias-tutorial.title': 'Tutoriel',
+  'tutorial.step.preferencias-tutorial.text':
+    'Ici, vous pouvez refaire la visite et décider si elle est proposée à la connexion.',
 } as const;

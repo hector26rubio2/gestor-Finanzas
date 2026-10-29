@@ -9,6 +9,7 @@
         size="icon"
         type="button"
         class="size-[34px] rounded-full p-0 pointer-coarse:size-11"
+        data-tour="calendario-anterior"
         [attr.aria-label]="i18n.t('calendar.nav.prevAriaLabel')"
         (click)="shiftCalendar(-1)"
       >
@@ -21,6 +22,7 @@
       <div
         class="flex rounded-[10px] border border-border bg-background p-[3px] max-[700px]:order-3 max-[700px]:w-full"
         role="group"
+        data-tour="calendario-vistas"
         [attr.aria-label]="i18n.t('calendar.nav.scaleAriaLabel')"
       >
         @for (view of calendarViews(); track view.value) {
@@ -37,7 +39,14 @@
         </button>
         }
       </div>
-      <button hlmBtn variant="outline" type="button" class="border-primary/30 text-primary" (click)="goCalendarToday()">
+      <button
+        hlmBtn
+        variant="outline"
+        type="button"
+        class="border-primary/30 text-primary"
+        data-tour="calendario-hoy"
+        (click)="goCalendarToday()"
+      >
         {{ i18n.t('calendar.nav.today') }}
       </button>
       <button
@@ -46,6 +55,7 @@
         size="icon"
         type="button"
         class="size-[34px] rounded-full p-0 pointer-coarse:size-11"
+        data-tour="calendario-siguiente"
         [attr.aria-label]="i18n.t('calendar.nav.nextAriaLabel')"
         (click)="shiftCalendar(1)"
       >
@@ -114,11 +124,16 @@
     }
   </div>
   <aside
+    data-tour="calendario-agenda"
     class="overflow-auto rounded-lg border border-border bg-card p-[18px] [scrollbar-width:none] max-[700px]:mt-3.5 [&::-webkit-scrollbar]:hidden"
   >
     @if (recurrences().length) {
     <h2 class="mt-0 text-base">{{ i18n.t('calendar.recurring.title') }}</h2>
-    <ul class="mb-4 grid gap-1" [attr.aria-label]="i18n.t('calendar.recurring.title')">
+    <ul
+      class="mb-4 grid gap-1"
+      data-tour="calendario-recurrentes"
+      [attr.aria-label]="i18n.t('calendar.recurring.title')"
+    >
       @for (recurrente of recurrences(); track recurrente.id) {
       <li class="flex items-center justify-between gap-2 border-b border-border py-2 text-xs">
         <span class="grid min-w-0">

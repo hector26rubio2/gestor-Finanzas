@@ -2194,4 +2194,129 @@ export default {
   'summary.variation.lastYear': 'Año anterior',
   'summary.variation.none': 'sin datos',
   'summary.categories.title': 'Gasto por categoría',
+  'tutorial.next': 'Siguiente',
+  'tutorial.previous': 'Anterior',
+  'tutorial.done': 'Terminar',
+  'tutorial.progress': 'Paso {{current}} de {{total}}',
+  'tutorial.offer.title': '¿Quieres un recorrido por la aplicación?',
+  'tutorial.offer.text':
+    'Te mostramos los controles importantes de cada página. Puedes verlo después desde Preferencias, el menú de perfil o la paleta de comandos.',
+  'tutorial.offer.yes': 'Sí, mostrarme',
+  'tutorial.offer.no': 'Ahora no',
+  'tutorial.menu': 'Tutorial',
+  'tutorial.command': 'Ver tutorial de esta página',
+  'preferences.sections.tutorial': 'Tutorial',
+  'tutorial.settings.title': 'Tutorial guiado',
+  'tutorial.settings.description': 'Un recorrido que señala los controles importantes de la página en la que estás.',
+  'tutorial.settings.start': 'Ver tutorial',
+  'tutorial.settings.onEnter': 'Ofrecer el tutorial al entrar',
+  'tutorial.settings.onEnterHint': 'Solo se ofrece la primera vez que entras.',
+  'tutorial.step.navegacion.title': 'Menú de navegación',
+  'tutorial.step.navegacion.text':
+    'Aquí están todas las secciones: dashboard, movimientos, calendario, cuentas, personas, patrimonio, planificación y reportes. Puedes colapsarlo con el botón de arriba.',
+  'tutorial.step.buscar.title': 'Buscar y comandos',
+  'tutorial.step.buscar.text':
+    'Abre la paleta con Ctrl K: salta a una sección, busca movimientos, crea registros o cambia el tema sin usar el ratón.',
+  'tutorial.step.nuevo-movimiento.title': 'Nuevo movimiento',
+  'tutorial.step.nuevo-movimiento.text':
+    'Registra un gasto, ingreso, transferencia, préstamo o pago desde cualquier página.',
+  'tutorial.step.notificaciones.title': 'Notificaciones',
+  'tutorial.step.notificaciones.text':
+    'Avisos de vencimientos, pagos y cambios. El número indica cuántos tienes sin leer.',
+  'tutorial.step.perfil.title': 'Perfil y preferencias',
+  'tutorial.step.perfil.text': 'Abre tus preferencias, vuelve a ver este tutorial o cierra la sesión.',
+  'tutorial.step.reportar.title': 'Reportar un problema',
+  'tutorial.step.reportar.text':
+    'Si algo falla o tienes una idea, este botón envía un reporte con una captura. Puedes arrastrarlo si estorba.',
+  'tutorial.step.dashboard-vista.title': 'Resumen o Explorar',
+  'tutorial.step.dashboard-vista.text':
+    'Resumen te da la foto general del periodo; Explorar abre los indicadores y gráficas para analizar al detalle.',
+  'tutorial.step.dashboard-periodo.title': 'Periodo',
+  'tutorial.step.dashboard-periodo.text':
+    'Elige la escala (día, semana, mes, año), muévete con las flechas o abre el selector para saltar a otra fecha.',
+  'tutorial.step.dashboard-filtros.title': 'Filtros',
+  'tutorial.step.dashboard-filtros.text':
+    'Limita todo el tablero por cuenta, tipo de cuenta o categoría. Los filtros activos aparecen como etiquetas que puedes quitar.',
+  'tutorial.step.dashboard-personalizar.title': 'Personalizar',
+  'tutorial.step.dashboard-personalizar.text':
+    'Reordena, redimensiona, agrega o quita indicadores y gráficas para armar tu propio tablero.',
+  'tutorial.step.movimientos-kpis.title': 'Indicadores',
+  'tutorial.step.movimientos-kpis.text':
+    'Ingresos, gastos, número de registros, recurrentes, cuotas pendientes y la categoría que más pesa en el periodo.',
+  'tutorial.step.tabla-busqueda.title': 'Búsqueda',
+  'tutorial.step.tabla-busqueda.text':
+    'Escribe para buscar y pulsa Enter para fijar la búsqueda como filtro. El selector de al lado elige en qué columna buscar.',
+  'tutorial.step.tabla-filtros.title': 'Filtros de la tabla',
+  'tutorial.step.tabla-filtros.text':
+    'Filtra por los valores de una columna, por ejemplo tipo o categoría. Puedes combinar varios y limpiarlos de una vez.',
+  'tutorial.step.tabla-columnas.title': 'Columnas',
+  'tutorial.step.tabla-columnas.text': 'Elige qué columnas ver en la tabla.',
+  'tutorial.step.movimientos-tabla.title': 'Tabla de movimientos',
+  'tutorial.step.movimientos-tabla.text':
+    'Todos tus registros del periodo. Ordena con los encabezados y abre una fila para ver el detalle, editarla o eliminarla.',
+  'tutorial.step.movimientos-exportar.title': 'Exportar a CSV',
+  'tutorial.step.movimientos-exportar.text': 'Descarga los movimientos filtrados para abrirlos en una hoja de cálculo.',
+  'tutorial.step.calendario-anterior.title': 'Periodo anterior',
+  'tutorial.step.calendario-anterior.text': 'Retrocede un día, semana, mes o año según la vista elegida.',
+  'tutorial.step.calendario-vistas.title': 'Vistas',
+  'tutorial.step.calendario-vistas.text': 'Cambia entre día, semana, mes y año.',
+  'tutorial.step.calendario-hoy.title': 'Hoy',
+  'tutorial.step.calendario-hoy.text': 'Vuelve a la fecha de hoy con un clic.',
+  'tutorial.step.calendario-siguiente.title': 'Periodo siguiente',
+  'tutorial.step.calendario-siguiente.text': 'Avanza al periodo que sigue para ver lo que viene.',
+  'tutorial.step.calendario-agenda.title': 'Agenda',
+  'tutorial.step.calendario-agenda.text':
+    'Tus próximos compromisos: pagos proyectados, vencimientos de tarjetas y movimientos programados.',
+  'tutorial.step.calendario-recurrentes.title': 'Recurrentes',
+  'tutorial.step.calendario-recurrentes.text':
+    'Suscripciones y pagos que se repiten. Aparecen en el calendario sin que tengas que registrarlos cada vez.',
+  'tutorial.step.cuentas-nueva.title': 'Nueva cuenta',
+  'tutorial.step.cuentas-nueva.text': 'Crea una cuenta de ahorro, efectivo, billetera o tarjeta de crédito.',
+  'tutorial.step.cuentas-tarjetas.title': 'Cuentas y tarjetas',
+  'tutorial.step.cuentas-tarjetas.text':
+    'Toca una para ver su saldo, deuda, cupo disponible y ciclo de corte y pago. «Todas» quita la selección.',
+  'tutorial.step.cuentas-abono.title': 'Registrar abono',
+  'tutorial.step.cuentas-abono.text': 'Con una tarjeta seleccionada, registra un pago a su deuda desde otra cuenta.',
+  'tutorial.step.cuentas-tabla.title': 'Tabla de cuentas',
+  'tutorial.step.cuentas-tabla.text': 'El detalle de cada cuenta. Abre una fila para ver sus movimientos y editarla.',
+  'tutorial.step.personas-nueva.title': 'Nueva persona',
+  'tutorial.step.personas-nueva.text':
+    'Agrega a alguien con quien compartes gastos o deudas. «Nueva entidad» sirve para bancos e instituciones.',
+  'tutorial.step.personas-tabla.title': 'Personas y deudas',
+  'tutorial.step.personas-tabla.text':
+    'Quién te debe y a quién le debes. Con «Ver deudas» en una fila despliegas cada deuda, su cuota y lo pendiente.',
+  'tutorial.step.inversiones-nueva.title': 'Nueva inversión',
+  'tutorial.step.inversiones-nueva.text': 'Registra un CDT, fondo, acción u otro activo para seguir su valor.',
+  'tutorial.step.inversiones-tabla.title': 'Tus inversiones',
+  'tutorial.step.inversiones-tabla.text':
+    'Abre una inversión para ver su detalle y, desde allí, registrar una operación (aporte o retiro) o una valorización.',
+  'tutorial.step.planificacion-pestanas.title': 'Tipos de simulación',
+  'tutorial.step.planificacion-pestanas.text':
+    'Cada pestaña simula algo distinto: una compra a cuotas, una meta de ahorro, una inversión o salir de deudas.',
+  'tutorial.step.planificacion-parametros.title': 'Entradas del escenario',
+  'tutorial.step.planificacion-parametros.text':
+    'Cambia los valores y los resultados se recalculan al instante. «Restablecer» vuelve a los valores iniciales.',
+  'tutorial.step.planificacion-escenarios.title': 'Comparar escenarios',
+  'tutorial.step.planificacion-escenarios.text':
+    'Guarda el escenario actual con un nombre y compáralo con otros para decidir cuál te conviene.',
+  'tutorial.step.planificacion-resultados.title': 'Resultados',
+  'tutorial.step.planificacion-resultados.text':
+    'Las cifras clave del escenario y, debajo, las gráficas de su evolución.',
+  'tutorial.step.reportes-pestanas.title': 'Resumen o Explorador',
+  'tutorial.step.reportes-pestanas.text':
+    'Resumen muestra el balance del periodo; Explorador te deja cruzar los datos como quieras.',
+  'tutorial.step.reportes-periodo.title': 'Periodo del reporte',
+  'tutorial.step.reportes-periodo.text': 'Elige el rango que quieres analizar; indicadores y gráficas se actualizan.',
+  'tutorial.step.reportes-exportar.title': 'Exportar a CSV',
+  'tutorial.step.reportes-exportar.text': 'Descarga el reporte para compartirlo o trabajarlo en una hoja de cálculo.',
+  'tutorial.step.notificaciones-filtro.title': 'Filtrar avisos',
+  'tutorial.step.notificaciones-filtro.text': 'Alterna entre todas, sin leer y otras categorías de notificaciones.',
+  'tutorial.step.notificaciones-marcar.title': 'Marcar todas como leídas',
+  'tutorial.step.notificaciones-marcar.text': 'Limpia el contador de pendientes de una sola vez.',
+  'tutorial.step.preferencias-secciones.title': 'Secciones de preferencias',
+  'tutorial.step.preferencias-secciones.text':
+    'Apariencia, tema propio, organización, categorías, presupuestos, datos y privacidad.',
+  'tutorial.step.preferencias-tutorial.title': 'Tutorial',
+  'tutorial.step.preferencias-tutorial.text':
+    'Desde aquí puedes repetir el recorrido y decidir si se te ofrece al entrar.',
 } as const;

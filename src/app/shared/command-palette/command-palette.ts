@@ -8,6 +8,7 @@ import { P } from '@core/session/permissions';
 import { navigation } from '@core/state/navigation';
 import { CAPABILITIES, AppStore, FEATURES } from '@core/state/store';
 import { PreferencesActions } from '@core/state/preferences-actions';
+import { TutorialService } from '@shared/tutorial';
 import { IconComponent, IconName } from '@ui/icon/icon';
 import {
   Comando,
@@ -109,6 +110,7 @@ export class CommandPaletteComponent {
   private readonly router = inject(Router);
   private readonly store = inject(AppStore);
   private readonly preferencesActions = inject(PreferencesActions);
+  private readonly tutorial = inject(TutorialService);
   private readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   private readonly servicio = inject(CommandPaletteService);
@@ -199,6 +201,16 @@ export class CommandPaletteComponent {
         icon: 'download',
         run: () => this.ir('movements'),
       });
+    lista.push({
+      id: 'accion-tutorial',
+      label: this.i18n.t('tutorial.command'),
+      palabras: 'tutorial ayuda recorrido guia tour help',
+      icon: 'play',
+      run: () => {
+        const origen = document.querySelector<HTMLElement>('[data-tour="buscar"]') ?? undefined;
+        setTimeout(() => void this.tutorial.iniciar(undefined, origen));
+      },
+    });
     return lista;
   });
 
