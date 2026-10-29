@@ -8,13 +8,19 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.investment.operation.field.date')" [error]="mensaje(formulario.date)">
-      <fin-date-field [formField]="formulario.date" />
+      <fin-date-field [formField]="formulario.date" [ariaLabel]="i18n.t('form.investment.operation.field.date')" />
     </fin-field>
     <fin-field
       [label]="i18n.t('form.investment.operation.field.amount') + ' (' + currency() + ')'"
       [error]="mensaje(formulario.amount)"
     >
-      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.amount" />
+      <input
+        hlmInput
+        type="number"
+        inputmode="decimal"
+        [formField]="formulario.amount"
+        [attr.aria-label]="i18n.t('form.investment.operation.field.amount')"
+      />
     </fin-field>
     <fin-field [label]="i18n.t('form.investment.operation.field.account')" [error]="mensaje(formulario.account)">
       <fin-select
@@ -25,14 +31,31 @@
     </fin-field>
     @if (conCantidad()) {
     <fin-field [label]="i18n.t('form.investment.operation.field.quantity')" [error]="mensaje(formulario.quantity)">
-      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.quantity" />
+      <input
+        hlmInput
+        type="number"
+        inputmode="decimal"
+        [formField]="formulario.quantity"
+        [attr.aria-label]="i18n.t('form.investment.operation.field.quantity')"
+      />
     </fin-field>
     <fin-field [label]="i18n.t('form.investment.operation.field.unitPrice')" [error]="mensaje(formulario.unitPrice)">
-      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.unitPrice" />
+      <input
+        hlmInput
+        type="number"
+        inputmode="decimal"
+        [formField]="formulario.unitPrice"
+        [attr.aria-label]="i18n.t('form.investment.operation.field.unitPrice')"
+      />
     </fin-field>
     }
     <fin-field [label]="i18n.t('form.investment.operation.field.description')" [full]="true">
-      <input hlmInput [formField]="formulario.description" autocomplete="off" />
+      <input
+        hlmInput
+        [formField]="formulario.description"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.investment.operation.field.description')"
+      />
     </fin-field>
     @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>

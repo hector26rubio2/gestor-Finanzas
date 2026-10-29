@@ -203,4 +203,14 @@ describe('formulario de inversión', () => {
       symbol: 'FND',
     });
   });
+
+  it('los campos de inversión tienen nombre accesible', async () => {
+    await abrir('investment');
+
+    const sinNombre = [...document.body.querySelectorAll('form input')].filter(
+      (control) => !control.closest('fin-select') && !control.getAttribute('aria-label')?.trim(),
+    );
+
+    expect(sinNombre.map((control) => control.outerHTML.slice(0, 90))).toEqual([]);
+  });
 });

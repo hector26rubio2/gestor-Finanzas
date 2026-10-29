@@ -67,11 +67,21 @@
       />
     </fin-field>
     <fin-field [label]="i18n.t('form.management.field.symbol')">
-      <input hlmInput [formField]="formulario.symbol" autocomplete="off" />
+      <input
+        hlmInput
+        [formField]="formulario.symbol"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.management.field.symbol')"
+      />
     </fin-field>
     @if (!editingId) {
     <fin-field [label]="i18n.t('form.management.field.institution')">
-      <input hlmInput [formField]="formulario.institution" autocomplete="off" />
+      <input
+        hlmInput
+        [formField]="formulario.institution"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.management.field.institution')"
+      />
     </fin-field>
     } } @if (kind() === 'recurrence') {
     <fin-field [label]="i18n.t('form.field.amount')" [error]="mensaje(formulario.amount)">
