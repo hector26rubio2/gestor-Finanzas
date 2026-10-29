@@ -418,7 +418,7 @@
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
     </button>
     @if (availableKpiFormulaOptions().length) {
-    <button hlmBtn variant="outline" type="button" (click)="openKpiCreator()">
+    <button data-tour="dashboard-crear-kpi" hlmBtn variant="outline" type="button" (click)="openKpiCreator()">
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
     </button>
     } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
