@@ -2032,6 +2032,7 @@ export default {
   'form.account.field.monthlyFee': 'Cuota de manejo mensual',
   'form.account.preview.title': 'Así se aplicaría un abono',
   'form.account.preview.hintEdit': 'Con las compras pendientes de esta tarjeta y el orden de arriba.',
+  'form.account.preview.hintEditOldest': 'Con las compras pendientes de esta tarjeta, de la más vieja a la más nueva.',
   'form.account.preview.hintCreate': 'Cuando la tarjeta tenga compras verás aquí el reparto de un abono de ejemplo.',
   'form.account.preview.amount': 'Abono de prueba',
   'form.account.preview.order': 'El abono cubre en este orden: {order}…',

@@ -2026,6 +2026,7 @@ export default {
   'form.account.field.monthlyFee': 'Monthly card fee',
   'form.account.preview.title': 'How a payment would be applied',
   'form.account.preview.hintEdit': "Using this card's pending purchases and the order above.",
+  'form.account.preview.hintEditOldest': "Using this card's pending purchases, oldest first.",
   'form.account.preview.hintCreate': 'Once the card has purchases you will see how an example payment is split here.',
   'form.account.preview.amount': 'Sample payment',
   'form.account.preview.order': 'The payment covers, in order: {order}…',

@@ -2043,6 +2043,7 @@ export default {
   'form.account.field.monthlyFee': 'Cotisation mensuelle',
   'form.account.preview.title': 'Comment un paiement serait appliqué',
   'form.account.preview.hintEdit': "Avec les achats en attente de cette carte et l'ordre ci-dessus.",
+  'form.account.preview.hintEditOldest': 'Avec les achats en attente de cette carte, du plus ancien au plus récent.',
   'form.account.preview.hintCreate':
     "Quand la carte aura des achats, vous verrez ici la répartition d'un paiement d'exemple.",
   'form.account.preview.amount': "Paiement d'essai",

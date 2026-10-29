@@ -2024,6 +2024,7 @@ export default {
   'form.account.field.monthlyFee': 'Anuidade mensal',
   'form.account.preview.title': 'Como um pagamento seria aplicado',
   'form.account.preview.hintEdit': 'Com as compras pendentes deste cartão e a ordem acima.',
+  'form.account.preview.hintEditOldest': 'Com as compras pendentes deste cartão, da mais antiga para a mais nova.',
   'form.account.preview.hintCreate':
     'Quando o cartão tiver compras você verá aqui a divisão de um pagamento de exemplo.',
   'form.account.preview.amount': 'Pagamento de teste',
