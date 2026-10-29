@@ -69,7 +69,7 @@ import { UserSheetComponent } from './user-sheet';
                 hlmBtn
                 variant="outline"
                 size="sm"
-                [attr.aria-label]="i18n.t('admin.users.manageAriaLabel') + ': ' + row.raw.displayName"
+                [attr.aria-label]="i18n.t('admin.organizations.manage') + ': ' + row.raw.displayName"
                 (click)="$event.stopPropagation(); open(row.id)"
               >
                 <fin-icon name="edit" /> {{ i18n.t('admin.organizations.manage') }}

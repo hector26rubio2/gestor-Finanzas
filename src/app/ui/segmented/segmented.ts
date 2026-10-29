@@ -27,6 +27,9 @@ export interface SegmentedOption {
           </button>
         }
       </hlm-tabs-list>
+      @for (opcion of options(); track opcion.value) {
+        <div [hlmTabsContent]="opcion.value" class="hidden"></div>
+      }
     </hlm-tabs>
   `,
 })

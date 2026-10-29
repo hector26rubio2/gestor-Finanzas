@@ -66,6 +66,79 @@ function paginaCon(ids: readonly string[], total = ids.length) {
   };
 }
 
+describe('MovementsBookService — columnas de entrada/salida y cuotas', () => {
+  it('un saldo inicial de una cuenta de ahorros es una entrada sin cuotas; solo una compra con tarjeta lleva "Una cuota"', () => {
+    const { store, component } = pruebaRender(ComponenteLibro, {
+      data: datosDe(),
+      transport: new TransportFalso(),
+      session: sesionConPermisos,
+    });
+    store.data.update((data) => ({
+      ...data,
+      accounts: [
+        { id: 'ahorros', name: 'Ahorros Bancolombia', type: 'savings', currency: 'COP' } as never,
+        { id: 'visa', name: 'Visa', type: 'credit', currency: 'COP' } as never,
+      ],
+      movements: [
+        {
+          id: 'saldo-inicial',
+          date: '2026-10-28',
+          description: 'Saldo inicial',
+          accountId: 'ahorros',
+          category: '',
+          kind: 'income',
+          status: 'confirmed',
+          amount: 2_000_000,
+        },
+        {
+          id: 'compra',
+          date: '2026-10-28',
+          description: 'Mercado',
+          accountId: 'visa',
+          category: 'Mercado',
+          kind: 'expense',
+          status: 'confirmed',
+          amount: -50_000,
+        },
+      ],
+    }));
+
+    const fila = (id: string) => component.book.movementRows().find((f) => f.id === id)!;
+    expect(fila('saldo-inicial')['effect']).toBe('Entrada');
+    expect(fila('saldo-inicial')['financing']).toBe('—');
+    expect(fila('compra')['effect']).toBe('Salida');
+    expect(fila('compra')['financing']).toBe('Una cuota');
+    expect(fila('saldo-inicial')['recurrence']).toBe('—');
+  });
+
+  it('un movimiento recurrente muestra el chulito con su frecuencia', () => {
+    const { store, component } = pruebaRender(ComponenteLibro, {
+      data: datosDe(),
+      transport: new TransportFalso(),
+      session: sesionConPermisos,
+    });
+    store.data.update((data) => ({
+      ...data,
+      movements: [
+        {
+          id: 'arriendo',
+          date: '2026-10-01',
+          description: 'Arriendo',
+          accountId: data.accounts[0]?.id ?? '',
+          category: 'Vivienda',
+          kind: 'expense',
+          status: 'confirmed',
+          amount: -1_200_000,
+          recurring: true,
+          recurrence: 'monthly',
+        },
+      ],
+    }));
+
+    expect(component.book.movementRows().find((f) => f.id === 'arriendo')!['recurrence']).toBe('✓ Mensual');
+  });
+});
+
 describe('MovementsBookService — refetch tras el invalidado del listado (ticket 27)', () => {
   it('el refetch tras navegar conserva el movimiento recién guardado fuera de página 1: el libro no lo oculta', async () => {
     // Servidor: la página 1 (orden por fecha desc) no incluye el movimiento

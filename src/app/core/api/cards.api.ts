@@ -15,6 +15,7 @@ export interface ApiCard {
     foreignPaymentPriority?: readonly number[] | null;
     monthlyFee?: ApiMoney | null;
     dualCurrency?: boolean | null;
+    applyPaymentPriority?: boolean | null;
   } | null;
   issuer: string | null;
   lastFour: string | null;

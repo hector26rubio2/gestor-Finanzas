@@ -89,10 +89,12 @@
         class="flex h-auto min-h-[74px] flex-col items-start justify-start overflow-hidden rounded-none border-e border-b border-border bg-card text-start font-normal whitespace-normal text-foreground"
         [class]="dayClass(day)"
         [attr.aria-pressed]="day.iso === store.selectedCalendarDate()"
-        [attr.aria-label]="i18n.t('calendar.day.ariaLabel', { label: day.label, count: store.dayMoves(day.iso).length })"
         (click)="selectCalendarDay(day.iso)"
       >
-        <b class="block">{{ day.day }}</b>
+        <b class="block" aria-hidden="true">{{ day.day }}</b>
+        <span class="sr-only"
+          >{{ i18n.t('calendar.day.ariaLabel', { label: day.label, count: store.dayMoves(day.iso).length }) }}</span
+        >
         @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
         <span
           class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap"

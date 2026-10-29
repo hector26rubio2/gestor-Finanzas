@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Movement } from '@core/state';
 import { CARD_BUCKET, PRIORIDAD_EN_PESOS } from '@core/api';
-import { aplicarAbono, comprasPendientes, saldosPorConcepto } from './extracto';
+import { aplicarAbono, comprasPendientes, ordenDeAbono, saldosPorConcepto } from './extracto';
 
 const mov = (parcial: Partial<Movement>): Movement => ({
   id: parcial.id ?? crypto.randomUUID(),
@@ -75,5 +75,41 @@ describe('extracto de tarjeta', () => {
     const abono = aplicarAbono(saldos, 900_000);
     expect(abono.map((a) => a.aplicado)).toEqual([200_000, 600_000, 100_000, 0]);
     expect(abono[2].despues).toBe(400_000);
+  });
+
+  describe('sin orden de prioridad', () => {
+    const orden = ordenDeAbono(PRIORIDAD_EN_PESOS, false);
+
+    it('un pago ya hecho va a la deuda más vieja', () => {
+      const compras = comprasPendientes(
+        [
+          mov({ id: 'avance', date: '2026-08-01', amount: -300_000, movementSubtype: 'advance' }),
+          mov({ id: 'contado', date: '2026-09-01', amount: -200_000 }),
+          mov({ id: 'pago', date: '2026-09-10', kind: 'payment', amount: 250_000 }),
+        ],
+        orden,
+      );
+      expect(compras.find((c) => c.id === 'avance')?.pendiente).toBe(50_000);
+      expect(compras.find((c) => c.id === 'contado')?.pendiente).toBe(200_000);
+    });
+
+    it('el abono paga compra por compra desde la más vieja, aunque cambie de concepto', () => {
+      const compras = comprasPendientes(
+        [
+          mov({ id: 'contado-viejo', date: '2026-07-01', amount: -100_000 }),
+          mov({ id: 'avance', date: '2026-08-01', amount: -300_000, movementSubtype: 'advance' }),
+          mov({ id: 'contado-nuevo', date: '2026-09-01', amount: -200_000 }),
+        ],
+        orden,
+      );
+      const saldos = saldosPorConcepto(compras, orden);
+      expect(saldos.map((s) => s.concepto)).toEqual([CARD_BUCKET.singleInstallmentPurchases, CARD_BUCKET.cashAdvances]);
+      expect(aplicarAbono(saldos, 250_000, true).map((a) => a.aplicado)).toEqual([100_000, 150_000]);
+      expect(aplicarAbono(saldos, 250_000).map((a) => a.aplicado)).toEqual([250_000, 0]);
+    });
+
+    it('con prioridad devuelve el orden configurado', () => {
+      expect(ordenDeAbono(PRIORIDAD_EN_PESOS, true)).toBe(PRIORIDAD_EN_PESOS);
+    });
   });
 });

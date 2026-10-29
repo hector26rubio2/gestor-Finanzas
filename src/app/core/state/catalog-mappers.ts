@@ -21,6 +21,7 @@ export function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unk
       ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: 'COP' } : null }
       : {}),
     ...(credito.dualCurrency !== undefined ? { dualCurrency: credito.dualCurrency } : {}),
+    ...(credito.applyPaymentPriority !== undefined ? { applyPaymentPriority: credito.applyPaymentPriority } : {}),
   };
 }
 
@@ -58,6 +59,7 @@ export function tarjetaAAccount(
     foreignPaymentPriority: completarPrioridad(card.terms?.foreignPaymentPriority, PRIORIDAD_EN_DOLARES),
     ...(condiciones.monthlyFee ? { monthlyFee: condiciones.monthlyFee } : {}),
     dualCurrency: card.terms?.dualCurrency === true,
+    applyPaymentPriority: card.terms?.applyPaymentPriority !== false,
   };
 }
 

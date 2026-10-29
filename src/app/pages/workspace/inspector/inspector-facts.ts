@@ -10,37 +10,50 @@ export interface InspectorFactsContext {
   t: Translate;
   money: (value: number) => string;
   accountName: (id: string) => string | undefined;
+  accountType?: (id: string) => Account['type'] | undefined;
 }
 
 export type InspectorFact = readonly [string, string];
 
-export function hechosDeMovimiento(m: Movement, { t, accountName }: InspectorFactsContext): InspectorFact[] {
+function cuotasDe(m: Movement, t: Translate, accountType: InspectorFactsContext['accountType']): string {
+  if (m.installmentTotal)
+    return t('workspace.inspector.facts.installmentsOf', {
+      current: m.installmentCurrent ?? 1,
+      total: m.installmentTotal,
+    });
+  return m.amount < 0 && accountType?.(m.accountId) === 'credit'
+    ? t('movements.column.financing.singleInstallment')
+    : t('movements.column.financing.none');
+}
+
+function recurrenciaDe(m: Movement, t: Translate): string {
+  if (!m.recurring) return t('movements.column.financing.none');
+  const frecuencia = m.recurrence === 'weekly' ? 'weekly' : m.recurrence === 'yearly' ? 'yearly' : 'monthly';
+  return `✓ ${t(`movements.column.recurrence.${frecuencia}`)}`;
+}
+
+export function hechosDeMovimiento(
+  m: Movement,
+  { t, accountName, accountType }: InspectorFactsContext,
+): InspectorFact[] {
   return [
     [t('workspace.inspector.facts.date'), m.date],
     [t('workspace.inspector.facts.account'), accountName(m.accountId) ?? SIN_DATO],
-    [t('workspace.inspector.facts.category'), m.category],
+    [t('workspace.inspector.facts.category'), m.category || t('movements.column.financing.none')],
     [
       t('workspace.inspector.facts.nature'),
-      m.amount < 0 ? t('workspace.inspector.facts.debit') : t('workspace.inspector.facts.credit'),
+      m.amount < 0 ? t('movements.column.effect.debit') : t('movements.column.effect.credit'),
     ],
-    [t('workspace.inspector.facts.status'), m.status],
+    [
+      t('workspace.inspector.facts.status'),
+      t(m.status === 'pending' ? 'movements.column.effect.pending' : 'workspace.inspector.facts.confirmed'),
+    ],
     [
       t('workspace.inspector.facts.responsibility'),
       m.person ? t('workspace.inspector.facts.loanedTo', { person: m.person }) : t('workspace.inspector.facts.own'),
     ],
-    [
-      t('workspace.inspector.facts.installments'),
-      m.installmentTotal
-        ? t('workspace.inspector.facts.installmentsOf', {
-            current: m.installmentCurrent ?? 1,
-            total: m.installmentTotal,
-          })
-        : t('workspace.inspector.facts.oneInstallment'),
-    ],
-    [
-      t('workspace.inspector.facts.recurrence'),
-      m.recurring ? (m.recurrence ?? t('workspace.inspector.facts.yes')) : t('workspace.inspector.facts.notRecurring'),
-    ],
+    [t('workspace.inspector.facts.installments'), cuotasDe(m, t, accountType)],
+    [t('workspace.inspector.facts.recurrence'), recurrenciaDe(m, t)],
     [t('workspace.inspector.facts.loan'), t(claveDePrestamo(m.loanRole))],
     [
       t('workspace.inspector.facts.originalCurrency'),

@@ -46,6 +46,7 @@ export interface Account {
   foreignPaymentPriority?: readonly number[];
   monthlyFee?: number;
   dualCurrency?: boolean;
+  applyPaymentPriority?: boolean;
 }
 
 export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' | 'Proveedor' | 'Otro';

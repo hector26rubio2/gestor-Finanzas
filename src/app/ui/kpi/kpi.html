@@ -31,7 +31,10 @@
   >{{ value() }}</strong
 >
 @if (hint() || caption() || delta() !== null || hasSeries()) {
-<div class="relative z-10 flex min-w-0 items-center justify-between gap-2">
+<div
+  class="relative z-10 flex min-w-0 items-center justify-between gap-2"
+  [class.mb-4]="progress() !== null && !hasSeries()"
+>
   <span class="min-w-0 truncate text-xs text-muted-foreground" [attr.title]="hint()"
     >{{ delta() !== null ? comparacionVisible() : hint() }}@if (caption() && delta() === null) {<span>
       · {{ caption() }}</span

@@ -143,17 +143,21 @@ export class MovementsBookService {
             ? this.i18n.t('movements.column.financing.loanReceived')
             : m.loanRole === 'repayment'
               ? this.i18n.t('movements.column.financing.loanRepayment')
-              : this.i18n.t('movements.column.financing.singleInstallment'),
+              : m.amount < 0 && this.store.account(m.accountId)?.type === 'credit'
+                ? this.i18n.t('movements.column.financing.singleInstallment')
+                : this.i18n.t('movements.column.financing.none'),
       responsibility: m.person
         ? this.i18n.t('movements.column.responsibility.loaned', { person: m.person })
         : this.i18n.t('movements.column.responsibility.own'),
       recurrence: m.recurring
-        ? m.recurrence === 'weekly'
-          ? this.i18n.t('movements.column.recurrence.weekly')
-          : m.recurrence === 'yearly'
-            ? this.i18n.t('movements.column.recurrence.yearly')
-            : this.i18n.t('movements.column.recurrence.monthly')
-        : this.i18n.t('movements.column.recurrence.none'),
+        ? `✓ ${
+            m.recurrence === 'weekly'
+              ? this.i18n.t('movements.column.recurrence.weekly')
+              : m.recurrence === 'yearly'
+                ? this.i18n.t('movements.column.recurrence.yearly')
+                : this.i18n.t('movements.column.recurrence.monthly')
+          }`
+        : this.i18n.t('movements.column.financing.none'),
       currency:
         m.originalCurrency === 'USD'
           ? this.i18n.t('movements.column.currency.usdRate', {

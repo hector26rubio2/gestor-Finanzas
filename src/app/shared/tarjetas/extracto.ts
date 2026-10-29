@@ -94,10 +94,35 @@ export function saldosPorConcepto(
   });
 }
 
-export function aplicarAbono(saldos: readonly SaldoPorConcepto[], monto: number): AplicacionDeAbono[] {
+export function ordenDeAbono(prioridad: readonly CardBucket[], aplicarPrioridad: boolean): readonly CardBucket[] {
+  return aplicarPrioridad ? prioridad : [];
+}
+
+function aplicadoPorAntiguedad(saldos: readonly SaldoPorConcepto[], monto: number): Map<CardBucket, number> {
+  const compras = saldos
+    .flatMap((saldo) => saldo.compras)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id.localeCompare(b.id));
+  const aplicado = new Map<CardBucket, number>();
+  let restante = Math.max(0, monto);
+  for (const compra of compras) {
+    const parte = redondear(Math.min(compra.pendiente, restante));
+    restante = redondear(restante - parte);
+    aplicado.set(compra.concepto, redondear((aplicado.get(compra.concepto) ?? 0) + parte));
+  }
+  return aplicado;
+}
+
+export function aplicarAbono(
+  saldos: readonly SaldoPorConcepto[],
+  monto: number,
+  porAntiguedad = false,
+): AplicacionDeAbono[] {
+  const deLaMasVieja = porAntiguedad ? aplicadoPorAntiguedad(saldos, monto) : null;
   let restante = Math.max(0, monto);
   return saldos.map((saldo) => {
-    const aplicado = redondear(Math.min(saldo.saldo, restante));
+    const aplicado = deLaMasVieja
+      ? (deLaMasVieja.get(saldo.concepto) ?? 0)
+      : redondear(Math.min(saldo.saldo, restante));
     restante = redondear(restante - aplicado);
     return { concepto: saldo.concepto, antes: saldo.saldo, aplicado, despues: redondear(saldo.saldo - aplicado) };
   });
