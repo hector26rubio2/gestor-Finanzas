@@ -1,4 +1,4 @@
-<fin-field [label]="i18n.t('form.movement.field.recurring')">
+<fin-field data-tour="form-recurrente" [label]="i18n.t('form.movement.field.recurring')">
   <fin-select
     name="recurring"
     [(ngModel)]="model['recurring']"
@@ -7,7 +7,7 @@
   />
 </fin-field>
 @if (model['recurring'] === 'true') {
-<fin-field [label]="i18n.t('form.frequency.label')">
+<fin-field data-tour="form-frecuencia" [label]="i18n.t('form.frequency.label')">
   <fin-select
     name="recurrence"
     [(ngModel)]="model['recurrence']"

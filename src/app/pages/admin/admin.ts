@@ -32,7 +32,7 @@ import { UsersTabComponent } from './tabs/users/users-tab';
   providers: [ADMIN_STORE_PROVIDERS],
   template: `
     <div class="flex w-full min-w-0 flex-col gap-4" data-page="admin">
-      <header>
+      <header data-tour="admin-titulo">
         <h1 class="font-display text-[clamp(1.5rem,2vw,2rem)] font-semibold tracking-tight">
           {{ i18n.t('admin.title') }}
         </h1>

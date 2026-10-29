@@ -225,6 +225,7 @@
           <span class="line-clamp-2" [attr.title]="display(row.original[key])">{{ display(row.original[key]) }}</span>
           } @else { {{ display(row.original[key]) }} } @if (key === firstColumnKey() && hasRowDetail(row.original)) {
           <button
+            data-tour="tabla-detalle"
             hlmBtn
             variant="ghost"
             size="sm"

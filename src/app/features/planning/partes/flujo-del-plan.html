@@ -80,10 +80,24 @@
     <div class="flex flex-wrap items-center justify-between gap-1.5">
       <h4 class="text-xs font-semibold">{{ i18n.t('planning.sim.flow.changes') }}</h4>
       <div class="flex gap-1">
-        <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarCambio('ingreso')">
+        <button
+          data-tour="planificacion-flujo-ingreso"
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          (click)="sim.agregarCambio('ingreso')"
+        >
           {{ i18n.t('planning.sim.flow.addIncome') }}
         </button>
-        <button hlmBtn variant="outline" size="sm" type="button" (click)="sim.agregarCambio('gasto')">
+        <button
+          data-tour="planificacion-flujo-gasto"
+          hlmBtn
+          variant="outline"
+          size="sm"
+          type="button"
+          (click)="sim.agregarCambio('gasto')"
+        >
           {{ i18n.t('planning.sim.flow.addExpense') }}
         </button>
       </div>

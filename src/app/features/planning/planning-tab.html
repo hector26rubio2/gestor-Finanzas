@@ -11,6 +11,7 @@
   </hlm-tabs-list>
   @if (visiblePlanningTabs().length) {
   <fin-vistas-guardadas
+    data-tour="planificacion-plan-guardado"
     [tipo]="tipoDePlan()"
     [estado]="sim.estado()"
     [etiqueta]="i18n.t('planning.plans.label')"
@@ -200,7 +201,7 @@
         data-tour="planificacion-escenarios"
         [attr.aria-label]="i18n.t('planning.sim.toolbar')"
       >
-        <fin-field [label]="i18n.t('planning.sim.view.label')">
+        <fin-field data-tour="planificacion-vista" [label]="i18n.t('planning.sim.view.label')">
           <fin-select
             class="w-full"
             [options]="vistas()"
@@ -218,7 +219,7 @@
             [ariaLabel]="i18n.t('planning.sim.compare.measure')"
           />
         </fin-field>
-        <fin-field [label]="i18n.t('planning.sim.compare.name')">
+        <fin-field data-tour="planificacion-nombre-escenario" [label]="i18n.t('planning.sim.compare.name')">
           <input
             hlmInput
             class="w-full"
@@ -227,7 +228,13 @@
             [placeholder]="i18n.t('planning.sim.compare.placeholder')"
           />
         </fin-field>
-        <button hlmBtn variant="outline" type="button" (click)="guardarEscenario()">
+        <button
+          data-tour="planificacion-guardar-escenario"
+          hlmBtn
+          variant="outline"
+          type="button"
+          (click)="guardarEscenario()"
+        >
           {{ i18n.t('planning.sim.compare.save') }}
         </button>
         <div class="col-span-full flex flex-wrap gap-1.5 empty:hidden">

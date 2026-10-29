@@ -8,7 +8,7 @@
     <button hlmTabsTrigger="summary" class="flex-none gap-2 px-3.5 py-2.5">
       <fin-icon name="reports" /> {{ i18n.t('reports.sections.summary') }}
     </button>
-    <button hlmTabsTrigger="explorer" class="flex-none gap-2 px-3.5 py-2.5">
+    <button data-tour="reportes-explorador" hlmTabsTrigger="explorer" class="flex-none gap-2 px-3.5 py-2.5">
       <fin-icon name="portfolio" /> {{ i18n.t('reports.sections.explorer') }}
     </button>
   </hlm-tabs-list>
@@ -32,7 +32,7 @@
     <fin-skeleton tipo="kpi" [filas]="4" />
     <fin-skeleton tipo="grafica" />
     } @else {
-    <fin-kpi-grid>
+    <fin-kpi-grid data-tour="reportes-kpis">
       <fin-kpi
         [label]="i18n.t('reports.kpi.net.label')"
         icon="trendUp"

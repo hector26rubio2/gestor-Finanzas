@@ -39,7 +39,7 @@ import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
           <h2 class="text-base font-semibold">{{ i18n.t('admin.audit.title') }}</h2>
           <p class="text-sm text-muted-foreground">{{ i18n.t('admin.audit.subtitle') }}</p>
         </div>
-        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div data-tour="admin-auditoria-filtros" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <fin-select
             [ngModel]="action()"
             (ngModelChange)="update('action', $event)"
@@ -121,6 +121,7 @@ import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
         class="[height:max(22rem,calc(100dvh-26rem))]! max-[700px]:[height:min(34rem,calc(100dvh-12rem))]!"
       >
         <fin-table
+          data-tour="admin-auditoria"
           [columns]="columns()"
           [rows]="rows()"
           [totalRows]="auditoria.total()"

@@ -1,10 +1,10 @@
 <fin-overlay [title]="i18n.t('dashboard.actions.createWidget')" mode="modal" [wide]="true" (closed)="cerrado.emit()">
   <form class="grid gap-4" (submit)="crear($event)">
     <div class="grid grid-cols-2 gap-3 max-[640px]:grid-cols-1">
-      <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
+      <fin-field data-tour="widget-nombre" [label]="i18n.t('dashboard.widgetForm.name')">
         <input hlmInput name="widgetTitle" [(ngModel)]="newWidgetTitle" required maxlength="48" />
       </fin-field>
-      <fin-field [label]="i18n.t('dashboard.widgetForm.distribution')">
+      <fin-field data-tour="widget-ancho" [label]="i18n.t('dashboard.widgetForm.distribution')">
         <fin-select
           name="widgetWidth"
           [(ngModel)]="newWidgetWidth"
@@ -15,7 +15,11 @@
     </div>
     <div class="grid grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)] gap-5 max-[900px]:grid-cols-1">
       <div class="flex max-h-[62vh] min-w-0 flex-col gap-4 overflow-y-auto pe-1">
-        <fin-galeria-visual [valor]="otroTipo() ? '' : nuevoVisual().tipo" (valorChange)="elegirTipoDelMotor($event)" />
+        <fin-galeria-visual
+          data-tour="widget-tipo"
+          [valor]="otroTipo() ? '' : nuevoVisual().tipo"
+          (valorChange)="elegirTipoDelMotor($event)"
+        />
         <fin-field [label]="i18n.t('charts.group.others')">
           <fin-select
             name="otroTipo"
@@ -28,7 +32,7 @@
       </div>
       <div class="flex min-w-0 flex-col gap-3">
         @if (!otroTipo()) {
-        <fin-configurador-visual [conTipo]="false" [(config)]="nuevoVisual" />
+        <fin-configurador-visual data-tour="widget-datos" [conTipo]="false" [(config)]="nuevoVisual" />
         @if (previaVacia()) {
         <p
           class="grid min-h-[300px] place-items-center rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground"
@@ -69,11 +73,11 @@
         } }
       </div>
     </div>
-    <p class="text-xs text-muted-foreground">{{ i18n.t('dashboard.widgetForm.note') }}</p>
+    <p data-tour="widget-nota" class="text-xs text-muted-foreground">{{ i18n.t('dashboard.widgetForm.note') }}</p>
     <div class="flex justify-end gap-2">
       <button hlmBtn variant="outline" type="button" (click)="cerrado.emit()">
         <fin-icon name="close" /> {{ i18n.t('dashboard.widgetForm.cancel') }}</button
-      ><button hlmBtn type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
+      ><button data-tour="widget-guardar" hlmBtn type="submit">{{ i18n.t('dashboard.widgetForm.submit') }}</button>
     </div>
   </form>
 </fin-overlay>

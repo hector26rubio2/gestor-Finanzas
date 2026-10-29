@@ -32,6 +32,7 @@ import { UserSheetComponent } from './user-sheet';
     <app-admin-panel [title]="i18n.t('admin.users.title')" [subtitle]="i18n.t('admin.users.subtitle')">
       <app-admin-grid>
         <fin-table
+          data-tour="admin-usuarios"
           [columns]="columns()"
           [rows]="rows()"
           [pageSize]="15"

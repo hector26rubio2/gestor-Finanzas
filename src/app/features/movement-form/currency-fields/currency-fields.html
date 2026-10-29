@@ -1,7 +1,7 @@
-<fin-field [label]="i18n.t('form.movement.field.originalAmount')">
+<fin-field data-tour="form-moneda-original" [label]="i18n.t('form.movement.field.originalAmount')">
   <input hlmInput type="number" name="originalAmount" min="0" step="0.01" [(ngModel)]="model['originalAmount']" />
 </fin-field>
-<fin-field [label]="i18n.t('form.movement.field.exchangeRate')">
+<fin-field data-tour="form-tasa-cambio" [label]="i18n.t('form.movement.field.exchangeRate')">
   <input hlmInput type="number" name="exchangeRate" min="0" [(ngModel)]="model['exchangeRate']" />
 </fin-field>
 <p class="col-span-full text-xs font-normal text-muted-foreground">

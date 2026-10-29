@@ -17,7 +17,9 @@
     <div class="grid grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)] items-start gap-4 max-[1000px]:grid-cols-1">
       <article hlmCard class="gap-4 p-5">
         <header>
-          <h2 class="text-base font-semibold">{{ i18n.t('preferences.appearance.title') }}</h2>
+          <h2 data-tour="preferencias-tema" class="text-base font-semibold">
+            {{ i18n.t('preferences.appearance.title') }}
+          </h2>
           <p class="text-xs text-muted-foreground">{{ i18n.t('preferences.appearance.description') }}</p>
         </header>
         <div class="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
@@ -68,7 +70,7 @@
             [ariaLabel]="i18n.t('preferences.font.label')"
           />
         </fin-field>
-        <fin-field [label]="i18n.t('preferences.language.label')">
+        <fin-field data-tour="preferencias-idioma" [label]="i18n.t('preferences.language.label')">
           <fin-select
             class="w-full"
             [options]="languageOptions"
@@ -78,7 +80,7 @@
             [ariaLabel]="i18n.t('preferences.language.label')"
           />
         </fin-field>
-        <fin-field [label]="i18n.t('preferences.density.label')">
+        <fin-field data-tour="preferencias-densidad" [label]="i18n.t('preferences.density.label')">
           <fin-select
             class="w-full"
             [disabled]="!can(P.preferencias.editar)"
@@ -109,7 +111,9 @@
     @if (seccion() === 'organization') {
     <article hlmCard class="gap-3 p-5">
       <header>
-        <h2 class="text-base font-semibold">{{ i18n.t('preferences.members.title') }}</h2>
+        <h2 data-tour="preferencias-miembros" class="text-base font-semibold">
+          {{ i18n.t('preferences.members.title') }}
+        </h2>
         <p class="text-xs text-muted-foreground">{{ i18n.t('preferences.members.description') }}</p>
       </header>
       @if (miembros().length) {
@@ -139,7 +143,7 @@
         class="grid grid-cols-[1.4fr_1.2fr_1fr_auto] items-end gap-2.5 max-[800px]:grid-cols-1"
         (submit)="invitar($event)"
       >
-        <fin-field [label]="i18n.t('preferences.invite.emailLabel')">
+        <fin-field data-tour="preferencias-invitar-correo" [label]="i18n.t('preferences.invite.emailLabel')">
           <input
             hlmInput
             name="email"
@@ -160,7 +164,7 @@
             [placeholder]="i18n.t('preferences.invite.namePlaceholder')"
           />
         </fin-field>
-        <fin-field [label]="i18n.t('preferences.invite.roleLabel')">
+        <fin-field data-tour="preferencias-invitar-rol" [label]="i18n.t('preferences.invite.roleLabel')">
           <fin-select
             name="rol"
             [(ngModel)]="rolInvitado"
@@ -184,7 +188,9 @@
     <article hlmCard class="gap-3 p-5">
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 class="text-base font-semibold">{{ i18n.t('preferences.categories.title') }}</h2>
+          <h2 data-tour="preferencias-categorias" class="text-base font-semibold">
+            {{ i18n.t('preferences.categories.title') }}
+          </h2>
           <p class="text-xs text-muted-foreground">{{ i18n.t('preferences.categories.description') }}</p>
         </div>
         @if (can(P.cuentas.categorias.crear)) {
@@ -236,7 +242,9 @@
     @if (seccion() === 'data') {
     <article hlmCard class="max-w-2xl gap-3 p-5">
       <header>
-        <h2 class="text-base font-semibold">{{ i18n.t('preferences.localData.title') }}</h2>
+        <h2 data-tour="preferencias-datos" class="text-base font-semibold">
+          {{ i18n.t('preferences.localData.title') }}
+        </h2>
         <p class="text-xs text-muted-foreground">{{ i18n.t('preferences.localData.description') }}</p>
       </header>
       <div class="flex flex-wrap gap-2.5">

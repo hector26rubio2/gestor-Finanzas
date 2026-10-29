@@ -15,7 +15,7 @@ import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@featur
   selector: 'fin-movement-attribution-field',
   imports: [FormsModule, UiSelectComponent, FieldComponent, HlmButton, HlmInput, IconComponent],
   template: `
-    <fin-field [label]="i18n.t('form.movement.field.person')">
+    <fin-field data-tour="form-atribucion" [label]="i18n.t('form.movement.field.person')">
       <div class="flex items-center gap-2">
         <fin-select
           class="min-w-0 flex-1"

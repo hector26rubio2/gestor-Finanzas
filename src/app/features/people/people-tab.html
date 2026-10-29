@@ -55,13 +55,21 @@
               <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.description') }}</th>
               <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.direction') }}</th>
               <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.currency') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.value') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.installment') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">
+              <th data-tour="deuda-columna-valor" scope="col" class="px-2 py-1.5 font-semibold">
+                {{ i18n.t('people.debts.column.value') }}
+              </th>
+              <th data-tour="deuda-columna-cuota" scope="col" class="px-2 py-1.5 font-semibold">
+                {{ i18n.t('people.debts.column.installment') }}
+              </th>
+              <th data-tour="deuda-columna-numero" scope="col" class="px-2 py-1.5 font-semibold">
                 {{ i18n.t('people.debts.column.installmentNumber') }}
               </th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.pending') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.payment') }}</th>
+              <th data-tour="deuda-columna-pendiente" scope="col" class="px-2 py-1.5 font-semibold">
+                {{ i18n.t('people.debts.column.pending') }}
+              </th>
+              <th data-tour="deuda-columna-comportamiento" scope="col" class="px-2 py-1.5 font-semibold">
+                {{ i18n.t('people.column.payment') }}
+              </th>
             </tr>
           </thead>
           <tbody>
