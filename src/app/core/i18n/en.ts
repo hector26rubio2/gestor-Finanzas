@@ -1451,6 +1451,7 @@ export default {
   'accounts.chart.cardsTitle': 'Debt by card and category',
   'accounts.chart.spendTitle': 'Where does the money go? · last 30 days',
   'accounts.chart.noSpend': 'No expenses in the last 30 days.',
+  'accounts.cards.loadError': 'Could not load the card transactions.',
   'accounts.chart.flow.label': 'What the flow shows',
   'accounts.chart.flow.spend': 'Spending',
   'accounts.chart.flow.debt': 'Debt',

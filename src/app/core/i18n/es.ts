@@ -1452,6 +1452,7 @@ export default {
   'accounts.chart.cardsTitle': 'Deuda por tarjeta y categoría',
   'accounts.chart.spendTitle': '¿En qué se va la plata? · últimos 30 días',
   'accounts.chart.noSpend': 'No hay gastos en los últimos 30 días.',
+  'accounts.cards.loadError': 'No se pudieron cargar los movimientos de las tarjetas.',
   'accounts.chart.flow.label': 'Qué mostrar en el flujo',
   'accounts.chart.flow.spend': 'Gasto',
   'accounts.chart.flow.debt': 'Deuda',

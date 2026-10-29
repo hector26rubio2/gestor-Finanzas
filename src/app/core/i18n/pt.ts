@@ -1450,6 +1450,7 @@ export default {
   'accounts.chart.cardsTitle': 'Dívida por cartão e categoria',
   'accounts.chart.spendTitle': 'Para onde vai o dinheiro? · últimos 30 dias',
   'accounts.chart.noSpend': 'Não há gastos nos últimos 30 dias.',
+  'accounts.cards.loadError': 'Não foi possível carregar os movimentos dos cartões.',
   'accounts.chart.flow.label': 'O que mostrar no fluxo',
   'accounts.chart.flow.spend': 'Gasto',
   'accounts.chart.flow.debt': 'Dívida',

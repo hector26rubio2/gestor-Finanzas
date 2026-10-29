@@ -1466,6 +1466,7 @@ export default {
   'accounts.chart.cardsTitle': 'Dette par carte et catégorie',
   'accounts.chart.spendTitle': 'Où va l’argent ? · 30 derniers jours',
   'accounts.chart.noSpend': 'Aucune dépense ces 30 derniers jours.',
+  'accounts.cards.loadError': 'Impossible de charger les mouvements des cartes.',
   'accounts.chart.flow.label': 'Ce que montre le flux',
   'accounts.chart.flow.spend': 'Dépenses',
   'accounts.chart.flow.debt': 'Dette',
