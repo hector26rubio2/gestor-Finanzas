@@ -324,22 +324,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/movements/{id}/correction": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post: operations["CorrectMovement"];
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
     "/api/v1/movements/{id}/reversal": {
         parameters: {
             query?: never;
@@ -350,6 +334,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["ReverseMovement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/movements/{id}/correction": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["CorrectMovement"];
         delete?: never;
         options?: never;
         head?: never;
@@ -622,6 +622,22 @@ export interface paths {
         get?: never;
         put?: never;
         post: operations["CreateLoan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/obligations/{id}/payments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["RegisterObligationPayment"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1864,6 +1880,12 @@ export interface components {
             monthlyLimit: components["schemas"]["MoneyDto"];
             /** Format: date-time */
             updatedAt: string;
+            usage: components["schemas"]["BudgetUsageDto"];
+        };
+        BudgetUsageDto: {
+            usage: components["schemas"]["MoneyDto"];
+            usagePercent: string;
+            status: string;
         };
         BugReportRequest: {
             title: string;
@@ -1991,6 +2013,10 @@ export interface components {
             /** Format: date */
             rateAsOf: string;
         };
+        CorrectMovementRequest: {
+            replacement: components["schemas"]["CreateMovementRequest"];
+            reason?: null | string;
+        };
         CounterpartyDto: {
             /** Format: uuid */
             id: string;
@@ -2040,10 +2066,6 @@ export interface components {
             description: null | string;
             capabilities: string[];
             permissions?: null | string[];
-        };
-        CorrectMovementRequest: {
-            replacement: components["schemas"]["CreateMovementRequest"];
-            reason?: null | string;
         };
         CreateCardPaymentRequest: {
             /** Format: date */
@@ -2507,6 +2529,11 @@ export interface components {
         };
         ObligationEntryTypeDto: number;
         ObligationOriginDto: number;
+        ObligationPaymentDto: {
+            obligation: components["schemas"]["ObligationDto"];
+            allocation: null | components["schemas"]["PaymentAllocationDto"];
+            movement: components["schemas"]["MovementDto"];
+        };
         ObligationStatusDto: number;
         OperationDto: {
             /** Format: uuid */
@@ -2626,6 +2653,11 @@ export interface components {
              */
             size: number | string;
         };
+        PaymentAllocationDto: {
+            principal: components["schemas"]["MoneyDto"];
+            interest: components["schemas"]["MoneyDto"];
+            excess: components["schemas"]["MoneyDto"];
+        };
         PaymentAllocationRuleDto: number;
         PercentageDto: {
             rate: string;
@@ -2728,6 +2760,17 @@ export interface components {
             dayOfMonth: null | number | string;
             dayOfWeek: null | components["schemas"]["DayOfWeek"];
         };
+        RegisterPaymentRequest: {
+            /** Format: date */
+            date: string;
+            amount: components["schemas"]["MoneyDto"];
+            /** Format: uuid */
+            account: string;
+            principal?: null | components["schemas"]["MoneyDto"];
+            interest?: null | components["schemas"]["MoneyDto"];
+            note?: null | string;
+            idempotencyKey?: null | string;
+        };
         ReportClientErrorRequest: {
             source: string;
             fingerprint: string;
@@ -2818,6 +2861,15 @@ export interface components {
             date: string;
             principalDelta: components["schemas"]["MoneyDto"];
             interestDelta: components["schemas"]["MoneyDto"];
+        };
+        SettlementPageDto: {
+            items: components["schemas"]["SettlementDto"][];
+            /** Format: int32 */
+            size: number | string;
+            /** Format: int32 */
+            total: null | number | string;
+            hasNext: boolean;
+            nextCursor: null | string;
         };
         SetUserActiveRequest: {
             isActive: boolean;
@@ -3513,6 +3565,41 @@ export interface operations {
             };
         };
     };
+    ReverseMovement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReverseMovementRequest"];
+            };
+        };
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MovementDto"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     CorrectMovement: {
         parameters: {
             query?: never;
@@ -3544,41 +3631,6 @@ export interface operations {
                 };
                 content: {
                     "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-            /** @description Not Found */
-            404: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/problem+json": components["schemas"]["ProblemDetails"];
-                };
-            };
-        };
-    };
-    ReverseMovement: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path: {
-                id: string;
-            };
-            cookie?: never;
-        };
-        requestBody: {
-            content: {
-                "application/json": components["schemas"]["ReverseMovementRequest"];
-            };
-        };
-        responses: {
-            /** @description OK */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": components["schemas"]["MovementDto"];
                 };
             };
             /** @description Not Found */
@@ -4199,6 +4251,41 @@ export interface operations {
             };
         };
     };
+    RegisterObligationPayment: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["RegisterPaymentRequest"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ObligationPaymentDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetInvestments: {
         parameters: {
             query?: {
@@ -4610,7 +4697,10 @@ export interface operations {
     };
     GetSettlements: {
         parameters: {
-            query?: never;
+            query?: {
+                limit?: number | string;
+                after?: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -4623,7 +4713,16 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SettlementDto"][];
+                    "application/json": components["schemas"]["SettlementPageDto"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
                 };
             };
         };

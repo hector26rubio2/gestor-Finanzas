@@ -19,6 +19,7 @@ const presupuesto = (categoryId: string, amount: string, currency = 'COP'): ApiB
   category: { id: categoryId, name: categoryId },
   monthlyLimit: { amount, currency },
   updatedAt: '2026-10-01T00:00:00Z',
+  usage: { usage: { amount: '0', currency }, usagePercent: '0', status: 'ok' },
 });
 
 describe('presupuestos', () => {
