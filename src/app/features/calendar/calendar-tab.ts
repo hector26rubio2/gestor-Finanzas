@@ -1,4 +1,5 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { fechaDeHoy } from './fecha-de-hoy';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
@@ -239,12 +240,10 @@ export class CalendarTabComponent implements OnInit {
     void this.loadCalendarProjection();
   }
   goCalendarToday(): void {
-    const now = new Date();
-    this.calendarYear.set(now.getFullYear());
-    this.calendarMonth.set(now.getMonth());
-    this.store.selectedCalendarDate.set(
-      `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
-    );
+    const hoy = fechaDeHoy(this.store.hoy());
+    this.calendarYear.set(hoy.anio);
+    this.calendarMonth.set(hoy.mes);
+    this.store.selectedCalendarDate.set(hoy.iso);
     void this.loadCalendarProjection();
   }
   openCalendarMonth(month: number): void {
