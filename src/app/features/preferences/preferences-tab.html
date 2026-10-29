@@ -265,11 +265,14 @@
     <article hlmCard class="max-w-2xl gap-4 p-5" data-tour="preferencias-tutorial">
       <header>
         <h2 class="text-base font-semibold">{{ i18n.t('tutorial.settings.title') }}</h2>
-        <p class="text-xs text-muted-foreground">{{ i18n.t('tutorial.settings.description') }}</p>
+        <p class="text-xs text-muted-foreground">{{ i18n.t('tutorial.settings.descriptionCenter') }}</p>
       </header>
       <div class="flex flex-wrap gap-2.5">
         <button hlmBtn variant="outline" type="button" data-testid="ver-tutorial" (click)="verTutorial()">
           <fin-icon name="play" /> {{ i18n.t('tutorial.settings.start') }}
+        </button>
+        <button hlmBtn type="button" data-testid="abrir-centro-de-tutoriales" (click)="tutorial.abrirCentro()">
+          <fin-icon name="list" /> {{ i18n.t('tutorial.settings.center') }}
         </button>
       </div>
       <div class="flex items-center justify-between gap-4">

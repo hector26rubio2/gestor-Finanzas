@@ -1,22 +1,31 @@
 import { Component, inject } from '@angular/core';
 import { I18nService } from '@core/i18n';
-import { ConfirmDialogComponent } from '@ui/confirm-dialog';
+import { HlmButton } from '@spartan-ng/helm/button';
+import { OverlayComponent } from '@ui/overlay';
+import { SelectorDeIdiomaComponent } from './selector-de-idioma';
 import { TutorialService } from './tutorial.service';
 
 @Component({
   selector: 'fin-oferta-del-tutorial',
-  imports: [ConfirmDialogComponent],
+  imports: [HlmButton, OverlayComponent, SelectorDeIdiomaComponent],
   template: `
-    <fin-confirm-dialog
-      [open]="true"
-      [title]="i18n.t('tutorial.offer.title')"
-      [description]="i18n.t('tutorial.offer.text')"
-      [confirmLabel]="i18n.t('tutorial.offer.yes')"
-      [cancelLabel]="i18n.t('tutorial.offer.no')"
-      tone="default"
-      (confirmed)="aceptar()"
-      (dismissed)="tutorial.marcarVisto()"
-    />
+    <fin-overlay [title]="i18n.t('tutorial.offer.title')" mode="modal" (closed)="descartar()">
+      <div class="grid gap-5" data-testid="oferta-del-tutorial">
+        <section class="grid gap-2" [attr.aria-label]="i18n.t('tutorial.offer.language')">
+          <h3 class="text-sm font-semibold">{{ i18n.t('tutorial.offer.language') }}</h3>
+          <fin-selector-de-idioma />
+        </section>
+        <p class="text-sm text-muted-foreground">{{ i18n.t('tutorial.offer.text') }}</p>
+        <footer class="flex justify-end gap-2.5">
+          <button hlmBtn variant="outline" type="button" data-testid="oferta-ahora-no" (click)="descartar()">
+            {{ i18n.t('tutorial.offer.no') }}
+          </button>
+          <button hlmBtn type="button" data-testid="oferta-aceptar" (click)="aceptar()">
+            {{ i18n.t('tutorial.offer.yes') }}
+          </button>
+        </footer>
+      </div>
+    </fin-overlay>
   `,
 })
 export class OfertaDelTutorialComponent {
@@ -25,6 +34,10 @@ export class OfertaDelTutorialComponent {
 
   aceptar(): void {
     this.tutorial.marcarVisto();
-    setTimeout(() => void this.tutorial.iniciar());
+    setTimeout(() => void this.tutorial.iniciarGuia('primeros-pasos'));
+  }
+
+  descartar(): void {
+    this.tutorial.marcarVisto();
   }
 }

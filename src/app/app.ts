@@ -13,6 +13,7 @@ import { TablerosService } from '@pages/dashboard/tableros/tableros.service';
 import { BugReportButtonComponent } from '@features/bug-report/bug-report';
 import { CommandPaletteComponent } from '@shared/command-palette/command-palette';
 import { CommandPaletteService } from '@shared/command-palette/command-palette.service';
+import { CentroDeTutorialesComponent } from '@shared/tutorial/centro-de-tutoriales';
 import { OfertaDelTutorialComponent } from '@shared/tutorial/oferta-del-tutorial';
 import { TutorialService } from '@shared/tutorial';
 import { MovementFormComponent } from '@features/movement-form/movement-form';
@@ -83,6 +84,7 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
   },
   imports: [
     CommandPaletteComponent,
+    CentroDeTutorialesComponent,
     OfertaDelTutorialComponent,
     NgTemplateOutlet,
     HlmAvatar,
@@ -242,8 +244,7 @@ export class AppComponent {
     }
   }
   verTutorial(): void {
-    const origen = document.querySelector<HTMLElement>('[data-slot=profile-trigger]') ?? undefined;
-    setTimeout(() => void this.tutorial.iniciar(undefined, origen));
+    setTimeout(() => this.tutorial.abrirCentro());
   }
   closeMobileMenu(): void {
     this.sidebar.setOpenMobile(false);

@@ -298,4 +298,6 @@
 <fin-command-palette />
 } } @if (store.user() && !enLogin() && tutorial.oferta()) { @defer (on immediate) {
 <fin-oferta-del-tutorial />
+} } @if (store.user() && !enLogin() && tutorial.centroAbierto()) { @defer (on immediate) {
+<fin-centro-de-tutoriales />
 } }

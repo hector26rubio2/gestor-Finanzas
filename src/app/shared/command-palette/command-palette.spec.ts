@@ -60,7 +60,25 @@ describe('paleta de comandos', () => {
     await fixture.whenStable();
 
     const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]');
-    entrada!.value = 'tutorial';
+    entrada!.value = 'recorrido';
+    entrada!.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    entrada!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    await new Promise((resolver) => setTimeout(resolver));
+
+    expect(iniciar).toHaveBeenCalledTimes(1);
+  });
+
+  it('el comando de tutoriales abre el centro', async () => {
+    const iniciar = vi.spyOn(TestBed.inject(TutorialService), 'abrirCentro');
+    const fixture = TestBed.createComponent(CommandPaletteComponent);
+    TestBed.inject(CommandPaletteService).abrir();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]');
+    entrada!.value = 'aprender';
     entrada!.dispatchEvent(new Event('input', { bubbles: true }));
     fixture.detectChanges();
     entrada!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));

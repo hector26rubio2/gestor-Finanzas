@@ -2980,4 +2980,5 @@ export default {
   'tutorial.guia.administracion.errores.title': 'Errors',
   'tutorial.guia.administracion.errores.text':
     'Each row is a reported problem; open it to see details and create an issue.',
+  'command.group.tutorials': 'Tutorials',
 } as const;

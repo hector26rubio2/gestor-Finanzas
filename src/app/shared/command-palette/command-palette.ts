@@ -9,6 +9,7 @@ import { navigation } from '@core/state/navigation';
 import { CAPABILITIES, AppStore, FEATURES } from '@core/state/store';
 import { PreferencesActions } from '@core/state/preferences-actions';
 import { TutorialService } from '@shared/tutorial';
+import { guiasDisponibles } from '@shared/tutorial/catalogo-de-guias';
 import { IconComponent, IconName } from '@ui/icon/icon';
 import {
   Comando,
@@ -202,6 +203,13 @@ export class CommandPaletteComponent {
         run: () => this.ir('movements'),
       });
     lista.push({
+      id: 'accion-tutoriales',
+      label: this.i18n.t('tutorial.center.open'),
+      palabras: 'tutorial tutoriales guias ayuda aprender help learn',
+      icon: 'play',
+      run: () => setTimeout(() => this.tutorial.abrirCentro()),
+    });
+    lista.push({
       id: 'accion-tutorial',
       label: this.i18n.t('tutorial.command'),
       palabras: 'tutorial ayuda recorrido guia tour help',
@@ -213,6 +221,21 @@ export class CommandPaletteComponent {
     });
     return lista;
   });
+
+  private readonly tutoriales = computed<Comando[]>(() =>
+    guiasDisponibles({
+      t: (clave) => this.i18n.t(clave),
+      puede: (permiso) => this.caps.allows(permiso),
+      activa: (bandera) => this.features.enabled(bandera),
+    }).map((guia) => ({
+      id: `tutorial-${guia.id}`,
+      label: this.i18n.t('tutorial.command.guide', { title: guia.titulo }),
+      hint: guia.categoria,
+      palabras: `tutorial guia ayuda ${guia.resumen}`,
+      icon: 'play' as IconName,
+      run: () => setTimeout(() => void this.tutorial.iniciarGuia(guia.id), 150),
+    })),
+  );
 
   private readonly cuentas = computed<Comando[]>(() => {
     if (!this.caps.allows(P.cuentas.ver)) return [];
@@ -290,6 +313,11 @@ export class CommandPaletteComponent {
       },
       { id: 'secciones', label: this.i18n.t('command.group.sections'), items: this.filtrar(this.secciones()) },
       { id: 'herramientas', label: this.i18n.t('command.group.tools'), items: this.filtrar(this.herramientas()) },
+      {
+        id: 'tutoriales',
+        label: this.i18n.t('command.group.tutorials'),
+        items: hayTexto ? this.filtrar(this.tutoriales(), 8) : [],
+      },
       {
         id: 'apariencia',
         label: this.i18n.t('command.group.appearance'),

@@ -3016,4 +3016,5 @@ export default {
   'tutorial.guia.administracion.errores.title': 'Erreurs',
   'tutorial.guia.administracion.errores.text':
     'Chaque ligne est un problème signalé ; ouvrez-la pour le détail et créer un ticket.',
+  'command.group.tutorials': 'Tutoriels',
 } as const;

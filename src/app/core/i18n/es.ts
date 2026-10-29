@@ -3000,4 +3000,5 @@ export default {
   'tutorial.guia.administracion.errores.title': 'Errores',
   'tutorial.guia.administracion.errores.text':
     'Cada fila es un problema reportado; ábrelo para ver el detalle y crear un issue.',
+  'command.group.tutorials': 'Tutoriales',
 } as const;
