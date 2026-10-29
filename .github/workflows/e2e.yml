@@ -117,6 +117,8 @@ jobs:
 
           export SuperAdmin__Email="e2e-propietario@finanzas.test"
 
+          export RateLimiting__GlobalPermitLimit=6000
+
           nohup dotnet run \
             --project api/src/Finanzas.Host \
             --configuration Release \

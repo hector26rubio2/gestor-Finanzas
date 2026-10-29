@@ -90,6 +90,22 @@ describe('CatalogCommands — contrapartes y personas', () => {
     expect(store.toast.texto).toBeDefined();
   });
 
+  it('createCounterparty con relación: la envía en el POST y la persona del store la lleva', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/people', {
+      body: { id: 'persona-nueva', displayName: 'Laura Gil', email: null },
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe({ people: [] }), transport });
+    cambios();
+
+    const creada = await component.comandos.createCounterparty('Laura Gil', 'person', undefined, 'Familia');
+
+    expect(transport.peticiones[0].body).toMatchObject({ displayName: 'Laura Gil', relationship: 'Familia' });
+    expect(creada.relationship).toBe('Familia');
+    expect(store.data().people.find((p: Person) => p.id === 'persona-nueva')).toMatchObject({
+      relationship: 'Familia',
+    });
+  });
+
   it('createCounterparty sin nombre se rechaza sin pedir nada a la API', async () => {
     const transport = new TransportFalso();
     const { component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe({ people: [] }), transport });

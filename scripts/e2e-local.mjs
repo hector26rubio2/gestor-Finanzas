@@ -127,6 +127,7 @@ async function principal() {
     Security__PasswordLogin__Accounts__51__Name: 'Lector E2E',
     Security__PasswordLogin__Accounts__51__Password: lector.clave,
     SuperAdmin__Email: propietario.correo,
+    RateLimiting__GlobalPermitLimit: '6000',
   });
   const resultado = spawnSync('pnpm', ['e2e', ...process.argv.slice(2)], {
     cwd: webRoot,

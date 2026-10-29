@@ -1,4 +1,4 @@
-import { Component, Input, inject, signal, input } from '@angular/core';
+import { Component, Input, computed, inject, signal, input } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -10,6 +10,7 @@ import { PersonKind } from '@core/state/view-model';
 import { FieldComponent } from '@ui/field/field';
 import { IconComponent } from '@ui/icon/icon';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
+import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@features/movement-form/relationship-options';
 import { CounterpartyScope } from '@features/movement-form/movement-visibility-builder';
 
 @Component({
@@ -30,7 +31,9 @@ export class MovementCounterpartyFieldComponent {
   readonly i18n = inject(I18nService);
   readonly creando = signal(false);
   readonly nombreNuevo = signal('');
+  readonly relacionNueva = signal<Relationship>(DEFAULT_RELATIONSHIP);
   readonly guardando = signal(false);
+  readonly relationshipOptions = computed(() => relationshipOptions(this.i18n));
 
   label(): string {
     const op = this.model['operationType'];
@@ -63,6 +66,10 @@ export class MovementCounterpartyFieldComponent {
     return this.caps.allows(P.personas.crear);
   }
 
+  esPersonaNueva(): boolean {
+    return this.tipoNuevo() === 'person';
+  }
+
   private tipoNuevo(): PersonKind {
     return this.scope() === 'institution' ? 'institution' : 'person';
   }
@@ -80,9 +87,16 @@ export class MovementCounterpartyFieldComponent {
     if (!nombre || this.guardando()) return;
     this.guardando.set(true);
     try {
-      const creada = await this.catalogCommands.createCounterparty(nombre, this.tipoNuevo());
+      const tipo = this.tipoNuevo();
+      const creada = await this.catalogCommands.createCounterparty(
+        nombre,
+        tipo,
+        undefined,
+        tipo === 'person' ? this.relacionNueva() : undefined,
+      );
       this.model['counterpartyId'] = creada.id;
       this.nombreNuevo.set('');
+      this.relacionNueva.set(DEFAULT_RELATIONSHIP);
       this.creando.set(false);
     } finally {
       this.guardando.set(false);
