@@ -44,6 +44,15 @@ export interface ApiObligation {
   description: string | null;
   status: number;
   totalOutstanding: ApiMoney;
+  entries?: readonly { type: number; date: string; principalDelta: ApiMoney }[];
+  terms?: {
+    product: number;
+    monthlyRate: number | null;
+    termMonths: number | null;
+    cardMode: number | null;
+    borrowedCard?: boolean;
+    borrowedCardName?: string | null;
+  } | null;
   interestPolicies: readonly {
     effectiveFrom: string;
     policy: { kind: number; rate: { rate: string }; period: number };
