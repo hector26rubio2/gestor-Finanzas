@@ -9,7 +9,6 @@ const SIN_PANTALLA_TODAVIA: Readonly<Record<string, string>> = {
   'organizacion.banderas.editar': 'Igual que la anterior.',
   'dashboard.widget.editar': 'Concesión paraguas: la pantalla mira las cuatro acciones concretas.',
   'movimientos.detalle.ver': 'El inspector usa la fila ya cargada, no pide el detalle.',
-  'cuentas.extracto.ver': 'El extracto se estima con lo que ya hay en pantalla.',
   'cuentas.tarjetas.listar': 'El servidor filtra esta parte del arranque; el cliente ya no la comprueba.',
   'movimientos.clases.listar': 'El servidor filtra esta parte del arranque; el cliente ya no la comprueba.',
   'sesion.monedas.listar': 'El servidor filtra esta parte del arranque; el cliente ya no la comprueba.',

@@ -1,11 +1,9 @@
 import { Injectable, InjectionToken, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { I18nService } from '@core/i18n';
-import { PreferencesActions } from '@core/state/preferences-actions';
 import { AppStore, CAPABILITIES, FEATURES } from '@core/state/store';
-import type { EntidadDeGuia, FormularioDeGuia, Guia } from './catalogo-de-guias';
-import { esVisible, esperarElemento } from './esperar-elemento';
-import type { EntornoDelMotor, SesionDeGuia } from './motor-de-guias';
+import type { Guia } from './catalogo-de-guias';
+import type { SesionDeGuia } from './motor-de-guias';
 
 export interface PasoDelRecorrido {
   element: string;
@@ -47,7 +45,6 @@ const PREFIJO_VISTO = 'finanzas.tutorial.visto.';
 const PREFIJO_COMPLETADAS = 'finanzas.tutorial.completadas.';
 const CLAVE_AL_ENTRAR = 'finanzas.tutorial.al-entrar';
 const DESTINO_DEL_FOCO_RESPALDO = '#contenido-principal';
-const PAUSA_ENTRE_FORMULARIOS = 60;
 
 function leer(clave: string): string | null {
   try {
@@ -75,8 +72,6 @@ function leerCompletadas(usuario: string | undefined): ReadonlySet<string> {
   }
 }
 
-const pausa = (milisegundos: number) => new Promise<void>((resolver) => setTimeout(resolver, milisegundos));
-
 @Injectable({ providedIn: 'root' })
 export class TutorialService {
   private readonly router = inject(Router);
@@ -84,7 +79,6 @@ export class TutorialService {
   private readonly caps = inject(CAPABILITIES);
   private readonly features = inject(FEATURES);
   private readonly i18n = inject(I18nService);
-  private readonly preferencias = inject(PreferencesActions);
   private readonly crear = inject(CREAR_RECORRIDO);
   private readonly ofrecidos = new Set<string>();
   private readonly versionDeCompletadas = signal(0);
@@ -119,16 +113,6 @@ export class TutorialService {
     if (!usuario) return;
     escribir(PREFIJO_COMPLETADAS + usuario, JSON.stringify([...leerCompletadas(usuario), id]));
     this.versionDeCompletadas.update((version) => version + 1);
-  }
-
-  async cambiarIdioma(locale: string): Promise<void> {
-    this.store.preferences.update((valor) => ({ ...valor, locale }));
-    await this.i18n.load(locale);
-    try {
-      await this.preferencias.persistPreferences();
-    } catch (error) {
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError'));
-    }
   }
 
   ofrecerSiEsPrimeraVez(): void {
@@ -183,8 +167,14 @@ export class TutorialService {
     this.corriendo = true;
     this.origenDelFoco = origen ?? (document.activeElement instanceof HTMLElement ? document.activeElement : null);
     try {
-      const { crearSesionDeGuia } = await import('./motor-de-guias');
-      const sesion = crearSesionDeGuia(guia, this.entorno());
+      const [{ crearSesionDeGuia }, { crearEntornoReal }] = await Promise.all([
+        import('./motor-de-guias'),
+        import('./entorno-real'),
+      ]);
+      const sesion = crearSesionDeGuia(
+        guia,
+        crearEntornoReal(this.router, this.store, () => this.seccionActual()),
+      );
       this.sesion = sesion;
       const recorrido = await this.crear(
         guia.pasos.map((paso) => ({
@@ -205,83 +195,6 @@ export class TutorialService {
     } catch {
       this.alCerrar(guia.id);
     }
-  }
-
-  private entorno(): EntornoDelMotor {
-    return {
-      seccionActual: () => this.seccionActual(),
-      navegar: async (ruta, params) => {
-        await this.router.navigate(['/' + ruta], params ? { queryParams: params } : {});
-      },
-      abrirFormulario: async (accion) => {
-        const formulario = this.resolverFormulario(accion.form, accion.con);
-        if (!formulario) return false;
-        if (this.store.form()) {
-          this.store.form.set(null);
-          await pausa(PAUSA_ENTRE_FORMULARIOS);
-        }
-        this.store.form.set(formulario);
-        return true;
-      },
-      inspeccionar: (entidad) => {
-        const objetivo = this.resolverEntidad(entidad);
-        if (!objetivo) return false;
-        this.store.inspect(objetivo.tipo, objetivo.id);
-        return true;
-      },
-      cerrarFormulario: async () => {
-        if (!this.store.form()) return;
-        this.store.form.set(null);
-        await pausa(PAUSA_ENTRE_FORMULARIOS);
-      },
-      cerrarInspector: () => {
-        this.store.inspector.set(null);
-        this.store.cardPaymentMode.set(false);
-      },
-      clic: (selector) => {
-        const elemento = document.querySelector<HTMLElement>(selector);
-        if (!elemento) return false;
-        elemento.click();
-        return true;
-      },
-      escape: () => {
-        const destino = document.activeElement ?? document.body;
-        destino.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', bubbles: true }));
-      },
-      existe: (selector) => esVisible(document.querySelector(selector)),
-      esperar: esperarElemento,
-    };
-  }
-
-  private resolverFormulario(
-    formulario: FormularioDeGuia,
-    con: 'tarjeta' | 'inversion' | undefined,
-  ): FormularioDeGuia | null {
-    const datos = this.store.data();
-    if (con === 'tarjeta') {
-      const tarjeta = datos.accounts.find((cuenta) => cuenta.type === 'credit');
-      return tarjeta ? { ...formulario, accountId: tarjeta.id } : formulario;
-    }
-    if (con === 'inversion') {
-      const inversion = datos.investments[0];
-      return inversion ? { ...formulario, targetId: inversion.id } : null;
-    }
-    return formulario;
-  }
-
-  private resolverEntidad(entidad: EntidadDeGuia): { tipo: string; id: string } | null {
-    const datos = this.store.data();
-    const candidato =
-      entidad === 'movimiento'
-        ? { tipo: 'movement', id: datos.movements[0]?.id }
-        : entidad === 'tarjeta'
-          ? { tipo: 'card', id: datos.accounts.find((cuenta) => cuenta.type === 'credit')?.id }
-          : entidad === 'cuenta'
-            ? { tipo: 'account', id: datos.accounts.find((cuenta) => cuenta.type !== 'credit')?.id }
-            : entidad === 'persona'
-              ? { tipo: 'person', id: datos.people[0]?.id }
-              : { tipo: 'investment', id: datos.investments[0]?.id };
-    return candidato.id ? { tipo: candidato.tipo, id: candidato.id } : null;
   }
 
   private alCerrar(id: string): void {

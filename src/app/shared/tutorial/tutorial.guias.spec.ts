@@ -1,9 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { I18nService } from '@core/i18n';
 import { RUNTIME_CONFIG, P } from '@core/session';
-import { AppStore, PreferencesActions } from '@core/state';
+import { AppStore } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 import {
   CREAR_RECORRIDO,
@@ -139,24 +138,5 @@ describe('TutorialService: guías', () => {
     expect(servicio.centroAbierto()).toBe(true);
     servicio.cerrarCentro();
     expect(servicio.centroAbierto()).toBe(false);
-  });
-
-  it('cambiarIdioma guarda la preferencia, recarga i18n y la persiste', async () => {
-    const { servicio, store } = montar();
-    const cargar = vi.spyOn(TestBed.inject(I18nService), 'load').mockResolvedValue();
-    const persistir = vi.spyOn(TestBed.inject(PreferencesActions), 'persistPreferences').mockResolvedValue(undefined);
-    await servicio.cambiarIdioma('en-US');
-    expect(store.preferences().locale).toBe('en-US');
-    expect(cargar).toHaveBeenCalledWith('en-US');
-    expect(persistir).toHaveBeenCalledTimes(1);
-  });
-
-  it('si no se puede persistir el idioma avisa y mantiene el cambio local', async () => {
-    const { servicio, store } = montar();
-    vi.spyOn(TestBed.inject(I18nService), 'load').mockResolvedValue();
-    vi.spyOn(TestBed.inject(PreferencesActions), 'persistPreferences').mockRejectedValue(new Error('sin red'));
-    await servicio.cambiarIdioma('fr-FR');
-    expect(store.preferences().locale).toBe('fr-FR');
-    expect(store.toast.texto()).toBe('sin red');
   });
 });

@@ -57,6 +57,14 @@ describe('selector de idioma del tutorial', () => {
     expect(cargar).toHaveBeenCalledWith('en-US');
     expect(persistir).toHaveBeenCalledTimes(1);
   });
+
+  it('si no se puede persistir el idioma avisa y mantiene el cambio local', async () => {
+    const { store, persistir } = montar();
+    persistir.mockRejectedValue(new Error('sin red'));
+    await crear(SelectorDeIdiomaComponent).elegir('fr-FR');
+    expect(store.preferences().locale).toBe('fr-FR');
+    expect(store.toast.texto()).toBe('sin red');
+  });
 });
 
 describe('oferta del tutorial', () => {
