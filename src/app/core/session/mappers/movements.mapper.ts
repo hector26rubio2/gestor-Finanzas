@@ -1,4 +1,5 @@
 import { I18nService } from '@core/i18n';
+import { todayIso } from '@core/utils/dates';
 import { Movement } from '@core/state/view-model';
 import { ApiMovement } from '@core/api/api-client';
 import { CARD_BUCKET } from '@core/api/card-buckets';
@@ -52,7 +53,7 @@ function efectoDe(effect: number): Movement['effect'] {
   return 'neutral';
 }
 
-export function cuotaEnCurso(fecha: string, total: number, hoy = new Date().toISOString().slice(0, 10)): number {
+export function cuotaEnCurso(fecha: string, total: number, hoy = todayIso()): number {
   const [a1, m1] = fecha.split('-').map(Number);
   const [a2, m2] = hoy.split('-').map(Number);
   return Math.min(total, Math.max(1, (a2 - a1) * 12 + (m2 - m1) + 1));

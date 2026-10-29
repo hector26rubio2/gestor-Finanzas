@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { todayIso } from '@core/utils/dates';
 import { firstValueFrom } from 'rxjs';
 import type { ApiMovement } from '@core/api/ledger.api';
 import { Account, type Movement } from './view-model';
@@ -79,9 +80,9 @@ export class AccountsCommands {
             this.client.createAccountWithOpening({
               account: accountRequest,
               openingBalance: { amount: String(Math.abs(opening)), currency },
-              date: new Date().toISOString().slice(0, 10),
+              date: todayIso(),
               rate: currency === 'USD' ? String(exchangeRate) : null,
-              rateAsOf: currency === 'USD' ? new Date().toISOString().slice(0, 10) : null,
+              rateAsOf: currency === 'USD' ? todayIso() : null,
               idempotencyKey: crypto.randomUUID(),
             }),
           );

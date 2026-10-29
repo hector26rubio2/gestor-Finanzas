@@ -14,7 +14,7 @@ import { PRIORIDAD_EN_PESOS } from '@core/api/card-buckets';
 import { datosDe } from '@testing/datos-de-prueba';
 import { pruebaRender } from '@testing/prueba-render';
 import { TransportFalso } from '@testing/transport-falso';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 @Component({ selector: 'prueba-comandos-catalogo', template: '' })
 class ComponenteVacio {
@@ -177,6 +177,30 @@ describe('CatalogCommands — cuentas y tarjetas', () => {
       amount: 300000,
       status: 'confirmed',
     });
+  });
+
+  it('createAccount de noche: la apertura lleva la fecha local y no la del día siguiente en UTC', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date(2026, 9, 28, 23, 30));
+    try {
+      const transport = new TransportFalso().responder('POST /api/v1/accounts/with-opening', {
+        body: {
+          account: apiCuenta({ id: 'cuenta-nueva', name: 'Ahorro nuevo', kind: 3 }),
+          openingMovement: apiMovement({ id: 'mov-apertura', description: 'Saldo de apertura' }),
+        },
+      });
+      const { component, cambios } = pruebaRender(ComponenteVacio, {
+        data: datosDe({ accounts: [], movements: [] }),
+        transport,
+      });
+      cambios();
+
+      await component.comandos.createAccount('Ahorro nuevo', 'savings', 300000, 'COP');
+
+      expect(transport.peticiones[0].body).toMatchObject({ date: '2026-10-28' });
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it('createAccount tarjeta: construye terms completos, mapea la tarjeta a Account de crédito', async () => {
