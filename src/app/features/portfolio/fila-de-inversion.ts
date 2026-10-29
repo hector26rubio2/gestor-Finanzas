@@ -7,8 +7,9 @@ export const filaDeInversion = (i: Investment, money: (valor: number, moneda: st
   name: i.name,
   type: i.type,
   institution: i.institution ?? SIN_DATO,
-  risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
+  risk: i.risk ? (i.liquidity ? `${i.risk} · ${i.liquidity}` : i.risk) : SIN_DATO,
   cost: money(i.cost, i.currency),
   value: money(i.value, i.currency),
   return: formatReturnRate(i.value, i.cost),
+  sinValoracion: i.sinValoracion,
 });

@@ -1,6 +1,7 @@
 import { ApiAccount, ApiNotification } from '@core/api/api-client';
 import { toViewData } from './view-data.mapper';
 import { toViewPeople } from './people.mapper';
+import { toViewInvestment } from './investments.mapper';
 import { tasaAnual } from './accounts.mapper';
 import { notificationDetail, notificationTitle, toViewNotification } from './notifications.mapper';
 import { cuotaEnCurso, toMovement } from './movements.mapper';
@@ -85,6 +86,62 @@ describe('mappers por dominio', () => {
     expect(cuotaEnCurso('2026-01-15', 6, '2026-01-20')).toBe(1);
     expect(cuotaEnCurso('2026-01-15', 6, '2026-03-01')).toBe(3);
     expect(cuotaEnCurso('2025-01-15', 6, '2026-03-01')).toBe(6);
+  });
+});
+
+describe('toViewInvestment', () => {
+  const base = {
+    id: 'i1',
+    name: 'ETF',
+    instrumentType: 'Fondo',
+    currency: 'USD',
+    risk: 3,
+    symbol: 'VOO',
+    institution: 'Broker',
+    quantity: '2.5',
+    costBasis: { amount: '1000.00', currency: 'USD' },
+    netContributions: { amount: '900.00', currency: 'USD' },
+    marketValue: { amount: '1200.00', currency: 'USD' },
+    unrealizedGain: { amount: '200.00', currency: 'USD' },
+    latestValuation: {
+      id: 'v1',
+      date: '2026-10-01',
+      value: { amount: '1200.00', currency: 'USD' },
+      source: 3,
+      reference: null,
+    },
+    isActive: true,
+    asOf: '2026-10-29',
+    createdAt: '2026-01-01T00:00:00Z',
+  };
+
+  it('usa costo y valor reales, riesgo en texto y datos del instrumento', () => {
+    expect(toViewInvestment(base)).toMatchObject({
+      id: 'i1',
+      type: 'Fondo',
+      cost: 1000,
+      value: 1200,
+      netContributions: 900,
+      risk: 'Alto',
+      institution: 'Broker',
+      symbol: 'VOO',
+      units: 2.5,
+      valuedAt: '2026-10-01',
+      sinValoracion: false,
+      currency: 'USD',
+    });
+  });
+
+  it('sin valor de mercado muestra el costo y marca sin valoración', () => {
+    const vista = toViewInvestment({ ...base, marketValue: null, unrealizedGain: null, latestValuation: null });
+    expect(vista.value).toBe(1000);
+    expect(vista.sinValoracion).toBe(true);
+    expect(vista.valuedAt).toBeUndefined();
+  });
+
+  it('traduce el riesgo 1 y 2', () => {
+    expect(toViewInvestment({ ...base, risk: 1 }).risk).toBe('Bajo');
+    expect(toViewInvestment({ ...base, risk: 2 }).risk).toBe('Medio');
   });
 });
 

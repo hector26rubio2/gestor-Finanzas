@@ -36,7 +36,18 @@ function montar(api: unknown) {
       },
     ],
     people: [{ id: 'persona-1', name: 'Camilo', owed: 0, owing: 0 }],
-    investments: [{ id: 'inversion-1', name: 'CDT', type: 'CDT', value: 0, cost: 0, currency: 'COP' }],
+    investments: [
+      {
+        id: 'inversion-1',
+        name: 'CDT',
+        type: 'CDT',
+        value: 0,
+        cost: 0,
+        currency: 'COP',
+        netContributions: 0,
+        sinValoracion: true,
+      },
+    ],
     movements: [
       {
         id: 'mov-1',
@@ -228,6 +239,8 @@ describe('ediciones contra la API', () => {
     await TestBed.inject(CatalogCommands).updateInvestment('inversion-1', {
       name: 'CDT 90 días',
       instrumentType: 'Fondo',
+      risk: 3,
+      symbol: 'CDT90',
     });
 
     expect(updateInvestment).toHaveBeenCalledWith('inversion-1', {

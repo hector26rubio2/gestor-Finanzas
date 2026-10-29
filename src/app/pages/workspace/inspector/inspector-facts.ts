@@ -8,7 +8,7 @@ type Investment = ViewData['investments'][number];
 
 export interface InspectorFactsContext {
   t: Translate;
-  money: (value: number) => string;
+  money: (value: number, currency?: string) => string;
   accountName: (id: string) => string | undefined;
   accountType?: (id: string) => Account['type'] | undefined;
 }
@@ -95,11 +95,18 @@ export function hechosDePersona(p: Person, { t, money }: InspectorFactsContext):
 }
 
 export function hechosDeInversion(i: Investment, { t, money }: InspectorFactsContext): InspectorFact[] {
+  const ganancia = i.sinValoracion ? 0 : i.value - i.cost;
   return [
-    [t('workspace.inspector.facts.type'), i.type],
-    [t('workspace.inspector.facts.cost'), money(i.cost)],
-    [t('workspace.inspector.facts.value'), money(i.value)],
+    [t('workspace.inspector.facts.instrument'), i.type],
+    [t('workspace.inspector.facts.risk'), i.risk ?? SIN_DATO],
+    [t('workspace.inspector.facts.institution'), i.institution ?? SIN_DATO],
+    [t('workspace.inspector.facts.units'), String(i.units ?? 0)],
+    [t('workspace.inspector.facts.netContributions'), money(i.netContributions, i.currency)],
+    [t('workspace.inspector.facts.cost'), money(i.cost, i.currency)],
+    [t('workspace.inspector.facts.value'), money(i.value, i.currency)],
+    [t('workspace.inspector.facts.gain'), money(ganancia, i.currency)],
     [t('workspace.inspector.facts.variation'), formatReturnRate(i.value, i.cost)],
+    [t('workspace.inspector.facts.lastValuation'), i.valuedAt ?? t('workspace.inspector.facts.noValuation')],
   ];
 }
 

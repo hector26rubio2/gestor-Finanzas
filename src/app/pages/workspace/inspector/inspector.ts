@@ -20,6 +20,7 @@ import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { OverlayComponent } from '@ui/overlay';
 import { UiSelectComponent } from '@ui/select';
 import { InspectorCard } from './inspector-card';
+import { InspectorInversion } from './inspector-inversion';
 import { InspectorRecientes } from './inspector-recientes';
 import { OrigenDelMovimiento } from './origen-del-movimiento';
 import {
@@ -30,6 +31,16 @@ import {
   hechosDePersona,
   hechosDelDia,
 } from './inspector-facts';
+
+const TIPOS_DE_OPERACION: Readonly<Record<number, string>> = {
+  1: 'contribution',
+  2: 'withdrawal',
+  3: 'buy',
+  4: 'sell',
+  5: 'dividend',
+  6: 'fee',
+};
+const FUENTES_DE_VALORIZACION: Readonly<Record<number, string>> = { 1: 'marketPrice', 2: 'statement', 3: 'manual' };
 
 @Component({
   selector: 'fin-inspector',
@@ -118,6 +129,18 @@ export class InspectorComponent {
   readonly selectedInvestment = computed(() =>
     this.store.data().investments.find((i) => i.id === this.store.inspector()?.id),
   );
+  readonly historialDeInversion = new InspectorInversion(() =>
+    this.store.inspector()?.type === 'investment' ? this.store.inspector()?.id : undefined,
+  );
+  fechaDeOperacion(iso: string): string {
+    return iso.slice(0, 10);
+  }
+  claveDeOperacion(tipo: number): string {
+    return `form.investment.operation.type.${TIPOS_DE_OPERACION[tipo] ?? 'contribution'}`;
+  }
+  claveDeFuente(fuente: number): string {
+    return `form.investment.valuation.source.${FUENTES_DE_VALORIZACION[fuente] ?? 'manual'}`;
+  }
   readonly inspectorTitle = computed(() => {
     const s = this.store.inspector();
     if (s?.type === 'movement') return this.i18n.t('workspace.inspector.title.movement');
@@ -145,7 +168,7 @@ export class InspectorComponent {
         : p
           ? this.store.money(p.owed - p.owing)
           : i
-            ? this.store.money(i.value)
+            ? this.store.money(i.value, i.currency)
             : this.i18n.t('workspace.inspector.operationsCount', {
                 count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
               });
@@ -161,7 +184,7 @@ export class InspectorComponent {
   readonly inspectorFacts = computed(() => {
     const contexto: InspectorFactsContext = {
       t: (key, params) => this.i18n.t(key, params),
-      money: (value) => this.store.money(value),
+      money: (value, currency) => this.store.money(value, currency),
       accountName: (id) => this.store.account(id)?.name,
       accountType: (id) => this.store.account(id)?.type,
     };
@@ -328,6 +351,14 @@ export class InspectorComponent {
   editSelectedInvestment(): void {
     const investment = this.selectedInvestment();
     if (investment) this.store.form.set({ kind: 'investment', targetId: investment.id });
+  }
+  registrarOperacion(): void {
+    const investment = this.selectedInvestment();
+    if (investment) this.store.form.set({ kind: 'investment-operation', targetId: investment.id });
+  }
+  registrarValorizacion(): void {
+    const investment = this.selectedInvestment();
+    if (investment) this.store.form.set({ kind: 'investment-valuation', targetId: investment.id });
   }
   editSelectedAccount(): void {
     const account = this.selectedAccount();

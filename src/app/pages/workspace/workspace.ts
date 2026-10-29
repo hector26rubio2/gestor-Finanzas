@@ -4,6 +4,8 @@ import { MovementsBookService } from '@shared/movements';
 import { HeaderActionsService } from '@shared/header-actions.service';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { AccountFormComponent } from '@features/account-form';
+import { InvestmentOperationComponent } from '@features/investment-operation';
+import { InvestmentValuationComponent } from '@features/investment-valuation';
 import { ManagementFormComponent } from '@features/management-form';
 import { IconComponent } from '@ui/icon';
 import { SinAccesoComponent } from '@ui/sin-acceso';
@@ -32,6 +34,8 @@ const paginasConMeta = [
     InspectorComponent,
     AccountFormComponent,
     ManagementFormComponent,
+    InvestmentOperationComponent,
+    InvestmentValuationComponent,
     SinAccesoComponent,
     IconComponent,
   ],

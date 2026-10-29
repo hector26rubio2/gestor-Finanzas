@@ -80,6 +80,41 @@
         }
       </ul>
     </section>
+    } @if (store.inspector()?.type === 'investment') {
+    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.investment.operations.title')">
+      <h3>{{ i18n.t('workspace.investment.operations.title') }}</h3>
+      @if (historialDeInversion.fallo()) {
+      <p class="text-xs text-destructive" role="alert">{{ i18n.t('workspace.investment.history.loadFailed') }}</p>
+      } @for (operacion of historialDeInversion.operaciones() ?? []; track $index) {
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
+        <span class="min-w-0"
+          ><b class="block truncate">{{ i18n.t(claveDeOperacion(operacion.type)) }}</b
+          ><small class="text-muted-foreground">{{ fechaDeOperacion(operacion.date) }}</small></span
+        >
+        <b class="flex-none tabular-nums">{{ store.money(parseMoney(operacion.amount), operacion.amount.currency) }}</b>
+      </div>
+      } @empty { @if (historialDeInversion.operaciones() !== null) {
+      <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.investment.operations.empty') }}</p>
+      } }
+    </section>
+    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.investment.valuations.title')">
+      <h3>{{ i18n.t('workspace.investment.valuations.title') }}</h3>
+      @for (valorizacion of historialDeInversion.valorizaciones() ?? []; track valorizacion.id) {
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
+        <span class="min-w-0"
+          ><b class="block truncate">{{ i18n.t(claveDeFuente(valorizacion.source)) }}</b
+          ><small class="text-muted-foreground"
+            >{{ valorizacion.date }}@if (valorizacion.reference) { · {{ valorizacion.reference }} }</small
+          ></span
+        >
+        <b class="flex-none tabular-nums"
+          >{{ store.money(parseMoney(valorizacion.value), valorizacion.value.currency) }}</b
+        >
+      </div>
+      } @empty { @if (historialDeInversion.valorizaciones() !== null) {
+      <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.investment.valuations.empty') }}</p>
+      } }
+    </section>
     } @if (store.inspector()?.type === 'person') { @if (personPurchases(); as compras) {
     <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.person.purchases.title')">
       <h3>{{ i18n.t('workspace.person.purchases.title') }}</h3>
@@ -143,6 +178,12 @@
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>
       } @if (store.inspector()?.type === 'investment' && can(P.patrimonio.inversiones.editar)) {
+      <button hlmBtn class="h-[42px] flex-1" (click)="registrarOperacion()">
+        {{ i18n.t('workspace.actions.registerOperation') }}
+      </button>
+      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="registrarValorizacion()">
+        {{ i18n.t('workspace.actions.registerValuation') }}
+      </button>
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedInvestment()">
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>

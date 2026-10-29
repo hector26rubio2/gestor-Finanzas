@@ -74,6 +74,10 @@ export interface Investment {
   cost: number;
   currency: string;
   institution?: string;
+  symbol?: string;
+  netContributions: number;
+  valuedAt?: string;
+  sinValoracion: boolean;
   units?: number;
   risk?: 'Bajo' | 'Medio' | 'Alto';
   liquidity?: 'Inmediata' | 'Programada' | 'Al vencimiento';

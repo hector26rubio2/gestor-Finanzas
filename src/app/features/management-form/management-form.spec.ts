@@ -8,7 +8,7 @@ import { AppStore, CatalogCommands } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 import { ManagementFormComponent } from './management-form';
 
-async function abrir(kind: 'person' | 'recurrence' = 'person') {
+async function abrir(kind: 'person' | 'recurrence' | 'investment' = 'person', targetId?: string) {
   window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
@@ -21,9 +21,15 @@ async function abrir(kind: 'person' | 'recurrence' = 'person') {
   const store = TestBed.inject(AppStore);
   store.user.set({
     ...USUARIO_DE_PRUEBA,
-    capabilities: [P.personas.ver, P.personas.crear, P.calendario.recurrencias.crear],
+    capabilities: [
+      P.personas.ver,
+      P.personas.crear,
+      P.calendario.recurrencias.crear,
+      P.patrimonio.inversiones.crear,
+      P.patrimonio.inversiones.editar,
+    ],
   });
-  store.form.set({ kind });
+  store.form.set({ kind, targetId });
   const fixture = TestBed.createComponent(ManagementFormComponent);
   fixture.detectChanges();
   await fixture.whenStable();
@@ -116,5 +122,85 @@ describe('formulario de recurrencia', () => {
     expect(createRecurrence).not.toHaveBeenCalled();
     expect(document.body.textContent).toContain('El monto debe ser mayor a 0.');
     expect(document.body.textContent).toContain('Selecciona una cuenta válida.');
+  });
+});
+
+describe('formulario de inversión', () => {
+  beforeEach(() => TestBed.resetTestingModule());
+
+  it('el campo Nombre tiene nombre accesible', async () => {
+    await abrir('investment');
+
+    expect(document.body.querySelector('input[name="gestion.name"]')?.getAttribute('aria-label')).toBe('Nombre');
+  });
+
+  it('crear envía riesgo, símbolo e institución', async () => {
+    const { componente } = await abrir('investment');
+    const createInvestment = vi.spyOn(TestBed.inject(CatalogCommands), 'createInvestment').mockResolvedValue(undefined);
+    expect(document.body.querySelector('input[name="gestion.symbol"]')).not.toBeNull();
+    expect(document.body.querySelector('input[name="gestion.institution"]')).not.toBeNull();
+    componente.modelo.update((datos) => ({
+      ...datos,
+      name: 'ETF',
+      risk: '3',
+      symbol: 'VOO',
+      institution: 'Broker',
+      currency: 'USD',
+    }));
+
+    await componente.save();
+
+    expect(createInvestment).toHaveBeenCalledWith('ETF', 'CDT', 'USD', {
+      risk: 3,
+      symbol: 'VOO',
+      institution: 'Broker',
+    });
+  });
+
+  it('editar precarga instrumento, riesgo y símbolo y los guarda', async () => {
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
+        { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
+      ],
+    });
+    const store = TestBed.inject(AppStore);
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.patrimonio.inversiones.editar] });
+    store.data.update((data) => ({
+      ...data,
+      investments: [
+        {
+          id: 'i1',
+          name: 'Fondo',
+          type: 'Fondo',
+          cost: 1,
+          value: 1,
+          currency: 'COP',
+          risk: 'Alto',
+          symbol: 'FND',
+          netContributions: 0,
+          sinValoracion: true,
+        },
+      ],
+    }));
+    store.form.set({ kind: 'investment', targetId: 'i1' });
+    const updateInvestment = vi.spyOn(TestBed.inject(CatalogCommands), 'updateInvestment').mockResolvedValue(undefined);
+    const fixture = TestBed.createComponent(ManagementFormComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(fixture.componentInstance.modelo()).toMatchObject({ instrument: 'Fondo', risk: '3', symbol: 'FND' });
+
+    await fixture.componentInstance.save();
+
+    expect(updateInvestment).toHaveBeenCalledWith('i1', {
+      name: 'Fondo',
+      instrumentType: 'Fondo',
+      risk: 3,
+      symbol: 'FND',
+    });
   });
 });

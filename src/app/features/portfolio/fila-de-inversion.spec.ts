@@ -9,6 +9,8 @@ const inversion = (currency: string): Investment => ({
   value: 1200,
   cost: 1000,
   currency,
+  netContributions: 0,
+  sinValoracion: false,
 });
 
 const dinero = (valor: number, moneda: string) => `${moneda} ${valor}`;
@@ -24,5 +26,17 @@ describe('filaDeInversion', () => {
     const fila = filaDeInversion(inversion('COP'), dinero);
     expect(fila.cost).toBe('COP 1000');
     expect(fila.value).toBe('COP 1200');
+  });
+
+  it('marca las inversiones sin valorización', () => {
+    expect(filaDeInversion(inversion('COP'), dinero).sinValoracion).toBe(false);
+    expect(filaDeInversion({ ...inversion('COP'), sinValoracion: true }, dinero).sinValoracion).toBe(true);
+  });
+
+  it('muestra el riesgo aunque no haya liquidez', () => {
+    expect(filaDeInversion({ ...inversion('COP'), risk: 'Alto' }, dinero).risk).toBe('Alto');
+    expect(filaDeInversion({ ...inversion('COP'), risk: 'Alto', liquidity: 'Inmediata' }, dinero).risk).toBe(
+      'Alto · Inmediata',
+    );
   });
 });

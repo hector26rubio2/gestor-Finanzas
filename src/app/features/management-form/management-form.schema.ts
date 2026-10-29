@@ -10,6 +10,9 @@ export interface DatosDeGestion {
   relationship: NonNullable<Person['relationship']>;
   personKind: PersonKind;
   instrument: string;
+  risk: string;
+  symbol: string;
+  institution: string;
   currency: string;
   amount: number | null;
   accountId: string;

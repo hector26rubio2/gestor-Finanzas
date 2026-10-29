@@ -56,7 +56,14 @@ export { PeopleApi } from './people.api';
 export type { ApiCounterparty, ApiDebtPosition } from './people.api';
 export { ObligationsApi } from './obligations.api';
 export { InvestmentsApi } from './investments.api';
-export type { ApiInvestment } from './investments.api';
+export type {
+  ApiInvestment,
+  ApiInvestmentOperation,
+  ApiInvestmentOperationRequest,
+  ApiValuation,
+  ApiValuationRequest,
+} from './investments.api';
+export { INVESTMENT_OPERATION, VALUATION_SOURCE } from './investments.api';
 export { ReportingApi } from './reporting.api';
 export type { ApiPeriodPoint, ApiCategoryTotal, ApiDashboard } from './reporting.api';
 export { PreferencesApi } from './preferences.api';
@@ -182,6 +189,18 @@ export class FinanceApiClient {
   }
   updateInvestment(...args: Parameters<InvestmentsApi['updateInvestment']>) {
     return this.investmentsApi.updateInvestment(...args);
+  }
+  registerInvestmentOperation(...args: Parameters<InvestmentsApi['registerOperation']>) {
+    return this.investmentsApi.registerOperation(...args);
+  }
+  investmentOperations(...args: Parameters<InvestmentsApi['listOperations']>) {
+    return this.investmentsApi.listOperations(...args);
+  }
+  addInvestmentValuation(...args: Parameters<InvestmentsApi['addValuation']>) {
+    return this.investmentsApi.addValuation(...args);
+  }
+  investmentValuations(...args: Parameters<InvestmentsApi['listValuations']>) {
+    return this.investmentsApi.listValuations(...args);
   }
   dashboard(from?: string, to?: string) {
     return this.reportingApi.dashboard(from, to);

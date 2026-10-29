@@ -16,6 +16,8 @@ import { FieldComponent } from '@ui/field';
 import { SegmentedComponent, SegmentedOption } from '@ui/segmented';
 import { type DatosDeGestion, esquemaDeGestion } from './management-form.schema';
 
+const RIESGOS_NUMERICOS = { Bajo: 1, Medio: 2, Alto: 3 } as const;
+
 @Component({
   selector: 'fin-management-form',
   imports: [
@@ -65,6 +67,9 @@ export class ManagementFormComponent {
     relationship: 'Otro',
     personKind: (this.store.form()?.personKind as PersonKind | undefined) ?? 'person',
     instrument: 'CDT',
+    risk: '2',
+    symbol: '',
+    institution: '',
     currency: 'COP',
     amount: null,
     accountId: '',
@@ -119,6 +124,11 @@ export class ManagementFormComponent {
     { value: 'Acción', label: this.i18n.t('form.management.instrument.stock') },
     { value: 'Criptoactivo', label: this.i18n.t('form.management.instrument.crypto') },
   ]);
+  readonly riskOptions = computed<readonly UiOption[]>(() => [
+    { value: '1', label: this.i18n.t('form.management.risk.low') },
+    { value: '2', label: this.i18n.t('form.management.risk.medium') },
+    { value: '3', label: this.i18n.t('form.management.risk.high') },
+  ]);
   readonly currencyOptions = computed<readonly UiOption[]>(() => [
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
     { value: 'USD', label: this.i18n.t('form.currency.usd') },
@@ -166,6 +176,9 @@ export class ManagementFormComponent {
         ...datos,
         name: investment.name,
         instrument: investment.type,
+        risk: String(RIESGOS_NUMERICOS[investment.risk ?? 'Medio']),
+        symbol: investment.symbol ?? '',
+        institution: investment.institution ?? '',
         currency: investment.currency,
       }));
     }
@@ -194,7 +207,11 @@ export class ManagementFormComponent {
           datos.personKind,
         );
       if (this.kind() === 'investment')
-        await this.catalogCommands.createInvestment(datos.name, datos.instrument, datos.currency);
+        await this.catalogCommands.createInvestment(datos.name, datos.instrument, datos.currency, {
+          risk: Number(datos.risk),
+          symbol: datos.symbol,
+          institution: datos.institution,
+        });
       if (this.kind() === 'recurrence')
         await this.catalogCommands.createRecurrence(
           datos.name,
@@ -230,7 +247,12 @@ export class ManagementFormComponent {
           kind: datos.personKind,
         });
       if (this.kind() === 'investment')
-        await this.catalogCommands.updateInvestment(id, { name: datos.name, instrumentType: datos.instrument });
+        await this.catalogCommands.updateInvestment(id, {
+          name: datos.name,
+          instrumentType: datos.instrument,
+          risk: Number(datos.risk),
+          symbol: datos.symbol,
+        });
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.management.error.saveFailed'));
     }

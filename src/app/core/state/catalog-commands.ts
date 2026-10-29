@@ -74,11 +74,23 @@ export class CatalogCommands {
   }
 
   // Inversiones
-  createInvestment(name: string, instrumentType: string, currency: string) {
-    return this.inversiones.createInvestment(name, instrumentType, currency);
+  createInvestment(...args: Parameters<InvestmentsCommands['createInvestment']>) {
+    return this.inversiones.createInvestment(...args);
   }
-  updateInvestment(id: string, changes: { name: string; instrumentType: string }) {
+  updateInvestment(id: string, changes: Parameters<InvestmentsCommands['updateInvestment']>[1]) {
     return this.inversiones.updateInvestment(id, changes);
+  }
+  registerInvestmentOperation(...args: Parameters<InvestmentsCommands['registerInvestmentOperation']>) {
+    return this.inversiones.registerInvestmentOperation(...args);
+  }
+  addInvestmentValuation(...args: Parameters<InvestmentsCommands['addInvestmentValuation']>) {
+    return this.inversiones.addInvestmentValuation(...args);
+  }
+  investmentOperations(id: string) {
+    return this.inversiones.investmentOperations(id);
+  }
+  investmentValuations(id: string) {
+    return this.inversiones.investmentValuations(id);
   }
 
   // Recurrencias

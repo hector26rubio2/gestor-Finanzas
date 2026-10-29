@@ -1,5 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
-import { DataTableComponent } from '@ui/data-table';
+import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
@@ -14,7 +14,14 @@ import { resumenCartera } from './resumen-cartera';
 
 @Component({
   selector: 'app-portfolio-tab',
-  imports: [ChartCardComponent, DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
+  imports: [
+    ChartCardComponent,
+    DataTableComponent,
+    FinTableCellDirective,
+    KpiComponent,
+    KpiGridComponent,
+    TableZoneComponent,
+  ],
   templateUrl: './portfolio-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })

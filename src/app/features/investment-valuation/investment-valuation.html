@@ -1,0 +1,31 @@
+<fin-overlay [title]="i18n.t('form.investment.valuation.title')" mode="modal" (closed)="store.form.set(null)">
+  <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" [formRoot]="formulario">
+    <fin-field [label]="i18n.t('form.investment.valuation.field.date')" [error]="mensaje(formulario.date)">
+      <fin-date-field [formField]="formulario.date" />
+    </fin-field>
+    <fin-field
+      [label]="i18n.t('form.investment.valuation.field.value') + ' (' + currency() + ')'"
+      [error]="mensaje(formulario.value)"
+    >
+      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.value" />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.investment.valuation.field.source')">
+      <fin-select
+        [formField]="formulario.source"
+        [options]="sourceOptions()"
+        [ariaLabel]="i18n.t('form.investment.valuation.field.source')"
+      />
+    </fin-field>
+    <fin-field [label]="i18n.t('form.investment.valuation.field.reference')">
+      <input hlmInput [formField]="formulario.reference" autocomplete="off" />
+    </fin-field>
+    @if (error()) {
+    <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
+    }
+    <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+      <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
+        <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
+      ><button hlmBtn size="lg" type="submit">{{ i18n.t('form.actions.save') }}</button>
+    </footer>
+  </form>
+</fin-overlay>
