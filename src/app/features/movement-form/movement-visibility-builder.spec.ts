@@ -26,6 +26,16 @@ describe('MovementVisibilityBuilder', () => {
     }
   });
 
+  it('una compra con tarjeta prestada pide la persona y no pide cuenta propia, categoría ni cuotas', () => {
+    const visible = new MovementVisibilityBuilder('expense', undefined, false, 'borrowedCard').withAll().build();
+    expect(visible.showAccount).toBe(false);
+    expect(visible.counterparty).toBe('person');
+    expect(visible.showCategory).toBe(false);
+    expect(visible.showInstallments).toBe(false);
+    expect(visible.showAttribution).toBe(false);
+    expect(ver('expense', ahorros).showAccount).toBe(true);
+  });
+
   it('un crédito se relaciona con una entidad y un préstamo con una persona', () => {
     expect(ver('income', ahorros, 'credit').counterparty).toBe('institution');
     expect(ver('income', ahorros, 'credit').showLoanProduct).toBe(true);

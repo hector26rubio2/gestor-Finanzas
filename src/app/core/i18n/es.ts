@@ -1487,6 +1487,7 @@ export default {
   'people.kind.institution': 'Entidad',
   'form.movement.counterparty.institution': 'Entidad que otorga el crédito',
   'form.movement.counterparty.sender': '¿Quién te transfirió?',
+  'form.movement.counterparty.cardLender': '¿Quién te prestó la tarjeta?',
   'form.movement.counterparty.lender': '¿Quién te prestó?',
   'form.movement.counterparty.borrower': '¿A quién le prestaste?',
   'form.movement.counterparty.addInstitution': 'Nueva entidad',
@@ -1507,6 +1508,7 @@ export default {
   'form.movement.operationType.expense.transfer': 'Transferencia a otra cuenta mía',
   'form.movement.operationType.expense.advance': 'Avance de tarjeta',
   'form.movement.operationType.expense.loan': 'Préstamo a otra persona',
+  'form.movement.operationType.expense.borrowedCard': 'Compra con tarjeta prestada',
   'form.movement.operationType.income.normal': 'Ingreso (salario, venta, rendimiento)',
   'form.movement.operationType.income.received': 'Transferencia que me hicieron',
   'form.movement.operationType.income.loan': 'Préstamo que me hicieron',
@@ -1519,6 +1521,8 @@ export default {
   'form.movement.operationHint.expense.loan':
     'Le prestas plata a alguien desde una cuenta o una tarjeta. Queda como cuenta por cobrar, no como gasto.',
   'form.movement.operationHint.income.normal': 'Dinero que ganas: salario, ventas, intereses, reembolsos.',
+  'form.movement.operationHint.expense.borrowedCard':
+    'Compraste con la tarjeta de otra persona. No mueve tus cuentas: queda como deuda con quien te la prestó.',
   'form.movement.operationHint.income.received': 'Alguien te envía dinero. Indica quién fue para rastrearlo.',
   'form.movement.operationHint.income.loan': 'Una persona te presta plata. Queda como deuda con ella, no como ingreso.',
   'form.movement.operationHint.income.credit':

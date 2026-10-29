@@ -31,6 +31,19 @@ test.describe('Formulario de movimiento', () => {
     );
   });
 
+  test('FRM-03 Escape cierra primero la lista abierta y después el formulario', async ({ page }) => {
+    await ir(page, 'movements');
+    await atajo(page, 'n', 'g');
+    const formulario = dialogo(page);
+    await formulario.locator('[data-slot=select-trigger][aria-label^="Tipo"]').first().click();
+    await expect(page.locator('[role=listbox]')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[role=listbox]')).toBeHidden();
+    await expect(formulario).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(formulario).toBeHidden();
+  });
+
   test('FRM-02 editar el monto de un gasto lo guarda o no deja editarlo', async ({ page, vigilancia }) => {
     const descripcion = `E2E editar monto ${corrida}`;
     await ir(page, 'movements');

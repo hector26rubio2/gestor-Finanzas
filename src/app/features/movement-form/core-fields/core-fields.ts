@@ -22,6 +22,7 @@ export class MovementCoreFieldsComponent {
   readonly kind = input.required<string>();
   readonly operation = input('normal');
   readonly showTargetAccount = input(false);
+  readonly showAccount = input(true);
 
   private readonly store = inject(AppStore);
   private readonly caps = inject(CAPABILITIES);

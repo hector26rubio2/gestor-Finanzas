@@ -28,6 +28,7 @@
         [kind]="model['kind']"
         [operation]="model['operationType']"
         [showTargetAccount]="vis.showTargetAccount"
+        [showAccount]="vis.showAccount"
       />
       @if (vis.counterparty; as alcance) {
       <fin-movement-counterparty-field [model]="model" [scope]="alcance" />

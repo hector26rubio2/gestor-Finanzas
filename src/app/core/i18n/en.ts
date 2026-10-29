@@ -1485,6 +1485,7 @@ export default {
   'people.kind.institution': 'Institution',
   'form.movement.counterparty.institution': 'Lending institution',
   'form.movement.counterparty.sender': 'Who sent it?',
+  'form.movement.counterparty.cardLender': 'Who lent you the card?',
   'form.movement.counterparty.lender': 'Who lent it to you?',
   'form.movement.counterparty.borrower': 'Who did you lend to?',
   'form.movement.counterparty.addInstitution': 'New institution',
@@ -1505,6 +1506,7 @@ export default {
   'form.movement.operationType.expense.transfer': 'Transfer to another of my accounts',
   'form.movement.operationType.expense.advance': 'Card cash advance',
   'form.movement.operationType.expense.loan': 'Loan to someone',
+  'form.movement.operationType.expense.borrowedCard': 'Purchase with a borrowed card',
   'form.movement.operationType.income.normal': 'Income (salary, sale, return)',
   'form.movement.operationType.income.received': 'Transfer I received',
   'form.movement.operationType.income.loan': 'Loan I received',
@@ -1517,6 +1519,8 @@ export default {
   'form.movement.operationHint.expense.loan':
     'You lend money from an account or card. It becomes a receivable, not an expense.',
   'form.movement.operationHint.income.normal': 'Money you earn: salary, sales, interest, refunds.',
+  'form.movement.operationHint.expense.borrowedCard':
+    "You paid with someone else's card. It does not touch your accounts: it becomes a debt to whoever lent it.",
   'form.movement.operationHint.income.received': 'Someone sends you money. Say who, to track it.',
   'form.movement.operationHint.income.loan': 'A person lends you money. It is a debt to them, not income.',
   'form.movement.operationHint.income.credit':

@@ -3,6 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { Account, Movement, Person } from './view-model';
 import { FinanceApiClient } from '@core/api/api-client';
 import type { ApiMovement, CreateMovementBody } from '@core/api/ledger.api';
+import { SHARE_BASIS } from '@core/api/purchases.api';
 import { parseMoney } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
 import { CashFlow, EconomicEffect, MovementKind, signOf } from '@core/utils/movement-kinds';
@@ -70,6 +71,7 @@ export class MovementCommands {
     const contraparte = this.store.data().people.find((persona) => persona.id === input.counterpartyId);
     if (!Number.isFinite(input.amount) || input.amount <= 0)
       throw new Error(this.i18n.t('form.movement.error.amountPositive'));
+    if (input.operationType === 'borrowedCard') return this.saveBorrowedCard(input, contraparte);
     if (!this.store.account(input.accountId)) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
     if (
       (input.kind === 'payment' || input.kind === 'transfer' || input.kind === 'advance') &&
@@ -155,15 +157,52 @@ export class MovementCommands {
       this.store.form.set(null);
       return;
     }
+    const tercero = this.terceroResponsable(input);
+    if (tercero && account.type !== 'credit')
+      return this.saveLoan({ ...input, kind: 'expense', operationType: 'loan' }, tercero);
     const created = await firstValueFrom(
       this.injector.get(FinanceApiClient).createMovement(this.cuerpoDeMovimiento(input, account, cuotas, aprPropia)),
     );
+    if (tercero)
+      await firstValueFrom(
+        this.injector.get(FinanceApiClient).createSharedPurchase({
+          purchaseMovement: created.id,
+          shares: [{ counterparty: tercero.id, basis: SHARE_BASIS.full }],
+          description: input.description || null,
+        }),
+      );
     this.store.data.update((data) => ({
       ...data,
-      movements: [this.aMovimiento(created, input, account, cuotas), ...data.movements],
+      movements: [
+        { ...this.aMovimiento(created, input, account, cuotas), ...(tercero ? { ownership: 'loaned' as const } : {}) },
+        ...data.movements,
+      ],
     }));
     this.store.form.set(null);
     this.invalidarListadoRemoto();
+  }
+
+  private terceroResponsable(input: DatosDeMovimiento): Person | undefined {
+    if (input.kind !== 'expense' || !input.person) return undefined;
+    return this.store.data().people.find((persona) => persona.name === input.person);
+  }
+
+  private async saveBorrowedCard(input: DatosDeMovimiento, prestamista: Person | undefined) {
+    if (!prestamista) throw new Error(this.i18n.t('form.movement.error.counterpartyRequired'));
+    await firstValueFrom(
+      this.injector.get(FinanceApiClient).createLoan({
+        date: input.date,
+        direction: OBLIGATION_DIRECTION.payable,
+        counterparty: prestamista.id,
+        amount: { amount: String(input.amount), currency: this.store.baseCurrency() },
+        product: LOAN_PRODUCT.informal,
+        description: input.description || undefined,
+        idempotencyKey: crypto.randomUUID(),
+        borrowedCard: true,
+      }),
+    );
+    this.invalidarListadoRemoto();
+    this.store.form.set(null);
   }
 
   private async correct(original: Movement, input: DatosDeMovimiento, cuotas?: number, aprPropia?: number) {

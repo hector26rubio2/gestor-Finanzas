@@ -1485,6 +1485,7 @@ export default {
   'people.kind.institution': 'Instituição',
   'form.movement.counterparty.institution': 'Instituição credora',
   'form.movement.counterparty.sender': 'Quem transferiu?',
+  'form.movement.counterparty.cardLender': 'Quem te emprestou o cartão?',
   'form.movement.counterparty.lender': 'Quem te emprestou?',
   'form.movement.counterparty.borrower': 'Para quem você emprestou?',
   'form.movement.counterparty.addInstitution': 'Nova instituição',
@@ -1505,6 +1506,7 @@ export default {
   'form.movement.operationType.expense.transfer': 'Transferência para outra conta minha',
   'form.movement.operationType.expense.advance': 'Saque no cartão',
   'form.movement.operationType.expense.loan': 'Empréstimo a alguém',
+  'form.movement.operationType.expense.borrowedCard': 'Compra com cartão emprestado',
   'form.movement.operationType.income.normal': 'Receita (salário, venda, rendimento)',
   'form.movement.operationType.income.received': 'Transferência recebida',
   'form.movement.operationType.income.loan': 'Empréstimo recebido',
@@ -1516,6 +1518,8 @@ export default {
     'Saca dinheiro do cartão para uma conta sua, com taxa e parcelas próprias.',
   'form.movement.operationHint.expense.loan': 'Você empresta de uma conta ou cartão. Vira valor a receber, não gasto.',
   'form.movement.operationHint.income.normal': 'Dinheiro que você ganha: salário, vendas, juros, reembolsos.',
+  'form.movement.operationHint.expense.borrowedCard':
+    'Você pagou com o cartão de outra pessoa. Não mexe nas suas contas: vira uma dívida com quem emprestou.',
   'form.movement.operationHint.income.received': 'Alguém te envia dinheiro. Informe quem foi.',
   'form.movement.operationHint.income.loan': 'Uma pessoa te empresta dinheiro. É uma dívida, não receita.',
   'form.movement.operationHint.income.credit':

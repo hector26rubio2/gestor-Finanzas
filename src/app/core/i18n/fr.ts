@@ -1500,6 +1500,7 @@ export default {
   'people.kind.institution': 'Établissement',
   'form.movement.counterparty.institution': 'Établissement prêteur',
   'form.movement.counterparty.sender': "Qui vous l'a envoyé ?",
+  'form.movement.counterparty.cardLender': "Qui t'a prêté la carte ?",
   'form.movement.counterparty.lender': 'Qui vous a prêté ?',
   'form.movement.counterparty.borrower': 'À qui avez-vous prêté ?',
   'form.movement.counterparty.addInstitution': 'Nouvel établissement',
@@ -1520,6 +1521,7 @@ export default {
   'form.movement.operationType.expense.transfer': 'Virement vers un autre de mes comptes',
   'form.movement.operationType.expense.advance': 'Avance sur carte',
   'form.movement.operationType.expense.loan': "Prêt à quelqu'un",
+  'form.movement.operationType.expense.borrowedCard': 'Achat avec une carte prêtée',
   'form.movement.operationType.income.normal': 'Revenu (salaire, vente, rendement)',
   'form.movement.operationType.income.received': 'Virement reçu',
   'form.movement.operationType.income.loan': 'Prêt reçu',
@@ -1532,6 +1534,8 @@ export default {
   'form.movement.operationHint.expense.loan':
     "Vous prêtez depuis un compte ou une carte. C'est une créance, pas une dépense.",
   'form.movement.operationHint.income.normal': 'Argent gagné : salaire, ventes, intérêts, remboursements.',
+  'form.movement.operationHint.expense.borrowedCard':
+    "Tu as payé avec la carte de quelqu'un d'autre. Tes comptes ne bougent pas : c'est une dette envers la personne qui l'a prêtée.",
   'form.movement.operationHint.income.received': "Quelqu'un vous envoie de l'argent. Indiquez qui.",
   'form.movement.operationHint.income.loan': "Une personne vous prête de l'argent : c'est une dette, pas un revenu.",
   'form.movement.operationHint.income.credit':

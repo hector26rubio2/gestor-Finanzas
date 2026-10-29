@@ -3,6 +3,7 @@ import { Account } from '@core/state/view-model';
 export type CounterpartyScope = 'person' | 'institution' | 'any';
 
 export interface MovementFieldVisibility {
+  readonly showAccount: boolean;
   readonly showTargetAccount: boolean;
   readonly showCategory: boolean;
   readonly showAttribution: boolean;
@@ -19,6 +20,7 @@ export interface MovementFieldVisibility {
 
 export class MovementVisibilityBuilder {
   private result: MovementFieldVisibility = {
+    showAccount: true,
     showTargetAccount: false,
     showCategory: false,
     showAttribution: false,
@@ -49,6 +51,10 @@ export class MovementVisibilityBuilder {
     return this.account?.type === 'credit';
   }
 
+  withAccount(): this {
+    return this.set({ showAccount: this.operationType !== 'borrowedCard' });
+  }
+
   withTargetAccount(): this {
     return this.set({ showTargetAccount: this.operationType === 'transfer' || this.operationType === 'advance' });
   }
@@ -64,7 +70,12 @@ export class MovementVisibilityBuilder {
   }
 
   withCounterparty(): this {
-    const alcance: Record<string, CounterpartyScope> = { received: 'any', loan: 'person', credit: 'institution' };
+    const alcance: Record<string, CounterpartyScope> = {
+      received: 'any',
+      loan: 'person',
+      credit: 'institution',
+      borrowedCard: 'person',
+    };
     return this.set({ counterparty: alcance[this.operationType] ?? null });
   }
 
@@ -95,7 +106,8 @@ export class MovementVisibilityBuilder {
   }
 
   withAll(): this {
-    return this.withTargetAccount()
+    return this.withAccount()
+      .withTargetAccount()
       .withCategory()
       .withAttribution()
       .withCounterparty()
