@@ -5,11 +5,6 @@ import { I18nService } from '@core/i18n';
 import { ChartThemeService } from './chart-theme';
 import { cargarModulos, modulosFaltantes } from './chart-modulos';
 
-/**
- * Único registro eager: el renderizador de lienzo es necesario para cualquier
- * gráfica. Los tipos/componentes viven en `chart-modulos.ts` y se cargan
- * bajo demanda según lo que pida cada opción.
- */
 echarts.use([CanvasRenderer]);
 
 export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
@@ -66,9 +61,6 @@ export class ChartComponent implements OnDestroy {
         void cargarModulos(faltan)
           .then(() => this.modulosListos.update((valor) => valor + 1))
           .catch((error: unknown) => {
-            // Sin esto, un import rechazado deja el lienzo en blanco y sin aviso.
-            // No se toca `modulosListos`: la gráfica (si ya se pintó) queda como estaba
-            // y solo se reintenta ante un cambio de opción.
             console.warn(`[fin-chart] no se pudieron cargar módulos de echarts: ${faltan.join(', ')}`, error);
           });
         return;

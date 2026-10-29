@@ -53,17 +53,6 @@ const cuotasRestantesDeTarjeta = (tarjeta: Account, movimientos: readonly Moveme
   return restantes.length ? Math.max(1, ...restantes) : CUOTAS_SUPUESTAS;
 };
 
-// Puerto de deuda del módulo `proyecciones` — fuentes de datos intercambiables que
-// producen `DeudaActual` (adaptadores por fuente abajo).
-//
-// Estrategia de exportación en dos capítulos, intencional:
-//  1. `escenarios.ts` reexporta los símbolos legacy (constantes TASA_*/CUOTAS_SUPUESTAS,
-//     `saldoTrasCuotas`, `DeudaActual`, `TarjetasPorConcepto`) para no romper consumidores
-//     que importan de `./escenarios`.
-//  2. `index.ts` reexporta el puerto desde este archivo con nombres explícitos (`export *`
-//     en el barrel reexporta esos nombres por dos rutas y TS2308 lo rechaza). Paso manual:
-//     al agregar un símbolo NUEVO aquí, añádelo a la lista explícita de `index.ts`.
-
 export interface PuertaDeObligaciones {
   readonly obligaciones: readonly ApiObligation[];
   readonly hoy: string;
