@@ -61,3 +61,7 @@
 .driver-popover.fin-tour .driver-popover-close-btn:focus-visible {
   color: var(--text);
 }
+
+.driver-popover.fin-tour {
+  pointer-events: auto;
+}

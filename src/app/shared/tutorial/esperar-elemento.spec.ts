@@ -36,4 +36,10 @@ describe('esperarElemento', () => {
     document.body.innerHTML = '<button data-tour="c"></button>';
     expect(await esperarElemento('[data-tour="c"]', 60)).toBe(false);
   });
+
+  it('un contenedor con display contents usa la caja de su primer hijo', async () => {
+    document.body.innerHTML = '<div data-tour="d" style="display: contents"><div></div></div>';
+    hacerVisible(document.querySelector<HTMLElement>('[data-tour="d"]')!.firstElementChild as HTMLElement);
+    expect(await esperarElemento('[data-tour="d"]', 60)).toBe(true);
+  });
 });

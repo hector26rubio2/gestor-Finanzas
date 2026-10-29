@@ -1,7 +1,15 @@
 const INTERVALO_DE_SONDEO = 100;
 
-export function esVisible(elemento: Element | null): elemento is HTMLElement {
-  return elemento instanceof HTMLElement && elemento.getClientRects().length > 0;
+export function elementoEfectivo(elemento: Element | null): Element | null {
+  let actual = elemento;
+  while (actual && getComputedStyle(actual).display === 'contents' && actual.firstElementChild)
+    actual = actual.firstElementChild;
+  return actual;
+}
+
+export function esVisible(elemento: Element | null): boolean {
+  const efectivo = elementoEfectivo(elemento);
+  return efectivo instanceof HTMLElement && efectivo.getClientRects().length > 0;
 }
 
 export function esperarElemento(selector: string, milisegundos: number): Promise<boolean> {
