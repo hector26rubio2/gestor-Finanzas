@@ -239,8 +239,6 @@ export class MovementCommands {
       person: created.linkNames['counterparty']?.name ?? input.person,
       ownership: created.links['counterparty'] ? 'loaned' : 'own',
       recurring: input.recurring === true || input.recurring === 'true',
-      loanRole: input.loanRole,
-      loanProduct: input.loanProduct,
       purchaseApr: created.purchaseApr ?? undefined,
       ...(created.cardBucket ? { cardBucket: created.cardBucket } : {}),
       ...(isCard && cuotas ? { installmentTotal: cuotas, installmentCurrent: 1 } : {}),

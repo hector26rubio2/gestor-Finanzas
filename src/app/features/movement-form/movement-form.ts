@@ -321,7 +321,7 @@ function operacionPedida(pedida: string | undefined, kind: string): MovementOper
 function operacionDe(movimiento: Movement | undefined): MovementOperationType {
   if (movimiento?.movementSubtype === 'transfer') return 'transfer';
   if (movimiento?.movementSubtype === 'advance') return 'advance';
-  if (movimiento?.loanProduct) return 'credit';
+  if (movimiento?.loanProduct && movimiento.loanRole) return 'credit';
   if (movimiento?.loanRole) return 'loan';
   return 'normal';
 }

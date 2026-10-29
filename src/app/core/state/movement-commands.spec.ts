@@ -89,6 +89,7 @@ describe('MovementCommands.save — alta de movimientos', () => {
       accountId: 'cuenta-2',
       amount: 45900,
       category: 'Mercado',
+      loanProduct: 'personal',
     });
 
     const [peticion] = transport.peticiones;
@@ -117,6 +118,8 @@ describe('MovementCommands.save — alta de movimientos', () => {
       status: 'confirmed',
       ownership: 'own',
     });
+    expect(creado.loanProduct).toBeUndefined();
+    expect(creado.loanRole).toBeUndefined();
     expect(store.form()).toBeNull();
     expect(store.data().movements).toHaveLength(2);
   });
