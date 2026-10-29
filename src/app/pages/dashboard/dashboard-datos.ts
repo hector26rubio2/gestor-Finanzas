@@ -33,7 +33,9 @@ export class DatosDelTablero {
 
   private readonly urlDelDashboard = [
     sincronizarConLaUrl('cuenta', this.accountId, 'all'),
-    sincronizarConLaUrl('tipo', this.accountType, 'all', (v) => ['all', 'credit', 'savings', 'cash'].includes(v)),
+    sincronizarConLaUrl('tipo', this.accountType, 'all', (v) =>
+      ['all', 'credit', 'savings', 'checking', 'cash', 'wallet', 'other'].includes(v),
+    ),
     sincronizarConLaUrl('categoria', this.globalCategory, 'all'),
   ];
   readonly allCategories = computed(() =>
