@@ -1,3 +1,5 @@
+import { addMonthsToIso } from '@core/utils/dates';
+
 export const PRESETS_DE_PERIODO = ['month', 'quarter', 'year', 'last3', 'last6', 'last12', 'custom'] as const;
 export type PresetDePeriodo = (typeof PRESETS_DE_PERIODO)[number];
 
@@ -27,3 +29,16 @@ export function rangoDePreset(preset: PresetDePeriodo, ancla: string): { start: 
       return { start: iso(utc(anio, mes, 1)), end: iso(utc(anio, mes + 1, 0)) };
   }
 }
+
+const MESES_POR_PRESET: Record<PresetDePeriodo, number> = {
+  month: 1,
+  quarter: 3,
+  year: 12,
+  last3: 3,
+  last6: 6,
+  last12: 12,
+  custom: 0,
+};
+
+export const moverAncla = (ancla: string, preset: PresetDePeriodo, paso: -1 | 1): string =>
+  addMonthsToIso(ancla, paso * MESES_POR_PRESET[preset]);

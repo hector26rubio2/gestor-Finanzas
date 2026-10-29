@@ -20,7 +20,7 @@ import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { filtrarMovimientos } from './filtros';
-import { PRESETS_DE_PERIODO, PresetDePeriodo, rangoDePreset } from './periodos';
+import { PRESETS_DE_PERIODO, PresetDePeriodo, moverAncla, rangoDePreset } from './periodos';
 import { type PlantillaDeVista, VistasGuardadasComponent } from '@shared/vistas-guardadas';
 
 const VISTAS_INICIALES: readonly VistaDeReporte[] = [
@@ -251,10 +251,7 @@ export class ExploradorDeReportesComponent {
   });
 
   moverAncla(direccion: -1 | 1): void {
-    const base = new Date(`${this.ancla()}T12:00:00Z`);
-    const meses = { month: 1, quarter: 3, year: 12, last3: 3, last6: 6, last12: 12, custom: 0 }[this.preset()];
-    base.setUTCMonth(base.getUTCMonth() + direccion * meses);
-    this.ancla.set(base.toISOString().slice(0, 10));
+    this.ancla.set(moverAncla(this.ancla(), this.preset(), direccion));
   }
 
   guardarVista(vista: VistaEditable): void {
