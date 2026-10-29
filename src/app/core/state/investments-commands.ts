@@ -127,6 +127,7 @@ export class InvestmentsCommands {
         ...(input.description?.trim() ? { description: input.description.trim() } : {}),
       }),
     );
+    this.store.invalidarListadoDeMovimientos();
     this.store.form.set(null);
     this.store.toast.set(this.i18n.t('toast.investment.operationRegistered'));
   }

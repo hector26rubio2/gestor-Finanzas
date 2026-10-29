@@ -363,10 +363,6 @@ export class MovementCommands {
    * (calendario/día) sobrevivan mientras el libro recarga.
    */
   private invalidarListadoRemoto(): void {
-    this.store.movimientosListos.set(false);
-    this.store.remoteMovementPage.set(1);
-    this.store.remoteMovementCursor.set(null);
-    this.store.remoteMovementTotals.set(null);
-    this.store.remoteMovementTotal.set(0);
+    this.store.invalidarListadoDeMovimientos();
   }
 }

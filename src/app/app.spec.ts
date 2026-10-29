@@ -99,4 +99,15 @@ describe('AppComponent y el menú', () => {
     componente.alternarMenu();
     expect(componente.menuAbierto()).toBe(true);
   });
+
+  it('los formularios de operación y valorización no abren también el de movimiento', () => {
+    const componente = montar().componentInstance;
+
+    for (const kind of ['investment-operation', 'investment-valuation']) {
+      componente.store.form.set({ kind, targetId: 'x' });
+      expect(componente.abreFormularioDeMovimiento()).toBe(false);
+    }
+    componente.store.form.set({ kind: 'expense' });
+    expect(componente.abreFormularioDeMovimiento()).toBe(true);
+  });
 });

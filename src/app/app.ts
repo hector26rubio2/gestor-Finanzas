@@ -44,7 +44,15 @@ import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { SkeletonComponent } from '@ui/skeleton';
 import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service';
 
-const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = ['account', 'category', 'person', 'investment', 'recurrence'];
+const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = [
+  'account',
+  'category',
+  'person',
+  'investment',
+  'investment-operation',
+  'investment-valuation',
+  'recurrence',
+];
 
 const GRUPOS_CERRADOS_KEY = 'finanzas.sidebar.grupos-cerrados';
 const RANGO_DE_TABLETA = '(min-width: 768px) and (max-width: 1199px)';

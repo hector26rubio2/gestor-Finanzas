@@ -769,6 +769,7 @@ describe('CatalogCommands — operaciones y valorizaciones de inversión', () =>
     const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
     cambios();
     store.form.set({ kind: 'investment-operation', targetId: 'inv-1' });
+    store.movimientosListos.set(true);
 
     await component.comandos.registerInvestmentOperation('inv-1', {
       type: 1,
@@ -788,6 +789,7 @@ describe('CatalogCommands — operaciones y valorizaciones de inversión', () =>
     });
     expect(transport.peticiones[0].body).not.toHaveProperty('quantity');
     expect(store.form()).toBeNull();
+    expect(store.movimientosListos()).toBe(false);
   });
 
   it('registerInvestmentOperation en compra envía cantidad y precio unitario', async () => {
