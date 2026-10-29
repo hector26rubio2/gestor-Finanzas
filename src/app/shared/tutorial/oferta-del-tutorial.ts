@@ -13,6 +13,7 @@ import { TutorialService } from './tutorial.service';
       [description]="i18n.t('tutorial.offer.text')"
       [confirmLabel]="i18n.t('tutorial.offer.yes')"
       [cancelLabel]="i18n.t('tutorial.offer.no')"
+      tone="default"
       (confirmed)="aceptar()"
       (dismissed)="tutorial.marcarVisto()"
     />

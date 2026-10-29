@@ -12,6 +12,7 @@ import { ConfirmDialogComponent } from './confirm-dialog';
       description="Se registrará una reversión."
       confirmLabel="Reversar"
       cancelLabel="Cancelar"
+      [tone]="tone()"
       (confirmed)="confirmed = confirmed + 1"
       (dismissed)="dismissed = dismissed + 1"
     />
@@ -19,6 +20,7 @@ import { ConfirmDialogComponent } from './confirm-dialog';
 })
 class HostComponent {
   readonly open = signal(false);
+  readonly tone = signal<'destructive' | 'default'>('destructive');
   confirmed = 0;
   dismissed = 0;
 }
@@ -45,6 +47,15 @@ describe('ConfirmDialogComponent', () => {
     expect(document.querySelector('[hlmAlertDialogDescription]')?.textContent).toContain('reversión');
     expect(boton('button[hlmAlertDialogCancel]')?.textContent).toContain('Cancelar');
     expect(boton('button[hlmAlertDialogAction]')?.textContent).toContain('Reversar');
+  });
+
+  it('la acción es destructiva por defecto y neutra con tone default', async () => {
+    const fixture = await abrir();
+    expect(boton('button[hlmAlertDialogAction]')?.className).toContain('bg-destructive');
+
+    fixture.componentInstance.tone.set('default');
+    fixture.detectChanges();
+    expect(boton('button[hlmAlertDialogAction]')?.className).not.toContain('bg-destructive');
   });
 
   it('emite confirmed, y no dismissed, al aceptar', async () => {

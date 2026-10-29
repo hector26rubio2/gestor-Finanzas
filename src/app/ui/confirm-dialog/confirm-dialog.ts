@@ -13,7 +13,7 @@ import { HlmAlertDialogImports } from '@spartan-ng/helm/alert-dialog';
         </hlm-alert-dialog-header>
         <hlm-alert-dialog-footer>
           <button hlmAlertDialogCancel>{{ cancelLabel() }}</button>
-          <button hlmAlertDialogAction variant="destructive" (click)="confirm(ctx)">{{ confirmLabel() }}</button>
+          <button hlmAlertDialogAction [variant]="tone()" (click)="confirm(ctx)">{{ confirmLabel() }}</button>
         </hlm-alert-dialog-footer>
       </hlm-alert-dialog-content>
     </hlm-alert-dialog>
@@ -25,6 +25,7 @@ export class ConfirmDialogComponent {
   readonly description = input.required<string>();
   readonly confirmLabel = input.required<string>();
   readonly cancelLabel = input.required<string>();
+  readonly tone = input<'destructive' | 'default'>('destructive');
   readonly confirmed = output<void>();
   readonly dismissed = output<void>();
 
