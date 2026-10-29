@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { DataTableComponent } from './data-table';
+import { FinTableRowDetailDirective } from './table-row-detail.directive';
 import { TableColumn } from './data-table.model';
 
 const columns: TableColumn[] = [
@@ -127,5 +128,77 @@ describe('tabla de datos', () => {
     table.toggleAllRows(true);
     fixture.detectChanges();
     expect(table.selectedCount()).toBe(3);
+  });
+});
+
+@Component({
+  imports: [DataTableComponent, FinTableRowDetailDirective],
+  template: `<fin-table
+    [columns]="columns"
+    [rows]="data"
+    [rowHasDetail]="tieneDetalle"
+    (rowSelected)="selected.push($event)"
+  >
+    <ng-template finTableRowDetail let-row
+      ><p class="detalle">Detalle de {{ row.name }}</p></ng-template
+    >
+  </fin-table>`,
+})
+class DetailHostComponent {
+  columns = columns;
+  data = rows;
+  selected: unknown[] = [];
+  tieneDetalle = (row: Record<string, unknown>) => row['id'] !== 'b';
+}
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="data" />`,
+})
+class PlainHostComponent {
+  columns = columns;
+  data = rows;
+}
+
+describe('tabla de datos con detalle de fila', () => {
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+
+  const toggles = (root: HTMLElement) =>
+    [...root.querySelectorAll('tbody button[aria-expanded]')].filter((b) =>
+      /Ver detalle|Ocultar detalle|Show details|Hide details/.test(b.textContent ?? ''),
+    ) as HTMLButtonElement[];
+
+  it('abre y cierra el detalle de la fila sin emitir la selección', () => {
+    const fixture = TestBed.createComponent(DetailHostComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const boton = toggles(root)[0];
+    expect(boton.getAttribute('aria-expanded')).toBe('false');
+    expect(root.querySelector('.detalle')).toBeNull();
+    boton.click();
+    fixture.detectChanges();
+    expect(root.querySelector('.detalle')?.textContent).toContain('Detalle de Café');
+    expect(toggles(root)[0].getAttribute('aria-expanded')).toBe('true');
+    expect(boton.getAttribute('aria-controls')).toBe(root.querySelector('.detalle')!.closest('tr')!.id);
+    expect(fixture.componentInstance.selected).toEqual([]);
+    toggles(root)[0].click();
+    fixture.detectChanges();
+    expect(root.querySelector('.detalle')).toBeNull();
+    expect(toggles(root)[0].getAttribute('aria-expanded')).toBe('false');
+  });
+
+  it('oculta el botón en las filas sin detalle', () => {
+    const fixture = TestBed.createComponent(DetailHostComponent);
+    fixture.detectChanges();
+    expect(toggles(fixture.nativeElement as HTMLElement)).toHaveLength(3);
+  });
+
+  it('no muestra botón si no hay plantilla de detalle', () => {
+    const fixture = TestBed.createComponent(PlainHostComponent);
+    fixture.detectChanges();
+    expect(toggles(fixture.nativeElement as HTMLElement)).toHaveLength(0);
   });
 });

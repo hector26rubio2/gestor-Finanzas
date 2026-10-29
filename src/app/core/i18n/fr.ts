@@ -46,6 +46,8 @@ export default {
   'table.defaultLabel': 'Enregistrements',
   'table.scrollRegion': '{label}, défilement interne',
   'table.rowDetail': 'Voir le détail : {value}',
+  'table.rowDetail.show': 'Voir le détail',
+  'table.rowDetail.hide': 'Masquer le détail',
   'table.detailToggle.show': 'Voir plus',
   'table.detailToggle.hide': 'Voir moins',
   'table.empty': 'Aucun enregistrement pour ces filtres.',
@@ -989,9 +991,9 @@ export default {
   'people.payment.sinPlazo': 'Sans échéances convenues',
   'people.payment.sinDeudas': 'Aucune dette ouverte',
   'people.payment.paid': 'Payée',
-  'people.debts.title': 'Dettes et prêts',
-  'people.debts.hint':
-    'Une ligne par dette : ce qui a été convenu, l’échéance du mois, laquelle est en cours et ce qui reste.',
+  'people.table.title': 'Personnes et dettes',
+  'people.table.hint':
+    'Une ligne par personne. Ouvrez-la pour voir chaque dette avec son échéance, laquelle est en cours et ce qui reste.',
   'people.debts.column.direction': 'Type',
   'people.debts.column.description': 'Détail',
   'people.debts.column.value': 'Montant',

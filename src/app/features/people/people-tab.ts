@@ -1,5 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
-import { DataTableComponent } from '@ui/data-table';
+import { DataTableComponent, FinTableRowDetailDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
@@ -10,12 +10,19 @@ import { I18nService } from '@core/i18n';
 import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
-import { Comportamiento, comportamientoDePago, masAtrasado } from './deudas';
+import { Comportamiento, Deuda, comportamientoDePago, masAtrasado } from './deudas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
   selector: 'app-people-tab',
-  imports: [ChartCardComponent, DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
+  imports: [
+    ChartCardComponent,
+    DataTableComponent,
+    FinTableRowDetailDirective,
+    KpiComponent,
+    KpiGridComponent,
+    TableZoneComponent,
+  ],
   templateUrl: './people-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })
@@ -54,43 +61,37 @@ export class PeopleTabComponent {
       owed: this.numero(p.owed),
       owing: this.numero(p.owing),
       balance: this.numero(p.owed - p.owing),
-      payment: this.textoDeComportamiento(
-        comportamientoDePago(this.people.deudas().filter((deuda) => deuda.personaId === p.id)),
-      ),
+      payment: this.textoDeComportamiento(comportamientoDePago(this.deudasDe(p.id))),
     })),
   );
-  readonly hayDeudas = computed(() => this.people.deudas().length > 0);
-  readonly debtColumns = computed(() => [
-    { key: 'person', label: this.i18n.t('people.column.name') },
-    { key: 'direction', label: this.i18n.t('people.debts.column.direction'), facet: true },
-    { key: 'description', label: this.i18n.t('people.debts.column.description') },
-    { key: 'currency', label: this.i18n.t('people.column.currency') },
-    { key: 'value', label: this.i18n.t('people.debts.column.value') },
-    { key: 'installment', label: this.i18n.t('people.debts.column.installment') },
-    { key: 'installmentNumber', label: this.i18n.t('people.debts.column.installmentNumber') },
-    { key: 'pending', label: this.i18n.t('people.debts.column.pending') },
-    { key: 'status', label: this.i18n.t('people.column.payment'), facet: true },
-  ]);
-  readonly debtRows = computed(() =>
-    this.people.deudas().map((d) => ({
-      id: d.id,
-      personId: d.personaId,
-      person: d.persona,
-      direction: this.i18n.t(d.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing'),
-      description: d.tarjeta
-        ? `${d.descripcion ?? ''} · ${d.tarjeta}`.replace(/^ · /, '')
-        : (d.descripcion ?? SIN_DATO),
-      currency: d.moneda,
-      value: formatNumber(d.valor, d.moneda, this.store.preferences().locale),
-      installment: d.cuota === null ? SIN_DATO : formatNumber(d.cuota, d.moneda, this.store.preferences().locale),
-      installmentNumber:
-        d.totalCuotas === null
-          ? SIN_DATO
-          : this.i18n.t('people.debts.installmentOf', { current: d.cuotaActual ?? 1, total: d.totalCuotas }),
-      pending: formatNumber(d.pendiente, d.moneda, this.store.preferences().locale),
-      status: d.saldada ? this.i18n.t('people.payment.paid') : this.textoDeComportamiento(comportamientoDePago([d])),
-    })),
-  );
+  deudasDe(personaId: unknown): Deuda[] {
+    return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
+  }
+  tieneDeudas = (fila: Record<string, unknown>): boolean => this.deudasDe(fila['id']).length > 0;
+  tipoDeDeuda(deuda: Deuda): string {
+    return this.i18n.t(deuda.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing');
+  }
+  detalleDeDeuda(deuda: Deuda): string {
+    return deuda.tarjeta
+      ? `${deuda.descripcion ?? ''} · ${deuda.tarjeta}`.replace(/^ · /, '')
+      : (deuda.descripcion ?? SIN_DATO);
+  }
+  importe(valor: number, moneda: string): string {
+    return formatNumber(valor, moneda, this.store.preferences().locale);
+  }
+  cuotaDe(deuda: Deuda): string {
+    return deuda.cuota === null ? SIN_DATO : this.importe(deuda.cuota, deuda.moneda);
+  }
+  numeroDeCuota(deuda: Deuda): string {
+    return deuda.totalCuotas === null
+      ? SIN_DATO
+      : this.i18n.t('people.debts.installmentOf', { current: deuda.cuotaActual ?? 1, total: deuda.totalCuotas });
+  }
+  estadoDeDeuda(deuda: Deuda): string {
+    return deuda.saldada
+      ? this.i18n.t('people.payment.paid')
+      : this.textoDeComportamiento(comportamientoDePago([deuda]));
+  }
   private numero(valor: number): string {
     return formatNumber(valor, this.store.baseCurrency(), this.store.preferences().locale);
   }

@@ -92,14 +92,16 @@ test.describe('Secciones', () => {
     await expect(page.getByText(/Agenda del|Detalle del movimiento/).first()).toBeVisible();
   });
 
-  test('PER-01 personas muestra moneda aparte y la tabla de deudas con cuotas', async ({ page }) => {
+  test('PER-01 personas muestra moneda aparte y el detalle de deudas con cuotas', async ({ page }) => {
     await ir(page, 'people');
     await expect(page.getByRole('columnheader', { name: 'Moneda' }).first()).toBeVisible();
-    const deudas = page.getByRole('region', { name: 'Deudas y préstamos' });
-    await expect(deudas).toBeVisible();
-    await expect(deudas.getByRole('columnheader', { name: 'N.º de cuota' })).toBeVisible();
-    await expect(deudas.getByRole('columnheader', { name: 'Falta por pagar' })).toBeVisible();
-    await expect(deudas.locator('tbody tr').first()).toBeVisible();
+    const tabla = page.getByRole('region', { name: 'Personas y deudas' });
+    await expect(tabla).toBeVisible();
+    const verDetalle = tabla.getByRole('button', { name: 'Ver detalle', exact: true }).first();
+    await expect(verDetalle).toBeVisible();
+    await verDetalle.click();
+    await expect(tabla.getByRole('columnheader', { name: 'N.º de cuota' })).toBeVisible();
+    await expect(tabla.getByRole('columnheader', { name: 'Falta por pagar' })).toBeVisible();
   });
 
   test('DAS-05 crear un tablero nuevo', async ({ page, vigilancia }) => {
