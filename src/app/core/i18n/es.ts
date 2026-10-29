@@ -984,6 +984,8 @@ export default {
   'people.payment.paid': 'Pagada',
   'people.table.title': 'Personas y deudas',
   'people.table.hint': 'Una fila por persona. Ábrela para ver cada deuda con su cuota, en qué cuota va y cuánto falta.',
+  'people.table.showDebts': 'Ver deudas ({count})',
+  'people.table.hideDebts': 'Ocultar deudas',
   'people.debts.column.direction': 'Tipo',
   'people.debts.column.description': 'Detalle',
   'people.debts.column.value': 'Valor',

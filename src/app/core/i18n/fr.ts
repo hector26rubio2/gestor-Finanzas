@@ -994,6 +994,8 @@ export default {
   'people.table.title': 'Personnes et dettes',
   'people.table.hint':
     'Une ligne par personne. Ouvrez-la pour voir chaque dette avec son échéance, laquelle est en cours et ce qui reste.',
+  'people.table.showDebts': 'Voir les dettes ({count})',
+  'people.table.hideDebts': 'Masquer les dettes',
   'people.debts.column.direction': 'Type',
   'people.debts.column.description': 'Détail',
   'people.debts.column.value': 'Montant',

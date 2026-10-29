@@ -97,7 +97,7 @@ test.describe('Secciones', () => {
     await expect(page.getByRole('columnheader', { name: 'Moneda' }).first()).toBeVisible();
     const tabla = page.getByRole('region', { name: 'Personas y deudas' });
     await expect(tabla).toBeVisible();
-    const verDetalle = tabla.getByRole('button', { name: 'Ver detalle', exact: true }).first();
+    const verDetalle = tabla.getByRole('button', { name: /^Ver deudas \(\d+\)$/ }).first();
     await expect(verDetalle).toBeVisible();
     await verDetalle.click();
     await expect(tabla.getByRole('columnheader', { name: 'N.º de cuota' })).toBeVisible();

@@ -152,6 +152,20 @@ class DetailHostComponent {
 }
 
 @Component({
+  imports: [DataTableComponent, FinTableRowDetailDirective],
+  template: `<fin-table [columns]="columns" [rows]="data" [rowDetailLabel]="etiqueta">
+    <ng-template finTableRowDetail let-row
+      ><p>{{ row.name }}</p></ng-template
+    >
+  </fin-table>`,
+})
+class LabeledDetailHostComponent {
+  columns = columns;
+  data = rows;
+  etiqueta = (row: Record<string, unknown>, abierto: boolean) => `${abierto ? 'Cerrar' : 'Abrir'} ${row['name']}`;
+}
+
+@Component({
   imports: [DataTableComponent],
   template: `<fin-table [columns]="columns" [rows]="data" />`,
 })
@@ -194,6 +208,19 @@ describe('tabla de datos con detalle de fila', () => {
     const fixture = TestBed.createComponent(DetailHostComponent);
     fixture.detectChanges();
     expect(toggles(fixture.nativeElement as HTMLElement)).toHaveLength(3);
+  });
+
+  it('usa la etiqueta del botón que le pasa la pantalla según esté abierto o cerrado', () => {
+    const fixture = TestBed.createComponent(LabeledDetailHostComponent);
+    fixture.detectChanges();
+    const root = fixture.nativeElement as HTMLElement;
+    const boton = [...root.querySelectorAll('tbody button[aria-expanded]')].find((b) =>
+      /Abrir/.test(b.textContent ?? ''),
+    ) as HTMLButtonElement;
+    expect(boton.textContent?.trim()).toBe('Abrir Café');
+    boton.click();
+    fixture.detectChanges();
+    expect(boton.textContent?.trim()).toBe('Cerrar Café');
   });
 
   it('no muestra botón si no hay plantilla de detalle', () => {

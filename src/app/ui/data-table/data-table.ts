@@ -89,6 +89,7 @@ export class DataTableComponent {
   readonly showFooter = input(true);
   readonly urlKey = input<string | null>(null);
   readonly rowHasDetail = input<(row: TableRow) => boolean>(() => true);
+  readonly rowDetailLabel = input<((row: TableRow, abierto: boolean) => string) | null>(null);
   readonly rowSelected = output<TableRow>();
   readonly selectionChange = output<TableRow[]>();
   readonly pageSizeChange = output<number>();
@@ -248,6 +249,13 @@ export class DataTableComponent {
 
   hasRowDetail(row: TableRow): boolean {
     return this.rowDetailTemplate() !== null && this.rowHasDetail()(row);
+  }
+
+  detailLabel(row: TableRow, rowId: string): string {
+    const abierto = this.isDetailOpen(rowId);
+    const propia = this.rowDetailLabel();
+    if (propia) return propia(row, abierto);
+    return this.i18n.t(abierto ? 'table.rowDetail.hide' : 'table.rowDetail.show');
   }
 
   isDetailOpen(rowId: string): boolean {

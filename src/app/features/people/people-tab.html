@@ -45,6 +45,7 @@
       [columns]="peopleColumns()"
       [rows]="peopleRows()"
       [rowHasDetail]="tieneDeudas"
+      [rowDetailLabel]="etiquetaDeDeudas"
       (rowSelected)="store.inspect('person', $event['id'])"
     >
       <ng-template finTableRowDetail let-fila>

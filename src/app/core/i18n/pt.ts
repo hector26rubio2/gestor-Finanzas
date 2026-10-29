@@ -984,6 +984,8 @@ export default {
   'people.table.title': 'Pessoas e dívidas',
   'people.table.hint':
     'Uma linha por pessoa. Abra para ver cada dívida com sua parcela, em qual parcela está e quanto falta.',
+  'people.table.showDebts': 'Ver dívidas ({count})',
+  'people.table.hideDebts': 'Ocultar dívidas',
   'people.debts.column.direction': 'Tipo',
   'people.debts.column.description': 'Detalhe',
   'people.debts.column.value': 'Valor',

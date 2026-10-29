@@ -68,6 +68,10 @@ export class PeopleTabComponent {
     return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
   }
   tieneDeudas = (fila: Record<string, unknown>): boolean => this.deudasDe(fila['id']).length > 0;
+  etiquetaDeDeudas = (fila: Record<string, unknown>, abierto: boolean): string =>
+    abierto
+      ? this.i18n.t('people.table.hideDebts')
+      : this.i18n.t('people.table.showDebts', { count: this.deudasDe(fila['id']).length });
   tipoDeDeuda(deuda: Deuda): string {
     return this.i18n.t(deuda.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing');
   }

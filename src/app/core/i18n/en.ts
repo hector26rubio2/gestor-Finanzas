@@ -985,6 +985,8 @@ export default {
   'people.table.title': 'People and debts',
   'people.table.hint':
     'One row per person. Open it to see each debt with its installment, which one is due and what is left.',
+  'people.table.showDebts': 'Show debts ({count})',
+  'people.table.hideDebts': 'Hide debts',
   'people.debts.column.direction': 'Type',
   'people.debts.column.description': 'Detail',
   'people.debts.column.value': 'Amount',
