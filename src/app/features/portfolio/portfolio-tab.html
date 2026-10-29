@@ -9,19 +9,19 @@
     [label]="i18n.t('portfolio.kpi.investments.label')"
     icon="portfolio"
     [value]="store.money(investmentValue())"
-    [hint]="i18n.t('portfolio.kpi.investments.hint')"
+    [hint]="valueHint()"
   />
   <fin-kpi
     [label]="i18n.t('portfolio.kpi.return.label')"
-    icon="trendUp"
-    tone="success"
+    [icon]="gainIcon()"
+    [tone]="gainTone()"
     [value]="investmentReturn()"
     [hint]="i18n.t('portfolio.kpi.return.hint')"
   />
   <fin-kpi
     [label]="i18n.t('portfolio.kpi.gain.label')"
-    icon="trendUp"
-    tone="success"
+    [icon]="gainIcon()"
+    [tone]="gainTone()"
     [value]="store.money(investmentGain())"
     [hint]="i18n.t('portfolio.kpi.gain.hint')"
   />

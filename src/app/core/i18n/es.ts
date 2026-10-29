@@ -1011,6 +1011,7 @@ export default {
   'portfolio.kpi.available.hint': 'Valor de mercado estimado',
   'portfolio.kpi.investments.label': 'Inversiones',
   'portfolio.kpi.investments.hint': 'Valoración ilustrativa',
+  'portfolio.kpi.investments.otherCurrencies': 'Otras monedas: {value}',
   'portfolio.kpi.return.label': 'Rendimiento',
   'portfolio.kpi.return.hint': 'No es una garantía',
   'portfolio.kpi.gain.label': 'Ganancia no realizada',
