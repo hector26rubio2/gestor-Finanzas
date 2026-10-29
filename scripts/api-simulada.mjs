@@ -138,6 +138,14 @@ export function construirArranque(sesion, banderas, datos = {}) {
 const json = (cuerpo) => ({ status: 200, contentType: 'application/json', body: JSON.stringify(cuerpo) });
 
 export async function simularApi(context, { permisos = TODOS_LOS_PERMISOS, conDatos = true } = {}) {
+  await context.addInitScript(() => {
+    try {
+      if (localStorage.getItem('finanzas.tutorial.al-entrar') === null)
+        localStorage.setItem('finanzas.tutorial.al-entrar', 'false');
+    } catch {
+      return;
+    }
+  });
   await context.route('**/api/v1/**', (route) => route.fulfill(json([])));
   await context.route('**/config.js', (route) =>
     route.fulfill({
