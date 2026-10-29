@@ -19,6 +19,7 @@ import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
+import { filtrarMovimientos } from './filtros';
 import { PRESETS_DE_PERIODO, PresetDePeriodo, rangoDePreset } from './periodos';
 import { type PlantillaDeVista, VistasGuardadasComponent } from '@shared/vistas-guardadas';
 
@@ -116,14 +117,11 @@ export class ExploradorDeReportesComponent {
   readonly completos = this.delPeriodo.completos;
 
   readonly movimientos = computed(() =>
-    this.delPeriodo
-      .movimientos()
-      .filter(
-        (m) =>
-          (this.cuenta() === 'all' || m.accountId === this.cuenta()) &&
-          (this.categoria() === 'all' || m.category === this.categoria()) &&
-          (this.flujo() === 'all' || (this.flujo() === 'in' ? m.amount > 0 : m.amount < 0)),
-      ),
+    filtrarMovimientos(this.delPeriodo.movimientos(), {
+      cuenta: this.cuenta(),
+      categoria: this.categoria(),
+      flujo: this.flujo(),
+    }),
   );
   readonly granularidad = computed(() => granularidadParaRango(this.rango().start, this.rango().end));
 
