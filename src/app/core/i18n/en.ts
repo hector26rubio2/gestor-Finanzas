@@ -1486,6 +1486,8 @@ export default {
   'form.movement.counterparty.institution': 'Lending institution',
   'form.movement.counterparty.sender': 'Who sent it?',
   'form.movement.counterparty.cardLender': 'Who lent you the card?',
+  'form.movement.field.borrowedCardName': 'Which card did you use?',
+  'form.movement.placeholder.borrowedCardName': "E.g. Andrés's Davivienda Mastercard",
   'form.movement.counterparty.lender': 'Who lent it to you?',
   'form.movement.counterparty.borrower': 'Who did you lend to?',
   'form.movement.counterparty.addInstitution': 'New institution',

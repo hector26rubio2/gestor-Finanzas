@@ -1501,6 +1501,8 @@ export default {
   'form.movement.counterparty.institution': 'Établissement prêteur',
   'form.movement.counterparty.sender': "Qui vous l'a envoyé ?",
   'form.movement.counterparty.cardLender': "Qui t'a prêté la carte ?",
+  'form.movement.field.borrowedCardName': 'Quelle carte as-tu utilisée ?',
+  'form.movement.placeholder.borrowedCardName': "Ex. : Mastercard Davivienda d'Andrés",
   'form.movement.counterparty.lender': 'Qui vous a prêté ?',
   'form.movement.counterparty.borrower': 'À qui avez-vous prêté ?',
   'form.movement.counterparty.addInstitution': 'Nouvel établissement',

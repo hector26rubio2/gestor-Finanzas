@@ -4,6 +4,7 @@ export type CounterpartyScope = 'person' | 'institution' | 'any';
 
 export interface MovementFieldVisibility {
   readonly showAccount: boolean;
+  readonly showBorrowedCardName: boolean;
   readonly showTargetAccount: boolean;
   readonly showCategory: boolean;
   readonly showAttribution: boolean;
@@ -21,6 +22,7 @@ export interface MovementFieldVisibility {
 export class MovementVisibilityBuilder {
   private result: MovementFieldVisibility = {
     showAccount: true,
+    showBorrowedCardName: false,
     showTargetAccount: false,
     showCategory: false,
     showAttribution: false,
@@ -52,7 +54,8 @@ export class MovementVisibilityBuilder {
   }
 
   withAccount(): this {
-    return this.set({ showAccount: this.operationType !== 'borrowedCard' });
+    const prestada = this.operationType === 'borrowedCard';
+    return this.set({ showAccount: !prestada, showBorrowedCardName: prestada });
   }
 
   withTargetAccount(): this {
@@ -97,7 +100,7 @@ export class MovementVisibilityBuilder {
   }
 
   withLoan(): this {
-    const esFinanciacion = this.operationType === 'loan' || this.operationType === 'credit';
+    const esFinanciacion = ['loan', 'credit', 'borrowedCard'].includes(this.operationType);
     return this.set({
       showLoanTerms: esFinanciacion,
       showLoanProduct: this.operationType === 'credit',

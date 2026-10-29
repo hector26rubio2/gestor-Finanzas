@@ -25,6 +25,7 @@ export interface CreateLoanBody {
   description?: string;
   idempotencyKey: string;
   borrowedCard?: boolean;
+  borrowedCardName?: string;
 }
 
 export interface ApiLoan {

@@ -35,6 +35,7 @@ type DatosDeMovimiento = {
   originalAmount?: number;
   exchangeRate?: number;
   operationType?: string;
+  borrowedCardName?: string;
   counterpartyId?: string;
   monthlyRate?: number;
   termMonths?: number;
@@ -199,6 +200,10 @@ export class MovementCommands {
         description: input.description || undefined,
         idempotencyKey: crypto.randomUUID(),
         borrowedCard: true,
+        borrowedCardName: input.borrowedCardName?.trim() || undefined,
+        termMonths: Number(input.termMonths) > 0 ? Math.round(Number(input.termMonths)) : undefined,
+        monthlyRate:
+          input.monthlyRate === undefined || input.monthlyRate === null ? undefined : Number(input.monthlyRate) / 100,
       }),
     );
     this.invalidarListadoRemoto();

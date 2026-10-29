@@ -1488,6 +1488,8 @@ export default {
   'form.movement.counterparty.institution': 'Entidad que otorga el crédito',
   'form.movement.counterparty.sender': '¿Quién te transfirió?',
   'form.movement.counterparty.cardLender': '¿Quién te prestó la tarjeta?',
+  'form.movement.field.borrowedCardName': '¿Qué tarjeta usaste?',
+  'form.movement.placeholder.borrowedCardName': 'Ej.: Mastercard Davivienda de Andrés',
   'form.movement.counterparty.lender': '¿Quién te prestó?',
   'form.movement.counterparty.borrower': '¿A quién le prestaste?',
   'form.movement.counterparty.addInstitution': 'Nueva entidad',

@@ -559,6 +559,9 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
       category: '',
       counterpartyId: 'persona-1',
       operationType: 'borrowedCard',
+      borrowedCardName: 'Mastercard Davivienda',
+      termMonths: 6,
+      monthlyRate: 2,
     });
 
     const [peticion] = transport.peticiones;
@@ -568,6 +571,9 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
       counterparty: 'persona-1',
       amount: { amount: '180000', currency: 'COP' },
       borrowedCard: true,
+      borrowedCardName: 'Mastercard Davivienda',
+      termMonths: 6,
+      monthlyRate: 0.02,
     });
     expect(peticion.body).not.toHaveProperty('account');
     expect(peticion.body).not.toHaveProperty('card');

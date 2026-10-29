@@ -49,6 +49,7 @@ export type MovementFormModel = {
   category: string;
   person: string;
   counterpartyId: string;
+  borrowedCardName: string;
   amount: number;
   id?: string;
   notificationId?: string;
@@ -154,6 +155,7 @@ export class MovementFormComponent {
       category: m?.category ?? '',
       person: m?.person ?? '',
       counterpartyId: '',
+      borrowedCardName: '',
       id: m?.id,
       notificationId: context.notificationId,
       ownership: m?.ownership ?? 'own',

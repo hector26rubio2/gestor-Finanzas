@@ -33,7 +33,10 @@ describe('MovementVisibilityBuilder', () => {
     expect(visible.showCategory).toBe(false);
     expect(visible.showInstallments).toBe(false);
     expect(visible.showAttribution).toBe(false);
+    expect(visible.showLoanTerms).toBe(true);
+    expect(visible.showBorrowedCardName).toBe(true);
     expect(ver('expense', ahorros).showAccount).toBe(true);
+    expect(ver('expense', ahorros).showBorrowedCardName).toBe(false);
   });
 
   it('un crédito se relaciona con una entidad y un préstamo con una persona', () => {

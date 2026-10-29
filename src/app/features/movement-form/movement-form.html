@@ -36,6 +36,16 @@
       <fin-movement-category-field [model]="model" [kind]="model['kind']" />
       } @if (vis.showAttribution) {
       <fin-movement-attribution-field [model]="model" />
+      } @if (vis.showBorrowedCardName) {
+      <fin-field [label]="i18n.t('form.movement.field.borrowedCardName')">
+        <input
+          hlmInput
+          type="text"
+          name="borrowedCardName"
+          [(ngModel)]="model['borrowedCardName']"
+          [placeholder]="i18n.t('form.movement.placeholder.borrowedCardName')"
+        />
+      </fin-field>
       } @if (vis.showLoanTerms) {
       <fin-movement-financing-fields
         [model]="model"
