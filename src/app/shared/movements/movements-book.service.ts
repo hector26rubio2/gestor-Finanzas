@@ -48,6 +48,11 @@ export class MovementsBookService {
       options: this.store.data().accounts.map((account) => account.name),
     },
     {
+      key: 'product',
+      label: this.i18n.t('movements.column.product'),
+      options: ['credit', 'debit'].map((clave) => this.i18n.t(`movements.column.product.${clave}`)),
+    },
+    {
       key: 'effect',
       label: this.i18n.t('movements.column.effect'),
       essential: false,
@@ -114,6 +119,15 @@ export class MovementsBookService {
       filtro['cards'] = cuentas.filter((cuenta) => cuenta.type === 'credit').map((cuenta) => cuenta.id);
       if (!cuentas.length) filtro['accounts'] = ['00000000-0000-0000-0000-000000000000'];
     }
+    const productos = this.valoresDe('product').map((valor) => valor.toLocaleLowerCase());
+    const credito = this.i18n.t('movements.column.product.credit').toLocaleLowerCase();
+    if (productos.length === 1 && !nombres.length) {
+      const soloCredito = credito.includes(productos[0]);
+      const cuentas = this.store.data().accounts.filter((cuenta) => (cuenta.type === 'credit') === soloCredito);
+      filtro[soloCredito ? 'cards' : 'accounts'] = cuentas.length
+        ? cuentas.map((cuenta) => cuenta.id)
+        : ['00000000-0000-0000-0000-000000000000'];
+    }
     const debito = this.i18n.t('movements.column.effect.debit').toLocaleLowerCase();
     const flujos = this.valoresDe('effect').map((valor) => (debito.includes(valor.toLocaleLowerCase()) ? 2 : 1));
     if (flujos.length) filtro['flows'] = [...new Set(flujos)];
@@ -126,6 +140,9 @@ export class MovementsBookService {
       dateIso: m.date,
       description: m.description,
       account: this.store.account(m.accountId)?.name,
+      product: this.i18n.t(
+        `movements.column.product.${this.store.account(m.accountId)?.type === 'credit' ? 'credit' : 'debit'}`,
+      ),
       effect:
         m.status === 'pending'
           ? this.i18n.t('movements.column.effect.pending')
