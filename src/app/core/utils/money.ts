@@ -124,3 +124,11 @@ export function formatAmount(value: number, currency: string, locale: string): s
     maximumFractionDigits: decimals,
   }).format(Number.isFinite(value) ? value : 0);
 }
+
+export function formatNumber(value: number, currency: string, locale: string): string {
+  const decimals = decimalsFor(currency);
+  return new Intl.NumberFormat(locale, {
+    minimumFractionDigits: decimals,
+    maximumFractionDigits: decimals,
+  }).format(Number.isFinite(value) ? value : 0);
+}

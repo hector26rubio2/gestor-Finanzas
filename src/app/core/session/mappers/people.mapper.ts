@@ -1,4 +1,4 @@
-import { ViewData } from '@core/state/view-model';
+import { PersonRelationship, ViewData } from '@core/state/view-model';
 import { ApiDebtPosition } from '@core/api/api-client';
 import { parseMoney } from '@core/utils/money';
 import { COUNTERPARTY_KIND } from '@core/api/people.api';
@@ -7,6 +7,7 @@ export interface ApiPersonSummary {
   id: string;
   displayName: string;
   kind?: number;
+  relationship?: string | null;
 }
 
 export function toViewPeople(people: readonly ApiPersonSummary[]): ViewData['people'] {
@@ -14,6 +15,7 @@ export function toViewPeople(people: readonly ApiPersonSummary[]): ViewData['peo
     id: person.id,
     name: person.displayName,
     kind: person.kind === COUNTERPARTY_KIND.institution ? ('institution' as const) : ('person' as const),
+    ...(person.relationship ? { relationship: person.relationship as PersonRelationship } : {}),
     owed: 0,
     owing: 0,
   }));

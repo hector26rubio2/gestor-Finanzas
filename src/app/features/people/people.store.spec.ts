@@ -2,7 +2,7 @@ import { ApplicationRef, DestroyRef, Injector } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { of, throwError } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { ApiWritesBus, PeopleApi } from '@core/api';
+import { ApiWritesBus, ObligationsApi, PeopleApi } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
 import { PeopleStore } from './people.store';
@@ -22,11 +22,16 @@ const estabilizar = async () => {
 };
 
 describe('PeopleStore', () => {
-  function montar(debts: ReturnType<typeof vi.fn>, capabilities: string[] = [P.personas.deudas.listar]) {
+  function montar(
+    debts: ReturnType<typeof vi.fn>,
+    capabilities: string[] = [P.personas.deudas.listar],
+    obligations: ReturnType<typeof vi.fn> = vi.fn(() => of([])),
+  ) {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
         { provide: PeopleApi, useValue: { debts } },
+        { provide: ObligationsApi, useValue: { obligations } },
         { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'https://api.example.test' } },
       ],
     });
@@ -116,5 +121,37 @@ describe('PeopleStore', () => {
     await estabilizar();
 
     expect(debts).toHaveBeenCalledTimes(2);
+  });
+
+  it('con permiso de obligaciones arma las deudas con cuota y saldo pendiente', async () => {
+    const obligations = vi.fn(() =>
+      of([
+        {
+          id: 'o1',
+          counterparty: { id: 'p1', name: 'Camilo' },
+          direction: 1,
+          currency: 'COP',
+          openedOn: '2026-10-01',
+          dueOn: null,
+          description: 'Préstamo',
+          status: 1,
+          totalOutstanding: money('60000'),
+          interestPolicies: [],
+          entries: [{ type: 1, date: '2026-10-01', principalDelta: money('60000') }],
+          terms: { product: 0, monthlyRate: 0, termMonths: 3, cardMode: null },
+        },
+      ]),
+    );
+    const store = montar(
+      vi.fn(() => of([])),
+      [P.personas.deudas.listar, P.personas.obligaciones.listar],
+      obligations,
+    );
+
+    solicitar(store);
+    await estabilizar();
+
+    expect(obligations).toHaveBeenCalledTimes(1);
+    expect(store.deudas()[0]).toMatchObject({ persona: 'Camilo', cuota: 20000, totalCuotas: 3, pendiente: 60000 });
   });
 });

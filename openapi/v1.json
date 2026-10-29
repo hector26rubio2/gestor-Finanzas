@@ -6254,6 +6254,9 @@
           },
           "kind": {
             "$ref": "#/components/schemas/CounterpartyKindDto"
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -6467,6 +6470,9 @@
           },
           "kind": {
             "$ref": "#/components/schemas/CounterpartyKindDto"
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -6594,6 +6600,13 @@
             "type": ["null", "string"]
           },
           "idempotencyKey": {
+            "type": ["null", "string"]
+          },
+          "borrowedCard": {
+            "type": "boolean",
+            "default": false
+          },
+          "borrowedCardName": {
             "type": ["null", "string"]
           }
         }
@@ -7162,6 +7175,13 @@
                 "$ref": "#/components/schemas/LoanCardModeDto"
               }
             ]
+          },
+          "borrowedCard": {
+            "type": "boolean",
+            "default": false
+          },
+          "borrowedCardName": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -7838,6 +7858,16 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "terms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LoanTermsDto"
+              }
+            ]
           }
         }
       },
@@ -9112,6 +9142,9 @@
                 "$ref": "#/components/schemas/CounterpartyKindDto"
               }
             ]
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },

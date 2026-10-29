@@ -1,5 +1,6 @@
 import { ApiAccount, ApiNotification } from '@core/api/api-client';
 import { toViewData } from './view-data.mapper';
+import { toViewPeople } from './people.mapper';
 import { tasaAnual } from './accounts.mapper';
 import { notificationDetail, notificationTitle, toViewNotification } from './notifications.mapper';
 import { cuotaEnCurso, toMovement } from './movements.mapper';
@@ -51,6 +52,14 @@ describe('mappers por dominio', () => {
     expect(notificationDetail(notificationsI18n, organization)).toBe('Added to Ahorro');
     expect(toViewNotification(notificationsI18n, roles).detail).toBe('Roles: Ahorro, Lectura');
     expect(notificationDetail(notificationsI18n, removed)).toBe('Roles removed');
+  });
+
+  it('toViewPeople conserva la relación guardada en la API', () => {
+    expect(toViewPeople([{ id: 'p1', displayName: 'Laura', kind: 1, relationship: 'Familia' }])[0]).toMatchObject({
+      name: 'Laura',
+      relationship: 'Familia',
+    });
+    expect(toViewPeople([{ id: 'p2', displayName: 'Banco', kind: 2 }])[0].relationship).toBeUndefined();
   });
 
   it('toViewData deja fuera cuentas y tarjetas desactivadas', () => {

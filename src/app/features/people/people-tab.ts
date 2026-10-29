@@ -1,5 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
-import { DataTableComponent } from '@ui/data-table';
+import { DataTableComponent, FinTableRowDetailDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
@@ -7,14 +7,22 @@ import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
-import { sumBy } from '@core/utils';
+import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
+import { Comportamiento, Deuda, comportamientoDePago, masAtrasado } from './deudas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
   selector: 'app-people-tab',
-  imports: [ChartCardComponent, DataTableComponent, KpiComponent, KpiGridComponent, TableZoneComponent],
+  imports: [
+    ChartCardComponent,
+    DataTableComponent,
+    FinTableRowDetailDirective,
+    KpiComponent,
+    KpiGridComponent,
+    TableZoneComponent,
+  ],
   templateUrl: './people-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
 })
@@ -37,6 +45,7 @@ export class PeopleTabComponent {
     { key: 'name', label: this.i18n.t('people.column.name') },
     { key: 'kind', label: this.i18n.t('people.column.kind'), facet: true },
     { key: 'relationship', label: this.i18n.t('people.column.relationship'), facet: true },
+    { key: 'currency', label: this.i18n.t('people.column.currency') },
     { key: 'owed', label: this.i18n.t('people.column.owed') },
     { key: 'owing', label: this.i18n.t('people.column.owing') },
     { key: 'balance', label: this.i18n.t('people.column.balance') },
@@ -48,18 +57,51 @@ export class PeopleTabComponent {
       name: p.name,
       kind: this.i18n.t(p.kind === 'institution' ? 'people.kind.institution' : 'people.kind.person'),
       relationship: p.relationship ?? SIN_DATO,
-      owed: this.store.money(p.owed),
-      owing: this.store.money(p.owing),
-      balance: this.store.money(p.owed - p.owing),
-      payment:
-        p.averagePaymentDays == null
-          ? this.i18n.t('people.payment.none')
-          : this.i18n.t('people.payment.summary', {
-              days: p.averagePaymentDays,
-              late: p.latePayments ?? 0,
-            }),
+      currency: this.store.baseCurrency(),
+      owed: this.numero(p.owed),
+      owing: this.numero(p.owing),
+      balance: this.numero(p.owed - p.owing),
+      payment: this.textoDeComportamiento(comportamientoDePago(this.deudasDe(p.id))),
     })),
   );
+  deudasDe(personaId: unknown): Deuda[] {
+    return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
+  }
+  tieneDeudas = (fila: Record<string, unknown>): boolean => this.deudasDe(fila['id']).length > 0;
+  etiquetaDeDeudas = (fila: Record<string, unknown>, abierto: boolean): string =>
+    abierto
+      ? this.i18n.t('people.table.hideDebts')
+      : this.i18n.t('people.table.showDebts', { count: this.deudasDe(fila['id']).length });
+  tipoDeDeuda(deuda: Deuda): string {
+    return this.i18n.t(deuda.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing');
+  }
+  detalleDeDeuda(deuda: Deuda): string {
+    return deuda.tarjeta
+      ? `${deuda.descripcion ?? ''} · ${deuda.tarjeta}`.replace(/^ · /, '')
+      : (deuda.descripcion ?? SIN_DATO);
+  }
+  importe(valor: number, moneda: string): string {
+    return formatNumber(valor, moneda, this.store.preferences().locale);
+  }
+  cuotaDe(deuda: Deuda): string {
+    return deuda.cuota === null ? SIN_DATO : this.importe(deuda.cuota, deuda.moneda);
+  }
+  numeroDeCuota(deuda: Deuda): string {
+    return deuda.totalCuotas === null
+      ? SIN_DATO
+      : this.i18n.t('people.debts.installmentOf', { current: deuda.cuotaActual ?? 1, total: deuda.totalCuotas });
+  }
+  estadoDeDeuda(deuda: Deuda): string {
+    return deuda.saldada
+      ? this.i18n.t('people.payment.paid')
+      : this.textoDeComportamiento(comportamientoDePago([deuda]));
+  }
+  private numero(valor: number): string {
+    return formatNumber(valor, this.store.baseCurrency(), this.store.preferences().locale);
+  }
+  private textoDeComportamiento(comportamiento: Comportamiento): string {
+    return this.i18n.t(`people.payment.${comportamiento.estado}`, { count: comportamiento.atrasadas });
+  }
   private readonly temaGrafica = inject(ChartThemeService);
   private readonly conSaldo = computed(() =>
     [...this.people.personas()]
@@ -85,12 +127,9 @@ export class PeopleTabComponent {
   readonly peopleOwed = computed(() => sumBy(this.people.personas(), (p) => p.owed));
   readonly peopleOwing = computed(() => sumBy(this.people.personas(), (p) => p.owing));
   readonly slowestPayer = computed(() => {
-    const conDatos = this.people.personas().filter((p) => p.averagePaymentDays != null);
-    const person = [...conDatos].sort((a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0))[0];
-    return {
-      name: person?.name ?? this.i18n.t('people.noData'),
-      days: person?.averagePaymentDays ?? 0,
-      hintKey: 'people.kpi.slowest.hint.api',
-    };
+    const peor = masAtrasado(this.people.deudas());
+    return peor
+      ? { name: peor.persona, days: peor.atrasadas, hintKey: 'people.kpi.slowest.hint.installments' }
+      : { name: this.i18n.t('people.kpi.slowest.none'), days: 0, hintKey: 'people.kpi.slowest.hint.upToDate' };
   });
 }

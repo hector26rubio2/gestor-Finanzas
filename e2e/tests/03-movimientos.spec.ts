@@ -6,6 +6,7 @@ import {
   atajo,
   buscarMovimientos,
   dialogo,
+  elegir,
   esperarMovimiento,
   guardarMovimiento,
   ir,
@@ -126,6 +127,54 @@ test.describe('Movimientos: alta por atajo', () => {
       selecciones: { 'Entidad que otorga el crédito:': nombres.entidad },
     });
     expect(resumen).toMatch(/loans/);
+  });
+});
+
+test.describe('Movimientos: terceros, tarjeta prestada y categorías al vuelo', () => {
+  test.beforeEach(async ({ page }) => {
+    await ir(page, 'movements');
+  });
+
+  test('MOV-19 una compra con tarjeta a nombre de otra persona la deja debiendo', async ({ page, vigilancia }) => {
+    await atajo(page, 'n', 'g');
+    const resumen = await guardarMovimiento(page, vigilancia, {
+      monto: 70_000,
+      descripcion: `E2E compra para tercero ${corrida}`,
+      selecciones: {
+        'Cuenta o tarjeta:': nombres.tarjeta,
+        'Categoría:': nombres.mercado,
+        'Responsabilidad:': new RegExp(nombres.persona),
+      },
+    });
+    expect(resumen).toMatch(/shared-purchases/);
+  });
+
+  test('MOV-20 una compra con tarjeta prestada deja la deuda sin mover las cuentas', async ({ page, vigilancia }) => {
+    await atajo(page, 'n', 'g');
+    const formulario = dialogo(page);
+    await elegir(formulario, 'Tipo:', 'Compra con tarjeta prestada');
+    await expect(formulario.locator('[data-slot=select-trigger][aria-label^="Cuenta o tarjeta"]')).toHaveCount(0);
+    await formulario.locator('input[name=borrowedCardName]').fill('Visa de Laura');
+    const resumen = await guardarMovimiento(page, vigilancia, {
+      monto: 120_000,
+      descripcion: `E2E tarjeta prestada ${corrida}`,
+      selecciones: { '¿Quién te prestó la tarjeta?:': nombres.persona },
+    });
+    expect(resumen).toMatch(/loans/);
+    expect(resumen).not.toMatch(/movements/);
+  });
+
+  test('MOV-21 el «+» de categoría la crea sin salir del formulario', async ({ page, vigilancia }) => {
+    await atajo(page, 'n', 'g');
+    const formulario = dialogo(page);
+    const categoria = `E2E Mascotas ${corrida}`;
+    await formulario.getByRole('button', { name: 'Nueva categoría' }).click();
+    await formulario.locator('input[name=nuevaCategoria]').fill(categoria);
+    await formulario.getByRole('button', { name: 'Agregar' }).click();
+    await expect(formulario.locator('[data-slot=select-trigger][aria-label^="Categoría"]')).toContainText(categoria);
+    const descripcion = `E2E gasto mascota ${corrida}`;
+    await guardarMovimiento(page, vigilancia, { monto: 30_000, descripcion });
+    await esperarMovimiento(page, descripcion, 30_000);
   });
 });
 

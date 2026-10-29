@@ -3,6 +3,8 @@ import { Account } from '@core/state/view-model';
 export type CounterpartyScope = 'person' | 'institution' | 'any';
 
 export interface MovementFieldVisibility {
+  readonly showAccount: boolean;
+  readonly showBorrowedCardName: boolean;
   readonly showTargetAccount: boolean;
   readonly showCategory: boolean;
   readonly showAttribution: boolean;
@@ -19,6 +21,8 @@ export interface MovementFieldVisibility {
 
 export class MovementVisibilityBuilder {
   private result: MovementFieldVisibility = {
+    showAccount: true,
+    showBorrowedCardName: false,
     showTargetAccount: false,
     showCategory: false,
     showAttribution: false,
@@ -49,6 +53,11 @@ export class MovementVisibilityBuilder {
     return this.account?.type === 'credit';
   }
 
+  withAccount(): this {
+    const prestada = this.operationType === 'borrowedCard';
+    return this.set({ showAccount: !prestada, showBorrowedCardName: prestada });
+  }
+
   withTargetAccount(): this {
     return this.set({ showTargetAccount: this.operationType === 'transfer' || this.operationType === 'advance' });
   }
@@ -64,7 +73,12 @@ export class MovementVisibilityBuilder {
   }
 
   withCounterparty(): this {
-    const alcance: Record<string, CounterpartyScope> = { received: 'any', loan: 'person', credit: 'institution' };
+    const alcance: Record<string, CounterpartyScope> = {
+      received: 'any',
+      loan: 'person',
+      credit: 'institution',
+      borrowedCard: 'person',
+    };
     return this.set({ counterparty: alcance[this.operationType] ?? null });
   }
 
@@ -86,7 +100,7 @@ export class MovementVisibilityBuilder {
   }
 
   withLoan(): this {
-    const esFinanciacion = this.operationType === 'loan' || this.operationType === 'credit';
+    const esFinanciacion = ['loan', 'credit', 'borrowedCard'].includes(this.operationType);
     return this.set({
       showLoanTerms: esFinanciacion,
       showLoanProduct: this.operationType === 'credit',
@@ -95,7 +109,8 @@ export class MovementVisibilityBuilder {
   }
 
   withAll(): this {
-    return this.withTargetAccount()
+    return this.withAccount()
+      .withTargetAccount()
       .withCategory()
       .withAttribution()
       .withCounterparty()

@@ -2029,6 +2029,7 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
             kind?: components["schemas"]["CounterpartyKindDto"];
+            relationship?: null | string;
         };
         /** @default 1 */
         CounterpartyKindDto: number;
@@ -2108,6 +2109,7 @@ export interface components {
             phone?: null | string;
             notes?: null | string;
             kind?: components["schemas"]["CounterpartyKindDto"];
+            relationship?: null | string;
         };
         CreateCreditCardRequest: {
             name: string;
@@ -2153,6 +2155,9 @@ export interface components {
             termMonths?: null | number | string;
             description?: null | string;
             idempotencyKey?: null | string;
+            /** @default false */
+            borrowedCard: boolean;
+            borrowedCardName?: null | string;
         };
         CreateMovementRequest: {
             /** Format: date */
@@ -2327,6 +2332,9 @@ export interface components {
             /** Format: int32 */
             termMonths: null | number | string;
             cardMode: null | components["schemas"]["LoanCardModeDto"];
+            /** @default false */
+            borrowedCard: boolean;
+            borrowedCardName?: null | string;
         };
         LoginRequest: {
             userName: string;
@@ -2508,6 +2516,7 @@ export interface components {
             entries: components["schemas"]["ObligationEntryDto"][];
             /** Format: date-time */
             createdAt: string;
+            terms?: null | components["schemas"]["LoanTermsDto"];
         };
         ObligationEntryDto: {
             /** Format: uuid */
@@ -2929,6 +2938,7 @@ export interface components {
             notes: null | string;
             isActive: boolean;
             kind?: null | components["schemas"]["CounterpartyKindDto"];
+            relationship?: null | string;
         };
         UpdateCreditCardRequest: {
             name: string;

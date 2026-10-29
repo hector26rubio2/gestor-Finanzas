@@ -24,7 +24,15 @@ import { AsyncActionService } from '@core/utils/async-action.service';
 import { Movement } from '@core/state/view-model';
 
 const MOVEMENT_KINDS = ['', 'income', 'expense', 'payment'] as const;
-const MOVEMENT_OPERATION_TYPES = ['normal', 'transfer', 'advance', 'loan', 'credit', 'received'] as const;
+const MOVEMENT_OPERATION_TYPES = [
+  'normal',
+  'transfer',
+  'advance',
+  'loan',
+  'credit',
+  'received',
+  'borrowedCard',
+] as const;
 
 export type MovementKind = (typeof MOVEMENT_KINDS)[number];
 export type MovementOperationType = (typeof MOVEMENT_OPERATION_TYPES)[number];
@@ -41,6 +49,7 @@ export type MovementFormModel = {
   category: string;
   person: string;
   counterpartyId: string;
+  borrowedCardName: string;
   amount: number;
   id?: string;
   notificationId?: string;
@@ -65,7 +74,13 @@ const isMovementKind = (value: string): value is MovementKind => MOVEMENT_KINDS.
 const isMovementOperationType = (value: string): value is MovementOperationType =>
   MOVEMENT_OPERATION_TYPES.some((operationType) => operationType === value);
 
-const OPERACIONES_DE_GASTO: readonly MovementOperationType[] = ['normal', 'transfer', 'advance', 'loan'];
+const OPERACIONES_DE_GASTO: readonly MovementOperationType[] = [
+  'normal',
+  'transfer',
+  'advance',
+  'loan',
+  'borrowedCard',
+];
 const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'received', 'loan', 'credit'];
 
 @Component({
@@ -140,6 +155,7 @@ export class MovementFormComponent {
       category: m?.category ?? '',
       person: m?.person ?? '',
       counterpartyId: '',
+      borrowedCardName: '',
       id: m?.id,
       notificationId: context.notificationId,
       ownership: m?.ownership ?? 'own',
@@ -170,6 +186,10 @@ export class MovementFormComponent {
         );
       case 'credit':
         return this.capabilities.allows(P.movimientos.creditos.crear);
+      case 'borrowedCard':
+        return (
+          this.capabilities.allows(P.movimientos.prestamos.crear) && this.capabilities.allows(P.personas.deudas.crear)
+        );
       default:
         return true;
     }
@@ -262,6 +282,7 @@ export class MovementFormComponent {
       case 'advance':
         return P.movimientos.avances.crear;
       case 'loan':
+      case 'borrowedCard':
         return P.movimientos.prestamos.crear;
       case 'credit':
         return P.movimientos.creditos.crear;
@@ -284,7 +305,7 @@ export class MovementFormComponent {
       throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
     if (this.model.kind === 'income' && source?.type === 'credit')
       throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-    if ((operacion === 'loan' || operacion === 'credit' || operacion === 'received') && !this.model.counterpartyId)
+    if (['loan', 'credit', 'received', 'borrowedCard'].includes(operacion) && !this.model.counterpartyId)
       throw new Error(this.i18n.t('form.movement.error.counterpartyRequired'));
     const tasa = Number(this.model.monthlyRate ?? 0);
     if ((operacion === 'loan' || operacion === 'credit') && (!Number.isFinite(tasa) || tasa < 0 || tasa > 100))

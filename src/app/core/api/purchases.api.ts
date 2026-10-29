@@ -3,6 +3,8 @@ import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
 
+export const SHARE_BASIS = { full: 1, percentage: 2, fixedAmount: 3 } as const;
+
 export interface ApiSharedPurchase {
   id: string;
   purchaseMovement: string;

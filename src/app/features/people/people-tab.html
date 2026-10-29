@@ -37,6 +37,49 @@
   [hasData]="hasBalances()"
   [empty]="i18n.t('people.chart.empty')"
 />
-<fin-table-zone class="min-h-[360px]">
-  <fin-table [columns]="peopleColumns()" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
-</fin-table-zone>
+<section class="grid shrink-0 gap-2" [attr.aria-label]="i18n.t('people.table.title')">
+  <h2 class="text-base font-semibold">{{ i18n.t('people.table.title') }}</h2>
+  <p class="text-xs text-muted-foreground">{{ i18n.t('people.table.hint') }}</p>
+  <fin-table-zone class="min-h-[360px]">
+    <fin-table
+      [columns]="peopleColumns()"
+      [rows]="peopleRows()"
+      [rowHasDetail]="tieneDeudas"
+      [rowDetailLabel]="etiquetaDeDeudas"
+      (rowSelected)="store.inspect('person', $event['id'])"
+    >
+      <ng-template finTableRowDetail let-fila>
+        <table class="w-full text-left text-sm">
+          <thead>
+            <tr class="text-xs text-muted-foreground">
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.description') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.direction') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.currency') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.value') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.installment') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">
+                {{ i18n.t('people.debts.column.installmentNumber') }}
+              </th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.pending') }}</th>
+              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.payment') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (deuda of deudasDe(fila['id']); track deuda.id) {
+            <tr class="border-t border-border">
+              <td class="px-2 py-1.5">{{ detalleDeDeuda(deuda) }}</td>
+              <td class="px-2 py-1.5">{{ tipoDeDeuda(deuda) }}</td>
+              <td class="px-2 py-1.5">{{ deuda.moneda }}</td>
+              <td class="px-2 py-1.5">{{ importe(deuda.valor, deuda.moneda) }}</td>
+              <td class="px-2 py-1.5">{{ cuotaDe(deuda) }}</td>
+              <td class="px-2 py-1.5">{{ numeroDeCuota(deuda) }}</td>
+              <td class="px-2 py-1.5">{{ importe(deuda.pendiente, deuda.moneda) }}</td>
+              <td class="px-2 py-1.5">{{ estadoDeDeuda(deuda) }}</td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </ng-template>
+    </fin-table>
+  </fin-table-zone>
+</section>

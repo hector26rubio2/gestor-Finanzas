@@ -36,6 +36,7 @@ export class MovementCounterpartyFieldComponent {
     const op = this.model['operationType'];
     if (op === 'credit') return this.i18n.t('form.movement.counterparty.institution');
     if (op === 'received') return this.i18n.t('form.movement.counterparty.sender');
+    if (op === 'borrowedCard') return this.i18n.t('form.movement.counterparty.cardLender');
     return this.model['kind'] === 'income'
       ? this.i18n.t('form.movement.counterparty.lender')
       : this.i18n.t('form.movement.counterparty.borrower');

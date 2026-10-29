@@ -1,8 +1,42 @@
 <fin-field [label]="i18n.t('form.movement.field.category')">
-  <fin-select
-    name="category"
-    [(ngModel)]="model['category']"
-    [options]="categoryOptions()"
-    [ariaLabel]="i18n.t('form.movement.field.category')"
-  />
+  <div class="flex items-center gap-2">
+    <fin-select
+      class="min-w-0 flex-1"
+      name="category"
+      [(ngModel)]="model['category']"
+      [options]="categoryOptions()"
+      [ariaLabel]="i18n.t('form.movement.field.category')"
+    />
+    @if (puedeCrear()) {
+    <button
+      hlmBtn
+      type="button"
+      variant="outline"
+      size="icon"
+      [attr.aria-label]="i18n.t('form.movement.category.add')"
+      [attr.aria-expanded]="creando()"
+      (click)="creando.set(!creando())"
+    >
+      <fin-icon name="plus" />
+    </button>
+    }
+  </div>
 </fin-field>
+@if (creando()) {
+<fin-field [label]="i18n.t('form.movement.category.add')">
+  <div class="flex items-center gap-2">
+    <input
+      hlmInput
+      class="min-w-0 flex-1"
+      type="text"
+      name="nuevaCategoria"
+      [ngModel]="nombreNuevo()"
+      (ngModelChange)="nombreNuevo.set($event)"
+      (keydown.enter)="$event.preventDefault(); agregar()"
+    />
+    <button hlmBtn type="button" size="sm" [disabled]="!nombreNuevo().trim() || guardando()" (click)="agregar()">
+      {{ i18n.t('form.actions.add') }}
+    </button>
+  </div>
+</fin-field>
+}
