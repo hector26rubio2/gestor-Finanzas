@@ -13,6 +13,7 @@ export interface ApiCounterparty {
   isActive: boolean;
   createdAt: string;
   kind?: CounterpartyKindValue;
+  relationship?: string | null;
 }
 
 export const COUNTERPARTY_KIND = { person: 1, institution: 2 } as const;
@@ -40,6 +41,7 @@ export class PeopleApi {
     phone?: string | null;
     notes?: string | null;
     kind?: CounterpartyKindValue;
+    relationship?: string | null;
   }) {
     return this.transport.request<ApiCounterparty>({ method: 'POST', path: API_ROUTES.people, body: request });
   }
@@ -53,6 +55,7 @@ export class PeopleApi {
       phone: string | null;
       notes: string | null;
       isActive: boolean;
+      relationship?: string | null;
       kind?: CounterpartyKindValue;
     },
   ) {

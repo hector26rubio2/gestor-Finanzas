@@ -7,9 +7,10 @@ import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
 import { I18nService } from '@core/i18n';
-import { sumBy } from '@core/utils';
+import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
+import { Comportamiento, comportamientoDePago, masAtrasado } from './deudas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
@@ -37,6 +38,7 @@ export class PeopleTabComponent {
     { key: 'name', label: this.i18n.t('people.column.name') },
     { key: 'kind', label: this.i18n.t('people.column.kind'), facet: true },
     { key: 'relationship', label: this.i18n.t('people.column.relationship'), facet: true },
+    { key: 'currency', label: this.i18n.t('people.column.currency') },
     { key: 'owed', label: this.i18n.t('people.column.owed') },
     { key: 'owing', label: this.i18n.t('people.column.owing') },
     { key: 'balance', label: this.i18n.t('people.column.balance') },
@@ -48,18 +50,53 @@ export class PeopleTabComponent {
       name: p.name,
       kind: this.i18n.t(p.kind === 'institution' ? 'people.kind.institution' : 'people.kind.person'),
       relationship: p.relationship ?? SIN_DATO,
-      owed: this.store.money(p.owed),
-      owing: this.store.money(p.owing),
-      balance: this.store.money(p.owed - p.owing),
-      payment:
-        p.averagePaymentDays == null
-          ? this.i18n.t('people.payment.none')
-          : this.i18n.t('people.payment.summary', {
-              days: p.averagePaymentDays,
-              late: p.latePayments ?? 0,
-            }),
+      currency: this.store.baseCurrency(),
+      owed: this.numero(p.owed),
+      owing: this.numero(p.owing),
+      balance: this.numero(p.owed - p.owing),
+      payment: this.textoDeComportamiento(
+        comportamientoDePago(this.people.deudas().filter((deuda) => deuda.personaId === p.id)),
+      ),
     })),
   );
+  readonly hayDeudas = computed(() => this.people.deudas().length > 0);
+  readonly debtColumns = computed(() => [
+    { key: 'person', label: this.i18n.t('people.column.name') },
+    { key: 'direction', label: this.i18n.t('people.debts.column.direction'), facet: true },
+    { key: 'description', label: this.i18n.t('people.debts.column.description') },
+    { key: 'currency', label: this.i18n.t('people.column.currency') },
+    { key: 'value', label: this.i18n.t('people.debts.column.value') },
+    { key: 'installment', label: this.i18n.t('people.debts.column.installment') },
+    { key: 'installmentNumber', label: this.i18n.t('people.debts.column.installmentNumber') },
+    { key: 'pending', label: this.i18n.t('people.debts.column.pending') },
+    { key: 'status', label: this.i18n.t('people.column.payment'), facet: true },
+  ]);
+  readonly debtRows = computed(() =>
+    this.people.deudas().map((d) => ({
+      id: d.id,
+      personId: d.personaId,
+      person: d.persona,
+      direction: this.i18n.t(d.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing'),
+      description: d.tarjeta
+        ? `${d.descripcion ?? ''} · ${d.tarjeta}`.replace(/^ · /, '')
+        : (d.descripcion ?? SIN_DATO),
+      currency: d.moneda,
+      value: formatNumber(d.valor, d.moneda, this.store.preferences().locale),
+      installment: d.cuota === null ? SIN_DATO : formatNumber(d.cuota, d.moneda, this.store.preferences().locale),
+      installmentNumber:
+        d.totalCuotas === null
+          ? SIN_DATO
+          : this.i18n.t('people.debts.installmentOf', { current: d.cuotaActual ?? 1, total: d.totalCuotas }),
+      pending: formatNumber(d.pendiente, d.moneda, this.store.preferences().locale),
+      status: d.saldada ? this.i18n.t('people.payment.paid') : this.textoDeComportamiento(comportamientoDePago([d])),
+    })),
+  );
+  private numero(valor: number): string {
+    return formatNumber(valor, this.store.baseCurrency(), this.store.preferences().locale);
+  }
+  private textoDeComportamiento(comportamiento: Comportamiento): string {
+    return this.i18n.t(`people.payment.${comportamiento.estado}`, { count: comportamiento.atrasadas });
+  }
   private readonly temaGrafica = inject(ChartThemeService);
   private readonly conSaldo = computed(() =>
     [...this.people.personas()]
@@ -85,12 +122,9 @@ export class PeopleTabComponent {
   readonly peopleOwed = computed(() => sumBy(this.people.personas(), (p) => p.owed));
   readonly peopleOwing = computed(() => sumBy(this.people.personas(), (p) => p.owing));
   readonly slowestPayer = computed(() => {
-    const conDatos = this.people.personas().filter((p) => p.averagePaymentDays != null);
-    const person = [...conDatos].sort((a, b) => (b.averagePaymentDays ?? 0) - (a.averagePaymentDays ?? 0))[0];
-    return {
-      name: person?.name ?? this.i18n.t('people.noData'),
-      days: person?.averagePaymentDays ?? 0,
-      hintKey: 'people.kpi.slowest.hint.api',
-    };
+    const peor = masAtrasado(this.people.deudas());
+    return peor
+      ? { name: peor.persona, days: peor.atrasadas, hintKey: 'people.kpi.slowest.hint.installments' }
+      : { name: this.i18n.t('people.kpi.slowest.none'), days: 0, hintKey: 'people.kpi.slowest.hint.upToDate' };
   });
 }

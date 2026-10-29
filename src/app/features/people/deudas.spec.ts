@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { ApiObligation } from '@core/api/obligations.api';
-import { comportamientoDePago, deudasDe } from './deudas';
+import { comportamientoDePago, deudasDe, masAtrasado } from './deudas';
 
 function obligacion(extra: Partial<ApiObligation> = {}): ApiObligation {
   return {
@@ -29,6 +29,7 @@ describe('deudasDe', () => {
 
     expect(deuda).toMatchObject({
       persona: 'Andrés',
+      descripcion: 'Zapatos',
       direccion: 'owing',
       moneda: 'COP',
       valor: 300000,
@@ -67,5 +68,22 @@ describe('comportamientoDePago', () => {
     const [deuda] = deudasDe([obligacion({ terms: null })], '2026-10-28');
     expect(comportamientoDePago([deuda])).toEqual({ estado: 'sinPlazo', atrasadas: 0 });
     expect(comportamientoDePago([])).toEqual({ estado: 'sinDeudas', atrasadas: 0 });
+  });
+});
+
+describe('masAtrasado', () => {
+  it('elige a la persona con más cuotas vencidas sin pagar', () => {
+    const deudas = deudasDe(
+      [
+        obligacion({ id: 'a', openedOn: '2026-06-15' }),
+        obligacion({ id: 'b', openedOn: '2026-09-15', counterparty: { id: 'p2', name: 'Laura' } }),
+      ],
+      '2026-10-28',
+    );
+    expect(masAtrasado(deudas)).toEqual({ persona: 'Andrés', atrasadas: 3 });
+  });
+
+  it('sin atrasos no señala a nadie', () => {
+    expect(masAtrasado(deudasDe([obligacion({ openedOn: '2026-09-15' })], '2026-10-28'))).toBeNull();
   });
 });

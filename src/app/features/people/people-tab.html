@@ -40,3 +40,16 @@
 <fin-table-zone class="min-h-[360px]">
   <fin-table [columns]="peopleColumns()" [rows]="peopleRows()" (rowSelected)="store.inspect('person', $event['id'])" />
 </fin-table-zone>
+@if (hayDeudas()) {
+<section class="grid shrink-0 gap-2" [attr.aria-label]="i18n.t('people.debts.title')">
+  <h2 class="text-base font-semibold">{{ i18n.t('people.debts.title') }}</h2>
+  <p class="text-xs text-muted-foreground">{{ i18n.t('people.debts.hint') }}</p>
+  <fin-table-zone class="min-h-[280px]">
+    <fin-table
+      [columns]="debtColumns()"
+      [rows]="debtRows()"
+      (rowSelected)="store.inspect('person', $event['personId'])"
+    />
+  </fin-table-zone>
+</section>
+}

@@ -121,6 +121,7 @@ describe('CatalogCommands — contrapartes y personas', () => {
 
     const creada = store.data().people.find((p: Person) => p.id === 'persona-nueva');
     expect(creada).toMatchObject({ name: 'Laura Gil', relationship: 'Familia' });
+    expect(transport.peticiones[0].body).toMatchObject({ displayName: 'Laura Gil', relationship: 'Familia' });
     expect(store.toast.revision()).toBeGreaterThan(0);
     expect(store.form()).toBeNull();
   });

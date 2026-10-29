@@ -9,6 +9,7 @@ export interface Deuda {
   id: string;
   personaId: string;
   persona: string;
+  descripcion: string | null;
   direccion: 'owed' | 'owing';
   moneda: string;
   valor: number;
@@ -42,6 +43,7 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
       id: o.id,
       personaId: o.counterparty.id,
       persona: o.counterparty.name,
+      descripcion: o.description,
       direccion: o.direction === 1 ? 'owed' : 'owing',
       moneda: o.currency,
       valor,
@@ -63,4 +65,15 @@ export function comportamientoDePago(deudas: readonly Deuda[]): Comportamiento {
   if (!conPlazo.length) return { estado: 'sinPlazo', atrasadas: 0 };
   const atrasadas = conPlazo.reduce((total, d) => total + Math.max(0, d.cuotaActual! - 1 - d.pagos), 0);
   return atrasadas > 0 ? { estado: 'atrasado', atrasadas } : { estado: 'alDia', atrasadas: 0 };
+}
+
+export function masAtrasado(deudas: readonly Deuda[]): { persona: string; atrasadas: number } | null {
+  const porPersona = new Map<string, Deuda[]>();
+  for (const deuda of deudas) porPersona.set(deuda.persona, [...(porPersona.get(deuda.persona) ?? []), deuda]);
+  let peor: { persona: string; atrasadas: number } | null = null;
+  for (const [persona, suyas] of porPersona) {
+    const { atrasadas } = comportamientoDePago(suyas);
+    if (atrasadas > (peor?.atrasadas ?? 0)) peor = { persona, atrasadas };
+  }
+  return peor;
 }
