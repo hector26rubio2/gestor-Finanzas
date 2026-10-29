@@ -7,8 +7,9 @@ import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { AppStore } from '@core/state';
 import { formatReturnRate } from '@core/utils';
 import { I18nService } from '@core/i18n';
-import { SIN_DATO, compactMoney } from '@shared/utils';
+import { compactMoney } from '@shared/utils';
 import { ChartCardComponent, ChartThemeService, anillo, barrasHorizontales } from '@ui/chart';
+import { filaDeInversion } from './fila-de-inversion';
 import { resumenCartera } from './resumen-cartera';
 
 @Component({
@@ -31,16 +32,7 @@ export class PortfolioTabComponent {
     { key: 'return', label: this.i18n.t('portfolio.column.return') },
   ]);
   readonly investmentRows = computed(() =>
-    this.store.data().investments.map((i) => ({
-      id: i.id,
-      name: i.name,
-      type: i.type,
-      institution: i.institution ?? SIN_DATO,
-      risk: i.risk && i.liquidity ? `${i.risk} · ${i.liquidity}` : SIN_DATO,
-      cost: this.store.money(i.cost),
-      value: this.store.money(i.value),
-      return: formatReturnRate(i.value, i.cost),
-    })),
+    this.store.data().investments.map((i) => filaDeInversion(i, (valor, moneda) => this.store.money(valor, moneda))),
   );
   readonly resumen = computed(() => resumenCartera(this.store.data().investments, this.store.baseCurrency()));
   readonly investmentValue = computed(() => this.resumen().valor);
