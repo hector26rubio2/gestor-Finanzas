@@ -1,4 +1,4 @@
-<fin-field [label]="i18n.t('form.movement.field.cardBucket')">
+<fin-field data-tour="form-tipo-compra" [label]="i18n.t('form.movement.field.cardBucket')">
   <fin-select
     name="cardBucket"
     [options]="tiposDeCompra()"
@@ -7,7 +7,7 @@
     [ariaLabel]="i18n.t('form.movement.field.cardBucket')"
   />
 </fin-field>
-<fin-field [label]="i18n.t('form.movement.field.installmentTotal')">
+<fin-field data-tour="form-cuotas" [label]="i18n.t('form.movement.field.installmentTotal')">
   <input
     hlmInput
     type="number"
@@ -19,11 +19,11 @@
   />
 </fin-field>
 @if (currentEditable()) {
-<fin-field [label]="i18n.t('form.movement.field.installmentCurrent')">
+<fin-field data-tour="form-cuota-actual" [label]="i18n.t('form.movement.field.installmentCurrent')">
   <input hlmInput type="number" name="installmentCurrent" min="1" step="1" [(ngModel)]="model['installmentCurrent']" />
 </fin-field>
 } @if (conCuotas()) {
-<fin-field [label]="i18n.t('form.movement.field.installmentRate')">
+<fin-field data-tour="form-tasa-cuotas" [label]="i18n.t('form.movement.field.installmentRate')">
   <input
     hlmInput
     type="number"

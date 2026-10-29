@@ -1,11 +1,11 @@
-<fin-field [label]="i18n.t('form.movement.field.date')">
+<fin-field data-tour="form-fecha" [label]="i18n.t('form.movement.field.date')">
   <fin-date-field name="date" [(ngModel)]="model['date']" required />
 </fin-field>
-<fin-field [label]="i18n.t('form.field.amount')">
+<fin-field data-tour="form-monto" [label]="i18n.t('form.field.amount')">
   <input hlmInput type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
 </fin-field>
 @if (showAccount()) {
-<fin-field [label]="sourceAccountLabel()">
+<fin-field data-tour="form-cuenta" [label]="sourceAccountLabel()">
   <fin-select
     name="accountId"
     [(ngModel)]="model['accountId']"
@@ -14,7 +14,7 @@
   />
 </fin-field>
 } @if (showTargetAccount()) {
-<fin-field [label]="targetAccountLabel()">
+<fin-field data-tour="form-cuenta-destino" [label]="targetAccountLabel()">
   <fin-select
     name="targetId"
     [(ngModel)]="model['targetId']"

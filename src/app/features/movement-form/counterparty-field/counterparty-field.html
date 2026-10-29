@@ -1,4 +1,4 @@
-<fin-field [label]="label()">
+<fin-field data-tour="form-contraparte" [label]="label()">
   <div class="flex items-center gap-2">
     <fin-select
       class="min-w-0 flex-1"
@@ -9,6 +9,7 @@
     />
     @if (puedeCrear()) {
     <button
+      data-tour="form-contraparte-nueva"
       hlmBtn
       type="button"
       variant="outline"
@@ -23,7 +24,7 @@
   </div>
 </fin-field>
 @if (creando()) {
-<fin-field [label]="textoAgregar()">
+<fin-field data-tour="form-contraparte-alta" [label]="textoAgregar()">
   <div class="flex items-center gap-2">
     <input
       hlmInput
@@ -36,6 +37,7 @@
     />
     @if (esPersonaNueva()) {
     <fin-select
+      data-tour="form-contraparte-relacion"
       class="w-40 shrink-0"
       name="relacionNuevaContraparte"
       [ngModel]="relacionNueva()"

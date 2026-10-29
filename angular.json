@@ -17,6 +17,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "driver.css",
+                "input": "node_modules/driver.js/dist",
+                "output": "vendor"
               }
             ],
             "styles": ["src/spartan.css", "src/styles.css"],

@@ -1,16 +1,21 @@
 <fin-overlay [title]="i18n.t('form.investment.operation.title')" mode="modal" (closed)="store.form.set(null)">
   <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" [formRoot]="formulario">
-    <fin-field [label]="i18n.t('form.investment.operation.field.type')">
+    <fin-field data-tour="form-operacion-tipo" [label]="i18n.t('form.investment.operation.field.type')">
       <fin-select
         [formField]="formulario.type"
         [options]="typeOptions()"
         [ariaLabel]="i18n.t('form.investment.operation.field.type')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.investment.operation.field.date')" [error]="mensaje(formulario.date)">
+    <fin-field
+      data-tour="form-operacion-fecha"
+      [label]="i18n.t('form.investment.operation.field.date')"
+      [error]="mensaje(formulario.date)"
+    >
       <fin-date-field [formField]="formulario.date" [ariaLabel]="i18n.t('form.investment.operation.field.date')" />
     </fin-field>
     <fin-field
+      data-tour="form-operacion-monto"
       [label]="i18n.t('form.investment.operation.field.amount') + ' (' + currency() + ')'"
       [error]="mensaje(formulario.amount)"
     >
@@ -22,7 +27,11 @@
         [attr.aria-label]="i18n.t('form.investment.operation.field.amount')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.investment.operation.field.account')" [error]="mensaje(formulario.account)">
+    <fin-field
+      data-tour="form-operacion-cuenta"
+      [label]="i18n.t('form.investment.operation.field.account')"
+      [error]="mensaje(formulario.account)"
+    >
       <fin-select
         [formField]="formulario.account"
         [options]="accountOptions()"
@@ -30,7 +39,11 @@
       />
     </fin-field>
     @if (conCantidad()) {
-    <fin-field [label]="i18n.t('form.investment.operation.field.quantity')" [error]="mensaje(formulario.quantity)">
+    <fin-field
+      data-tour="form-operacion-cantidad"
+      [label]="i18n.t('form.investment.operation.field.quantity')"
+      [error]="mensaje(formulario.quantity)"
+    >
       <input
         hlmInput
         type="number"
@@ -39,7 +52,11 @@
         [attr.aria-label]="i18n.t('form.investment.operation.field.quantity')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.investment.operation.field.unitPrice')" [error]="mensaje(formulario.unitPrice)">
+    <fin-field
+      data-tour="form-operacion-precio"
+      [label]="i18n.t('form.investment.operation.field.unitPrice')"
+      [error]="mensaje(formulario.unitPrice)"
+    >
       <input
         hlmInput
         type="number"
@@ -49,7 +66,11 @@
       />
     </fin-field>
     }
-    <fin-field [label]="i18n.t('form.investment.operation.field.description')" [full]="true">
+    <fin-field
+      data-tour="form-operacion-descripcion"
+      [label]="i18n.t('form.investment.operation.field.description')"
+      [full]="true"
+    >
       <input
         hlmInput
         [formField]="formulario.description"
@@ -63,7 +84,9 @@
     <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
-      ><button hlmBtn size="lg" type="submit">{{ i18n.t('form.actions.save') }}</button>
+      ><button data-tour="form-operacion-guardar" hlmBtn size="lg" type="submit">
+        {{ i18n.t('form.actions.save') }}
+      </button>
     </footer>
   </form>
 </fin-overlay>

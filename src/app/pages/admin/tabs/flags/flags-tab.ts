@@ -33,6 +33,7 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
     <app-admin-panel [title]="i18n.t('admin.flags.title')" [subtitle]="i18n.t('admin.flags.hierarchyNote')">
       <div panelActions class="flex flex-wrap items-center gap-2">
         <fin-search-field
+          data-tour="admin-banderas-buscar"
           class="w-64"
           [value]="search()"
           (valueChange)="buscar($event)"
@@ -47,7 +48,7 @@ import { AdminPanelComponent } from '@pages/admin/panel/admin-panel';
           [ariaLabel]="i18n.t('admin.flags.organizationAriaLabel')"
         />
       </div>
-      <div hlmTableContainer>
+      <div data-tour="admin-banderas" hlmTableContainer>
         <table hlmTable [attr.aria-label]="i18n.t('admin.flags.title')">
           <thead hlmTHead class="bg-muted/40">
             <tr hlmTr>

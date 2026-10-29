@@ -39,13 +39,14 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
     <app-admin-panel [title]="i18n.t('admin.roles.title')" [subtitle]="i18n.t('admin.roles.subtitle')">
       <div panelActions class="flex flex-wrap items-center gap-2">
         @if (caps.allows(P.administracion.roles.crear)) {
-          <button hlmBtn (click)="creating.set(true)">
+          <button data-tour="admin-roles-crear" hlmBtn (click)="creating.set(true)">
             <fin-icon name="plus" /> {{ i18n.t('admin.roles.actions.create') }}
           </button>
         }
       </div>
       <app-admin-grid>
         <fin-table
+          data-tour="admin-roles"
           [columns]="columns()"
           [rows]="rows()"
           [selectable]="false"

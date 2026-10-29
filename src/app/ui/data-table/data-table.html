@@ -12,6 +12,7 @@
     >{{ i18n.t('table.search.ariaLabel', { label: tableLabel() }) }}</label
   >
   <hlm-autocomplete
+    data-tour="tabla-busqueda"
     class="w-full min-w-48 max-w-xs flex-1"
     [search]="searchText()"
     (searchChange)="setSearchText($event)"
@@ -33,6 +34,7 @@
   </hlm-autocomplete>
   } @else {
   <fin-search-field
+    data-tour="tabla-busqueda"
     class="w-full min-w-48 max-w-xs flex-1"
     [value]="searchText()"
     (valueChange)="setSearchText($event)"
@@ -76,6 +78,7 @@
     type="button"
     class="gap-2"
     [hlmDropdownMenuTrigger]="facetMenu"
+    data-tour="tabla-filtros"
     [attr.aria-label]="i18n.t('table.filter.by', { label: facet.label })"
   >
     <fin-icon name="filter" />
@@ -114,6 +117,7 @@
     class="ms-auto gap-2"
     [hlmDropdownMenuTrigger]="columnsMenu"
     align="end"
+    data-tour="tabla-columnas"
     [attr.aria-label]="i18n.t('table.columns.ariaLabel')"
   >
     <fin-icon name="columns" /> {{ i18n.t('table.columns') }}
@@ -221,6 +225,7 @@
           <span class="line-clamp-2" [attr.title]="display(row.original[key])">{{ display(row.original[key]) }}</span>
           } @else { {{ display(row.original[key]) }} } @if (key === firstColumnKey() && hasRowDetail(row.original)) {
           <button
+            data-tour="tabla-detalle"
             hlmBtn
             variant="ghost"
             size="sm"

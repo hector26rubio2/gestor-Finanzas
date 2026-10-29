@@ -3,6 +3,7 @@
     @if (kind() === 'person') {
     <div class="col-span-full max-[500px]:col-auto">
       <fin-segmented
+        data-tour="form-gestion-tipo"
         [value]="modelo().personKind"
         [options]="personKindOptions()"
         [ariaLabel]="i18n.t('form.management.field.personKind')"
@@ -10,11 +11,11 @@
       />
     </div>
     }
-    <fin-field [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
+    <fin-field data-tour="form-gestion-nombre" [label]="i18n.t('form.field.name')" [error]="mensaje(formulario.name)">
       <input hlmInput [formField]="formulario.name" [attr.aria-label]="i18n.t('form.field.name')" />
     </fin-field>
     @if (kind() === 'category') {
-    <fin-field [label]="i18n.t('form.management.field.categoryType')">
+    <fin-field data-tour="form-gestion-categoria-tipo" [label]="i18n.t('form.management.field.categoryType')">
       <fin-select
         [formField]="formulario.categoryType"
         [disabled]="!!editingId"
@@ -33,10 +34,14 @@
       }
     </fin-field>
     } @if (kind() === 'person' && modelo().personKind === 'person') {
-    <fin-field [label]="i18n.t('form.management.field.email')" [error]="mensaje(formulario.email)">
+    <fin-field
+      data-tour="form-gestion-correo"
+      [label]="i18n.t('form.management.field.email')"
+      [error]="mensaje(formulario.email)"
+    >
       <input hlmInput type="email" [formField]="formulario.email" />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.relationship')">
+    <fin-field data-tour="form-gestion-relacion" [label]="i18n.t('form.management.field.relationship')">
       <fin-select
         [formField]="formulario.relationship"
         [options]="relationshipOptions()"
@@ -44,14 +49,14 @@
       />
     </fin-field>
     } @if (kind() === 'investment') {
-    <fin-field [label]="i18n.t('form.management.field.instrument')">
+    <fin-field data-tour="form-inversion-instrumento" [label]="i18n.t('form.management.field.instrument')">
       <fin-select
         [formField]="formulario.instrument"
         [options]="instrumentOptions()"
         [ariaLabel]="i18n.t('form.management.field.instrumentAria')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.field.currency')">
+    <fin-field data-tour="form-inversion-moneda" [label]="i18n.t('form.field.currency')">
       <fin-select
         [formField]="formulario.currency"
         [disabled]="!!editingId"
@@ -59,14 +64,14 @@
         [ariaLabel]="i18n.t('form.management.field.currencyAria')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.risk')">
+    <fin-field data-tour="form-inversion-riesgo" [label]="i18n.t('form.management.field.risk')">
       <fin-select
         [formField]="formulario.risk"
         [options]="riskOptions()"
         [ariaLabel]="i18n.t('form.management.field.risk')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.symbol')">
+    <fin-field data-tour="form-inversion-simbolo" [label]="i18n.t('form.management.field.symbol')">
       <input
         hlmInput
         [formField]="formulario.symbol"
@@ -75,7 +80,7 @@
       />
     </fin-field>
     @if (!editingId) {
-    <fin-field [label]="i18n.t('form.management.field.institution')">
+    <fin-field data-tour="form-inversion-institucion" [label]="i18n.t('form.management.field.institution')">
       <input
         hlmInput
         [formField]="formulario.institution"
@@ -84,24 +89,36 @@
       />
     </fin-field>
     } } @if (kind() === 'recurrence') {
-    <fin-field [label]="i18n.t('form.field.amount')" [error]="mensaje(formulario.amount)">
+    <fin-field
+      data-tour="form-recurrente-monto"
+      [label]="i18n.t('form.field.amount')"
+      [error]="mensaje(formulario.amount)"
+    >
       <input hlmInput type="number" inputmode="decimal" [formField]="formulario.amount" />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.account')" [error]="mensaje(formulario.accountId)">
+    <fin-field
+      data-tour="form-recurrente-cuenta"
+      [label]="i18n.t('form.management.field.account')"
+      [error]="mensaje(formulario.accountId)"
+    >
       <fin-select
         [formField]="formulario.accountId"
         [options]="accountOptions()"
         [ariaLabel]="i18n.t('form.management.field.accountAria')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.frequency.label')">
+    <fin-field data-tour="form-recurrente-frecuencia" [label]="i18n.t('form.frequency.label')">
       <fin-select
         [formField]="formulario.frequency"
         [options]="frequencyOptions()"
         [ariaLabel]="i18n.t('form.frequency.label')"
       />
     </fin-field>
-    <fin-field [label]="i18n.t('form.management.field.start')" [error]="mensaje(formulario.start)">
+    <fin-field
+      data-tour="form-recurrente-inicio"
+      [label]="i18n.t('form.management.field.start')"
+      [error]="mensaje(formulario.start)"
+    >
       <fin-date-field [formField]="formulario.start" />
     </fin-field>
     } @if (error()) {
@@ -110,7 +127,9 @@
     <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
-      ><button hlmBtn size="lg" type="submit">{{ i18n.t('form.actions.save') }}</button>
+      ><button data-tour="form-gestion-guardar" hlmBtn size="lg" type="submit">
+        {{ i18n.t('form.actions.save') }}
+      </button>
     </footer>
   </form>
 </fin-overlay>

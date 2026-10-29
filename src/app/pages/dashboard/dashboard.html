@@ -5,9 +5,14 @@
         {{ i18n.t('dashboard.greeting', { name: store.user()?.name?.split(' ')?.[0] ?? '' }) }}
       </h1>
       <p class="text-muted-foreground">{{ i18n.t('dashboard.subtitle') }}</p>
-      <fin-selector-de-tableros class="mt-3" />
+      <fin-selector-de-tableros data-tour="tableros-selector" class="mt-3" />
       @if (!nadaQueMostrar()) {
-      <div class="mt-3 flex gap-2" role="group" [attr.aria-label]="i18n.t('dashboard.view.ariaLabel')">
+      <div
+        class="mt-3 flex gap-2"
+        role="group"
+        data-tour="dashboard-vista"
+        [attr.aria-label]="i18n.t('dashboard.view.ariaLabel')"
+      >
         @for (opcion of opcionesDeVista(); track opcion.value) {
         <button
           hlmBtn
@@ -28,6 +33,7 @@
       variant="outline"
       size="lg"
       type="button"
+      data-tour="dashboard-personalizar"
       [attr.aria-pressed]="customizing()"
       (click)="customizing.update((v) => !v)"
     >
@@ -52,6 +58,7 @@
   </section>
   } @else {
   <fin-filter-panel
+    data-tour="dashboard-filtros"
     [scales]="periodo.scales()"
     [scale]="scale()"
     [hasFilters]="hasFilters()"
@@ -90,6 +97,7 @@
   <fin-resumen [datos]="datos" />
   } @else { @if (algunKpi()) {
   <fin-kpi-strip
+    data-tour="dashboard-kpis"
     [fixedKpis]="fixedKpiItems()"
     [customKpis]="kpisPropios()"
     [flow]="layout.kpiFlow()"
@@ -390,6 +398,7 @@
   </section>
   } @if (customizing() && (caps.allows(P.dashboard.widget.crear) || caps.allows(P.dashboard.widget.deshabilitar))) {
   <aside
+    data-tour="dashboard-panel"
     data-slot="customize"
     class="fixed right-[86px] bottom-[18px] z-20 flex max-w-[calc(100vw-7rem)] flex-wrap items-center gap-2 rounded-xl border border-border bg-card p-3.5 shadow-pop max-[700px]:right-2.5 max-[700px]:left-2.5 max-[700px]:overflow-auto"
   >
@@ -399,11 +408,17 @@
       <fin-icon name="undo" /> {{ i18n.t('dashboard.layout.reset') }}
     </button>
     } @if (caps.allows(P.dashboard.widget.crear)) {
-    <button hlmBtn variant="outline" type="button" (click)="widgetCreatorOpen.set(true)">
+    <button
+      data-tour="dashboard-crear-widget"
+      hlmBtn
+      variant="outline"
+      type="button"
+      (click)="widgetCreatorOpen.set(true)"
+    >
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createWidget') }}
     </button>
     @if (availableKpiFormulaOptions().length) {
-    <button hlmBtn variant="outline" type="button" (click)="openKpiCreator()">
+    <button data-tour="dashboard-crear-kpi" hlmBtn variant="outline" type="button" (click)="openKpiCreator()">
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
     </button>
     } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
@@ -428,9 +443,9 @@
   <fin-overlay [title]="i18n.t('dashboard.actions.createIndicator')" mode="modal" (closed)="kpiCreatorOpen.set(false)">
     <form class="grid gap-3.5" (submit)="createKpi($event)">
       <fin-field [label]="i18n.t('dashboard.widgetForm.name')">
-        <input hlmInput name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
+        <input data-tour="kpi-nombre" hlmInput name="kpiLabel" [(ngModel)]="newKpiLabel" required maxlength="48" />
       </fin-field>
-      <fin-field [label]="i18n.t('dashboard.kpiForm.filter.dimension')">
+      <fin-field data-tour="kpi-filtro" [label]="i18n.t('dashboard.kpiForm.filter.dimension')">
         <fin-select
           name="kpiFilterDimension"
           [ngModel]="newKpiDimension()"
@@ -449,7 +464,7 @@
         />
       </fin-field>
       }
-      <fin-field [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
+      <fin-field data-tour="kpi-medida" [label]="i18n.t('dashboard.widgetActions.measure.ariaLabel')">
         <fin-select
           name="kpiMeasure"
           [(ngModel)]="newKpiFormula"
@@ -461,7 +476,7 @@
       <div class="flex justify-end gap-2">
         <button hlmBtn variant="outline" type="button" (click)="kpiCreatorOpen.set(false)">
           <fin-icon name="close" /> {{ i18n.t('dashboard.widgetForm.cancel') }}</button
-        ><button hlmBtn type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
+        ><button data-tour="kpi-guardar" hlmBtn type="submit">{{ i18n.t('dashboard.kpiForm.submit') }}</button>
       </div>
     </form>
   </fin-overlay>

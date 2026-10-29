@@ -87,6 +87,14 @@ export interface Semilla {
 
 export const test = base.extend<{ vigilancia: Vigilancia; semilla: Semilla }>({
   context: async ({ context }, use) => {
+    await context.addInitScript(() => {
+      try {
+        if (localStorage.getItem('finanzas.tutorial.al-entrar') === null)
+          localStorage.setItem('finanzas.tutorial.al-entrar', 'false');
+      } catch {
+        return;
+      }
+    });
     await context.route('**/config.js', (ruta) =>
       ruta.fulfill({
         contentType: 'application/javascript',

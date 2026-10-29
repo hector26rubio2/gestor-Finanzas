@@ -1,4 +1,4 @@
-<fin-kpi-grid>
+<fin-kpi-grid data-tour="movimientos-kpis">
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
     icon="trendUp"
@@ -65,6 +65,7 @@
   <fin-skeleton class="absolute inset-0 z-[2] overflow-hidden opacity-90" />
   }
   <fin-table
+    data-tour="movimientos-tabla"
     urlKey="pagina"
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"

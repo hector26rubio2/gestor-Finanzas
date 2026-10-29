@@ -39,6 +39,7 @@ import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
           <p class="text-sm text-muted-foreground">{{ i18n.t('admin.errors.subtitle') }}</p>
         </div>
         <fin-select
+          data-tour="admin-errores-estado"
           class="w-52"
           [ngModel]="errores.status()"
           (ngModelChange)="errores.cargar(1, $event)"
@@ -48,6 +49,7 @@ import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
       </header>
       <app-admin-grid>
         <fin-table
+          data-tour="admin-errores"
           [columns]="columns()"
           [rows]="rows()"
           [totalRows]="errores.total()"

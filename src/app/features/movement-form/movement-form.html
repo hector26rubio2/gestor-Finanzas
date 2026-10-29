@@ -2,6 +2,7 @@
   ><form class="flex flex-col gap-5" (ngSubmit)="submit()">
     @let vis = visibility();
     <fin-segmented
+      data-tour="form-tipo"
       [value]="model['kind']"
       [options]="types()"
       [ariaLabel]="i18n.t('form.movement.typeGroup')"
@@ -11,7 +12,7 @@
     <p class="px-1 py-[22px] text-center text-sm text-muted-foreground">{{ i18n.t('form.movement.chooseTypeHint') }}</p>
     } @else {
     <div class="flex flex-col gap-1.5">
-      <fin-field [label]="i18n.t('form.movement.field.operationType')">
+      <fin-field data-tour="form-operacion" [label]="i18n.t('form.movement.field.operationType')">
         <fin-select
           name="operationType"
           [ngModel]="model['operationType']"
@@ -37,7 +38,7 @@
       } @if (vis.showAttribution) {
       <fin-movement-attribution-field [model]="model" />
       } @if (vis.showBorrowedCardName) {
-      <fin-field [label]="i18n.t('form.movement.field.borrowedCardName')">
+      <fin-field data-tour="form-tarjeta-prestada" [label]="i18n.t('form.movement.field.borrowedCardName')">
         <input
           hlmInput
           type="text"
@@ -57,7 +58,7 @@
       } @if (vis.showInstallments) {
       <fin-movement-installment-fields [model]="model" [currentEditable]="vis.installmentCurrentEditable" />
       } @if (vis.showPurchaseCurrency) {
-      <fin-field [label]="i18n.t('form.movement.field.purchaseCurrency')">
+      <fin-field data-tour="form-moneda-compra" [label]="i18n.t('form.movement.field.purchaseCurrency')">
         <fin-select
           name="purchaseCurrency"
           [options]="monedasDeCompra()"
@@ -69,7 +70,7 @@
       } @if (vis.showCurrency) {
       <fin-movement-currency-fields [model]="model" />
       }
-      <fin-field [label]="i18n.t('form.movement.field.description')" [full]="true">
+      <fin-field data-tour="form-descripcion" [label]="i18n.t('form.movement.field.description')" [full]="true">
         <input hlmInput type="text" name="description" [(ngModel)]="model['description']" required />
       </fin-field>
     </div>
@@ -80,7 +81,7 @@
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       >@if (model['kind']) {
-      <button hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
+      <button data-tour="form-guardar" hlmBtn size="lg" type="submit" [disabled]="actions.isRunning(saveActionKey)">
         {{ actions.isRunning(saveActionKey) ? i18n.t('form.movement.actions.saving') :
         i18n.t('form.movement.actions.save') }}
       </button>

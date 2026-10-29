@@ -38,7 +38,7 @@
       <div class="min-w-0 flex-1">
         <span class="block text-[2rem] font-bold text-primary">{{ inspectorAmount() }}</span>
         <p class="text-muted-foreground">{{ inspectorSubtitle() }}</p>
-        <dl>
+        <dl data-tour="detalle-datos">
           @for (item of inspectorFacts(); track item[0]) {
           <div class="flex justify-between border-b border-border py-3">
             <dt class="text-xs text-muted-foreground">{{ item[0] }}</dt>
@@ -81,7 +81,11 @@
       </ul>
     </section>
     } @if (store.inspector()?.type === 'investment') {
-    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.investment.operations.title')">
+    <section
+      data-tour="detalle-operaciones"
+      class="grid gap-2"
+      [attr.aria-label]="i18n.t('workspace.investment.operations.title')"
+    >
       <h3>{{ i18n.t('workspace.investment.operations.title') }}</h3>
       @if (historialDeInversion.fallo()) {
       <p class="text-xs text-destructive" role="alert">{{ i18n.t('workspace.investment.history.loadFailed') }}</p>
@@ -97,7 +101,11 @@
       <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.investment.operations.empty') }}</p>
       } }
     </section>
-    <section class="grid gap-2" [attr.aria-label]="i18n.t('workspace.investment.valuations.title')">
+    <section
+      data-tour="detalle-valorizaciones"
+      class="grid gap-2"
+      [attr.aria-label]="i18n.t('workspace.investment.valuations.title')"
+    >
       <h3>{{ i18n.t('workspace.investment.valuations.title') }}</h3>
       @for (valorizacion of historialDeInversion.valorizaciones() ?? []; track valorizacion.id) {
       <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
@@ -158,15 +166,15 @@
     } }
     <footer class="mt-[22px] flex gap-[9px]">
       @if (store.inspector()?.type === 'movement') { @if (can(P.movimientos.editar)) {
-      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">
+      <button data-tour="detalle-editar" hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>
       } @if (selectedMovement()?.person && can(P.personas.compras.crear)) {
-      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
+      <button data-tour="detalle-compartir" hlmBtn variant="outline" class="h-[42px] flex-1" (click)="shareSelected()">
         {{ i18n.t('workspace.actions.registerSharedPurchase') }}
       </button>
       } @if (canReverseSelected()) {
-      <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askReverse()">
+      <button data-tour="detalle-reversar" hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askReverse()">
         {{ i18n.t('workspace.actions.reverse') }}
       </button>
       } } @if (store.inspector()?.type === 'person' && can(P.personas.liquidaciones.crear)) {
@@ -178,27 +186,45 @@
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>
       } @if (store.inspector()?.type === 'investment' && can(P.patrimonio.inversiones.editar)) {
-      <button hlmBtn class="h-[42px] flex-1" (click)="registrarOperacion()">
+      <button data-tour="detalle-operacion" hlmBtn class="h-[42px] flex-1" (click)="registrarOperacion()">
         {{ i18n.t('workspace.actions.registerOperation') }}
       </button>
-      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="registrarValorizacion()">
+      <button
+        data-tour="detalle-valorizacion"
+        hlmBtn
+        variant="outline"
+        class="h-[42px] flex-1"
+        (click)="registrarValorizacion()"
+      >
         {{ i18n.t('workspace.actions.registerValuation') }}
       </button>
       <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedInvestment()">
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.edit') }}
       </button>
       } @if (store.inspector()?.type === 'card' && !store.cardPaymentMode() && can(P.movimientos.pagos.crear)) {
-      <button hlmBtn class="h-[42px] flex-1" (click)="store.cardPaymentMode.set(true)">
+      <button data-tour="detalle-abonar" hlmBtn class="h-[42px] flex-1" (click)="store.cardPaymentMode.set(true)">
         {{ i18n.t('workspace.actions.registerPayment') }}
       </button>
       } @if ((store.inspector()?.type === 'card' || store.inspector()?.type === 'account') && !store.cardPaymentMode()
       && canEditSelectedAccount()) {
-      <button hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelectedAccount()">
+      <button
+        data-tour="detalle-editar-cuenta"
+        hlmBtn
+        variant="outline"
+        class="h-[42px] flex-1"
+        (click)="editSelectedAccount()"
+      >
         <fin-icon name="edit" /> {{ i18n.t('workspace.actions.editAccount') }}
       </button>
       } @if ((store.inspector()?.type === 'account' || store.inspector()?.type === 'card') && !store.cardPaymentMode()
       && can(P.cuentas.deshabilitar)) {
-      <button hlmBtn variant="destructive" class="h-[42px] flex-1" (click)="askDeactivateAccount()">
+      <button
+        data-tour="detalle-desactivar"
+        hlmBtn
+        variant="destructive"
+        class="h-[42px] flex-1"
+        (click)="askDeactivateAccount()"
+      >
         <fin-icon name="pause" /> {{ i18n.t('workspace.actions.deactivateAccount') }}
       </button>
       } @if (store.inspector()?.type === 'day') { @if (store.dayMoves(store.inspector()?.id ??
@@ -249,6 +275,7 @@
         <label class="grid min-w-0 gap-1.5 text-muted-foreground"
           >{{ i18n.t('workspace.cardPayment.sourceAccount') }}
           <fin-select
+            data-tour="abono-origen"
             [options]="tarjeta.opcionesDeOrigen()"
             [ngModel]="tarjeta.cuentaDeOrigen()"
             (ngModelChange)="tarjeta.cuentaDeOrigen.set($event)"
@@ -256,6 +283,7 @@
         /></label>
         <label class="grid min-w-0 gap-1.5 text-muted-foreground"
           >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
+            data-tour="abono-monto"
             hlmInput
             type="number"
             min="1"
@@ -288,7 +316,11 @@
         {{ i18n.t('workspace.cardPayment.creditBalance', { amount: store.money(tarjeta.saldoAFavor()) }) }}
       </p>
       }
-      <table class="w-full min-w-0 table-fixed text-xs" [attr.aria-label]="i18n.t('workspace.cardPayment.title')">
+      <table
+        data-tour="abono-reparto"
+        class="w-full min-w-0 table-fixed text-xs"
+        [attr.aria-label]="i18n.t('workspace.cardPayment.title')"
+      >
         <thead class="text-muted-foreground">
           <tr class="border-b border-border [&>th]:py-2 [&>th]:font-medium">
             @for (columna of tarjeta.paymentAllocationColumns().slice(1); track columna.key; let primera = $first) {
@@ -310,7 +342,7 @@
           }
         </tbody>
       </table>
-      <button hlmBtn class="h-10" (click)="tarjeta.confirmarAbono()">
+      <button data-tour="abono-confirmar" hlmBtn class="h-10" (click)="tarjeta.confirmarAbono()">
         <fin-icon name="check" /> {{ i18n.t('workspace.cardPayment.confirm') }}
       </button>
       <small class="text-xs text-muted-foreground"
@@ -332,6 +364,7 @@
 />
 <ng-template #extractoCompacto>
   <section
+    data-tour="detalle-extracto"
     class="grid w-full gap-3 rounded-xl border border-primary/30 bg-accent p-3.5"
     [attr.aria-label]="i18n.t('workspace.statement.title')"
   >

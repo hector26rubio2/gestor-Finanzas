@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { RUNTIME_CONFIG, P } from '@core/session';
 import { AppStore, navigation } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
+import { TutorialService } from '@shared/tutorial';
 import { CommandPaletteComponent } from './command-palette';
 import { CommandPaletteService } from './command-palette.service';
 
@@ -49,5 +50,41 @@ describe('paleta de comandos', () => {
     expect(servicio.abierto()).toBe(false);
     const mensajes = advertencias.mock.calls.map((llamada) => String(llamada[0]));
     expect(mensajes.some((mensaje) => mensaje.includes('NG0953'))).toBe(false);
+  });
+
+  it('el comando de tutorial lanza el recorrido de la página', async () => {
+    const iniciar = vi.spyOn(TestBed.inject(TutorialService), 'iniciar').mockResolvedValue();
+    const fixture = TestBed.createComponent(CommandPaletteComponent);
+    TestBed.inject(CommandPaletteService).abrir();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]');
+    entrada!.value = 'recorrido';
+    entrada!.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    entrada!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    await new Promise((resolver) => setTimeout(resolver));
+
+    expect(iniciar).toHaveBeenCalledTimes(1);
+  });
+
+  it('el comando de tutoriales abre el centro', async () => {
+    const iniciar = vi.spyOn(TestBed.inject(TutorialService), 'abrirCentro');
+    const fixture = TestBed.createComponent(CommandPaletteComponent);
+    TestBed.inject(CommandPaletteService).abrir();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]');
+    entrada!.value = 'aprender';
+    entrada!.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    entrada!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
+    fixture.detectChanges();
+    await new Promise((resolver) => setTimeout(resolver));
+
+    expect(iniciar).toHaveBeenCalledTimes(1);
   });
 });

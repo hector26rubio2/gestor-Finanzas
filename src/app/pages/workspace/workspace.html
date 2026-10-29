@@ -9,7 +9,13 @@
     </div>
     <div class="flex flex-wrap items-center gap-2.5">
       @if (page() === 'accounts' && can(P.cuentas.crear)) {
-      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'account' })">
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        data-tour="cuentas-nueva"
+        (click)="store.form.set({ kind: 'account' })"
+      >
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newAccount') }}
       </button>
       } @if (page() === 'movements' && can(P.cuentas.categorias.crear)) {
@@ -17,7 +23,13 @@
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newCategory') }}
       </button>
       } @if (page() === 'people' && can(P.personas.crear)) {
-      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'person' })">
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        data-tour="personas-nueva"
+        (click)="store.form.set({ kind: 'person' })"
+      >
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newPerson') }}
       </button>
       <button
@@ -29,19 +41,39 @@
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInstitution') }}
       </button>
       } @if (page() === 'portfolio' && can(P.patrimonio.inversiones.crear)) {
-      <button hlmBtn variant="outline" size="lg" (click)="store.form.set({ kind: 'investment' })">
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        data-tour="inversiones-nueva"
+        (click)="store.form.set({ kind: 'investment' })"
+      >
         <fin-icon name="plus" /> {{ i18n.t('workspace.actions.newInvestment') }}
       </button>
       } @if (page() === 'reports' && can(P.reportes.exportar)) {
-      <button hlmBtn variant="outline" size="lg" (click)="exportReport()">
+      <button hlmBtn variant="outline" size="lg" data-tour="reportes-exportar" (click)="exportReport()">
         <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'movements' && can(P.movimientos.exportar)) {
-      <button hlmBtn variant="outline" size="lg" class="text-primary" (click)="exportMovements()">
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        class="text-primary"
+        data-tour="movimientos-exportar"
+        (click)="exportMovements()"
+      >
         <fin-icon name="download" /> {{ i18n.t('workspace.actions.exportCsv') }}
       </button>
       } @if (page() === 'notifications' && can(P.notificaciones.editar)) {
-      <button hlmBtn variant="outline" size="lg" [disabled]="!puedeMarcarTodas()" (click)="readAll()">
+      <button
+        hlmBtn
+        variant="outline"
+        size="lg"
+        [disabled]="!puedeMarcarTodas()"
+        data-tour="notificaciones-marcar"
+        (click)="readAll()"
+      >
         {{ i18n.t('workspace.actions.markAllRead') }}
       </button>
       }

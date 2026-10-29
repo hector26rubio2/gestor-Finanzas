@@ -4,6 +4,7 @@
     variant="outline"
     spacing="2"
     class="w-max"
+    data-tour="notificaciones-filtro"
     [attr.aria-label]="i18n.t('notifications.filter.label')"
     [value]="filtro()"
   >
@@ -22,7 +23,7 @@
   </hlm-toggle-group>
 
   @for (grupo of grupos(); track grupo.clave) {
-  <section class="grid gap-2" [attr.aria-labelledby]="'notificaciones-' + grupo.clave">
+  <section data-tour="notificaciones-lista" class="grid gap-2" [attr.aria-labelledby]="'notificaciones-' + grupo.clave">
     <h2
       [id]="'notificaciones-' + grupo.clave"
       class="px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase"
