@@ -31,7 +31,7 @@ test.describe('Patrimonio completo', () => {
   }) => {
     const nombre = `E2E Fondo ${identificadorDeCorrida}`;
     await ir(page, 'portfolio');
-    await page.getByRole('button', { name: 'Nueva inversión' }).click();
+    await page.getByRole('button', { name: 'Inversión', exact: true }).click();
     const alta = dialogo(page);
     await alta.getByLabel('Nombre', { exact: true }).fill(nombre);
     await alta.locator('input[name="gestion.symbol"]').fill('E2EF');
@@ -45,7 +45,7 @@ test.describe('Patrimonio completo', () => {
       .getByPlaceholder(/Buscar/)
       .first()
       .fill(nombre);
-    await page.getByRole('button', { name: nombre, exact: true }).click();
+    await page.getByRole('button', { name: `Ver detalle: ${nombre}`, exact: true }).click();
     const detalle = panelLateral(page);
     await expect(detalle.getByText('Sin valorización').first()).toBeVisible();
 
