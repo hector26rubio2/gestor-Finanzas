@@ -50,6 +50,24 @@ describe('escenarios de planificación', () => {
     expect(resultado.gastoMensual).toBe(500_000);
   });
 
+  it('el gasto promedio no incluye compras a cuotas, cuyas cuotas ya entran por la deuda', () => {
+    const movimientos = [
+      movimiento({ date: '2026-08-05', kind: 'income', amount: 4_000_000 }),
+      movimiento({ date: '2026-08-06', kind: 'expense', amount: -1_000_000 }),
+      movimiento({
+        date: '2026-08-07',
+        kind: 'expense',
+        amount: -1_200_000,
+        installmentTotal: 12,
+        installmentCurrent: 1,
+      }),
+      movimiento({ date: '2026-08-08', kind: 'expense', amount: -300_000, installmentTotal: 1, installmentCurrent: 1 }),
+    ];
+    expect(flujoPromedio(movimientos, '2026-09-15').gastoMensual).toBe(1_300_000);
+    const lineas = lineasPorCategoria(movimientos, '2026-09-15');
+    expect(lineas.filter((l) => l.tipo === 'gasto').reduce((suma, l) => suma + l.monto, 0)).toBe(1_300_000);
+  });
+
   it('toma las tarjetas con saldo y a quien se le debe como deudas actuales', () => {
     const tarjeta: Account = {
       id: 't',

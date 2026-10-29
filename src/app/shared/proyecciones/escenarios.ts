@@ -83,8 +83,10 @@ const mesAnterior = (mes: string, atras: number): string => {
   return `${fecha.getUTCFullYear()}-${String(fecha.getUTCMonth() + 1).padStart(2, '0')}`;
 };
 
+const esDelPromedio = (m: Movement): boolean => esEconomico(m) && !m.loanRole && (m.installmentTotal ?? 1) <= 1;
+
 function flujoDeMeses(movimientos: readonly Movement[], meses: readonly string[]): FlujoMensual {
-  const delPeriodo = movimientos.filter((m) => esEconomico(m) && !m.loanRole && meses.includes(m.date.slice(0, 7)));
+  const delPeriodo = movimientos.filter((m) => esDelPromedio(m) && meses.includes(m.date.slice(0, 7)));
   const conDatos = new Set(delPeriodo.map((m) => m.date.slice(0, 7))).size;
   const divisor = Math.max(1, conDatos);
   return {
@@ -108,7 +110,7 @@ export function lineasPorCategoria(movimientos: readonly Movement[], hoy: string
   const cerrados = Array.from({ length: meses }, (_, i) => mesAnterior(mesActual, i + 1));
   const conCerrados = movimientos.some((m) => cerrados.includes(m.date.slice(0, 7)));
   const ventana = conCerrados ? cerrados : [mesActual];
-  const delPeriodo = movimientos.filter((m) => esEconomico(m) && !m.loanRole && ventana.includes(m.date.slice(0, 7)));
+  const delPeriodo = movimientos.filter((m) => esDelPromedio(m) && ventana.includes(m.date.slice(0, 7)));
   const divisor = Math.max(1, new Set(delPeriodo.map((m) => m.date.slice(0, 7))).size);
   const grupos = new Map<string, Movement[]>();
   for (const m of delPeriodo) {
