@@ -6,7 +6,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost/"
+      "url": "http://localhost:5198/"
     }
   ],
   "paths": {
@@ -650,6 +650,65 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/MovementDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/movements/{id}/correction": {
+      "post": {
+        "tags": ["Finanzas v1"],
+        "operationId": "CorrectMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectMovementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -1403,6 +1462,55 @@
         }
       }
     },
+    "/api/v1/obligations/{id}/payments": {
+      "post": {
+        "tags": ["Finanzas v1"],
+        "operationId": "RegisterObligationPayment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterPaymentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ObligationPaymentDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/investments": {
       "get": {
         "tags": ["Finanzas v1"],
@@ -1941,16 +2049,41 @@
       "get": {
         "tags": ["Finanzas v1"],
         "operationId": "GetSettlements",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "pattern": "^-?(?:0|[1-9]\\d*)$",
+              "type": ["integer", "string"],
+              "format": "int32"
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SettlementDto"
-                  }
+                  "$ref": "#/components/schemas/SettlementPageDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
                 }
               }
             }
@@ -5650,7 +5783,7 @@
         }
       },
       "BudgetDto": {
-        "required": ["id", "category", "monthlyLimit", "updatedAt"],
+        "required": ["id", "category", "monthlyLimit", "updatedAt", "usage"],
         "type": "object",
         "properties": {
           "id": {
@@ -5666,6 +5799,24 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "usage": {
+            "$ref": "#/components/schemas/BudgetUsageDto"
+          }
+        }
+      },
+      "BudgetUsageDto": {
+        "required": ["usage", "usagePercent", "status"],
+        "type": "object",
+        "properties": {
+          "usage": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "usagePercent": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string"
           }
         }
       },
@@ -6059,6 +6210,18 @@
           }
         }
       },
+      "CorrectMovementRequest": {
+        "required": ["replacement"],
+        "type": "object",
+        "properties": {
+          "replacement": {
+            "$ref": "#/components/schemas/CreateMovementRequest"
+          },
+          "reason": {
+            "type": ["null", "string"]
+          }
+        }
+      },
       "CounterpartyDto": {
         "required": ["id", "displayName", "alias", "email", "phone", "notes", "isActive", "createdAt"],
         "type": "object",
@@ -6091,6 +6254,9 @@
           },
           "kind": {
             "$ref": "#/components/schemas/CounterpartyKindDto"
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -6304,6 +6470,9 @@
           },
           "kind": {
             "$ref": "#/components/schemas/CounterpartyKindDto"
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -6431,6 +6600,13 @@
             "type": ["null", "string"]
           },
           "idempotencyKey": {
+            "type": ["null", "string"]
+          },
+          "borrowedCard": {
+            "type": "boolean",
+            "default": false
+          },
+          "borrowedCardName": {
             "type": ["null", "string"]
           }
         }
@@ -6999,6 +7175,13 @@
                 "$ref": "#/components/schemas/LoanCardModeDto"
               }
             ]
+          },
+          "borrowedCard": {
+            "type": "boolean",
+            "default": false
+          },
+          "borrowedCardName": {
+            "type": ["null", "string"]
           }
         }
       },
@@ -7675,6 +7858,16 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "terms": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/LoanTermsDto"
+              }
+            ]
           }
         }
       },
@@ -7736,6 +7929,28 @@
       },
       "ObligationOriginDto": {
         "type": "integer"
+      },
+      "ObligationPaymentDto": {
+        "required": ["obligation", "allocation", "movement"],
+        "type": "object",
+        "properties": {
+          "obligation": {
+            "$ref": "#/components/schemas/ObligationDto"
+          },
+          "allocation": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/PaymentAllocationDto"
+              }
+            ]
+          },
+          "movement": {
+            "$ref": "#/components/schemas/MovementDto"
+          }
+        }
       },
       "ObligationStatusDto": {
         "type": "integer"
@@ -8056,6 +8271,21 @@
             "type": ["integer", "string"],
             "format": "int32",
             "default": 50
+          }
+        }
+      },
+      "PaymentAllocationDto": {
+        "required": ["principal", "interest", "excess"],
+        "type": "object",
+        "properties": {
+          "principal": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "interest": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "excess": {
+            "$ref": "#/components/schemas/MoneyDto"
           }
         }
       },
@@ -8388,6 +8618,49 @@
           }
         }
       },
+      "RegisterPaymentRequest": {
+        "required": ["date", "amount", "account"],
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "amount": {
+            "$ref": "#/components/schemas/MoneyDto"
+          },
+          "account": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "principal": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MoneyDto"
+              }
+            ]
+          },
+          "interest": {
+            "oneOf": [
+              {
+                "type": "null"
+              },
+              {
+                "$ref": "#/components/schemas/MoneyDto"
+              }
+            ]
+          },
+          "note": {
+            "type": ["null", "string"]
+          },
+          "idempotencyKey": {
+            "type": ["null", "string"]
+          }
+        }
+      },
       "ReportClientErrorRequest": {
         "required": ["source", "fingerprint", "message", "contextJson"],
         "type": "object",
@@ -8665,6 +8938,34 @@
           }
         }
       },
+      "SettlementPageDto": {
+        "required": ["items", "size", "total", "hasNext", "nextCursor"],
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SettlementDto"
+            }
+          },
+          "size": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": ["integer", "string"],
+            "format": "int32"
+          },
+          "total": {
+            "pattern": "^-?(?:0|[1-9]\\d*)$",
+            "type": ["null", "integer", "string"],
+            "format": "int32"
+          },
+          "hasNext": {
+            "type": "boolean"
+          },
+          "nextCursor": {
+            "type": ["null", "string"]
+          }
+        }
+      },
       "SetUserActiveRequest": {
         "required": ["isActive"],
         "type": "object",
@@ -8841,6 +9142,9 @@
                 "$ref": "#/components/schemas/CounterpartyKindDto"
               }
             ]
+          },
+          "relationship": {
+            "type": ["null", "string"]
           }
         }
       },

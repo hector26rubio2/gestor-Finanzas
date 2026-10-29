@@ -71,6 +71,39 @@ test.describe('Secciones', () => {
     await expect.poll(titulo).toBe(antes);
   });
 
+  test('CAL-07 los movimientos del día se leen completos y el día abre su detalle', async ({ page }) => {
+    await ir(page, 'calendar');
+    await page.getByRole('button', { name: 'Hoy' }).click();
+    const dia = page
+      .locator('[data-slot=calendar-day]')
+      .filter({ has: page.locator('span:not(.sr-only)') })
+      .first();
+    await expect(dia).toBeVisible();
+    const recortadas = await dia
+      .locator('span:not(.sr-only)')
+      .evaluateAll(
+        (lineas) =>
+          lineas.filter(
+            (linea) => linea.getBoundingClientRect().height + 0.5 < parseFloat(getComputedStyle(linea).lineHeight),
+          ).length,
+      );
+    expect(recortadas, 'líneas del día cortadas').toBe(0);
+    await dia.click();
+    await expect(page.getByText(/Agenda del|Detalle del movimiento/).first()).toBeVisible();
+  });
+
+  test('PER-01 personas muestra moneda aparte y el detalle de deudas con cuotas', async ({ page }) => {
+    await ir(page, 'people');
+    await expect(page.getByRole('columnheader', { name: 'Moneda' }).first()).toBeVisible();
+    const tabla = page.getByRole('region', { name: 'Personas y deudas' });
+    await expect(tabla).toBeVisible();
+    const verDetalle = tabla.getByRole('button', { name: /^Ver deudas \(\d+\)$/ }).first();
+    await expect(verDetalle).toBeVisible();
+    await verDetalle.click();
+    await expect(tabla.getByRole('columnheader', { name: 'N.º de cuota' })).toBeVisible();
+    await expect(tabla.getByRole('columnheader', { name: 'Falta por pagar' })).toBeVisible();
+  });
+
   test('DAS-05 crear un tablero nuevo', async ({ page, vigilancia }) => {
     await ir(page, 'dashboard');
     await page

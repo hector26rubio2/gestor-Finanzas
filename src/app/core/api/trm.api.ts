@@ -1,4 +1,5 @@
 import { HttpClient } from '@angular/common/http';
+import { todayIso } from '@core/utils/dates';
 import { Injectable, inject } from '@angular/core';
 import { catchError, map, of } from 'rxjs';
 
@@ -14,7 +15,7 @@ export class TrmApi {
   private readonly http = inject(HttpClient);
 
   today() {
-    const hoy = new Date().toISOString().slice(0, 10);
+    const hoy = todayIso();
     return this.http.get<TrmRow[]>(TRM_ENDPOINT, { params: { vigenciadesde: hoy, $limit: '1' } }).pipe(
       map((rows) => (rows[0] ? Number(rows[0].valor) : null)),
       catchError(() => of(null)),

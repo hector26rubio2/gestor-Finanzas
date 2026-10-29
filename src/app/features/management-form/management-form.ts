@@ -1,4 +1,5 @@
 import { DateFieldComponent } from '@ui/date-field';
+import { todayIso } from '@core/utils/dates';
 import { IconComponent } from '@ui/icon';
 import { IconPickerComponent } from '@ui/icon-picker';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -68,7 +69,7 @@ export class ManagementFormComponent {
     amount: null,
     accountId: '',
     frequency: '3',
-    start: new Date().toISOString().slice(0, 10),
+    start: todayIso(),
   });
   readonly formulario = form(
     this.modelo,

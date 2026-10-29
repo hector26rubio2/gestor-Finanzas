@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Account, Movement } from '@core/state';
 import es from '@core/i18n/es';
-import { hechosDeMovimiento } from './inspector-facts';
+import { hechosDeCuenta, hechosDeMovimiento } from './inspector-facts';
 
 const cuentas: Record<string, Account> = {
   ahorros: { id: 'ahorros', name: 'Ahorros', type: 'savings', currency: 'COP' } as Account,
@@ -54,5 +54,22 @@ describe('hechosDeMovimiento', () => {
     const arriendo = movimiento({ kind: 'expense', amount: -1_000, recurring: true, recurrence: 'monthly' });
     expect(hecho(arriendo, 'workspace.inspector.facts.recurrence')).toBe('✓ Mensual');
     expect(hecho(movimiento({ status: 'pending' }), 'workspace.inspector.facts.status')).toBe('Pendiente');
+  });
+});
+
+describe('hechosDeCuenta', () => {
+  const etiquetas = (cuenta: Account) => hechosDeCuenta(cuenta, contexto).map(([etiqueta]) => etiqueta);
+  const deTarjeta = ['cutoff', 'dueDate', 'limit'].map((c) => es[`workspace.inspector.facts.${c}` as keyof typeof es]);
+
+  it('una cuenta débito en pesos no muestra corte, pago, límite ni tasa', () => {
+    const vistas = etiquetas(cuentas['ahorros']);
+    expect(vistas).not.toContain(es['workspace.inspector.facts.referenceRate']);
+    deTarjeta.forEach((etiqueta) => expect(vistas).not.toContain(etiqueta));
+  });
+
+  it('una tarjeta muestra corte, pago y límite', () => {
+    const tarjeta = { ...cuentas['visa'], cutDay: 15, dueDay: 30, limit: 1_000 } as Account;
+    expect(new Map(hechosDeCuenta(tarjeta, contexto)).get(deTarjeta[0])).toBe('15');
+    deTarjeta.forEach((etiqueta) => expect(etiquetas(tarjeta)).toContain(etiqueta));
   });
 });

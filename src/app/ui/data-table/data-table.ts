@@ -1,4 +1,15 @@
-import { Component, computed, effect, inject, input, signal, untracked, output, contentChildren } from '@angular/core';
+import {
+  Component,
+  computed,
+  contentChild,
+  contentChildren,
+  effect,
+  inject,
+  input,
+  output,
+  signal,
+  untracked,
+} from '@angular/core';
 import { NgTemplateOutlet } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -16,6 +27,7 @@ import { SearchFieldComponent } from '@ui/search-field/search-field';
 import { DateFieldComponent } from '@ui/date-field/date-field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { FinTableCellDirective } from './table-cell.directive';
+import { FinTableRowDetailDirective } from './table-row-detail.directive';
 import {
   ariaDeOrden,
   fechaFijada,
@@ -61,6 +73,8 @@ export class DataTableComponent {
   cellTemplate(key: string) {
     return this.cellTemplates()?.find((t) => t.column() === key)?.template ?? null;
   }
+  private readonly rowDetailDirective = contentChild(FinTableRowDetailDirective);
+  readonly rowDetailTemplate = computed(() => this.rowDetailDirective()?.template ?? null);
   private static nextId = 0;
   readonly rangeId = `table-range-${DataTableComponent.nextId++}`;
   readonly tableLabel = input(this.i18n.t('table.defaultLabel'));
@@ -74,6 +88,8 @@ export class DataTableComponent {
   readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
   readonly urlKey = input<string | null>(null);
+  readonly rowHasDetail = input<(row: TableRow) => boolean>(() => true);
+  readonly rowDetailLabel = input<((row: TableRow, abierto: boolean) => string) | null>(null);
   readonly rowSelected = output<TableRow>();
   readonly selectionChange = output<TableRow[]>();
   readonly pageSizeChange = output<number>();
@@ -189,6 +205,8 @@ export class DataTableComponent {
   );
 
   private readonly expandedRows = signal<ReadonlySet<number>>(new Set());
+  private readonly detailOpenIds = signal<ReadonlySet<string>>(new Set());
+  readonly firstColumnKey = computed(() => this.columns()[0]?.key ?? null);
 
   constructor() {
     if (inject(Router, { optional: true })) {
@@ -225,6 +243,34 @@ export class DataTableComponent {
       const next = new Set(current);
       if (next.has(index)) next.delete(index);
       else next.add(index);
+      return next;
+    });
+  }
+
+  hasRowDetail(row: TableRow): boolean {
+    return this.rowDetailTemplate() !== null && this.rowHasDetail()(row);
+  }
+
+  detailLabel(row: TableRow, rowId: string): string {
+    const abierto = this.isDetailOpen(rowId);
+    const propia = this.rowDetailLabel();
+    if (propia) return propia(row, abierto);
+    return this.i18n.t(abierto ? 'table.rowDetail.hide' : 'table.rowDetail.show');
+  }
+
+  isDetailOpen(rowId: string): boolean {
+    return this.detailOpenIds().has(rowId);
+  }
+
+  detailRowId(rowId: string): string {
+    return `${this.rangeId}-detail-${rowId}`;
+  }
+
+  toggleDetail(rowId: string): void {
+    this.detailOpenIds.update((current) => {
+      const next = new Set(current);
+      if (next.has(rowId)) next.delete(rowId);
+      else next.add(rowId);
       return next;
     });
   }

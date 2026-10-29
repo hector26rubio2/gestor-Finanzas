@@ -1,4 +1,6 @@
-import { ApiNotification } from '@core/api/api-client';
+import { ApiAccount, ApiNotification } from '@core/api/api-client';
+import { toViewData } from './view-data.mapper';
+import { toViewPeople } from './people.mapper';
 import { tasaAnual } from './accounts.mapper';
 import { notificationDetail, notificationTitle, toViewNotification } from './notifications.mapper';
 import { cuotaEnCurso, toMovement } from './movements.mapper';
@@ -50,6 +52,33 @@ describe('mappers por dominio', () => {
     expect(notificationDetail(notificationsI18n, organization)).toBe('Added to Ahorro');
     expect(toViewNotification(notificationsI18n, roles).detail).toBe('Roles: Ahorro, Lectura');
     expect(notificationDetail(notificationsI18n, removed)).toBe('Roles removed');
+  });
+
+  it('toViewPeople conserva la relación guardada en la API', () => {
+    expect(toViewPeople([{ id: 'p1', displayName: 'Laura', kind: 1, relationship: 'Familia' }])[0]).toMatchObject({
+      name: 'Laura',
+      relationship: 'Familia',
+    });
+    expect(toViewPeople([{ id: 'p2', displayName: 'Banco', kind: 2 }])[0].relationship).toBeUndefined();
+  });
+
+  it('toViewData deja fuera cuentas y tarjetas desactivadas', () => {
+    const cuenta = (id: string, isActive: boolean) =>
+      ({ id, name: id, kind: 3, currency: 'COP', isActive }) as unknown as ApiAccount;
+    const tarjeta = (id: string, isActive: boolean) =>
+      ({ ...cuenta(id, isActive), terms: {}, cycle: {}, creditLimit: { amount: '1', currency: 'COP' } }) as never;
+
+    const vista = toViewData(
+      {
+        accounts: [cuenta('activa', true), cuenta('inactiva', false)],
+        cards: [tarjeta('visa', true), tarjeta('vieja', false)],
+        people: [],
+        investments: [],
+      },
+      [],
+    );
+
+    expect(vista.accounts.map((a) => a.id)).toEqual(['activa', 'visa']);
   });
 
   it('cuotaEnCurso avanza por mes y no pasa del total', () => {

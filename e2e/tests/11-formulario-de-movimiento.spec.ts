@@ -31,8 +31,20 @@ test.describe('Formulario de movimiento', () => {
     );
   });
 
+  test('FRM-03 Escape cierra primero la lista abierta y después el formulario', async ({ page }) => {
+    await ir(page, 'movements');
+    await atajo(page, 'n', 'g');
+    const formulario = dialogo(page);
+    await formulario.locator('[data-slot=select-trigger][aria-label^="Tipo"]').first().click();
+    await expect(page.locator('[role=listbox]')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('[role=listbox]')).toBeHidden();
+    await expect(formulario).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(formulario).toBeHidden();
+  });
+
   test('FRM-02 editar el monto de un gasto lo guarda o no deja editarlo', async ({ page, vigilancia }) => {
-    test.fail(true, '.scratch/gestor-finanzas-bugs/issues/03: la edición solo reclasifica y descarta el monto');
     const descripcion = `E2E editar monto ${corrida}`;
     await ir(page, 'movements');
     await atajo(page, 'n', 'g');
@@ -62,9 +74,13 @@ test.describe('Formulario de movimiento', () => {
       await formulario.locator('button[type=submit]').click();
       await expect(formulario).toBeHidden();
       await expect
-        .poll(async () => (await buscarMovimientos(page, descripcion)).map((m) => Number(m.amount.original.amount)), {
-          message: 'el monto editado debe quedar guardado',
-        })
+        .poll(
+          async () =>
+            (await buscarMovimientos(page, descripcion))
+              .filter((m) => !m.reversedBy)
+              .map((m) => Number(m.amount.original.amount)),
+          { message: 'el monto editado debe quedar guardado y el original quedar reversado' },
+        )
         .toEqual([99_000]);
     }
   });

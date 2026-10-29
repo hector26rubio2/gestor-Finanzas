@@ -86,7 +86,7 @@
         hlmBtn
         variant="ghost"
         data-slot="calendar-day"
-        class="flex h-auto min-h-[74px] flex-col items-start justify-start overflow-hidden rounded-none border-e border-b border-border bg-card text-start font-normal whitespace-normal text-foreground"
+        class="flex h-auto min-h-[74px] flex-col items-start justify-start gap-0 overflow-hidden rounded-none border-e border-b border-border bg-card text-start font-normal whitespace-normal text-foreground"
         [class]="dayClass(day)"
         [attr.aria-pressed]="day.iso === store.selectedCalendarDate()"
         (click)="selectCalendarDay(day.iso)"
@@ -97,12 +97,13 @@
         >
         @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
         <span
-          class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap"
+          class="mt-[5px] block w-full shrink-0 overflow-hidden text-xs text-ellipsis whitespace-nowrap"
           [class]="m.amount > 0 ? 'text-success' : 'text-destructive'"
           >{{ m.description }}</span
         >
         } @if (store.dayMoves(day.iso).length > (calendarView() === 'day' ? 8 : 2)) {
-        <em class="mt-[5px] block overflow-hidden text-xs text-ellipsis whitespace-nowrap text-primary not-italic"
+        <em
+          class="mt-[5px] block w-full shrink-0 overflow-hidden text-xs text-ellipsis whitespace-nowrap text-primary not-italic"
           >{{ i18n.t('calendar.day.more', { count: store.dayMoves(day.iso).length - (calendarView() === 'day' ? 8 : 2)
           }) }}</em
         >
@@ -165,10 +166,15 @@
       class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-warning py-3 text-start text-xs font-normal whitespace-normal text-foreground [&_b]:text-destructive"
       (click)="store.inspect('account', vencimiento.account.id)"
     >
-      <span
-        >{{ i18n.t('calendar.agenda.cardDue', { name: vencimiento.account.name, date: fechaCorta(vencimiento.date) })
-        }}</span
-      ><b>{{ store.money(-store.balance(vencimiento.account), vencimiento.account.currency) }}</b>
+      <span class="grid min-w-0">
+        <span class="truncate" [attr.title]="vencimiento.account.name"
+          >{{ i18n.t('calendar.agenda.cardDue', { name: vencimiento.account.name }) }}</span
+        >
+        <small class="text-muted-foreground"
+          >{{ i18n.t('calendar.agenda.dueOn', { date: fechaCorta(vencimiento.date) }) }}</small
+        >
+      </span>
+      <b class="shrink-0">{{ store.money(-store.balance(vencimiento.account), vencimiento.account.currency) }}</b>
     </button>
     } @for (m of proximosMovimientos(); track m.id) {
     <button

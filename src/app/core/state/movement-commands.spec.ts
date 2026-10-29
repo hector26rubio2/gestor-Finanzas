@@ -89,6 +89,7 @@ describe('MovementCommands.save — alta de movimientos', () => {
       accountId: 'cuenta-2',
       amount: 45900,
       category: 'Mercado',
+      loanProduct: 'personal',
     });
 
     const [peticion] = transport.peticiones;
@@ -117,6 +118,8 @@ describe('MovementCommands.save — alta de movimientos', () => {
       status: 'confirmed',
       ownership: 'own',
     });
+    expect(creado.loanProduct).toBeUndefined();
+    expect(creado.loanRole).toBeUndefined();
     expect(store.form()).toBeNull();
     expect(store.data().movements).toHaveLength(2);
   });
@@ -387,6 +390,195 @@ describe('MovementCommands.save — edición/reclasificación', () => {
 
     expect(transport.peticiones[0].body).toEqual({ category: null, description: 'Sin clasificar' });
     expect(store.data().movements.find((m) => m.id === 'mov-1')).toMatchObject({ category: 'Categoría inexistente' });
+  });
+});
+
+describe('MovementCommands.save — corrección de monto, fecha o cuenta', () => {
+  function corrector(extra: Record<string, unknown> = {}) {
+    const transport = new TransportFalso().responder('POST /api/v1/movements/mov-1/correction', {
+      body: apiMovement({
+        id: 'mov-2',
+        date: '2026-09-26',
+        amount: {
+          original: { amount: '99000', currency: 'COP' },
+          base: { amount: '99000', currency: 'COP' },
+          rate: '1',
+          rateAsOf: '2026-09-26',
+        },
+      }),
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      data: datosDe({
+        movements: [
+          {
+            id: 'mov-1',
+            date: '2026-09-25',
+            description: 'Mercado del sábado',
+            accountId: 'cuenta-1',
+            category: 'Mercado',
+            kind: 'expense',
+            amount: -45900,
+            status: 'confirmed',
+            ...extra,
+          },
+        ],
+      }),
+      transport,
+    });
+    cambios();
+    return { transport, store, comandos: component.comandos };
+  }
+
+  it('cambiar el monto pide la corrección atómica y reemplaza el original por el nuevo', async () => {
+    const { transport, store, comandos } = corrector();
+    store.inspect('movement', 'mov-1');
+
+    await comandos.save({
+      id: 'mov-1',
+      kind: 'expense',
+      date: '2026-09-26',
+      description: 'Mercado del sábado',
+      accountId: 'cuenta-1',
+      amount: 99000,
+      category: 'Mercado',
+    });
+
+    const [peticion] = transport.peticiones;
+    expect(peticion).toMatchObject({ method: 'POST', path: '/api/v1/movements/mov-1/correction' });
+    expect(peticion.body).toMatchObject({
+      replacement: { date: '2026-09-26', amount: { amount: '99000' }, links: { account: 'cuenta-1' } },
+    });
+    expect(store.data().movements.map((m) => m.id)).toEqual(['mov-2']);
+    expect(store.inspector()).toMatchObject({ type: 'movement', id: 'mov-2' });
+    expect(store.form()).toBeNull();
+  });
+
+  it('una pata de transferencia no se corrige y no llama a la API', async () => {
+    const { transport, comandos } = corrector({ movementSubtype: 'transfer' });
+
+    await expect(
+      comandos.save({
+        id: 'mov-1',
+        kind: 'expense',
+        date: '2026-09-25',
+        description: 'Mercado del sábado',
+        accountId: 'cuenta-1',
+        amount: 10,
+        category: 'Mercado',
+      }),
+    ).rejects.toThrow();
+    expect(transport.peticiones).toHaveLength(0);
+  });
+});
+
+describe('MovementCommands.save — compras de terceros y tarjeta prestada', () => {
+  const prestamoRespuesta = (id: string, movements: readonly ApiMovement[]) => ({
+    body: {
+      obligation: { id: 'obligacion-1', counterparty: { id: 'persona-1', name: 'Camilo' }, dueOn: null },
+      terms: { product: 0, monthlyRate: null, termMonths: null, cardMode: null, borrowedCard: id === 'prestada' },
+      movements,
+    },
+  });
+
+  it('una compra con tarjeta a nombre de otra persona se reparte entera a esa persona', async () => {
+    const transport = new TransportFalso()
+      .responder('POST /api/v1/movements', { body: apiMovement({ id: 'compra-1', amount: montoDe('90000') }) })
+      .responder('POST /api/v1/shared-purchases', { body: {} });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      data: datosDe({
+        accounts: [
+          { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 5000000 },
+        ],
+      }),
+      transport,
+    });
+    cambios();
+
+    await component.comandos.save({
+      kind: 'expense',
+      date: '2026-10-28',
+      description: 'Compra para Camilo',
+      accountId: 'tarjeta-1',
+      amount: 90000,
+      category: 'Mercado',
+      person: 'Camilo',
+    });
+
+    const [compra, reparto] = transport.peticiones;
+    expect(compra).toMatchObject({ method: 'POST', path: '/api/v1/movements' });
+    expect(reparto).toMatchObject({ method: 'POST', path: '/api/v1/shared-purchases' });
+    expect(reparto.body).toMatchObject({
+      purchaseMovement: 'compra-1',
+      shares: [{ counterparty: 'persona-1', basis: 1 }],
+    });
+    expect(store.data().movements[0]).toMatchObject({ id: 'compra-1', person: 'Camilo', ownership: 'loaned' });
+  });
+
+  it('un gasto desde una cuenta a nombre de otra persona queda como préstamo a cobrar', async () => {
+    const transport = new TransportFalso().responder(
+      'POST /api/v1/loans',
+      prestamoRespuesta('cuenta', [apiMovement({ id: 'pata-cuenta', amount: montoDe('40000') })]),
+    );
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+
+    await component.comandos.save({
+      kind: 'expense',
+      date: '2026-10-28',
+      description: 'Almuerzo de Camilo',
+      accountId: 'cuenta-1',
+      amount: 40000,
+      category: 'Mercado',
+      person: 'Camilo',
+    });
+
+    const [peticion] = transport.peticiones;
+    expect(peticion).toMatchObject({ method: 'POST', path: '/api/v1/loans' });
+    expect(peticion.body).toMatchObject({
+      direction: 1,
+      counterparty: 'persona-1',
+      account: 'cuenta-1',
+      amount: { amount: '40000', currency: 'COP' },
+      description: 'Almuerzo de Camilo',
+    });
+    expect(store.data().movements[0]).toMatchObject({ id: 'pata-cuenta', person: 'Camilo', loanRole: 'lent' });
+  });
+
+  it('una compra con tarjeta prestada deja la deuda con quien la prestó sin cuenta propia', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/loans', prestamoRespuesta('prestada', []));
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+    const antes = store.data().movements.length;
+
+    await component.comandos.save({
+      kind: 'expense',
+      date: '2026-10-28',
+      description: 'Zapatos con la tarjeta de Camilo',
+      accountId: '',
+      amount: 180000,
+      category: '',
+      counterpartyId: 'persona-1',
+      operationType: 'borrowedCard',
+      borrowedCardName: 'Mastercard Davivienda',
+      termMonths: 6,
+      monthlyRate: 2,
+    });
+
+    const [peticion] = transport.peticiones;
+    expect(peticion).toMatchObject({ method: 'POST', path: '/api/v1/loans' });
+    expect(peticion.body).toMatchObject({
+      direction: 2,
+      counterparty: 'persona-1',
+      amount: { amount: '180000', currency: 'COP' },
+      borrowedCard: true,
+      borrowedCardName: 'Mastercard Davivienda',
+      termMonths: 6,
+      monthlyRate: 0.02,
+    });
+    expect(peticion.body).not.toHaveProperty('account');
+    expect(peticion.body).not.toHaveProperty('card');
+    expect(store.data().movements).toHaveLength(antes);
+    expect(store.form()).toBeNull();
   });
 });
 

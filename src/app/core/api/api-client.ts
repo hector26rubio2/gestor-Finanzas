@@ -198,6 +198,9 @@ export class FinanceApiClient {
   reclassifyMovement(...args: Parameters<LedgerApi['reclassifyMovement']>) {
     return this.ledgerApi.reclassifyMovement(...args);
   }
+  correctMovement(...args: Parameters<LedgerApi['correctMovement']>) {
+    return this.ledgerApi.correctMovement(...args);
+  }
   reverseMovement(...args: Parameters<LedgerApi['reverseMovement']>) {
     return this.ledgerApi.reverseMovement(...args);
   }

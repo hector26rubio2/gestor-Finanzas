@@ -5,6 +5,7 @@ import {
   currencyCatalog,
   decimalsFor,
   formatAmount,
+  formatNumber,
   fromMinor,
   LOCAL_CURRENCIES,
   parseAmount,
@@ -119,5 +120,12 @@ describe('money', () => {
     setCurrencyCatalog([]);
     expect(decimalsFor('JPY')).toBe(0);
     expect(currencyCatalog().some((option) => option.code === 'COP')).toBe(true);
+  });
+});
+
+describe('formatNumber', () => {
+  it('escribe el valor con los decimales de su moneda pero sin el código', () => {
+    expect(formatNumber(80000, 'COP', 'es-CO')).toBe('80.000');
+    expect(formatNumber(1234.5, 'USD', 'es-CO')).toBe('1.234,50');
   });
 });

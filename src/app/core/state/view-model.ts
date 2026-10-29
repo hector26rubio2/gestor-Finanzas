@@ -4,6 +4,7 @@ export interface Movement {
   date: string;
   description: string;
   accountId: string;
+  accountName?: string;
   category: string;
   kind: 'income' | 'expense' | 'payment';
   effect?: 'income' | 'expense' | 'neutral';

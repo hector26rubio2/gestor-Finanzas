@@ -219,7 +219,20 @@
           </button>
           } @else if (textoRecortado(columnOf(key))) {
           <span class="line-clamp-2" [attr.title]="display(row.original[key])">{{ display(row.original[key]) }}</span>
-          } @else { {{ display(row.original[key]) }} }
+          } @else { {{ display(row.original[key]) }} } @if (key === firstColumnKey() && hasRowDetail(row.original)) {
+          <button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            type="button"
+            class="mt-1 flex h-auto w-fit justify-start p-0 text-xs font-semibold text-primary hover:bg-transparent max-[520px]:col-span-2"
+            [attr.aria-expanded]="isDetailOpen(row.id)"
+            [attr.aria-controls]="isDetailOpen(row.id) ? detailRowId(row.id) : null"
+            (click)="$event.stopPropagation(); toggleDetail(row.id)"
+          >
+            {{ detailLabel(row.original, row.id) }}
+          </button>
+          }
         </td>
         } @if (hasDetailColumns()) {
         <td hlmTd class="hidden border-0 max-[520px]:block max-[520px]:px-0 max-[520px]:pt-2 max-[520px]:pb-0">
@@ -236,7 +249,17 @@
         </td>
         }
       </tr>
-      } @empty {
+      @if (hasRowDetail(row.original) && isDetailOpen(row.id)) { @let detail = rowDetailTemplate();
+      <tr hlmTr class="hover:bg-transparent max-[520px]:block" [id]="detailRowId(row.id)">
+        <td
+          hlmTd
+          class="border-b border-border bg-muted/30 px-[18px] py-3 max-[520px]:block max-[520px]:px-3"
+          [attr.colspan]="visibleHeaders().length"
+        >
+          <ng-container *ngTemplateOutlet="detail; context: { $implicit: row.original }" />
+        </td>
+      </tr>
+      } } @empty {
       <tr hlmTr>
         <td
           hlmTd

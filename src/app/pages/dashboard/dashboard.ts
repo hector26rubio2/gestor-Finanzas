@@ -212,7 +212,10 @@ export class DashboardComponent extends DashboardKpis {
     { value: 'all', label: this.i18n.t('dashboard.accountType.all') },
     { value: 'credit', label: this.i18n.t('dashboard.accountType.credit.plural') },
     { value: 'savings', label: this.i18n.t('dashboard.accountType.savings.plural') },
+    { value: 'checking', label: this.i18n.t('dashboard.accountType.checking.plural') },
     { value: 'cash', label: this.i18n.t('dashboard.accountType.cash') },
+    { value: 'wallet', label: this.i18n.t('dashboard.accountType.wallet.plural') },
+    { value: 'other', label: this.i18n.t('dashboard.accountType.other.plural') },
   ]);
   readonly otherWidgetTypeOptions = computed<readonly UiOption[]>(() =>
     (
@@ -330,6 +333,9 @@ export class DashboardComponent extends DashboardKpis {
       credit: this.i18n.t('dashboard.accountType.credit'),
       savings: this.i18n.t('dashboard.accountType.savings'),
       cash: this.i18n.t('dashboard.accountType.cash'),
+      checking: this.i18n.t('dashboard.accountType.checking'),
+      wallet: this.i18n.t('dashboard.accountType.wallet'),
+      other: this.i18n.t('dashboard.accountType.other'),
     };
     return etiquetas[type] ?? type;
   }

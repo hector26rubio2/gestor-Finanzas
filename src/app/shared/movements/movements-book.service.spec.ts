@@ -109,6 +109,8 @@ describe('MovementsBookService — columnas de entrada/salida y cuotas', () => {
     expect(fila('compra')['effect']).toBe('Salida');
     expect(fila('compra')['financing']).toBe('Una cuota');
     expect(fila('saldo-inicial')['recurrence']).toBe('—');
+    expect(fila('saldo-inicial')['product']).toBe('Débito');
+    expect(fila('compra')['product']).toBe('Crédito');
   });
 
   it('un movimiento recurrente muestra el chulito con su frecuencia', () => {

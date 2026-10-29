@@ -364,6 +364,7 @@ describe('RemoteBootstrap', () => {
             cycle: { statementDay: 5, paymentDueDay: 20 },
             issuer: null,
             lastFour: null,
+            isActive: true,
           } as never,
         ],
       }),

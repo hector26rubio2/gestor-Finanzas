@@ -165,7 +165,8 @@
         <div>
           <h3 class="text-xs font-semibold">{{ i18n.t('form.account.preview.title') }}</h3>
           <small class="text-xs text-muted-foreground"
-            >{{ i18n.t(editing ? 'form.account.preview.hintEdit' : 'form.account.preview.hintCreate') }}</small
+            >{{ i18n.t(!editing ? 'form.account.preview.hintCreate' : aplicarPrioridad() ?
+            'form.account.preview.hintEdit' : 'form.account.preview.hintEditOldest') }}</small
           >
         </div>
         @if (editing) {

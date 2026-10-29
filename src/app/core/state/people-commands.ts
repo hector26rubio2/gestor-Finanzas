@@ -16,7 +16,12 @@ export class PeopleCommands {
     private readonly i18n: I18nService,
   ) {}
 
-  async createCounterparty(name: string, kind: PersonKind = 'person', email?: string): Promise<Person> {
+  async createCounterparty(
+    name: string,
+    kind: PersonKind = 'person',
+    email?: string,
+    relationship?: Person['relationship'],
+  ): Promise<Person> {
     const nombre = name.trim();
     if (!nombre) throw new Error(this.i18n.t('form.error.nameRequired'));
     const creada: Person = await firstValueFrom(
@@ -24,8 +29,17 @@ export class PeopleCommands {
         displayName: nombre,
         email: email || null,
         kind: kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person,
+        ...(relationship ? { relationship } : {}),
       }),
-    ).then((respuesta) => ({ id: respuesta.id, name: respuesta.displayName, owed: 0, owing: 0, kind, email }));
+    ).then((respuesta) => ({
+      id: respuesta.id,
+      name: respuesta.displayName,
+      owed: 0,
+      owing: 0,
+      kind,
+      email,
+      ...(relationship ? { relationship } : {}),
+    }));
     this.store.data.update((data) => ({ ...data, people: [...data.people, creada] }));
     return creada;
   }
@@ -36,11 +50,7 @@ export class PeopleCommands {
     relationship: Person['relationship'] = 'Otro',
     kind: PersonKind = 'person',
   ) {
-    const creada = await this.createCounterparty(name, kind, email || undefined);
-    this.store.data.update((data) => ({
-      ...data,
-      people: data.people.map((persona) => (persona.id === creada.id ? { ...persona, relationship } : persona)),
-    }));
+    await this.createCounterparty(name, kind, email || undefined, relationship);
     this.store.form.set(null);
     this.store.toast.set(
       this.i18n.t(kind === 'institution' ? 'toast.institution.created' : 'toast.person.created', { name }),
@@ -66,6 +76,7 @@ export class PeopleCommands {
         phone: remota.phone,
         notes: remota.notes,
         isActive: remota.isActive,
+        ...(changes.relationship ? { relationship: changes.relationship } : {}),
         ...(changes.kind
           ? { kind: changes.kind === 'institution' ? COUNTERPARTY_KIND.institution : COUNTERPARTY_KIND.person }
           : {}),

@@ -68,19 +68,21 @@ export function hechosDeMovimiento(
 }
 
 export function hechosDeCuenta(a: Account, { t, money }: InspectorFactsContext): InspectorFact[] {
-  const noAplica = t('workspace.inspector.facts.notApplicable');
-  return [
+  const hechos: InspectorFact[] = [
     [t('workspace.inspector.facts.lastFour'), a.lastFour ? '•••• ' + a.lastFour : SIN_DATO],
     [t('workspace.inspector.facts.currency'), a.currency],
-    [
+  ];
+  if (a.currency === 'USD')
+    hechos.push([
       t('workspace.inspector.facts.referenceRate'),
-      a.currency === 'USD'
-        ? (a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'))
-        : noAplica,
-    ],
-    [t('workspace.inspector.facts.cutoff'), a.cutDay ? String(a.cutDay) : noAplica],
-    [t('workspace.inspector.facts.dueDate'), a.dueDay ? String(a.dueDay) : noAplica],
-    [t('workspace.inspector.facts.limit'), a.limit ? money(a.limit) : noAplica],
+      a.exchangeRate?.toLocaleString('es-CO') ?? t('workspace.inspector.facts.undefined'),
+    ]);
+  if (a.type !== 'credit') return hechos;
+  return [
+    ...hechos,
+    [t('workspace.inspector.facts.cutoff'), a.cutDay ? String(a.cutDay) : SIN_DATO],
+    [t('workspace.inspector.facts.dueDate'), a.dueDay ? String(a.dueDay) : SIN_DATO],
+    [t('workspace.inspector.facts.limit'), a.limit ? money(a.limit) : SIN_DATO],
   ];
 }
 

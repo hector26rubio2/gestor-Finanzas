@@ -13,7 +13,10 @@ export interface RemoteViewSources {
 
 export function toViewData(sources: RemoteViewSources, movements: Movement[]): ViewData {
   return {
-    accounts: [...sources.accounts.map(toViewAccount), ...sources.cards.map(cardToViewAccount)],
+    accounts: [
+      ...sources.accounts.filter((cuenta) => cuenta.isActive).map(toViewAccount),
+      ...sources.cards.filter((tarjeta) => tarjeta.isActive).map(cardToViewAccount),
+    ],
     movements,
     people: toViewPeople(sources.people),
     investments: sources.investments.map(toViewInvestment),

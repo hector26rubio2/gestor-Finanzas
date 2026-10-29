@@ -4,6 +4,7 @@
 <fin-field [label]="i18n.t('form.field.amount')">
   <input hlmInput type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
 </fin-field>
+@if (showAccount()) {
 <fin-field [label]="sourceAccountLabel()">
   <fin-select
     name="accountId"
@@ -12,7 +13,7 @@
     [ariaLabel]="sourceAccountLabel()"
   />
 </fin-field>
-@if (showTargetAccount()) {
+} @if (showTargetAccount()) {
 <fin-field [label]="targetAccountLabel()">
   <fin-select
     name="targetId"
