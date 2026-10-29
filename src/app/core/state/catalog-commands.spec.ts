@@ -438,6 +438,31 @@ describe('CatalogCommands — categorías', () => {
     expect(store.toast.revision()).toBeGreaterThan(0);
   });
 
+  it('createCategoryInline crea la categoría sin cerrar el formulario abierto y la devuelve', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/categories', {
+      body: {
+        id: 'cat-x',
+        name: 'Mascotas',
+        type: 2,
+        color: '#64748b',
+        icon: 'tag',
+        parent: null,
+        isActive: true,
+        createdAt: '',
+      },
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    cambios();
+    store.form.set({ kind: 'expense' });
+
+    const creada = await component.comandos.createCategoryInline('  Mascotas ', 'expense');
+
+    expect(transport.peticiones[0].body).toMatchObject({ name: 'Mascotas', type: 2 });
+    expect(creada.name).toBe('Mascotas');
+    expect(store.categories().map((c) => c.id)).toContain('cat-x');
+    expect(store.form()).not.toBeNull();
+  });
+
   it('updateCategory con renombrado: PUT y re-mapa category en TODOS los movimientos', async () => {
     const transport = new TransportFalso().responder('PUT /api/v1/categories/categoria-1', {
       body: {

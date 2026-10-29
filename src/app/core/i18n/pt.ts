@@ -1510,6 +1510,7 @@ export default {
   'form.movement.counterparty.borrower': 'Para quem você emprestou?',
   'form.movement.counterparty.addInstitution': 'Nova instituição',
   'form.movement.counterparty.addPerson': 'Nova pessoa',
+  'form.movement.category.add': 'Nova categoria',
   'form.movement.cardMode.purchase': 'Compra no cartão',
   'form.movement.cardMode.cashAdvance': 'Saque no crédito',
   'form.movement.field.cardMode': 'Como o cartão foi usado?',

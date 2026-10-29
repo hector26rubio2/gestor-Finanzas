@@ -61,6 +61,9 @@ export class CatalogCommands {
   createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
     return this.categorias.createCategory(name, color, icon, kind);
   }
+  createCategoryInline(name: string, kind: 'income' | 'expense') {
+    return this.categorias.createCategoryInline(name, kind);
+  }
   updateCategory(id: string, changes: { name: string; color: string; icon: string }) {
     return this.categorias.updateCategory(id, changes);
   }

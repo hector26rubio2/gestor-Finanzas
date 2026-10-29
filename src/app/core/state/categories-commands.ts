@@ -15,12 +15,24 @@ export class CategoriesCommands {
   ) {}
 
   async createCategory(name: string, color: string, icon: string, kind: 'income' | 'expense' = 'expense') {
+    await this.crear(name, color, icon, kind);
+    this.store.form.set(null);
+    this.store.toast.set(this.i18n.t('toast.category.created', { name }));
+  }
+
+  async createCategoryInline(name: string, kind: 'income' | 'expense') {
+    const nombre = name.trim();
+    if (!nombre) throw new Error(this.i18n.t('form.management.error.nameRequired'));
+    const creada = await this.crear(nombre, '#64748b', 'tag', kind);
+    this.store.toast.set(this.i18n.t('toast.category.created', { name: nombre }));
+    return creada;
+  }
+
+  private async crear(name: string, color: string, icon: string, kind: 'income' | 'expense') {
     const type = kind === 'income' ? 1 : 2;
     const created = await firstValueFrom(this.client.createCategory({ name, type, color, icon }));
     this.store.categories.update((items) => [...items, created]);
-
-    this.store.form.set(null);
-    this.store.toast.set(this.i18n.t('toast.category.created', { name }));
+    return created;
   }
 
   async updateCategory(id: string, changes: { name: string; color: string; icon: string }) {
