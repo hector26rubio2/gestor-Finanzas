@@ -9,6 +9,7 @@ import { AppStore, CAPABILITIES } from '@core/state/store';
 import { FieldComponent } from '@ui/field/field';
 import { IconComponent } from '@ui/icon/icon';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
+import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@features/movement-form/relationship-options';
 
 @Component({
   selector: 'fin-movement-attribution-field',
@@ -50,6 +51,14 @@ import { UiOption, UiSelectComponent } from '@ui/select/select';
             (ngModelChange)="nombreNuevo.set($event)"
             (keydown.enter)="$event.preventDefault(); agregar()"
           />
+          <fin-select
+            class="w-40 shrink-0"
+            name="relacionNuevaPersonaResponsable"
+            [ngModel]="relacionNueva()"
+            (ngModelChange)="relacionNueva.set($event)"
+            [options]="relationshipOptions()"
+            [ariaLabel]="i18n.t('form.management.field.relationship')"
+          />
           <button hlmBtn type="button" size="sm" [disabled]="!nombreNuevo().trim() || guardando()" (click)="agregar()">
             {{ i18n.t('form.actions.add') }}
           </button>
@@ -69,7 +78,9 @@ export class MovementAttributionFieldComponent {
   readonly i18n = inject(I18nService);
   readonly creando = signal(false);
   readonly nombreNuevo = signal('');
+  readonly relacionNueva = signal<Relationship>(DEFAULT_RELATIONSHIP);
   readonly guardando = signal(false);
+  readonly relationshipOptions = computed(() => relationshipOptions(this.i18n));
 
   readonly personOptions = computed<readonly UiOption[]>(() => [
     { value: '', label: this.i18n.t('form.movement.person.own') },
@@ -91,9 +102,10 @@ export class MovementAttributionFieldComponent {
     if (!nombre || this.guardando()) return;
     this.guardando.set(true);
     try {
-      const creada = await this.catalogCommands.createCounterparty(nombre, 'person');
+      const creada = await this.catalogCommands.createCounterparty(nombre, 'person', undefined, this.relacionNueva());
       this.model['person'] = creada.name;
       this.nombreNuevo.set('');
+      this.relacionNueva.set(DEFAULT_RELATIONSHIP);
       this.creando.set(false);
     } finally {
       this.guardando.set(false);

@@ -121,7 +121,7 @@
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
-      <div class="nav-scroll min-h-0 flex-1 overflow-y-auto">
+      <div class="nav-scroll min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
         <nav id="primary-navigation" [attr.aria-label]="i18n.t('shell.primaryNav')">
           @for (group of groups(); track group) {
           <div hlmSidebarGroup class="p-0">

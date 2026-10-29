@@ -17,7 +17,9 @@ test.describe('Administración', () => {
     const alternar = async (interruptor: typeof global) => {
       const marca = vigilancia.marca();
       await interruptor.click();
-      if (await guardar.isVisible().catch(() => false)) await guardar.click();
+      const guardado = () => vigilancia.exitosasDesde(marca, /feature-flags/).length > 0;
+      await expect.poll(async () => guardado() || (await guardar.isVisible().catch(() => false))).toBe(true);
+      if (!guardado() && (await guardar.isVisible().catch(() => false))) await guardar.click();
       await expect.poll(() => vigilancia.exitosasDesde(marca, /feature-flags/).length).toBeGreaterThan(0);
     };
     if ((await global.getAttribute('aria-checked')) !== 'true') await alternar(global);

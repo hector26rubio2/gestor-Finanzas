@@ -24,8 +24,13 @@ export class CatalogCommands {
   ) {}
 
   // Contrapartes y personas
-  createCounterparty(name: string, kind: PersonKind = 'person', email?: string): Promise<Person> {
-    return this.personas.createCounterparty(name, kind, email);
+  createCounterparty(
+    name: string,
+    kind: PersonKind = 'person',
+    email?: string,
+    relationship?: Person['relationship'],
+  ): Promise<Person> {
+    return this.personas.createCounterparty(name, kind, email, relationship);
   }
   createPerson(name: string, email?: string, relationship?: Person['relationship'], kind?: PersonKind) {
     return this.personas.createPerson(name, email, relationship, kind);

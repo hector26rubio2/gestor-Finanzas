@@ -34,6 +34,16 @@
       (ngModelChange)="nombreNuevo.set($event)"
       (keydown.enter)="$event.preventDefault(); agregar()"
     />
+    @if (esPersonaNueva()) {
+    <fin-select
+      class="w-40 shrink-0"
+      name="relacionNuevaContraparte"
+      [ngModel]="relacionNueva()"
+      (ngModelChange)="relacionNueva.set($event)"
+      [options]="relationshipOptions()"
+      [ariaLabel]="i18n.t('form.management.field.relationship')"
+    />
+    }
     <button hlmBtn type="button" size="sm" [disabled]="!nombreNuevo().trim() || guardando()" (click)="agregar()">
       {{ i18n.t('form.actions.add') }}
     </button>
