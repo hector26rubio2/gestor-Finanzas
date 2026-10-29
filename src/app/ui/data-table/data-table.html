@@ -225,7 +225,7 @@
             variant="ghost"
             size="sm"
             type="button"
-            class="mt-1 flex h-auto w-fit justify-start p-0 text-xs font-semibold text-primary hover:bg-transparent max-[520px]:col-span-2"
+            class="mt-1 flex h-auto min-h-6 w-fit items-center justify-start p-0 text-xs font-semibold text-primary hover:bg-transparent max-[520px]:col-span-2"
             [attr.aria-expanded]="isDetailOpen(row.id)"
             [attr.aria-controls]="isDetailOpen(row.id) ? detailRowId(row.id) : null"
             (click)="$event.stopPropagation(); toggleDetail(row.id)"
