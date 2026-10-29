@@ -618,6 +618,65 @@
         }
       }
     },
+    "/api/v1/movements/{id}/correction": {
+      "post": {
+        "tags": ["Finanzas v1"],
+        "operationId": "CorrectMovement",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectMovementRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MovementDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/movements/{id}/reversal": {
       "post": {
         "tags": ["Finanzas v1"],
@@ -6194,6 +6253,18 @@
             "items": {
               "type": "string"
             }
+          }
+        }
+      },
+      "CorrectMovementRequest": {
+        "required": ["replacement"],
+        "type": "object",
+        "properties": {
+          "replacement": {
+            "$ref": "#/components/schemas/CreateMovementRequest"
+          },
+          "reason": {
+            "type": ["null", "string"]
           }
         }
       },

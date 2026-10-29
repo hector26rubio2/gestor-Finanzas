@@ -152,6 +152,14 @@ export class LedgerApi {
     });
   }
 
+  correctMovement(id: string, request: { replacement: CreateMovementBody; reason?: string | null }) {
+    return this.transport.request<ApiMovement>({
+      method: 'POST',
+      path: API_ROUTES.movementCorrection(id),
+      body: request,
+    });
+  }
+
   createTransfer(request: CreateTransferBody) {
     return this.transport.request<ApiOperation>({ method: 'POST', path: API_ROUTES.transfers, body: request });
   }

@@ -274,6 +274,8 @@ export default {
   'form.movement.error.amountPositive': 'The amount must be greater than 0.',
   'form.movement.error.accountInvalid': 'Select a valid account.',
   'form.movement.error.targetDifferent': 'Select a different destination account.',
+  'form.movement.error.operationNotCorrectable':
+    'Transfers, payments, advances and loans only allow changing category and description; to fix the amount, reverse the operation and record it again.',
   'form.movement.error.saveFailed': "Couldn't save",
   'form.movement.actions.save': 'Save transaction',
   'form.movement.actions.saving': 'Saving…',

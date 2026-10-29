@@ -32,7 +32,6 @@ test.describe('Formulario de movimiento', () => {
   });
 
   test('FRM-02 editar el monto de un gasto lo guarda o no deja editarlo', async ({ page, vigilancia }) => {
-    test.fail(true, '.scratch/gestor-finanzas-bugs/issues/03: la edición solo reclasifica y descarta el monto');
     const descripcion = `E2E editar monto ${corrida}`;
     await ir(page, 'movements');
     await atajo(page, 'n', 'g');

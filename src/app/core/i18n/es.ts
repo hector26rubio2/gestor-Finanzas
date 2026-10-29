@@ -275,6 +275,8 @@ export default {
   'form.movement.error.amountPositive': 'El monto debe ser mayor a 0.',
   'form.movement.error.accountInvalid': 'Selecciona una cuenta válida.',
   'form.movement.error.targetDifferent': 'Selecciona una cuenta destino diferente.',
+  'form.movement.error.operationNotCorrectable':
+    'Las transferencias, pagos, avances y préstamos solo permiten cambiar categoría y descripción; para corregir el monto, reversa la operación y regístrala de nuevo.',
   'form.movement.error.saveFailed': 'No se pudo guardar',
   'form.movement.actions.save': 'Guardar movimiento',
   'form.movement.actions.saving': 'Guardando…',

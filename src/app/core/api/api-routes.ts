@@ -78,6 +78,7 @@ export const API_ROUTES = {
   movement: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}`,
   movementClassification: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/classification`,
   movementReversal: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/reversal`,
+  movementCorrection: (id: string) => `/api/v1/movements/${encodeURIComponent(id)}/correction`,
   account: (id: string) => `/api/v1/accounts/${encodeURIComponent(id)}`,
   dashboard: '/api/v1/dashboard',
   openApi: '/openapi/v1.json',

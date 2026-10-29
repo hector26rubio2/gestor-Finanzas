@@ -390,6 +390,84 @@ describe('MovementCommands.save — edición/reclasificación', () => {
   });
 });
 
+describe('MovementCommands.save — corrección de monto, fecha o cuenta', () => {
+  function corrector(extra: Record<string, unknown> = {}) {
+    const transport = new TransportFalso().responder('POST /api/v1/movements/mov-1/correction', {
+      body: apiMovement({
+        id: 'mov-2',
+        date: '2026-09-26',
+        amount: {
+          original: { amount: '99000', currency: 'COP' },
+          base: { amount: '99000', currency: 'COP' },
+          rate: '1',
+          rateAsOf: '2026-09-26',
+        },
+      }),
+    });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      data: datosDe({
+        movements: [
+          {
+            id: 'mov-1',
+            date: '2026-09-25',
+            description: 'Mercado del sábado',
+            accountId: 'cuenta-1',
+            category: 'Mercado',
+            kind: 'expense',
+            amount: -45900,
+            status: 'confirmed',
+            ...extra,
+          },
+        ],
+      }),
+      transport,
+    });
+    cambios();
+    return { transport, store, comandos: component.comandos };
+  }
+
+  it('cambiar el monto pide la corrección atómica y reemplaza el original por el nuevo', async () => {
+    const { transport, store, comandos } = corrector();
+    store.inspect('movement', 'mov-1');
+
+    await comandos.save({
+      id: 'mov-1',
+      kind: 'expense',
+      date: '2026-09-26',
+      description: 'Mercado del sábado',
+      accountId: 'cuenta-1',
+      amount: 99000,
+      category: 'Mercado',
+    });
+
+    const [peticion] = transport.peticiones;
+    expect(peticion).toMatchObject({ method: 'POST', path: '/api/v1/movements/mov-1/correction' });
+    expect(peticion.body).toMatchObject({
+      replacement: { date: '2026-09-26', amount: { amount: '99000' }, links: { account: 'cuenta-1' } },
+    });
+    expect(store.data().movements.map((m) => m.id)).toEqual(['mov-2']);
+    expect(store.inspector()).toMatchObject({ type: 'movement', id: 'mov-2' });
+    expect(store.form()).toBeNull();
+  });
+
+  it('una pata de transferencia no se corrige y no llama a la API', async () => {
+    const { transport, comandos } = corrector({ movementSubtype: 'transfer' });
+
+    await expect(
+      comandos.save({
+        id: 'mov-1',
+        kind: 'expense',
+        date: '2026-09-25',
+        description: 'Mercado del sábado',
+        accountId: 'cuenta-1',
+        amount: 10,
+        category: 'Mercado',
+      }),
+    ).rejects.toThrow();
+    expect(transport.peticiones).toHaveLength(0);
+  });
+});
+
 describe('MovementCommands.save — validaciones de negocio', () => {
   it('rechaza monto no positivo, cuenta ausente y transferencia sin destino, sin pedir nada a la API', async () => {
     const transport = new TransportFalso();

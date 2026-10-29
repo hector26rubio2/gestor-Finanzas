@@ -1,7 +1,8 @@
 import { inject, Injectable, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Movement, Person } from './view-model';
+import { Account, Movement, Person } from './view-model';
 import { FinanceApiClient } from '@core/api/api-client';
+import type { ApiMovement, CreateMovementBody } from '@core/api/ledger.api';
 import { parseMoney } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
 import { CashFlow, EconomicEffect, MovementKind, signOf } from '@core/utils/movement-kinds';
@@ -9,42 +10,57 @@ import { anualDesdeMensual } from '@core/utils/tasas';
 import { LOAN_CARD_MODE, LOAN_PRODUCT, OBLIGATION_DIRECTION } from '@core/api/obligations.api';
 import { AppStore } from './store';
 
+type DatosDeMovimiento = {
+  kind: string;
+  date: string;
+  description: string;
+  accountId: string;
+  targetId?: string;
+  amount: number;
+  category: string;
+  person?: string;
+  id?: string;
+  notificationId?: string;
+  ownership?: Movement['ownership'];
+  recurring?: boolean | string;
+  recurrence?: Movement['recurrence'];
+  installmentCurrent?: number;
+  installmentTotal?: number;
+  purchaseApr?: number;
+  cardBucket?: number;
+  loanRole?: Movement['loanRole'];
+  loanProduct?: Movement['loanProduct'];
+  originalCurrency?: Movement['originalCurrency'];
+  originalAmount?: number;
+  exchangeRate?: number;
+  operationType?: string;
+  counterpartyId?: string;
+  monthlyRate?: number;
+  termMonths?: number;
+  cardMode?: 'purchase' | 'cashAdvance';
+  installmentRate?: number;
+};
+
+function cambiaElRegistro(original: Movement, input: DatosDeMovimiento): boolean {
+  const moneda = input.originalCurrency ?? 'COP';
+  return (
+    original.date !== input.date ||
+    original.accountId !== input.accountId ||
+    original.kind !== input.kind ||
+    Math.abs(original.amount) !== input.amount ||
+    (original.installmentTotal ?? 1) !== (Number(input.installmentTotal) || 1) ||
+    (original.originalCurrency ?? 'COP') !== moneda ||
+    (moneda === 'USD' && original.originalAmount !== input.originalAmount)
+  );
+}
+
 @Injectable({ providedIn: 'root' })
 export class MovementCommands {
   private readonly store = inject(AppStore);
   private readonly injector = inject(Injector);
   private readonly i18n = inject(I18nService);
 
-  async save(input: {
-    kind: string;
-    date: string;
-    description: string;
-    accountId: string;
-    targetId?: string;
-    amount: number;
-    category: string;
-    person?: string;
-    id?: string;
-    notificationId?: string;
-    ownership?: Movement['ownership'];
-    recurring?: boolean | string;
-    recurrence?: Movement['recurrence'];
-    installmentCurrent?: number;
-    installmentTotal?: number;
-    purchaseApr?: number;
-    cardBucket?: number;
-    loanRole?: Movement['loanRole'];
-    loanProduct?: Movement['loanProduct'];
-    originalCurrency?: Movement['originalCurrency'];
-    originalAmount?: number;
-    exchangeRate?: number;
-    operationType?: string;
-    counterpartyId?: string;
-    monthlyRate?: number;
-    termMonths?: number;
-    cardMode?: 'purchase' | 'cashAdvance';
-    installmentRate?: number;
-  }) {
+  async save(input: DatosDeMovimiento) {
     const esFinanciacion = input.operationType === 'loan' || input.operationType === 'credit';
     const cuotas = Number(input.installmentTotal) > 1 ? Number(input.installmentTotal) : undefined;
     const aprPropia =
@@ -62,6 +78,8 @@ export class MovementCommands {
       throw new Error(this.i18n.t('form.movement.error.targetDifferent'));
     if (esFinanciacion && !input.id) return this.saveLoan(input, contraparte);
     if (input.id) {
+      const original = this.store.data().movements.find((item) => item.id === input.id);
+      if (original && cambiaElRegistro(original, input)) return this.correct(original, input, cuotas, aprPropia);
       const category = this.store.categories().find((item) => item.name === input.category);
       const updated = await firstValueFrom(
         this.injector.get(FinanceApiClient).reclassifyMovement(input.id, {
@@ -137,43 +155,86 @@ export class MovementCommands {
       this.store.form.set(null);
       return;
     }
+    const created = await firstValueFrom(
+      this.injector.get(FinanceApiClient).createMovement(this.cuerpoDeMovimiento(input, account, cuotas, aprPropia)),
+    );
+    this.store.data.update((data) => ({
+      ...data,
+      movements: [this.aMovimiento(created, input, account, cuotas), ...data.movements],
+    }));
+    this.store.form.set(null);
+    this.invalidarListadoRemoto();
+  }
+
+  private async correct(original: Movement, input: DatosDeMovimiento, cuotas?: number, aprPropia?: number) {
+    if (original.movementSubtype || original.kind === 'payment' || original.loanRole)
+      throw new Error(this.i18n.t('form.movement.error.operationNotCorrectable'));
+    const account = this.store.account(input.accountId);
+    if (!account) throw new Error(this.i18n.t('form.movement.error.accountInvalid'));
+    const created = await firstValueFrom(
+      this.injector.get(FinanceApiClient).correctMovement(original.id, {
+        replacement: this.cuerpoDeMovimiento(input, account, cuotas, aprPropia),
+      }),
+    );
+    this.store.data.update((data) => ({
+      ...data,
+      movements: [
+        this.aMovimiento(created, input, account, cuotas),
+        ...data.movements.filter((item) => item.id !== original.id),
+      ],
+    }));
+    const abierto = this.store.inspector();
+    if (abierto?.id === original.id) this.store.inspector.set({ ...abierto, id: created.id });
+    this.store.form.set(null);
+    this.invalidarListadoRemoto();
+  }
+
+  private cuerpoDeMovimiento(
+    input: DatosDeMovimiento,
+    account: Account,
+    cuotas: number | undefined,
+    aprPropia: number | undefined,
+  ): CreateMovementBody {
     const isIncome = input.kind === 'income';
     const isCard = account.type === 'credit';
     const categoria = this.store.categories().find((item) => item.name === input.category);
-    const persona = contraparte ?? this.store.data().people.find((item) => item.name === input.person);
-    const created = await firstValueFrom(
-      this.injector.get(FinanceApiClient).createMovement({
-        date: input.date,
-        kind: isIncome ? MovementKind.income : isCard ? MovementKind.cardPurchase : MovementKind.expense,
-        effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
-        flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
-        amount: {
-          amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
-          currency: input.originalCurrency ?? account.currency,
-        },
-        links: {
-          ...(isCard ? { card: input.accountId } : { account: input.accountId }),
-          ...(categoria ? { category: categoria.id } : {}),
-          ...(persona ? { counterparty: persona.id } : {}),
-        },
-        rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
-        rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
-        description: input.description,
-        idempotencyKey: crypto.randomUUID(),
-        purchaseApr: isCard ? aprPropia : undefined,
-        installments: isCard ? cuotas : undefined,
-        cardBucket: isCard && input.cardBucket ? input.cardBucket : undefined,
-      }),
-    );
-    const sign = signOf(created.flow, created.effect);
-    const movement: Movement = {
+    const personas = this.store.data().people;
+    const persona =
+      personas.find((item) => item.id === input.counterpartyId) ?? personas.find((item) => item.name === input.person);
+    return {
+      date: input.date,
+      kind: isIncome ? MovementKind.income : isCard ? MovementKind.cardPurchase : MovementKind.expense,
+      effect: isIncome ? EconomicEffect.income : EconomicEffect.expense,
+      flow: isIncome ? CashFlow.inflow : CashFlow.outflow,
+      amount: {
+        amount: String(input.originalCurrency === 'USD' ? input.originalAmount : input.amount),
+        currency: input.originalCurrency ?? account.currency,
+      },
+      links: {
+        ...(isCard ? { card: input.accountId } : { account: input.accountId }),
+        ...(categoria ? { category: categoria.id } : {}),
+        ...(persona ? { counterparty: persona.id } : {}),
+      },
+      rate: input.originalCurrency === 'USD' ? String(input.exchangeRate) : undefined,
+      rateAsOf: input.originalCurrency === 'USD' ? input.date : undefined,
+      description: input.description,
+      idempotencyKey: crypto.randomUUID(),
+      purchaseApr: isCard ? aprPropia : undefined,
+      installments: isCard ? cuotas : undefined,
+      cardBucket: isCard && input.cardBucket ? input.cardBucket : undefined,
+    };
+  }
+
+  private aMovimiento(created: ApiMovement, input: DatosDeMovimiento, account: Account, cuotas?: number): Movement {
+    const isCard = account.type === 'credit';
+    return {
       id: created.id,
       date: created.date,
       description: created.description ?? input.description,
       accountId: input.accountId,
       category: created.linkNames['category']?.name ?? input.category,
       kind: input.kind as Movement['kind'],
-      amount: parseMoney(created.amount.base) * sign,
+      amount: parseMoney(created.amount.base) * signOf(created.flow, created.effect),
       status: 'confirmed',
       person: created.linkNames['counterparty']?.name ?? input.person,
       ownership: created.links['counterparty'] ? 'loaned' : 'own',
@@ -184,9 +245,6 @@ export class MovementCommands {
       ...(created.cardBucket ? { cardBucket: created.cardBucket } : {}),
       ...(isCard && cuotas ? { installmentTotal: cuotas, installmentCurrent: 1 } : {}),
     };
-    this.store.data.update((data) => ({ ...data, movements: [movement, ...data.movements] }));
-    this.store.form.set(null);
-    this.invalidarListadoRemoto();
   }
 
   private async saveLoan(
