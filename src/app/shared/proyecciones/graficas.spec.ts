@@ -1,7 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import type { ChartPalette } from '@ui/chart';
 import { proyectar } from './amortizacion';
-import { mesAMes, type EntornoDeProyeccion } from './graficas';
+import {
+  comparacionDeEscenarios,
+  conVista,
+  flujoYMeta,
+  mesAMes,
+  saldosEnElTiempo,
+  type EntornoDeProyeccion,
+} from './graficas';
 
 const palette: ChartPalette = {
   accent: '#00f',
@@ -53,5 +60,49 @@ describe('mesAMes', () => {
     expect(gasto?.data).toEqual([800_000, 800_000]);
     const libre = opcion.series.find((s) => s.name === 'planning.sim.series.freeCash');
     expect(libre?.data).toEqual([1_200_000, 1_200_000]);
+  });
+});
+
+interface SerieConStack {
+  readonly name: string;
+  readonly type: string;
+  readonly stack?: string;
+}
+
+describe('conVista apiladas', () => {
+  const escenario = proyectar(
+    [
+      { id: 'a', nombre: 'Deuda A', tipo: 'prestamo', saldo: 1_000_000, tasaMensual: 0.02, cuotas: 12 },
+      { id: 'b', nombre: 'Deuda B', tipo: 'prestamo', saldo: 500_000, tasaMensual: 0.02, cuotas: 12 },
+    ],
+    [],
+    { ingresoMensual: 2_000_000, gastoMensual: 1_000_000, recorteDeGasto: 0, metaDeAhorro: 0 },
+    2,
+  );
+  const series = (opcion: unknown) => (opcion as { series: SerieConStack[] }).series;
+
+  it('no apila la linea base sobre los saldos de las deudas', () => {
+    const opcion = conVista(saldosEnElTiempo(escenario, escenario, [], entorno), 'apiladas');
+    const base = series(opcion).find((s) => s.name === 'planning.sim.series.baseTotal');
+    expect(base?.stack).toBeUndefined();
+    const deudas = series(opcion).filter((s) => s.name !== 'planning.sim.series.baseTotal');
+    expect(deudas.every((s) => s.stack === 'saldo')).toBe(true);
+  });
+
+  it('no apila el flujo libre con el ahorro acumulado', () => {
+    const opcion = conVista(flujoYMeta(escenario, 0, entorno), 'apiladas');
+    expect(series(opcion).every((s) => s.stack === undefined)).toBe(true);
+  });
+
+  it('no apila los escenarios comparados', () => {
+    const guardado = (id: string) => ({
+      id,
+      nombre: id,
+      saldoTotal: [1, 2],
+      ahorroAcumulado: [1, 2],
+      flujoLibre: [1, 2],
+    });
+    const opcion = conVista(comparacionDeEscenarios([guardado('x'), guardado('y')], 'saldoTotal', entorno), 'apiladas');
+    expect(series(opcion).every((s) => s.stack === undefined)).toBe(true);
   });
 });
