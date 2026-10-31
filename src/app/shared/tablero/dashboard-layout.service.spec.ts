@@ -47,6 +47,19 @@ describe('diseño del dashboard guardado en el servidor', () => {
     expect(JSON.parse(save.mock.calls[0][0]).widgets[0]).toEqual({ id: 'a', cols: 5, height: 360 });
   });
 
+  it('los widgets ocultos viajan en el diseño guardado y vuelven al hidratar', () => {
+    const layout = montar();
+    layout.saveHiddenWidgets(['a']);
+    vi.advanceTimersByTime(1000);
+
+    const guardado = save.mock.calls[0][0];
+    expect(JSON.parse(guardado).hidden).toEqual(['a']);
+
+    const otro = montar();
+    otro.hydrate(guardado);
+    expect(otro.hiddenWidgets()).toEqual(['a']);
+  });
+
   it('el diseño que llega del servidor reemplaza al local', () => {
     const layout = montar();
     const remote = {

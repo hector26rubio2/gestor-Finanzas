@@ -46,7 +46,7 @@ export class EdicionDeWidgets {
   private readonly layout = inject(DashboardLayoutService);
 
   readonly all = signal<Widget[]>(buildWidgetCatalog(this.i18n));
-  readonly hiddenIds = signal<string[]>([]);
+  readonly hiddenIds = computed(() => this.layout.hiddenWidgets());
   private readonly restaurar = effect(() => {
     const guardados = this.layout.widgetConfigs();
     untracked(() => this.all.set(fusionarWidgets(buildWidgetCatalog(this.i18n), guardados ?? [])));
@@ -61,12 +61,12 @@ export class EdicionDeWidgets {
 
   hide(id: string): void {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
-    this.hiddenIds.update((x) => [...x, id]);
+    if (!this.hiddenIds().includes(id)) this.layout.saveHiddenWidgets([...this.hiddenIds(), id]);
   }
 
   show(id: string): void {
     if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
-    this.hiddenIds.update((x) => x.filter((v) => v !== id));
+    this.layout.saveHiddenWidgets(this.hiddenIds().filter((v) => v !== id));
   }
 
   move(id: string, direction: number): void {

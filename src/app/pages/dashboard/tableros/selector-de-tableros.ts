@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
+import { ApiRequestError } from '@core/http/api-http-client';
 import { I18nService } from '@core/i18n';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
@@ -29,15 +30,22 @@ export class SelectorDeTablerosComponent {
   private readonly abrirSeleccion = effect(() => {
     const id = this.seleccion();
     const lista = this.tableros.tableros();
-    if (id !== TABLERO_PRINCIPAL && !lista.some((t) => t.id === id)) return;
+    if (id !== TABLERO_PRINCIPAL && !lista.some((t) => t.id === id)) {
+      if (this.tableros.listaCargada()) untracked(() => this.seleccion.set(TABLERO_PRINCIPAL));
+      return;
+    }
     if (id === untracked(this.tableros.activo)) return;
     untracked(() => {
       void this.tableros.abrir(id).catch(() => this.seleccion.set(TABLERO_PRINCIPAL));
     });
   });
+  private primeraLectura = true;
   private readonly seguirActivo = effect(() => {
     const activo = this.tableros.activo();
     untracked(() => {
+      const inicial = this.primeraLectura;
+      this.primeraLectura = false;
+      if (inicial && this.seleccion() !== TABLERO_PRINCIPAL) return;
       if (this.seleccion() !== activo) this.seleccion.set(activo);
     });
   });
@@ -122,7 +130,7 @@ export class SelectorDeTablerosComponent {
   }
 
   private mensaje(error: unknown): string {
-    const detalle = (error as { error?: { detail?: string } })?.error?.detail;
-    return detalle ?? this.i18n.t('dashboard.boards.error');
+    const detalle = error instanceof ApiRequestError ? error.problem.detail : undefined;
+    return detalle || this.i18n.t('dashboard.boards.error');
   }
 }
