@@ -1201,11 +1201,18 @@ test.describe('Tablero: tabla «Movimientos del periodo»', () => {
     await expect(rangoDeFilas(tabla)).toContainText(`1–15 de ${total}`);
   });
 
+  async function ordenarPor(tabla: import('@playwright/test').Locator, columna: string) {
+    const cabecera = tabla.getByRole('columnheader', { name: columna });
+    const antes = await cabecera.getAttribute('aria-sort');
+    await tabla.getByRole('button', { name: `Ordenar por ${columna}` }).click();
+    await expect.poll(() => cabecera.getAttribute('aria-sort'), { message: `orden de ${columna}` }).not.toBe(antes);
+  }
+
   test('DAS-19 ordenar por importe y por fecha reordena la tabla en ambos sentidos', async ({ page }) => {
     const tabla = await prepararTabla(page);
-    await tabla.getByRole('button', { name: 'Ordenar por Importe' }).click();
+    await ordenarPor(tabla, 'Importe');
     const primero = await celdasDe(tabla, 4);
-    await tabla.getByRole('button', { name: 'Ordenar por Importe' }).click();
+    await ordenarPor(tabla, 'Importe');
     const segundo = await celdasDe(tabla, 4);
     const valores = (lista: string[]) => lista.map(numeroDe);
     const sentido = (lista: number[]) =>
@@ -1225,11 +1232,11 @@ test.describe('Tablero: tabla «Movimientos del periodo»', () => {
       -importeDe(1),
     ]);
 
-    await tabla.getByRole('button', { name: 'Ordenar por Fecha' }).click();
+    await ordenarPor(tabla, 'Fecha');
     const fechas = await celdasDe(tabla, 0);
     expect(fechas).toEqual([...fechas].sort());
     expect(fechas[0]).toBe(sumarDias(hoy(), -8));
-    await tabla.getByRole('button', { name: 'Ordenar por Fecha' }).click();
+    await ordenarPor(tabla, 'Fecha');
     const alReves = await celdasDe(tabla, 0);
     expect(alReves).toEqual([...alReves].sort().reverse());
     expect(alReves[0]).toBe(hoy());
