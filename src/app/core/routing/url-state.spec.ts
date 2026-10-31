@@ -14,6 +14,18 @@ class Anfitrion {
   }
 }
 
+@Component({ template: '' })
+class AnfitrionDeVarios {
+  readonly tipo = signal('all');
+  readonly cuenta = signal('all');
+  readonly escala = signal('month');
+  constructor() {
+    sincronizarConLaUrl('tipo', this.tipo, 'all');
+    sincronizarConLaUrl('cuenta', this.cuenta, 'all');
+    sincronizarConLaUrl('escala', this.escala, 'month');
+  }
+}
+
 describe('estado en la URL', () => {
   function montar() {
     TestBed.resetTestingModule();
@@ -119,5 +131,33 @@ describe('estado en la URL', () => {
     await fixture.whenStable();
 
     expect(router.url).not.toContain('pagina=');
+  });
+
+  it('cambiar varios filtros a la vez los deja todos en la URL y limpiarlos a la vez los quita todos', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([{ path: '**', children: [] }])] });
+    const router = TestBed.inject(Router);
+    const fixture = TestBed.createComponent(AnfitrionDeVarios);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    fixture.componentInstance.tipo.set('credit');
+    fixture.componentInstance.cuenta.set('abc');
+    fixture.componentInstance.escala.set('year');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(router.url).toContain('tipo=credit');
+    expect(router.url).toContain('cuenta=abc');
+    expect(router.url).toContain('escala=year');
+
+    fixture.componentInstance.tipo.set('all');
+    fixture.componentInstance.cuenta.set('all');
+    fixture.componentInstance.escala.set('month');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(router.url).not.toMatch(/tipo=|cuenta=|escala=/);
+    expect(fixture.componentInstance.tipo()).toBe('all');
+    expect(fixture.componentInstance.cuenta()).toBe('all');
+    expect(fixture.componentInstance.escala()).toBe('month');
   });
 });
