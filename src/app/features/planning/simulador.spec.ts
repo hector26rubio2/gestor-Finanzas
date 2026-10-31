@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import type { Account, Movement, Person } from '@core/state';
 import { mensualDesdeAnual } from '@core/utils/tasas';
+import { addMonthsToIso } from '@core/utils';
 import { CARD_BUCKET } from '@core/api';
 import {
   CUOTAS_SUPUESTAS,
@@ -364,6 +365,27 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     expect((JSON.parse(json) as { escenariosGuardados: unknown[] }).escenariosGuardados).toHaveLength(1);
   });
 
+  it('la pestana de deudas no se alarga por una meta a 50 anios', async () => {
+    const { sim } = await simuladorListo();
+    sim.metaFecha.set(addMonthsToIso(sim.hoy(), 600));
+    sim.pestana.set('Deudas');
+    expect(sim.meses()).toBeLessThanOrEqual(15);
+    expect(sim.escenario().meses).toBeLessThanOrEqual(15);
+    sim.pestana.set('Vacaciones');
+    expect(sim.meses()).toBe(600);
+  });
+
+  it('el aporte necesario descuenta el ahorro inicial y nunca baja de cero', async () => {
+    const { sim } = await simuladorListo();
+    const meses = sim.mesesAlaMeta();
+    sim.metaMonto.set(meses * 1_000_000);
+    expect(sim.aporteNecesarioMeta()).toBe(1_000_000);
+    sim.metaAhorroInicial.set(meses * 400_000);
+    expect(sim.aporteNecesarioMeta()).toBe(600_000);
+    sim.metaAhorroInicial.set(sim.metaMonto() * 2);
+    expect(sim.aporteNecesarioMeta()).toBe(0);
+  });
+
   it('restablecer borra todo el armado manual del usuario', async () => {
     const { sim } = await simuladorListo();
     sim.abonoMensual.set(900_000);
@@ -374,6 +396,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     sim.agregarEvento('abono');
     sim.compraMonto.set(300_000);
     sim.metaMonto.set(5_000_000);
+    sim.metaAhorroInicial.set(1_000_000);
     sim.inversionAporte.set(100_000);
 
     sim.restablecer();
@@ -384,6 +407,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     expect(sim.excluidas().size).toBe(0);
     expect(sim.compraMonto()).toBe(0);
     expect(sim.metaMonto()).toBe(0);
+    expect(sim.metaAhorroInicial()).toBe(0);
     expect(sim.inversionAporte()).toBe(0);
   });
 

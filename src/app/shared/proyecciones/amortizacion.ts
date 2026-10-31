@@ -42,6 +42,7 @@ export interface Flujo {
   readonly gastoMensual: number;
   readonly recorteDeGasto: number;
   readonly metaDeAhorro: number;
+  readonly ahorroInicial?: number;
   readonly ingresoPorMes?: readonly number[];
   readonly gastoPorMes?: readonly number[];
 }
@@ -80,51 +81,84 @@ export function cuotaFija(saldo: number, tasaMensual: number, cuotas: number): n
   return (saldo * i) / (1 - (1 + i) ** -cuotas);
 }
 
-function simularDeuda(deuda: Deuda, palancas: readonly Palanca[], meses: number): SerieDeDeuda {
-  const inicio = Math.max(0, deuda.desdeMes ?? 0);
+interface PalancasPorMes {
+  readonly tasas: ReadonlyMap<string, number>;
+  readonly abonos: ReadonlyMap<string, number>;
+}
+
+const claveDeMes = (deudaId: string, mes: number) => `${deudaId}:${mes}`;
+
+function indexarPalancas(palancas: readonly Palanca[]): PalancasPorMes {
+  const tasas = new Map<string, number>();
+  const abonos = new Map<string, number>();
+  for (const p of palancas) {
+    if (p.tipo === 'compra') continue;
+    const clave = claveDeMes(p.deudaId, p.mes);
+    if (p.tipo === 'tasa' && !tasas.has(clave)) tasas.set(clave, p.tasaMensual);
+    if (p.tipo === 'abono') abonos.set(clave, (abonos.get(clave) ?? 0) + p.monto);
+  }
+  return { tasas, abonos };
+}
+
+export class CursorDeDeuda {
+  readonly inicio: number;
+  pendiente: number;
+  private tasa: number;
+  private restantes: number;
+  private cuota: number;
+
+  constructor(deuda: Deuda) {
+    this.inicio = Math.max(0, deuda.desdeMes ?? 0);
+    this.pendiente = deuda.saldo;
+    this.tasa = deuda.tasaMensual;
+    this.restantes = Math.max(1, Math.round(deuda.cuotas));
+    this.cuota = cuotaFija(this.pendiente, this.tasa, this.restantes);
+  }
+
+  cobrar(mes: number, tasaNueva?: number): { interes: number; capital: number } | null {
+    if (mes < this.inicio) return null;
+    if (tasaNueva !== undefined) {
+      this.tasa = tasaNueva;
+      this.cuota = cuotaFija(this.pendiente, this.tasa, this.restantes);
+    }
+    if (this.pendiente <= 0.005) return null;
+    const interes = this.pendiente * (this.tasa / 100);
+    const capital = Math.min(this.pendiente, Math.max(0, this.cuota - interes));
+    this.pendiente -= capital;
+    this.restantes = Math.max(1, this.restantes - 1);
+    return { interes, capital };
+  }
+
+  abonar(extra: number): number {
+    const abono = Math.min(this.pendiente, Math.max(0, extra));
+    this.pendiente -= abono;
+    return abono;
+  }
+}
+
+function simularDeuda(deuda: Deuda, palancas: PalancasPorMes, meses: number): SerieDeDeuda {
+  const cursor = new CursorDeDeuda(deuda);
+  const inicio = cursor.inicio;
   const saldo: number[] = [];
   const interes: number[] = [];
   const capital: number[] = [];
   const abonos: number[] = [];
-  let pendiente = deuda.saldo;
-  let tasa = deuda.tasaMensual;
-  let restantes = Math.max(1, Math.round(deuda.cuotas));
-  let cuota = cuotaFija(pendiente, tasa, restantes);
-  let mesFinal: number | null = pendiente <= 0 ? 0 : null;
+  let mesFinal: number | null = deuda.saldo <= 0 ? 0 : null;
   for (let mes = 0; mes < meses; mes++) {
-    if (mes < inicio) {
+    const paso = cursor.cobrar(mes, palancas.tasas.get(claveDeMes(deuda.id, mes)));
+    if (!paso) {
       saldo.push(0);
       interes.push(0);
       capital.push(0);
       abonos.push(0);
       continue;
     }
-    const cambio = palancas.find((p) => p.tipo === 'tasa' && p.deudaId === deuda.id && p.mes === mes);
-    if (cambio && cambio.tipo === 'tasa') {
-      tasa = cambio.tasaMensual;
-      cuota = cuotaFija(pendiente, tasa, restantes);
-    }
-    if (pendiente <= 0.005) {
-      saldo.push(0);
-      interes.push(0);
-      capital.push(0);
-      abonos.push(0);
-      continue;
-    }
-    const interesDelMes = pendiente * (tasa / 100);
-    const capitalDelMes = Math.min(pendiente, Math.max(0, cuota - interesDelMes));
-    pendiente -= capitalDelMes;
-    restantes = Math.max(1, restantes - 1);
-    const extra = palancas
-      .filter((p) => p.tipo === 'abono' && p.deudaId === deuda.id && p.mes === mes)
-      .reduce((suma, p) => suma + (p.tipo === 'abono' ? p.monto : 0), 0);
-    const abono = Math.min(pendiente, Math.max(0, extra));
-    pendiente -= abono;
-    interes.push(redondear(interesDelMes));
-    capital.push(redondear(capitalDelMes));
+    const abono = cursor.abonar(palancas.abonos.get(claveDeMes(deuda.id, mes)) ?? 0);
+    interes.push(redondear(paso.interes));
+    capital.push(redondear(paso.capital));
     abonos.push(redondear(abono));
-    saldo.push(redondear(Math.max(0, pendiente)));
-    if (pendiente <= 0.005 && mesFinal === null) mesFinal = mes;
+    saldo.push(redondear(Math.max(0, cursor.pendiente)));
+    if (cursor.pendiente <= 0.005 && mesFinal === null) mesFinal = mes;
   }
   return {
     id: deuda.id,
@@ -161,7 +195,8 @@ export function proyectar(
         ]
       : [],
   );
-  const series = [...deudas, ...compras].map((deuda) => simularDeuda(deuda, palancas, meses));
+  const indice = indexarPalancas(palancas);
+  const series = [...deudas, ...compras].map((deuda) => simularDeuda(deuda, indice, meses));
   const porMes = (seleccion: (serie: SerieDeDeuda, mes: number) => number) =>
     Array.from({ length: meses }, (_, mes) => redondear(series.reduce((s, serie) => s + seleccion(serie, mes), 0)));
   const saldoTotal = porMes((serie, mes) => serie.saldo[mes]);
@@ -177,7 +212,7 @@ export function proyectar(
     const siguiente = redondear(acumulado + libre);
     ahorroAcumulado.push(siguiente);
     return siguiente;
-  }, 0);
+  }, flujo.ahorroInicial ?? 0);
   const mesSinDeudas = saldoTotal.findIndex((s, mes) => s <= 0.005 && series.every((serie) => mes >= serie.inicio));
   const mesDeMeta = flujo.metaDeAhorro > 0 ? ahorroAcumulado.findIndex((a) => a >= flujo.metaDeAhorro) : -1;
   return {

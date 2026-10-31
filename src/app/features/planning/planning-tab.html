@@ -101,6 +101,16 @@
             (ngModelChange)="sim.metaMonto.set(numero($event))"
           />
         </fin-field>
+        <fin-field [label]="i18n.t('planning.sim.goal.saved')" [full]="true">
+          <input
+            hlmInput
+            type="number"
+            min="0"
+            step="100000"
+            [ngModel]="sim.metaAhorroInicial()"
+            (ngModelChange)="sim.metaAhorroInicial.set(numero($event))"
+          />
+        </fin-field>
         <fin-field [label]="i18n.t('planning.sim.goal.date')" [full]="true">
           <fin-date-field
             [min]="sim.manana()"

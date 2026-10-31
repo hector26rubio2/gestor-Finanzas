@@ -9,7 +9,7 @@ import {
   totalDeIngresos,
 } from '@core/state/economia';
 import { sumBy } from '@core/utils';
-import { type Deuda, type Flujo, type Palanca, cuotaFija, proyectar } from './amortizacion';
+import { type Deuda, type Flujo, type Palanca, CursorDeDeuda, cuotaFija } from './amortizacion';
 
 import {
   DeudaDeObligaciones,
@@ -269,17 +269,22 @@ export function planDeAbonos(
 ): Palanca[] {
   if (abonoMensual <= 0 || !deudas.length) return [];
   const prioridad = ordenar(deudas, orden);
+  const cursores = new Map(deudas.map((d) => [d.id, new CursorDeDeuda(d)]));
   const palancas: Palanca[] = [];
   for (let mes = 0; mes < meses; mes++) {
-    const hastaAqui = proyectar(deudas, palancas, flujo, mes + 1);
+    const pendientes = new Map<string, number>();
+    for (const [id, cursor] of cursores) {
+      const paso = cursor.cobrar(mes);
+      pendientes.set(id, paso ? redondear(Math.max(0, cursor.pendiente)) : 0);
+    }
     let disponible = abonoMensual;
     for (const deuda of prioridad) {
       if (disponible <= 0) break;
-      const serie = hastaAqui.deudas.find((s) => s.id === deuda.id);
-      const pendiente = serie?.saldo[mes] ?? 0;
+      const pendiente = pendientes.get(deuda.id) ?? 0;
       if (pendiente <= 0.005) continue;
       const monto = redondear(Math.min(disponible, pendiente));
       palancas.push({ tipo: 'abono', id: `abono:${deuda.id}:${mes}`, deudaId: deuda.id, mes, monto });
+      cursores.get(deuda.id)?.abonar(monto);
       disponible = redondear(disponible - monto);
     }
     if (disponible === abonoMensual && !deudas.some((d) => (d.desdeMes ?? 0) > mes)) break;
@@ -290,6 +295,18 @@ export function planDeAbonos(
 export function horizonteDeDeudas(deudas: readonly Deuda[], extra = 0): number {
   const mayor = Math.max(0, ...deudas.map((d) => (d.desdeMes ?? 0) + d.cuotas));
   return Math.min(360, Math.max(12, mayor + extra));
+}
+
+export type PestanaDelPlan = 'Deudas' | 'Compra' | 'Vacaciones' | 'Inversión';
+
+const MESES_MINIMOS_DEL_PLAN = 12;
+const MESES_EXTRA_DEL_PLAN = 3;
+const TOPE_DE_META = 600;
+
+export function horizonteDelPlan(pestana: PestanaDelPlan, deudas: readonly Deuda[], mesesAlaMeta: number): number {
+  if (pestana === 'Vacaciones')
+    return Math.min(TOPE_DE_META, Math.max(MESES_MINIMOS_DEL_PLAN, mesesAlaMeta + MESES_EXTRA_DEL_PLAN));
+  return horizonteDeDeudas(deudas, MESES_EXTRA_DEL_PLAN);
 }
 
 export function cuotaParaTerminarEn(deudas: readonly Deuda[], meses: number): number {

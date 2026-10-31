@@ -20,6 +20,7 @@ import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { filtrarMovimientos } from './filtros';
+import { normalizarReporte } from './normalizar-reporte';
 import { PRESETS_DE_PERIODO, PresetDePeriodo, moverAncla, rangoDePreset } from './periodos';
 import { type PlantillaDeVista, VistasGuardadasComponent } from '@shared/vistas-guardadas';
 
@@ -59,17 +60,6 @@ const PLANTILLAS: readonly { id: string; preset: PresetDePeriodo }[] = [
   { id: 'yearly', preset: 'year' },
   { id: 'last12', preset: 'last12' },
 ];
-
-interface ReporteGuardado {
-  readonly version: number;
-  readonly preset: PresetDePeriodo;
-  readonly desde?: string;
-  readonly hasta?: string;
-  readonly cuenta?: string;
-  readonly categoria?: string;
-  readonly flujo?: 'all' | 'in' | 'out';
-  readonly vistas?: readonly VistaDeReporte[];
-}
 
 @Component({
   selector: 'fin-explorador-de-reportes',
@@ -158,13 +148,9 @@ export class ExploradorDeReportesComponent {
 
   cargarReporte(json: string | null): void {
     this.ancla.set(this.store.hoy());
-    let guardado: ReporteGuardado | null = null;
-    try {
-      guardado = json ? (JSON.parse(json) as ReporteGuardado) : null;
-    } catch {
-      guardado = null;
-    }
-    if (!guardado || guardado.version !== 1) {
+    const { reporte, reconocido } = normalizarReporte(json, this.store.hoy());
+    if (!reconocido) this.store.toast.set(this.i18n.t('reports.saved.unrecognized'));
+    if (!reporte) {
       this.vistasDelReporte.set(null);
       this.preset.set('last6');
       this.cuenta.set('all');
@@ -172,13 +158,13 @@ export class ExploradorDeReportesComponent {
       this.flujo.set('all');
       return;
     }
-    this.preset.set(PRESETS_DE_PERIODO.includes(guardado.preset) ? guardado.preset : 'last6');
-    if (guardado.desde) this.desde.set(guardado.desde);
-    if (guardado.hasta) this.hasta.set(guardado.hasta);
-    this.cuenta.set(guardado.cuenta ?? 'all');
-    this.categoria.set(guardado.categoria ?? 'all');
-    this.flujo.set(guardado.flujo ?? 'all');
-    this.vistasDelReporte.set(guardado.vistas?.length ? guardado.vistas : VISTAS_INICIALES);
+    this.preset.set(reporte.preset);
+    this.desde.set(reporte.desde);
+    this.hasta.set(reporte.hasta);
+    this.cuenta.set(reporte.cuenta);
+    this.categoria.set(reporte.categoria);
+    this.flujo.set(reporte.flujo);
+    this.vistasDelReporte.set(reporte.vistas.length ? reporte.vistas : VISTAS_INICIALES);
   }
 
   private guardarLista(lista: readonly VistaDeReporte[]): void {
@@ -208,6 +194,7 @@ export class ExploradorDeReportesComponent {
             palette,
             vista.config.granularity ?? this.granularidad(),
             vista.title,
+            { desde: this.rango().start, hasta: this.rango().end },
           ),
         }),
       ]),

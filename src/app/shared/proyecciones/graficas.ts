@@ -331,6 +331,7 @@ export function conVista(opcion: ChartOption, vista: VistaDeGrafica): ChartOptio
   const cambiable = (serie: SerieDeGrafica) => serie.type === 'line' || serie.type === 'bar';
   const transformar = (serie: SerieDeGrafica): SerieDeGrafica => {
     if (!cambiable(serie)) return serie;
+    const apilable = typeof serie.stack === 'string' ? serie.stack : null;
     const resto: SerieDeGrafica = { ...serie };
     delete resto['areaStyle'];
     delete resto['stack'];
@@ -343,7 +344,9 @@ export function conVista(opcion: ChartOption, vista: VistaDeGrafica): ChartOptio
       case 'barras':
         return { ...resto, type: 'bar', barMaxWidth: 16 };
       default:
-        return { ...resto, type: 'bar', barMaxWidth: 18, stack: 'total' };
+        return apilable === null
+          ? { ...resto, type: 'bar', barMaxWidth: 18 }
+          : { ...resto, type: 'bar', barMaxWidth: 18, stack: apilable };
     }
   };
   return { ...opcion, series: series.map(transformar) } as ChartOption;

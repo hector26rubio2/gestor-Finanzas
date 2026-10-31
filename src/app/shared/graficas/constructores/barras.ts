@@ -105,28 +105,59 @@ export function barrasCruzadas(pedido: Pedido, modo: 'grouped' | 'stacked' | 'st
   };
 }
 
+interface TramoDeCascada {
+  readonly base: number;
+  readonly positivo: number;
+  readonly negativo: number;
+}
+
+function tramoDeCascada(inicio: number, fin: number): TramoDeCascada {
+  const bajo = Math.min(inicio, fin);
+  const alto = Math.max(inicio, fin);
+  if (bajo >= 0) return { base: bajo, positivo: alto - bajo, negativo: 0 };
+  if (alto <= 0) return { base: alto, positivo: 0, negativo: bajo - alto };
+  return { base: 0, positivo: alto, negativo: bajo };
+}
+
 export function cascada(pedido: Pedido): ChartOption {
   const { config, movs, entorno } = pedido;
   const { palette } = entorno;
   const horizontal = config.variant === 'horizontal';
-  const datos = agregar(movs, dimensionDe(config, 'date'), config.measure ?? 'net', entorno.ctx).slice(
-    0,
-    limiteDe(config, 18),
-  );
+  const todos = agregar(movs, dimensionDe(config, 'date'), config.measure ?? 'net', entorno.ctx);
+  const limite = limiteDe(config, 18);
+  const datos =
+    todos.length > limite
+      ? [
+          ...todos.slice(0, limite),
+          {
+            key: 'otros',
+            label: entorno.ctx.t('charts.others'),
+            value: todos.slice(limite).reduce((suma, d) => suma + d.value, 0),
+          },
+        ]
+      : todos;
   let acumulado = 0;
-  const base: number[] = [];
-  const delta: { value: number; itemStyle: { color: string; borderRadius: number } }[] = [];
+  const tramos: TramoDeCascada[] = [];
+  const colores: string[] = [];
+  const cambios: number[] = [];
   for (const d of datos) {
-    base.push(d.value >= 0 ? acumulado : acumulado + d.value);
-    delta.push({
-      value: Math.abs(d.value),
-      itemStyle: { color: d.value >= 0 ? palette.success : palette.danger, borderRadius: 4 },
-    });
+    tramos.push(tramoDeCascada(acumulado, acumulado + d.value));
+    colores.push(d.value >= 0 ? palette.success : palette.danger);
+    cambios.push(d.value);
     acumulado += d.value;
   }
+  tramos.push(tramoDeCascada(0, acumulado));
+  colores.push(palette.accent);
+  cambios.push(acumulado);
   const etiquetas = [...datos.map((d) => d.label), entorno.ctx.t('charts.waterfall.total')];
-  base.push(Math.min(0, acumulado));
-  delta.push({ value: Math.abs(acumulado), itemStyle: { color: palette.accent, borderRadius: 4 } });
+  const visibles = (valor: (t: TramoDeCascada) => number) =>
+    tramos.map((t, i) => ({ value: valor(t), itemStyle: { color: colores[i], borderRadius: 4 } }));
+  const etiqueta = (position: 'top' | 'bottom' | 'right' | 'left', mostrar: (i: number) => boolean) => ({
+    show: datos.length <= 10,
+    position,
+    color: palette.muted,
+    formatter: (p: { dataIndex: number }) => (mostrar(p.dataIndex) ? cifraCorta(cambios[p.dataIndex]) : ''),
+  });
   return {
     grid: { top: 24, right: 18, bottom: 30, left: 12, containLabel: true },
     xAxis: horizontal ? ejeValor(palette) : ejeCategoria(palette, etiquetas),
@@ -134,25 +165,31 @@ export function cascada(pedido: Pedido): ChartOption {
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: { type: 'shadow' as const },
-      formatter: (p: { name: string; value: number; seriesIndex: number }[]) => {
-        const barra = p.find((x) => x.seriesIndex === 1);
-        return barra ? `${barra.name}<br/><b>${entorno.dinero(barra.value)}</b>` : '';
-      },
+      formatter: (p: { name: string; dataIndex: number }[]) =>
+        p.length ? `${p[0].name}<br/><b>${entorno.dinero(cambios[p[0].dataIndex])}</b>` : '',
     },
     toolbox: herramientas(palette, entorno.titulo),
     series: [
-      { type: 'bar' as const, stack: 'cascada', itemStyle: { color: 'transparent' }, silent: true, data: base },
+      {
+        type: 'bar' as const,
+        stack: 'cascada',
+        itemStyle: { color: 'transparent' },
+        silent: true,
+        data: tramos.map((t) => t.base),
+      },
       {
         type: 'bar' as const,
         stack: 'cascada',
         barMaxWidth: 30,
-        label: {
-          show: datos.length <= 10,
-          position: horizontal ? ('right' as const) : ('top' as const),
-          color: palette.muted,
-          formatter: (p: { value: number }) => cifraCorta(p.value),
-        },
-        data: delta,
+        label: etiqueta(horizontal ? 'right' : 'top', (i) => tramos[i].positivo > 0),
+        data: visibles((t) => t.positivo),
+      },
+      {
+        type: 'bar' as const,
+        stack: 'cascada',
+        barMaxWidth: 30,
+        label: etiqueta(horizontal ? 'left' : 'bottom', (i) => tramos[i].positivo === 0 && tramos[i].negativo < 0),
+        data: visibles((t) => t.negativo),
       },
     ],
   };

@@ -1,6 +1,6 @@
 import type { I18nService } from '@core/i18n';
 import type { Movement, AppStore } from '@core/state';
-import type { ContextoDeDatos } from './datos';
+import type { ContextoDeDatos, RangoDeFechas } from './datos';
 import type { EntornoVisual } from './entorno';
 import type { Granularidad } from './modelo';
 import type { ChartPalette } from '@ui/chart';
@@ -17,10 +17,16 @@ export function etiquetaDeTipoDeMovimiento(m: Movement, i18n: I18nService): stri
   return etiquetas[m.kind] ?? m.kind;
 }
 
-export function crearContextoDeDatos(store: AppStore, i18n: I18nService, granularidad: Granularidad): ContextoDeDatos {
+export function crearContextoDeDatos(
+  store: AppStore,
+  i18n: I18nService,
+  granularidad: Granularidad,
+  rango?: RangoDeFechas,
+): ContextoDeDatos {
   return {
     locale: store.preferences().locale,
     granularidad,
+    rango,
     t: (clave, params) => i18n.t(clave, params),
     nombreDeCuenta: (id) => store.account(id)?.name ?? i18n.t('dashboard.account.none'),
     tipoDeCuenta: (id) => i18n.t(`form.account.type.${store.account(id)?.type ?? 'other'}`),
@@ -34,10 +40,11 @@ export function crearEntorno(
   palette: ChartPalette,
   granularidad: Granularidad,
   titulo: string,
+  rango?: RangoDeFechas,
 ): EntornoVisual {
   return {
     palette,
-    ctx: crearContextoDeDatos(store, i18n, granularidad),
+    ctx: crearContextoDeDatos(store, i18n, granularidad, rango),
     dinero: (valor) => store.money(valor),
     titulo,
   };
