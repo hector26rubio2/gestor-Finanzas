@@ -1183,6 +1183,12 @@ export default {
   'dashboard.recent.seeAll': 'See all',
   'dashboard.customizePanel.title': 'Dashboard layout',
   'dashboard.actions.createWidget': 'Create widget',
+  'dashboard.customizePanel.show': 'Show {title}',
+  'dashboard.kpi.delete.ariaLabel': 'Delete indicator',
+  'dashboard.kpi.delete.title': 'Delete this indicator?',
+  'dashboard.kpi.delete.detail':
+    '“{label}” will be deleted from the board. Removing it only hides it, and you can show it again.',
+  'dashboard.kpi.delete.confirm': 'Delete',
   'dashboard.customizePanel.allVisible': 'All visible',
   'dashboard.widgetForm.name': 'Name',
   'dashboard.widgetForm.visualization': 'Visualization',

@@ -1194,6 +1194,12 @@ export default {
   'dashboard.recent.seeAll': 'Voir tout',
   'dashboard.customizePanel.title': 'Disposition du tableau de bord',
   'dashboard.actions.createWidget': 'Créer un widget',
+  'dashboard.customizePanel.show': 'Afficher {title}',
+  'dashboard.kpi.delete.ariaLabel': "Supprimer l'indicateur",
+  'dashboard.kpi.delete.title': 'Supprimer cet indicateur ?',
+  'dashboard.kpi.delete.detail':
+    "« {label} » sera supprimé du tableau. Le retirer ne fait que le masquer et vous pouvez l'afficher à nouveau.",
+  'dashboard.kpi.delete.confirm': 'Supprimer',
   'dashboard.customizePanel.allVisible': 'Tous visibles',
   'dashboard.widgetForm.name': 'Nom',
   'dashboard.widgetForm.visualization': 'Visualisation',

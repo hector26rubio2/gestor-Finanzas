@@ -38,6 +38,7 @@ import { estadoDe } from '@shared/tablero/kpi-ranges';
 import { construirKpisFijos } from './kpis/kpis-fijos';
 import { EdicionDeWidgets, esGenerico } from './widgets/edicion-de-widgets';
 import { OpcionesDeGraficas, TIPOS_DEL_MOTOR } from '@shared/graficas';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { CreadorDeWidgetComponent } from './widgets/creador-de-widget/creador-de-widget';
 
 const KPI_HEIGHT = 120;
@@ -75,6 +76,7 @@ type VistaDelTablero = (typeof VISTAS_DEL_TABLERO)[number];
     FlowItemComponent,
     CreadorDeWidgetComponent,
     ResumenComponent,
+    ConfirmDialogComponent,
   ],
   templateUrl: './dashboard.html',
 })
@@ -171,6 +173,55 @@ export class DashboardComponent extends DashboardKpis {
       },
     }),
   );
+  readonly kpiFlowVisible = computed(() => {
+    const ocultos = this.layout.hiddenWidgets();
+    return this.layout.kpiFlow().filter((item) => !ocultos.includes(item.id));
+  });
+  readonly kpisOcultos = computed(() => {
+    const ocultos = this.layout.hiddenWidgets();
+    return [
+      ...this.fixedKpiItems().map((kpi) => ({ id: FIXED_KPI_PREFIX + kpi.key, label: kpi.label })),
+      ...this.kpisPropios().map((kpi) => ({ id: CUSTOM_KPI_PREFIX + kpi.id, label: kpi.label })),
+    ].filter((kpi) => ocultos.includes(kpi.id));
+  });
+  readonly hayOcultos = computed(() => this.hidden().length > 0 || this.kpisOcultos().length > 0);
+  readonly kpiPorEliminar = signal<{ id: string; label: string } | null>(null);
+
+  ocultarKpi(id: string): void {
+    if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
+    const ocultos = this.layout.hiddenWidgets();
+    if (!ocultos.includes(id)) this.layout.saveHiddenWidgets([...ocultos, id]);
+  }
+  mostrarKpi(id: string): void {
+    if (!this.caps.allows(P.dashboard.widget.deshabilitar)) return;
+    this.layout.saveHiddenWidgets(this.layout.hiddenWidgets().filter((oculto) => oculto !== id));
+  }
+  moverKpi(id: string, direccion: number): void {
+    const visibles = this.kpiFlowVisible();
+    const vecino = visibles[visibles.findIndex((item) => item.id === id) + direccion];
+    if (vecino) this.soltarKpiPorId(id, vecino.id);
+  }
+  soltarKpi(desde: number, hasta: number): void {
+    const visibles = this.kpiFlowVisible();
+    if (visibles[desde] && visibles[hasta]) this.soltarKpiPorId(visibles[desde].id, visibles[hasta].id);
+  }
+  private soltarKpiPorId(origen: string, destino: string): void {
+    const todos = this.layout.kpiFlow();
+    this.layout.dropKpi(
+      todos.findIndex((item) => item.id === origen),
+      todos.findIndex((item) => item.id === destino),
+    );
+  }
+  pedirEliminarKpi(customId: string): void {
+    const kpi = this.kpisPropios().find((candidato) => candidato.id === customId);
+    if (kpi) this.kpiPorEliminar.set({ id: kpi.id, label: kpi.label });
+  }
+  confirmarEliminarKpi(): void {
+    const kpi = this.kpiPorEliminar();
+    this.kpiPorEliminar.set(null);
+    if (kpi) this.removeKpi(kpi.id);
+  }
+
   readonly nadaQueMostrar = computed(
     () =>
       !this.algunKpi() && !this.algunWidget() && !this.caps.allows(P.dashboard.tabla.ver) && !this.puedePersonalizar(),

@@ -42,6 +42,7 @@ export interface KpiMove {
 
 export const FIXED_KPI_PREFIX = 'fixed:';
 export const CUSTOM_KPI_PREFIX = 'custom:';
+export const KPI_CREADO_PREFIX = 'kpi-';
 
 @Component({
   selector: 'fin-kpi-strip',
@@ -62,7 +63,8 @@ export class KpiStripComponent {
   readonly resize = output<KpiResize>();
   readonly move = output<KpiMove>();
   readonly drop = output<{ from: number; to: number }>();
-  readonly removeKpi = output<string>();
+  readonly hideKpi = output<string>();
+  readonly deleteKpi = output<string>();
   readonly openCreator = output<void>();
   readonly rangesChange = output<{ id: string; ranges: KpiRanges | null | undefined }>();
 
@@ -76,6 +78,10 @@ export class KpiStripComponent {
 
   dropped(event: CdkDragDrop<unknown>): void {
     this.drop.emit({ from: event.previousIndex, to: event.currentIndex });
+  }
+
+  esCreado(customId: string | null): boolean {
+    return !!customId && customId.startsWith(KPI_CREADO_PREFIX);
   }
 
   entry(id: string) {

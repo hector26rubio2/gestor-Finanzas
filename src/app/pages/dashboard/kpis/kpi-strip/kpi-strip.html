@@ -34,16 +34,27 @@
           [ranges]="entry.card.ranges ?? null"
           (change)="rangesChange.emit({ id: item.id, ranges: $event })"
         />
-        @if (entry.customId && canRemove()) {
+        @if (canRemove()) {
         <button
           hlmBtn
           variant="ghost"
           size="icon-xs"
           type="button"
           [attr.aria-label]="i18n.t('dashboard.kpi.remove.ariaLabel')"
-          (click)="removeKpi.emit(entry.customId)"
+          (click)="hideKpi.emit(item.id)"
         >
           <fin-icon name="close" />
+        </button>
+        } @if (canRemove() && esCreado(entry.customId)) {
+        <button
+          hlmBtn
+          variant="ghost"
+          size="icon-xs"
+          type="button"
+          [attr.aria-label]="i18n.t('dashboard.kpi.delete.ariaLabel')"
+          (click)="deleteKpi.emit(entry.customId!)"
+        >
+          <fin-icon name="trash" />
         </button>
         }
       </div>

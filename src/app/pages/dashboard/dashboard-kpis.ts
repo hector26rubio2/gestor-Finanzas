@@ -9,7 +9,7 @@ import { Dimension, KpiFormula, Measure } from '@shared/tablero/dashboard.model'
 import { DashboardVisuals } from './dashboard-visuals';
 import { DashboardLayoutService, KpiDefinition, KpiFilter } from '@shared/tablero/dashboard-layout.service';
 import { KpiRanges, RANGOS_POR_DEFECTO, estadoDe } from '@shared/tablero/kpi-ranges';
-import { CUSTOM_KPI_PREFIX } from './kpis/kpi-strip/kpi-strip';
+import { CUSTOM_KPI_PREFIX, KPI_CREADO_PREFIX } from './kpis/kpi-strip/kpi-strip';
 import {
   enPorcentaje,
   gastoFiltrado,
@@ -316,7 +316,12 @@ export abstract class DashboardKpis extends DashboardVisuals {
     if (filtro && !FORMULAS_FILTRABLES.includes(this.newKpiFormula)) return;
     this.kpiLayout.saveDefinitions([
       ...this.customKpis(),
-      { id: `kpi-${Date.now()}`, label, formula: this.newKpiFormula, ...(filtro ? { filter: filtro } : {}) },
+      {
+        id: `${KPI_CREADO_PREFIX}${Date.now()}`,
+        label,
+        formula: this.newKpiFormula,
+        ...(filtro ? { filter: filtro } : {}),
+      },
     ]);
     this.newKpiLabel = '';
     this.newKpiDimension.set('none');
