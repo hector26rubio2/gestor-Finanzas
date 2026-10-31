@@ -141,6 +141,24 @@ async function horizontalOverflow(page, label) {
     : `${label}: document has horizontal overflow (${metrics.scrollWidth}px > ${metrics.clientWidth}px)`;
 }
 
+async function kpisRecortados(page, label) {
+  const recortados = await page.evaluate(() =>
+    [...document.querySelectorAll('fin-kpi')].flatMap((kpi) => {
+      const valor = kpi.querySelector(':scope > strong');
+      if (!valor || !valor.getClientRects().length) return [];
+      const recortado = valor.scrollHeight > valor.clientHeight + 1;
+      const siguiente = valor.nextElementSibling;
+      const encimado =
+        siguiente && siguiente.getClientRects().length
+          ? siguiente.getBoundingClientRect().top < valor.getBoundingClientRect().bottom - 1
+          : false;
+      const fuera = valor.getBoundingClientRect().bottom > kpi.getBoundingClientRect().bottom + 1;
+      return recortado || encimado || fuera ? [valor.textContent?.trim() ?? '?'] : [];
+    }),
+  );
+  return recortados.length ? `${label}: KPI value clipped or overlapped (${recortados.join(', ')})` : null;
+}
+
 async function devuelveElFoco(locator, mensaje) {
   try {
     await locator.evaluate(
@@ -228,6 +246,8 @@ async function testViewport(browser, viewport) {
       await waitForRoute(page, route);
       const overflow = await horizontalOverflow(page, `${viewportLabel} ${route}`);
       if (overflow) failures.push(overflow);
+      const kpis = await kpisRecortados(page, `${viewportLabel} ${route}`);
+      if (kpis) failures.push(kpis);
       await page.screenshot({
         path: join(artifacts, viewport.label ?? String(viewport.width), `${route.replace(/[?=]/g, '-')}.png`),
         fullPage: true,
