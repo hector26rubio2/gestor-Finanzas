@@ -208,6 +208,7 @@ export class ExploradorDeReportesComponent {
             palette,
             vista.config.granularity ?? this.granularidad(),
             vista.title,
+            { desde: this.rango().start, hasta: this.rango().end },
           ),
         }),
       ]),

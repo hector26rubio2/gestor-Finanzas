@@ -5,10 +5,16 @@ import type { Agregado, Cruce, Dimension, Enlace, Granularidad, Measure, Nodo } 
 export interface ContextoDeDatos {
   readonly locale: string;
   readonly granularidad: Granularidad;
+  readonly rango?: RangoDeFechas;
   readonly t: (clave: string, params?: Record<string, string | number>) => string;
   readonly nombreDeCuenta: (id: string) => string;
   readonly tipoDeCuenta: (id: string) => string;
   readonly tipoDeMovimiento: (m: Movement) => string;
+}
+
+export interface RangoDeFechas {
+  readonly desde: string;
+  readonly hasta: string;
 }
 
 export interface Etiquetado {
@@ -155,7 +161,30 @@ function agrupar(movs: readonly Movement[], dim: Dimension, ctx: ContextoDeDatos
   return grupos;
 }
 
-export function agregar(movs: readonly Movement[], dim: Dimension, medida: Measure, ctx: ContextoDeDatos): Agregado[] {
+function clavesDelRango(rango: RangoDeFechas, ctx: ContextoDeDatos): Etiquetado[] {
+  const fin = fechaUtc(rango.hasta).getTime();
+  const inicio = fechaUtc(rango.desde);
+  const mesesPorPaso = { year: 12, quarter: 3, month: 1 }[ctx.granularidad as string] ?? 0;
+  const etiquetas = new Map<string, Etiquetado>();
+  const cursor = new Date(inicio);
+  if (mesesPorPaso) cursor.setUTCDate(1);
+  while (cursor.getTime() <= fin) {
+    const etiqueta = fechaAgrupada(cursor.toISOString().slice(0, 10), ctx);
+    etiquetas.set(etiqueta.key, etiqueta);
+    if (mesesPorPaso) cursor.setUTCMonth(cursor.getUTCMonth() + mesesPorPaso);
+    else cursor.setUTCDate(cursor.getUTCDate() + (ctx.granularidad === 'week' ? 7 : 1));
+  }
+  const ultima = fechaAgrupada(rango.hasta, ctx);
+  etiquetas.set(ultima.key, ultima);
+  return [...etiquetas.values()];
+}
+
+function agregarSinCompletar(
+  movs: readonly Movement[],
+  dim: Dimension,
+  medida: Measure,
+  ctx: ContextoDeDatos,
+): Agregado[] {
   const filas = [...agrupar(movs, dim, ctx)].map(([key, { label, filas }]) => ({
     key,
     label,
@@ -164,6 +193,16 @@ export function agregar(movs: readonly Movement[], dim: Dimension, medida: Measu
   return seOrdenaPorClave(dim)
     ? filas.sort((a, b) => a.key.localeCompare(b.key))
     : filas.sort((a, b) => b.value - a.value);
+}
+
+export function agregar(movs: readonly Movement[], dim: Dimension, medida: Measure, ctx: ContextoDeDatos): Agregado[] {
+  const filas = agregarSinCompletar(movs, dim, medida, ctx);
+  if (dim !== 'date' || !ctx.rango) return filas;
+  const existentes = new Set(filas.map((f) => f.key));
+  const vacias = clavesDelRango(ctx.rango, ctx)
+    .filter((e) => !existentes.has(e.key))
+    .map((e) => ({ key: e.key, label: e.label, value: 0 }));
+  return [...filas, ...vacias].sort((a, b) => a.key.localeCompare(b.key));
 }
 
 export function cruzar(
@@ -176,7 +215,7 @@ export function cruzar(
 ): Cruce {
   const ejes = agregar(movs, dim, medida, ctx);
   const categorias = seOrdenaPorClave(dim) ? ejes : ejes.slice(0, limite);
-  const seriesPorClave = agregar(movs, dim2, medida, ctx).slice(0, seOrdenaPorClave(dim2) ? 24 : 8);
+  const seriesPorClave = agregarSinCompletar(movs, dim2, medida, ctx).slice(0, seOrdenaPorClave(dim2) ? 24 : 8);
   const celdas = new Map<string, Movement[]>();
   for (const m of movs) {
     const clave = etiquetaDeDimension(m, dim, ctx).key + '\u0000' + etiquetaDeDimension(m, dim2, ctx).key;
