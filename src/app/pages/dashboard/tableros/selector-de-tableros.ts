@@ -35,9 +35,13 @@ export class SelectorDeTablerosComponent {
       void this.tableros.abrir(id).catch(() => this.seleccion.set(TABLERO_PRINCIPAL));
     });
   });
+  private primeraLectura = true;
   private readonly seguirActivo = effect(() => {
     const activo = this.tableros.activo();
     untracked(() => {
+      const inicial = this.primeraLectura;
+      this.primeraLectura = false;
+      if (inicial && this.seleccion() !== TABLERO_PRINCIPAL) return;
       if (this.seleccion() !== activo) this.seleccion.set(activo);
     });
   });
