@@ -2092,6 +2092,7 @@ export default {
   'planning.plans.none': 'Unsaved plan',
   'reports.saved.label': 'My reports',
   'reports.saved.none': 'Free explorer',
+  'reports.saved.unrecognized': 'Unrecognized report: loaded the free explorer instead.',
   'reports.saved.template.monthly': 'Monthly report',
   'reports.saved.template.quarterly': 'Quarterly report',
   'reports.saved.template.semiannual': 'Semiannual report (last 6 months)',

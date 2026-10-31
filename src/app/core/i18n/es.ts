@@ -2097,6 +2097,7 @@ export default {
   'planning.plans.none': 'Plan sin guardar',
   'reports.saved.label': 'Mis reportes',
   'reports.saved.none': 'Explorador libre',
+  'reports.saved.unrecognized': 'Reporte no reconocido: se cargó el explorador libre.',
   'reports.saved.template.monthly': 'Reporte mensual',
   'reports.saved.template.quarterly': 'Reporte trimestral',
   'reports.saved.template.semiannual': 'Reporte semestral (últimos 6 meses)',
