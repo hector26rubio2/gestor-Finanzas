@@ -1913,6 +1913,7 @@ export default {
   'planning.sim.purchase.startMonth': 'Starts in month (0 = this)',
   'planning.sim.purchase.note': 'Rate 0 and 1 installment means paying cash. The purchase joins the scenario debts.',
   'planning.sim.goal.amount': 'How much to save',
+  'planning.sim.goal.saved': 'Already saved toward this goal',
   'planning.sim.goal.date': 'By when',
   'planning.sim.investment.initial': 'Initial capital',
   'planning.sim.investment.monthly': 'Monthly contribution',

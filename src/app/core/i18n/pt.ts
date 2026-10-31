@@ -1912,6 +1912,7 @@ export default {
   'planning.sim.purchase.startMonth': 'Começa no mês (0 = este)',
   'planning.sim.purchase.note': 'Taxa 0 e 1 parcela equivale a pagar à vista. A compra entra nas dívidas do cenário.',
   'planning.sim.goal.amount': 'Quanto quer juntar',
+  'planning.sim.goal.saved': 'Já poupado para esta meta',
   'planning.sim.goal.date': 'Até quando',
   'planning.sim.investment.initial': 'Capital inicial',
   'planning.sim.investment.monthly': 'Aporte mensal',

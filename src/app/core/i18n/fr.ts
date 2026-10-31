@@ -1929,6 +1929,7 @@ export default {
   'planning.sim.purchase.startMonth': 'Commence au mois (0 = ce mois)',
   'planning.sim.purchase.note': 'Taux 0 et 1 échéance = paiement comptant. L’achat rejoint les dettes du scénario.',
   'planning.sim.goal.amount': 'Combien épargner',
+  'planning.sim.goal.saved': 'Déjà épargné pour cet objectif',
   'planning.sim.goal.date': 'Pour quand',
   'planning.sim.investment.initial': 'Capital initial',
   'planning.sim.investment.monthly': 'Versement mensuel',

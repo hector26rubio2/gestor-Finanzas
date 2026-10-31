@@ -32,6 +32,7 @@ const senales = (): SenalesDelSimulador => ({
   compraMes: signal(0),
   metaMonto: signal(0),
   metaFecha: signal('2027-10-22'),
+  metaAhorroInicial: signal(0),
   inversionInicial: signal(0),
   inversionAporte: signal(0),
   inversionTasa: signal(8),
@@ -71,6 +72,7 @@ describe('serializarEstado / aplicarEstado: estado del simulador', () => {
     origen.compraMes.set(4);
     origen.metaMonto.set(3_000_000);
     origen.metaFecha.set('2027-06-01');
+    origen.metaAhorroInicial.set(750_000);
     origen.inversionInicial.set(10_000_000);
     origen.inversionAporte.set(300_000);
     origen.inversionTasa.set(9.5);
@@ -101,6 +103,7 @@ describe('serializarEstado / aplicarEstado: estado del simulador', () => {
     expect(destino.compraMes()).toBe(4);
     expect(destino.metaMonto()).toBe(3_000_000);
     expect(destino.metaFecha()).toBe('2027-06-01');
+    expect(destino.metaAhorroInicial()).toBe(750_000);
     expect(destino.inversionInicial()).toBe(10_000_000);
     expect(destino.inversionAporte()).toBe(300_000);
     expect(destino.inversionTasa()).toBe(9.5);
@@ -143,6 +146,7 @@ describe('serializarEstado / aplicarEstado: estado del simulador', () => {
     expect(destino.inversionAporte()).toBe(50_000);
 
     aplicarEstado(destino, { version: 1, meta: { monto: 2_000_000, fecha: '2027-12-25' } });
+    expect(destino.metaAhorroInicial()).toBe(0);
     expect(destino.compraMonto()).toBe(900_000);
     expect(destino.metaMonto()).toBe(2_000_000);
     expect(destino.metaFecha()).toBe('2027-12-25');

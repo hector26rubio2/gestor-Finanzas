@@ -117,6 +117,7 @@ export class SimuladorDePlanificacion {
   readonly compraMes = signal(0);
 
   readonly metaMonto = signal(0);
+  readonly metaAhorroInicial = signal(0);
   readonly metaFecha = linkedSignal(() => addMonthsToIso(this.hoy(), 12));
 
   readonly valorInvertido = computed(() => sumBy(this.store.data().investments, (i) => i.value));
@@ -171,6 +172,7 @@ export class SimuladorDePlanificacion {
     gastoPorMes: this.flujoMensual().gasto,
     recorteDeGasto: this.recorte(),
     metaDeAhorro: this.metaMonto(),
+    ahorroInicial: this.metaAhorroInicial(),
   }));
 
   private readonly flujoSinCambios = computed(() => ({
@@ -180,6 +182,7 @@ export class SimuladorDePlanificacion {
     gastoPorMes: this.flujoMensualSinCambios().gasto,
     recorteDeGasto: 0,
     metaDeAhorro: this.metaMonto(),
+    ahorroInicial: this.metaAhorroInicial(),
   }));
 
   readonly mesesAlObjetivo = computed(() => mesesHasta(this.hoy(), this.fechaSinDeudas()));
@@ -227,7 +230,9 @@ export class SimuladorDePlanificacion {
   readonly flujoLibreMinimo = computed(() => Math.min(...this.escenario().flujoLibre));
   readonly flujoLibreMinimoBase = computed(() => Math.min(...this.base().flujoLibre));
 
-  readonly aporteNecesarioMeta = computed(() => Math.round(this.metaMonto() / Math.max(1, this.mesesAlaMeta())));
+  readonly aporteNecesarioMeta = computed(() =>
+    Math.round(Math.max(0, this.metaMonto() - this.metaAhorroInicial()) / Math.max(1, this.mesesAlaMeta())),
+  );
   readonly flujoLibrePromedio = computed(() => {
     const tramo = this.escenario().flujoLibre.slice(0, this.mesesAlaMeta());
     return tramo.length ? Math.round(sumBy(tramo, (v) => v) / tramo.length) : 0;
@@ -324,6 +329,7 @@ export class SimuladorDePlanificacion {
     this.cambiosDeFlujo.set([]);
     this.compraMonto.set(0);
     this.metaMonto.set(0);
+    this.metaAhorroInicial.set(0);
     this.inversionAporte.set(0);
     this.inversionInicial.set(this.valorInvertido());
   }

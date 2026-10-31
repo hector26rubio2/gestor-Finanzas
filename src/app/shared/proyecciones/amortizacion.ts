@@ -42,6 +42,7 @@ export interface Flujo {
   readonly gastoMensual: number;
   readonly recorteDeGasto: number;
   readonly metaDeAhorro: number;
+  readonly ahorroInicial?: number;
   readonly ingresoPorMes?: readonly number[];
   readonly gastoPorMes?: readonly number[];
 }
@@ -177,7 +178,7 @@ export function proyectar(
     const siguiente = redondear(acumulado + libre);
     ahorroAcumulado.push(siguiente);
     return siguiente;
-  }, 0);
+  }, flujo.ahorroInicial ?? 0);
   const mesSinDeudas = saldoTotal.findIndex((s, mes) => s <= 0.005 && series.every((serie) => mes >= serie.inicio));
   const mesDeMeta = flujo.metaDeAhorro > 0 ? ahorroAcumulado.findIndex((a) => a >= flujo.metaDeAhorro) : -1;
   return {

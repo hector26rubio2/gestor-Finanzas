@@ -37,7 +37,7 @@ export interface EstadoGuardado {
   readonly eventos?: readonly EventoDelEscenario[];
   readonly fechaSinDeudas?: string;
   readonly compra?: { monto: number; nombre: string; cuotas: number; tasa: number; mes: number };
-  readonly meta?: { monto: number; fecha: string };
+  readonly meta?: { monto: number; fecha: string; ahorroInicial?: number };
   readonly inversion?: { inicial: number; aporte: number; tasa: number; fecha: string };
 }
 
@@ -63,6 +63,7 @@ export interface SenalesDelSimulador {
   readonly compraMes: WritableSignal<number>;
   readonly metaMonto: WritableSignal<number>;
   readonly metaFecha: WritableSignal<string>;
+  readonly metaAhorroInicial: WritableSignal<number>;
   readonly inversionInicial: WritableSignal<number>;
   readonly inversionAporte: WritableSignal<number>;
   readonly inversionTasa: WritableSignal<number>;
@@ -93,7 +94,7 @@ export function serializarEstado(s: SenalesDelSimulador): string {
       tasa: s.compraTasa(),
       mes: s.compraMes(),
     },
-    meta: { monto: s.metaMonto(), fecha: s.metaFecha() },
+    meta: { monto: s.metaMonto(), fecha: s.metaFecha(), ahorroInicial: s.metaAhorroInicial() },
     inversion: {
       inicial: s.inversionInicial(),
       aporte: s.inversionAporte(),
@@ -138,6 +139,7 @@ export function aplicarEstado(s: SenalesDelSimulador, guardado: EstadoGuardado):
   if (guardado.meta) {
     s.metaMonto.set(guardado.meta.monto);
     s.metaFecha.set(guardado.meta.fecha);
+    s.metaAhorroInicial.set(guardado.meta.ahorroInicial ?? 0);
   }
   if (guardado.inversion) {
     s.inversionInicial.set(guardado.inversion.inicial);

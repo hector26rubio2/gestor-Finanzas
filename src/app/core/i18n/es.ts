@@ -1917,6 +1917,7 @@ export default {
   'planning.sim.purchase.note':
     'Tasa 0 y 1 cuota equivale a pagar de contado. La compra se suma a las deudas del escenario.',
   'planning.sim.goal.amount': 'Cuánto quieres juntar',
+  'planning.sim.goal.saved': 'Ya ahorrado para esta meta',
   'planning.sim.goal.date': 'Para cuándo',
   'planning.sim.investment.initial': 'Capital inicial',
   'planning.sim.investment.monthly': 'Aporte mensual',

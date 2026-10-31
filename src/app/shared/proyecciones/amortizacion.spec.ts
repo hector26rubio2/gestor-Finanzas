@@ -51,6 +51,15 @@ describe('proyección de deudas', () => {
     expect(resultado.ahorroAcumulado[resultado.mesDeMeta!]).toBeGreaterThanOrEqual(10_000_000);
   });
 
+  it('el ahorro inicial adelanta el acumulado y la llegada a la meta', () => {
+    const sinAhorro = proyectar([], [], { ...flujo, metaDeAhorro: 4_000_000 }, 6);
+    const conAhorro = proyectar([], [], { ...flujo, metaDeAhorro: 4_000_000, ahorroInicial: 3_000_000 }, 6);
+    expect(sinAhorro.ahorroAcumulado[0]).toBe(2_000_000);
+    expect(conAhorro.ahorroAcumulado[0]).toBe(5_000_000);
+    expect(sinAhorro.mesDeMeta).toBe(1);
+    expect(conAhorro.mesDeMeta).toBe(0);
+  });
+
   it('subir la tasa sube la cuota desde ese mes', () => {
     const base = proyectar([credito], [], flujo, 12);
     const conTasa = proyectar(
