@@ -30,7 +30,10 @@ export class SelectorDeTablerosComponent {
   private readonly abrirSeleccion = effect(() => {
     const id = this.seleccion();
     const lista = this.tableros.tableros();
-    if (id !== TABLERO_PRINCIPAL && !lista.some((t) => t.id === id)) return;
+    if (id !== TABLERO_PRINCIPAL && !lista.some((t) => t.id === id)) {
+      if (this.tableros.listaCargada()) untracked(() => this.seleccion.set(TABLERO_PRINCIPAL));
+      return;
+    }
     if (id === untracked(this.tableros.activo)) return;
     untracked(() => {
       void this.tableros.abrir(id).catch(() => this.seleccion.set(TABLERO_PRINCIPAL));
