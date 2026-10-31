@@ -1,4 +1,12 @@
-import { ChartOption, ChartPalette } from '@ui/chart';
+import {
+  ChartOption,
+  ChartPalette,
+  etiquetaDeCentro,
+  etiquetaDeEjeRecortada,
+  leyendaDeGrafica,
+  leyendaLateral,
+  mediaConLeyendaAbajo,
+} from '@ui/chart';
 import type { Movement } from '@core/state';
 import { CategorySlice, TimelinePoint } from '@shared/tablero/dashboard.model';
 import { cifraCorta, conAlfa, degradado, ejesDeIntervalo } from '@shared/graficas';
@@ -37,13 +45,11 @@ export function opcionDeFlujo(ctx: ContextoDeGrafica, puntos: readonly TimelineP
       palette,
       puntos.map((p) => p.label),
     ),
-    legend: {
+    legend: leyendaDeGrafica(palette, {
       data: [ctx.t('dashboard.series.income'), ctx.t('dashboard.series.expense')],
       top: 0,
       right: 0,
-      textStyle: { color: palette.muted },
-      icon: 'circle',
-    },
+    }),
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: { type: 'line' as const, lineStyle: { color: palette.line } },
@@ -140,7 +146,7 @@ export function opcionDeDispersion(ctx: ContextoDeGrafica, movimientos: readonly
   });
   return {
     grid: { top: 28, right: 18, bottom: 40, left: 62 },
-    legend: { top: 0, right: 0, textStyle: { color: palette.muted }, icon: 'circle' },
+    legend: leyendaDeGrafica(palette, { top: 0, right: 0 }),
     xAxis: {
       type: 'time' as const,
       axisLine: { lineStyle: { color: palette.line } },
@@ -184,33 +190,16 @@ export function opcionDeAnillo(
       formatter: (parametro: { name: string; value: number; percent: number }) =>
         parametro.name + '<br/><b>' + ctx.money(parametro.value) + '</b> · ' + parametro.percent + '%',
     },
-    legend: {
-      orient: 'vertical' as const,
-      right: 0,
-      top: 'middle',
-      textStyle: { color: palette.muted, fontSize: 14 },
-      itemWidth: 13,
-      itemHeight: 13,
-      itemGap: 16,
-      icon: 'circle',
-    },
+    legend: leyendaLateral(palette, { textStyle: { color: palette.muted, fontSize: 13 }, itemGap: 14 }),
+    media: mediaConLeyendaAbajo(['50%', '44%'], ['50%', '70%']),
     series: [
       {
         type: 'pie' as const,
         radius: ['58%', '82%'],
-        center: ['34%', '50%'],
+        center: ['30%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: { borderColor: palette.surface, borderWidth: 2, borderRadius: 6 },
-        label: {
-          show: true,
-          position: 'center' as const,
-          formatter: () =>
-            '{valor|' + ctx.money(totalGasto) + '}\n{pie|' + ctx.t('dashboard.widget.donut.totalLabel') + '}',
-          rich: {
-            valor: { color: palette.text, fontSize: 24, fontWeight: 700 },
-            pie: { color: palette.muted, fontSize: 13, padding: [8, 0, 0, 0] },
-          },
-        },
+        label: etiquetaDeCentro(palette, ctx.money(totalGasto), ctx.t('dashboard.widget.donut.totalLabel')),
         emphasis: { label: { show: true }, scaleSize: 6 },
         data: reparto.map((categoria) => ({ name: categoria.name, value: categoria.value })),
       },
@@ -234,13 +223,11 @@ export function opcionApilada(ctx: ContextoDeGrafica, puntos: readonly TimelineP
       palette,
       puntos.map((p) => p.label),
     ),
-    legend: {
+    legend: leyendaDeGrafica(palette, {
       data: [ctx.t('dashboard.series.income'), ctx.t('dashboard.series.expense')],
       top: 0,
       right: 0,
-      textStyle: { color: palette.muted },
-      icon: 'circle',
-    },
+    }),
     tooltip: {
       trigger: 'axis' as const,
       axisPointer: { type: 'shadow' as const },
@@ -303,7 +290,7 @@ export function opcionDeMedidor(ctx: ContextoDeGrafica, tasa: number): ChartOpti
           fontWeight: 700,
           formatter: (valor: number) => `${valor}%`,
         },
-        title: { offsetCenter: [0, '70%'], color: palette.muted, fontSize: 12 },
+        title: { offsetCenter: [0, '68%'], color: palette.muted, fontSize: 13 },
         data: [{ value: tasa, name: ctx.t('dashboard.widget.gauge.subtitle') }],
       },
     ],
@@ -327,7 +314,7 @@ export function opcionDeIntensidad(ctx: ContextoDeGrafica, puntos: readonly Time
       data: [ctx.t('dashboard.widget.heatmap.axisLabel')],
       axisLine: { show: false },
       axisTick: { show: false },
-      axisLabel: { color: palette.muted },
+      axisLabel: etiquetaDeEjeRecortada(palette),
     },
     visualMap: {
       min: 0,

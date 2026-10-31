@@ -1,7 +1,7 @@
-import type { ChartOption } from '@ui/chart';
+import { etiquetaDeCentro, leyendaLateral, mediaConLeyendaAbajo, type ChartOption } from '@ui/chart';
 import { agregar, jerarquia } from '@shared/graficas/datos';
 import { Pedido, dimension2De, dimensionDe, formatoDe, limiteDe, medidaDe } from '@shared/graficas/entorno';
-import { colores, conAlfa, herramientas, leyenda } from '@shared/graficas/estilo';
+import { colores, conAlfa, herramientas } from '@shared/graficas/estilo';
 import type { Nodo } from '@shared/graficas/modelo';
 
 export function torta(pedido: Pedido): ChartOption {
@@ -24,6 +24,12 @@ export function torta(pedido: Pedido): ChartOption {
     half: ['55%', '92%'],
     rose: ['18%', '80%'],
   };
+  const radiosAbajo: Record<string, [string, string] | string> = {
+    pie: '62%',
+    donut: ['40%', '62%'],
+    half: ['50%', '76%'],
+    rose: ['14%', '64%'],
+  };
   return {
     color: colores(palette),
     tooltip: {
@@ -31,13 +37,17 @@ export function torta(pedido: Pedido): ChartOption {
       formatter: (p: { name: string; value: number; percent: number }) =>
         `${p.name}<br/><b>${formato(p.value)}</b> · ${p.percent}%`,
     },
-    legend: leyenda(palette, { orient: 'vertical' as const, top: 'middle', right: 0, left: 'auto' }),
+    legend: leyendaLateral(palette),
+    media: mediaConLeyendaAbajo(
+      variante === 'half' ? ['50%', '62%'] : ['50%', '42%'],
+      radiosAbajo[variante] ?? radiosAbajo['donut'],
+    ),
     toolbox: herramientas(palette, entorno.titulo),
     series: [
       {
         type: 'pie' as const,
         radius: radios[variante] ?? radios['donut'],
-        center: variante === 'half' ? ['40%', '72%'] : ['38%', '50%'],
+        center: variante === 'half' ? ['34%', '72%'] : ['32%', '50%'],
         startAngle: variante === 'half' ? 180 : 90,
         endAngle: variante === 'half' ? 360 : undefined,
         roseType: variante === 'rose' ? ('area' as const) : undefined,
@@ -45,16 +55,7 @@ export function torta(pedido: Pedido): ChartOption {
         itemStyle: { borderColor: palette.surface, borderWidth: 2, borderRadius: variante === 'pie' ? 0 : 8 },
         label:
           variante === 'donut' || variante === 'half'
-            ? {
-                show: true,
-                position: 'center' as const,
-                formatter: () =>
-                  `{valor|${formato(total)}}\n{pie|${entorno.ctx.t('dashboard.widget.donut.totalLabel')}}`,
-                rich: {
-                  valor: { color: palette.text, fontSize: 20, fontWeight: 700 },
-                  pie: { color: palette.muted, fontSize: 12, padding: [6, 0, 0, 0] },
-                },
-              }
+            ? etiquetaDeCentro(palette, formato(total), entorno.ctx.t('dashboard.widget.donut.totalLabel'))
             : { color: palette.text, fontSize: 12 },
         labelLine: { lineStyle: { color: palette.line } },
         emphasis: { scaleSize: 8, itemStyle: { shadowBlur: 16, shadowColor: conAlfa(palette.text, 0.25) } },

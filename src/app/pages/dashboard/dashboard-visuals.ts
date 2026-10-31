@@ -199,13 +199,13 @@ export abstract class DashboardVisuals {
           axisLabel: { distance: 26, color: palette.muted, fontSize: 10, formatter: (v: number) => cifraCorta(v) },
           detail: {
             valueAnimation: true,
-            offsetCenter: [0, '15%'],
+            offsetCenter: [0, '24%'],
             color: palette.text,
-            fontSize: 22,
+            fontSize: 17,
             fontWeight: 700,
             formatter: () => this.formatMeasure(valor, widget),
           },
-          title: { show: true, offsetCenter: [0, '42%'], color: palette.muted, fontSize: 11 },
+          title: { show: true, offsetCenter: [0, '46%'], color: palette.muted, fontSize: 12 },
           data: [
             {
               value: valor,

@@ -1,4 +1,4 @@
-import type { ChartPalette } from '@ui/chart';
+import { etiquetaDeEjeRecortada, leyendaDeGrafica, type ChartPalette } from '@ui/chart';
 
 export function cifraCorta(valor: number): string {
   const absoluto = Math.abs(valor);
@@ -55,19 +55,7 @@ export function colores(palette: ChartPalette): string[] {
 }
 
 export function leyenda(palette: ChartPalette, extra: Record<string, unknown> = {}) {
-  return {
-    type: 'scroll' as const,
-    top: 0,
-    left: 0,
-    right: 84,
-    textStyle: { color: palette.muted },
-    pageTextStyle: { color: palette.muted },
-    pageIconColor: palette.accent,
-    icon: 'circle',
-    itemWidth: 10,
-    itemHeight: 10,
-    ...extra,
-  };
+  return leyendaDeGrafica(palette, { top: 0, left: 0, right: 84, ...extra });
 }
 
 export function ejeCategoria(palette: ChartPalette, datos?: readonly string[], extra: Record<string, unknown> = {}) {
@@ -76,7 +64,7 @@ export function ejeCategoria(palette: ChartPalette, datos?: readonly string[], e
     ...(datos ? { data: [...datos] } : {}),
     axisLine: { lineStyle: { color: palette.line } },
     axisTick: { show: false },
-    axisLabel: { color: palette.muted, hideOverlap: true },
+    axisLabel: etiquetaDeEjeRecortada(palette, { hideOverlap: true }),
     ...extra,
   };
 }

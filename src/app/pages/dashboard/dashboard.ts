@@ -120,7 +120,13 @@ export class DashboardComponent extends DashboardKpis {
 
   private disenoPorDefecto(widget: Widget): FlowDefault {
     const full = (widget.wide || widget.type === 'table') && widget.type !== 'indicator';
-    const heights: Partial<Record<WidgetType, number>> = { table: 520, card: 190, gauge: 340, heatmap: 300 };
+    const heights: Partial<Record<WidgetType, number>> = {
+      table: 520,
+      card: 190,
+      gauge: 340,
+      heatmap: 300,
+      indicator: 380,
+    };
     return { id: widget.id, cols: full ? 12 : 6, height: heights[widget.type] ?? 360 };
   }
 
