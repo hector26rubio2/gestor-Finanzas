@@ -9,7 +9,7 @@
           name="widgetWidth"
           [(ngModel)]="newWidgetWidth"
           [options]="widthOptions()"
-          [ariaLabel]="i18n.t('dashboard.widgetForm.distribution.ariaLabel')"
+          [ariaLabel]="i18n.t('dashboard.widgetForm.distribution')"
         />
       </fin-field>
     </div>
@@ -49,7 +49,7 @@
             name="widgetDimension"
             [(ngModel)]="newWidgetDimension"
             [options]="dimensionOptions()"
-            [ariaLabel]="i18n.t('dashboard.widgetActions.dimension.ariaLabel')"
+            [ariaLabel]="i18n.t('dashboard.widgetForm.dimensionAxis')"
           />
         </fin-field>
         <fin-field [label]="i18n.t('dashboard.widgetForm.measureValue')">
@@ -57,7 +57,7 @@
             name="widgetMeasure"
             [(ngModel)]="newWidgetMeasure"
             [options]="measureOptions()"
-            [ariaLabel]="i18n.t('dashboard.widgetActions.measure.ariaLabel')"
+            [ariaLabel]="i18n.t('dashboard.widgetForm.measureValue')"
           />
         </fin-field>
         } @if (needsGoal(newWidgetMetric)) {
