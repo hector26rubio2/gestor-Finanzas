@@ -43,6 +43,7 @@ interface StoredLayout {
   readonly ranges?: Readonly<Record<string, KpiRanges | null>>;
   readonly configs?: readonly WidgetGuardado[];
   readonly reports?: readonly VistaDeReporte[];
+  readonly hidden?: readonly string[];
 }
 
 export interface WidgetGuardado {
@@ -65,6 +66,8 @@ const esConfigValida = (valor: unknown): boolean =>
   (Array.isArray(valor) && valor.every((item) => !!item && typeof (item as { id?: unknown }).id === 'string'));
 
 const EMPTY: StoredLayout = { version: 2, widgets: [], kpis: [] };
+
+const esListaDeIds = (valor: unknown): boolean => Array.isArray(valor) && valor.every((id) => typeof id === 'string');
 
 function isDefinition(value: unknown): value is KpiDefinition {
   const item = value as KpiDefinition;
@@ -97,6 +100,7 @@ function parse(raw: string | null | undefined): StoredLayout | null {
     if (parsed.definitions !== undefined && !parsed.definitions.every(isDefinition)) return null;
     if (!rangosValidos(parsed.ranges)) return null;
     if (!esConfigValida(parsed.configs) || !esConfigValida(parsed.reports)) return null;
+    if (parsed.hidden !== undefined && !esListaDeIds(parsed.hidden)) return null;
     return parsed;
   } catch {
     return null;
@@ -151,15 +155,21 @@ export class DashboardLayoutService {
       this.stored().kpis.length > 0 ||
       this.stored().definitions !== undefined ||
       this.stored().configs !== undefined ||
+      this.stored().hidden !== undefined ||
       Object.keys(this.stored().ranges ?? {}).length > 0,
   );
   readonly definitions = computed(() => this.stored().definitions ?? null);
   readonly ranges = computed(() => this.stored().ranges ?? {});
   readonly widgetConfigs = computed(() => this.stored().configs ?? null);
   readonly reportViews = computed(() => this.stored().reports ?? null);
+  readonly hiddenWidgets = computed(() => this.stored().hidden ?? []);
 
   saveWidgetConfigs(configs: readonly WidgetGuardado[]): void {
     this.commit({ ...this.stored(), configs });
+  }
+
+  saveHiddenWidgets(hidden: readonly string[]): void {
+    this.commit({ ...this.stored(), hidden });
   }
 
   saveReportViews(reports: readonly VistaDeReporte[]): void {
