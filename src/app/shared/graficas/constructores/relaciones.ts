@@ -116,9 +116,11 @@ export function grafo(pedido: Pedido): ChartOption {
   return {
     color: paleta,
     legend: {
+      type: 'scroll' as const,
       top: 0,
       right: 0,
       textStyle: { color: palette.muted },
+      pageTextStyle: { color: palette.muted },
       icon: 'circle',
       data: [entorno.ctx.t('charts.graph.origin'), entorno.ctx.t('charts.graph.target')],
     },

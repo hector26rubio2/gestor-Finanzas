@@ -12,7 +12,7 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 @Component({
   selector: 'fin-chart',
   host: {
-    class: 'block w-full',
+    class: 'block w-full overflow-hidden',
     '[class.h-full]': 'llena()',
     '[class.min-h-40]': 'llena()',
     '[class.flex-1]': 'llena()',
@@ -37,7 +37,7 @@ export class ChartComponent implements OnDestroy {
     const p = this.tema.palette();
     return {
       color: [...p.categorical],
-      textStyle: { color: p.muted, fontFamily: 'inherit' },
+      textStyle: { color: p.muted, fontFamily: this.familiaDeFuente() },
       tooltip: {
         backgroundColor: p.surface,
         borderColor: p.line,
@@ -96,6 +96,11 @@ export class ChartComponent implements OnDestroy {
         true,
       );
     });
+  }
+
+  private familiaDeFuente(): string {
+    const familia = getComputedStyle(this.host.nativeElement).fontFamily;
+    return familia || 'sans-serif';
   }
 
   private hayLienzo2d(): boolean {

@@ -82,6 +82,7 @@ export function velasDeSaldo(pedido: Pedido): ChartOption {
   return {
     grid: { top: 36, right: 18, bottom: 40, left: 12, containLabel: true },
     legend: {
+      type: 'scroll' as const,
       top: 0,
       right: 0,
       textStyle: { color: palette.muted },

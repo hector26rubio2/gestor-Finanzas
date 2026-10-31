@@ -1,4 +1,6 @@
 :root {
+  --scroll-thumb: color-mix(in srgb, var(--muted) 45%, transparent);
+  --scroll-thumb-hover: color-mix(in srgb, var(--muted) 72%, transparent);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
@@ -139,16 +141,41 @@
     min-width: 320px;
     background: var(--bg);
   }
-  html,
-  body,
-  * {
-    scrollbar-width: none;
+  @supports not selector(::-webkit-scrollbar) {
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--scroll-thumb) transparent;
+    }
   }
-  html::-webkit-scrollbar,
-  body::-webkit-scrollbar,
   *::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 999px;
+    background-color: var(--scroll-thumb);
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scroll-thumb-hover);
+  }
+  *::-webkit-scrollbar-button {
+    display: none;
     width: 0;
     height: 0;
+  }
+  *::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
   h1,
   h2,
@@ -206,20 +233,6 @@
   input::placeholder,
   textarea::placeholder {
     color: color-mix(in srgb, var(--muted) 78%, transparent);
-  }
-  .nav-scroll {
-    scrollbar-width: thin;
-    scrollbar-color: color-mix(in srgb, var(--muted) 45%, transparent) transparent;
-  }
-  .nav-scroll::-webkit-scrollbar {
-    width: 8px;
-  }
-  .nav-scroll::-webkit-scrollbar-thumb {
-    border-radius: 999px;
-    background: color-mix(in srgb, var(--muted) 45%, transparent);
-  }
-  .nav-scroll::-webkit-scrollbar-track {
-    background: transparent;
   }
   @media (prefers-reduced-motion: reduce) {
     *,

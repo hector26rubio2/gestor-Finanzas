@@ -32,6 +32,17 @@ export async function desbordeHorizontal(page: Page): Promise<{ scroll: number; 
   });
 }
 
+export async function contenedoresDeGraficaConScroll(page: Page): Promise<string[]> {
+  return page.evaluate(() =>
+    [...document.querySelectorAll('fin-chart')].flatMap((grafica) => {
+      const padre = grafica.parentElement;
+      if (!padre) return [];
+      const sobra = padre.scrollWidth > padre.clientWidth + 1 || padre.scrollHeight > padre.clientHeight + 1;
+      return sobra ? [`${padre.scrollWidth}x${padre.scrollHeight} > ${padre.clientWidth}x${padre.clientHeight}`] : [];
+    }),
+  );
+}
+
 export async function objetivosTactilesChicos(page: Page): Promise<string[]> {
   return page.evaluate(() => {
     const selector =

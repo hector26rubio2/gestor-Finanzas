@@ -1,5 +1,12 @@
 import type { ChartOption } from './chart';
 import type { ChartPalette } from './chart-theme';
+import {
+  etiquetaDeCentro,
+  etiquetaDeEjeRecortada,
+  leyendaDeGrafica,
+  leyendaLateral,
+  mediaConLeyendaAbajo,
+} from './leyenda';
 
 export type Dinero = (valor: number) => string;
 
@@ -26,7 +33,7 @@ const ejeDeCategorias = (palette: ChartPalette, etiquetas: readonly string[]) =>
   data: [...etiquetas],
   axisLine: { lineStyle: { color: palette.line } },
   axisTick: { show: false },
-  axisLabel: { color: palette.muted },
+  axisLabel: etiquetaDeEjeRecortada(palette),
 });
 
 export function barrasAgrupadas(
@@ -38,7 +45,7 @@ export function barrasAgrupadas(
 ): ChartOption {
   return {
     grid: { left: 8, right: 8, top: 36, bottom: 8, containLabel: true },
-    legend: { top: 0, textStyle: { color: palette.muted }, icon: 'circle', itemWidth: 10, itemHeight: 10 },
+    legend: leyendaDeGrafica(palette, { top: 0 }),
     tooltip: { trigger: 'axis', valueFormatter: (valor: unknown) => dinero(Number(valor)) },
     xAxis: ejeDeCategorias(palette, etiquetas),
     yAxis: ejeDeValores(palette, compacto),
@@ -66,31 +73,16 @@ export function anillo(
         return `${name}<br/><b>${dinero(value)}</b> · ${percent}%`;
       },
     },
-    legend: {
-      orient: 'vertical',
-      right: 0,
-      top: 'middle',
-      textStyle: { color: palette.muted },
-      icon: 'circle',
-      itemWidth: 10,
-      itemHeight: 10,
-    },
+    legend: leyendaLateral(palette),
+    media: mediaConLeyendaAbajo(['50%', '42%'], ['46%', '66%']),
     series: [
       {
         type: 'pie',
         radius: ['56%', '80%'],
-        center: ['32%', '50%'],
+        center: ['30%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: { borderColor: palette.surface, borderWidth: 2, borderRadius: 6 },
-        label: {
-          show: true,
-          position: 'center',
-          formatter: () => `{valor|${total.valor}}\n{pie|${total.etiqueta}}`,
-          rich: {
-            valor: { color: palette.text, fontSize: 18, fontWeight: 700 },
-            pie: { color: palette.muted, fontSize: 12, padding: [6, 0, 0, 0] },
-          },
-        },
+        label: etiquetaDeCentro(palette, total.valor, total.etiqueta),
         labelLine: { show: false },
         data: porciones.map((porcion) => ({ name: porcion.nombre, value: porcion.valor })),
       },
@@ -107,7 +99,7 @@ export function lineaConCero(
 ): ChartOption {
   return {
     grid: { left: 8, right: 16, top: series.length > 1 ? 36 : 16, bottom: 8, containLabel: true },
-    legend: series.length > 1 ? { top: 0, textStyle: { color: palette.muted }, icon: 'circle' } : undefined,
+    legend: series.length > 1 ? leyendaDeGrafica(palette, { top: 0 }) : undefined,
     tooltip: { trigger: 'axis', valueFormatter: (valor: unknown) => dinero(Number(valor)) },
     xAxis: { ...ejeDeCategorias(palette, etiquetas), boundaryGap: false },
     yAxis: ejeDeValores(palette, compacto),
@@ -143,7 +135,7 @@ export function barrasHorizontales(
 ): ChartOption {
   return {
     grid: { left: 8, right: 16, top: series.length > 1 ? 36 : 8, bottom: 8, containLabel: true },
-    legend: series.length > 1 ? { top: 0, textStyle: { color: palette.muted }, icon: 'circle' } : undefined,
+    legend: series.length > 1 ? leyendaDeGrafica(palette, { top: 0 }) : undefined,
     tooltip: {
       trigger: 'axis',
       axisPointer: { type: 'shadow' },
@@ -171,8 +163,8 @@ export function medidor(palette: ChartPalette, porcentaje: number, etiqueta: str
         endAngle: -20,
         min: 0,
         max: 100,
-        radius: '100%',
-        center: ['50%', '62%'],
+        radius: '88%',
+        center: ['50%', '58%'],
         progress: { show: true, width: 14, roundCap: true, itemStyle: { color } },
         axisLine: { lineStyle: { width: 14, color: [[1, palette.line]] }, roundCap: true },
         axisTick: { show: false },
@@ -180,7 +172,7 @@ export function medidor(palette: ChartPalette, porcentaje: number, etiqueta: str
         axisLabel: { show: false },
         pointer: { show: false },
         anchor: { show: false },
-        title: { offsetCenter: [0, '32%'], color: palette.muted, fontSize: 12 },
+        title: { offsetCenter: [0, '30%'], color: palette.muted, fontSize: 13 },
         detail: {
           valueAnimation: true,
           offsetCenter: [0, '-4%'],

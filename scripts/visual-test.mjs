@@ -141,6 +141,50 @@ async function horizontalOverflow(page, label) {
     : `${label}: document has horizontal overflow (${metrics.scrollWidth}px > ${metrics.clientWidth}px)`;
 }
 
+async function kpisRecortados(page, label) {
+  const recortados = await page.evaluate(() =>
+    [...document.querySelectorAll('fin-kpi')].flatMap((kpi) => {
+      const valor = kpi.querySelector(':scope > strong');
+      if (!valor || !valor.getClientRects().length) return [];
+      const recortado = valor.scrollHeight > valor.clientHeight + 1;
+      const siguiente = valor.nextElementSibling;
+      const encimado =
+        siguiente && siguiente.getClientRects().length
+          ? siguiente.getBoundingClientRect().top < valor.getBoundingClientRect().bottom - 1
+          : false;
+      const fuera = valor.getBoundingClientRect().bottom > kpi.getBoundingClientRect().bottom + 1;
+      return recortado || encimado || fuera ? [valor.textContent?.trim() ?? '?'] : [];
+    }),
+  );
+  return recortados.length ? `${label}: KPI value clipped or overlapped (${recortados.join(', ')})` : null;
+}
+
+async function graficasConScroll(page, label) {
+  await waitForRoute(page, 'dashboard');
+  await page.getByRole('button', { name: 'Año', exact: true }).first().click();
+  const tarjetas = page.locator('fin-widget-card');
+  const total = await tarjetas.count();
+  for (let i = 0; i < total; i++) {
+    await tarjetas.nth(i).scrollIntoViewIfNeeded();
+    await page.waitForTimeout(250);
+  }
+  await page.waitForTimeout(800);
+  const montadas = await page.locator('fin-chart').count();
+  const conScroll = await page.evaluate(() =>
+    [...document.querySelectorAll('fin-chart')].flatMap((grafica) => {
+      const padre = grafica.parentElement;
+      if (!padre) return [];
+      const sobra = padre.scrollWidth > padre.clientWidth + 1 || padre.scrollHeight > padre.clientHeight + 1;
+      const titulo = padre.closest('fin-widget-card')?.querySelector('h2')?.textContent?.trim() ?? padre.tagName;
+      return sobra
+        ? [`${titulo} ${padre.scrollWidth}x${padre.scrollHeight} > ${padre.clientWidth}x${padre.clientHeight}`]
+        : [];
+    }),
+  );
+  if (!montadas) return `${label}: no se montó ninguna gráfica para comprobar el scroll`;
+  return conScroll.length ? `${label}: el contenedor de una gráfica tiene scroll (${conScroll.join('; ')})` : null;
+}
+
 async function devuelveElFoco(locator, mensaje) {
   try {
     await locator.evaluate(
@@ -228,11 +272,16 @@ async function testViewport(browser, viewport) {
       await waitForRoute(page, route);
       const overflow = await horizontalOverflow(page, `${viewportLabel} ${route}`);
       if (overflow) failures.push(overflow);
+      const kpis = await kpisRecortados(page, `${viewportLabel} ${route}`);
+      if (kpis) failures.push(kpis);
       await page.screenshot({
         path: join(artifacts, viewport.label ?? String(viewport.width), `${route.replace(/[?=]/g, '-')}.png`),
         fullPage: true,
       });
     }
+
+    const scrollGrafica = await graficasConScroll(page, viewportLabel);
+    if (scrollGrafica) failures.push(scrollGrafica);
 
     if (consoleErrors.length)
       failures.push(
@@ -258,6 +307,7 @@ async function main() {
   const browser = await chromium.launch({
     executablePath,
     headless: true,
+    ignoreDefaultArgs: ['--hide-scrollbars'],
     args: ['--no-sandbox', '--disable-dev-shm-usage'],
   });
   try {

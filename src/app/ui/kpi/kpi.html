@@ -1,18 +1,18 @@
 @if (layoutRow()) { @if (progress() !== null && !hasSeries()) {
 <div
-  class="pointer-events-none absolute inset-x-4 bottom-3 z-0 h-1.5 overflow-hidden rounded-full bg-muted"
+  class="pointer-events-none absolute inset-x-4 bottom-2 z-0 h-1.5 overflow-hidden rounded-full bg-muted"
   aria-hidden="true"
 >
   <div class="h-full rounded-full" [class]="progressClass()" [style.width.%]="progress()"></div>
 </div>
 }
-<div class="relative z-10 flex min-w-0 items-center gap-2.5">
+<div class="relative z-10 flex min-w-0 shrink-0 items-center gap-2">
   @if (icon()) {
-  <span class="grid size-8 flex-none place-items-center rounded-lg" [class]="chipClass()">
-    <fin-icon [name]="icon()" class="[--icon-size:17px]" />
+  <span class="grid size-7 flex-none place-items-center rounded-lg" [class]="chipClass()">
+    <fin-icon [name]="icon()" class="[--icon-size:16px]" />
   </span>
   }
-  <span class="line-clamp-2 min-w-0 flex-1 text-xs leading-snug text-muted-foreground" [attr.title]="label()"
+  <span class="line-clamp-2 min-w-0 flex-1 text-xs leading-tight text-muted-foreground" [attr.title]="label()"
     >{{ label() }}</span
   >
   @if (delta() !== null) {
@@ -26,14 +26,14 @@
   }
 </div>
 <strong
-  class="relative z-10 truncate text-[clamp(1.1rem,7cqi,1.6rem)] leading-tight font-semibold tracking-[-0.03em] tabular-nums"
+  class="relative z-10 shrink-0 truncate text-[clamp(1.1rem,7cqi,1.6rem)] leading-[1.15] font-semibold tracking-[-0.03em] tabular-nums"
   [attr.title]="value()"
   >{{ value() }}</strong
 >
 @if (hint() || caption() || delta() !== null || hasSeries()) {
 <div
-  class="relative z-10 flex min-w-0 items-center justify-between gap-2"
-  [class.mb-4]="progress() !== null && !hasSeries()"
+  class="relative z-10 flex min-w-0 shrink-0 items-center justify-between gap-2"
+  [class.mb-1.5]="progress() !== null && !hasSeries()"
 >
   <span class="min-w-0 truncate text-xs text-muted-foreground" [attr.title]="hint()"
     >{{ delta() !== null ? comparacionVisible() : hint() }}@if (caption() && delta() === null) {<span>
@@ -41,7 +41,7 @@
     >}</span
   >
   @if (hasSeries()) {
-  <div class="pointer-events-none h-7 w-20 flex-none" aria-hidden="true">
+  <div class="pointer-events-none h-6 w-20 flex-none" aria-hidden="true">
     @defer (on viewport) {
     <fin-chart class="block h-full w-full !min-h-0" [option]="chispaOption()" height="fill" />
     } @placeholder {

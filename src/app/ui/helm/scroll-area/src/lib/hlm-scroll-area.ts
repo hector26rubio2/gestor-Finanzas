@@ -7,8 +7,8 @@ import { provideScrollbarOptions } from 'ngx-scrollbar';
   providers: [provideScrollbarOptions({ visibility: 'hover' })],
   host: {
     'data-slot': 'scroll-area',
-    '[style.--scrollbar-thumb-color]': '"var(--border)"',
-    '[style.--scrollbar-thumb-hover-color]': '"var(--border)"',
+    '[style.--scrollbar-thumb-color]': '"var(--scroll-thumb)"',
+    '[style.--scrollbar-thumb-hover-color]': '"var(--scroll-thumb-hover)"',
     '[style.--scrollbar-track-color]': '"transparent"',
     '[style.--scrollbar-track-thickness]': '"0.625rem"',
     '[style.--scrollbar-track-offset]': '"1.5px"',

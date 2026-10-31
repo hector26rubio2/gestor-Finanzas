@@ -49,7 +49,7 @@ export class KpiComponent {
 
   readonly hostClass = computed(() => {
     if (this.layoutRow())
-      return '@container relative isolate flex min-h-[104px] min-w-0 flex-col justify-start gap-1 overflow-hidden rounded-lg border border-border bg-card px-4 pt-3 pb-4 text-foreground';
+      return '@container relative isolate flex min-h-[104px] min-w-0 flex-col justify-start gap-1 overflow-hidden rounded-lg border border-border bg-card px-4 py-3 text-foreground';
     const base = 'flex min-w-0 flex-col justify-center gap-1.5 text-foreground';
     if (this.bare()) return `${base} min-h-0 flex-1 items-center border-0 bg-transparent p-0 text-center`;
     const shape =
