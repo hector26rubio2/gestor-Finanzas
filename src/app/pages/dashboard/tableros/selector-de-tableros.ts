@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmInput } from '@spartan-ng/helm/input';
+import { ApiRequestError } from '@core/http/api-http-client';
 import { I18nService } from '@core/i18n';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
@@ -126,7 +127,7 @@ export class SelectorDeTablerosComponent {
   }
 
   private mensaje(error: unknown): string {
-    const detalle = (error as { error?: { detail?: string } })?.error?.detail;
-    return detalle ?? this.i18n.t('dashboard.boards.error');
+    const detalle = error instanceof ApiRequestError ? error.problem.detail : undefined;
+    return detalle || this.i18n.t('dashboard.boards.error');
   }
 }
