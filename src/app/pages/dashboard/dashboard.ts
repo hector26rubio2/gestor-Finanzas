@@ -125,7 +125,7 @@ export class DashboardComponent extends DashboardKpis {
       card: 190,
       gauge: 340,
       heatmap: 300,
-      indicator: 380,
+      indicator: 410,
     };
     return { id: widget.id, cols: full ? 12 : 6, height: heights[widget.type] ?? 360 };
   }

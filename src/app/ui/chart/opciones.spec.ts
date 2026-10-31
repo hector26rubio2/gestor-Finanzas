@@ -19,6 +19,7 @@ const dinero = (valor: number) => `COP ${valor}`;
 
 interface Leyenda {
   type: string;
+  textStyle: { overflow: string; width: number };
   tooltip: { show: boolean };
   formatter: (nombre: string) => string;
 }
@@ -53,6 +54,11 @@ describe('anillo', () => {
     expect(opcion.legend.type).toBe('scroll');
     expect(opcion.legend.tooltip.show).toBe(true);
     expect(opcion.legend.formatter('Ahorro principalVisa Bancolombia').endsWith('…')).toBe(true);
+  });
+
+  it('trunca con puntos suspensivos el texto que no cabe en la leyenda', () => {
+    expect(opcion.legend.textStyle.overflow).toBe('truncate');
+    expect(opcion.legend.textStyle.width).toBeGreaterThan(0);
   });
 
   it('mueve la leyenda abajo en anchos pequeños', () => {

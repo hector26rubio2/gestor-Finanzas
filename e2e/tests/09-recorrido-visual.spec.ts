@@ -1,4 +1,9 @@
-import { analizarAxe, desbordeHorizontal, objetivosTactilesChicos } from '../support/auditoria';
+import {
+  analizarAxe,
+  contenedoresDeGraficaConScroll,
+  desbordeHorizontal,
+  objetivosTactilesChicos,
+} from '../support/auditoria';
 import { expect, test } from '../support/fixtures';
 
 const rutas = [
@@ -53,6 +58,9 @@ for (const escenario of escenarios) {
 
         const desborde = await desbordeHorizontal(page);
         expect(desborde.scroll, 'desborde horizontal de la página').toBeLessThanOrEqual(desborde.vista + 1);
+
+        const conScroll = await contenedoresDeGraficaConScroll(page);
+        expect(conScroll, 'contenedores de gráfica con scroll').toEqual([]);
 
         const hallazgos = await analizarAxe(page);
         const graves = hallazgos.filter((h) => h.impacto === 'serious' || h.impacto === 'critical');

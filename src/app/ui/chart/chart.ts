@@ -12,7 +12,7 @@ export type ChartOption = Parameters<echarts.ECharts['setOption']>[0];
 @Component({
   selector: 'fin-chart',
   host: {
-    class: 'block w-full',
+    class: 'block w-full overflow-hidden',
     '[class.h-full]': 'llena()',
     '[class.min-h-40]': 'llena()',
     '[class.flex-1]': 'llena()',

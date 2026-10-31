@@ -2,6 +2,7 @@ import type { ChartPalette } from './chart-theme';
 
 export const LARGO_MAXIMO_DE_ETIQUETA = 18;
 export const ANCHO_DE_ETIQUETA_DE_EJE = 96;
+export const ANCHO_DE_TEXTO_DE_LEYENDA = 110;
 export const ANCHO_MAXIMO_CON_LEYENDA_ABAJO = 440;
 
 export function recortarEtiqueta(texto: string, maximo = LARGO_MAXIMO_DE_ETIQUETA): string {
@@ -13,9 +14,15 @@ export function etiquetaDeEjeRecortada(palette: ChartPalette, extra: Record<stri
 }
 
 export function leyendaDeGrafica(palette: ChartPalette, extra: Record<string, unknown> = {}) {
+  const { textStyle, ...resto } = extra;
   return {
     type: 'scroll' as const,
-    textStyle: { color: palette.muted },
+    textStyle: {
+      color: palette.muted,
+      width: ANCHO_DE_TEXTO_DE_LEYENDA,
+      overflow: 'truncate' as const,
+      ...(textStyle as Record<string, unknown> | undefined),
+    },
     pageTextStyle: { color: palette.muted },
     pageIconColor: palette.accent,
     pageIconInactiveColor: palette.line,
@@ -24,7 +31,7 @@ export function leyendaDeGrafica(palette: ChartPalette, extra: Record<string, un
     itemHeight: 10,
     formatter: (nombre: string) => recortarEtiqueta(nombre),
     tooltip: { show: true },
-    ...extra,
+    ...resto,
   };
 }
 
