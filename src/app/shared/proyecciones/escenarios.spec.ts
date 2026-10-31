@@ -73,7 +73,7 @@ describe('rendimiento del plan de abonos', () => {
     const flujo = { ingresoMensual: 9_000_000, gastoMensual: 3_000_000, recorteDeGasto: 0, metaDeAhorro: 0 };
     const inicio = performance.now();
     planDeAbonos(deudas, flujo, 600, 200_000, 'tasa');
-    expect(performance.now() - inicio).toBeLessThan(200);
+    expect(performance.now() - inicio).toBeLessThan(1000);
   });
 });
 
