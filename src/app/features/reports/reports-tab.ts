@@ -30,6 +30,7 @@ import { KpiGridComponent } from '@ui/kpi-grid';
 import { SkeletonComponent } from '@ui/skeleton';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { tasaDeAhorro } from './tasa-de-ahorro';
+import { gastoPromedioMensual, mayorSubida, mesesCerrados } from './meses-cerrados';
 import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
 @Component({
@@ -108,7 +109,15 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   readonly reportExpenses = computed(() => totalDeGastos(this.gastos()));
   readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
   readonly reportSavingsRate = computed(() => tasaDeAhorro(this.reportIncome(), this.reportNet()));
-  readonly reportAverageExpense = computed(() => this.reportExpenses() / Number(this.reportPeriod()));
+  private readonly mesesCerrados = computed(() => mesesCerrados(this.periodos(), this.store.hoy()));
+  private readonly gastosConMonto = computed(() =>
+    this.gastos().map((movement) => ({
+      date: movement.date,
+      category: movement.category,
+      monto: montoDeGasto(movement),
+    })),
+  );
+  readonly reportAverageExpense = computed(() => gastoPromedioMensual(this.gastosConMonto(), this.mesesCerrados()));
 
   private readonly nombreDeMes = computed(() => {
     const formato = new Intl.DateTimeFormat(this.store.preferences().locale, { month: 'short', timeZone: 'UTC' });
@@ -268,24 +277,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   });
 
   private mayorSubida(): { nombre: string; porcentaje: number } | null {
-    const periodos = this.periodos();
-    if (periodos.length < 2) return null;
-    const [anterior, actual] = periodos.slice(-2);
-    const porMes = (mes: string) => {
-      const totales = new Map<string, number>();
-      for (const movement of this.gastos().filter((m) => m.date.startsWith(mes)))
-        totales.set(movement.category, (totales.get(movement.category) ?? 0) + montoDeGasto(movement));
-      return totales;
-    };
-    const antes = porMes(anterior);
-    let mejor: { nombre: string; porcentaje: number } | null = null;
-    for (const [nombre, valor] of porMes(actual)) {
-      const previo = antes.get(nombre) ?? 0;
-      if (previo <= 0 || valor <= previo) continue;
-      const porcentaje = Math.round(((valor - previo) / previo) * 100);
-      if (!mejor || porcentaje > mejor.porcentaje) mejor = { nombre, porcentaje };
-    }
-    return mejor;
+    return mayorSubida(this.gastosConMonto(), this.mesesCerrados());
   }
 
   exportReport(): void {
