@@ -2,6 +2,7 @@ import { Component, inject } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import type { Account, Movement, Person } from '@core/state';
 import { mensualDesdeAnual } from '@core/utils/tasas';
+import { addMonthsToIso } from '@core/utils';
 import { CARD_BUCKET } from '@core/api';
 import {
   CUOTAS_SUPUESTAS,
@@ -362,6 +363,16 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
     sim.quitarEscenario(sim.escenariosGuardados()[0].id);
     expect(sim.escenariosGuardados()).toHaveLength(0);
     expect((JSON.parse(json) as { escenariosGuardados: unknown[] }).escenariosGuardados).toHaveLength(1);
+  });
+
+  it('la pestana de deudas no se alarga por una meta a 50 anios', async () => {
+    const { sim } = await simuladorListo();
+    sim.metaFecha.set(addMonthsToIso(sim.hoy(), 600));
+    sim.pestana.set('Deudas');
+    expect(sim.meses()).toBeLessThanOrEqual(15);
+    expect(sim.escenario().meses).toBeLessThanOrEqual(15);
+    sim.pestana.set('Vacaciones');
+    expect(sim.meses()).toBe(600);
   });
 
   it('el aporte necesario descuenta el ahorro inicial y nunca baja de cero', async () => {

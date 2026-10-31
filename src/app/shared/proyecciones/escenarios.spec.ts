@@ -10,6 +10,7 @@ import {
   deudasDeTarjeta,
   ordenarParaAbono,
   flujoPorMes,
+  horizonteDelPlan,
   lineasPorCategoria,
   recurrentesDeFlujo,
   saldoTrasCuotas,
@@ -33,6 +34,48 @@ const movimiento = (parcial: Partial<Movement>): Movement => ({
 });
 
 const flujo = { ingresoMensual: 5_000_000, gastoMensual: 3_000_000, recorteDeGasto: 0, metaDeAhorro: 0 };
+
+describe('horizonteDelPlan', () => {
+  const deuda = (cuotas: number) => ({
+    id: `d${cuotas}`,
+    nombre: 'D',
+    tipo: 'credito' as const,
+    saldo: 1_000_000,
+    tasaMensual: 1,
+    cuotas,
+  });
+
+  it('la pestana de deudas llega hasta saldar mas tres meses sin mirar la meta', () => {
+    expect(horizonteDelPlan('Deudas', [deuda(12), deuda(12)], 600)).toBe(15);
+    expect(horizonteDelPlan('Compra', [deuda(12)], 600)).toBe(15);
+  });
+
+  it('la pestana de metas llega hasta la meta mas tres meses con tope de 600', () => {
+    expect(horizonteDelPlan('Vacaciones', [deuda(12)], 40)).toBe(43);
+    expect(horizonteDelPlan('Vacaciones', [], 900)).toBe(600);
+  });
+
+  it('las deudas largas se topan en 360 meses', () => {
+    expect(horizonteDelPlan('Deudas', [deuda(500)], 12)).toBe(360);
+  });
+});
+
+describe('rendimiento del plan de abonos', () => {
+  it('600 meses con 10 deudas termina en menos de 200 ms', () => {
+    const deudas = Array.from({ length: 10 }, (_, i) => ({
+      id: `d${i}`,
+      nombre: `D${i}`,
+      tipo: 'credito' as const,
+      saldo: 50_000_000,
+      tasaMensual: 1 + i / 10,
+      cuotas: 600,
+    }));
+    const flujo = { ingresoMensual: 9_000_000, gastoMensual: 3_000_000, recorteDeGasto: 0, metaDeAhorro: 0 };
+    const inicio = performance.now();
+    planDeAbonos(deudas, flujo, 600, 200_000, 'tasa');
+    expect(performance.now() - inicio).toBeLessThan(200);
+  });
+});
 
 describe('escenarios de planificación', () => {
   it('promedia ingreso y gasto de los meses cerrados sin contar transferencias ni préstamos', () => {

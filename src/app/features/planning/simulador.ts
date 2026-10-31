@@ -27,7 +27,8 @@ import {
   cuotasDeManejo,
   lineasPorCategoria,
   recurrentesDeFlujo,
-  horizonteDeDeudas,
+  horizonteDelPlan,
+  type PestanaDelPlan,
   mesesHasta,
   planDeAbonos,
   proyectarInversion,
@@ -38,7 +39,6 @@ export type { AjusteDeDeuda, EventoDelEscenario } from './simulador-estado';
 
 const ID_DE_LA_COMPRA = 'compra:simulada';
 const RENDIMIENTO_SUPUESTO = 8;
-const MESES_MINIMOS = 12;
 
 let secuencia = 0;
 const nuevoId = (prefijo: string) => `${prefijo}:${Date.now().toString(36)}${(secuencia++).toString(36)}`;
@@ -189,14 +189,8 @@ export class SimuladorDePlanificacion {
   readonly mesesAlaMeta = computed(() => mesesHasta(this.hoy(), this.metaFecha()));
   readonly mesesDeInversion = computed(() => Math.min(600, mesesHasta(this.hoy(), this.inversionFecha())));
 
-  readonly meses = computed(() =>
-    Math.max(
-      MESES_MINIMOS,
-      horizonteDeDeudas(this.deudasDelEscenario(), 6),
-      this.mesesAlaMeta() + 3,
-      this.mesesAlObjetivo() + 3,
-    ),
-  );
+  readonly pestana = signal<PestanaDelPlan>('Deudas');
+  readonly meses = computed(() => horizonteDelPlan(this.pestana(), this.deudasDelEscenario(), this.mesesAlaMeta()));
 
   readonly etiquetas = computed(() => this.etiquetasDesdeHoy(this.meses()));
   readonly etiquetasDeInversion = computed(() => this.etiquetasDesdeHoy(this.mesesDeInversion() + 1));

@@ -94,6 +94,7 @@ export class PlanningTabComponent {
   private readonly urlDePlanificacion = sincronizarConLaUrl('objetivo', this.planningTab, 'Deudas', (v) =>
     (this.planningTabs as readonly string[]).includes(v),
   );
+  private readonly sincronizarPestana = effect(() => this.sim.pestana.set(this.planningTab()));
   private readonly ajustarPlanificacion = effect(() => {
     const visibles = this.visiblePlanningTabs();
     if (visibles.length && !visibles.includes(this.planningTab())) this.planningTab.set(visibles[0]);
