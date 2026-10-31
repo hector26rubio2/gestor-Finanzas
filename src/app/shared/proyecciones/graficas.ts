@@ -349,8 +349,14 @@ export function conVista(opcion: ChartOption, vista: VistaDeGrafica): ChartOptio
   return { ...opcion, series: series.map(transformar) } as ChartOption;
 }
 
-export function mesAMes(escenario: Proyeccion, flujo: FlujoPorMes, e: EntornoDeProyeccion): ChartOption {
+export function mesAMes(
+  escenario: Proyeccion,
+  flujo: FlujoPorMes,
+  e: EntornoDeProyeccion,
+  recorteDeGasto = 0,
+): ChartOption {
   const paleta = colores(e.palette);
+  const factorDeGasto = 1 - recorteDeGasto / 100;
   const meses = escenario.meses;
   const cuotas = escenario.cuotaTotal.slice(0, meses).map((v) => Math.round(v));
   const libre = escenario.flujoLibre.slice(0, meses);
@@ -374,7 +380,7 @@ export function mesAMes(escenario: Proyeccion, flujo: FlujoPorMes, e: EntornoDeP
         barMaxWidth: 22,
         itemStyle: { color: conAlfa(paleta[(i + 2) % paleta.length], 0.8) },
         emphasis: { focus: 'series' as const },
-        data: linea.valores.slice(0, meses).map((v) => Math.round(v)),
+        data: linea.valores.slice(0, meses).map((v) => Math.round(v * factorDeGasto)),
       })),
       {
         name: e.t('planning.sim.series.installments'),

@@ -50,6 +50,24 @@ describe('escenarios de planificación', () => {
     expect(resultado.gastoMensual).toBe(500_000);
   });
 
+  it('el gasto promedio no incluye compras a cuotas, cuyas cuotas ya entran por la deuda', () => {
+    const movimientos = [
+      movimiento({ date: '2026-08-05', kind: 'income', amount: 4_000_000 }),
+      movimiento({ date: '2026-08-06', kind: 'expense', amount: -1_000_000 }),
+      movimiento({
+        date: '2026-08-07',
+        kind: 'expense',
+        amount: -1_200_000,
+        installmentTotal: 12,
+        installmentCurrent: 1,
+      }),
+      movimiento({ date: '2026-08-08', kind: 'expense', amount: -300_000, installmentTotal: 1, installmentCurrent: 1 }),
+    ];
+    expect(flujoPromedio(movimientos, '2026-09-15').gastoMensual).toBe(1_300_000);
+    const lineas = lineasPorCategoria(movimientos, '2026-09-15');
+    expect(lineas.filter((l) => l.tipo === 'gasto').reduce((suma, l) => suma + l.monto, 0)).toBe(1_300_000);
+  });
+
   it('toma las tarjetas con saldo y a quien se le debe como deudas actuales', () => {
     const tarjeta: Account = {
       id: 't',
@@ -89,6 +107,23 @@ describe('escenarios de planificación', () => {
     expect(escenario.mesSinDeudas!).toBeLessThan(base.mesSinDeudas!);
   });
 
+  it('el abono arranca cuando la única deuda empieza en un mes futuro', () => {
+    const deudas = [
+      {
+        id: 'compra',
+        nombre: 'Compra',
+        tipo: 'hipotetica' as const,
+        saldo: 1_000_000,
+        tasaMensual: 1,
+        cuotas: 12,
+        desdeMes: 3,
+      },
+    ];
+    const palancas = planDeAbonos(deudas, flujo, 12, 100_000, 'tasa');
+    expect(palancas[0]).toMatchObject({ tipo: 'abono', deudaId: 'compra', mes: 3, monto: 100_000 });
+    expect(palancas.every((p) => p.mes >= 3)).toBe(true);
+  });
+
   it('calcula la cuota que hace falta para terminar en un plazo', () => {
     const deudas = [{ id: 'c', nombre: 'C', tipo: 'credito' as const, saldo: 1_200_000, tasaMensual: 0, cuotas: 24 }];
     expect(cuotaParaTerminarEn(deudas, 12)).toBe(100_000);
@@ -107,7 +142,7 @@ describe('escenarios de planificación', () => {
     expect(tasaPromedioDeInversiones([], 8)).toBe(8);
   });
 
-  it('convierte los créditos del API en deudas con el saldo amortizado a hoy', () => {
+  it('convierte los créditos del API en deudas con el saldo pendiente que ya entrega el API', () => {
     const credito = {
       id: 'o1',
       counterparty: { id: 'banco', name: 'Banco Uno' },
@@ -117,7 +152,7 @@ describe('escenarios de planificación', () => {
       dueOn: '2027-03-15',
       description: 'Crédito libre inversión',
       status: 1,
-      totalOutstanding: { amount: '12000000', currency: 'COP' },
+      totalOutstanding: { amount: '6000000', currency: 'COP' },
       interestPolicies: [{ effectiveFrom: '2026-03-15', policy: { kind: 1, rate: { rate: '0.015' }, period: 2 } }],
     };
     const cobrada = { ...credito, id: 'o2', direction: 1 as const };
@@ -130,9 +165,8 @@ describe('escenarios de planificación', () => {
       cuotas: 6,
       tasaConocida: true,
     });
-    expect(deuda.saldo).toBeCloseTo(saldoTrasCuotas(12_000_000, 1.5, 12, 6), 2);
-    expect(deuda.saldo).toBeLessThan(12_000_000);
-    const personas = [{ id: 'banco', name: 'Banco Uno', kind: 'institution' as const, owed: 0, owing: 12_000_000 }];
+    expect(deuda.saldo).toBe(6_000_000);
+    const personas = [{ id: 'banco', name: 'Banco Uno', kind: 'institution' as const, owed: 0, owing: 6_000_000 }];
     const todas = deudasActuales([], personas, [], () => 0, [credito], '2026-09-20');
     expect(todas.map((d) => d.id)).toEqual(['obligacion:o1']);
   });

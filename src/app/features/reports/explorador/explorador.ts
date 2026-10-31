@@ -19,7 +19,8 @@ import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { PRESETS_DE_PERIODO, PresetDePeriodo, rangoDePreset } from './periodos';
+import { filtrarMovimientos } from './filtros';
+import { PRESETS_DE_PERIODO, PresetDePeriodo, moverAncla, rangoDePreset } from './periodos';
 import { type PlantillaDeVista, VistasGuardadasComponent } from '@shared/vistas-guardadas';
 
 const VISTAS_INICIALES: readonly VistaDeReporte[] = [
@@ -116,14 +117,11 @@ export class ExploradorDeReportesComponent {
   readonly completos = this.delPeriodo.completos;
 
   readonly movimientos = computed(() =>
-    this.delPeriodo
-      .movimientos()
-      .filter(
-        (m) =>
-          (this.cuenta() === 'all' || m.accountId === this.cuenta()) &&
-          (this.categoria() === 'all' || m.category === this.categoria()) &&
-          (this.flujo() === 'all' || (this.flujo() === 'in' ? m.amount > 0 : m.amount < 0)),
-      ),
+    filtrarMovimientos(this.delPeriodo.movimientos(), {
+      cuenta: this.cuenta(),
+      categoria: this.categoria(),
+      flujo: this.flujo(),
+    }),
   );
   readonly granularidad = computed(() => granularidadParaRango(this.rango().start, this.rango().end));
 
@@ -253,10 +251,7 @@ export class ExploradorDeReportesComponent {
   });
 
   moverAncla(direccion: -1 | 1): void {
-    const base = new Date(`${this.ancla()}T12:00:00Z`);
-    const meses = { month: 1, quarter: 3, year: 12, last3: 3, last6: 6, last12: 12, custom: 0 }[this.preset()];
-    base.setUTCMonth(base.getUTCMonth() + direccion * meses);
-    this.ancla.set(base.toISOString().slice(0, 10));
+    this.ancla.set(moverAncla(this.ancla(), this.preset(), direccion));
   }
 
   guardarVista(vista: VistaEditable): void {
