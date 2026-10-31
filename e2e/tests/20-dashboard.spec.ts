@@ -6,7 +6,7 @@ import {
   estadoPropietario,
   identificadorDeCorrida,
 } from '../support/entorno';
-import { contenedoresDeGraficaConScroll, desbordeHorizontal } from '../support/auditoria';
+import { analizarAxe, contenedoresDeGraficaConScroll, desbordeHorizontal } from '../support/auditoria';
 import { expect, test } from '../support/fixtures';
 import { dialogo, elegir, panelLateral } from '../support/ui';
 import { nombres } from '../support/semilla';
@@ -293,7 +293,7 @@ test.describe('Tablero: widgets propios, orden, tipo y KPI con fórmula', () => 
     const formulario = dialogo(page);
     await formulario.getByRole('textbox', { name: 'Nombre' }).fill(titulo);
     await elegir(formulario, 'Otros widgets', 'Tabla');
-    await elegir(formulario, 'Ancho del widget', 'Media pantalla');
+    await elegir(formulario, 'Distribución', 'Media pantalla');
     await formulario.getByRole('button', { name: 'Agregar widget' }).click();
     await expect(formulario).toBeHidden();
     await expect(tarjetaDeWidget(page, titulo)).toBeVisible();
@@ -402,7 +402,9 @@ test.describe('Tablero: widgets propios, orden, tipo y KPI con fórmula', () => 
     const marca = vigilancia.marca();
     await tarjetaDeWidget(page, titulo).getByRole('button', { name: 'Ocultar' }).click();
     await expect(tarjetaDeWidget(page, titulo)).toHaveCount(0);
-    await expect(page.locator('[data-slot=customize]').getByRole('button', { name: titulo })).toBeVisible();
+    await expect(
+      page.locator('[data-slot=customize]').getByRole('button', { name: `Mostrar ${titulo}` }),
+    ).toBeVisible();
     await esperarGuardado(page, vigilancia, marca);
     expect((await disenoDelTablero(page, tableroId)).hidden).toContain('g-treemap');
 
@@ -412,7 +414,10 @@ test.describe('Tablero: widgets propios, orden, tipo y KPI con fórmula', () => 
 
     await personalizar(page);
     const marcaDos = vigilancia.marca();
-    await page.locator('[data-slot=customize]').getByRole('button', { name: titulo }).click();
+    await page
+      .locator('[data-slot=customize]')
+      .getByRole('button', { name: `Mostrar ${titulo}` })
+      .click();
     await expect(tarjetaDeWidget(page, titulo)).toHaveCount(1);
     await esperarGuardado(page, vigilancia, marcaDos);
     expect((await disenoDelTablero(page, tableroId)).hidden ?? []).not.toContain('g-treemap');
@@ -558,8 +563,9 @@ test.describe('Tablero: indicadores propios con fórmula', () => {
     const marcaBorrado = vigilancia.marca();
     await etiquetaDeKpi(page, etiquetaDos)
       .locator('xpath=ancestor::fin-flow-item[1]')
-      .getByRole('button', { name: 'Quitar indicador' })
+      .getByRole('button', { name: 'Eliminar indicador' })
       .click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
     await expect(etiquetaDeKpi(page, etiquetaDos)).toHaveCount(0);
     await expect.poll(() => vigilancia.exitosasDesde(marcaBorrado, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
     const restantes = (await disenoDelTablero(page, tableroId)).definitions.map((d: { label: string }) => d.label);
@@ -588,6 +594,156 @@ test.describe('Tablero: indicadores propios con fórmula', () => {
     await page.waitForTimeout(1200);
     expect(vigilancia.exitosasDesde(marca, /PUT .*dashboards/)).toHaveLength(0);
     expect((await disenoDelTablero(page, tableroId)).definitions).toHaveLength(antes);
+  });
+});
+
+test.describe('Tablero: indicadores ocultos y campos de los creadores', () => {
+  let tableroId = '';
+
+  test.beforeAll(async () => {
+    const api = await iniciarApi();
+    tableroId = (await api.exigir('POST', '/api/v1/dashboards', { name: `E2E ocultos ${corrida}` })).id;
+  });
+
+  type Pagina = import('@playwright/test').Page;
+  type Vigilante = { marca(): number; exitosasDesde(m: number, p?: RegExp): unknown[] };
+
+  const ruta = () => `dashboard?tablero=${tableroId}`;
+  const etiquetasDeKpi = (page: Pagina) =>
+    page
+      .locator('fin-kpi span.line-clamp-2')
+      .allTextContents()
+      .then((x) => x.map((t) => t.trim()));
+  const panel = (page: Pagina) => page.locator('[data-slot=customize]');
+  const tarjetaDeKpi = (page: Pagina, etiqueta: string) =>
+    etiquetaDeKpi(page, etiqueta).locator('xpath=ancestor::fin-flow-item[1]');
+
+  async function personalizar(page: Pagina) {
+    await abrirTablero(page, ruta());
+    await page.getByRole('button', { name: 'Personalizar' }).click();
+    await expect(panel(page)).toBeVisible();
+  }
+
+  async function ocultarYMostrar(page: Pagina, vigilancia: Vigilante, etiqueta: string, idEnDiseno: string) {
+    await personalizar(page);
+    await expect(panel(page)).toContainText('Todos visibles');
+    const antes = await etiquetasDeKpi(page);
+    expect(antes.indexOf(etiqueta)).toBeGreaterThanOrEqual(0);
+
+    const marca = vigilancia.marca();
+    await tarjetaDeKpi(page, etiqueta).getByRole('button', { name: 'Quitar indicador' }).click();
+    await expect(etiquetaDeKpi(page, etiqueta)).toHaveCount(0);
+    await expect(panel(page).getByRole('button', { name: `Mostrar ${etiqueta}` })).toBeVisible();
+    await expect(panel(page)).not.toContainText('Todos visibles');
+    await expect.poll(() => vigilancia.exitosasDesde(marca, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
+    const oculto = await disenoDelTablero(page, tableroId);
+    expect(oculto.hidden).toContain(idEnDiseno);
+    expect(oculto.definitions ?? [{ label: etiqueta }]).toEqual(
+      expect.arrayContaining([expect.objectContaining({ label: etiqueta })]),
+    );
+
+    await personalizar(page);
+    await expect(etiquetaDeKpi(page, etiqueta)).toHaveCount(0);
+    await expect(panel(page).getByRole('button', { name: `Mostrar ${etiqueta}` })).toBeVisible();
+
+    const marcaDos = vigilancia.marca();
+    await panel(page)
+      .getByRole('button', { name: `Mostrar ${etiqueta}` })
+      .click();
+    await expect(etiquetaDeKpi(page, etiqueta)).toBeVisible();
+    expect(await etiquetasDeKpi(page)).toEqual(antes);
+    await expect.poll(() => vigilancia.exitosasDesde(marcaDos, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
+    expect((await disenoDelTablero(page, tableroId)).hidden ?? []).not.toContain(idEnDiseno);
+    await expect(panel(page)).toContainText('Todos visibles');
+
+    await personalizar(page);
+    expect(await etiquetasDeKpi(page)).toEqual(antes);
+  }
+
+  test('DAS-14b quitar un indicador precargado lo oculta, se puede mostrar en su lugar y persiste al recargar', async ({
+    page,
+    vigilancia,
+  }) => {
+    await ocultarYMostrar(page, vigilancia, 'Promedio por movimiento', 'custom:k-average');
+  });
+
+  test('DAS-14b quitar un indicador fijo lo oculta y se puede mostrar en su lugar', async ({ page, vigilancia }) => {
+    await ocultarYMostrar(page, vigilancia, 'Ingresos', 'fixed:ingresos');
+  });
+
+  test('DAS-14b un indicador oculto y un widget oculto conviven en la lista del panel', async ({ page }) => {
+    await personalizar(page);
+    await tarjetaDeKpi(page, 'Promedio por movimiento').getByRole('button', { name: 'Quitar indicador' }).click();
+    await page
+      .locator('fin-widget-card', { has: page.getByRole('heading', { name: 'Flujo de caja' }) })
+      .getByRole('button', { name: 'Ocultar' })
+      .click();
+    await expect(panel(page).getByRole('button', { name: /^Mostrar / })).toHaveCount(2);
+    await panel(page).getByRole('button', { name: 'Mostrar Promedio por movimiento' }).click();
+    await panel(page).getByRole('button', { name: 'Mostrar Flujo de caja' }).click();
+    await expect(panel(page)).toContainText('Todos visibles');
+  });
+
+  test('DAS-14b un indicador creado por la persona se puede ocultar o eliminar con confirmación', async ({
+    page,
+    vigilancia,
+  }) => {
+    const etiqueta = `Indicador propio ${corrida}`;
+    await personalizar(page);
+    await panel(page).getByRole('button', { name: 'Crear indicador' }).click();
+    const formulario = dialogo(page);
+    await formulario.getByLabel('Nombre').fill(etiqueta);
+    await formulario.getByRole('button', { name: 'Agregar indicador' }).click();
+    await expect(etiquetaDeKpi(page, etiqueta)).toBeVisible();
+    await expect.poll(async () => (await disenoDelTablero(page, tableroId)).definitions?.length).toBeGreaterThan(0);
+
+    await tarjetaDeKpi(page, etiqueta).getByRole('button', { name: 'Quitar indicador' }).click();
+    await expect(panel(page).getByRole('button', { name: `Mostrar ${etiqueta}` })).toBeVisible();
+    await panel(page)
+      .getByRole('button', { name: `Mostrar ${etiqueta}` })
+      .click();
+
+    const marca = vigilancia.marca();
+    await tarjetaDeKpi(page, etiqueta).getByRole('button', { name: 'Eliminar indicador' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar' }).click();
+    await expect(etiquetaDeKpi(page, etiqueta)).toBeVisible();
+    await tarjetaDeKpi(page, etiqueta).getByRole('button', { name: 'Eliminar indicador' }).click();
+    await page.getByRole('alertdialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
+    await expect(etiquetaDeKpi(page, etiqueta)).toHaveCount(0);
+    await expect(panel(page).getByRole('button', { name: `Mostrar ${etiqueta}` })).toHaveCount(0);
+    await expect.poll(() => vigilancia.exitosasDesde(marca, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
+    await expect
+      .poll(async () =>
+        ((await disenoDelTablero(page, tableroId)).definitions as { label: string }[]).map((d) => d.label),
+      )
+      .not.toContain(etiqueta);
+    await personalizar(page);
+    await expect(etiquetaDeKpi(page, etiqueta)).toHaveCount(0);
+  });
+
+  test('DAS-14b los campos de los creadores de indicador y de widget tienen nombre accesible igual a su etiqueta', async ({
+    page,
+  }) => {
+    await personalizar(page);
+    await panel(page).getByRole('button', { name: 'Crear indicador' }).click();
+    const indicador = dialogo(page);
+    await expect(indicador.getByLabel('Nombre')).toBeVisible();
+    await expect(indicador.getByRole('textbox', { name: 'Nombre' })).toBeVisible();
+    await expect(indicador.getByRole('combobox', { name: /^Medir solo sobre/ })).toBeVisible();
+    await expect(indicador.getByRole('combobox', { name: /^Métrica/ })).toBeVisible();
+    expect(await analizarAxe(page)).toEqual([]);
+    await indicador.getByRole('button', { name: 'Cancelar' }).click();
+
+    await panel(page).getByRole('button', { name: 'Crear widget' }).click();
+    const widget = dialogo(page);
+    await expect(widget.getByLabel('Nombre')).toBeVisible();
+    await expect(widget.getByRole('textbox', { name: 'Nombre' })).toBeVisible();
+    await expect(widget.getByRole('combobox', { name: /^Distribución/ })).toBeVisible();
+    await expect(widget.getByRole('combobox', { name: /^Otros widgets/ })).toBeVisible();
+    await elegir(widget, 'Otros widgets', 'Tabla');
+    await expect(widget.getByRole('combobox', { name: /^Dimensión \(eje\)/ })).toBeVisible();
+    await expect(widget.getByRole('combobox', { name: /^Métrica \(valor\)/ })).toBeVisible();
+    expect(await analizarAxe(page)).toEqual([]);
   });
 });
 
