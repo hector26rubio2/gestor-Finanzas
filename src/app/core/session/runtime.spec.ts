@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { readRuntimeConfig } from './runtime';
 
 describe('readRuntimeConfig', () => {
@@ -21,4 +21,12 @@ describe('readRuntimeConfig', () => {
     delete window.__FINANZAS_CONFIG__;
     expect(() => readRuntimeConfig()).toThrow(/Falta config.js/);
   });
+
+  it('sin config.js y sin red arranca el shell con una URL vacía para mostrar el error de datos', () => {
+    delete window.__FINANZAS_CONFIG__;
+    vi.spyOn(window.navigator, 'onLine', 'get').mockReturnValue(false);
+    expect(readRuntimeConfig()).toEqual({ apiBaseUrl: '' });
+  });
+
+  afterEach(() => vi.restoreAllMocks());
 });

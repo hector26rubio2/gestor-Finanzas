@@ -1,3 +1,4 @@
+<fin-aviso-pwa />
 @defer (on idle) {
 <hlm-toaster position="top-right" theme="system" richColors closeButton />
 }
@@ -121,6 +122,11 @@
           </div>
           <a hlmDropdownMenuItem routerLink="/settings">{{ i18n.t('shell.profile') }}</a>
           <button hlmDropdownMenuItem type="button" (triggered)="verTutorial()">{{ i18n.t('tutorial.menu') }}</button>
+          @if (instalacion.puedeInstalar() || instalacion.instruccionIos()) {
+          <button hlmDropdownMenuItem type="button" data-testid="instalar-app" (triggered)="instalarApp()">
+            {{ i18n.t('pwa.install') }}
+          </button>
+          }
           <button hlmDropdownMenuItem type="button" (triggered)="logout()">{{ i18n.t('shell.logout') }}</button>
         </div>
       </ng-template>
