@@ -73,7 +73,7 @@ function atlasMalicioso(html = 'a/b.html') {
 }
 
 function abrir({ atlas = atlasMalicioso(), hash = '' } = {}) {
-  const json = JSON.stringify(atlas).replace(/</g, '\u003c');
+  const json = JSON.stringify(atlas).replace(/</g, '\\u003c');
   const consola = new VirtualConsole();
   const errores = [];
   consola.on('jsdomError', (e) => errores.push(e));
