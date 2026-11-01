@@ -1,3 +1,4 @@
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { Component, OnDestroy, OnInit, computed, effect, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -22,7 +23,7 @@ type Filtro = 'all' | 'unread';
 
 @Component({
   selector: 'app-notifications-tab',
-  imports: [HlmButton, HlmToggleGroupImports, IconComponent, EmptyStateComponent],
+  imports: [HlmButton, HlmToggleGroupImports, IconComponent, EmptyStateComponent, ZonaDeCargaComponent],
   templateUrl: './notifications-tab.html',
 })
 export class NotificationsTabComponent implements OnInit, OnDestroy {
@@ -30,6 +31,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   private readonly capabilities = inject(CAPABILITIES);
   private api = inject(FinanceApiClient);
   private readonly notifications = inject(NotificationsStore);
+  readonly cargando = this.notifications.cargando;
   private readonly headerActions = inject(HeaderActionsService);
   readonly i18n = inject(I18nService);
   readonly puedeMarcar = this.capabilities.allows(P.notificaciones.editar);

@@ -10,6 +10,7 @@ import { HlmTabsImports } from '@spartan-ng/helm/tabs';
 import { HlmSwitchImports } from '@spartan-ng/helm/switch';
 import { TutorialService } from '@shared/tutorial';
 import { FieldComponent } from '@ui/field';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { BudgetsPanelComponent } from '@features/budgets/budgets-panel';
 import { PrivacySectionComponent } from './privacy/privacy-section';
 import { ThemeStudioComponent } from './theme-studio/theme-studio';
@@ -37,6 +38,7 @@ type Seccion = (typeof SECCIONES)[number];
 @Component({
   selector: 'app-preferences-tab',
   imports: [
+    ZonaDeCargaComponent,
     BudgetsPanelComponent,
     CategoryIconComponent,
     FormsModule,
@@ -124,6 +126,7 @@ export class PreferencesTabComponent implements OnInit {
   );
 
   readonly miembros = signal<readonly ApiOrganizationMember[]>([]);
+  readonly cargandoMiembros = signal(false);
   readonly rolesDisponibles = signal<readonly ApiAdminRole[]>([]);
   readonly roleOptions = computed<readonly UiOption[]>(() =>
     this.rolesDisponibles().map((role) => ({ value: role.id, label: role.name })),
@@ -196,6 +199,7 @@ export class PreferencesTabComponent implements OnInit {
 
   private async cargarMiembros(): Promise<void> {
     if (!this.can(P.organizacion.miembros.listar)) return;
+    this.cargandoMiembros.set(true);
     try {
       const [gente, roles] = await Promise.all([
         firstValueFrom(this.api.organizationMembers()),
@@ -206,7 +210,10 @@ export class PreferencesTabComponent implements OnInit {
       this.miembros.set(gente);
       this.rolesDisponibles.set(roles);
       if (!this.rolInvitado && roles.length) this.rolInvitado = roles[0].id;
-    } catch {}
+    } catch {
+    } finally {
+      this.cargandoMiembros.set(false);
+    }
   }
 
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {

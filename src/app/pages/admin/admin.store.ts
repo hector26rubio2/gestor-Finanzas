@@ -125,21 +125,27 @@ export class AdminStore {
 
   async cargarUsuarios(page = this.usersPage(), search = this.userSearch()): Promise<void> {
     if (!this.caps.allows(P.administracion.usuarios.listar)) return;
+    this.loading.set(true);
     try {
       this.userSearch.set(search);
       this.aplicarUsuarios(await firstValueFrom(this.api.adminUsers(page, this.usersSize, search)));
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
+    } finally {
+      this.loading.set(false);
     }
   }
 
   async cargarRoles(page: number, organizationId = this.rolesOrganizationFilter()): Promise<void> {
     if (!this.caps.allows(P.administracion.roles.listar)) return;
+    this.loading.set(true);
     try {
       this.rolesOrganizationFilter.set(organizationId);
       this.aplicarRoles(await firstValueFrom(this.api.adminRoles(page, this.rolesSize, organizationId || undefined)));
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
+    } finally {
+      this.loading.set(false);
     }
   }
 

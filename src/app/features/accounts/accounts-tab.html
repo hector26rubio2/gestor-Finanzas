@@ -164,16 +164,26 @@
   </fin-chart-card>
 </section>
 <fin-table-zone data-tour="cuentas-tabla" class="min-h-[360px]">
-  <fin-table
-    [columns]="book.movementColumns()"
-    [rows]="book.movementRows()"
-    [pageSize]="store.remoteMovementSize()"
-    [totalRows]="store.remoteMovementTotal()"
-    [remotePage]="store.remoteMovementPage()"
-    (pageSizeChange)="book.changeMovementPageSize($event)"
-    (pageChange)="book.loadMovementPage($event)"
-    (rowSelected)="book.inspectMovement($event)"
-    [toolbar]="true"
-    (pinnedChange)="book.pinned.set($event); book.loadMovementPage(1)"
-  />
+  <fin-zona-de-carga
+    class="flex min-w-0 flex-1 flex-col"
+    tipo="tabla"
+    [filas]="6"
+    [columnas]="6"
+    [cargando]="cargandoMovimientos()"
+    [hayDatos]="book.movementRows().length > 0"
+    [vacioEnContenido]="true"
+  >
+    <fin-table
+      [columns]="book.movementColumns()"
+      [rows]="book.movementRows()"
+      [pageSize]="store.remoteMovementSize()"
+      [totalRows]="store.remoteMovementTotal()"
+      [remotePage]="store.remoteMovementPage()"
+      (pageSizeChange)="book.changeMovementPageSize($event)"
+      (pageChange)="book.loadMovementPage($event)"
+      (rowSelected)="book.inspectMovement($event)"
+      [toolbar]="true"
+      (pinnedChange)="book.pinned.set($event); book.loadMovementPage(1)"
+    />
+  </fin-zona-de-carga>
 </fin-table-zone>

@@ -14,26 +14,22 @@ export function estadoDeZona(cargando: boolean, hayDatos: boolean): EstadoDeZona
   imports: [SkeletonComponent],
   host: { class: 'relative block min-w-0', '[attr.aria-busy]': 'cargando()' },
   template: `
-    @switch (estado()) {
-      @case ('esqueleto') {
-        <fin-skeleton [tipo]="tipo()" [filas]="filas()" [columnas]="columnas()" />
+    @if (estado() === 'esqueleto') {
+      <fin-skeleton [tipo]="tipo()" [filas]="filas()" [columnas]="columnas()" />
+    } @else if (estado() === 'vacio' && !vacioEnContenido()) {
+      <ng-content select="[finVacio]" />
+    } @else {
+      @if (cargando()) {
+        <div
+          class="pointer-events-none absolute inset-x-0 top-0 z-[2] h-0.5 overflow-hidden bg-primary/20"
+          data-testid="barra-de-zona"
+          aria-hidden="true"
+        >
+          <div class="fin-barra-fina h-full w-full bg-primary"></div>
+        </div>
+        <span role="status" class="sr-only">{{ i18n.t('skeleton.refreshing') }}</span>
       }
-      @case ('vacio') {
-        <ng-content select="[finVacio]" />
-      }
-      @default {
-        @if (cargando()) {
-          <div
-            class="pointer-events-none absolute inset-x-0 top-0 z-[2] h-0.5 overflow-hidden bg-primary/20"
-            data-testid="barra-de-zona"
-            aria-hidden="true"
-          >
-            <div class="fin-barra-fina h-full w-full bg-primary"></div>
-          </div>
-          <span role="status" class="sr-only">{{ i18n.t('skeleton.refreshing') }}</span>
-        }
-        <ng-content />
-      }
+      <ng-content />
     }
   `,
 })
@@ -44,5 +40,6 @@ export class ZonaDeCargaComponent {
   readonly tipo = input<TipoDeSkeleton>('tabla');
   readonly filas = input(5);
   readonly columnas = input(0);
+  readonly vacioEnContenido = input(false);
   readonly estado = computed(() => estadoDeZona(this.cargando(), this.hayDatos()));
 }

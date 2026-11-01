@@ -266,133 +266,142 @@
           }
         </div>
       </section>
-      <section
-        class="grid grid-cols-4 gap-2.5 max-[1300px]:grid-cols-2 max-[600px]:grid-cols-1"
-        data-tour="planificacion-resultados"
-        [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')"
+      <fin-zona-de-carga
+        tipo="kpi"
+        [filas]="4"
+        [cargando]="sim.cargandoMovimientos()"
+        [hayDatos]="!sim.cargandoMovimientos()"
       >
-        @for (metrica of metricas(); track metrica.label) {
-        <article class="grid min-w-0 gap-1 rounded-lg border border-border bg-card p-3.5">
-          <span class="text-xs text-muted-foreground">{{ metrica.label }}</span>
-          <strong
-            class="truncate text-[1.2rem]"
-            [class.text-success]="metrica.tono === 'bien'"
-            [class.text-destructive]="metrica.tono === 'mal'"
-            >{{ metrica.value }}</strong
-          >
-          <small class="text-xs text-muted-foreground">{{ metrica.hint }}</small>
-        </article>
-        }
-      </section>
+        <section
+          class="grid grid-cols-4 gap-2.5 max-[1300px]:grid-cols-2 max-[600px]:grid-cols-1"
+          data-tour="planificacion-resultados"
+          [attr.aria-label]="i18n.t('planning.comparisonAriaLabel')"
+        >
+          @for (metrica of metricas(); track metrica.label) {
+          <article class="grid min-w-0 gap-1 rounded-lg border border-border bg-card p-3.5">
+            <span class="text-xs text-muted-foreground">{{ metrica.label }}</span>
+            <strong
+              class="truncate text-[1.2rem]"
+              [class.text-success]="metrica.tono === 'bien'"
+              [class.text-destructive]="metrica.tono === 'mal'"
+              >{{ metrica.value }}</strong
+            >
+            <small class="text-xs text-muted-foreground">{{ metrica.hint }}</small>
+          </article>
+          }
+        </section>
+      </fin-zona-de-carga>
 
-      @switch (planningTab()) { @case ('Compra') {
-      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
-        <fin-chart-card
-          class="col-span-full"
-          [title]="i18n.t('planning.sim.chart.balances')"
-          [description]="i18n.t('planning.sim.chart.balancesHint')"
-          [option]="graficaDeSaldos()"
-          [height]="280"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.empty.purchase')"
-        />
-        <fin-chart-card
-          [title]="i18n.t('planning.sim.chart.payments')"
-          [description]="i18n.t('planning.sim.chart.paymentsHint')"
-          [option]="graficaDeCuotas()"
-          [height]="240"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.empty.purchase')"
-        />
+      <fin-zona-de-carga tipo="grafica" [cargando]="sim.cargandoMovimientos()" [hayDatos]="!sim.cargandoMovimientos()">
+        @switch (planningTab()) { @case ('Compra') {
+        <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+          <fin-chart-card
+            class="col-span-full"
+            [title]="i18n.t('planning.sim.chart.balances')"
+            [description]="i18n.t('planning.sim.chart.balancesHint')"
+            [option]="graficaDeSaldos()"
+            [height]="280"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.empty.purchase')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.payments')"
+            [description]="i18n.t('planning.sim.chart.paymentsHint')"
+            [option]="graficaDeCuotas()"
+            [height]="240"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.empty.purchase')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.cashflow')"
+            [description]="i18n.t('planning.sim.chart.cashflowHint')"
+            [option]="graficaDeFlujo()"
+            [height]="240"
+          />
+        </div>
+        } @case ('Vacaciones') {
         <fin-chart-card
           [title]="i18n.t('planning.sim.chart.cashflow')"
-          [description]="i18n.t('planning.sim.chart.cashflowHint')"
+          [description]="i18n.t('planning.sim.chart.goalHint')"
           [option]="graficaDeFlujo()"
-          [height]="240"
+          [height]="340"
         />
-      </div>
-      } @case ('Vacaciones') {
-      <fin-chart-card
-        [title]="i18n.t('planning.sim.chart.cashflow')"
-        [description]="i18n.t('planning.sim.chart.goalHint')"
-        [option]="graficaDeFlujo()"
-        [height]="340"
-      />
-      } @case ('Inversión') {
-      <fin-chart-card
-        [title]="i18n.t('planning.sim.chart.investment')"
-        [description]="i18n.t('planning.sim.chart.investmentHint')"
-        [option]="graficaDeInversion()"
-        [height]="340"
-      />
-      } @default {
-      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+        } @case ('Inversión') {
         <fin-chart-card
-          class="col-span-full"
-          [title]="i18n.t('planning.sim.chart.balances')"
-          [description]="i18n.t('planning.sim.chart.balancesHint')"
-          [option]="graficaDeSaldos()"
-          [height]="300"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.debt.none')"
+          [title]="i18n.t('planning.sim.chart.investment')"
+          [description]="i18n.t('planning.sim.chart.investmentHint')"
+          [option]="graficaDeInversion()"
+          [height]="340"
         />
-        <fin-chart-card
-          [title]="i18n.t('planning.sim.chart.payments')"
-          [description]="i18n.t('planning.sim.chart.paymentsHint')"
-          [option]="graficaDeCuotas()"
-          [height]="240"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.debt.none')"
-        />
-        <fin-chart-card
-          [title]="i18n.t('planning.sim.chart.interest')"
-          [description]="i18n.t('planning.sim.chart.interestHint')"
-          [option]="graficaDeIntereses()"
-          [height]="240"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.debt.none')"
-        />
-        <fin-chart-card
-          [title]="i18n.t('planning.sim.chart.timeline')"
-          [description]="i18n.t('planning.sim.chart.timelineHint')"
-          [option]="graficaDeLineaDeTiempo()"
-          [height]="240"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.debt.none')"
-        />
-        <fin-chart-card
-          [title]="i18n.t('planning.sim.chart.map')"
-          [description]="i18n.t('planning.sim.chart.mapHint')"
-          [option]="graficaDeMapa()"
-          [height]="240"
-          [hasData]="sim.hayDeudas()"
-          [empty]="i18n.t('planning.sim.debt.none')"
-        />
-        <fin-chart-card
-          class="col-span-full"
-          [title]="i18n.t('planning.sim.chart.cashflow')"
-          [description]="i18n.t('planning.sim.chart.cashflowHint')"
-          [option]="graficaDeFlujo()"
-          [height]="240"
-        />
-      </div>
-      } }
-      <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
-        <fin-chart-card
-          class="col-span-full"
-          [title]="i18n.t('planning.sim.chart.monthByMonth')"
-          [description]="i18n.t('planning.sim.chart.monthByMonthHint')"
-          [option]="graficaMesAMes()"
-          [height]="300"
-        />
-        <fin-chart-card
-          class="col-span-full"
-          [title]="i18n.t('planning.sim.chart.compare')"
-          [description]="i18n.t('planning.sim.chart.compareHint')"
-          [option]="graficaDeComparacion()"
-          [height]="260"
-        />
-      </div>
+        } @default {
+        <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+          <fin-chart-card
+            class="col-span-full"
+            [title]="i18n.t('planning.sim.chart.balances')"
+            [description]="i18n.t('planning.sim.chart.balancesHint')"
+            [option]="graficaDeSaldos()"
+            [height]="300"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.debt.none')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.payments')"
+            [description]="i18n.t('planning.sim.chart.paymentsHint')"
+            [option]="graficaDeCuotas()"
+            [height]="240"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.debt.none')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.interest')"
+            [description]="i18n.t('planning.sim.chart.interestHint')"
+            [option]="graficaDeIntereses()"
+            [height]="240"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.debt.none')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.timeline')"
+            [description]="i18n.t('planning.sim.chart.timelineHint')"
+            [option]="graficaDeLineaDeTiempo()"
+            [height]="240"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.debt.none')"
+          />
+          <fin-chart-card
+            [title]="i18n.t('planning.sim.chart.map')"
+            [description]="i18n.t('planning.sim.chart.mapHint')"
+            [option]="graficaDeMapa()"
+            [height]="240"
+            [hasData]="sim.hayDeudas()"
+            [empty]="i18n.t('planning.sim.debt.none')"
+          />
+          <fin-chart-card
+            class="col-span-full"
+            [title]="i18n.t('planning.sim.chart.cashflow')"
+            [description]="i18n.t('planning.sim.chart.cashflowHint')"
+            [option]="graficaDeFlujo()"
+            [height]="240"
+          />
+        </div>
+        } }
+        <div class="grid grid-cols-2 gap-3 max-[1300px]:grid-cols-1">
+          <fin-chart-card
+            class="col-span-full"
+            [title]="i18n.t('planning.sim.chart.monthByMonth')"
+            [description]="i18n.t('planning.sim.chart.monthByMonthHint')"
+            [option]="graficaMesAMes()"
+            [height]="300"
+          />
+          <fin-chart-card
+            class="col-span-full"
+            [title]="i18n.t('planning.sim.chart.compare')"
+            [description]="i18n.t('planning.sim.chart.compareHint')"
+            [option]="graficaDeComparacion()"
+            [height]="260"
+          />
+        </div>
+      </fin-zona-de-carga>
       <p class="text-xs text-muted-foreground">{{ i18n.t('planning.disclaimer') }}</p>
     </div>
   </section>

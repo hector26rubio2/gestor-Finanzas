@@ -16,6 +16,7 @@ export class NotificationsStore {
   });
 
   readonly estado = this.recurso.estado;
+  readonly cargando = computed(() => this.recurso.estado() === 'cargando' || this.recurso.estado() === 'inactivo');
   readonly items = computed(() =>
     (this.recurso.valor() ?? this.store.avisosRecientes()).map((aviso) => toViewNotification(this.i18n, aviso)),
   );

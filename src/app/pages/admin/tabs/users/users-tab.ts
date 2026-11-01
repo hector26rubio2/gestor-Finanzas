@@ -30,7 +30,7 @@ import { UserSheetComponent } from './user-sheet';
   host: { class: 'flex min-w-0 flex-col gap-4' },
   template: `
     <app-admin-panel [title]="i18n.t('admin.users.title')" [subtitle]="i18n.t('admin.users.subtitle')">
-      <app-admin-grid>
+      <app-admin-grid [cargando]="store.loading()" [hayDatos]="store.users().length > 0" [columnas]="5">
         <fin-table
           data-tour="admin-usuarios"
           [columns]="columns()"
