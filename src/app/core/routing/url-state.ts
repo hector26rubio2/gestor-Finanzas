@@ -1,4 +1,4 @@
-import { WritableSignal, effect, inject, untracked } from '@angular/core';
+import { PendingTasks, WritableSignal, effect, inject, untracked } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -10,6 +10,24 @@ function saliendoDeLaRuta(router: Router): boolean {
   return navegacion.extractedUrl.toString().split(/[?#]/)[0] !== rutaActual;
 }
 
+const cambiosPendientes = new WeakMap<Router, Record<string, string | number | null>>();
+
+function escribirEnLaUrl(router: Router, tareas: PendingTasks, cambios: Record<string, string | number | null>): void {
+  const enCola = cambiosPendientes.get(router);
+  if (enCola) {
+    Object.assign(enCola, cambios);
+    return;
+  }
+  cambiosPendientes.set(router, { ...cambios });
+  const terminar = tareas.add();
+  queueMicrotask(() => {
+    const queryParams = cambiosPendientes.get(router) ?? {};
+    cambiosPendientes.delete(router);
+    if (saliendoDeLaRuta(router)) return terminar();
+    void router.navigate([], { queryParams, queryParamsHandling: 'merge', replaceUrl: true }).finally(terminar);
+  });
+}
+
 export function sincronizarConLaUrl<T extends string>(
   clave: string,
   senal: WritableSignal<T>,
@@ -17,6 +35,7 @@ export function sincronizarConLaUrl<T extends string>(
   esValido?: (valor: string) => boolean,
 ): void {
   const router = inject(Router);
+  const tareas = inject(PendingTasks);
   const parametros = toSignal(inject(ActivatedRoute).queryParamMap);
 
   let aplicando = false;
@@ -34,16 +53,13 @@ export function sincronizarConLaUrl<T extends string>(
   effect(() => {
     const valor = senal();
     if (aplicando || saliendoDeLaRuta(router)) return;
-    void router.navigate([], {
-      queryParams: { [clave]: valor === porDefecto ? null : valor },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    escribirEnLaUrl(router, tareas, { [clave]: valor === porDefecto ? null : valor });
   });
 }
 
 export function sincronizarPaginaConLaUrl(clave: () => string | null, senal: WritableSignal<number>): void {
   const router = inject(Router);
+  const tareas = inject(PendingTasks);
   const parametros = toSignal(inject(ActivatedRoute).queryParamMap);
   let aplicando = false;
 
@@ -64,10 +80,6 @@ export function sincronizarPaginaConLaUrl(clave: () => string | null, senal: Wri
     const nombre = clave();
     const indice = senal();
     if (aplicando || !nombre || saliendoDeLaRuta(router)) return;
-    void router.navigate([], {
-      queryParams: { [nombre]: indice === 0 ? null : indice + 1 },
-      queryParamsHandling: 'merge',
-      replaceUrl: true,
-    });
+    escribirEnLaUrl(router, tareas, { [nombre]: indice === 0 ? null : indice + 1 });
   });
 }

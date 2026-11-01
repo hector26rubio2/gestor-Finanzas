@@ -1182,6 +1182,12 @@ export default {
   'dashboard.recent.seeAll': 'Ver todos',
   'dashboard.customizePanel.title': 'Diseño del dashboard',
   'dashboard.actions.createWidget': 'Crear widget',
+  'dashboard.customizePanel.show': 'Mostrar {title}',
+  'dashboard.kpi.delete.ariaLabel': 'Eliminar indicador',
+  'dashboard.kpi.delete.title': '¿Eliminar este indicador?',
+  'dashboard.kpi.delete.detail':
+    'Se borrará «{label}» del tablero. Quitarlo solo lo oculta y se puede volver a mostrar.',
+  'dashboard.kpi.delete.confirm': 'Eliminar',
   'dashboard.customizePanel.allVisible': 'Todos visibles',
   'dashboard.widgetForm.name': 'Nombre',
   'dashboard.widgetForm.visualization': 'Visualización',

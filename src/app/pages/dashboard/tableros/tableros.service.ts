@@ -19,6 +19,7 @@ export class TablerosService {
   private readonly layout = inject(DashboardLayoutService);
 
   readonly tableros = signal<readonly ApiSavedDashboard[]>([]);
+  readonly listaCargada = signal(false);
   readonly activo = signal<string>(TABLERO_PRINCIPAL);
   readonly miembros = signal<readonly ApiDashboardMember[]>([]);
   readonly propios = computed(() => this.tableros().filter((t) => t.isMine));
@@ -44,6 +45,7 @@ export class TablerosService {
     } catch {
       this.tableros.set([]);
     }
+    this.listaCargada.set(true);
     if (this.activo() !== TABLERO_PRINCIPAL && !this.tableroActivo()) await this.abrir(TABLERO_PRINCIPAL);
   }
 

@@ -100,14 +100,15 @@
     data-tour="dashboard-kpis"
     [fixedKpis]="fixedKpiItems()"
     [customKpis]="kpisPropios()"
-    [flow]="layout.kpiFlow()"
+    [flow]="kpiFlowVisible()"
     [resizable]="customizing()"
     (resize)="layout.resizeKpi($event.id, $event.change)"
-    (move)="layout.moveKpi($event.id, $event.direction)"
-    (drop)="layout.dropKpi($event.from, $event.to)"
+    (move)="moverKpi($event.id, $event.direction)"
+    (drop)="soltarKpi($event.from, $event.to)"
     [canRemove]="customizing() && caps.allows(P.dashboard.widget.deshabilitar)"
     [canCreate]="customizing() && caps.allows(P.dashboard.widget.crear)"
-    (removeKpi)="removeKpi($event)"
+    (hideKpi)="ocultarKpi($event)"
+    (deleteKpi)="pedirEliminarKpi($event)"
     (openCreator)="openKpiCreator()"
     (rangesChange)="layout.saveRanges($event.id, $event.ranges)"
   />
@@ -422,10 +423,26 @@
       <fin-icon name="plus" /> {{ i18n.t('dashboard.actions.createIndicator') }}
     </button>
     } } @if (caps.allows(P.dashboard.widget.deshabilitar)) { @for (widget of hidden(); track widget.id) {
-    <button hlmBtn variant="outline" type="button" (click)="edicion.show(widget.id)">
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      [attr.aria-label]="i18n.t('dashboard.customizePanel.show', { title: widget.title })"
+      (click)="edicion.show(widget.id)"
+    >
       <fin-icon name="plus" /> {{ widget.title }}
     </button>
-    } @empty {
+    } @for (kpi of kpisOcultos(); track kpi.id) {
+    <button
+      hlmBtn
+      variant="outline"
+      type="button"
+      [attr.aria-label]="i18n.t('dashboard.customizePanel.show', { title: kpi.label })"
+      (click)="mostrarKpi(kpi.id)"
+    >
+      <fin-icon name="plus" /> {{ kpi.label }}
+    </button>
+    } @if (!hayOcultos()) {
     <span class="text-xs text-muted-foreground">{{ i18n.t('dashboard.customizePanel.allVisible') }}</span>
     } }
   </aside>
@@ -480,6 +497,16 @@
       </div>
     </form>
   </fin-overlay>
+  } @if (kpiPorEliminar(); as porEliminar) {
+  <fin-confirm-dialog
+    [open]="true"
+    [title]="i18n.t('dashboard.kpi.delete.title')"
+    [description]="i18n.t('dashboard.kpi.delete.detail', { label: porEliminar.label })"
+    [confirmLabel]="i18n.t('dashboard.kpi.delete.confirm')"
+    [cancelLabel]="i18n.t('dashboard.widgetForm.cancel')"
+    (confirmed)="confirmarEliminarKpi()"
+    (dismissed)="kpiPorEliminar.set(null)"
+  />
   } @if (selectedMovement(); as movement) {
   <fin-overlay
     [title]="i18n.t('workspace.inspector.title.movement')"
@@ -512,7 +539,9 @@
           </dd>
         </div>
       </dl>
-      <a hlmBtn class="h-11 w-full" routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
+      <a hlmBtn class="h-11 w-full" routerLink="/movements" (click)="store.inspector.set(null)"
+        >{{ i18n.t('dashboard.detailModal.openInMovements') }}</a
+      >
     </div></fin-overlay
   >
   }

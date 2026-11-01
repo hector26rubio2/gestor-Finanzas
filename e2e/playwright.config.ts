@@ -2,6 +2,7 @@ import { defineConfig } from '@playwright/test';
 import { estadoPropietario, webUrl } from './support/entorno';
 
 const ejecutable = process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE;
+const argumentosDelNavegador = ['--disable-dev-shm-usage'];
 
 export default defineConfig({
   testDir: './tests',
@@ -23,7 +24,9 @@ export default defineConfig({
     storageState: estadoPropietario,
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
-    launchOptions: ejecutable ? { executablePath: ejecutable } : { channel: 'chrome' },
+    launchOptions: ejecutable
+      ? { executablePath: ejecutable, args: argumentosDelNavegador }
+      : { channel: 'chrome', args: argumentosDelNavegador },
   },
   webServer: process.env.E2E_SIN_SERVIDOR_WEB
     ? undefined

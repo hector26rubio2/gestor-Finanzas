@@ -232,8 +232,13 @@ export class CalendarTabComponent implements OnInit {
     const view = this.calendarView();
     if (view === 'day') selected.setUTCDate(selected.getUTCDate() + direction);
     else if (view === 'week') selected.setUTCDate(selected.getUTCDate() + direction * 7);
-    else if (view === 'month') selected.setUTCMonth(selected.getUTCMonth() + direction);
-    else selected.setUTCFullYear(selected.getUTCFullYear() + direction);
+    else {
+      const meses = selected.getUTCFullYear() * 12 + selected.getUTCMonth() + direction * (view === 'month' ? 1 : 12);
+      const anio = Math.floor(meses / 12);
+      const mes = meses % 12;
+      const diasDelMes = new Date(Date.UTC(anio, mes + 1, 0)).getUTCDate();
+      selected.setTime(Date.UTC(anio, mes, Math.min(selected.getUTCDate(), diasDelMes)));
+    }
     this.calendarYear.set(selected.getUTCFullYear());
     this.calendarMonth.set(selected.getUTCMonth());
     this.store.selectedCalendarDate.set(selected.toISOString().slice(0, 10));
