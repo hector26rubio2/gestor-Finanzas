@@ -43,7 +43,7 @@ async function elegirMesActualEnMovimientos(page: Page): Promise<void> {
   const mes = new Intl.DateTimeFormat('es', { month: 'long' }).format(fecha);
   const main = page.locator('main');
   await elegir(main, 'Año', String(fecha.getFullYear()));
-  await elegir(main, 'Mes', new RegExp(`^\s*${mes}`, 'i'));
+  await elegir(main, 'Mes', new RegExp(`^\\s*${mes}`, 'i'));
 }
 
 test.describe.configure({ mode: 'serial' });
