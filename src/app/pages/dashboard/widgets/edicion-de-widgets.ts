@@ -20,12 +20,14 @@ const CAMPOS_EDITABLES = [
   'goalMax',
 ] as const;
 
-function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[]): Widget[] {
+function fusionarWidgets(catalogo: Widget[], guardados: readonly WidgetGuardado[], sinBase: boolean): Widget[] {
   const porId = new Map(guardados.map((guardado) => [guardado.id, guardado]));
-  const base = catalogo.map((widget) => {
-    const cambios = porId.get(widget.id);
-    return cambios ? ({ ...widget, ...cambios, title: widget.title, kicker: widget.kicker } as Widget) : widget;
-  });
+  const base = sinBase
+    ? []
+    : catalogo.map((widget) => {
+        const cambios = porId.get(widget.id);
+        return cambios ? ({ ...widget, ...cambios, title: widget.title, kicker: widget.kicker } as Widget) : widget;
+      });
   const propios = guardados
     .filter((guardado) => guardado.custom && typeof guardado.title === 'string' && typeof guardado['type'] === 'string')
     .map((guardado) => {
@@ -49,7 +51,8 @@ export class EdicionDeWidgets {
   readonly hiddenIds = computed(() => this.layout.hiddenWidgets());
   private readonly restaurar = effect(() => {
     const guardados = this.layout.widgetConfigs();
-    untracked(() => this.all.set(fusionarWidgets(buildWidgetCatalog(this.i18n), guardados ?? [])));
+    const sinBase = this.layout.sinBase();
+    untracked(() => this.all.set(fusionarWidgets(buildWidgetCatalog(this.i18n), guardados ?? [], sinBase)));
   });
 
   readonly visibles = computed(() => this.all().filter((w) => !this.hiddenIds().includes(w.id) && this.canSee(w)));

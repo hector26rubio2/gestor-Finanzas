@@ -44,6 +44,7 @@ interface StoredLayout {
   readonly configs?: readonly WidgetGuardado[];
   readonly reports?: readonly VistaDeReporte[];
   readonly hidden?: readonly string[];
+  readonly sinBase?: true;
 }
 
 export interface WidgetGuardado {
@@ -66,6 +67,19 @@ const esConfigValida = (valor: unknown): boolean =>
   (Array.isArray(valor) && valor.every((item) => !!item && typeof (item as { id?: unknown }).id === 'string'));
 
 const EMPTY: StoredLayout = { version: 2, widgets: [], kpis: [] };
+
+const DISENO_VACIO: StoredLayout = {
+  version: 2,
+  widgets: [],
+  kpis: [],
+  definitions: [],
+  configs: [],
+  reports: [],
+  hidden: [],
+  sinBase: true,
+};
+
+export const DISENO_VACIO_JSON = JSON.stringify(DISENO_VACIO);
 
 const esListaDeIds = (valor: unknown): boolean => Array.isArray(valor) && valor.every((id) => typeof id === 'string');
 
@@ -101,6 +115,7 @@ function parse(raw: string | null | undefined): StoredLayout | null {
     if (!rangosValidos(parsed.ranges)) return null;
     if (!esConfigValida(parsed.configs) || !esConfigValida(parsed.reports)) return null;
     if (parsed.hidden !== undefined && !esListaDeIds(parsed.hidden)) return null;
+    if (parsed.sinBase !== undefined && parsed.sinBase !== true) return null;
     return parsed;
   } catch {
     return null;
@@ -163,6 +178,7 @@ export class DashboardLayoutService {
   readonly widgetConfigs = computed(() => this.stored().configs ?? null);
   readonly reportViews = computed(() => this.stored().reports ?? null);
   readonly hiddenWidgets = computed(() => this.stored().hidden ?? []);
+  readonly sinBase = computed(() => this.stored().sinBase === true);
 
   saveWidgetConfigs(configs: readonly WidgetGuardado[]): void {
     this.commit({ ...this.stored(), configs });

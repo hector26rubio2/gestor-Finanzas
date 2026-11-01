@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { type ApiSavedDashboard, type ApiDashboardMember, DashboardsApi } from '@core/api/dashboards.api';
 import { P } from '@core/session/permissions';
 import { AppStore, CAPABILITIES } from '@core/state/store';
-import { DashboardLayoutService } from '@shared/tablero/dashboard-layout.service';
+import { DISENO_VACIO_JSON, DashboardLayoutService } from '@shared/tablero/dashboard-layout.service';
 
 export const TABLERO_PRINCIPAL = 'principal';
 
@@ -70,7 +70,7 @@ export class TablerosService {
     const creado = await firstValueFrom(
       this.api.create({
         name: nombre,
-        layoutJson: copiarActual && !origen ? this.layout.disenoActualJson() : null,
+        layoutJson: copiarActual ? (origen ? null : this.layout.disenoActualJson()) : DISENO_VACIO_JSON,
         copyFrom: copiarActual ? origen : null,
       }),
     );
