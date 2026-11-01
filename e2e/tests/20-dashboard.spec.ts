@@ -1240,6 +1240,10 @@ test.describe('Tablero: tabla «Movimientos del periodo»', () => {
   test('DAS-19 al abrir una fila el detalle muestra los datos del movimiento y enlaza a Movimientos', async ({
     page,
   }) => {
+    let cayo = false;
+    page.on('crash', () => {
+      cayo = true;
+    });
     const tabla = await prepararTabla(page);
     const n = 12;
     await tabla
@@ -1265,6 +1269,10 @@ test.describe('Tablero: tabla «Movimientos del periodo»', () => {
 
     await detalle.getByRole('link', { name: 'Abrir en Movimientos' }).click();
     await expect(page).toHaveURL(/\/movements/);
+    await expect(page.getByRole('button', { name: /Nuevo movimiento/ }).first()).toBeVisible();
+    await expect(page.locator('[role=dialog]')).toHaveCount(0);
+    await expect.poll(() => page.evaluate(() => document.readyState)).toBe('complete');
+    expect(cayo, 'la página no debe caerse al abrir el movimiento en Movimientos').toBe(false);
   });
 
   test('DAS-19 «Ver todos» lleva a Movimientos', async ({ page }) => {
