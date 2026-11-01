@@ -1,11 +1,12 @@
 import type { ApiObligation } from '@core/api/obligations.api';
 import { cuotaEnCurso } from '@core/session/mappers/movements.mapper';
 import { parseMoney } from '@core/utils/money';
+import { cuotaFija, enFraccion } from '@core/utils/tasas';
 
 const ASIENTO = { desembolso: 1, cargo: 2, pago: 4 } as const;
 const SALDADA = 2;
 
-export interface Deuda {
+export interface DeudaConPersona {
   id: string;
   personaId: string;
   persona: string;
@@ -27,12 +28,7 @@ export interface Comportamiento {
   atrasadas: number;
 }
 
-function cuotaFija(valor: number, tasa: number, cuotas: number): number {
-  if (tasa <= 0) return valor / cuotas;
-  return (valor * tasa) / (1 - Math.pow(1 + tasa, -cuotas));
-}
-
-export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): Deuda[] {
+export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): DeudaConPersona[] {
   return obligaciones.map((o) => {
     const asientos = o.entries ?? [];
     const valor = asientos
@@ -47,7 +43,7 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
       direccion: o.direction === 1 ? 'owed' : 'owing',
       moneda: o.currency,
       valor,
-      cuota: totalCuotas ? Math.round(cuotaFija(valor, o.terms?.monthlyRate ?? 0, totalCuotas)) : null,
+      cuota: totalCuotas ? Math.round(cuotaFija(valor, enFraccion(o.terms?.monthlyRate ?? 0), totalCuotas)) : null,
       cuotaActual: totalCuotas ? cuotaEnCurso(o.openedOn, totalCuotas, hoy) : null,
       totalCuotas,
       pendiente: parseMoney(o.totalOutstanding),
@@ -58,7 +54,7 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
   });
 }
 
-export function comportamientoDePago(deudas: readonly Deuda[]): Comportamiento {
+export function comportamientoDePago(deudas: readonly DeudaConPersona[]): Comportamiento {
   const abiertas = deudas.filter((d) => !d.saldada);
   if (!abiertas.length) return { estado: 'sinDeudas', atrasadas: 0 };
   const conPlazo = abiertas.filter((d) => d.totalCuotas && d.cuotaActual);
@@ -67,8 +63,8 @@ export function comportamientoDePago(deudas: readonly Deuda[]): Comportamiento {
   return atrasadas > 0 ? { estado: 'atrasado', atrasadas } : { estado: 'alDia', atrasadas: 0 };
 }
 
-export function masAtrasado(deudas: readonly Deuda[]): { persona: string; atrasadas: number } | null {
-  const porPersona = new Map<string, Deuda[]>();
+export function masAtrasado(deudas: readonly DeudaConPersona[]): { persona: string; atrasadas: number } | null {
+  const porPersona = new Map<string, DeudaConPersona[]>();
   for (const deuda of deudas) porPersona.set(deuda.persona, [...(porPersona.get(deuda.persona) ?? []), deuda]);
   let peor: { persona: string; atrasadas: number } | null = null;
   for (const [persona, suyas] of porPersona) {

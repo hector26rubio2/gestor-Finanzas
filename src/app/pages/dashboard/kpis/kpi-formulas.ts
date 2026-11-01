@@ -5,6 +5,7 @@ import { KpiDefinition } from '@shared/tablero/dashboard-layout.service';
 import type { Movement } from '@core/state';
 import { esEconomico, esGasto, montoDeGasto, totalDeGastos, totalDeIngresos } from '@core/state/economia';
 import type { PuntoDeFlujo } from '@shared/historia';
+import { resumenDeTotales, tasaDeAhorro } from '@shared/resumen-del-periodo';
 
 type Translate = (key: string, params?: Record<string, string | number>) => string;
 
@@ -125,7 +126,7 @@ export function valorDeKpiEnPunto(formula: KpiFormula, p: PuntoDeFlujo, medir: M
   if (formula === 'amount') return p.net;
   if (formula === 'income') return p.income;
   if (formula === 'expense') return p.expense;
-  if (formula === 'savingsRate') return p.income > 0 ? ((p.income - p.expense) / p.income) * 100 : null;
+  if (formula === 'savingsRate') return tasaDeAhorro(p.income, p.net);
   if (formula === 'expenseShare') return p.income > 0 ? (p.expense / p.income) * 100 : null;
   if (formula === 'dailyExpense') return p.expense / diasDelRango(p.rango);
   if (formula === 'dailyIncome') return p.income / diasDelRango(p.rango);
@@ -146,13 +147,18 @@ export function valorDeKpiEnPunto(formula: KpiFormula, p: PuntoDeFlujo, medir: M
   return null;
 }
 
-export function valorDeKpiSobre(formula: KpiFormula, movs: readonly Movement[], dias: number, medir: Medir): number {
+export function valorDeKpiSobre(
+  formula: KpiFormula,
+  movs: readonly Movement[],
+  dias: number,
+  medir: Medir,
+): number | null {
   const economicos = economicosDe(movs);
   const ingreso = totalDeIngresos(economicos);
   const gasto = totalDeGastos(economicos);
   if (formula === 'income') return ingreso;
   if (formula === 'expense') return gasto;
-  if (formula === 'savingsRate') return ingreso > 0 ? ((ingreso - gasto) / ingreso) * 100 : 0;
+  if (formula === 'savingsRate') return resumenDeTotales(ingreso, gasto).tasaDeAhorro;
   if (formula === 'expenseShare') return ingreso > 0 ? (gasto / ingreso) * 100 : 0;
   if (formula === 'dailyExpense') return gasto / dias;
   if (formula === 'dailyIncome') return ingreso / dias;

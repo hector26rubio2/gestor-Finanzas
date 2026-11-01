@@ -6,13 +6,13 @@ import { PeopleStore } from '@features/people';
 import { crearMovimientosDelPeriodo } from '@shared/historia';
 import { I18nService } from '@core/i18n';
 import { addDaysToIso, addMonthsToIso, sumBy } from '@core/utils';
+import { cuotaFija, enPorcentaje } from '@core/utils/tasas';
 import { FuentesDelSimulador } from './simulador-fuentes';
 import { AjusteDeDeuda, EventoDelEscenario, aplicarEstado, leerEstado, serializarEstado } from './simulador-estado';
 import {
   type Deuda,
   type Palanca,
   type Proyeccion,
-  cuotaFija,
   proyectar,
   type DeudaActual,
   type OrdenDeAbono,
@@ -218,7 +218,7 @@ export class SimuladorDePlanificacion {
 
   readonly cuotaDeLaCompra = computed(() => {
     const compra = this.compra();
-    return compra ? Math.round(cuotaFija(compra.saldo, compra.tasaMensual, compra.cuotas)) : 0;
+    return compra ? Math.round(cuotaFija(compra.saldo, enPorcentaje(compra.tasaMensual), compra.cuotas)) : 0;
   });
   readonly serieDeLaCompra = computed(() => this.escenario().deudas.find((d) => d.id === ID_DE_LA_COMPRA) ?? null);
   readonly flujoLibreMinimo = computed(() => Math.min(...this.escenario().flujoLibre));

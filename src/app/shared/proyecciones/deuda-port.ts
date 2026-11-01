@@ -1,9 +1,9 @@
 import type { ApiObligation } from '@core/api';
 import type { Account, Movement, Person } from '@core/state';
 import { CARD_BUCKET, PRIORIDAD_EN_DOLARES, PRIORIDAD_EN_PESOS, completarPrioridad } from '@core/api';
-import { mensualDesdeAnual } from '@core/utils/tasas';
+import { cuotaFija, enPorcentaje, mensualDesdeAnual } from '@core/utils/tasas';
 import { sumBy } from '@core/utils';
-import { type Deuda, cuotaFija } from './amortizacion';
+import type { Deuda } from './amortizacion';
 import { type CompraPendiente, comprasPendientes, ordenDeAbono, saldosPorConcepto } from '@shared/tarjetas/extracto';
 
 export const TASA_MENSUAL_SUPUESTA_TARJETA = 2.5;
@@ -38,7 +38,7 @@ export function saldoTrasCuotas(capital: number, tasaMensual: number, cuotas: nu
   if (pagadas >= cuotas) return 0;
   const i = tasaMensual / 100;
   if (i === 0) return redondear(capital - (capital / cuotas) * pagadas);
-  const cuota = cuotaFija(capital, tasaMensual, cuotas);
+  const cuota = cuotaFija(capital, enPorcentaje(tasaMensual), cuotas);
   const factor = (1 + i) ** pagadas;
   return redondear(Math.max(0, capital * factor - (cuota * (factor - 1)) / i));
 }

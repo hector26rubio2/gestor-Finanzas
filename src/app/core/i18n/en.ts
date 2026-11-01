@@ -72,6 +72,8 @@ export default {
   'sinAcceso.detail':
     "You can enter, but none of the pieces it's made of have been granted to you. Ask whoever manages your workspace for the ones you need.",
   'skeleton.loading': 'Loading content…',
+  'balances.unconfirmed.label': 'Unconfirmed balances',
+  'balances.unconfirmed.hint': 'Balances could not be refreshed from the server; a local calculation is shown.',
   'chart.defaultAriaLabel': 'Chart',
   'movements.filters.period.all': 'Last 12 months',
   'movements.filters.period.aug2026': 'August 2026',
@@ -88,6 +90,8 @@ export default {
   'movements.kpi.income.label': 'Filtered income',
   'movements.kpi.expense.label': 'Filtered expenses',
   'movements.kpi.selectionHint': 'Selected set',
+  'movements.kpi.savings.label': 'Savings rate',
+  'movements.kpi.page.savings.hint': 'Over the income and expenses shown',
   'movements.kpi.records.label': 'Records',
   'movements.kpi.records.hint': 'Confirmed and pending',
   'movements.kpi.none': 'No data',

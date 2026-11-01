@@ -3,14 +3,11 @@ import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient, ApiWritesBus } from '@core/api';
 import type { Movement } from '@core/state';
 import { AppStore } from '@core/state';
-import { esEconomico, totalDeGastos, totalDeIngresos } from '@core/state/economia';
 import { parseMoney, sumBy } from '@core/utils';
+import { type Rango, resumenDeMovimientos, resumenDeTotales } from '@shared/resumen-del-periodo';
 import { crearMovimientosDelPeriodo } from './movimientos-del-periodo';
 
-export interface Rango {
-  readonly start: string;
-  readonly end: string;
-}
+export type { Rango };
 
 export interface PuntoDeFlujo {
   readonly rango: Rango;
@@ -53,10 +50,8 @@ export function variacion(serie: readonly number[]): number | null {
 
 function flujoLocal(rango: Rango, movs: readonly Movement[]): PuntoDeFlujo {
   const propios = movs.filter((m) => m.date >= rango.start && m.date <= rango.end);
-  const economicos = propios.filter(esEconomico);
-  const income = totalDeIngresos(economicos);
-  const expense = totalDeGastos(economicos);
-  return { rango, income, expense, net: income - expense, movs: propios };
+  const { ingreso, gasto, neto } = resumenDeMovimientos(propios, rango, {}, () => undefined);
+  return { rango, income: ingreso, expense: gasto, net: neto, movs: propios };
 }
 
 export interface OpcionesDeFlujo {
@@ -103,7 +98,8 @@ export function crearHistoriaDeFlujo(rangos: Signal<readonly Rango[]>, opciones:
         const puntos = servidor.puntos.filter((p) => p.date >= rango.start && p.date <= rango.end);
         const income = sumBy(puntos, (p) => parseMoney(p.income));
         const expense = sumBy(puntos, (p) => parseMoney(p.expense));
-        return { rango, income, expense, net: income - expense, movs: null };
+        const { neto } = resumenDeTotales(income, expense);
+        return { rango, income, expense, net: neto, movs: null };
       });
     const incluir = opciones.incluir ?? (() => true);
     const movs = locales.movimientos().filter(incluir);
