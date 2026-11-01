@@ -981,7 +981,7 @@
         const marco = $('#marco');
         if (marco.dataset.id !== d.id) {
           marco.dataset.id = d.id;
-          if (destinoAparte) marco.src = destinoAparte;
+          if (destinoAparte) marco.src = encodeURI(destinoAparte);
           else marco.removeAttribute('src');
           marco.title = d.titulo;
         }
