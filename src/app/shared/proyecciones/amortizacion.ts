@@ -1,3 +1,4 @@
+import { cuotaFija, enPorcentaje } from '@core/utils/tasas';
 export type TipoDeDeuda = 'credito' | 'tarjeta' | 'prestamo' | 'hipotetica';
 
 export interface Deuda {
@@ -74,13 +75,6 @@ export interface Proyeccion {
 
 const redondear = (valor: number) => Math.round(valor * 100) / 100;
 
-export function cuotaFija(saldo: number, tasaMensual: number, cuotas: number): number {
-  if (saldo <= 0 || cuotas <= 0) return 0;
-  const i = tasaMensual / 100;
-  if (i === 0) return saldo / cuotas;
-  return (saldo * i) / (1 - (1 + i) ** -cuotas);
-}
-
 interface PalancasPorMes {
   readonly tasas: ReadonlyMap<string, number>;
   readonly abonos: ReadonlyMap<string, number>;
@@ -112,14 +106,14 @@ export class CursorDeDeuda {
     this.pendiente = deuda.saldo;
     this.tasa = deuda.tasaMensual;
     this.restantes = Math.max(1, Math.round(deuda.cuotas));
-    this.cuota = cuotaFija(this.pendiente, this.tasa, this.restantes);
+    this.cuota = cuotaFija(this.pendiente, enPorcentaje(this.tasa), this.restantes);
   }
 
   cobrar(mes: number, tasaNueva?: number): { interes: number; capital: number } | null {
     if (mes < this.inicio) return null;
     if (tasaNueva !== undefined) {
       this.tasa = tasaNueva;
-      this.cuota = cuotaFija(this.pendiente, this.tasa, this.restantes);
+      this.cuota = cuotaFija(this.pendiente, enPorcentaje(this.tasa), this.restantes);
     }
     if (this.pendiente <= 0.005) return null;
     const interes = this.pendiente * (this.tasa / 100);

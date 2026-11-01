@@ -9,7 +9,8 @@ import {
   totalDeIngresos,
 } from '@core/state/economia';
 import { sumBy } from '@core/utils';
-import { type Deuda, type Flujo, type Palanca, CursorDeDeuda, cuotaFija } from './amortizacion';
+import { cuotaFija, enPorcentaje } from '@core/utils/tasas';
+import { type Deuda, type Flujo, type Palanca, CursorDeDeuda } from './amortizacion';
 
 import {
   DeudaDeObligaciones,
@@ -310,7 +311,7 @@ export function horizonteDelPlan(pestana: PestanaDelPlan, deudas: readonly Deuda
 }
 
 export function cuotaParaTerminarEn(deudas: readonly Deuda[], meses: number): number {
-  return Math.round(sumBy(deudas, (d) => cuotaFija(d.saldo, d.tasaMensual, Math.max(1, meses))));
+  return Math.round(sumBy(deudas, (d) => cuotaFija(d.saldo, enPorcentaje(d.tasaMensual), Math.max(1, meses))));
 }
 
 export function mesesHasta(hoy: string, objetivo: string): number {

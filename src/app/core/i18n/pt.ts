@@ -72,6 +72,8 @@ export default {
   'sinAcceso.detail':
     'Você pode entrar, mas não recebeu nenhuma das partes que a compõem. Peça a quem administra seu espaço as que precisar.',
   'skeleton.loading': 'Carregando conteúdo…',
+  'balances.unconfirmed.label': 'Saldos não confirmados',
+  'balances.unconfirmed.hint': 'Não foi possível atualizar os saldos com o servidor; é exibido um cálculo local.',
   'chart.defaultAriaLabel': 'Gráfico',
   'movements.filters.period.all': 'Últimos 12 meses',
   'movements.filters.period.aug2026': 'Agosto de 2026',
@@ -88,6 +90,8 @@ export default {
   'movements.kpi.income.label': 'Receitas filtradas',
   'movements.kpi.expense.label': 'Gastos filtrados',
   'movements.kpi.selectionHint': 'Conjunto selecionado',
+  'movements.kpi.savings.label': 'Taxa de poupança',
+  'movements.kpi.page.savings.hint': 'Sobre as receitas e despesas exibidas',
   'movements.kpi.records.label': 'Registros',
   'movements.kpi.records.hint': 'Confirmados e pendentes',
   'movements.kpi.none': 'Sem dados',

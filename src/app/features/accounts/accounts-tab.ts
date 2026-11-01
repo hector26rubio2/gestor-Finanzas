@@ -18,6 +18,7 @@ import { SearchFieldComponent } from '@ui/search-field';
 import { SegmentedComponent } from '@ui/segmented';
 import { TableZoneComponent } from '@ui/table-zone';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
+import { SaldoNoConfirmadoComponent } from '@ui/saldo-no-confirmado';
 import { UiSelectComponent } from '@ui/select';
 import { AppStore, CAPABILITIES, Account } from '@core/state';
 import { I18nService } from '@core/i18n';
@@ -46,6 +47,7 @@ import { addDaysToIso } from '@core/utils';
 @Component({
   selector: 'app-accounts-tab',
   imports: [
+    SaldoNoConfirmadoComponent,
     CarruselComponent,
     ChartCardComponent,
     FormsModule,
@@ -71,7 +73,7 @@ export class AccountsTabComponent implements OnDestroy {
 
   private readonly referenceDate = computed(() => this.store.hoy());
   private readonly cards = computed(() => creditCards(this.store.data().accounts));
-  private readonly debtOf = (card: Account) => Math.max(0, -this.store.balance(card));
+  private readonly debtOf = (card: Account) => this.store.deudaDe(card);
   readonly nextDue = computed(() => nextCardDue(this.cards(), this.debtOf, this.referenceDate()));
   private readonly ultimos30 = crearMovimientosDelPeriodo(
     computed(() => ({ start: addDaysToIso(this.store.hoy(), -30), end: this.store.hoy() })),

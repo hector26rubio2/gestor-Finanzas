@@ -72,6 +72,9 @@ export default {
   'sinAcceso.detail':
     'Vous pouvez entrer, mais aucune des parties qui la composent ne vous a été accordée. Demandez à la personne qui administre votre espace celles dont vous avez besoin.',
   'skeleton.loading': 'Chargement du contenu…',
+  'balances.unconfirmed.label': 'Soldes non confirmés',
+  'balances.unconfirmed.hint':
+    "Les soldes n'ont pas pu être actualisés depuis le serveur ; un calcul local est affiché.",
   'chart.defaultAriaLabel': 'Graphique',
   'movements.filters.period.all': '12 derniers mois',
   'movements.filters.period.aug2026': 'Août 2026',
@@ -88,6 +91,8 @@ export default {
   'movements.kpi.income.label': 'Revenus filtrés',
   'movements.kpi.expense.label': 'Dépenses filtrées',
   'movements.kpi.selectionHint': 'Ensemble sélectionné',
+  'movements.kpi.savings.label': "Taux d'épargne",
+  'movements.kpi.page.savings.hint': 'Sur les revenus et dépenses affichés',
   'movements.kpi.records.label': 'Enregistrements',
   'movements.kpi.records.hint': 'Confirmés et en attente',
   'movements.kpi.none': 'Aucune donnée',

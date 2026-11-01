@@ -8,6 +8,7 @@ import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
 import type { Movement } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
+import { resumenDeTotales } from '@shared/resumen-del-periodo';
 import type { DatosDelTablero } from '../dashboard-datos';
 import { DashboardPeriodo } from '../periodo/dashboard-periodo';
 import { ResumenComponent } from './resumen';
@@ -25,6 +26,7 @@ function datosDeLaPantalla(cambios: Record<string, unknown> = {}): DatosDelTable
     income: signal(1200),
     expense: signal(600),
     net: signal(600),
+    resumen: signal(resumenDeTotales(1200, 600)),
     historial: signal([punto(1000, 500), punto(1200, 600)]),
     historialAnual: signal([punto(800, 800)]),
     timeline: signal([
