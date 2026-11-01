@@ -31,6 +31,6 @@ export class SettlementsApi {
     cutOff: string;
     currency: string;
   }) {
-    return this.transport.request<unknown>({ method: 'POST', path: API_ROUTES.settlements, body: request });
+    return this.transport.request<ApiSettlement>({ method: 'POST', path: API_ROUTES.settlements, body: request });
   }
 }

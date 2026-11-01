@@ -1,3 +1,4 @@
+import { sesionDe } from '@testing/sesion-de-prueba';
 import { MovementCommands } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
@@ -55,6 +56,7 @@ describe('avance en efectivo', () => {
       providers: [{ provide: FinanceApiClient, useValue: { createCashAdvance, createTransfer } }],
     });
     const store = TestBed.inject(AppStore);
+    store.user.set(sesionDe().conTodosLosPermisos().construir());
     store.data.update((data) => ({
       ...data,
       accounts: [
@@ -64,14 +66,13 @@ describe('avance en efectivo', () => {
       movements: [],
     }));
 
-    await TestBed.inject(MovementCommands).save({
-      kind: 'advance',
-      date: '2026-09-25',
-      description: 'Avance',
-      accountId: 'tarjeta-1',
-      targetId: 'cuenta-1',
-      amount: 300000,
-      category: '',
+    await TestBed.inject(MovementCommands).asentar({
+      tipo: 'avance',
+      fecha: '2026-09-25',
+      descripcion: 'Avance',
+      tarjetaId: 'tarjeta-1',
+      destinoId: 'cuenta-1',
+      monto: 300000,
     });
 
     expect(createTransfer).not.toHaveBeenCalled();

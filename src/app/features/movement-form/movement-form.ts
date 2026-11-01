@@ -22,6 +22,7 @@ import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { FieldComponent } from '@ui/field/field';
 import { AsyncActionService } from '@core/utils/async-action.service';
 import { Movement } from '@core/state/view-model';
+import { intencionDelFormulario } from './intencion-del-formulario';
 
 const MOVEMENT_KINDS = ['', 'income', 'expense', 'payment'] as const;
 const MOVEMENT_OPERATION_TYPES = [
@@ -169,7 +170,7 @@ export class MovementFormComponent {
       operationType: m ? operacionDe(m) : operacionPedida(context.operationType, context.kind),
       originalCurrency: m?.originalCurrency ?? 'COP',
       originalAmount: m?.originalAmount ?? 0,
-      exchangeRate: m?.exchangeRate ?? 4168.35,
+      exchangeRate: m?.exchangeRate ?? 0,
     };
   }
 
@@ -274,59 +275,19 @@ export class MovementFormComponent {
     this.model.originalCurrency = moneda;
   }
 
-  private permisoDeGuardado(): string {
-    if (this.model.id) return P.movimientos.editar;
-    switch (this.model.operationType) {
-      case 'transfer':
-        return P.movimientos.transferencias.crear;
-      case 'advance':
-        return P.movimientos.avances.crear;
-      case 'loan':
-      case 'borrowedCard':
-        return P.movimientos.prestamos.crear;
-      case 'credit':
-        return P.movimientos.creditos.crear;
-      default:
-        return P.movimientos.crear;
-    }
-  }
-
-  private validar(): void {
-    if (!this.capabilities.allows(this.permisoDeGuardado())) throw new Error(this.i18n.t('form.error.forbidden'));
-    const operacion = this.model.operationType;
-    const source = this.store.account(this.model.accountId);
-    const target = this.store.account(this.model.targetId);
-    const compraConTarjeta = this.model.kind === 'expense' && operacion === 'normal' && source?.type === 'credit';
-    if (compraConTarjeta && !this.capabilities.allows(P.movimientos.creditos.crear))
-      throw new Error(this.i18n.t('form.movement.error.creditPurchaseForbidden'));
-    if (operacion === 'transfer' && (source?.type === 'credit' || target?.type === 'credit'))
-      throw new Error(this.i18n.t('form.movement.error.transferCreditForbidden'));
-    if (operacion === 'advance' && (source?.type !== 'credit' || target?.type === 'credit'))
-      throw new Error(this.i18n.t('form.movement.error.advanceAccountInvalid'));
-    if (this.model.kind === 'income' && source?.type === 'credit')
-      throw new Error(this.i18n.t('form.movement.error.incomeCreditForbidden'));
-    if (['loan', 'credit', 'received', 'borrowedCard'].includes(operacion) && !this.model.counterpartyId)
-      throw new Error(this.i18n.t('form.movement.error.counterpartyRequired'));
-    const tasa = Number(this.model.monthlyRate ?? 0);
-    if ((operacion === 'loan' || operacion === 'credit') && (!Number.isFinite(tasa) || tasa < 0 || tasa > 100))
-      throw new Error(this.i18n.t('form.movement.error.rateInvalid'));
-  }
-
   async submit() {
     try {
       this.error.set('');
-      this.validar();
-      const kind = this.effectiveKind();
-      const originalCurrency = this.visibility().showCurrency ? 'USD' : this.monedaDeCompra();
-      await this.actions.run(
-        this.saveActionKey,
-        () => this.movementCommands.save({ ...this.model, kind, originalCurrency }),
-        {
-          loading: this.i18n.t('form.movement.toast.loading'),
-          success: this.i18n.t('form.movement.toast.success'),
-          error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
-        },
-      );
+      const intencion = intencionDelFormulario(this.model, {
+        moneda: this.visibility().showCurrency ? 'USD' : this.monedaDeCompra(),
+        personaPorNombre: (nombre) => this.store.data().people.find((persona) => persona.name === nombre),
+        movimiento: (id) => this.store.movimiento(id),
+      });
+      await this.actions.run(this.saveActionKey, () => this.movementCommands.asentar(intencion), {
+        loading: this.i18n.t('form.movement.toast.loading'),
+        success: this.i18n.t('form.movement.toast.success'),
+        error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.movement.error.saveFailed')),
+      });
     } catch (e) {
       this.error.set(e instanceof Error ? e.message : this.i18n.t('form.movement.error.saveFailed'));
     }

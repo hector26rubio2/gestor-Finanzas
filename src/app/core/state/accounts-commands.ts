@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { todayIso } from '@core/utils/dates';
 import { firstValueFrom } from 'rxjs';
 import type { ApiMovement } from '@core/api/ledger.api';
+import type { ApiCard } from '@core/api/cards.api';
 import { Account, type Movement } from './view-model';
 import { FinanceApiClient, viewTypeToAccountKind } from '@core/api/api-client';
 import { parseMoney } from '@core/utils/money';
@@ -63,6 +64,7 @@ export class AccountsCommands {
         ...data,
         accounts: [...data.accounts, tarjetaAAccount(created, credit)],
       }));
+      this.recordarTarjeta(created);
       this.store.form.set(null);
       return;
     }
@@ -121,7 +123,7 @@ export class AccountsCommands {
     if (credito) {
       const actual = (await firstValueFrom(this.client.cards())).find((card) => card.id === account.id);
       if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-      await firstValueFrom(
+      const guardada = await firstValueFrom(
         this.client.updateCard(account.id, {
           name,
           creditLimit: { amount: String(credito.limit), currency: actual.currency },
@@ -133,6 +135,7 @@ export class AccountsCommands {
           issuerEntity: credito.issuerId || null,
         }),
       );
+      this.recordarTarjeta(guardada);
     } else {
       const actual = (await firstValueFrom(this.client.accounts())).find((item) => item.id === account.id);
       if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
@@ -176,6 +179,45 @@ export class AccountsCommands {
       accounts: data.accounts.map((item) => (item.id === account.id ? actualizada : item)),
     }));
     this.store.form.set(null);
+  }
+
+  async desactivar(cuenta: Account): Promise<void> {
+    if (cuenta.type === 'credit') await this.desactivarTarjeta(cuenta);
+    else
+      await firstValueFrom(
+        this.client.updateAccount(cuenta.id, {
+          name: cuenta.name,
+          institution: cuenta.institution ?? null,
+          lastFour: cuenta.lastFour ?? null,
+          isDefault: false,
+          isActive: false,
+          issuerEntity: cuenta.issuerId ?? null,
+        }),
+      );
+    this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== cuenta.id) }));
+  }
+
+  private async desactivarTarjeta(tarjeta: Account): Promise<void> {
+    const conocida = this.store.tarjetasCrudas().find((item) => item.id === tarjeta.id);
+    if (!conocida) throw new Error(this.i18n.t('form.error.notFound'));
+    await firstValueFrom(
+      this.client.updateCard(tarjeta.id, {
+        name: conocida.name,
+        creditLimit: conocida.creditLimit,
+        cycle: conocida.cycle,
+        terms: conocida.terms,
+        issuer: conocida.issuer,
+        lastFour: conocida.lastFour,
+        isActive: false,
+        issuerEntity: conocida.issuerEntity?.id ?? null,
+      }),
+    );
+    this.store.tarjetasCrudas.update((tarjetas) => tarjetas.filter((item) => item.id !== tarjeta.id));
+  }
+
+  private recordarTarjeta(tarjeta: ApiCard): void {
+    if (!tarjeta?.id) return;
+    this.store.tarjetasCrudas.update((tarjetas) => [...tarjetas.filter((item) => item.id !== tarjeta.id), tarjeta]);
   }
 }
 

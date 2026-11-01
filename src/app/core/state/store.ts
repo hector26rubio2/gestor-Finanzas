@@ -3,6 +3,7 @@ import { computed, inject, Injectable, InjectionToken, Injector, signal } from '
 import { notifier } from '@core/notifications/notifier';
 import { Account, accountBalance, createEmptyData, ViewData, SessionUser, Movement, PersonKind } from './view-model';
 import { ApiCategory, ApiNotification } from '@core/api/api-client';
+import type { ApiCard } from '@core/api/cards.api';
 import {
   baseCurrency as monedaBase,
   currencyCatalog as catalogoDeMonedas,
@@ -13,6 +14,7 @@ import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG } from '@core/utils/movement-kinds';
 import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { PREFERENCES } from './theme';
+import { type EntidadInspeccionada, type TipoDeEntidad, entidadSeleccionada } from './entidad-seleccionada';
 import { totalDeGastos, totalDeIngresos } from './economia';
 
 export { applyTheme, PREFERENCES } from './theme';
@@ -93,6 +95,7 @@ export class AppStore {
   readonly featureFlagsLoaded = signal(false);
   readonly kindCatalog = signal(EMPTY_KIND_CATALOG);
   readonly categories = signal<readonly ApiCategory[]>([]);
+  readonly tarjetasCrudas = signal<readonly ApiCard[]>([]);
   readonly preferences = inject(PREFERENCES);
   readonly query = signal('');
   readonly period = signal('all');
@@ -121,7 +124,7 @@ export class AppStore {
     originalAmount?: number;
     exchangeRate?: number;
   } | null>(null);
-  readonly inspector = signal<{ type: string; id: string; previous?: { type: string; id: string } } | null>(null);
+  readonly inspector = signal<EntidadInspeccionada | null>(null);
   readonly calendarReturnDate = signal<string | null>(null);
   readonly selectedCalendarDate = signal(todayIso());
   readonly cardPaymentMode = signal(false);
@@ -268,8 +271,11 @@ export class AppStore {
   open(kind = '', accountId?: string, movement?: Movement, notificationId?: string, targetId?: string) {
     this.form.set({ kind, accountId, targetId, movement, notificationId });
   }
-  inspect(type: string, id: string) {
+  inspect(type: TipoDeEntidad, id: string) {
     const old = this.inspector();
-    this.inspector.set({ type, id, previous: old ? { type: old.type, id: old.id } : undefined });
+    this.inspector.set({
+      ...entidadSeleccionada(type, id),
+      previous: old ? entidadSeleccionada(old.type, old.id) : undefined,
+    });
   }
 }

@@ -1,6 +1,7 @@
 import { I18nService } from '@core/i18n';
 import { todayIso } from '@core/utils/dates';
 import { Movement } from '@core/state/view-model';
+import type { OpcionesDeMapeo } from '@core/state/operacion/operar';
 import { ApiMovement } from '@core/api/api-client';
 import { CARD_BUCKET } from '@core/api/card-buckets';
 import { parseAmount, parseMoney, parseRate } from '@core/utils/money';
@@ -13,19 +14,28 @@ import {
   signOf,
 } from '@core/utils/movement-kinds';
 
-export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, source: ApiMovement): Movement {
+export function signoDeMovimiento(source: Pick<ApiMovement, 'flow' | 'effect' | 'reversalOf'>): 1 | -1 {
+  const signo = signOf(source.flow, source.effect);
+  return source.reversalOf ? (signo === 1 ? -1 : 1) : signo;
+}
+
+export function toMovement(
+  i18n: I18nService,
+  catalog: MovementKindCatalog,
+  source: ApiMovement,
+  opciones: OpcionesDeMapeo = {},
+): Movement {
   const accountId = source.links['account'] ?? source.links['card'] ?? '';
-  const sign = signOf(source.flow, source.effect) * (source.reversalOf ? -1 : 1);
-  const amount = parseMoney(source.amount.base) * sign;
+  const amount = parseMoney(source.amount.base) * signoDeMovimiento(source);
   const family = catalog.family(source.kind, source.effect, source.flow);
   const loanRole = rolDePrestamo(source);
   return {
     id: source.id,
     date: source.date,
-    description: source.description ?? i18n.t('movements.fallback.noDescription'),
+    description: source.description ?? opciones.descripcion ?? i18n.t('movements.fallback.noDescription'),
     accountId,
     accountName: (source.linkNames['account'] ?? source.linkNames['card'])?.name,
-    category: source.linkNames['category']?.name ?? i18n.t('movements.fallback.noCategory'),
+    category: source.linkNames['category']?.name ?? opciones.categoria ?? i18n.t('movements.fallback.noCategory'),
     ...(source.kind === MovementKind.cardCashAdvance
       ? { kind: amount < 0 ? ('expense' as const) : ('income' as const), movementSubtype: 'advance' as const }
       : classifyFamily(family, amount)),
@@ -33,18 +43,25 @@ export function toMovement(i18n: I18nService, catalog: MovementKindCatalog, sour
     ...(source.reversalOf || source.reversedBy ? { anulado: true } : {}),
     amount,
     status: 'confirmed',
-    person: source.linkNames['counterparty']?.name,
-    ownership: source.links['counterparty'] ? 'loaned' : 'own',
-    recurring: Boolean(source.links['recurrence']),
+    person: source.linkNames['counterparty']?.name ?? opciones.persona,
+    ownership: source.links['counterparty'] ? 'loaned' : (opciones.propiedad ?? 'own'),
+    recurring: Boolean(source.links['recurrence']) || opciones.recurrente === true,
     originalCurrency: source.amount.original.currency === 'USD' ? 'USD' : 'COP',
     originalAmount: parseAmount(source.amount.original.amount, source.amount.original.currency),
     exchangeRate: parseRate(source.amount.rate),
     ...(source.installments
       ? { installmentTotal: source.installments, installmentCurrent: cuotaEnCurso(source.date, source.installments) }
-      : {}),
+      : opciones.plazoMeses
+        ? { installmentTotal: opciones.plazoMeses, installmentCurrent: 1 }
+        : {}),
     ...(conceptoDeCargo(source) ? { cardBucket: conceptoDeCargo(source) } : {}),
-    ...(source.purchaseApr !== null && source.purchaseApr !== undefined ? { purchaseApr: source.purchaseApr } : {}),
+    ...(source.purchaseApr !== null && source.purchaseApr !== undefined
+      ? { purchaseApr: source.purchaseApr }
+      : opciones.aprAnual !== undefined
+        ? { purchaseApr: opciones.aprAnual }
+        : {}),
     ...(loanRole ? { loanRole } : {}),
+    ...(opciones.producto ? { loanProduct: opciones.producto } : {}),
   };
 }
 

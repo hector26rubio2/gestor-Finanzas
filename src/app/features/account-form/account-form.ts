@@ -13,7 +13,7 @@ import {
   claveDeConcepto,
   completarPrioridad,
 } from '@core/api';
-import { Account, CAPABILITIES, AppStore, type Movement, CatalogCommands } from '@core/state';
+import { Account, CAPABILITIES, AppStore, type Movement, CatalogCommands, TasaDeCambio } from '@core/state';
 import {
   aplicarAbono,
   comprasPendientes,
@@ -44,7 +44,7 @@ function datosIniciales(cuenta: Account | null, tipoNuevo: AccountViewType): Dat
     currency: cuenta?.currency ?? 'COP',
     opening: 0,
     lastFour: cuenta?.lastFour ?? '',
-    exchangeRate: 4168.35,
+    exchangeRate: null,
     issuerId: cuenta?.issuerId ?? '',
     limit: cuenta?.limit ?? 5000000,
     cutDay: cuenta?.cutDay ?? 20,
@@ -94,6 +94,15 @@ export class AccountFormComponent {
     esquemaDeCuenta((clave) => this.i18n.t(clave)),
     { name: 'cuenta', submission: { action: async () => this.save() } },
   );
+
+  private readonly tasaDeCambio = inject(TasaDeCambio);
+  private readonly rellenarTrm = effect(() => {
+    const vigente = this.tasaDeCambio.vigente();
+    const pideTrm = this.modelo().currency === 'USD' && this.modelo().type !== 'credit';
+    if (pideTrm) untracked(() => this.tasaDeCambio.solicitar());
+    if (vigente !== null && pideTrm && this.modelo().exchangeRate === null)
+      untracked(() => this.modelo.update((datos) => ({ ...datos, exchangeRate: vigente })));
+  });
 
   readonly accountTypes = computed(() =>
     (['savings', 'checking', 'cash', 'wallet', 'other', 'credit'] as const)

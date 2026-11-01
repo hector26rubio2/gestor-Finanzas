@@ -2,11 +2,13 @@ import { Component, inject } from '@angular/core';
 import { ApiMovement, ApiOperation } from '@core/api/ledger.api';
 import { MovementCommands } from '@core/state';
 import { Movement } from '@core/state/view-model';
+import { cuotaEnCurso } from '@core/session/mappers/movements.mapper';
 import { ModeloDeDatos } from '@testing/datos-de-prueba';
 import { CashFlow, EconomicEffect, MovementKind } from '@core/utils/movement-kinds';
 import { describe, expect, it } from 'vitest';
 import { datosDe } from '@testing/datos-de-prueba';
 import { pruebaRender } from '@testing/prueba-render';
+import { sesionDe } from '@testing/sesion-de-prueba';
 import { TransportFalso } from '@testing/transport-falso';
 
 @Component({ selector: 'prueba-comandos-movimiento', template: '' })
@@ -69,7 +71,7 @@ function envenenarListado(store: ReturnType<typeof pruebaRender<ComponenteVacio>
   store.movimientosListos.set(true);
 }
 
-describe('MovementCommands.save — alta de movimientos', () => {
+describe('MovementCommands.asentar — alta de movimientos', () => {
   it('gasto simple en efectivo: envía kind/effect/flow/amount y añade la copia optimista con signo negativo', async () => {
     const transport = new TransportFalso().responder('POST /api/v1/movements', {
       body: apiMovement({
@@ -78,18 +80,22 @@ describe('MovementCommands.save — alta de movimientos', () => {
         linkNames: { category: { id: 'categoria-1', name: 'Mercado' } },
       }),
     });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     envenenarListado(store);
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-01',
-      description: 'Almuerzo',
-      accountId: 'cuenta-2',
-      amount: 45900,
-      category: 'Mercado',
-      loanProduct: 'personal',
+    await component.comandos.asentar({
+      tipo: 'gasto',
+      fecha: '2026-10-01',
+      descripcion: 'Almuerzo',
+      cuentaId: 'cuenta-2',
+      monto: 45900,
+      categoria: 'Mercado',
+      recurrente: false,
     });
 
     const [peticion] = transport.peticiones;
@@ -126,9 +132,17 @@ describe('MovementCommands.save — alta de movimientos', () => {
 
   it('compra con tarjeta: kind 20 con enlace card, cuotas y APR que devuelve el servidor', async () => {
     const transport = new TransportFalso().responder('POST /api/v1/movements', {
-      body: apiMovement({ id: 'mov-tarjeta', cardBucket: 2, purchaseApr: 12.683 }),
+      body: apiMovement({
+        id: 'mov-tarjeta',
+        kind: MovementKind.cardPurchase,
+        links: { card: 'tarjeta-1' },
+        installments: 3,
+        cardBucket: 2,
+        purchaseApr: 12.683,
+      }),
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({
         accounts: [
           { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 5000000 },
@@ -140,16 +154,17 @@ describe('MovementCommands.save — alta de movimientos', () => {
     cambios();
     envenenarListado(store);
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-01',
-      description: 'Nevera',
-      accountId: 'tarjeta-1',
-      amount: 45900,
-      category: 'Mercado',
-      installmentTotal: 3,
-      installmentRate: 2,
-      cardBucket: 2,
+    await component.comandos.asentar({
+      tipo: 'gasto',
+      fecha: '2026-10-01',
+      descripcion: 'Nevera',
+      cuentaId: 'tarjeta-1',
+      monto: 45900,
+      categoria: 'Mercado',
+      recurrente: false,
+      cuotas: 3,
+      tasaDeCuota: 2,
+      balde: 2,
     });
 
     const [peticion] = transport.peticiones;
@@ -166,7 +181,7 @@ describe('MovementCommands.save — alta de movimientos', () => {
       accountId: 'tarjeta-1',
       amount: -45900,
       installmentTotal: 3,
-      installmentCurrent: 1,
+      installmentCurrent: cuotaEnCurso('2026-09-25', 3),
       cardBucket: 2,
     });
     expect(creado.purchaseApr).toBe(12.683);
@@ -177,6 +192,8 @@ describe('MovementCommands.save — alta de movimientos', () => {
       body: operacion('op-1', [
         apiMovement({
           id: 'pata-salida',
+          kind: MovementKind.transferOut,
+          effect: EconomicEffect.neutral,
           flow: CashFlow.outflow,
           links: { account: 'cuenta-1' },
           description: 'Mover ahorro',
@@ -184,6 +201,8 @@ describe('MovementCommands.save — alta de movimientos', () => {
         }),
         apiMovement({
           id: 'pata-entrada',
+          kind: MovementKind.transferIn,
+          effect: EconomicEffect.neutral,
           flow: CashFlow.inflow,
           links: { account: 'cuenta-2' },
           description: 'Mover ahorro',
@@ -192,20 +211,20 @@ describe('MovementCommands.save — alta de movimientos', () => {
       ]),
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({ movements: [] }),
       transport,
     });
     cambios();
     envenenarListado(store);
 
-    await component.comandos.save({
-      kind: 'transfer',
-      date: '2026-10-01',
-      description: 'Mover ahorro',
-      accountId: 'cuenta-1',
-      targetId: 'cuenta-2',
-      amount: 50000,
-      category: 'Transferencias',
+    await component.comandos.asentar({
+      tipo: 'transferencia',
+      fecha: '2026-10-01',
+      descripcion: 'Mover ahorro',
+      origenId: 'cuenta-1',
+      destinoId: 'cuenta-2',
+      monto: 50000,
     });
 
     const [peticion] = transport.peticiones;
@@ -248,23 +267,24 @@ describe('MovementCommands.save — alta de movimientos', () => {
       },
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({ movements: [], people: [{ id: 'persona-1', name: 'Camilo', owed: 0, owing: 0 }] }),
       transport,
     });
     cambios();
     envenenarListado(store);
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-01',
-      description: 'Préstamo',
-      accountId: 'cuenta-1',
-      amount: 100000,
-      category: 'Préstamos',
-      counterpartyId: 'persona-1',
-      operationType: 'credit',
-      monthlyRate: 1,
-      termMonths: 12,
+    await component.comandos.asentar({
+      tipo: 'prestamo',
+      sentido: 'otorgado',
+      fecha: '2026-10-01',
+      descripcion: 'Préstamo',
+      cuentaId: 'cuenta-1',
+      contraparteId: 'persona-1',
+      monto: 100000,
+      producto: 'personal',
+      tasaMensual: 1,
+      plazoMeses: 12,
     });
 
     const [peticion] = transport.peticiones;
@@ -296,19 +316,20 @@ describe('MovementCommands.save — alta de movimientos', () => {
   it('préstamo sin contraparte se rechaza sin tocar el transport', async () => {
     const transport = new TransportFalso();
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({ movements: [], people: [] }),
       transport,
     });
     cambios();
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Préstamo',
-        accountId: 'cuenta-1',
-        amount: 100000,
-        category: 'Préstamos',
-        operationType: 'loan',
+      component.comandos.asentar({
+        tipo: 'prestamo',
+        sentido: 'otorgado',
+        fecha: '2026-10-01',
+        descripcion: 'Préstamo',
+        cuentaId: 'cuenta-1',
+        contraparteId: '',
+        monto: 100000,
       }),
     ).rejects.toThrow();
     expect(transport.peticiones).toHaveLength(0);
@@ -316,12 +337,13 @@ describe('MovementCommands.save — alta de movimientos', () => {
   });
 });
 
-describe('MovementCommands.save — edición/reclasificación', () => {
+describe('MovementCommands.asentar — edición/reclasificación', () => {
   function editor() {
     const transport = new TransportFalso().responder('PUT /api/v1/movements/mov-1/classification', {
       body: apiMovement({ id: 'mov-1', description: 'Súper del agro' }),
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({
         movements: [
           {
@@ -349,14 +371,11 @@ describe('MovementCommands.save — edición/reclasificación', () => {
   it('reclasificación: envía id de categoría y descripción, y reemplaza solo lo tocado', async () => {
     const { transport, store, comandos } = editor();
 
-    await comandos.save({
-      id: 'mov-1',
-      kind: 'expense',
-      date: '2026-09-25',
-      description: 'Súper del agro',
-      accountId: 'cuenta-1',
-      amount: 45900,
-      category: 'Mercado',
+    await comandos.asentar({
+      tipo: 'reclasificacion',
+      movimientoId: 'mov-1',
+      categoria: 'Mercado',
+      descripcion: 'Súper del agro',
     });
 
     const [peticion] = transport.peticiones;
@@ -378,14 +397,11 @@ describe('MovementCommands.save — edición/reclasificación', () => {
   it('categoría desconocida: envía null y no inventa categoría', async () => {
     const { transport, store, comandos } = editor();
 
-    await comandos.save({
-      id: 'mov-1',
-      kind: 'expense',
-      date: '2026-09-25',
-      description: 'Sin clasificar',
-      accountId: 'cuenta-1',
-      amount: 45900,
-      category: 'Categoría inexistente',
+    await comandos.asentar({
+      tipo: 'reclasificacion',
+      movimientoId: 'mov-1',
+      categoria: 'Categoría inexistente',
+      descripcion: 'Sin clasificar',
     });
 
     expect(transport.peticiones[0].body).toEqual({ category: null, description: 'Sin clasificar' });
@@ -393,7 +409,7 @@ describe('MovementCommands.save — edición/reclasificación', () => {
   });
 });
 
-describe('MovementCommands.save — corrección de monto, fecha o cuenta', () => {
+describe('MovementCommands.asentar — corrección de monto, fecha o cuenta', () => {
   function corrector(extra: Record<string, unknown> = {}) {
     const transport = new TransportFalso().responder('POST /api/v1/movements/mov-1/correction', {
       body: apiMovement({
@@ -408,6 +424,7 @@ describe('MovementCommands.save — corrección de monto, fecha o cuenta', () =>
       }),
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({
         movements: [
           {
@@ -433,14 +450,18 @@ describe('MovementCommands.save — corrección de monto, fecha o cuenta', () =>
     const { transport, store, comandos } = corrector();
     store.inspect('movement', 'mov-1');
 
-    await comandos.save({
-      id: 'mov-1',
-      kind: 'expense',
-      date: '2026-09-26',
-      description: 'Mercado del sábado',
-      accountId: 'cuenta-1',
-      amount: 99000,
-      category: 'Mercado',
+    await comandos.asentar({
+      tipo: 'correccion',
+      originalId: 'mov-1',
+      reemplazo: {
+        tipo: 'gasto',
+        fecha: '2026-09-26',
+        descripcion: 'Mercado del sábado',
+        cuentaId: 'cuenta-1',
+        monto: 99000,
+        categoria: 'Mercado',
+        recurrente: false,
+      },
     });
 
     const [peticion] = transport.peticiones;
@@ -457,21 +478,25 @@ describe('MovementCommands.save — corrección de monto, fecha o cuenta', () =>
     const { transport, comandos } = corrector({ movementSubtype: 'transfer' });
 
     await expect(
-      comandos.save({
-        id: 'mov-1',
-        kind: 'expense',
-        date: '2026-09-25',
-        description: 'Mercado del sábado',
-        accountId: 'cuenta-1',
-        amount: 10,
-        category: 'Mercado',
+      comandos.asentar({
+        tipo: 'correccion',
+        originalId: 'mov-1',
+        reemplazo: {
+          tipo: 'gasto',
+          fecha: '2026-09-25',
+          descripcion: 'Mercado del sábado',
+          cuentaId: 'cuenta-1',
+          monto: 10,
+          categoria: 'Mercado',
+          recurrente: false,
+        },
       }),
     ).rejects.toThrow();
     expect(transport.peticiones).toHaveLength(0);
   });
 });
 
-describe('MovementCommands.save — compras de terceros y tarjeta prestada', () => {
+describe('MovementCommands.asentar — compras de terceros y tarjeta prestada', () => {
   const prestamoRespuesta = (id: string, movements: readonly ApiMovement[]) => ({
     body: {
       obligation: { id: 'obligacion-1', counterparty: { id: 'persona-1', name: 'Camilo' }, dueOn: null },
@@ -482,9 +507,17 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
 
   it('una compra con tarjeta a nombre de otra persona se reparte entera a esa persona', async () => {
     const transport = new TransportFalso()
-      .responder('POST /api/v1/movements', { body: apiMovement({ id: 'compra-1', amount: montoDe('90000') }) })
+      .responder('POST /api/v1/movements', {
+        body: apiMovement({
+          id: 'compra-1',
+          amount: montoDe('90000'),
+          links: { card: 'tarjeta-1', counterparty: 'persona-1' },
+          linkNames: { counterparty: { id: 'persona-1', name: 'Camilo' } },
+        }),
+      })
       .responder('POST /api/v1/shared-purchases', { body: {} });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({
         accounts: [
           { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 5000000 },
@@ -494,14 +527,15 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
     });
     cambios();
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-28',
-      description: 'Compra para Camilo',
-      accountId: 'tarjeta-1',
-      amount: 90000,
-      category: 'Mercado',
-      person: 'Camilo',
+    await component.comandos.asentar({
+      tipo: 'compraParaTercero',
+      fecha: '2026-10-28',
+      descripcion: 'Compra para Camilo',
+      cuentaId: 'tarjeta-1',
+      monto: 90000,
+      categoria: 'Mercado',
+      recurrente: false,
+      terceroId: 'persona-1',
     });
 
     const [compra, reparto] = transport.peticiones;
@@ -517,19 +551,33 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
   it('un gasto desde una cuenta a nombre de otra persona queda como préstamo a cobrar', async () => {
     const transport = new TransportFalso().responder(
       'POST /api/v1/loans',
-      prestamoRespuesta('cuenta', [apiMovement({ id: 'pata-cuenta', amount: montoDe('40000') })]),
+      prestamoRespuesta('cuenta', [
+        apiMovement({
+          id: 'pata-cuenta',
+          kind: MovementKind.loanDisbursement,
+          effect: EconomicEffect.neutral,
+          amount: montoDe('40000'),
+          links: { account: 'cuenta-1', counterparty: 'persona-1' },
+          linkNames: { counterparty: { id: 'persona-1', name: 'Camilo' } },
+        }),
+      ]),
     );
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-28',
-      description: 'Almuerzo de Camilo',
-      accountId: 'cuenta-1',
-      amount: 40000,
-      category: 'Mercado',
-      person: 'Camilo',
+    await component.comandos.asentar({
+      tipo: 'compraParaTercero',
+      fecha: '2026-10-28',
+      descripcion: 'Almuerzo de Camilo',
+      cuentaId: 'cuenta-1',
+      monto: 40000,
+      categoria: 'Mercado',
+      recurrente: false,
+      terceroId: 'persona-1',
     });
 
     const [peticion] = transport.peticiones;
@@ -546,22 +594,23 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
 
   it('una compra con tarjeta prestada deja la deuda con quien la prestó sin cuenta propia', async () => {
     const transport = new TransportFalso().responder('POST /api/v1/loans', prestamoRespuesta('prestada', []));
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     const antes = store.data().movements.length;
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-28',
-      description: 'Zapatos con la tarjeta de Camilo',
-      accountId: '',
-      amount: 180000,
-      category: '',
-      counterpartyId: 'persona-1',
-      operationType: 'borrowedCard',
-      borrowedCardName: 'Mastercard Davivienda',
-      termMonths: 6,
-      monthlyRate: 2,
+    await component.comandos.asentar({
+      tipo: 'tarjetaPrestada',
+      fecha: '2026-10-28',
+      descripcion: 'Zapatos con la tarjeta de Camilo',
+      prestamistaId: 'persona-1',
+      monto: 180000,
+      nombreDeTarjeta: 'Mastercard Davivienda',
+      plazoMeses: 6,
+      tasaMensual: 2,
     });
 
     const [peticion] = transport.peticiones;
@@ -582,47 +631,52 @@ describe('MovementCommands.save — compras de terceros y tarjeta prestada', () 
   });
 });
 
-describe('MovementCommands.save — validaciones de negocio', () => {
+describe('MovementCommands.asentar — validaciones de negocio', () => {
   it('rechaza monto no positivo, cuenta ausente y transferencia sin destino, sin pedir nada a la API', async () => {
     const transport = new TransportFalso();
-    const { component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Raro',
-        accountId: 'cuenta-2',
-        amount: 0,
-        category: '',
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Raro',
+        cuentaId: 'cuenta-2',
+        monto: 0,
+        categoria: '',
+        recurrente: false,
       }),
     ).rejects.toThrow();
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Raro',
-        accountId: 'cuenta-fantasma',
-        amount: 100,
-        category: '',
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Raro',
+        cuentaId: 'cuenta-fantasma',
+        monto: 100,
+        categoria: '',
+        recurrente: false,
       }),
     ).rejects.toThrow();
     await expect(
-      component.comandos.save({
-        kind: 'transfer',
-        date: '2026-10-01',
-        description: 'Mismo destino',
-        accountId: 'cuenta-1',
-        targetId: 'cuenta-1',
-        amount: 100,
-        category: '',
+      component.comandos.asentar({
+        tipo: 'transferencia',
+        fecha: '2026-10-01',
+        descripcion: 'Mismo destino',
+        origenId: 'cuenta-1',
+        destinoId: 'cuenta-1',
+        monto: 100,
       }),
     ).rejects.toThrow();
     expect(transport.peticiones).toHaveLength(0);
   });
 });
 
-describe('MovementCommands.save — invalidación del listado remoto', () => {
+describe('MovementCommands.asentar — invalidación del listado remoto', () => {
   interface OpcionesValidacion {
     transport: TransportFalso;
     data?: ModeloDeDatos;
@@ -634,7 +688,11 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
     data = datosDe(),
     comando,
   }: OpcionesValidacion): Promise<void> {
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data, transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data,
+      transport,
+    });
     cambios();
     envenenarListado(store);
     await comando(component.comandos);
@@ -651,13 +709,14 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
         body: apiMovement({ id: 'mov-simple', links: { account: 'cuenta-2' } }),
       }),
       comando: (comandos) =>
-        comandos.save({
-          kind: 'expense',
-          date: '2026-10-01',
-          description: 'Almuerzo',
-          accountId: 'cuenta-2',
-          amount: 45900,
-          category: 'Mercado',
+        comandos.asentar({
+          tipo: 'gasto',
+          fecha: '2026-10-01',
+          descripcion: 'Almuerzo',
+          cuentaId: 'cuenta-2',
+          monto: 45900,
+          categoria: 'Mercado',
+          recurrente: false,
         }),
     });
   });
@@ -674,13 +733,14 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
         people: [],
       }),
       comando: (comandos) =>
-        comandos.save({
-          kind: 'expense',
-          date: '2026-10-01',
-          description: 'Nevera',
-          accountId: 'tarjeta-1',
-          amount: 45900,
-          category: 'Mercado',
+        comandos.asentar({
+          tipo: 'gasto',
+          fecha: '2026-10-01',
+          descripcion: 'Nevera',
+          cuentaId: 'tarjeta-1',
+          monto: 45900,
+          categoria: 'Mercado',
+          recurrente: false,
         }),
     });
   });
@@ -696,15 +756,15 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
       }),
       data: datosDe({ movements: [], people: [{ id: 'persona-1', name: 'Camilo', owed: 0, owing: 0 }] }),
       comando: (comandos) =>
-        comandos.save({
-          kind: 'expense',
-          date: '2026-10-01',
-          description: 'Préstamo',
-          accountId: 'cuenta-1',
-          amount: 100000,
-          category: 'Préstamos',
-          counterpartyId: 'persona-1',
-          operationType: 'credit',
+        comandos.asentar({
+          tipo: 'prestamo',
+          sentido: 'otorgado',
+          fecha: '2026-10-01',
+          descripcion: 'Préstamo',
+          cuentaId: 'cuenta-1',
+          contraparteId: 'persona-1',
+          monto: 100000,
+          producto: 'personal',
         }),
     });
   });
@@ -713,18 +773,23 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
     const transport = new TransportFalso().responder('POST /api/v1/movements', {
       error: { status: 409, code: 'movement.conflict' },
     });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     envenenarListado(store);
 
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Conflicto',
-        accountId: 'cuenta-1',
-        amount: 1000,
-        category: 'Mercado',
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Conflicto',
+        cuentaId: 'cuenta-1',
+        monto: 1000,
+        categoria: 'Mercado',
+        recurrente: false,
       }),
     ).rejects.toThrow();
 
@@ -735,23 +800,28 @@ describe('MovementCommands.save — invalidación del listado remoto', () => {
   });
 });
 
-describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
+describe('MovementCommands.asentar — transporte con errores (4xx / 5xx)', () => {
   it('createMovement 409: sin copia optimista ni mutación del store; el reintento no duplica', async () => {
     const transport = new TransportFalso().responder('POST /api/v1/movements', {
       error: { status: 409, code: 'movement.conflict' },
     });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     const antes = store.data().movements;
 
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Conflicto',
-        accountId: 'cuenta-1',
-        amount: 1000,
-        category: 'Mercado',
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Conflicto',
+        cuentaId: 'cuenta-1',
+        monto: 1000,
+        categoria: 'Mercado',
+        recurrente: false,
       }),
     ).rejects.toThrow();
     expect(store.data().movements).toEqual(antes);
@@ -760,13 +830,14 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
     transport.responder('POST /api/v1/movements', {
       body: apiMovement({ id: 'mov-nuevo', links: { account: 'cuenta-1' } }),
     });
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-10-01',
-      description: 'Reintento',
-      accountId: 'cuenta-1',
-      amount: 1000,
-      category: 'Mercado',
+    await component.comandos.asentar({
+      tipo: 'gasto',
+      fecha: '2026-10-01',
+      descripcion: 'Reintento',
+      cuentaId: 'cuenta-1',
+      monto: 1000,
+      categoria: 'Mercado',
+      recurrente: false,
     });
     const ids = store.data().movements.map((m) => m.id);
     expect(ids.filter((id) => id === 'mov-nuevo')).toHaveLength(1);
@@ -777,6 +848,7 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
       error: { status: 500, code: 'internal.error' },
     });
     const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
       data: datosDe({ movements: [] }),
       transport,
     });
@@ -785,14 +857,13 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
     const antes = store.data().movements;
 
     await expect(
-      component.comandos.save({
-        kind: 'transfer',
-        date: '2026-10-01',
-        description: 'Fallida',
-        accountId: 'cuenta-1',
-        targetId: 'cuenta-2',
-        amount: 700,
-        category: 'Transferencias',
+      component.comandos.asentar({
+        tipo: 'transferencia',
+        fecha: '2026-10-01',
+        descripcion: 'Fallida',
+        origenId: 'cuenta-1',
+        destinoId: 'cuenta-2',
+        monto: 700,
       }),
     ).rejects.toThrow();
 
@@ -809,18 +880,23 @@ describe('MovementCommands.save — transporte con errores (4xx / 5xx)', () => {
     const transport = new TransportFalso().responder('POST /api/v1/movements', {
       error: { status: 500, code: 'internal.error' },
     });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, { data: datosDe(), transport });
+    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
     cambios();
     store.form.set({ kind: 'expense' });
 
     await expect(
-      component.comandos.save({
-        kind: 'expense',
-        date: '2026-10-01',
-        description: 'Fallida',
-        accountId: 'cuenta-1',
-        amount: 1000,
-        category: 'Mercado',
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Fallida',
+        cuentaId: 'cuenta-1',
+        monto: 1000,
+        categoria: 'Mercado',
+        recurrente: false,
       }),
     ).rejects.toThrow();
 

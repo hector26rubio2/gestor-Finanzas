@@ -1,9 +1,8 @@
 import { HlmInput } from '@spartan-ng/helm/input';
-import { Component, DestroyRef, Input, OnInit, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, Input, OnInit, effect, inject, untracked } from '@angular/core';
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
-import { TrmApi } from '@core/api/trm.api';
+import { TasaDeCambio } from '@core/state/tasa-de-cambio';
 import { NumericInputDirective } from '@ui/numeric-input/numeric-input.directive';
 import { FieldComponent } from '@ui/field/field';
 
@@ -17,19 +16,19 @@ import { FieldComponent } from '@ui/field/field';
 export class MovementCurrencyFieldsComponent implements OnInit {
   @Input({ required: true }) model!: Record<string, any>;
   readonly i18n = inject(I18nService);
-  private readonly trmApi = inject(TrmApi);
-  private readonly destroyRef = inject(DestroyRef);
-  readonly officialTrm = signal<number | null>(null);
-  readonly officialTrmLoading = signal(true);
+  private readonly tasa = inject(TasaDeCambio);
+  readonly officialTrm = this.tasa.vigente;
+  readonly officialTrmLoading = this.tasa.cargando;
 
   ngOnInit() {
     this.model['originalCurrency'] = 'USD';
-    this.trmApi
-      .today()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-        this.officialTrm.set(value);
-        this.officialTrmLoading.set(false);
-      });
+    this.tasa.solicitar();
   }
+
+  private readonly rellenarConTasaVigente = effect(() => {
+    const vigente = this.tasa.vigente();
+    untracked(() => {
+      if (vigente !== null && !this.model['exchangeRate']) this.model['exchangeRate'] = vigente;
+    });
+  });
 }
