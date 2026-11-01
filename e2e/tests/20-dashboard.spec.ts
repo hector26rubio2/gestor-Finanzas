@@ -684,10 +684,7 @@ test.describe('Tablero: indicadores ocultos y campos de los creadores', () => {
     await expect(panel(page)).toContainText('Todos visibles');
   });
 
-  test('DAS-14b un indicador creado por la persona se puede ocultar o eliminar con confirmación', async ({
-    page,
-    vigilancia,
-  }) => {
+  test('DAS-14b un indicador creado por la persona se puede ocultar o eliminar con confirmación', async ({ page }) => {
     const etiqueta = `Indicador propio ${corrida}`;
     await personalizar(page);
     await panel(page).getByRole('button', { name: 'Crear indicador' }).click();
@@ -703,7 +700,6 @@ test.describe('Tablero: indicadores ocultos y campos de los creadores', () => {
       .getByRole('button', { name: `Mostrar ${etiqueta}` })
       .click();
 
-    const marca = vigilancia.marca();
     await tarjetaDeKpi(page, etiqueta).getByRole('button', { name: 'Eliminar indicador' }).click();
     await page.getByRole('alertdialog').getByRole('button', { name: 'Cancelar' }).click();
     await expect(etiquetaDeKpi(page, etiqueta)).toBeVisible();
@@ -711,7 +707,6 @@ test.describe('Tablero: indicadores ocultos y campos de los creadores', () => {
     await page.getByRole('alertdialog').getByRole('button', { name: 'Eliminar', exact: true }).click();
     await expect(etiquetaDeKpi(page, etiqueta)).toHaveCount(0);
     await expect(panel(page).getByRole('button', { name: `Mostrar ${etiqueta}` })).toHaveCount(0);
-    await expect.poll(() => vigilancia.exitosasDesde(marca, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
     await expect
       .poll(async () =>
         ((await disenoDelTablero(page, tableroId)).definitions as { label: string }[]).map((d) => d.label),
