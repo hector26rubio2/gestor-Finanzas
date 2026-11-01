@@ -1,4 +1,21 @@
-@defer (on idle) {
+@if (carga.navegando()) {
+<div
+  class="pointer-events-none fixed inset-x-0 top-0 z-[300] h-0.5 overflow-hidden bg-primary/20"
+  data-testid="barra-de-navegacion"
+  aria-hidden="true"
+>
+  <div class="fin-barra-indeterminada h-full w-full bg-primary"></div>
+</div>
+<span role="status" class="sr-only">{{ i18n.t('shell.navigating') }}</span>
+@if (carga.lenta()) {
+<div
+  class="pointer-events-none fixed inset-0 z-[290] grid place-items-center"
+  data-testid="indicador-de-carga"
+  aria-hidden="true"
+>
+  <div class="fin-giro size-10 rounded-full border-[3px] border-border border-t-primary bg-background/60"></div>
+</div>
+} } @defer (on idle) {
 <hlm-toaster position="top-right" theme="system" richColors closeButton />
 }
 <ng-template #cargando>
@@ -282,7 +299,9 @@
     <main
       id="contenido-principal"
       tabindex="-1"
-      class="min-w-0 flex-1 px-7 pt-6 pb-24 max-[769px]:px-3.5 max-[769px]:pt-[18px]"
+      class="min-w-0 flex-1 px-7 pt-6 pb-24 transition-opacity max-[769px]:px-3.5 max-[769px]:pt-[18px]"
+      [class.opacity-60]="carga.navegando()"
+      [attr.aria-busy]="carga.navegando() ? 'true' : null"
     >
       <router-outlet />
     </main>

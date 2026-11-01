@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { guardarPreferenciaDeArranque } from '@core/arranque/pantalla-de-arranque';
 
 type Messages = Record<string, string>;
 
@@ -58,5 +59,6 @@ export class I18nService {
     this.messages.set(catalog);
     this.loaded = language;
     document.documentElement.lang = language;
+    guardarPreferenciaDeArranque({ locale: language });
   }
 }

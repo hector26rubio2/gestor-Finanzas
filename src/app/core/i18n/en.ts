@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'New transaction',
   'shell.search': 'Search transactions',
   'shell.loading': 'Loading your information…',
+  'shell.navigating': 'Loading the section…',
   'shell.partialLoad': "Some data couldn't be loaded. Reload the page if something is missing.",
   'shell.skipToContent': 'Skip to content',
   'shell.collapseMenu': 'Collapse menu',
@@ -72,6 +73,7 @@ export default {
   'sinAcceso.detail':
     "You can enter, but none of the pieces it's made of have been granted to you. Ask whoever manages your workspace for the ones you need.",
   'skeleton.loading': 'Loading content…',
+  'skeleton.refreshing': 'Updating data…',
   'chart.defaultAriaLabel': 'Chart',
   'movements.filters.period.all': 'Last 12 months',
   'movements.filters.period.aug2026': 'August 2026',

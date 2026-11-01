@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'Nova movimentação',
   'shell.search': 'Buscar movimentações',
   'shell.loading': 'Carregando suas informações…',
+  'shell.navigating': 'Carregando a seção…',
   'shell.partialLoad': 'Alguns dados não puderam ser carregados. Recarregue a página se algo estiver faltando.',
   'shell.skipToContent': 'Pular para o conteúdo',
   'shell.collapseMenu': 'Recolher menu',
@@ -72,6 +73,7 @@ export default {
   'sinAcceso.detail':
     'Você pode entrar, mas não recebeu nenhuma das partes que a compõem. Peça a quem administra seu espaço as que precisar.',
   'skeleton.loading': 'Carregando conteúdo…',
+  'skeleton.refreshing': 'Atualizando dados…',
   'chart.defaultAriaLabel': 'Gráfico',
   'movements.filters.period.all': 'Últimos 12 meses',
   'movements.filters.period.aug2026': 'Agosto de 2026',

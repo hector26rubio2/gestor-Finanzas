@@ -13,6 +13,7 @@ import {
   withPreloading,
   withViewTransitions,
 } from '@angular/router';
+import { retirarPantallaDeArranque } from '@core/arranque/pantalla-de-arranque';
 import { PrecargaBajoDemanda } from '@core/routing/precarga';
 import { AppComponent } from '@app/app';
 import { API_TRANSPORT, HttpApiTransport } from '@core/api/api-client';
@@ -54,4 +55,6 @@ bootstrapApplication(AppComponent, {
     provideAppInitializer(() => inject(HistorialDeNavegacion).iniciar()),
     provideAppInitializer(() => inject(RemoteBootstrap).start()),
   ],
-}).catch(console.error);
+})
+  .catch(console.error)
+  .finally(retirarPantallaDeArranque);
