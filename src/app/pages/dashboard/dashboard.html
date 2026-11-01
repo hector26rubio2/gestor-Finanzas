@@ -539,7 +539,9 @@
           </dd>
         </div>
       </dl>
-      <a hlmBtn class="h-11 w-full" routerLink="/movements">{{ i18n.t('dashboard.detailModal.openInMovements') }}</a>
+      <a hlmBtn class="h-11 w-full" routerLink="/movements" (click)="store.inspector.set(null)"
+        >{{ i18n.t('dashboard.detailModal.openInMovements') }}</a
+      >
     </div></fin-overlay
   >
   }
