@@ -821,15 +821,28 @@
       };
 
       const escapar = (texto) =>
-        String(texto ?? '').replace(
-          /[&<>"']/g,
-          (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c],
-        );
+        String(texto ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      const cifra = (valor) => escapar(Number.isFinite(Number(valor)) ? Number(valor) : 0);
+      const miles = (valor) => escapar(Number.isFinite(Number(valor)) ? Number(valor).toLocaleString() : 0);
+      const RUTA_PROPIA = /^(?!.*\.\.)(?!.*\/\/)[A-Za-z0-9_-][A-Za-z0-9_./-]*\.html$/;
+      const rutaPropia = (ruta) => (typeof ruta === 'string' && RUTA_PROPIA.test(ruta) ? ruta : null);
+      const decodificar = (texto) => {
+        try {
+          return decodeURIComponent(texto);
+        } catch {
+          return null;
+        }
+      };
       const enlaceCodigo = (repo, ruta, linea) => {
         const base = ATLAS.repos[repo]?.url;
         if (!base) return escapar(ruta);
         const destino = `${base}/blob/main/${ruta}${linea ? `#L${linea}` : ''}`;
-        return `<a href="${escapar(destino)}" target="_blank" rel="noopener">${escapar(ruta)}${linea ? `:${linea}` : ''}</a>`;
+        return `<a href="${escapar(destino)}" target="_blank" rel="noopener">${escapar(ruta)}${linea ? `:${escapar(linea)}` : ''}</a>`;
       };
       const guardar = (clave, valor) => {
         try {
@@ -877,9 +890,8 @@
         estado.vista = ['diagramas', 'grafo', 'contratos', 'salud'].includes(vista) ? vista : 'diagramas';
         if (estado.vista === 'diagramas')
           estado.diagrama = diagramaPorId.has(id) ? id : (estado.diagrama ?? ATLAS.diagramas[0]?.id);
-        if (estado.vista === 'grafo')
-          estado.modulo = id && moduloPorId.has(decodeURIComponent(id)) ? decodeURIComponent(id) : null;
-        if (estado.vista === 'contratos') estado.filtroContrato = id ? decodeURIComponent(id) : null;
+        if (estado.vista === 'grafo') estado.modulo = moduloPorId.has(decodificar(id)) ? decodificar(id) : null;
+        if (estado.vista === 'contratos') estado.filtroContrato = id ? decodificar(id) : null;
         for (const boton of $$('.pestanas button'))
           boton.setAttribute('aria-selected', String(boton.dataset.vista === estado.vista));
         for (const panel of $$('.vista')) panel.classList.toggle('activa', panel.id === `vista-${estado.vista}`);
@@ -932,16 +944,17 @@
         const lista = ATLAS.diagramas;
         const indice = lista.indexOf(d);
         const modulosTocados = modulosDeDiagrama.get(d.id) ?? [];
+        const destinoAparte = rutaPropia(d.html);
         $('#visor-cab').innerHTML = `
           <h1>${escapar(d.titulo)}</h1>
           <span class="chip">${escapar(TIPOS[d.tipo] ?? d.tipo)}</span>
           <span class="chip ${clase}">${escapar(texto)}</span>
-          ${d.vistas.length ? `<span class="chip" title="${escapar(d.vistas.join(' · '))}">${d.vistas.length} vistas guiadas</span>` : ''}
+          ${d.vistas.length ? `<span class="chip" title="${escapar(d.vistas.join(' · '))}">${cifra(d.vistas.length)} vistas guiadas</span>` : ''}
           <div class="acciones">
             <button class="boton" data-paso="-1" ${indice <= 0 ? 'disabled' : ''} title="Anterior  [">◀</button>
             <button class="boton" data-paso="1" ${indice >= lista.length - 1 ? 'disabled' : ''} title="Siguiente  ]">▶</button>
-            <button class="boton" id="ver-fuentes" aria-expanded="false">Código · ${d.fuentes.length}</button>
-            <a class="boton" href="${escapar(d.html)}" target="_blank" rel="noopener">Abrir aparte ↗</a>
+            <button class="boton" id="ver-fuentes" aria-expanded="false">Código · ${cifra(d.fuentes.length)}</button>
+            ${destinoAparte ? `<a class="boton" href="${escapar(destinoAparte)}" target="_blank" rel="noopener">Abrir aparte ↗</a>` : ''}
           </div>
           <p>${escapar(d.cuenta)}</p>
           ${
@@ -959,7 +972,7 @@
         $('#fuentes').innerHTML = Object.entries(porRepo)
           .map(
             ([repo, rutas]) =>
-              `<h4>${repo === 'front' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas'}</h4><ul>${rutas
+              `<h4>${escapar(repo === 'front' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas')}</h4><ul>${rutas
                 .map((ruta) => `<li>${enlaceCodigo(repo, ruta)}</li>`)
                 .join('')}</ul>`,
           )
@@ -968,7 +981,8 @@
         const marco = $('#marco');
         if (marco.dataset.id !== d.id) {
           marco.dataset.id = d.id;
-          marco.src = d.html;
+          if (destinoAparte) marco.src = destinoAparte;
+          else marco.removeAttribute('src');
           marco.title = d.titulo;
         }
         guardar('atlas-diagrama', d.id);
@@ -1006,8 +1020,8 @@
                 ([
                   clave,
                   [clase, titulo, ayuda],
-                ]) => `<button class="tarjeta" data-filtro="${clave}" aria-pressed="${filtro === clave}" title="${escapar(ayuda)}">
-                  <b style="color: var(--${clase === 'ok' ? 'ok' : clase === 'error' ? 'error' : 'aviso'})">${cuenta[clave] ?? 0}</b>
+                ]) => `<button class="tarjeta" data-filtro="${escapar(clave)}" aria-pressed="${escapar(filtro === clave)}" title="${escapar(ayuda)}">
+                  <b style="color: var(--${clase === 'ok' ? 'ok' : clase === 'error' ? 'error' : 'aviso'})">${cifra(cuenta[clave] ?? 0)}</b>
                   <span>${escapar(titulo)}</span></button>`,
               )
               .join('')}
@@ -1054,16 +1068,16 @@
         const repos = Object.values(ATLAS.grafo.repos);
         $('#vista-salud').innerHTML = `
           <div class="tarjetas">
-            <div class="tarjeta"><b style="color: var(--${viejos.length ? 'aviso' : 'ok'})">${ATLAS.diagramas.length - viejos.length}/${ATLAS.diagramas.length}</b><span>Diagramas al día</span></div>
+            <div class="tarjeta"><b style="color: var(--${viejos.length ? 'aviso' : 'ok'})">${cifra(ATLAS.diagramas.length - viejos.length)}/${cifra(ATLAS.diagramas.length)}</b><span>Diagramas al día</span></div>
             ${repos
               .map(
                 (
                   r,
-                ) => `<div class="tarjeta"><b>${(r.stats?.nodes ?? 0).toLocaleString()}</b><span>Nodos en el grafo · ${escapar(r.nombre)}</span></div>
-                <div class="tarjeta"><b>${r.procesosTotales}</b><span>Flujos de ejecución · ${escapar(r.nombre)}</span></div>`,
+                ) => `<div class="tarjeta"><b>${miles(r.stats?.nodes ?? 0)}</b><span>Nodos en el grafo · ${escapar(r.nombre)}</span></div>
+                <div class="tarjeta"><b>${cifra(r.procesosTotales)}</b><span>Flujos de ejecución · ${escapar(r.nombre)}</span></div>`,
               )
               .join('')}
-            <div class="tarjeta"><b>${ATLAS.contratos.resumen.conectados}</b><span>Contratos web ↔ API conectados</span></div>
+            <div class="tarjeta"><b>${cifra(ATLAS.contratos.resumen.conectados)}</b><span>Contratos web ↔ API conectados</span></div>
           </div>
           <div class="rejilla-salud">
             <div class="seccion"><h2>Diagramas</h2><div class="tabla-caja"><table>
@@ -1079,7 +1093,7 @@
               <tbody>${repos
                 .map(
                   (r) =>
-                    `<tr><td>${escapar(r.nombre)}</td><td class="mono">${escapar(r.commit?.slice(0, 7) ?? '—')}</td><td class="mono">${escapar(fecha(r.indexado))}</td><td>${(r.stats?.edges ?? 0).toLocaleString()}</td><td>${r.stats?.communities ?? '—'}</td></tr>`,
+                    `<tr><td>${escapar(r.nombre)}</td><td class="mono">${escapar(r.commit?.slice(0, 7) ?? '—')}</td><td class="mono">${escapar(fecha(r.indexado))}</td><td>${miles(r.stats?.edges ?? 0)}</td><td>${r.stats?.communities == null ? '—' : cifra(r.stats.communities)}</td></tr>`,
                 )
                 .join('')}</tbody></table></div>
               <h2 style="margin-top: 16px">Mantenerlo vivo</h2>
@@ -1394,8 +1408,8 @@ pnpm diagramas explorar</pre>
                 .map(
                   (
                     r,
-                  ) => `<div class="cifra"><b>${r.modulos.length}</b><span>módulos · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>
-                  <div class="cifra"><b>${r.enlaces.length}</b><span>relaciones · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>`,
+                  ) => `<div class="cifra"><b>${cifra(r.modulos.length)}</b><span>módulos · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>
+                  <div class="cifra"><b>${cifra(r.enlaces.length)}</b><span>relaciones · ${escapar(r.clave === 'web' ? 'web' : 'API')}</span></div>`,
                 )
                 .join('')}</div>
               <h4>Módulos más grandes</h4>
@@ -1404,7 +1418,7 @@ pnpm diagramas explorar</pre>
                 .slice(0, 12)
                 .map(
                   (x) =>
-                    `<li><a href="#/grafo/${encodeURIComponent(x.id)}">${escapar(x.id.replace(':', ' · '))}</a> · ${x.simbolos}</li>`,
+                    `<li><a href="#/grafo/${encodeURIComponent(x.id)}">${escapar(x.id.replace(':', ' · '))}</a> · ${cifra(x.simbolos)}</li>`,
                 )
                 .join('')}</ul>`;
             return;
@@ -1415,13 +1429,13 @@ pnpm diagramas explorar</pre>
           const diagramas = diagramasDeModulo.get(m.id) ?? [];
           const contratos = contratosDeModulo.get(m.id) ?? [];
           $('#detalle').innerHTML = `
-            <span class="chip">${m.repo === 'web' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas'}</span>
+            <span class="chip">${escapar(m.repo === 'web' ? 'Web · gestor-Finanzas' : 'API · v2-api-finanzas')}</span>
             <h2 style="margin-top: 8px">${escapar(m.nombre)}</h2>
             <div class="cifras">
-              <div class="cifra"><b>${m.simbolos}</b><span>símbolos</span></div>
-              <div class="cifra"><b>${m.archivos.length}</b><span>archivos</span></div>
-              <div class="cifra"><b>${m.clusters}</b><span>clusters</span></div>
-              <div class="cifra"><b>${m.procesosTotales}</b><span>flujos</span></div>
+              <div class="cifra"><b>${cifra(m.simbolos)}</b><span>símbolos</span></div>
+              <div class="cifra"><b>${cifra(m.archivos.length)}</b><span>archivos</span></div>
+              <div class="cifra"><b>${cifra(m.clusters)}</b><span>clusters</span></div>
+              <div class="cifra"><b>${cifra(m.procesosTotales)}</b><span>flujos</span></div>
             </div>
             <h4>Diagramas que lo explican</h4>
             ${
@@ -1429,7 +1443,7 @@ pnpm diagramas explorar</pre>
                 ? `<ul>${diagramas.map((id) => `<li><a href="#/diagramas/${escapar(id)}">${escapar(diagramaPorId.get(id)?.titulo ?? id)}</a></li>`).join('')}</ul>`
                 : '<p class="vacio">Ningún diagrama vigila este módulo todavía.</p>'
             }
-            ${contratos.length ? `<h4>Contratos web ↔ API</h4><p><a href="#/contratos/${encodeURIComponent(`modulo:${m.id}`)}">${contratos.length} rutas tocan este módulo →</a></p>` : ''}
+            ${contratos.length ? `<h4>Contratos web ↔ API</h4><p><a href="#/contratos/${encodeURIComponent(`modulo:${m.id}`)}">${cifra(contratos.length)} rutas tocan este módulo →</a></p>` : ''}
             <h4>Llama a</h4>
             ${
               salientes.length
@@ -1437,7 +1451,7 @@ pnpm diagramas explorar</pre>
                     .slice(0, 10)
                     .map(
                       (e) =>
-                        `<li><a href="#/grafo/${encodeURIComponent(e.a.id)}">${escapar(e.a.m.nombre)}</a> · ${e.llamadas}</li>`,
+                        `<li><a href="#/grafo/${encodeURIComponent(e.a.id)}">${escapar(e.a.m.nombre)}</a> · ${cifra(e.llamadas)}</li>`,
                     )
                     .join('')}</ul>`
                 : '<p class="vacio">—</p>'
@@ -1449,19 +1463,19 @@ pnpm diagramas explorar</pre>
                     .slice(0, 10)
                     .map(
                       (e) =>
-                        `<li><a href="#/grafo/${encodeURIComponent(e.de.id)}">${escapar(e.de.m.nombre)}</a> · ${e.llamadas}</li>`,
+                        `<li><a href="#/grafo/${encodeURIComponent(e.de.id)}">${escapar(e.de.m.nombre)}</a> · ${cifra(e.llamadas)}</li>`,
                     )
                     .join('')}</ul>`
                 : '<p class="vacio">—</p>'
             }
             <h4>Flujos de ejecución</h4>
-            ${m.procesos.length ? `<ul>${m.procesos.map((p) => `<li title="${escapar(p.tipo)}">${escapar(p.label)} · ${p.pasos} pasos</li>`).join('')}</ul>` : '<p class="vacio">—</p>'}
+            ${m.procesos.length ? `<ul>${m.procesos.map((p) => `<li title="${escapar(p.tipo)}">${escapar(p.label)} · ${cifra(p.pasos)} pasos</li>`).join('')}</ul>` : '<p class="vacio">—</p>'}
             <h4>Archivos</h4>
             <ul>${m.archivos
               .slice(0, 25)
-              .map((a) => `<li>${enlaceCodigo(repo, a.ruta)} · ${a.simbolos}</li>`)
+              .map((a) => `<li>${enlaceCodigo(repo, a.ruta)} · ${cifra(a.simbolos)}</li>`)
               .join('')}</ul>
-            ${m.archivos.length > 25 ? `<p class="vacio">… y ${m.archivos.length - 25} más</p>` : ''}`;
+            ${m.archivos.length > 25 ? `<p class="vacio">… y ${cifra(m.archivos.length - 25)} más</p>` : ''}`;
         }
 
         return {
