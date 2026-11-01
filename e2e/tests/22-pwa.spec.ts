@@ -101,4 +101,14 @@ test.describe('PWA', () => {
     expect(urlsEnCache.filter((url) => url.includes('/api/') || url.endsWith('/config.js'))).toEqual([]);
     expect(llamadasApi.length).toBeGreaterThan(0);
   });
+
+  test('PWA-05 Chrome no reporta errores de instalabilidad', async ({ page }) => {
+    await page.goto(origen + '/');
+    const sesion = await page.context().newCDPSession(page);
+    await sesion.send('Page.enable');
+    const { installabilityErrors } = (await sesion.send('Page.getInstallabilityErrors')) as {
+      installabilityErrors: { errorId: string }[];
+    };
+    expect(installabilityErrors.filter((error) => error.errorId !== 'in-incognito')).toEqual([]);
+  });
 });
