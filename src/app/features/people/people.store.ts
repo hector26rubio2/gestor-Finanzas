@@ -22,6 +22,7 @@ export class PeopleStore {
   });
 
   readonly estado = this.posiciones.estado;
+  readonly refrescando = computed(() => this.posiciones.refrescando() || this.obligaciones.refrescando());
   readonly cargando = computed(
     () =>
       this.posiciones.estado() === 'cargando' ||

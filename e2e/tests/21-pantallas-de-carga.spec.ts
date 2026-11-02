@@ -1,6 +1,7 @@
 import { apiUrl } from '../support/entorno';
 import { expect, test, type Locator, type Page } from '../support/fixtures';
 import { elegir } from '../support/ui';
+import { nombres } from '../support/semilla';
 
 const RETARDO_MS = 2500;
 const FONDO_CLARO = 'rgb(247, 248, 251)';
@@ -39,7 +40,8 @@ test.describe('Pantalla de arranque', () => {
   test.describe('tema claro', () => {
     test.use({ colorScheme: 'light', storageState: { cookies: [], origins: [] } });
 
-    test('CAR-01 se ve desde el primer pintado con el fondo claro y luego desaparece', async ({ page }) => {
+    test('CAR-01 se ve desde el primer pintado con el fondo claro y luego desaparece', async ({ page, vigilancia }) => {
+      vigilancia.permitirSinSesion();
       await retrasarPaquete(page);
       await irSinEsperar(page, 'login');
       const arranque = page.locator('#arranque');
@@ -54,7 +56,8 @@ test.describe('Pantalla de arranque', () => {
   test.describe('tema oscuro del sistema', () => {
     test.use({ colorScheme: 'dark', storageState: { cookies: [], origins: [] } });
 
-    test('CAR-02 respeta el modo oscuro del sistema sin destello blanco', async ({ page }) => {
+    test('CAR-02 respeta el modo oscuro del sistema sin destello blanco', async ({ page, vigilancia }) => {
+      vigilancia.permitirSinSesion();
       await retrasarPaquete(page);
       await irSinEsperar(page, 'login');
       await expect(page.locator('#arranque')).toBeVisible();
@@ -67,7 +70,8 @@ test.describe('Pantalla de arranque', () => {
   test.describe('tema guardado', () => {
     test.use({ colorScheme: 'light', storageState: { cookies: [], origins: [] } });
 
-    test('CAR-03 usa el tema oscuro guardado aunque el sistema sea claro', async ({ page }) => {
+    test('CAR-03 usa el tema oscuro guardado aunque el sistema sea claro', async ({ page, vigilancia }) => {
+      vigilancia.permitirSinSesion();
       await page.addInitScript(() =>
         localStorage.setItem('finanzas.arranque', JSON.stringify({ theme: 'dark', locale: 'en' })),
       );
@@ -135,6 +139,8 @@ interface Pantalla {
   zona: (page: Page) => Locator;
   vacia?: { cuerpo: unknown; texto?: RegExp };
   datos: (page: Page, zona: Locator) => Promise<void>;
+  conDatosPrevios?: boolean;
+  retardoMs?: number;
 }
 
 const esqueletoEn = (zona: Locator) => zona.locator('fin-skeleton');
@@ -214,9 +220,7 @@ const pantallas: Pantalla[] = [
     zona: (page) => page.locator('app-people-tab fin-zona-de-carga').last(),
     vacia: { cuerpo: [] },
     datos: async (page, zona) => {
-      const personas = listaDe(await leerApi(page, '/api/v1/people'));
-      expect(personas.length).toBeGreaterThan(0);
-      await expect(zona.getByText(String(personas[0].name)).first()).toBeVisible();
+      await expect(zona.getByText(nombres.persona).first()).toBeVisible();
     },
   },
   {
@@ -241,15 +245,17 @@ const pantallas: Pantalla[] = [
   },
   {
     nombre: 'Planificación',
+    retardoMs: 4000,
     ruta: 'planning',
-    retrasa: /\/api\/v1\/movements(\?|$)/,
-    zona: (page) => page.locator('fin-zona-de-carga:has([data-tour=planificacion-resultados])'),
+    retrasa: /\/api\/v1\/movements\/search(\?|$)/,
+    zona: (page) => page.locator('app-planning-tab fin-zona-de-carga').first(),
     datos: async (_page, zona) => {
       await expect(zona.locator('article').first()).toBeVisible();
     },
   },
   {
     nombre: 'Notificaciones',
+    conDatosPrevios: true,
     ruta: 'notifications',
     retrasa: /\/api\/v1\/notifications(\?|$)/,
     zona: (page) => page.locator('app-notifications-tab fin-zona-de-carga'),
@@ -285,10 +291,13 @@ const pantallas: Pantalla[] = [
   {
     nombre: 'Cuentas',
     ruta: 'accounts',
-    retrasa: /\/api\/v1\/movements(\?|$)/,
+    retrasa: /\/api\/v1\/movements\/search(\?|$)/,
     zona: (page) => page.locator('[data-tour=cuentas-tabla] fin-zona-de-carga'),
     datos: async (page, zona) => {
-      const movimientos = listaDe(await leerApi(page, '/api/v1/movements'));
+      const respuesta = await page.request.post(`${apiUrl}/api/v1/movements/search`, {
+        data: { page: { page: 1, size: 25 }, sortBy: 0, direction: 1, filter: {} },
+      });
+      const movimientos = listaDe(await respuesta.json());
       expect(movimientos.length).toBeGreaterThan(0);
       await expect(zona.getByText(String(movimientos[0].description)).first()).toBeVisible();
     },
@@ -300,13 +309,17 @@ for (const pantalla of pantallas) {
     test(`CAR-10 ${pantalla.nombre}: esqueleto con aria-busy mientras se retrasa y luego datos reales`, async ({
       page,
     }) => {
-      await retrasar(page, pantalla.retrasa);
+      await retrasar(page, pantalla.retrasa, pantalla.retardoMs);
       await irSinEsperar(page, pantalla.ruta);
       const zona = pantalla.zona(page);
       await expect(zona).toHaveAttribute('aria-busy', 'true', { timeout: 15_000 });
       await expect(zona.locator('[role=status]').first()).toBeAttached();
-      await expect(esqueletoEn(zona).first()).toBeVisible();
-      await expect(esqueletoEn(zona).first()).toHaveAttribute('aria-busy', 'true');
+      if (pantalla.conDatosPrevios) {
+        await expect(zona.locator('[data-testid=barra-de-zona]')).toBeVisible();
+      } else {
+        await expect(esqueletoEn(zona).first()).toBeVisible();
+        await expect(esqueletoEn(zona).first()).toHaveAttribute('aria-busy', 'true');
+      }
       await expect(zona).toHaveAttribute('aria-busy', 'false', { timeout: 30_000 });
       await expect(esqueletoEn(zona)).toHaveCount(0);
       await pantalla.datos(page, zona);
@@ -336,7 +349,7 @@ test.describe('Refresco con datos', () => {
     const zona = page.locator('[data-tour=cuentas-tabla] fin-zona-de-carga');
     await expect(zona).toHaveAttribute('aria-busy', 'false', { timeout: 30_000 });
     expect(await zona.locator('tbody tr').count()).toBeGreaterThan(0);
-    await retrasar(page, /\/api\/v1\/movements(\?|$)/, 3000);
+    await retrasar(page, /\/api\/v1\/movements\/search(\?|$)/, 3000);
     await elegir(zona, 'Filas por página', '10');
     await expect(zona).toHaveAttribute('aria-busy', 'true');
     await expect(esqueletoEn(zona)).toHaveCount(0);
@@ -346,15 +359,17 @@ test.describe('Refresco con datos', () => {
     expect(await zona.locator('tbody tr').count()).toBeGreaterThan(0);
   });
 
-  test('CAR-21 Notificaciones: marcar una como leída refresca la lista sin vaciarla', async ({ page }) => {
+  test('CAR-21 Notificaciones: recargar la lista no la vacía ni la cambia por un esqueleto', async ({ page }) => {
     await page.goto('/notifications', { waitUntil: 'domcontentloaded' });
     const zona = page.locator('app-notifications-tab fin-zona-de-carga');
     await expect(zona).toHaveAttribute('aria-busy', 'false', { timeout: 30_000 });
-    const marcar = zona.getByRole('button', { name: /Marcar como leída/ }).first();
-    test.skip(!(await marcar.isVisible()), 'No hay notificaciones sin leer en la semilla.');
     const total = await zona.locator('li').count();
     await retrasar(page, /\/api\/v1\/notifications(\?|$)/, 3000);
-    await marcar.click();
+    await page.evaluate(() => {
+      const ng = (window as any).ng;
+      ng.getComponent(document.querySelector('app-notifications-tab')).notifications.recargar();
+    });
+    await expect(zona).toHaveAttribute('aria-busy', 'true');
     await expect(esqueletoEn(zona)).toHaveCount(0);
     expect(await zona.locator('li').count()).toBe(total);
     await expect(zona).toHaveAttribute('aria-busy', 'false', { timeout: 30_000 });

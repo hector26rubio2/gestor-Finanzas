@@ -34,6 +34,7 @@ export class PeopleTabComponent {
   readonly i18n = inject(I18nService);
   private readonly people = inject(PeopleStore);
   readonly cargando = this.people.cargando;
+  readonly cargandoOActualizando = computed(() => this.people.cargando() || this.people.refrescando());
   readonly posicionesListas = computed(() => !this.people.cargando());
 
   constructor() {
