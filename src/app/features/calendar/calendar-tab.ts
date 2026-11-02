@@ -178,11 +178,7 @@ export class CalendarTabComponent implements OnInit {
     else if (fallaronRecurrentes) this.store.toast.set(this.i18n.t('calendar.load.failedRecurrences'));
   }
   readonly vencimientos = computed(() =>
-    cardDues(
-      creditCards(this.store.data().accounts),
-      (tarjeta) => Math.max(0, -this.store.balance(tarjeta)),
-      this.store.hoy(),
-    ),
+    cardDues(creditCards(this.store.data().accounts), (tarjeta) => this.store.deudaDe(tarjeta), this.store.hoy()),
   );
   readonly proximosMovimientos = computed(() => {
     const hoy = this.store.hoy();

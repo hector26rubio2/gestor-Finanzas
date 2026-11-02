@@ -3,17 +3,13 @@ import { computed, inject, Injectable, InjectionToken, Injector, signal } from '
 import { notifier } from '@core/notifications/notifier';
 import { Account, accountBalance, createEmptyData, ViewData, SessionUser, Movement, PersonKind } from './view-model';
 import { ApiCategory, ApiNotification } from '@core/api/api-client';
-import {
-  baseCurrency as monedaBase,
-  currencyCatalog as catalogoDeMonedas,
-  formatAmount,
-  sumBy,
-} from '@core/utils/money';
+import { baseCurrency as monedaBase, currencyCatalog as catalogoDeMonedas, formatAmount } from '@core/utils/money';
 import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG } from '@core/utils/movement-kinds';
 import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { PREFERENCES } from './theme';
 import { totalDeGastos, totalDeIngresos } from './economia';
+import { type MapaDeSaldos, crearSaldos } from '@core/saldos';
 
 export { applyTheme, PREFERENCES } from './theme';
 export type { Preferences } from './theme';
@@ -147,18 +143,8 @@ export class AppStore {
   readonly sinLeerDelArranque = signal(0);
   readonly sinLeerCargados = signal<number | null>(null);
   readonly unread = computed(() => this.sinLeerCargados() ?? this.sinLeerDelArranque());
-  readonly debt = computed(() =>
-    sumBy(
-      this.data().accounts.filter((a) => a.type === 'credit'),
-      (a) => Math.max(0, -this.balance(a)),
-    ),
-  );
-  readonly available = computed(() =>
-    sumBy(
-      this.data().accounts.filter((a) => a.type !== 'credit'),
-      (a) => this.balance(a),
-    ),
-  );
+  readonly debt = computed(() => this.saldos().deudaTotal());
+  readonly available = computed(() => this.saldos().disponible());
   readonly baseCurrency = monedaBase;
   readonly currencyCatalog = catalogoDeMonedas;
   money(value: number, currency = this.baseCurrency()) {
@@ -167,7 +153,8 @@ export class AppStore {
   account(id: string) {
     return this.data().accounts.find((a) => a.id === id);
   }
-  readonly saldosDelServidor = signal<ReadonlyMap<string, number> | null>(null);
+  readonly saldosDelServidor = signal<MapaDeSaldos | null>(null);
+  readonly saldosNoConfirmados = signal(false);
   hoy(): string {
     return todayIso();
   }
@@ -190,14 +177,19 @@ export class AppStore {
     }
     return saldos;
   });
+  readonly saldos = computed(() =>
+    crearSaldos({
+      cuentas: this.data().accounts,
+      delServidor: this.saldosDelServidor(),
+      calculoLocal: (cuenta) => this.saldosPorCuenta().get(cuenta.id) ?? accountBalance(cuenta, this.data().movements),
+      noConfirmado: this.saldosNoConfirmados(),
+    }),
+  );
   balance(account: Account) {
-    // Paridad con el modo anterior: saldo del servidor si existe; si la cuenta no
-    // está en data().accounts (cuenta hipotética de un formulario), el cálculo clásico.
-    return (
-      this.saldosDelServidor()?.get(account.id) ??
-      this.saldosPorCuenta().get(account.id) ??
-      accountBalance(account, this.data().movements)
-    );
+    return this.saldos().saldoDe(account);
+  }
+  deudaDe(account: Account) {
+    return this.saldos().deudaDe(account);
   }
   readonly movimientosCargados = signal<ReadonlyMap<string, Movement>>(new Map());
   /**

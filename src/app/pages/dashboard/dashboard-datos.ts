@@ -3,11 +3,12 @@ import { firstValueFrom } from 'rxjs';
 import { ApiDashboard, FinanceApiClient } from '@core/api';
 import { parseMoney, sumBy } from '@core/utils';
 import { I18nService } from '@core/i18n';
-import { AppStore, esGasto, montoDeGasto, montoDeIngreso, totalDeGastos, totalDeIngresos } from '@core/state';
+import { AppStore, esGasto, montoDeGasto, montoDeIngreso, totalDeGastos } from '@core/state';
 import type { Movement } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { UiOption } from '@ui/select';
 import { crearHistoriaDeFlujo, crearMovimientosDelPeriodo } from '@shared/historia';
+import { type FiltrosDeResumen, resumenDelPeriodo, resumenDelServidor } from '@shared/resumen-del-periodo';
 import { Dimension, Seleccion } from '@shared/tablero/dashboard.model';
 import { DashboardPeriodo } from './periodo/dashboard-periodo';
 
@@ -136,27 +137,25 @@ export class DatosDelTablero {
       (m) => (this.globalCategory() === 'all' || m.category === this.globalCategory()) && this.cumpleSeleccion(m, true),
     ),
   );
-  readonly income = computed(() => {
-    const remoto = this.remoteAplicable();
-    if (remoto) return parseMoney(remoto.period.income);
-    return totalDeIngresos(this.movements());
-  });
-  readonly expense = computed(() => {
-    const remoto = this.remoteAplicable();
-    if (remoto) return parseMoney(remoto.period.expense);
-    return totalDeGastos(this.movements());
-  });
-  readonly net = computed(() => {
-    const remoto = this.remoteAplicable();
-    if (remoto) return parseMoney(remoto.period.net);
-    return totalDeIngresos(this.movements()) - totalDeGastos(this.movements());
-  });
+  private readonly filtrosDeResumen = computed<FiltrosDeResumen>(() => ({
+    cuentaId: this.accountId() === 'all' ? undefined : this.accountId(),
+    tipoDeCuenta: this.accountType() === 'all' ? undefined : this.accountType(),
+    categoria: this.globalCategory() === 'all' ? undefined : this.globalCategory(),
+  }));
+  readonly resumen = computed(() =>
+    resumenDelPeriodo(
+      { movimientos: this.movements(), tablero: this.remote(), cuentaDe: (id) => this.store.account(id) },
+      this.periodo.range(),
+      this.filtrosDeResumen(),
+    ),
+  );
+  readonly income = computed(() => this.resumen().ingreso);
+  readonly expense = computed(() => this.resumen().gasto);
+  readonly net = computed(() => this.resumen().neto);
 
   private readonly remoteAplicable = computed(() => {
-    const sinFiltrosLocales =
-      this.accountId() === 'all' && this.accountType() === 'all' && this.globalCategory() === 'all';
     const remoto = this.remote();
-    return sinFiltrosLocales && remoto && remoto.period.period.start === this.periodo.range().start ? remoto : null;
+    return resumenDelServidor(remoto, this.periodo.range(), this.filtrosDeResumen()) ? remoto : null;
   });
   readonly timeline = computed(() => {
     const remoto = this.remoteAplicable();

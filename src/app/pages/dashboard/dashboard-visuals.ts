@@ -28,6 +28,7 @@ import {
   etiquetaDeTipoDeMovimiento,
 } from '@shared/graficas';
 import type { Granularidad, TipoVisual } from '@shared/graficas';
+import type { ResumenDelPeriodo } from '@shared/resumen-del-periodo';
 
 export abstract class DashboardVisuals {
   readonly store = inject(AppStore);
@@ -42,6 +43,7 @@ export abstract class DashboardVisuals {
   abstract readonly income: Signal<number>;
   abstract readonly expense: Signal<number>;
   abstract readonly net: Signal<number>;
+  abstract readonly resumen: Signal<ResumenDelPeriodo>;
   abstract readonly measureOptions: Signal<readonly UiOption[]>;
 
   protected contextoDeGrafica(): ContextoDeGrafica {
@@ -71,9 +73,8 @@ export abstract class DashboardVisuals {
   readonly apiladoOption = computed<ChartOption>(() => opcionApilada(this.contextoDeGrafica(), this.timeline()));
 
   readonly tasaDeAhorro = computed(() => {
-    const entra = this.income();
-    if (entra <= 0) return 0;
-    return Math.max(0, Math.min(100, Math.round((this.net() / entra) * 100)));
+    const tasa = this.resumen().tasaDeAhorro;
+    return tasa === null ? 0 : Math.max(0, Math.min(100, Math.round(tasa)));
   });
 
   readonly medidorOption = computed<ChartOption>(() => opcionDeMedidor(this.contextoDeGrafica(), this.tasaDeAhorro()));

@@ -1,13 +1,12 @@
 import { Component, inject } from '@angular/core';
 import { describe, expect, it } from 'vitest';
 import type { Account, Movement, Person } from '@core/state';
-import { mensualDesdeAnual } from '@core/utils/tasas';
+import { cuotaFija, enPorcentaje, mensualDesdeAnual } from '@core/utils/tasas';
 import { addMonthsToIso } from '@core/utils';
 import { CARD_BUCKET } from '@core/api';
 import {
   CUOTAS_SUPUESTAS,
   TASA_MENSUAL_SUPUESTA_CREDITO,
-  cuotaFija,
   saldoTrasCuotas,
   DeudaDeTarjetaSimple,
   DeudaDeTarjetas,
@@ -212,7 +211,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
       desdeMes: 0,
     });
     expect(compra?.nombre).not.toBe('');
-    expect(sim.cuotaDeLaCompra()).toBe(Math.round(cuotaFija(1_500_000, 2.5, 12)));
+    expect(sim.cuotaDeLaCompra()).toBe(Math.round(cuotaFija(1_500_000, enPorcentaje(2.5), 12)));
     expect(sim.deudaTotal()).toBe(4_500_000);
     const serie = sim.serieDeLaCompra();
     expect(serie).not.toBeNull();
@@ -341,7 +340,7 @@ describe('SimuladorDePlanificacion: el plan que se le muestra al usuario', () =>
       Math.round(
         sim
           .deudasDelEscenario()
-          .reduce((suma, d) => suma + cuotaFija(d.saldo, d.tasaMensual, sim.mesesAlObjetivo()), 0),
+          .reduce((suma, d) => suma + cuotaFija(d.saldo, enPorcentaje(d.tasaMensual), sim.mesesAlObjetivo()), 0),
       ),
     );
     expect(sim.mesesAlObjetivo()).toBe(24);

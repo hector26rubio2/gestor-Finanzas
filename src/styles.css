@@ -282,3 +282,40 @@
     transform: rotate(360deg);
   }
 }
+
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+html {
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  padding-inline: var(--safe-left) var(--safe-right);
+}
+button,
+a,
+[role='button'],
+input,
+select,
+textarea,
+summary,
+label {
+  touch-action: manipulation;
+}
+[data-slot='topbar'] {
+  padding-top: var(--safe-top);
+  height: calc(4rem + var(--safe-top));
+}
+#contenido-principal {
+  padding-bottom: calc(6rem + var(--safe-bottom));
+}
+.pwa-safe-bottom {
+  padding-bottom: calc(0.75rem + var(--safe-bottom));
+}
+.nav-scroll {
+  overscroll-behavior: contain;
+}

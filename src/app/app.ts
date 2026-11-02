@@ -46,6 +46,9 @@ import { HlmAvatar, HlmAvatarFallback, HlmAvatarImage } from '@spartan-ng/helm/a
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmSkeleton } from '@spartan-ng/helm/skeleton';
 import { SkeletonComponent } from '@ui/skeleton';
+import { AvisoPwaComponent } from '@shared/pwa/aviso-pwa';
+import { InstalacionPwa } from '@core/pwa/instalacion.service';
+import { notifier } from '@core/notifications/notifier';
 import { HlmSidebarService } from './ui/helm/sidebar/src/lib/hlm-sidebar.service';
 
 const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = [
@@ -84,6 +87,7 @@ function guardarGruposCerrados(grupos: ReadonlySet<string>): void {
     '(document:keydown.escape)': 'closeMobileMenu()',
   },
   imports: [
+    AvisoPwaComponent,
     CommandPaletteComponent,
     CentroDeTutorialesComponent,
     OfertaDelTutorialComponent,
@@ -135,6 +139,7 @@ export class AppComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly arranque = inject(RemoteBootstrap);
   readonly i18n = inject(I18nService);
+  readonly instalacion = inject(InstalacionPwa);
   private readonly cargarIdioma = effect(() => void this.i18n.load(this.store.preferences().locale));
   readonly espacioActivo = computed(() => this.store.organization()?.name ?? this.i18n.t('shell.personal'));
   readonly sidebar = inject(HlmSidebarService);
@@ -149,6 +154,7 @@ export class AppComponent {
         const ruta = evento.urlAfterRedirects.split(/[?#]/)[0].replace(/\/$/, '');
         this.enLogin.set(ruta.endsWith('/login'));
         this.rutaActual.set(ruta);
+        this.pideNuevoMovimiento.set(this.router.parseUrl(evento.urlAfterRedirects).queryParams['nuevo'] === '1');
         this.pestanaAdmin.set(this.router.parseUrl(evento.urlAfterRedirects).queryParams['tab'] ?? 'summary');
         if (ruta === '/admin') this.adminAbierto.set(true);
       }
@@ -193,6 +199,17 @@ export class AppComponent {
   }
 
   readonly enLogin = signal(false);
+  private readonly pideNuevoMovimiento = signal(false);
+
+  private readonly abrirNuevoDesdeAtajo = effect(() => {
+    if (!this.pideNuevoMovimiento() || this.enLogin()) return;
+    if (this.store.remoteState() !== 'ready' || !this.store.user()) return;
+    untracked(() => {
+      this.pideNuevoMovimiento.set(false);
+      if (this.caps.allows(P.movimientos.crear)) this.store.open();
+      void this.router.navigate([], { queryParams: { nuevo: null }, queryParamsHandling: 'merge', replaceUrl: true });
+    });
+  });
   private readonly rutaActual = signal('');
 
   readonly esqueletoDelMenu = [1, 2, 3, 4, 5, 6, 7, 8];
@@ -250,6 +267,10 @@ export class AppComponent {
   }
   closeMobileMenu(): void {
     this.sidebar.setOpenMobile(false);
+  }
+  async instalarApp(): Promise<void> {
+    if (await this.instalacion.instalar()) return;
+    if (this.instalacion.instruccionIos()) void notifier().then((toast) => toast(this.i18n.t('pwa.installIos')));
   }
   async logout(): Promise<void> {
     await this.arranque.cerrarSesion();

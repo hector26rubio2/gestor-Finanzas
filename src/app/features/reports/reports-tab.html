@@ -132,6 +132,7 @@
       } @if (can(P.reportes.patrimonio.ver)) {
       <div hlmCard class="min-h-[250px] gap-0 p-5">
         <h2 class="mb-3 text-base">{{ i18n.t('reports.netWorth.title') }}</h2>
+        <fin-saldo-no-confirmado />
         <dl
           class="grid gap-3 [&>div]:flex [&>div]:justify-between [&>div]:gap-3 [&>div]:border-b [&>div]:border-border [&>div]:pb-2.5"
         >
