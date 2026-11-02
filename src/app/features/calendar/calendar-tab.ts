@@ -11,11 +11,12 @@ import { I18nService } from '@core/i18n';
 import { MovementsBookService } from '@shared/movements';
 import { Rango, crearMovimientosDelPeriodo, crearResumenDelAnio } from '@shared/historia';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { cardDues, creditCards } from '@features/accounts/card-insights';
 
 @Component({
   selector: 'app-calendar-tab',
-  imports: [HlmButton, ConfirmDialogComponent],
+  imports: [HlmButton, ConfirmDialogComponent, ZonaDeCargaComponent],
   templateUrl: './calendar-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })
@@ -108,6 +109,7 @@ export class CalendarTabComponent implements OnInit {
     return { start: days[0].iso, end: days[days.length - 1].iso };
   });
   private readonly delRango = crearMovimientosDelPeriodo(this.rangoVisible);
+  private readonly proyeccionCargando = signal(true);
   readonly cargandoRango = computed(() => this.delRango.cargando() || this.resumenAnual.cargando());
   readonly visibleCalendarDays = computed(() => {
     const view = this.calendarView();
@@ -142,6 +144,15 @@ export class CalendarTabComponent implements OnInit {
   }
 
   async loadCalendarProjection(): Promise<void> {
+    this.proyeccionCargando.set(true);
+    try {
+      await this.cargarProyeccion();
+    } finally {
+      this.proyeccionCargando.set(false);
+    }
+  }
+
+  private async cargarProyeccion(): Promise<void> {
     const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
     const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
     let fallaronProyecciones = false;
@@ -182,6 +193,8 @@ export class CalendarTabComponent implements OnInit {
   readonly sinCompromisos = computed(
     () => !this.projectedOccurrences().length && !this.vencimientos().length && !this.proximosMovimientos().length,
   );
+  readonly hayAgenda = computed(() => this.recurrences().length > 0 || !this.sinCompromisos());
+  readonly cargandoAgenda = computed(() => this.proyeccionCargando() || this.cargandoRango());
   fechaCorta(iso: string): string {
     return new Intl.DateTimeFormat(this.locale(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
       new Date(`${iso}T00:00:00Z`),

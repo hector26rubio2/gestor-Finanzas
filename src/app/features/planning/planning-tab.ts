@@ -25,6 +25,7 @@ import {
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { compactMoney as formatCompactMoney } from '@shared/utils';
 import type { ChartOption } from '@ui/chart';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { ChartCardComponent, ChartThemeService } from '@ui/chart';
 import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
@@ -62,6 +63,7 @@ interface Metrica {
     DeudasDelPlanComponent,
     EventosDelPlanComponent,
     FlujoDelPlanComponent,
+    ZonaDeCargaComponent,
   ],
   providers: [SimuladorDePlanificacion],
   templateUrl: './planning-tab.html',

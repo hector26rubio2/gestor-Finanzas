@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, effect, inject, untracked } from '@angular/core';
+import { DestroyRef, Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiWritesBus } from '@core/api/api-writes';
 import { ApiBootstrap, ApiRequestError, ApiSession, FinanceApiClient } from '@core/api/api-client';
@@ -53,6 +53,8 @@ export class RemoteBootstrap {
   private generacion = 0;
   private readonly cargadas = new Set<Carga>();
   private readonly enCurso = new Map<Carga, Promise<void>>();
+  private readonly fallidas = new Set<Carga>();
+  private readonly versionDeCargas = signal(0);
 
   constructor() {
     effect(() => {
@@ -109,6 +111,8 @@ export class RemoteBootstrap {
       this.permisos = new Set(session.permissions);
       this.cargadas.clear();
       this.enCurso.clear();
+      this.fallidas.clear();
+      this.versionDeCargas.update((v) => v + 1);
       this.huella = huellaDeCatalogos(boot);
       this.ultimaRevision = Date.now();
       this.raw = fusionarCatalogos(emptyRaw(), boot);
@@ -134,6 +138,14 @@ export class RemoteBootstrap {
       this.store.remoteState.set('error');
       this.store.user.set(null);
     }
+  }
+
+  cargando(clave: Carga): boolean {
+    this.versionDeCargas();
+    if (this.store.remoteState() !== 'ready') return false;
+    const permiso = PERMISO_DE_CARGA[clave];
+    if (permiso && !this.permisos.has(permiso)) return false;
+    return this.enCurso.has(clave) || !(this.cargadas.has(clave) || this.fallidas.has(clave));
   }
 
   async asegurar(...claves: Carga[]): Promise<void> {
@@ -163,15 +175,20 @@ export class RemoteBootstrap {
         if (generacion !== this.generacion) return;
         this.raw = { ...this.raw, ...datos };
         this.cargadas.add(clave);
+        this.fallidas.delete(clave);
         this.aplicarDatos(this.store.data().movements);
       })
       .catch(() => {
-        if (generacion === this.generacion) this.store.toast.set(this.i18n.t('shell.partialLoad'));
+        if (generacion !== this.generacion) return;
+        this.fallidas.add(clave);
+        this.store.toast.set(this.i18n.t('shell.partialLoad'));
       })
       .finally(() => {
         if (this.enCurso.get(clave) === carga) this.enCurso.delete(clave);
+        this.versionDeCargas.update((v) => v + 1);
       });
     this.enCurso.set(clave, carga);
+    this.versionDeCargas.update((v) => v + 1);
     return carga;
   }
 

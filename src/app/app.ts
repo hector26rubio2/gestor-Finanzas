@@ -1,4 +1,5 @@
 import { PrecargaBajoDemanda } from '@core/routing/precarga';
+import { CargaDePagina } from '@core/routing/carga-de-pagina';
 import { NgTemplateOutlet } from '@angular/common';
 import { Component, DestroyRef, afterNextRender, computed, effect, inject, signal, untracked } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -132,6 +133,7 @@ export class AppComponent {
   readonly paleta = inject(CommandPaletteService);
   readonly tutorial = inject(TutorialService);
   readonly precarga = inject(PrecargaBajoDemanda);
+  readonly carga = inject(CargaDePagina);
   readonly P = P;
   private router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);

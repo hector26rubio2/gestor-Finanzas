@@ -17,6 +17,7 @@ import { KpiGridComponent } from '@ui/kpi-grid';
 import { SearchFieldComponent } from '@ui/search-field';
 import { SegmentedComponent } from '@ui/segmented';
 import { TableZoneComponent } from '@ui/table-zone';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { SaldoNoConfirmadoComponent } from '@ui/saldo-no-confirmado';
 import { UiSelectComponent } from '@ui/select';
@@ -59,6 +60,7 @@ import { addDaysToIso } from '@core/utils';
     SearchFieldComponent,
     SegmentedComponent,
     TableZoneComponent,
+    ZonaDeCargaComponent,
     UiSelectComponent,
   ],
   templateUrl: './accounts-tab.html',
@@ -68,6 +70,15 @@ export class AccountsTabComponent implements OnDestroy {
   readonly Math = Math;
   readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
+  private readonly intentoDeCarga = signal(false);
+  private readonly marcarIntento = effect(() => {
+    if (this.book.movementsLoading()) untracked(() => this.intentoDeCarga.set(true));
+  });
+  readonly cargandoMovimientos = computed(
+    () =>
+      this.book.movementsLoading() ||
+      (this.capabilities.allows(P.movimientos.ver) && !this.store.movimientosListos() && !this.intentoDeCarga()),
+  );
   readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);
 

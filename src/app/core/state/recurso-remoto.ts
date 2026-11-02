@@ -15,6 +15,7 @@ export interface OpcionesDeRecursoRemoto<T> {
 export interface RecursoRemoto<T> {
   readonly valor: Signal<T | undefined>;
   readonly estado: Signal<EstadoDeRecurso>;
+  readonly refrescando: Signal<boolean>;
   solicitar(destruccion?: DestroyRef): void;
   soltar(destruccion?: DestroyRef): void;
   actualizar(cambio: (valor: T) => T): void;
@@ -85,6 +86,7 @@ export function crearRecursoRemoto<T>(opciones: OpcionesDeRecursoRemoto<T>): Rec
   return {
     valor: computed(() => (recurso.hasValue() ? recurso.value() : undefined)),
     estado: computed(() => ESTADO_DE_RECURSO[recurso.status()]),
+    refrescando: computed(() => recurso.status() === 'reloading'),
     solicitar: (destruccion = inject(DestroyRef)) => {
       if (!registrados.has(destruccion)) {
         registrados.add(destruccion);

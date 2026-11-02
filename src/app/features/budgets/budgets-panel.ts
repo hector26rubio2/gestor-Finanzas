@@ -25,7 +25,7 @@ import { EmptyStateComponent } from '@ui/empty-state';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { NumericInputDirective } from '@ui/numeric-input';
-import { SkeletonComponent } from '@ui/skeleton';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { BudgetsStore } from './budgets.store';
 import { crearGastoPorCategoria, rangoDelMes } from './gasto-del-mes';
 
@@ -45,7 +45,7 @@ import { crearGastoPorCategoria, rangoDelMes } from './gasto-del-mes';
     HlmInput,
     IconComponent,
     NumericInputDirective,
-    SkeletonComponent,
+    ZonaDeCargaComponent,
   ],
   templateUrl: './budgets-panel.html',
 })
@@ -75,6 +75,9 @@ export class BudgetsPanelComponent {
       gastoPorCategoria: this.gasto.gastoPorCategoria(),
       monedaBase: this.store.baseCurrency(),
     }),
+  );
+  readonly hayPresupuestos = computed(
+    () => (this.presupuestos.items().length > 0 || !this.presupuestos.cargando()) && this.filas().length > 0,
   );
   readonly resumen = computed(() => {
     const conLimite = this.filas().filter((fila) => fila.limite !== null);

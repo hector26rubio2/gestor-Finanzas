@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of, throwError } from 'rxjs';
+import { Observable, of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiBootstrap, ApiRequestError, FinanceApiClient } from '@core/api/api-client';
 import { BASE_CURRENCY, baseCurrency, currencyCatalog, LOCAL_CURRENCIES } from '@core/utils/money';
@@ -205,6 +205,47 @@ describe('RemoteBootstrap', () => {
     await bootstrap.asegurar('investments');
 
     expect(investments).toHaveBeenCalledTimes(2);
+  });
+
+  describe('cargando', () => {
+    const conPatrimonio = { ...session, permissions: [...session.permissions, P.patrimonio.ver] };
+
+    it('es verdadero hasta que llegan las inversiones y falso después', async () => {
+      let responder: (valor: never[]) => void = () => undefined;
+      const investments = vi.fn(
+        () =>
+          new Observable<never[]>((suscriptor) => {
+            responder = (valor) => {
+              suscriptor.next(valor);
+              suscriptor.complete();
+            };
+          }),
+      );
+      const bootstrap = montar(apiCon(() => arranqueDe(conPatrimonio), { investments }));
+      await bootstrap.initialize();
+      expect(bootstrap.cargando('investments')).toBe(true);
+
+      const pendiente = bootstrap.asegurar('investments');
+      expect(bootstrap.cargando('investments')).toBe(true);
+      responder([]);
+      await pendiente;
+
+      expect(bootstrap.cargando('investments')).toBe(false);
+    });
+
+    it('es falso si la carga falló o si no hay permiso', async () => {
+      const fallida = montar(
+        apiCon(() => arranqueDe(conPatrimonio), { investments: vi.fn(() => throwError(() => new Error('x'))) }),
+      );
+      await fallida.initialize();
+      await fallida.asegurar('investments');
+      expect(fallida.cargando('investments')).toBe(false);
+
+      TestBed.resetTestingModule();
+      const sinPermiso = montar(apiCon(() => arranqueDe(session)));
+      await sinPermiso.initialize();
+      expect(sinPermiso.cargando('investments')).toBe(false);
+    });
   });
 
   it('los saldos del arranque quedan como saldos del servidor, con las tarjetas en negativo', async () => {

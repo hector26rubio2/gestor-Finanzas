@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'New transaction',
   'shell.search': 'Search transactions',
   'shell.loading': 'Loading your information…',
+  'shell.navigating': 'Loading the section…',
   'shell.partialLoad': "Some data couldn't be loaded. Reload the page if something is missing.",
   'pwa.offline': "You're offline. Showing the saved app; data won't refresh.",
   'pwa.updateAvailable': 'A new version is available',
@@ -79,6 +80,7 @@ export default {
   'sinAcceso.detail':
     "You can enter, but none of the pieces it's made of have been granted to you. Ask whoever manages your workspace for the ones you need.",
   'skeleton.loading': 'Loading content…',
+  'skeleton.refreshing': 'Updating data…',
   'balances.unconfirmed.label': 'Unconfirmed balances',
   'balances.unconfirmed.hint': 'Balances could not be refreshed from the server; a local calculation is shown.',
   'chart.defaultAriaLabel': 'Chart',

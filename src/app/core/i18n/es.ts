@@ -20,6 +20,7 @@ export default {
   'shell.newMovement': 'Nuevo movimiento',
   'shell.search': 'Buscar movimientos',
   'shell.loading': 'Cargando tu información…',
+  'shell.navigating': 'Cargando la sección…',
   'shell.partialLoad': 'No se pudieron cargar algunos datos. Recarga la página si falta algo.',
   'pwa.offline': 'Sin conexión. Mostrando la app guardada; los datos no se actualizarán.',
   'pwa.updateAvailable': 'Hay una versión nueva',
@@ -79,6 +80,7 @@ export default {
   'sinAcceso.detail':
     'Puedes entrar, pero no se te ha concedido ninguna de las piezas que la componen. Pídele a quien administra tu espacio las que necesites.',
   'skeleton.loading': 'Cargando contenido…',
+  'skeleton.refreshing': 'Actualizando datos…',
   'balances.unconfirmed.label': 'Saldos sin confirmar',
   'balances.unconfirmed.hint': 'No se pudo actualizar el saldo con el servidor; se muestra un cálculo local.',
   'chart.defaultAriaLabel': 'Gráfica',

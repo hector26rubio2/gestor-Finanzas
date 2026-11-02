@@ -86,7 +86,7 @@ const CODIGO_DE_MONEDA = /^[A-Z]{3}$/;
           </button>
         }
       </div>
-      <app-admin-grid>
+      <app-admin-grid [cargando]="store.loading()" [hayDatos]="store.organizations().length > 0" [columnas]="4">
         <fin-table
           [columns]="columns()"
           [rows]="rows()"

@@ -3,6 +3,7 @@ import { DataTableComponent, FinTableRowDetailDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
@@ -22,6 +23,7 @@ import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/c
     KpiComponent,
     KpiGridComponent,
     TableZoneComponent,
+    ZonaDeCargaComponent,
   ],
   templateUrl: './people-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
@@ -31,6 +33,9 @@ export class PeopleTabComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   private readonly people = inject(PeopleStore);
+  readonly cargando = this.people.cargando;
+  readonly cargandoOActualizando = computed(() => this.people.cargando() || this.people.refrescando());
+  readonly posicionesListas = computed(() => !this.people.cargando());
 
   constructor() {
     this.people.solicitar();

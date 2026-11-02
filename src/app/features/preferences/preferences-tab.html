@@ -116,29 +116,29 @@
         </h2>
         <p class="text-xs text-muted-foreground">{{ i18n.t('preferences.members.description') }}</p>
       </header>
-      @if (miembros().length) {
-      <ul class="grid divide-y divide-border rounded-xl border border-border">
-        @for (miembro of miembros(); track miembro.membershipId) {
-        <li class="flex items-center justify-between gap-3.5 px-3.5 py-3">
-          <span class="grid min-w-0">
-            <b>{{ miembro.displayName }}</b>
-            <small class="text-muted-foreground [overflow-wrap:anywhere]"
-              >{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small
+      <fin-zona-de-carga tipo="lista" [filas]="3" [cargando]="cargandoMiembros()" [hayDatos]="miembros().length > 0">
+        <ul class="grid divide-y divide-border rounded-xl border border-border">
+          @for (miembro of miembros(); track miembro.membershipId) {
+          <li class="flex items-center justify-between gap-3.5 px-3.5 py-3">
+            <span class="grid min-w-0">
+              <b>{{ miembro.displayName }}</b>
+              <small class="text-muted-foreground [overflow-wrap:anywhere]"
+                >{{ miembro.email }} · {{ miembro.roles.join(', ') || i18n.t('preferences.members.noRole') }}</small
+              >
+            </span>
+            <em
+              class="text-xs whitespace-nowrap not-italic"
+              [class]="miembro.status === 'Invited' ? 'font-semibold text-warning' : 'text-muted-foreground'"
             >
-          </span>
-          <em
-            class="text-xs whitespace-nowrap not-italic"
-            [class]="miembro.status === 'Invited' ? 'font-semibold text-warning' : 'text-muted-foreground'"
-          >
-            {{ miembro.status === 'Invited' ? i18n.t('preferences.members.status.invited') :
-            i18n.t('preferences.members.status.active') }}
-          </em>
-        </li>
-        }
-      </ul>
-      } @else {
-      <p class="text-sm text-muted-foreground">{{ i18n.t('preferences.members.empty') }}</p>
-      } @if (can(P.organizacion.miembros.crear)) {
+              {{ miembro.status === 'Invited' ? i18n.t('preferences.members.status.invited') :
+              i18n.t('preferences.members.status.active') }}
+            </em>
+          </li>
+          }
+        </ul>
+        <p finVacio class="text-sm text-muted-foreground">{{ i18n.t('preferences.members.empty') }}</p>
+      </fin-zona-de-carga>
+      @if (can(P.organizacion.miembros.crear)) {
       <form
         class="grid grid-cols-[1.4fr_1.2fr_1fr_auto] items-end gap-2.5 max-[800px]:grid-cols-1"
         (submit)="invitar($event)"
