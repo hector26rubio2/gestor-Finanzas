@@ -19,6 +19,7 @@ export class AdminErrorsStore {
   readonly total = signal(0);
   readonly size = signal(25);
   readonly status = signal('');
+  readonly cargando = signal(false);
 
   primeraPagina(): Promise<ApiPage<ApiClientError>> {
     return firstValueFrom(this.api.adminErrors(1, this.size(), serverStatus(this.status())));
@@ -42,11 +43,14 @@ export class AdminErrorsStore {
 
   async cargar(page: number, status = this.status()): Promise<void> {
     if (!this.caps.allows(P.administracion.errores.listar)) return;
+    this.cargando.set(true);
     try {
       this.status.set(status);
       this.aplicar(await firstValueFrom(this.api.adminErrors(page, this.size(), serverStatus(status))));
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
+    } finally {
+      this.cargando.set(false);
     }
   }
 

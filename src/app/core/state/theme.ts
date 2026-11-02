@@ -1,4 +1,5 @@
 import { InjectionToken, signal } from '@angular/core';
+import { guardarPreferenciaDeArranque } from '@core/arranque/pantalla-de-arranque';
 
 export interface TemaPropio {
   name: string;
@@ -52,6 +53,7 @@ export const PREFERENCES = new InjectionToken('Preferences', {
 export function applyTheme(theme: Preferences['theme']): void {
   if (theme === 'system') delete document.documentElement.dataset['theme'];
   else document.documentElement.dataset['theme'] = theme;
+  guardarPreferenciaDeArranque({ theme });
 }
 
 export interface StoredPalette {

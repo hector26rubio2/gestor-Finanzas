@@ -3,6 +3,8 @@ import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
+import { RemoteBootstrap } from '@core/session/remote-bootstrap';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { AppStore } from '@core/state';
 import { formatReturnRate } from '@core/utils';
@@ -21,6 +23,7 @@ import { resumenCartera } from './resumen-cartera';
     KpiComponent,
     KpiGridComponent,
     TableZoneComponent,
+    ZonaDeCargaComponent,
   ],
   templateUrl: './portfolio-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
@@ -28,6 +31,9 @@ import { resumenCartera } from './resumen-cartera';
 export class PortfolioTabComponent {
   readonly store = inject(AppStore);
   readonly i18n = inject(I18nService);
+  private readonly arranque = inject(RemoteBootstrap);
+  readonly cargando = computed(() => this.arranque.cargando('investments'));
+  readonly hayInversiones = computed(() => this.store.data().investments.length > 0);
 
   readonly investmentColumns = computed(() => [
     { key: 'name', label: this.i18n.t('portfolio.column.name') },

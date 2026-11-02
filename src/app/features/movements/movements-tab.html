@@ -21,6 +21,13 @@
     [subirEsBueno]="false"
   />
   <fin-kpi
+    [label]="i18n.t('movements.kpi.savings.label')"
+    icon="savings"
+    tone="accent"
+    [value]="tasaDeAhorroMostrada()"
+    [hint]="i18n.t(hintDe('savings'))"
+  />
+  <fin-kpi
     [label]="i18n.t('movements.kpi.records.label')"
     icon="movements"
     [value]="registrosMostrados().toLocaleString()"

@@ -1,7 +1,7 @@
 import { DestroyRef, Injectable, computed, inject } from '@angular/core';
 import { ObligationsApi, PeopleApi } from '@core/api';
 import { P, conPosicionesDeDeuda } from '@core/session';
-import { AppStore, crearRecursoRemoto } from '@core/state';
+import { AppStore, CAPABILITIES, crearRecursoRemoto } from '@core/state';
 import { deudasDe } from './deudas';
 
 @Injectable({ providedIn: 'root' })
@@ -9,6 +9,7 @@ export class PeopleStore {
   private readonly api = inject(PeopleApi);
   private readonly obligacionesApi = inject(ObligationsApi);
   private readonly store = inject(AppStore);
+  private readonly capacidades = inject(CAPABILITIES);
 
   private readonly posiciones = crearRecursoRemoto({
     permiso: P.personas.deudas.listar,
@@ -21,6 +22,12 @@ export class PeopleStore {
   });
 
   readonly estado = this.posiciones.estado;
+  readonly refrescando = computed(() => this.posiciones.refrescando() || this.obligaciones.refrescando());
+  readonly cargando = computed(
+    () =>
+      this.posiciones.estado() === 'cargando' ||
+      (this.posiciones.estado() === 'inactivo' && this.capacidades.allows(P.personas.deudas.listar)),
+  );
   readonly personas = computed(() => conPosicionesDeDeuda(this.store.data().people, this.posiciones.valor() ?? []));
   readonly deudas = computed(() => deudasDe(this.obligaciones.valor() ?? [], this.store.hoy()));
 

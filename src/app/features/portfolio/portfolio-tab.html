@@ -1,57 +1,84 @@
-<fin-kpi-grid data-tour="inversiones-kpis">
-  <fin-kpi
-    [label]="i18n.t('portfolio.kpi.available.label')"
-    icon="wallet"
-    [value]="store.money(store.available() - store.debt())"
-    [hint]="i18n.t('portfolio.kpi.available.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('portfolio.kpi.investments.label')"
-    icon="portfolio"
-    [value]="store.money(investmentValue())"
-    [hint]="valueHint()"
-  />
-  <fin-kpi
-    [label]="i18n.t('portfolio.kpi.return.label')"
-    [icon]="gainIcon()"
-    [tone]="gainTone()"
-    [value]="investmentReturn()"
-    [hint]="i18n.t('portfolio.kpi.return.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('portfolio.kpi.gain.label')"
-    [icon]="gainIcon()"
-    [tone]="gainTone()"
-    [value]="store.money(investmentGain())"
-    [hint]="i18n.t('portfolio.kpi.gain.hint')"
-  />
-</fin-kpi-grid>
-<section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
-  <fin-chart-card
-    [title]="i18n.t('portfolio.chart.distribution')"
-    [option]="distributionOption()"
-    [hasData]="hasInvestments()"
-    [empty]="i18n.t('portfolio.chart.empty')"
-  />
-  <fin-chart-card
-    [title]="i18n.t('portfolio.chart.costValue')"
-    [option]="costValueOption()"
-    [hasData]="hasInvestments()"
-    [empty]="i18n.t('portfolio.chart.empty')"
-  />
-</section>
+<fin-zona-de-carga
+  class="shrink-0"
+  tipo="kpi"
+  [filas]="4"
+  [cargando]="cargando()"
+  [hayDatos]="hayInversiones()"
+  [vacioEnContenido]="true"
+>
+  <fin-kpi-grid data-tour="inversiones-kpis">
+    <fin-kpi
+      [label]="i18n.t('portfolio.kpi.available.label')"
+      icon="wallet"
+      [value]="store.money(store.available() - store.debt())"
+      [hint]="i18n.t('portfolio.kpi.available.hint')"
+    />
+    <fin-kpi
+      [label]="i18n.t('portfolio.kpi.investments.label')"
+      icon="portfolio"
+      [value]="store.money(investmentValue())"
+      [hint]="valueHint()"
+    />
+    <fin-kpi
+      [label]="i18n.t('portfolio.kpi.return.label')"
+      [icon]="gainIcon()"
+      [tone]="gainTone()"
+      [value]="investmentReturn()"
+      [hint]="i18n.t('portfolio.kpi.return.hint')"
+    />
+    <fin-kpi
+      [label]="i18n.t('portfolio.kpi.gain.label')"
+      [icon]="gainIcon()"
+      [tone]="gainTone()"
+      [value]="store.money(investmentGain())"
+      [hint]="i18n.t('portfolio.kpi.gain.hint')"
+    />
+  </fin-kpi-grid>
+</fin-zona-de-carga>
+<fin-zona-de-carga
+  class="shrink-0"
+  tipo="grafica"
+  [cargando]="cargando()"
+  [hayDatos]="hayInversiones()"
+  [vacioEnContenido]="true"
+>
+  <section class="grid shrink-0 grid-cols-2 gap-3.5 max-[900px]:grid-cols-1">
+    <fin-chart-card
+      [title]="i18n.t('portfolio.chart.distribution')"
+      [option]="distributionOption()"
+      [hasData]="hasInvestments()"
+      [empty]="i18n.t('portfolio.chart.empty')"
+    />
+    <fin-chart-card
+      [title]="i18n.t('portfolio.chart.costValue')"
+      [option]="costValueOption()"
+      [hasData]="hasInvestments()"
+      [empty]="i18n.t('portfolio.chart.empty')"
+    />
+  </section>
+</fin-zona-de-carga>
 <fin-table-zone data-tour="inversiones-tabla" class="min-h-[360px]">
-  <fin-table
-    [columns]="investmentColumns()"
-    [rows]="investmentRows()"
-    (rowSelected)="store.inspect('investment', $event['id'])"
+  <fin-zona-de-carga
+    class="flex min-w-0 flex-1 flex-col"
+    tipo="tabla"
+    [filas]="6"
+    [columnas]="6"
+    [cargando]="cargando()"
+    [hayDatos]="hayInversiones()"
+    [vacioEnContenido]="true"
   >
-    <ng-template finCell="value" let-row>
-      @if (row.sinValoracion) {
-      <span class="underline decoration-dotted" [attr.title]="i18n.t('portfolio.value.noValuation')"
-        >{{ row.value }} *</span
-      >
-      } @else { {{ row.value }} }
-    </ng-template>
-  </fin-table>
+    <fin-table
+      [columns]="investmentColumns()"
+      [rows]="investmentRows()"
+      (rowSelected)="store.inspect('investment', $event['id'])"
+    >
+      <ng-template finCell="value" let-row>
+        @if (row.sinValoracion) {
+        <span class="underline decoration-dotted" [attr.title]="i18n.t('portfolio.value.noValuation')"
+          >{{ row.value }} *</span
+        >
+        } @else { {{ row.value }} }
+      </ng-template>
+    </fin-table>
+  </fin-zona-de-carga>
 </fin-table-zone>

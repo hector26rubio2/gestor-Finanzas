@@ -47,7 +47,11 @@ import { AdminErrorsStore } from '@pages/admin/stores/admin-errors.store';
           [ariaLabel]="i18n.t('admin.errors.statusFilterAriaLabel')"
         />
       </header>
-      <app-admin-grid>
+      <app-admin-grid
+        [cargando]="store.loading() || errores.cargando()"
+        [hayDatos]="errores.items().length > 0"
+        [columnas]="5"
+      >
         <fin-table
           data-tour="admin-errores"
           [columns]="columns()"

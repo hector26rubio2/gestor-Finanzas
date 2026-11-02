@@ -13,6 +13,7 @@ declare global {
 
 export function readRuntimeConfig(): FinanzasRuntimeConfig {
   const configured = window.__FINANZAS_CONFIG__;
+  if (!configured?.apiBaseUrl && !window.navigator.onLine) return { apiBaseUrl: '' };
   if (!configured?.apiBaseUrl) throw new Error('Falta config.js: configure apiBaseUrl con el endpoint de la API.');
   return { apiBaseUrl: configured.apiBaseUrl.replace(/\/$/, ''), commit: configured.commit };
 }

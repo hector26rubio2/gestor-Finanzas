@@ -3,6 +3,7 @@ import { Movement, esEconomico } from '@core/state';
 import { PuntoDeFlujo, variacion } from '@shared/historia';
 import { P } from '@core/session';
 import { sumBy } from '@core/utils';
+import { SIN_DATO } from '@shared/utils';
 import { IconName } from '@ui/icon';
 import { UiOption } from '@ui/select';
 import { Dimension, KpiFormula, Measure } from '@shared/tablero/dashboard.model';
@@ -139,16 +140,10 @@ export abstract class DashboardKpis extends DashboardVisuals {
     return diasDelRango(this.range());
   }
   protected disponibleLiquido(): number {
-    return sumBy(
-      this.store.data().accounts.filter((a) => a.type !== 'credit'),
-      (a) => this.store.balance(a),
-    );
+    return this.store.available();
   }
   protected deudaTarjetas(): number {
-    return sumBy(
-      this.store.data().accounts.filter((a) => a.type === 'credit'),
-      (a) => Math.max(0, -this.store.balance(a)),
-    );
+    return this.store.debt();
   }
   protected cupoTotalTarjetas(): number {
     return sumBy(
@@ -168,15 +163,13 @@ export abstract class DashboardKpis extends DashboardVisuals {
       ? { name: this.store.account(mejor.id)?.name ?? this.i18n.t('dashboard.kpi.noCard'), count: mejor.count }
       : null;
   }
-  kpiValue(formula: KpiFormula): number {
+  kpiValue(formula: KpiFormula): number | null {
     const movs = this.movements();
     const economicos = movs.filter(esEconomico);
-    if (formula === 'savingsRate' || formula === 'expenseShare') {
+    if (formula === 'savingsRate') return this.resumen().tasaDeAhorro;
+    if (formula === 'expenseShare') {
       const ingreso = this.income();
-      if (ingreso <= 0) return 0;
-      const gasto = this.expense();
-      const ahorro = ((ingreso - gasto) / ingreso) * 100;
-      return formula === 'savingsRate' ? ahorro : 100 - ahorro;
+      return ingreso > 0 ? (this.expense() / ingreso) * 100 : 0;
     }
     if (formula === 'dailyExpense' || formula === 'dailyIncome') {
       const total = formula === 'dailyExpense' ? this.expense() : this.income();
@@ -225,7 +218,7 @@ export abstract class DashboardKpis extends DashboardVisuals {
   private cumpleFiltro(m: Movement, filtro: KpiFilter): boolean {
     return this.dimensionKey(m, filtro.dimension).label === filtro.value;
   }
-  kpiValueDe(kpi: KpiDefinition): number {
+  kpiValueDe(kpi: KpiDefinition): number | null {
     const filtro = kpi.filter;
     if (!filtro) return this.kpiValue(kpi.formula);
     return valorDeKpiSobre(
@@ -240,22 +233,24 @@ export abstract class DashboardKpis extends DashboardVisuals {
     if (!filtro) return this.kpiSeriesFor(kpi.formula);
     const historia = this.historial();
     if (historia.some((punto) => !punto.movs)) return [];
-    return historia.map((punto) =>
-      valorDeKpiSobre(
-        kpi.formula,
-        (punto.movs ?? []).filter((m) => this.cumpleFiltro(m, filtro)),
-        diasDelRango(punto.rango),
-        (movs, medida) => this.measureValue(movs, medida),
-      ),
+    return historia.map(
+      (punto) =>
+        valorDeKpiSobre(
+          kpi.formula,
+          (punto.movs ?? []).filter((m) => this.cumpleFiltro(m, filtro)),
+          diasDelRango(punto.rango),
+          (movs, medida) => this.measureValue(movs, medida),
+        ) ?? 0,
     );
   }
   kpiStatusFor(id: string, formula: KpiFormula, valor = this.kpiValue(formula)) {
-    if (formula === 'mostUsedCard') return null;
+    if (formula === 'mostUsedCard' || valor === null) return null;
     return estadoDe(valor, this.rangosDe(id, formula));
   }
   kpiProgressFor(formula: KpiFormula): number | null {
     if (!enPorcentaje(formula)) return null;
-    return Math.max(0, Math.min(100, this.kpiValue(formula)));
+    const valor = this.kpiValue(formula);
+    return valor === null ? null : Math.max(0, Math.min(100, valor));
   }
   kpiTrend(formula: KpiFormula): number | null {
     return this.variacion(this.kpiSeriesFor(formula));
@@ -263,7 +258,8 @@ export abstract class DashboardKpis extends DashboardVisuals {
   tendenciaAbs(valor: number): string {
     return Math.abs(valor).toFixed(0);
   }
-  kpiFormatValue(formula: KpiFormula, valor: number): string {
+  kpiFormatValue(formula: KpiFormula, valor: number | null): string {
+    if (valor === null) return SIN_DATO;
     if (formula === 'mostUsedCard') return this.tarjetaMasUsada()?.name ?? this.i18n.t('dashboard.kpi.noData');
     if (enPorcentaje(formula)) return `${valor.toFixed(0)}%`;
     if (formula === 'liquidityMonths') return this.i18n.t('dashboard.unit.months', { value: valor.toFixed(1) });

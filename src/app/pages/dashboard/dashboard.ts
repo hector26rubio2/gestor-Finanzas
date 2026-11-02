@@ -255,6 +255,7 @@ export class DashboardComponent extends DashboardKpis {
   readonly income = this.datos.income;
   readonly expense = this.datos.expense;
   readonly net = this.datos.net;
+  readonly resumen = this.datos.resumen;
   readonly timeline = this.datos.timeline;
   readonly categoryDistribution = this.datos.categoryDistribution;
   readonly accountDistribution = this.datos.accountDistribution;

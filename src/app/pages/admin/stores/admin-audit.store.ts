@@ -17,6 +17,7 @@ export class AdminAuditStore {
   readonly total = signal(0);
   readonly size = signal(25);
   readonly filter = signal<ApiAuditFilter>({});
+  readonly cargando = signal(false);
   readonly erroresDeLaAccion = signal<readonly ApiClientError[]>([]);
 
   primeraPagina(): Promise<ApiPage<ApiAuditEvent>> {
@@ -31,6 +32,7 @@ export class AdminAuditStore {
 
   async cargar(page: number, filter: ApiAuditFilter = this.filter()): Promise<void> {
     if (!this.caps.allows(P.administracion.auditoria.listar)) return;
+    this.cargando.set(true);
     try {
       this.filter.set(filter);
       const [auditoria, errores] = await Promise.all([
@@ -43,6 +45,8 @@ export class AdminAuditStore {
       this.erroresDeLaAccion.set(errores);
     } catch {
       this.app.toast.set(this.i18n.t('admin.toast.loadFailed'));
+    } finally {
+      this.cargando.set(false);
     }
   }
 }

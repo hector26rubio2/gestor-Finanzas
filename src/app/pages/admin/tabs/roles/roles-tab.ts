@@ -44,7 +44,7 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
           </button>
         }
       </div>
-      <app-admin-grid>
+      <app-admin-grid [cargando]="store.loading()" [hayDatos]="store.roles().length > 0" [columnas]="5">
         <fin-table
           data-tour="admin-roles"
           [columns]="columns()"

@@ -118,6 +118,9 @@ import { AdminAuditStore } from '@pages/admin/stores/admin-audit.store';
         }
       </header>
       <app-admin-grid
+        [cargando]="store.loading() || auditoria.cargando()"
+        [hayDatos]="auditoria.events().length > 0"
+        [columnas]="5"
         class="[height:max(22rem,calc(100dvh-26rem))]! max-[700px]:[height:min(34rem,calc(100dvh-12rem))]!"
       >
         <fin-table

@@ -25,9 +25,10 @@ import {
   variacion,
 } from '@shared/historia';
 import { MovementsBookService } from '@shared/movements';
+import { formatoDeTasaDeAhorro, resumenDeTotales } from '@shared/resumen-del-periodo';
 import { HeaderActionsService } from '@shared/header-actions.service';
 
-export type MovementsKpi = 'income' | 'expense' | 'records' | 'recurring' | 'installments' | 'topCategory';
+export type MovementsKpi = 'income' | 'expense' | 'savings' | 'records' | 'recurring' | 'installments' | 'topCategory';
 
 export function movementsKpiHintKey(kpi: MovementsKpi): string {
   return `movements.kpi.page.${kpi}.hint`;
@@ -91,6 +92,9 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   );
   readonly gastosMostrados = computed(
     () => this.store.remoteMovementTotals()?.expense ?? this.totalesDelServidor()?.expense ?? this.store.expense(),
+  );
+  readonly tasaDeAhorroMostrada = computed(() =>
+    formatoDeTasaDeAhorro(resumenDeTotales(this.ingresosMostrados(), this.gastosMostrados()).tasaDeAhorro),
   );
   readonly registrosMostrados = computed(() => this.store.remoteMovementTotal());
   readonly historiaEtiqueta = computed(() => this.i18n.t('kpi.history.month', { count: PERIODOS_DE_HISTORIA }));

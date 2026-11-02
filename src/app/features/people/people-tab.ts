@@ -3,6 +3,7 @@ import { DataTableComponent, FinTableRowDetailDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
 import { TableZoneComponent } from '@ui/table-zone';
+import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
@@ -10,7 +11,7 @@ import { I18nService } from '@core/i18n';
 import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
-import { Comportamiento, Deuda, comportamientoDePago, masAtrasado } from './deudas';
+import { Comportamiento, DeudaConPersona, comportamientoDePago, masAtrasado } from './deudas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
@@ -22,6 +23,7 @@ import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/c
     KpiComponent,
     KpiGridComponent,
     TableZoneComponent,
+    ZonaDeCargaComponent,
   ],
   templateUrl: './people-tab.html',
   host: { class: `${TAB_PAGE_HOST_CLASS} overflow-y-auto` },
@@ -31,6 +33,9 @@ export class PeopleTabComponent {
   private readonly capabilities = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
   private readonly people = inject(PeopleStore);
+  readonly cargando = this.people.cargando;
+  readonly cargandoOActualizando = computed(() => this.people.cargando() || this.people.refrescando());
+  readonly posicionesListas = computed(() => !this.people.cargando());
 
   constructor() {
     this.people.solicitar();
@@ -64,7 +69,7 @@ export class PeopleTabComponent {
       payment: this.textoDeComportamiento(comportamientoDePago(this.deudasDe(p.id))),
     })),
   );
-  deudasDe(personaId: unknown): Deuda[] {
+  deudasDe(personaId: unknown): DeudaConPersona[] {
     return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
   }
   tieneDeudas = (fila: Record<string, unknown>): boolean => this.deudasDe(fila['id']).length > 0;
@@ -72,10 +77,10 @@ export class PeopleTabComponent {
     abierto
       ? this.i18n.t('people.table.hideDebts')
       : this.i18n.t('people.table.showDebts', { count: this.deudasDe(fila['id']).length });
-  tipoDeDeuda(deuda: Deuda): string {
+  tipoDeDeuda(deuda: DeudaConPersona): string {
     return this.i18n.t(deuda.direccion === 'owed' ? 'people.column.owed' : 'people.column.owing');
   }
-  detalleDeDeuda(deuda: Deuda): string {
+  detalleDeDeuda(deuda: DeudaConPersona): string {
     return deuda.tarjeta
       ? `${deuda.descripcion ?? ''} · ${deuda.tarjeta}`.replace(/^ · /, '')
       : (deuda.descripcion ?? SIN_DATO);
@@ -83,15 +88,15 @@ export class PeopleTabComponent {
   importe(valor: number, moneda: string): string {
     return formatNumber(valor, moneda, this.store.preferences().locale);
   }
-  cuotaDe(deuda: Deuda): string {
+  cuotaDe(deuda: DeudaConPersona): string {
     return deuda.cuota === null ? SIN_DATO : this.importe(deuda.cuota, deuda.moneda);
   }
-  numeroDeCuota(deuda: Deuda): string {
+  numeroDeCuota(deuda: DeudaConPersona): string {
     return deuda.totalCuotas === null
       ? SIN_DATO
       : this.i18n.t('people.debts.installmentOf', { current: deuda.cuotaActual ?? 1, total: deuda.totalCuotas });
   }
-  estadoDeDeuda(deuda: Deuda): string {
+  estadoDeDeuda(deuda: DeudaConPersona): string {
     return deuda.saldada
       ? this.i18n.t('people.payment.paid')
       : this.textoDeComportamiento(comportamientoDePago([deuda]));

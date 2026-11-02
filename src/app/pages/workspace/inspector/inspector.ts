@@ -165,7 +165,7 @@ export class InspectorComponent {
       new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
         new Date(`${iso}T00:00:00Z`),
       ),
-    saldoDe: (cuenta) => this.store.balance(cuenta),
+    montoDe: (cuenta) => (cuenta.type === 'credit' ? this.store.deudaDe(cuenta) : this.store.balance(cuenta)),
   }));
   private readonly presentacion = computed(() => presentarEntidad(this.entidad(), this.contextoDePresentacion()));
   readonly inspectorTitle = computed(() => this.presentacion().titulo);

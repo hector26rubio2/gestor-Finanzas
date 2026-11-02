@@ -92,6 +92,33 @@ describe('crearRecursoRemoto', () => {
     expect(cargar).toHaveBeenCalledTimes(2);
   });
 
+  it('refrescando es verdadero solo mientras recarga un valor ya cargado', async () => {
+    let responder: (valor: string[]) => void = () => undefined;
+    const { recurso } = montar();
+    solicitar(recurso);
+    await estabilizar();
+    expect(recurso.refrescando()).toBe(false);
+
+    cargar.mockReturnValue(
+      new Observable<string[]>((suscriptor) => {
+        responder = (valor) => {
+          suscriptor.next(valor);
+          suscriptor.complete();
+        };
+      }),
+    );
+    recurso.recargar();
+    TestBed.tick();
+    await new Promise((listo) => setTimeout(listo, 0));
+
+    expect(recurso.refrescando()).toBe(true);
+    expect(recurso.valor()).toEqual(['a']);
+    responder(['b']);
+    await estabilizar();
+    expect(recurso.refrescando()).toBe(false);
+    expect(recurso.valor()).toEqual(['b']);
+  });
+
   it('sin usuarios la escritura solo lo marca y recarga al volver a solicitarlo', async () => {
     const { recurso, escrituras } = montar();
     const destruccion = solicitar(recurso);

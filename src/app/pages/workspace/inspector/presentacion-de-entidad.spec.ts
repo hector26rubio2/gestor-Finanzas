@@ -5,7 +5,7 @@ import { type ContextoDePresentacion, presentarEntidad } from './presentacion-de
 type Persona = ViewData['people'][number];
 type Inversion = ViewData['investments'][number];
 
-const saldos: Record<string, number> = { ahorros: 1500, visa: -300000 };
+const montos: Record<string, number> = { ahorros: 1500, visa: 300000 };
 
 const contexto: ContextoDePresentacion = {
   t: (clave, parametros) => (parametros ? `${clave}|${JSON.stringify(parametros)}` : clave),
@@ -13,7 +13,7 @@ const contexto: ContextoDePresentacion = {
   accountName: (id) => (id === 'ahorros' ? 'Ahorros' : id === 'visa' ? 'Visa' : undefined),
   accountType: (id) => (id === 'visa' ? 'credit' : 'savings'),
   fechaLarga: (iso) => `largo:${iso}`,
-  saldoDe: (cuenta) => saldos[cuenta.id] ?? 0,
+  montoDe: (cuenta) => montos[cuenta.id] ?? 0,
 };
 
 const ahorros: Account = { id: 'ahorros', name: 'Ahorros', type: 'savings', currency: 'COP', openingBalance: 0 };
@@ -82,17 +82,6 @@ describe('presentarEntidad', () => {
       'workspace.inspector.facts.dueDate',
       'workspace.inspector.facts.limit',
     ]);
-  });
-
-  it('tarjeta con saldo a favor muestra deuda cero', () => {
-    const presentacion = presentarEntidad(
-      { tipo: 'tarjeta', cuenta: { ...visa, id: 'otra' } },
-      {
-        ...contexto,
-        saldoDe: () => 5000,
-      },
-    );
-    expect(presentacion.monto).toBe('COP 0');
   });
 
   it('dia: fecha larga en el titulo y cantidad de operaciones como monto', () => {

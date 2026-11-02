@@ -22,7 +22,7 @@ export type EntidadResuelta =
 
 export interface ContextoDePresentacion extends InspectorFactsContext {
   fechaLarga(iso: string): string;
-  saldoDe(cuenta: Account): number;
+  montoDe(cuenta: Account): number;
 }
 
 export interface Presentacion {
@@ -42,11 +42,10 @@ function deCuenta(
 ): Presentacion {
   if (!cuenta)
     return { titulo: tituloGenerico, subtitulo: subtituloPorDefecto(contexto), monto: '', hechos: SIN_HECHOS };
-  const saldo = contexto.saldoDe(cuenta);
   return {
     titulo: conNombreEnTitulo ? cuenta.name : tituloGenerico,
     subtitulo: cuenta.name,
-    monto: contexto.money(cuenta.type === 'credit' ? Math.max(0, -saldo) : saldo),
+    monto: contexto.money(contexto.montoDe(cuenta)),
     hechos: hechosDeCuenta(cuenta, contexto),
   };
 }

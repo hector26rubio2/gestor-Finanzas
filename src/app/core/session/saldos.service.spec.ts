@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiWritesBus } from '@core/api/api-writes';
 import { FinanceApiClient } from '@core/api/api-client';
@@ -17,8 +17,7 @@ describe('SaldosService', () => {
   beforeEach(() => vi.useFakeTimers());
   afterEach(() => vi.useRealTimers());
 
-  function montar() {
-    const dashboard = vi.fn(() => of(tablero));
+  function montar(dashboard = vi.fn(() => of(tablero))) {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
@@ -56,5 +55,27 @@ describe('SaldosService', () => {
     expect(dashboard).toHaveBeenCalledWith(todayIso(), todayIso());
     expect(store.saldosDelServidor()?.get('a1')).toBe(900);
     expect(store.saldosDelServidor()?.get('c1')).toBe(-200);
+  });
+
+  it('si el refresco falla los saldos quedan marcados como no confirmados y al recuperarse se confirman', async () => {
+    const dashboard = vi
+      .fn()
+      .mockReturnValueOnce(throwError(() => new Error('caído')))
+      .mockReturnValue(of(tablero));
+    const { store, escrituras } = montar(dashboard);
+    store.remoteState.set('ready');
+    TestBed.tick();
+
+    escrituras.notify();
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(400);
+    expect(store.saldos().confirmado).toBe(false);
+    expect(store.saldosDelServidor()).toBeNull();
+
+    escrituras.notify();
+    TestBed.tick();
+    await vi.advanceTimersByTimeAsync(400);
+    expect(store.saldos().confirmado).toBe(true);
+    expect(store.saldos().saldoDe({ id: 'a1' } as never)).toBe(900);
   });
 });

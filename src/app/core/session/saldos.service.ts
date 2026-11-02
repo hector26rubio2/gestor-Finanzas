@@ -3,7 +3,7 @@ import { firstValueFrom } from 'rxjs';
 import { ApiWritesBus } from '@core/api/api-writes';
 import { FinanceApiClient } from '@core/api/api-client';
 import { AppStore } from '@core/state/store';
-import { parseMoney } from '@core/utils/money';
+import { mapaDesdeTablero } from '@core/saldos';
 import { todayIso } from '@core/utils/dates';
 
 const ESPERA_MS = 300;
@@ -44,12 +44,11 @@ export class SaldosService {
     const hoy = todayIso();
     try {
       const tablero = await firstValueFrom(this.api.dashboard(hoy, hoy));
-      const saldos = new Map<string, number>();
-      for (const cuenta of tablero.accounts ?? []) saldos.set(cuenta.account.id, parseMoney(cuenta.balance));
-      for (const tarjeta of tablero.cards ?? []) saldos.set(tarjeta.card.id, -parseMoney(tarjeta.debt));
-      this.store.saldosDelServidor.set(saldos);
+      this.store.saldosDelServidor.set(mapaDesdeTablero(tablero));
+      this.store.saldosNoConfirmados.set(false);
     } catch {
       this.store.saldosDelServidor.set(null);
+      this.store.saldosNoConfirmados.set(true);
     }
   }
 }

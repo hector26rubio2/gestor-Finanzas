@@ -68,9 +68,7 @@ export class InspectorCard {
     const estado = this.estadoDeTarjeta();
     if (estado) return parseMoney(estado.debt);
     const account = this.tarjeta();
-    return account
-      ? Math.max(0, -this.store.balance(account)) || sumBy(this.comprasPendientes(), (c) => c.pendiente)
-      : 0;
+    return account ? this.store.deudaDe(account) || sumBy(this.comprasPendientes(), (c) => c.pendiente) : 0;
   });
   readonly pagoMinimo = computed(() => {
     const estado = this.estadoDeTarjeta();

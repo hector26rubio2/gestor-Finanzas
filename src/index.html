@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>Finanzas · Estudio personal</title>
     <base href="/" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta
       name="description"
       content="Gestiona tus cuentas, tarjetas y movimientos en un espacio financiero organizado."
@@ -12,6 +12,12 @@
     <meta name="robots" content="noindex, nofollow" />
     <meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)" />
     <meta name="theme-color" content="#0f1222" media="(prefers-color-scheme: dark)" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Finanzas" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -22,8 +28,138 @@
       rel="icon"
       href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22><rect width=%2264%22 height=%2264%22 rx=%2216%22 fill=%22%234f46e5%22/><path d=%22M18 39h28M22 31l8 8 14-17%22 fill=%22none%22 stroke=%22white%22 stroke-width=%226%22 stroke-linecap=%22round%22 stroke-linejoin=%22round%22/></svg>"
     />
+    <style>
+      :root {
+        --arr-bg: #f7f8fb;
+        --arr-text: #1e2130;
+        --arr-muted: #5a6a80;
+        --arr-accent: #4f46e5;
+        --arr-line: #e4e7ec;
+        color-scheme: light;
+      }
+      :root[data-theme='dark'] {
+        --arr-bg: #0f1222;
+        --arr-text: #eef0fa;
+        --arr-muted: #9ea3bd;
+        --arr-accent: #8b95fa;
+        --arr-line: #2b2f4a;
+        color-scheme: dark;
+      }
+      :root[data-theme='ocean'] {
+        --arr-bg: #071827;
+        --arr-text: #edf7ff;
+        --arr-muted: #9cb5c9;
+        --arr-accent: #38bdf8;
+        --arr-line: #28465e;
+        color-scheme: dark;
+      }
+      :root[data-theme='sand'] {
+        --arr-bg: #f5f0e8;
+        --arr-text: #322a22;
+        --arr-muted: #65594d;
+        --arr-accent: #92441f;
+        --arr-line: #dfd2c1;
+      }
+      :root[data-theme='berry'] {
+        --arr-bg: #1b1020;
+        --arr-text: #fff4ff;
+        --arr-muted: #c8aeca;
+        --arr-accent: #f0abfc;
+        --arr-line: #54345b;
+        color-scheme: dark;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root:not([data-theme]) {
+          --arr-bg: #0f1222;
+          --arr-text: #eef0fa;
+          --arr-muted: #9ea3bd;
+          --arr-accent: #8b95fa;
+          --arr-line: #2b2f4a;
+          color-scheme: dark;
+        }
+      }
+      html,
+      body {
+        margin: 0;
+        background: var(--arr-bg);
+      }
+      #arranque {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 18px;
+        background: var(--arr-bg);
+        color: var(--arr-text);
+        font-family: 'Public Sans', system-ui, sans-serif;
+      }
+      #arranque b {
+        font-family: 'Sora', system-ui, sans-serif;
+        font-size: 1.4rem;
+        letter-spacing: -0.01em;
+      }
+      #arranque span {
+        color: var(--arr-muted);
+        font-size: 0.9rem;
+      }
+      #arranque i {
+        width: 34px;
+        height: 34px;
+        box-sizing: border-box;
+        border-radius: 50%;
+        border: 3px solid var(--arr-line);
+        border-top-color: var(--arr-accent);
+      }
+      #arranque[data-saliendo='true'] {
+        opacity: 0;
+        pointer-events: none;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        #arranque i {
+          animation: arranque-giro 0.9s linear infinite;
+        }
+        #arranque {
+          transition: opacity 0.2s ease-out;
+        }
+      }
+      @keyframes arranque-giro {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+    <script>
+      (function () {
+        var textos = {
+          es: 'Cargando tu información…',
+          en: 'Loading your information…',
+          fr: 'Chargement de vos informations…',
+          pt: 'Carregando suas informações…',
+        };
+        var temas = ['light', 'dark', 'ocean', 'sand', 'berry'];
+        var guardado = {};
+        try {
+          guardado = JSON.parse(localStorage.getItem('finanzas.arranque') || '{}') || {};
+        } catch (e) {}
+        if (temas.indexOf(guardado.theme) >= 0) document.documentElement.setAttribute('data-theme', guardado.theme);
+        var idioma = textos[guardado.locale] ? guardado.locale : 'es';
+        document.documentElement.setAttribute('data-arranque-idioma', idioma);
+        document.documentElement.setAttribute('data-arranque-texto', textos[idioma]);
+      })();
+    </script>
   </head>
   <body>
+    <div id="arranque" role="status" aria-live="polite">
+      <b>Finanzas</b>
+      <i aria-hidden="true"></i>
+      <span id="arranque-texto"></span>
+    </div>
+    <script>
+      document.getElementById('arranque-texto').textContent =
+        document.documentElement.getAttribute('data-arranque-texto');
+    </script>
     <app-root></app-root>
     <script src="config.js"></script>
   </body>

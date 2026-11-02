@@ -1,34 +1,43 @@
-<fin-kpi-grid>
-  @if (can(P.personas.deudas.listar)) {
-  <fin-kpi
-    [label]="i18n.t('people.kpi.owed.label')"
-    icon="trendUp"
-    tone="success"
-    [value]="store.money(peopleOwed())"
-    [hint]="i18n.t('people.kpi.owed.hint')"
-  />
-  } @if (can(P.personas.obligaciones.listar)) {
-  <fin-kpi
-    [label]="i18n.t('people.kpi.owing.label')"
-    icon="trendDown"
-    tone="danger"
-    [value]="store.money(peopleOwing())"
-    [hint]="i18n.t('people.kpi.owing.hint')"
-  />
-  }
-  <fin-kpi
-    [label]="i18n.t('people.kpi.count.label')"
-    icon="people"
-    [value]="store.data().people.length.toString()"
-    [hint]="i18n.t('people.kpi.count.hint')"
-  />
-  <fin-kpi
-    [label]="i18n.t('people.kpi.slowest.label')"
-    icon="clock"
-    [value]="slowestPayer().name"
-    [hint]="i18n.t(slowestPayer().hintKey, { days: slowestPayer().days })"
-  />
-</fin-kpi-grid>
+<fin-zona-de-carga
+  class="shrink-0"
+  tipo="kpi"
+  [filas]="4"
+  [cargando]="cargandoOActualizando()"
+  [hayDatos]="posicionesListas()"
+  [vacioEnContenido]="true"
+>
+  <fin-kpi-grid>
+    @if (can(P.personas.deudas.listar)) {
+    <fin-kpi
+      [label]="i18n.t('people.kpi.owed.label')"
+      icon="trendUp"
+      tone="success"
+      [value]="store.money(peopleOwed())"
+      [hint]="i18n.t('people.kpi.owed.hint')"
+    />
+    } @if (can(P.personas.obligaciones.listar)) {
+    <fin-kpi
+      [label]="i18n.t('people.kpi.owing.label')"
+      icon="trendDown"
+      tone="danger"
+      [value]="store.money(peopleOwing())"
+      [hint]="i18n.t('people.kpi.owing.hint')"
+    />
+    }
+    <fin-kpi
+      [label]="i18n.t('people.kpi.count.label')"
+      icon="people"
+      [value]="store.data().people.length.toString()"
+      [hint]="i18n.t('people.kpi.count.hint')"
+    />
+    <fin-kpi
+      [label]="i18n.t('people.kpi.slowest.label')"
+      icon="clock"
+      [value]="slowestPayer().name"
+      [hint]="i18n.t(slowestPayer().hintKey, { days: slowestPayer().days })"
+    />
+  </fin-kpi-grid>
+</fin-zona-de-carga>
 <fin-chart-card
   class="shrink-0"
   [title]="i18n.t('people.chart.balances')"
@@ -41,53 +50,63 @@
   <h2 class="text-base font-semibold">{{ i18n.t('people.table.title') }}</h2>
   <p class="text-xs text-muted-foreground">{{ i18n.t('people.table.hint') }}</p>
   <fin-table-zone data-tour="personas-tabla" class="min-h-[360px]">
-    <fin-table
-      [columns]="peopleColumns()"
-      [rows]="peopleRows()"
-      [rowHasDetail]="tieneDeudas"
-      [rowDetailLabel]="etiquetaDeDeudas"
-      (rowSelected)="store.inspect('person', $event['id'])"
+    <fin-zona-de-carga
+      class="flex min-w-0 flex-1 flex-col"
+      tipo="tabla"
+      [filas]="6"
+      [columnas]="6"
+      [cargando]="cargandoOActualizando()"
+      [hayDatos]="posicionesListas()"
+      [vacioEnContenido]="true"
     >
-      <ng-template finTableRowDetail let-fila>
-        <table class="w-full text-left text-sm">
-          <thead>
-            <tr class="text-xs text-muted-foreground">
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.description') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.direction') }}</th>
-              <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.currency') }}</th>
-              <th data-tour="deuda-columna-valor" scope="col" class="px-2 py-1.5 font-semibold">
-                {{ i18n.t('people.debts.column.value') }}
-              </th>
-              <th data-tour="deuda-columna-cuota" scope="col" class="px-2 py-1.5 font-semibold">
-                {{ i18n.t('people.debts.column.installment') }}
-              </th>
-              <th data-tour="deuda-columna-numero" scope="col" class="px-2 py-1.5 font-semibold">
-                {{ i18n.t('people.debts.column.installmentNumber') }}
-              </th>
-              <th data-tour="deuda-columna-pendiente" scope="col" class="px-2 py-1.5 font-semibold">
-                {{ i18n.t('people.debts.column.pending') }}
-              </th>
-              <th data-tour="deuda-columna-comportamiento" scope="col" class="px-2 py-1.5 font-semibold">
-                {{ i18n.t('people.column.payment') }}
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (deuda of deudasDe(fila['id']); track deuda.id) {
-            <tr class="border-t border-border">
-              <td class="px-2 py-1.5">{{ detalleDeDeuda(deuda) }}</td>
-              <td class="px-2 py-1.5">{{ tipoDeDeuda(deuda) }}</td>
-              <td class="px-2 py-1.5">{{ deuda.moneda }}</td>
-              <td class="px-2 py-1.5">{{ importe(deuda.valor, deuda.moneda) }}</td>
-              <td class="px-2 py-1.5">{{ cuotaDe(deuda) }}</td>
-              <td class="px-2 py-1.5">{{ numeroDeCuota(deuda) }}</td>
-              <td class="px-2 py-1.5">{{ importe(deuda.pendiente, deuda.moneda) }}</td>
-              <td class="px-2 py-1.5">{{ estadoDeDeuda(deuda) }}</td>
-            </tr>
-            }
-          </tbody>
-        </table>
-      </ng-template>
-    </fin-table>
+      <fin-table
+        [columns]="peopleColumns()"
+        [rows]="peopleRows()"
+        [rowHasDetail]="tieneDeudas"
+        [rowDetailLabel]="etiquetaDeDeudas"
+        (rowSelected)="store.inspect('person', $event['id'])"
+      >
+        <ng-template finTableRowDetail let-fila>
+          <table class="w-full text-left text-sm">
+            <thead>
+              <tr class="text-xs text-muted-foreground">
+                <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.description') }}</th>
+                <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.debts.column.direction') }}</th>
+                <th scope="col" class="px-2 py-1.5 font-semibold">{{ i18n.t('people.column.currency') }}</th>
+                <th data-tour="deuda-columna-valor" scope="col" class="px-2 py-1.5 font-semibold">
+                  {{ i18n.t('people.debts.column.value') }}
+                </th>
+                <th data-tour="deuda-columna-cuota" scope="col" class="px-2 py-1.5 font-semibold">
+                  {{ i18n.t('people.debts.column.installment') }}
+                </th>
+                <th data-tour="deuda-columna-numero" scope="col" class="px-2 py-1.5 font-semibold">
+                  {{ i18n.t('people.debts.column.installmentNumber') }}
+                </th>
+                <th data-tour="deuda-columna-pendiente" scope="col" class="px-2 py-1.5 font-semibold">
+                  {{ i18n.t('people.debts.column.pending') }}
+                </th>
+                <th data-tour="deuda-columna-comportamiento" scope="col" class="px-2 py-1.5 font-semibold">
+                  {{ i18n.t('people.column.payment') }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (deuda of deudasDe(fila['id']); track deuda.id) {
+              <tr class="border-t border-border">
+                <td class="px-2 py-1.5">{{ detalleDeDeuda(deuda) }}</td>
+                <td class="px-2 py-1.5">{{ tipoDeDeuda(deuda) }}</td>
+                <td class="px-2 py-1.5">{{ deuda.moneda }}</td>
+                <td class="px-2 py-1.5">{{ importe(deuda.valor, deuda.moneda) }}</td>
+                <td class="px-2 py-1.5">{{ cuotaDe(deuda) }}</td>
+                <td class="px-2 py-1.5">{{ numeroDeCuota(deuda) }}</td>
+                <td class="px-2 py-1.5">{{ importe(deuda.pendiente, deuda.moneda) }}</td>
+                <td class="px-2 py-1.5">{{ estadoDeDeuda(deuda) }}</td>
+              </tr>
+              }
+            </tbody>
+          </table>
+        </ng-template>
+      </fin-table>
+    </fin-zona-de-carga>
   </fin-table-zone>
 </section>
