@@ -944,6 +944,158 @@ test.describe('Tablero: varios tableros', () => {
   });
 });
 
+test.describe('Tablero: un tablero nuevo es independiente', () => {
+  type Pagina = import('@playwright/test').Page;
+  type Vigilante = { marca(): number; exitosasDesde(m: number, p?: RegExp): unknown[] };
+
+  const nombreVacioA = `E2E vacío A ${corrida}`;
+  const nombreVacioB = `E2E vacío B ${corrida}`;
+  const nombreCopia = `E2E copia ${corrida}`;
+  const kpisFijos = ['Balance del periodo', 'Ingresos', 'Gastos', 'Movimientos'];
+  const creados: string[] = [];
+
+  test.afterAll(async () => {
+    const api = await iniciarApi();
+    for (const id of creados) await api.llamar('DELETE', `/api/v1/dashboards/${id}`);
+  });
+
+  const etiquetasDeKpi = (page: Pagina) =>
+    page
+      .locator('fin-kpi span.line-clamp-2')
+      .allTextContents()
+      .then((x) => x.map((t) => t.trim()).sort());
+  const tarjetas = (page: Pagina) => page.locator('fin-widget-card');
+  const panel = (page: Pagina) => page.locator('[data-slot=customize]');
+
+  async function crearTablero(page: Pagina, vigilancia: Vigilante, nombre: string, copiar: boolean): Promise<string> {
+    const marca = vigilancia.marca();
+    await page.getByRole('button', { name: 'Nuevo tablero' }).click();
+    await page.getByRole('textbox', { name: 'Nombre del tablero' }).fill(nombre);
+    const casilla = page.getByRole('checkbox', { name: 'Empezar con el diseño del tablero actual' });
+    const marcada = (await casilla.getAttribute('aria-checked')) === 'true';
+    if (marcada !== copiar) await casilla.click();
+    await page.getByRole('button', { name: 'Guardar', exact: true }).click();
+    await expect.poll(() => vigilancia.exitosasDesde(marca, /POST .*\/dashboards$/).length).toBeGreaterThan(0);
+    await expect(page.getByRole('combobox', { name: /^Tablero/ })).toContainText(nombre);
+    const creado = (await tablerosDelUsuario(page)).find((x) => x.name === nombre);
+    creados.push(creado.id);
+    return creado.id as string;
+  }
+
+  async function agregarWidget(page: Pagina, vigilancia: Vigilante, titulo: string) {
+    if (!(await panel(page).isVisible())) await page.getByRole('button', { name: 'Personalizar' }).click();
+    const marca = vigilancia.marca();
+    await page.getByRole('button', { name: 'Crear widget' }).click();
+    const formulario = dialogo(page);
+    await formulario.getByRole('textbox', { name: 'Nombre' }).fill(titulo);
+    await elegir(formulario, 'Otros widgets', 'Tabla');
+    await formulario.getByRole('button', { name: 'Agregar widget' }).click();
+    await expect(formulario).toBeHidden();
+    await expect(tarjetas(page).filter({ hasText: titulo })).toHaveCount(1);
+    await expect.poll(() => vigilancia.exitosasDesde(marca, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
+  }
+
+  async function esperarVacio(page: Pagina) {
+    await expect(page.locator('fin-kpi').first()).toBeVisible();
+    expect(await etiquetasDeKpi(page)).toEqual([...kpisFijos].sort());
+    await expect(tarjetas(page)).toHaveCount(0);
+  }
+
+  let idVacioA = '';
+  let idVacioB = '';
+  const tituloEnA = `Tabla solo de A ${corrida}`;
+  const tituloEnB = `Tabla solo de B ${corrida}`;
+  const indicadorEnB = `Indicador solo de B ${corrida}`;
+
+  test('DAS-16 independiente: un tablero nuevo sin copia nace vacío: solo los indicadores fijos, sin gráficas ni tablas', async ({
+    page,
+    vigilancia,
+  }) => {
+    await abrirTablero(page);
+    await expect(tarjetas(page).first()).toBeVisible();
+    idVacioA = await crearTablero(page, vigilancia, nombreVacioA, false);
+    await esperarVacio(page);
+
+    const diseno = await disenoDelTablero(page, idVacioA);
+    expect(diseno?.definitions ?? []).toEqual([]);
+    expect(diseno?.hidden ?? []).toEqual([]);
+    expect(diseno?.reports ?? []).toEqual([]);
+    expect(diseno?.configs ?? []).toEqual([]);
+
+    await page.reload();
+    await esperarVacio(page);
+    await page.getByRole('button', { name: 'Personalizar' }).click();
+    await expect(panel(page)).toContainText('Todos visibles');
+  });
+
+  test('DAS-16 independiente: editar un tablero nuevo no cambia otro tablero ni la API del otro, y viceversa', async ({
+    page,
+    vigilancia,
+  }) => {
+    await abrirTablero(page, `dashboard?tablero=${idVacioA}`);
+    await esperarVacio(page);
+    const disenoAAntes = await leerTablero(page, idVacioA);
+
+    await abrirTablero(page);
+    idVacioB = await crearTablero(page, vigilancia, nombreVacioB, false);
+    await esperarVacio(page);
+    await agregarWidget(page, vigilancia, tituloEnB);
+    expect(await leerTablero(page, idVacioA)).toEqual(disenoAAntes);
+    expect(JSON.stringify(await disenoDelTablero(page, idVacioB))).toContain(tituloEnB);
+
+    const marca = vigilancia.marca();
+    await panel(page).getByRole('button', { name: 'Crear indicador' }).click();
+    const formulario = dialogo(page);
+    await formulario.getByRole('textbox', { name: 'Nombre' }).fill(indicadorEnB);
+    await elegir(formulario, 'Métrica del indicador', 'Promedio por movimiento');
+    await formulario.getByRole('button', { name: 'Agregar indicador' }).click();
+    await expect(formulario).toBeHidden();
+    await expect.poll(() => vigilancia.exitosasDesde(marca, /PUT .*\/dashboards\//).length).toBeGreaterThan(0);
+    await expect(etiquetaDeKpi(page, indicadorEnB)).toBeVisible();
+    expect(await leerTablero(page, idVacioA)).toEqual(disenoAAntes);
+
+    await abrirTablero(page, `dashboard?tablero=${idVacioA}`);
+    await esperarVacio(page);
+    await expect(etiquetaDeKpi(page, indicadorEnB)).toHaveCount(0);
+
+    await agregarWidget(page, vigilancia, tituloEnA);
+    await abrirTablero(page, `dashboard?tablero=${idVacioB}`);
+    await expect(tarjetas(page).filter({ hasText: tituloEnB })).toHaveCount(1);
+    await expect(tarjetas(page).filter({ hasText: tituloEnA })).toHaveCount(0);
+    await expect(tarjetas(page)).toHaveCount(1);
+    await expect(etiquetaDeKpi(page, indicadorEnB)).toBeVisible();
+    expect(JSON.stringify(await disenoDelTablero(page, idVacioB))).not.toContain(tituloEnA);
+
+    await abrirTablero(page, `dashboard?tablero=${idVacioA}`);
+    await expect(tarjetas(page).filter({ hasText: tituloEnA })).toHaveCount(1);
+    await expect(tarjetas(page)).toHaveCount(1);
+    await expect(etiquetaDeKpi(page, indicadorEnB)).toHaveCount(0);
+    expect(JSON.stringify(await disenoDelTablero(page, idVacioA))).not.toContain(tituloEnB);
+  });
+
+  test('DAS-16 independiente: un tablero nuevo con copia es igual al origen y editarlo no cambia al origen', async ({
+    page,
+    vigilancia,
+  }) => {
+    await abrirTablero(page, `dashboard?tablero=${idVacioB}`);
+    await expect(tarjetas(page).filter({ hasText: tituloEnB })).toHaveCount(1);
+    const origen = await disenoDelTablero(page, idVacioB);
+    const idCopia = await crearTablero(page, vigilancia, nombreCopia, true);
+    await expect(tarjetas(page).filter({ hasText: tituloEnB })).toHaveCount(1);
+    await expect(etiquetaDeKpi(page, indicadorEnB)).toBeVisible();
+    expect(await disenoDelTablero(page, idCopia)).toEqual(origen);
+
+    await agregarWidget(page, vigilancia, `Tabla solo de la copia ${corrida}`);
+    await expect(tarjetas(page)).toHaveCount(2);
+    expect(await disenoDelTablero(page, idVacioB)).toEqual(origen);
+
+    await abrirTablero(page, `dashboard?tablero=${idVacioB}`);
+    await expect(tarjetas(page)).toHaveCount(1);
+    await abrirTablero(page, `dashboard?tablero=${idCopia}`);
+    await expect(tarjetas(page)).toHaveCount(2);
+  });
+});
+
 test.describe('Tablero: compartir y permisos del lector', () => {
   test.skip(
     !credencialesLector(),
