@@ -1,4 +1,5 @@
 import { inject, Injectable } from '@angular/core';
+import { map } from 'rxjs';
 import { API_TRANSPORT } from '@core/http/api-http-client';
 import { API_ROUTES } from './api-routes';
 import { ApiLinkRef, ApiMoney } from './shared-api-types';
@@ -22,7 +23,12 @@ export class SettlementsApi {
   private readonly transport = inject(API_TRANSPORT);
 
   settlements() {
-    return this.transport.request<readonly ApiSettlement[]>({ method: 'GET', path: API_ROUTES.settlements });
+    return this.transport
+      .request<readonly ApiSettlement[] | { readonly items: readonly ApiSettlement[] }>({
+        method: 'GET',
+        path: API_ROUTES.settlements,
+      })
+      .pipe(map((respuesta) => ('items' in respuesta ? respuesta.items : respuesta)));
   }
 
   issueSettlement(request: {
