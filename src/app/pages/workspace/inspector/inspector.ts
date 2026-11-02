@@ -249,9 +249,12 @@ export class InspectorComponent {
     readonly { id: string; date: string; description: string; share: number; total: number }[] | null
   >(null);
   readonly personSettlements = signal<readonly ApiSettlement[] | null>(null);
+  private readonly idDePersonaInspeccionada = computed(() =>
+    this.store.inspector()?.type === 'person' ? this.selectedPerson()?.id : undefined,
+  );
   private readonly cargaDePersona = effect(() => {
-    const person = this.store.inspector()?.type === 'person' ? this.selectedPerson() : undefined;
-    untracked(() => void this.cargarHistorialDePersona(person?.id ?? null));
+    const id = this.idDePersonaInspeccionada();
+    untracked(() => void this.cargarHistorialDePersona(id ?? null));
   });
 
   private async cargarHistorialDePersona(personId: string | null): Promise<void> {
