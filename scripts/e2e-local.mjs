@@ -1,13 +1,15 @@
 import { spawn, spawnSync } from 'node:child_process';
+import { connect } from 'node:net';
 import { randomBytes } from 'node:crypto';
 import { existsSync, mkdirSync, openSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { derivarCarril } from './e2e-carril.mjs';
 
 const webRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const apiDir = resolve(webRoot, process.env.FINANZAS_API_DIR ?? '../v2-api-finanzas');
-const apiUrl = (process.env.API_BASE_URL ?? 'http://localhost:5198').replace(/\/$/, '');
-const dbName = process.env.E2E_DB_NAME ?? 'finanzas_e2e_ci';
+const carril = derivarCarril(process.env);
+const { apiUrl, dbName } = carril;
 const contenedor = process.env.E2E_DB_CONTAINER ?? 'finanzas-postgres';
 const puertoPostgres = process.env.E2E_DB_PORT ?? '5433';
 const esWindows = process.platform === 'win32';
@@ -41,6 +43,26 @@ async function responde(url) {
   } catch {
     return false;
   }
+}
+
+function puertoOcupado(puerto) {
+  const probar = (host) =>
+    new Promise((resuelto) => {
+      const conexion = connect({ port: puerto, host });
+      conexion.once('connect', () => {
+        conexion.destroy();
+        resuelto(true);
+      });
+      conexion.once('error', () => resuelto(false));
+    });
+  return Promise.all([probar('127.0.0.1'), probar('::1')]).then((usos) => usos.some(Boolean));
+}
+
+async function exigirPuertoLibre(puerto, descripcion) {
+  if (await puertoOcupado(puerto))
+    fallar(
+      `El puerto ${puerto} (${descripcion}) ya está en uso; este carril no reutiliza servidores ajenos. Usa otro E2E_CARRIL.`,
+    );
 }
 
 async function esperar(url, ms, descripcion) {
@@ -90,7 +112,7 @@ function stopApi() {
 async function levantarApi(entorno) {
   if (await responde(`${apiUrl}/api/v1/auth/methods`))
     fallar(`Ya hay un API respondiendo en ${apiUrl}; ciérralo o cambia API_BASE_URL.`);
-  const registro = join(webRoot, 'e2e', '.estado', 'api.log');
+  const registro = join(webRoot, 'e2e', carril.estado, 'api.log');
   mkdirSync(dirname(registro), { recursive: true });
   const descriptor = openSync(registro, 'w');
   api = spawn('dotnet', ['run', '--project', 'src/Finanzas.Host', '--no-launch-profile'], {
@@ -112,10 +134,13 @@ async function principal() {
     fallar(`No hay un checkout del API en ${apiDir}. Define FINANZAS_API_DIR.`);
   const propietario = { usuario: 'e2e-propietario', clave: clave(), correo: 'e2e-propietario@finanzas.test' };
   const lector = { usuario: 'e2e-lector', clave: clave(), correo: 'e2e-lector@finanzas.test' };
+  await exigirPuertoLibre(carril.apiPort, 'API');
+  if (carril.aislado) await exigirPuertoLibre(carril.webPort, 'web');
   prepararBase();
   await levantarApi({
     ASPNETCORE_ENVIRONMENT: 'Development',
     ASPNETCORE_URLS: apiUrl,
+    Security__AllowedReturnOrigins__0: carril.webUrl,
     ConnectionStrings__Finanzas: `Host=localhost;Port=${puertoPostgres};Database=${dbName};Username=finanzas;Password=finanzas-local-dev`,
     Security__PasswordLogin__Enabled: 'true',
     Security__PasswordLogin__Accounts__50__UserName: propietario.usuario,
@@ -136,6 +161,7 @@ async function principal() {
     env: {
       ...process.env,
       API_BASE_URL: apiUrl,
+      E2E_BASE_URL: carril.webUrl,
       E2E_USER: propietario.usuario,
       E2E_PASSWORD: propietario.clave,
       E2E_VIEWER_USER: lector.usuario,
