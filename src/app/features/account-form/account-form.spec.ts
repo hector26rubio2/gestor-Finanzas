@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '@core/api';
+import { TrmApi } from '@core/api/trm.api';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { type Account, AppStore, CatalogCommands } from '@core/state';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
@@ -16,6 +17,7 @@ async function abrirFormulario(accountType: 'credit' | 'savings', account?: Acco
       provideRouter([]),
       { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
       { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
+      { provide: TrmApi, useValue: { today: () => of(4012.5) } },
     ],
   });
   const store = TestBed.inject(AppStore);
@@ -112,6 +114,14 @@ describe('formulario de cuenta nueva', () => {
     expect(crear).toHaveBeenCalledOnce();
     expect(crear.mock.calls[0][0]).toBe('Fondo viaje');
     expect(crear.mock.calls[0][6]).toBe('4321');
+  });
+
+  it('una cuenta nueva en dolares se rellena con la TRM vigente, sin tasa fija', async () => {
+    const { fixture } = await abrirFormulario('savings');
+
+    expect(fixture.componentInstance.modelo().exchangeRate).toBe(4012.5);
+    const campo = document.body.querySelector<HTMLInputElement>('input[name="cuenta.exchangeRate"]')!;
+    expect(Number(campo.value)).toBe(4012.5);
   });
 
   it('al editar una tarjeta carga sus datos y guarda los cambios', async () => {

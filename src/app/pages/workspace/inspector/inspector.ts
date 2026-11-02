@@ -7,13 +7,14 @@ import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { FinanceApiClient } from '@core/api';
 import type { ApiSharedPurchase, ApiSettlement } from '@core/api';
-import { fechaDeReverso, parseMoney } from '@core/utils';
+import { parseMoney } from '@core/utils';
 import { I18nService } from '@core/i18n';
-import { PERMISO_DE_REVERSO, familiaDeMovimiento, P } from '@core/session';
+import { P } from '@core/session';
 import { permisoParaEditarCuenta } from '@features/account-form';
 import { PeopleStore } from '@features/people';
 import type { Account, Movement } from '@core/state';
-import { CAPABILITIES, AppStore, FEATURES } from '@core/state';
+import { CAPABILITIES, AccountsCommands, AppStore, FEATURES, MovementCommands, PeopleCommands } from '@core/state';
+import { puedeReversar } from '@core/state/operacion/reverso';
 import { MovementsBookService } from '@shared/movements';
 import { BankCardComponent } from '@ui/bank-card';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
@@ -23,14 +24,7 @@ import { InspectorCard } from './inspector-card';
 import { InspectorInversion } from './inspector-inversion';
 import { InspectorRecientes } from './inspector-recientes';
 import { OrigenDelMovimiento } from './origen-del-movimiento';
-import {
-  InspectorFactsContext,
-  hechosDeCuenta,
-  hechosDeInversion,
-  hechosDeMovimiento,
-  hechosDePersona,
-  hechosDelDia,
-} from './inspector-facts';
+import { type ContextoDePresentacion, type EntidadResuelta, presentarEntidad } from './presentacion-de-entidad';
 
 const TIPOS_DE_OPERACION: Readonly<Record<number, string>> = {
   1: 'contribution',
@@ -67,12 +61,14 @@ export class InspectorComponent {
   private readonly features = inject(FEATURES);
   private readonly api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
+  private readonly movementCommands = inject(MovementCommands);
+  private readonly accountsCommands = inject(AccountsCommands);
+  private readonly peopleCommands = inject(PeopleCommands);
 
   readonly canReverseSelected = computed(() => {
     const movimiento = this.selectedMovement();
-    if (!movimiento || !this.can(P.movimientos.deshabilitar)) return false;
-    const familia = familiaDeMovimiento(movimiento, this.store.account(movimiento.accountId)?.type);
-    return !familia || this.can(PERMISO_DE_REVERSO[familia]);
+    if (!movimiento) return false;
+    return puedeReversar(movimiento, this.store.account(movimiento.accountId)?.type, (permiso) => this.can(permiso));
   });
   can(permiso: string): boolean {
     return this.capabilities.allows(permiso);
@@ -141,64 +137,41 @@ export class InspectorComponent {
   claveDeFuente(fuente: number): string {
     return `form.investment.valuation.source.${FUENTES_DE_VALORIZACION[fuente] ?? 'manual'}`;
   }
-  readonly inspectorTitle = computed(() => {
-    const s = this.store.inspector();
-    if (s?.type === 'movement') return this.i18n.t('workspace.inspector.title.movement');
-    if (s?.type === 'card') return this.selectedAccount()?.name ?? this.i18n.t('workspace.inspector.title.card');
-    if (s?.type === 'day')
-      return this.i18n.t('workspace.inspector.title.day', {
-        date: new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
-          new Date(`${s.id}T00:00:00Z`),
-        ),
-      });
-    if (s?.type === 'person') return this.selectedPerson()?.name ?? this.i18n.t('workspace.inspector.title.person');
-    if (s?.type === 'investment')
-      return this.selectedInvestment()?.name ?? this.i18n.t('workspace.inspector.title.investment');
-    return this.i18n.t('workspace.inspector.title.account');
+  private readonly entidad = computed<EntidadResuelta>(() => {
+    const seleccionada = this.store.inspector();
+    switch (seleccionada?.type) {
+      case 'movement':
+        return { tipo: 'movimiento', movimiento: this.selectedMovement() };
+      case 'account':
+        return { tipo: 'cuenta', cuenta: this.selectedAccount() };
+      case 'card':
+        return { tipo: 'tarjeta', cuenta: this.selectedAccount() };
+      case 'person':
+        return { tipo: 'persona', persona: this.selectedPerson() };
+      case 'investment':
+        return { tipo: 'inversion', inversion: this.selectedInvestment() };
+      default: {
+        const fecha = seleccionada?.id ?? this.store.selectedCalendarDate();
+        return { tipo: 'dia', fecha, operaciones: this.store.dayMoves(fecha).length };
+      }
+    }
   });
-  readonly inspectorAmount = computed(() => {
-    const m = this.selectedMovement(),
-      a = this.selectedAccount(),
-      p = this.selectedPerson(),
-      i = this.selectedInvestment();
-    return m
-      ? this.store.money(m.amount)
-      : a
-        ? this.store.money(a.type === 'credit' ? this.store.deudaDe(a) : this.store.balance(a))
-        : p
-          ? this.store.money(p.owed - p.owing)
-          : i
-            ? this.store.money(i.value, i.currency)
-            : this.i18n.t('workspace.inspector.operationsCount', {
-                count: this.store.dayMoves(this.store.inspector()?.id ?? this.store.selectedCalendarDate()).length,
-              });
-  });
-  readonly inspectorSubtitle = computed(
-    () =>
-      this.selectedMovement()?.description ??
-      this.selectedAccount()?.name ??
-      this.selectedPerson()?.name ??
-      this.selectedInvestment()?.type ??
-      this.i18n.t('workspace.inspector.defaultSubtitle'),
-  );
-  readonly inspectorFacts = computed(() => {
-    const contexto: InspectorFactsContext = {
-      t: (key, params) => this.i18n.t(key, params),
-      money: (value, currency) => this.store.money(value, currency),
-      accountName: (id) => this.store.account(id)?.name,
-      accountType: (id) => this.store.account(id)?.type,
-    };
-    const movimiento = this.selectedMovement();
-    if (movimiento) return hechosDeMovimiento(movimiento, contexto);
-    const cuenta = this.selectedAccount();
-    if (cuenta) return hechosDeCuenta(cuenta, contexto);
-    const persona = this.selectedPerson();
-    if (persona) return hechosDePersona(persona, contexto);
-    const inversion = this.selectedInvestment();
-    if (inversion) return hechosDeInversion(inversion, contexto);
-    const fecha = this.store.inspector()?.id ?? this.store.selectedCalendarDate();
-    return hechosDelDia(fecha, this.store.dayMoves(fecha).length, contexto);
-  });
+  private readonly contextoDePresentacion = computed<ContextoDePresentacion>(() => ({
+    t: (clave, parametros) => this.i18n.t(clave, parametros),
+    money: (valor, moneda) => this.store.money(valor, moneda),
+    accountName: (id) => this.store.account(id)?.name,
+    accountType: (id) => this.store.account(id)?.type,
+    fechaLarga: (iso) =>
+      new Intl.DateTimeFormat(this.store.preferences().locale, { dateStyle: 'long', timeZone: 'UTC' }).format(
+        new Date(`${iso}T00:00:00Z`),
+      ),
+    montoDe: (cuenta) => (cuenta.type === 'credit' ? this.store.deudaDe(cuenta) : this.store.balance(cuenta)),
+  }));
+  private readonly presentacion = computed(() => presentarEntidad(this.entidad(), this.contextoDePresentacion()));
+  readonly inspectorTitle = computed(() => this.presentacion().titulo);
+  readonly inspectorAmount = computed(() => this.presentacion().monto);
+  readonly inspectorSubtitle = computed(() => this.presentacion().subtitulo);
+  readonly inspectorFacts = computed(() => this.presentacion().hechos);
   editSelected() {
     const m = this.selectedMovement();
     if (m) this.store.open(m.kind, m.accountId, m);
@@ -238,15 +211,11 @@ export class InspectorComponent {
   readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
   async reverseMovement(movement: Movement) {
     try {
-      await firstValueFrom(
-        this.api.reverseMovement(movement.id, {
-          date: fechaDeReverso(movement.date),
-          reason: 'Reversado desde la aplicación',
-        }),
-      );
+      const pagina = this.store.remoteMovementPage();
+      await this.movementCommands.reversar(movement);
       this.store.inspector.set(null);
       this.store.toast.set(this.i18n.t('workspace.messages.movementReversed'));
-      await this.movementsBook.loadMovementPage(this.store.remoteMovementPage());
+      await this.movementsBook.loadMovementPage(pagina);
     } catch (error) {
       this.store.toast.set(
         error instanceof Error ? error.message : this.i18n.t('workspace.messages.movementReverseFailed'),
@@ -255,16 +224,9 @@ export class InspectorComponent {
   }
   async shareSelected() {
     const movement = this.selectedMovement();
-    const person = this.store.data().people.find((item) => item.name === movement?.person);
-    if (!movement || !person) return;
+    if (!movement) return;
     try {
-      await firstValueFrom(
-        this.api.createSharedPurchase({
-          purchaseMovement: movement.id,
-          shares: [{ counterparty: person.id, basis: 1, percent: { rate: '1' } }],
-          description: movement.description,
-        }),
-      );
+      await this.movementCommands.compartir(movement);
       this.store.toast.set(this.i18n.t('workspace.messages.sharedPurchase'));
     } catch (error) {
       this.store.toast.set(
@@ -275,19 +237,10 @@ export class InspectorComponent {
   async issueSelectedSettlement() {
     const person = this.selectedPerson();
     if (!person) return;
-    const today = new Date().toISOString().slice(0, 10);
-    const start = `${today.slice(0, 7)}-01`;
     try {
-      await firstValueFrom(
-        this.api.issueSettlement({
-          counterparty: person.id,
-          period: { start, end: today },
-          cutOff: today,
-          currency: 'COP',
-        }),
-      );
+      const emitida = await this.peopleCommands.liquidar(person.id, this.store.hoy());
       this.store.toast.set(this.i18n.t('workspace.messages.settlementIssued', { name: person.name }));
-      void this.cargarHistorialDePersona(person.id);
+      this.personSettlements.update((liquidaciones) => (liquidaciones ? [emitida, ...liquidaciones] : liquidaciones));
     } catch (error) {
       this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('workspace.messages.settlementFailed'));
     }
@@ -296,9 +249,12 @@ export class InspectorComponent {
     readonly { id: string; date: string; description: string; share: number; total: number }[] | null
   >(null);
   readonly personSettlements = signal<readonly ApiSettlement[] | null>(null);
+  private readonly idDePersonaInspeccionada = computed(() =>
+    this.store.inspector()?.type === 'person' ? this.selectedPerson()?.id : undefined,
+  );
   private readonly cargaDePersona = effect(() => {
-    const person = this.store.inspector()?.type === 'person' ? this.selectedPerson() : undefined;
-    untracked(() => void this.cargarHistorialDePersona(person?.id ?? null));
+    const id = this.idDePersonaInspeccionada();
+    untracked(() => void this.cargarHistorialDePersona(id ?? null));
   });
 
   private async cargarHistorialDePersona(personId: string | null): Promise<void> {
@@ -365,35 +321,9 @@ export class InspectorComponent {
     if (!account) return;
     this.store.form.set({ kind: 'account', account });
   }
-  private async desactivarTarjeta(tarjeta: Account) {
-    const actual = (await firstValueFrom(this.api.cards())).find((card) => card.id === tarjeta.id);
-    if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
-    await firstValueFrom(
-      this.api.updateCard(tarjeta.id, {
-        name: actual.name,
-        creditLimit: actual.creditLimit,
-        cycle: actual.cycle,
-        terms: actual.terms,
-        issuer: actual.issuer,
-        lastFour: actual.lastFour,
-        isActive: false,
-        issuerEntity: actual.issuerEntity?.id ?? null,
-      }),
-    );
-  }
   async deactivateAccount(account: Account) {
     try {
-      if (account.type === 'credit') await this.desactivarTarjeta(account);
-      else
-        await firstValueFrom(
-          this.api.updateAccount(account.id, {
-            name: account.name,
-            lastFour: account.lastFour ?? null,
-            isDefault: false,
-            isActive: false,
-          }),
-        );
-      this.store.data.update((data) => ({ ...data, accounts: data.accounts.filter((item) => item.id !== account.id) }));
+      await this.accountsCommands.desactivar(account);
       this.store.inspector.set(null);
       this.store.toast.set(this.i18n.t('workspace.messages.accountDeactivated'));
     } catch (error) {

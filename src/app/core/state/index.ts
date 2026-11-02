@@ -9,6 +9,8 @@ export * from './economia';
 export * from './movement-commands';
 export * from './preferences-actions';
 export * from './recurso-remoto';
+export * from './entidad-seleccionada';
 export * from './store';
+export * from './tasa-de-cambio';
 export * from './theme';
 export * from './view-model';

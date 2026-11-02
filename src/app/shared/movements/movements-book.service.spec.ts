@@ -11,7 +11,7 @@ import { pruebaRender } from '@testing/prueba-render';
 import { sesionDe } from '@testing/sesion-de-prueba';
 import { TransportFalso } from '@testing/transport-falso';
 
-const sesionConPermisos = sesionDe().conCapacidad(P.movimientos.ver);
+const sesionConPermisos = sesionDe().conCapacidad(P.movimientos.ver).conTodosLosPermisos();
 
 @Component({ selector: 'prueba-libro-movimientos', template: '' })
 class ComponenteLibro {
@@ -159,13 +159,14 @@ describe('MovementsBookService — refetch tras el invalidado del listado (ticke
     cambios();
 
     // Alta con fecha vieja: copia optimista + invalidación del listado remoto.
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-01-05',
-      description: 'Arreglo del garage',
-      accountId: 'cuenta-2',
-      amount: 45900,
-      category: 'Mercado',
+    await component.comandos.asentar({
+      tipo: 'gasto',
+      fecha: '2026-01-05',
+      descripcion: 'Arreglo del garage',
+      cuentaId: 'cuenta-2',
+      monto: 45900,
+      categoria: 'Mercado',
+      recurrente: false,
     });
     expect(component.book.movementRows().map((fila) => (fila['raw'] as { id: string }).id)).toContain('mov-backdated');
 
@@ -194,13 +195,14 @@ describe('MovementsBookService — refetch tras el invalidado del listado (ticke
     });
     cambios();
 
-    await component.comandos.save({
-      kind: 'expense',
-      date: '2026-01-05',
-      description: 'Arreglo del garage',
-      accountId: 'cuenta-2',
-      amount: 45900,
-      category: 'Mercado',
+    await component.comandos.asentar({
+      tipo: 'gasto',
+      fecha: '2026-01-05',
+      descripcion: 'Arreglo del garage',
+      cuentaId: 'cuenta-2',
+      monto: 45900,
+      categoria: 'Mercado',
+      recurrente: false,
     });
 
     // El usuario fija un filtro de fecha antes del refetch: la página del servidor manda.

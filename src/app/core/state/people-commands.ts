@@ -1,15 +1,19 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { Person, PersonKind } from './view-model';
 import { FinanceApiClient } from '@core/api/api-client';
 import { I18nService } from '@core/i18n';
 import { COUNTERPARTY_KIND } from '@core/api/people.api';
-import { AppStore } from './store';
+import type { ApiSettlement } from '@core/api/settlements.api';
+import { P } from '@core/session/permissions';
+import { AppStore, CAPABILITIES } from './store';
 import { renombrarEnMovimientos } from './catalog-mappers';
 
 /** Comandos de contrapartes (personas/instituciones) con renombrado en movimientos. */
 @Injectable({ providedIn: 'root' })
 export class PeopleCommands {
+  private readonly capabilities = inject(CAPABILITIES);
+
   constructor(
     private readonly store: AppStore,
     private readonly client: FinanceApiClient,
@@ -100,5 +104,17 @@ export class PeopleCommands {
     }));
     this.store.form.set(null);
     this.store.toast.set(this.i18n.t('toast.person.updated', { name }));
+  }
+
+  async liquidar(personaId: string, hoy: string): Promise<ApiSettlement> {
+    if (!this.capabilities.allows(P.personas.liquidaciones.crear)) throw new Error(this.i18n.t('form.error.forbidden'));
+    return firstValueFrom(
+      this.client.issueSettlement({
+        counterparty: personaId,
+        period: { start: `${hoy.slice(0, 7)}-01`, end: hoy },
+        cutOff: hoy,
+        currency: this.store.baseCurrency(),
+      }),
+    );
   }
 }

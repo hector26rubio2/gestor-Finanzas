@@ -1,5 +1,6 @@
 import type { Router } from '@angular/router';
 import type { AppStore } from '@core/state/store';
+import type { TipoDeEntidad } from '@core/state/entidad-seleccionada';
 import type { EntidadDeGuia, FormularioDeGuia } from './catalogo-de-guias';
 import { esVisible, esperarElemento } from './esperar-elemento';
 import type { EntornoDelMotor } from './motor-de-guias';
@@ -25,9 +26,9 @@ function resolverFormulario(
   return formulario;
 }
 
-function resolverEntidad(store: AppStore, entidad: EntidadDeGuia): { tipo: string; id: string } | null {
+function resolverEntidad(store: AppStore, entidad: EntidadDeGuia): { tipo: TipoDeEntidad; id: string } | null {
   const datos = store.data();
-  const candidato =
+  const candidato: { tipo: TipoDeEntidad; id: string | undefined } =
     entidad === 'movimiento'
       ? { tipo: 'movement', id: datos.movements[0]?.id }
       : entidad === 'tarjeta'

@@ -1,3 +1,4 @@
+import { sesionDe } from '@testing/sesion-de-prueba';
 import { CatalogCommands, MovementCommands } from '@core/state';
 import { TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
@@ -41,6 +42,7 @@ describe('AppStore en modo API', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({ providers: [{ provide: FinanceApiClient, useValue: api }] });
     const store = TestBed.inject(AppStore);
+    store.user.set(sesionDe().conTodosLosPermisos().construir());
     store.data.update((data) => ({
       ...data,
       accounts: [{ id: 'cuenta-1', name: 'Ahorros', type: 'savings', currency: 'COP', openingBalance: 500000 }],
@@ -78,14 +80,15 @@ describe('AppStore en modo API', () => {
       ],
     }));
 
-    await TestBed.inject(MovementCommands).save({
-      kind: 'expense',
-      date: '2026-09-25',
-      description: 'Mercado del sábado',
-      accountId: 'tarjeta-1',
-      amount: 45900,
-      category: 'Mercado',
-      person: 'Camilo',
+    await TestBed.inject(MovementCommands).asentar({
+      tipo: 'compraParaTercero',
+      fecha: '2026-09-25',
+      descripcion: 'Mercado del sábado',
+      cuentaId: 'tarjeta-1',
+      monto: 45900,
+      categoria: 'Mercado',
+      recurrente: false,
+      terceroId: 'persona-1',
     });
 
     expect(payloads).toHaveLength(1);
@@ -124,14 +127,14 @@ describe('AppStore en modo API', () => {
       }),
     });
 
-    await TestBed.inject(MovementCommands).save({
-      kind: 'expense',
-      date: '2026-09-25',
-      description: 'Gasto sin clasificar',
-      accountId: 'cuenta-1',
-      amount: 1000,
-      category: 'Categoría inexistente',
-      person: 'Persona inexistente',
+    await TestBed.inject(MovementCommands).asentar({
+      tipo: 'gasto',
+      fecha: '2026-09-25',
+      descripcion: 'Gasto sin clasificar',
+      cuentaId: 'cuenta-1',
+      monto: 1000,
+      categoria: 'Categoría inexistente',
+      recurrente: false,
     });
 
     expect(payloads[0].links).toEqual({ account: 'cuenta-1' });
@@ -162,6 +165,7 @@ describe('AppStore: avisos, moneda base y fechas de hoy', () => {
     window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
     TestBed.resetTestingModule();
     store = TestBed.inject(AppStore);
+    store.user.set(sesionDe().conTodosLosPermisos().construir());
   });
 
   afterEach(() => {

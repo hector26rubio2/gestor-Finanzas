@@ -213,6 +213,7 @@ export class RemoteBootstrap {
     this.store.kindCatalog.set(new MovementKindCatalog(raw.movementKinds));
     this.store.data.set(toViewData(raw, movimientos));
     this.store.categories.set(raw.categories);
+    this.store.tarjetasCrudas.set(raw.cards);
     if (raw.preferences) {
       const preferences = raw.preferences;
       const custom = parsePalette(preferences.customThemeJson);

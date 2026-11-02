@@ -1,5 +1,6 @@
 import type { SessionUser } from '@core/state';
 import { AppStore } from '@core/state';
+import { P } from '@core/session/permissions';
 import { USUARIO_DE_PRUEBA } from './usuario-de-prueba';
 
 /**
@@ -26,6 +27,12 @@ export class SesionDePrueba {
   conCapacidad(...capacidades: string[]): this {
     this.usuario.capabilities.push(...capacidades);
     return this;
+  }
+
+  conTodosLosPermisos(): this {
+    const reunir = (nodo: unknown): string[] =>
+      typeof nodo === 'string' ? [nodo] : Object.values(nodo as object).flatMap(reunir);
+    return this.conCapacidad(...reunir(P));
   }
 
   /** Deja al usuario sin capacidades (anónimo restringido). */

@@ -14,6 +14,7 @@ export class Vigilancia {
   readonly erroresDePagina: string[] = [];
   readonly fallosDeRed: string[] = [];
   readonly escrituras: Escritura[] = [];
+  readonly lecturas: string[] = [];
 
   private sinSesionPermitida = false;
 
@@ -38,6 +39,14 @@ export class Vigilancia {
 
   marca(): number {
     return this.escrituras.length;
+  }
+
+  marcaDeLecturas(): number {
+    return this.lecturas.length;
+  }
+
+  lecturasDesde(marca: number): string[] {
+    return this.lecturas.slice(marca);
   }
 
   escriturasDesde(marca: number): Escritura[] {
@@ -73,6 +82,7 @@ function escuchar(page: Page, vigilancia: Vigilancia): void {
     if (!respuesta.url().startsWith(apiUrl)) return;
     const metodo = peticion.method();
     const ruta = rutaSinOrigen(respuesta.url());
+    if (metodo === 'GET') vigilancia.lecturas.push(ruta);
     if (metodo !== 'GET' && metodo !== 'OPTIONS')
       vigilancia.escrituras.push({ estado: respuesta.status(), metodo, ruta });
     if (respuesta.status() >= 400) vigilancia.fallosDeRed.push(`${respuesta.status()} ${metodo} ${ruta}`);

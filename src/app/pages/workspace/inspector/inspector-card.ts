@@ -148,14 +148,13 @@ export class InspectorCard {
       .run(
         'card:payment',
         () =>
-          this.movementCommands.save({
-            kind: 'payment',
-            date: this.store.hoy(),
-            accountId: this.cuentaDeOrigen(),
-            targetId: card.id,
-            description: this.motivoDeAbono().trim() || `Abono a ${card.name}`,
-            amount: this.cardPaymentAmount(),
-            category: 'Pago de tarjeta',
+          this.movementCommands.asentar({
+            tipo: 'pagoDeTarjeta',
+            fecha: this.store.hoy(),
+            origenId: this.cuentaDeOrigen(),
+            tarjetaId: card.id,
+            descripcion: this.motivoDeAbono().trim() || `Abono a ${card.name}`,
+            monto: this.cardPaymentAmount(),
           }),
         {
           loading: this.i18n.t('form.movement.toast.loading'),
