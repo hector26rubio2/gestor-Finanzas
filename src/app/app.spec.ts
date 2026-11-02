@@ -6,6 +6,7 @@ import { AppComponent } from './app';
 import { FinanceApiClient } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
 import { AppStore, navigation } from '@core/state';
+import { provideServiceWorker } from '@angular/service-worker';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
 
 describe('AppComponent y la pantalla de entrada', () => {
@@ -14,6 +15,7 @@ describe('AppComponent y la pantalla de entrada', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
+        provideServiceWorker('ngsw-worker.js', { enabled: false }),
         provideRouter([
           { path: 'login', children: [] },
           { path: 'dashboard', children: [] },
@@ -80,6 +82,7 @@ describe('AppComponent y el menú', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       providers: [
+        provideServiceWorker('ngsw-worker.js', { enabled: false }),
         provideRouter([{ path: 'dashboard', children: [] }]),
         { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
         { provide: FinanceApiClient, useValue: { session: vi.fn(() => of(null)) } },

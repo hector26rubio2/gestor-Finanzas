@@ -164,7 +164,7 @@ export class InspectorComponent {
     return m
       ? this.store.money(m.amount)
       : a
-        ? this.store.money(a.type === 'credit' ? Math.max(0, -this.store.balance(a)) : this.store.balance(a))
+        ? this.store.money(a.type === 'credit' ? this.store.deudaDe(a) : this.store.balance(a))
         : p
           ? this.store.money(p.owed - p.owing)
           : i

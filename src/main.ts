@@ -4,7 +4,11 @@ import { accionInterceptor } from '@core/http/accion';
 import { registroDePeticionesInterceptor } from '@core/http/registro-de-peticiones';
 import { HistorialDeNavegacion } from '@core/routing/historial-de-navegacion';
 import { cifradoInterceptor, escriturasInterceptor } from '@core/http/interceptores';
-import { ErrorHandler, inject, provideAppInitializer } from '@angular/core';
+import { ErrorHandler, inject, isDevMode, provideAppInitializer } from '@angular/core';
+import { provideServiceWorker } from '@angular/service-worker';
+import { ActualizacionPwa } from '@core/pwa/actualizacion.service';
+import { Conexion } from '@core/pwa/conexion.service';
+import { InstalacionPwa } from '@core/pwa/instalacion.service';
 import {
   TitleStrategy,
   provideRouter,
@@ -53,5 +57,12 @@ bootstrapApplication(AppComponent, {
     provideAppInitializer(() => inject(ErrorReporter).start()),
     provideAppInitializer(() => inject(HistorialDeNavegacion).iniciar()),
     provideAppInitializer(() => inject(RemoteBootstrap).start()),
+    provideServiceWorker('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideAppInitializer(() => inject(ActualizacionPwa).iniciar()),
+    provideAppInitializer(() => inject(InstalacionPwa).iniciar()),
+    provideAppInitializer(() => inject(Conexion).iniciar()),
   ],
 }).catch(console.error);

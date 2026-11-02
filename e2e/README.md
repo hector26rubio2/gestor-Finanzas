@@ -13,6 +13,31 @@ Playwright (`@playwright/test`) contra el API .NET y PostgreSQL reales, con Chro
 
 Los argumentos extra pasan a Playwright: `pnpm e2e -g "MOV-01"`.
 
+## Carriles paralelos
+
+Varias corridas locales a la vez sin chocar: cada una usa su propio web, API, base y carpetas. `E2E_CARRIL=<n>` (1 a 9) lo deriva todo; sin la variable todo queda como antes.
+
+| Valor                        | Carril `n`                                        | Sin carril                         |
+| ---------------------------- | ------------------------------------------------- | ---------------------------------- |
+| Web (`ng serve`)             | `4300+n`                                          | 4300                               |
+| API                          | `5199+n`                                          | 5198                               |
+| Base                         | `finanzas_e2e_c<n>`                               | `finanzas_e2e_ci`                  |
+| Estado, resultados e informe | `.estado-c<n>`, `resultados-c<n>`, `informe-c<n>` | `.estado`, `resultados`, `informe` |
+
+Dos carriles a la vez, en dos terminales (o procesos de fondo):
+
+```
+E2E_CARRIL=1 pnpm e2e:local e2e/tests/01-sesion.spec.ts
+E2E_CARRIL=2 pnpm e2e:local e2e/tests/02-navegacion.spec.ts
+```
+
+- Se pueden fijar sueltas y mandan sobre el carril: `E2E_WEB_PORT`, `API_BASE_URL`, `E2E_DB_NAME` (debe empezar por `finanzas_e2e`). `E2E_WEB_PORT` sin carril también aísla el web.
+- Con carril, Playwright levanta `ng serve --port <web>` con `reuseExistingServer: false`: nunca reutiliza el servidor de otro worktree.
+- El front lee la URL del API de un `config.js` que las pruebas interceptan, así que cada carril apunta a su API. `e2e:local` autoriza el origen web del carril en el CORS del API (`Security__AllowedReturnOrigins__0`).
+- Si el puerto web o el del API ya está en uso, `e2e:local` falla con un mensaje claro antes de tocar nada.
+- Dos carriles que comparten el mismo checkout del API compilan el mismo proyecto: arranca el segundo cuando el primero ya está respondiendo si ves errores de compilación por archivos bloqueados.
+- La derivación está probada con `pnpm test:e2e-carril`.
+
 ## Qué cubre
 
 - `01-sesion`: login, credenciales inválidas, ruta protegida, cierre de sesión.

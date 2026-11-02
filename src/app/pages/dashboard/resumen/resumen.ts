@@ -7,6 +7,7 @@ import { P } from '@core/session';
 import { AppStore, CAPABILITIES } from '@core/state';
 import { BudgetsStore, crearGastoPorCategoria, rangoDelMes } from '@features/budgets';
 import { filasDePresupuesto } from '@shared/presupuestos';
+import { tasaDeAhorro } from '@shared/resumen-del-periodo';
 import { compactMoney } from '@shared/utils';
 import { BarraDeAvanceComponent } from '@ui/barra-de-avance';
 import { ChartCardComponent, ChartThemeService, barrasConSaldo } from '@ui/chart';
@@ -78,12 +79,13 @@ export class ResumenComponent {
   private readonly anioAnterior = computed(() => this.datos().historialAnual()[0] ?? null);
 
   readonly tasaDeAhorro = computed(() => {
-    const ingresos = this.datos().income();
-    return ingresos > 0 ? Math.round((this.datos().net() / ingresos) * 100) : null;
+    const tasa = this.datos().resumen().tasaDeAhorro;
+    return tasa === null ? null : Math.round(tasa);
   });
   private readonly tasaPrevia = computed(() => {
     const previo = this.previo();
-    return previo && previo.income > 0 ? Math.round((previo.net / previo.income) * 100) : null;
+    const tasa = previo ? tasaDeAhorro(previo.income, previo.net) : null;
+    return tasa === null ? null : Math.round(tasa);
   });
   readonly cambioDeLaTasa = computed(() => {
     const actual = this.tasaDeAhorro();

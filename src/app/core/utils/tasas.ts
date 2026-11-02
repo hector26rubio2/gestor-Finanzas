@@ -8,9 +8,17 @@ export function anualDesdeMensual(mensualPorcentaje: number): number {
   return redondear(((1 + mensualPorcentaje / 100) ** 12 - 1) * 100, 3);
 }
 
-export function cuotaFija(capital: number, mensualPorcentaje: number, meses: number): number {
-  if (meses <= 0) return 0;
-  const tasa = mensualPorcentaje / 100;
-  if (tasa === 0) return capital / meses;
-  return (capital * tasa) / (1 - (1 + tasa) ** -meses);
+export type Tasa = { readonly porcentaje: number } | { readonly fraccion: number };
+
+export const enPorcentaje = (porcentaje: number): Tasa => ({ porcentaje });
+
+export const enFraccion = (fraccion: number): Tasa => ({ fraccion });
+
+const comoFraccion = (tasa: Tasa): number => Math.max(0, 'porcentaje' in tasa ? tasa.porcentaje / 100 : tasa.fraccion);
+
+export function cuotaFija(capital: number, tasa: Tasa, meses: number): number {
+  if (capital <= 0 || meses <= 0) return 0;
+  const i = comoFraccion(tasa);
+  if (i === 0) return capital / meses;
+  return (capital * i) / (1 - (1 + i) ** -meses);
 }

@@ -5,7 +5,7 @@ import { I18nService } from '@core/i18n';
 import { AppStore } from '@core/state/store';
 import { FieldComponent } from '@ui/field/field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
-import { cuotaFija } from '@core/utils/tasas';
+import { cuotaFija, enPorcentaje } from '@core/utils/tasas';
 import { NumericInputDirective } from '@ui/numeric-input';
 
 @Component({
@@ -42,7 +42,7 @@ export class MovementFinancingFieldsComponent {
     const meses = Number(this.model['termMonths']);
     const tasa = Number(this.model['monthlyRate'] ?? 0);
     if (!(capital > 0) || !(meses > 0) || !Number.isFinite(tasa)) return '';
-    const cuota = cuotaFija(capital, tasa, meses);
+    const cuota = cuotaFija(capital, enPorcentaje(tasa), meses);
     return this.i18n.t('form.movement.financing.estimate', {
       payment: this.store.money(cuota),
       interest: this.store.money(cuota * meses - capital),

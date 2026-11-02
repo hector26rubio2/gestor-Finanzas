@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { Deuda, cuotaFija, proyectar } from './amortizacion';
+import { cuotaFija, enPorcentaje } from '@core/utils/tasas';
+import { Deuda, proyectar } from './amortizacion';
 
 const flujo = { ingresoMensual: 5_000_000, gastoMensual: 3_000_000, recorteDeGasto: 0, metaDeAhorro: 0 };
 const credito: Deuda = {
@@ -17,7 +18,7 @@ describe('proyección de deudas', () => {
     const serie = resultado.deudas[0];
     expect(serie.mesFinal).toBe(35);
     expect(serie.saldo[35]).toBe(0);
-    expect(cuotaFija(12_000_000, 1.5, 36)).toBeCloseTo(433_829, 0);
+    expect(cuotaFija(12_000_000, enPorcentaje(1.5), 36)).toBeCloseTo(433_829, 0);
     expect(serie.interesTotal).toBeCloseTo(433_829 * 36 - 12_000_000, -2);
   });
 

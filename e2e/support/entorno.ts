@@ -1,10 +1,12 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { derivarCarril } from '../../scripts/e2e-carril.mjs';
 
-export const apiUrl = (process.env.API_BASE_URL ?? 'http://localhost:5198').replace(/\/$/, '');
-export const webUrl = (process.env.E2E_BASE_URL ?? 'http://localhost:4300').replace(/\/$/, '');
+export const carril = derivarCarril(process.env);
+export const apiUrl = carril.apiUrl;
+export const webUrl = carril.webUrl;
 
-export const directorioEstado = join(__dirname, '..', '.estado');
+export const directorioEstado = join(__dirname, '..', carril.estado);
 export const estadoPropietario = join(directorioEstado, 'propietario.json');
 export const estadoLector = join(directorioEstado, 'lector.json');
 export const archivoSemilla = join(directorioEstado, 'semilla.json');

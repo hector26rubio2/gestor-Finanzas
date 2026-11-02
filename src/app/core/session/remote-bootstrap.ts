@@ -19,7 +19,8 @@ import { toViewData } from './mappers/view-data.mapper';
 import { toViewUser } from './mappers/session.mapper';
 import { AppStore } from '@core/state/store';
 import { applyStoredAppearance, clearAppearanceOverrides, parsePalette } from '@core/state/theme';
-import { parseMoney, setCurrencyCatalog } from '@core/utils/money';
+import { mapaDesdeBootstrap } from '@core/saldos';
+import { setCurrencyCatalog } from '@core/utils/money';
 import { todayIso } from '@core/utils/dates';
 import { I18nService } from '@core/i18n/i18n.service';
 import { Movement } from '@core/state/view-model';
@@ -228,15 +229,8 @@ export class RemoteBootstrap {
   }
 
   private aplicarSaldos(boot: ApiBootstrap): void {
-    const balances = boot.balances;
-    if (!balances) {
-      this.store.saldosDelServidor.set(null);
-      return;
-    }
-    const saldos = new Map<string, number>();
-    for (const cuenta of balances.accounts ?? []) saldos.set(cuenta.account.id, parseMoney(cuenta.balance));
-    for (const tarjeta of balances.cards ?? []) saldos.set(tarjeta.cardId, -parseMoney(tarjeta.debt));
-    this.store.saldosDelServidor.set(saldos);
+    this.store.saldosDelServidor.set(mapaDesdeBootstrap(boot.balances));
+    this.store.saldosNoConfirmados.set(false);
   }
 
   private aplicarSesion(session: ApiSession, flags: readonly { key: string; isEnabled: boolean }[] | null): void {

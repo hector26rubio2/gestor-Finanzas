@@ -257,7 +257,7 @@ export class CommandPaletteComponent {
       .map((cuenta) => ({
         id: `pagar-${cuenta.id}`,
         label: this.i18n.t('command.payCard', { name: cuenta.name }),
-        hint: this.store.money(Math.max(0, -this.store.balance(cuenta))),
+        hint: this.store.money(this.store.deudaDe(cuenta)),
         palabras: 'pagar abonar tarjeta pay card',
         icon: 'check',
         run: () => this.pagarTarjeta(cuenta.id),

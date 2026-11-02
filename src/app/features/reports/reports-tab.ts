@@ -7,35 +7,28 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import type { Account } from '@core/state';
 import { fechaDeVencimiento } from './fecha-de-vencimiento';
-import {
-  CAPABILITIES,
-  AppStore,
-  esEconomico,
-  esGasto,
-  montoDeGasto,
-  montoDeIngreso,
-  totalDeGastos,
-  totalDeIngresos,
-} from '@core/state';
+import { CAPABILITIES, AppStore, esEconomico, esGasto, montoDeGasto, montoDeIngreso, totalDeGastos } from '@core/state';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { addMonthsToIso, downloadCsv, toCsv, sumBy } from '@core/utils';
 import { HeaderActionsService } from '@shared/header-actions.service';
 import { Rango, crearMovimientosDelPeriodo } from '@shared/historia';
+import { formatoDeTasaDeAhorro, resumenDelPeriodo } from '@shared/resumen-del-periodo';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { compactMoney as formatCompactMoney, SIN_DATO } from '@shared/utils';
 import { ChartComponent, ChartThemeService, anillo, barrasAgrupadas, lineaConCero, medidor } from '@ui/chart';
 import { IconComponent } from '@ui/icon';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
+import { SaldoNoConfirmadoComponent } from '@ui/saldo-no-confirmado';
 import { SkeletonComponent } from '@ui/skeleton';
 import { UiOption, UiSelectComponent } from '@ui/select';
-import { tasaDeAhorro } from './tasa-de-ahorro';
 import { gastoPromedioMensual, mayorSubida, mesesCerrados } from './meses-cerrados';
 import { HEALTHY_UTILIZATION_PERCENT, creditCards, nextCardDue } from '@features/accounts/card-insights';
 
 @Component({
   selector: 'app-reports-tab',
   imports: [
+    SaldoNoConfirmadoComponent,
     FormsModule,
     HlmCard,
     HlmTabsImports,
@@ -105,10 +98,17 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   private readonly economicos = computed(() => this.reportMovements().filter(esEconomico));
   private readonly gastos = computed(() => this.economicos().filter(esGasto));
 
-  readonly reportIncome = computed(() => totalDeIngresos(this.economicos()));
-  readonly reportExpenses = computed(() => totalDeGastos(this.gastos()));
-  readonly reportNet = computed(() => this.reportIncome() - this.reportExpenses());
-  readonly reportSavingsRate = computed(() => tasaDeAhorro(this.reportIncome(), this.reportNet()));
+  private readonly resumen = computed(() =>
+    resumenDelPeriodo(
+      { movimientos: this.reportMovements(), tablero: null, cuentaDe: (id) => this.store.account(id) },
+      this.rangoDelReporte(),
+      {},
+    ),
+  );
+  readonly reportIncome = computed(() => this.resumen().ingreso);
+  readonly reportExpenses = computed(() => this.resumen().gasto);
+  readonly reportNet = computed(() => this.resumen().neto);
+  readonly reportSavingsRate = computed(() => formatoDeTasaDeAhorro(this.resumen().tasaDeAhorro));
   private readonly mesesCerrados = computed(() => mesesCerrados(this.periodos(), this.store.hoy()));
   private readonly gastosConMonto = computed(() =>
     this.gastos().map((movement) => ({
@@ -223,7 +223,7 @@ export class ReportsTabComponent implements OnInit, OnDestroy {
   });
 
   private readonly tarjetas = computed(() => creditCards(this.store.data().accounts));
-  private readonly deudaDe = (tarjeta: Account) => Math.max(0, -this.store.balance(tarjeta));
+  private readonly deudaDe = (tarjeta: Account) => this.store.deudaDe(tarjeta);
 
   readonly utilization = computed(() => {
     const cupo = sumBy(this.tarjetas(), (tarjeta) => tarjeta.limit ?? 0);
