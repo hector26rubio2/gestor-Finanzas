@@ -55,7 +55,7 @@ describe('NotificationsStore', () => {
     expect(app.unread()).toBe(3);
   });
 
-  it('carga la lista completa una vez y fija el contador de no leídos', async () => {
+  it('carga la lista completa una vez y deja el contador en el del servidor', async () => {
     const notifications = vi.fn(() => of([aviso('a'), aviso('b'), aviso('c', '2026-10-02T00:00:00Z')]));
     const { app, store } = montar(notifications);
 
@@ -65,7 +65,7 @@ describe('NotificationsStore', () => {
     expect(notifications).toHaveBeenCalledTimes(1);
     expect(store.estado()).toBe('listo');
     expect(store.items().map((n) => n.id)).toEqual(['a', 'b', 'c']);
-    expect(app.unread()).toBe(2);
+    expect(app.unread()).toBe(3);
   });
 
   it('marca el error y conserva los avisos recientes', async () => {
@@ -90,7 +90,61 @@ describe('NotificationsStore', () => {
     await estabilizar();
 
     expect(store.items().find((n) => n.id === 'a')?.read).toBe(true);
-    expect(app.unread()).toBe(1);
+    expect(app.unread()).toBe(2);
+  });
+
+  it('con más avisos que los 200 que trae la lista el contador sigue siendo el del servidor', async () => {
+    const lista = Array.from({ length: 200 }, (_, i) => aviso(`n${i}`));
+    const notifications = vi.fn(() => of(lista));
+    const { app, store } = montar(notifications);
+    app.sinLeerDelArranque.set(300);
+
+    solicitar(store);
+    await estabilizar();
+
+    expect(app.unread()).toBe(300);
+
+    store.marcarLeidas(new Set(['n0']));
+    await estabilizar();
+
+    expect(app.unread()).toBe(299);
+  });
+
+  it('marcar un aviso reciente antes de cargar la lista completa baja el contador', async () => {
+    const notifications = vi.fn(() => of([]));
+    const { app, store } = montar(notifications);
+    await estabilizar();
+
+    store.marcarLeidas(new Set(['reciente']));
+    await estabilizar();
+
+    expect(app.unread()).toBe(2);
+  });
+
+  it('marcar todas deja el contador en 0', async () => {
+    const lista = [aviso('a'), aviso('b'), aviso('c')];
+    const notifications = vi.fn(() => of(lista));
+    const { app, store } = montar(notifications);
+    solicitar(store);
+    await estabilizar();
+
+    store.marcarLeidas(new Set(['a', 'b', 'c']));
+    await estabilizar();
+
+    expect(app.unread()).toBe(0);
+  });
+
+  it('marcar dos veces el mismo aviso baja el contador una sola vez', async () => {
+    const notifications = vi.fn(() => of([aviso('a'), aviso('b')]));
+    const { app, store } = montar(notifications);
+    solicitar(store);
+    await estabilizar();
+
+    store.marcarLeidas(new Set(['a']));
+    store.marcarLeidas(new Set(['a']));
+    await estabilizar();
+
+    expect(app.unread()).toBe(2);
   });
 
   it('recarga tras una escritura mientras se usa', async () => {
