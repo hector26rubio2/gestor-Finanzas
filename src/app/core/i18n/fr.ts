@@ -2163,12 +2163,13 @@ export default {
   'calendar.recurring.frequency.2': 'Toutes les {n} semaine(s)',
   'calendar.recurring.frequency.3': 'Tous les {n} mois',
   'calendar.recurring.frequency.4': 'Tous les {n} an(s)',
-  'calendar.recurring.delete': 'Supprimer',
-  'calendar.recurring.deleteAria': 'Supprimer le récurrent {name}',
-  'calendar.recurring.deleteTitle': 'Supprimer ce récurrent ?',
-  'calendar.recurring.deleteDetail': "« {name} » n'est plus projeté. Les mouvements déjà générés sont conservés.",
-  'calendar.recurring.deleted': 'Récurrent « {name} » supprimé.',
-  'calendar.recurring.deleteFailed': 'Impossible de supprimer le récurrent.',
+  'calendar.recurring.deactivate': 'Désactiver',
+  'calendar.recurring.deactivateAria': 'Désactiver le récurrent {name}',
+  'calendar.recurring.deactivateTitle': 'Désactiver ce récurrent ?',
+  'calendar.recurring.deactivateDetail':
+    "« {name} » n'est plus projeté et ne peut plus être matérialisé. Les mouvements déjà générés sont conservés.",
+  'calendar.recurring.deactivated': 'Récurrent « {name} » désactivé.',
+  'calendar.recurring.deactivateFailed': 'Impossible de désactiver le récurrent.',
   'preferences.sections.budgets': 'Budgets',
   'budgets.title': 'Budgets par catégorie',
   'budgets.description':
@@ -2709,7 +2710,7 @@ export default {
     'Enregistrer crée le récurrent. Le tutoriel n’enregistre pas. Ce formulaire s’ouvre aussi avec Ctrl K.',
   'tutorial.guia.recurrente.lista.title': 'Liste des récurrents',
   'tutorial.guia.recurrente.lista.text': 'Les récurrents créés apparaissent ici avec fréquence et montant.',
-  'tutorial.guia.recurrente.eliminar.title': 'Supprimer un récurrent',
+  'tutorial.guia.recurrente.eliminar.title': 'Désactiver un récurrent',
   'tutorial.guia.recurrente.eliminar.text':
     'Arrête la répétition à l’avenir ; l’existant est conservé. Confirmation demandée.',
   'tutorial.guia.recurrente.materializar.title': 'Matérialiser',
