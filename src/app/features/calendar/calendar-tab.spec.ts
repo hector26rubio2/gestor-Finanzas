@@ -1,6 +1,6 @@
 import { provideRouter } from '@angular/router';
 import { type Provider } from '@angular/core';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { P, toMovement } from '@core/session';
 import { I18nService } from '@core/i18n';
 import { EMPTY_KIND_CATALOG } from '@core/utils/movement-kinds';
@@ -230,4 +230,76 @@ describe('calendario, vista anual (ticket 25)', () => {
     expect(rango?.end).toBe(dias.at(-1)?.iso);
     expect(component.store.dayMoves(component.store.hoy()).length).toBe(0);
   });
+});
+
+describe('calendario, botón Hoy', () => {
+  async function montarEnFecha(ahora: Date) {
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(ahora);
+    const montado = montarCalendario();
+    montado.cambios();
+    await montado.estable();
+    return montado;
+  }
+
+  const estado = (component: CalendarTabComponent) => ({
+    anio: component.calendarYear(),
+    mes: component.calendarMonth(),
+    seleccionado: component.store.selectedCalendarDate(),
+  });
+
+  afterEach(() => vi.useRealTimers());
+
+  it('tras avanzar varios meses vuelve al mes y al día de hoy', async () => {
+    const { component } = await montarEnFecha(new Date(2026, 10, 9, 12));
+    component.shiftCalendar(1);
+    component.shiftCalendar(1);
+    component.shiftCalendar(1);
+    expect(estado(component)).toEqual({ anio: 2027, mes: 1, seleccionado: '2027-02-09' });
+
+    component.goCalendarToday();
+
+    expect(estado(component)).toEqual({ anio: 2026, mes: 10, seleccionado: '2026-11-09' });
+  });
+
+  it('cruza el año hacia atrás y hacia delante', async () => {
+    const { component } = await montarEnFecha(new Date(2026, 11, 31, 12));
+    component.shiftCalendar(1);
+    expect(estado(component).anio).toBe(2027);
+
+    component.goCalendarToday();
+    expect(estado(component)).toEqual({ anio: 2026, mes: 11, seleccionado: '2026-12-31' });
+
+    component.setCalendarView('year');
+    component.shiftCalendar(-1);
+    component.goCalendarToday();
+    expect(estado(component)).toEqual({ anio: 2026, mes: 11, seleccionado: '2026-12-31' });
+  });
+
+  it('usa la fecha local de hoy aunque en UTC ya sea otro día', async () => {
+    const instante = new Date(2026, 11, 31, 23, 30);
+    const { component } = await montarEnFecha(instante);
+    component.shiftCalendar(-1);
+
+    component.goCalendarToday();
+
+    const local = `${instante.getFullYear()}-${String(instante.getMonth() + 1).padStart(2, '0')}-${String(instante.getDate()).padStart(2, '0')}`;
+    expect(local).toBe('2026-12-31');
+    expect(estado(component)).toEqual({ anio: 2026, mes: 11, seleccionado: local });
+  });
+
+  it.each(['day', 'week', 'month', 'year'] as const)(
+    'en la vista %s conserva la vista y vuelve a hoy',
+    async (vista) => {
+      const { component } = await montarEnFecha(new Date(2026, 10, 9, 12));
+      component.setCalendarView(vista);
+      component.shiftCalendar(1);
+      component.shiftCalendar(1);
+
+      component.goCalendarToday();
+
+      expect(component.calendarView()).toBe(vista);
+      expect(estado(component)).toEqual({ anio: 2026, mes: 10, seleccionado: '2026-11-09' });
+    },
+  );
 });
