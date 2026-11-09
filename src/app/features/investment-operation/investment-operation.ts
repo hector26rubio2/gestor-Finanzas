@@ -9,6 +9,7 @@ import { AppStore, CAPABILITIES, CatalogCommands } from '@core/state';
 import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
+import { MontoInputDirective } from '@ui/monto-input';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
@@ -34,6 +35,7 @@ const TIPOS: readonly (readonly [number, string])[] = [
     HlmInput,
     IconComponent,
     NumericInputDirective,
+    MontoInputDirective,
     OverlayComponent,
     UiSelectComponent,
   ],

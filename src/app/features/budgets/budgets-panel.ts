@@ -24,7 +24,7 @@ import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { EmptyStateComponent } from '@ui/empty-state';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
-import { NumericInputDirective } from '@ui/numeric-input';
+import { MontoInputDirective } from '@ui/monto-input';
 import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { BudgetsStore } from './budgets.store';
 import { crearGastoPorCategoria, rangoDelMes } from './gasto-del-mes';
@@ -44,7 +44,7 @@ import { crearGastoPorCategoria, rangoDelMes } from './gasto-del-mes';
     HlmCard,
     HlmInput,
     IconComponent,
-    NumericInputDirective,
+    MontoInputDirective,
     ZonaDeCargaComponent,
   ],
   templateUrl: './budgets-panel.html',
@@ -89,12 +89,12 @@ export class BudgetsPanelComponent {
   });
 
   readonly editando = signal<string | null>(null);
-  readonly modelo = signal({ limite: '' });
+  readonly modelo = signal<{ limite: number | null }>({ limite: null });
   readonly formulario = form(
     this.modelo,
     (campo) =>
       validate(campo.limite, ({ value }) =>
-        limiteDeTexto(value(), this.store.baseCurrency()) === null
+        limiteDeTexto(String(value() ?? ''), this.store.baseCurrency()) === null
           ? { kind: 'limite', message: this.i18n.t('budgets.error.invalid') }
           : undefined,
       ),
@@ -117,7 +117,7 @@ export class BudgetsPanelComponent {
 
   editar(fila: FilaDePresupuesto): void {
     this.presupuestos.errorDeGuardado.set('');
-    this.modelo.set({ limite: fila.limite !== null ? String(fila.limite) : '' });
+    this.modelo.set({ limite: fila.limite });
     this.formulario().reset();
     this.editando.set(fila.categoria.id);
     afterNextRender(() => this.host.nativeElement.querySelector<HTMLInputElement>('input[data-slot=limite]')?.focus(), {
@@ -131,7 +131,7 @@ export class BudgetsPanelComponent {
 
   async guardar(): Promise<void> {
     const fila = this.filas().find((candidata) => candidata.categoria.id === this.editando());
-    const limite = limiteDeTexto(this.modelo().limite, this.store.baseCurrency());
+    const limite = limiteDeTexto(String(this.modelo().limite ?? ''), this.store.baseCurrency());
     if (!fila || limite === null) return;
     if (await this.presupuestos.fijar(fila.categoria.id, limite)) {
       this.cancelar();

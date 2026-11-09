@@ -1,4 +1,5 @@
 import { Component, signal } from '@angular/core';
+import { FormField, form, min, required } from '@angular/forms/signals';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { FormsModule } from '@angular/forms';
 import { PREFERENCES } from '@core/state/theme';
@@ -19,6 +20,18 @@ class HostComponent {
   readonly valor = signal<number | null>(null);
   entero: number | null = null;
   limitado: number | null = null;
+}
+
+@Component({
+  imports: [FormField, MontoInputDirective],
+  template: `<input id="signal" finMonto [formField]="formulario.valor" />`,
+})
+class SignalHostComponent {
+  readonly modelo = signal<{ valor: number | null }>({ valor: null });
+  readonly formulario = form(this.modelo, (campo) => {
+    required(campo.valor);
+    min(campo.valor, 1, { message: 'mínimo' });
+  });
 }
 
 function tecla(input: HTMLInputElement, key: string): boolean {
@@ -216,6 +229,62 @@ describe('MontoInputDirective', () => {
     it('pega 1.500 como decimal', () => {
       pegar(campo(), '1.500');
       expect(fixture.componentInstance.valor()).toBe(1.5);
+    });
+  });
+
+  describe('Signal Forms', () => {
+    let host: ComponentFixture<SignalHostComponent>;
+    const entrada = () => host.nativeElement.querySelector('#signal') as HTMLInputElement;
+
+    beforeEach(async () => {
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({ imports: [SignalHostComponent] });
+      TestBed.inject(PREFERENCES).update((p) => ({ ...p, locale: 'es-CO' }));
+      host = TestBed.createComponent(SignalHostComponent);
+      host.detectChanges();
+      await host.whenStable();
+    });
+
+    it('al escribir 1500000 muestra 1.500.000 y el modelo guarda 1500000', () => {
+      escribir(entrada(), '1500000');
+      expect(entrada().value).toBe('1.500.000');
+      expect(host.componentInstance.modelo().valor).toBe(1_500_000);
+    });
+
+    it('muestra con separador el valor que llega del modelo', async () => {
+      host.componentInstance.modelo.set({ valor: 2_500_000 });
+      host.detectChanges();
+      await host.whenStable();
+      expect(entrada().value).toBe('2.500.000');
+    });
+
+    it('vaciar el campo deja el modelo en null y la validación required falla', () => {
+      escribir(entrada(), '12');
+      vaciar(entrada());
+      expect(host.componentInstance.modelo().valor).toBeNull();
+      expect(
+        host.componentInstance.formulario
+          .valor()
+          .errors()
+          .map((e) => e.kind),
+      ).toContain('required');
+    });
+
+    it('la validación min del formulario ve el número exacto', () => {
+      escribir(entrada(), '0');
+      expect(
+        host.componentInstance.formulario
+          .valor()
+          .errors()
+          .map((e) => e.message),
+      ).toEqual(['mínimo']);
+      vaciar(entrada());
+      escribir(entrada(), '1500000');
+      expect(host.componentInstance.formulario.valor().errors()).toHaveLength(0);
+    });
+
+    it('el campo es de texto, no numérico', () => {
+      expect(entrada().type).toBe('text');
     });
   });
 });

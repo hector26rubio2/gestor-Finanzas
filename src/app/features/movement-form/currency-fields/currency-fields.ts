@@ -3,12 +3,12 @@ import { Component, Input, OnInit, effect, inject, untracked } from '@angular/co
 import { ControlContainer, FormsModule, NgForm } from '@angular/forms';
 import { I18nService } from '@core/i18n';
 import { TasaDeCambio } from '@core/state/tasa-de-cambio';
-import { NumericInputDirective } from '@ui/numeric-input/numeric-input.directive';
+import { MontoInputDirective } from '@ui/monto-input';
 import { FieldComponent } from '@ui/field/field';
 
 @Component({
   selector: 'fin-movement-currency-fields',
-  imports: [HlmInput, FormsModule, NumericInputDirective, FieldComponent],
+  imports: [HlmInput, FormsModule, MontoInputDirective, FieldComponent],
   templateUrl: './currency-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

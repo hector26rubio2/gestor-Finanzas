@@ -1,4 +1,4 @@
-import { Directive, ElementRef, effect, forwardRef, inject, input, untracked } from '@angular/core';
+import { Directive, ElementRef, Injector, effect, forwardRef, inject, input, untracked } from '@angular/core';
 import {
   AbstractControl,
   ControlValueAccessor,
@@ -7,6 +7,7 @@ import {
   ValidationErrors,
   Validator,
 } from '@angular/forms';
+import { FormField } from '@angular/forms/signals';
 import { PREFERENCES } from '@core/state/theme';
 import { TECLAS_DE_CONTROL } from '@ui/numeric-input/numeric-input.directive';
 
@@ -79,6 +80,7 @@ function canonicoDePegado(texto: string, separadores: Separadores): string | nul
 export class MontoInputDirective implements ControlValueAccessor, Validator {
   private readonly campo = inject<ElementRef<HTMLInputElement>>(ElementRef).nativeElement;
   private readonly preferencias = inject(PREFERENCES);
+  private readonly injector = inject(Injector);
   readonly minimo = input(undefined, { alias: 'min', transform: limite });
   readonly maximo = input(undefined, { alias: 'max', transform: limite });
 
@@ -123,7 +125,7 @@ export class MontoInputDirective implements ControlValueAccessor, Validator {
 
   validate(control: AbstractControl): ValidationErrors | null {
     const valor = control.value;
-    if (typeof valor !== 'number') return null;
+    if (typeof valor !== 'number' || this.injector.get(FormField, null, { self: true })) return null;
     const minimo = this.minimo();
     const maximo = this.maximo();
     if (minimo !== undefined && valor < minimo) return { min: { min: minimo, actual: valor } };
