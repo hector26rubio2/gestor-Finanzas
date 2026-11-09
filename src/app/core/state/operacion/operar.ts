@@ -26,6 +26,7 @@ export interface EntornoDeOperacion {
   permite(permiso: string): boolean;
   readonly monedaBase: string;
   nuevaClave(): string;
+  claveDeOperacion(huella: string): string;
 }
 
 export type CodigoDeError =
@@ -81,7 +82,12 @@ export type SolicitudDeOperacion =
   | {
       readonly via: 'movimiento';
       readonly cuerpo: CreateMovementBody;
-      readonly reparto?: RepartoCompleto;
+      readonly presentacion: OpcionesDeMapeo;
+    }
+  | {
+      readonly via: 'compraCompartida';
+      readonly cuerpo: CreateMovementBody;
+      readonly reparto: RepartoCompleto;
       readonly presentacion: OpcionesDeMapeo;
     }
   | {
@@ -117,19 +123,35 @@ const tasaValida = (tasa: number | undefined): boolean => {
   return Number.isFinite(valor) && valor >= 0 && valor <= 100;
 };
 
+const repartirEntero = (reparto: RepartoCompleto) => [{ counterparty: reparto.terceroId, basis: SHARE_BASIS.full }];
+
 export function repartoCompleto(movimientoId: string, reparto: RepartoCompleto) {
   return {
     purchaseMovement: movimientoId,
-    shares: [{ counterparty: reparto.terceroId, basis: SHARE_BASIS.full }],
+    shares: repartirEntero(reparto),
     description: reparto.descripcion,
   };
 }
+
+export function operacionCompartida(cuerpo: CreateMovementBody, reparto: RepartoCompleto) {
+  return { purchase: cuerpo, shares: repartirEntero(reparto), description: reparto.descripcion };
+}
+
+type CuerpoSinClave = Omit<CreateMovementBody, 'idempotencyKey'>;
 
 function cuerpoDeCompra(
   intencion: IntencionDeGasto | IntencionDeIngreso | IntencionDeCompraParaTercero,
   cuenta: Account,
   env: EntornoDeOperacion,
 ): CreateMovementBody {
+  return { ...cuerpoSinClave(intencion, cuenta, env), idempotencyKey: env.nuevaClave() };
+}
+
+function cuerpoSinClave(
+  intencion: IntencionDeGasto | IntencionDeIngreso | IntencionDeCompraParaTercero,
+  cuenta: Account,
+  env: EntornoDeOperacion,
+): CuerpoSinClave {
   const esIngreso = intencion.tipo === 'ingreso';
   const conTarjeta = esTarjeta(cuenta);
   const categoria = env.categoria(intencion.categoria);
@@ -159,7 +181,6 @@ function cuerpoDeCompra(
     rate: dolares ? String(dolares.tasa) : undefined,
     rateAsOf: dolares ? intencion.fecha : undefined,
     description: intencion.descripcion,
-    idempotencyKey: env.nuevaClave(),
     purchaseApr: conTarjeta ? aprPropia : undefined,
     installments: conTarjeta ? cuotas : undefined,
     cardBucket: conTarjeta && intencion.balde ? intencion.balde : undefined,
@@ -287,10 +308,12 @@ function operarCompraParaTercero(
         env,
       ),
     );
+  const reparto = { terceroId: tercero.id, descripcion: intencion.descripcion || null };
+  const sinClave = cuerpoSinClave(intencion, validada.cuenta, env);
   return exito({
-    via: 'movimiento',
-    cuerpo: cuerpoDeCompra(intencion, validada.cuenta, env),
-    reparto: { terceroId: tercero.id, descripcion: intencion.descripcion || null },
+    via: 'compraCompartida',
+    cuerpo: { ...sinClave, idempotencyKey: env.claveDeOperacion(JSON.stringify({ sinClave, reparto })) },
+    reparto,
     presentacion: {
       descripcion: intencion.descripcion,
       categoria: intencion.categoria,
