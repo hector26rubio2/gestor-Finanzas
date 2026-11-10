@@ -92,6 +92,61 @@ describe('crearRecursoRemoto', () => {
     expect(cargar).toHaveBeenCalledTimes(2);
   });
 
+  it('tres avisos del bus en la misma ráfaga producen una sola recarga', async () => {
+    const { recurso, escrituras } = montar();
+    solicitar(recurso);
+    await estabilizar();
+
+    escrituras.notify();
+    escrituras.notify();
+    escrituras.notify();
+    await estabilizar();
+
+    expect(cargar).toHaveBeenCalledTimes(2);
+  });
+
+  it('un aviso con una carga en curso deja exactamente una recarga más al terminar y gana la última respuesta', async () => {
+    const pendientes: ((valor: string[]) => void)[] = [];
+    const { recurso, escrituras } = montar();
+    solicitar(recurso);
+    await estabilizar();
+    cargar.mockImplementation(
+      () =>
+        new Observable<string[]>((suscriptor) => {
+          pendientes.push((valor) => {
+            suscriptor.next(valor);
+            suscriptor.complete();
+          });
+        }),
+    );
+    const esperar = () => new Promise((listo) => setTimeout(listo, 0));
+
+    escrituras.notify();
+    TestBed.tick();
+    await esperar();
+    expect(cargar).toHaveBeenCalledTimes(2);
+
+    escrituras.notify();
+    TestBed.tick();
+    escrituras.notify();
+    TestBed.tick();
+    await esperar();
+    expect(cargar).toHaveBeenCalledTimes(2);
+
+    pendientes[0](['vieja']);
+    TestBed.tick();
+    await esperar();
+    TestBed.tick();
+    await esperar();
+    expect(cargar).toHaveBeenCalledTimes(3);
+
+    pendientes[1](['nueva']);
+    await estabilizar();
+    await esperar();
+    expect(cargar).toHaveBeenCalledTimes(3);
+    expect(recurso.valor()).toEqual(['nueva']);
+  });
+
   it('refrescando es verdadero solo mientras recarga un valor ya cargado', async () => {
     let responder: (valor: string[]) => void = () => undefined;
     const { recurso } = montar();
