@@ -52,7 +52,7 @@
     </fin-field>
     @if (modelo().type !== 'credit') {
     <fin-field data-tour="form-cuenta-saldo" [label]="i18n.t('form.account.field.opening')">
-      <input hlmInput [formField]="formulario.opening" type="number" />
+      <input hlmInput [formField]="formulario.opening" finMonto />
     </fin-field>
     }
     <fin-field
@@ -64,7 +64,7 @@
     </fin-field>
     @if (modelo().currency === 'USD' && modelo().type !== 'credit') {
     <fin-field [label]="i18n.t('form.account.field.exchangeRate')" [error]="mensaje(formulario.exchangeRate)">
-      <input hlmInput [formField]="formulario.exchangeRate" type="number" />
+      <input hlmInput [formField]="formulario.exchangeRate" finMonto />
     </fin-field>
     } @if (modelo().type !== 'cash') {
     <fin-field data-tour="form-cuenta-entidad" [label]="i18n.t('form.account.field.issuer')">
@@ -96,7 +96,7 @@
       [label]="i18n.t('form.account.field.monthlyFee')"
       [error]="mensaje(formulario.monthlyFee)"
     >
-      <input hlmInput [formField]="formulario.monthlyFee" type="number" step="1000" />
+      <input hlmInput [formField]="formulario.monthlyFee" finMonto step="1000" />
     </fin-field>
     <label class="col-span-full flex items-center gap-2 text-xs font-medium">
       <hlm-checkbox [checked]="aplicarPrioridad()" (checkedChange)="aplicarPrioridad.set($event)" />
@@ -188,11 +188,10 @@
             hlmInput
             class="w-40"
             name="abonoDePrueba"
-            type="number"
+            finMonto
             min="0"
             step="10000"
-            [value]="abonoDePrueba()"
-            (input)="escribirAbono($event)"
+            [formField]="formulario.abonoDePrueba"
           />
         </label>
         }
@@ -250,7 +249,7 @@
     [label]="i18n.t('form.account.field.limit')"
     [error]="mensaje(formulario.limit)"
   >
-    <input hlmInput [formField]="formulario.limit" type="number" />
+    <input hlmInput [formField]="formulario.limit" finMonto />
   </fin-field>
   <fin-field
     data-tour="form-cuenta-corte"
