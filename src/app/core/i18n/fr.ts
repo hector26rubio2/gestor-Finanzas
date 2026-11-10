@@ -301,6 +301,8 @@ export default {
   'form.movement.error.targetDifferent': 'Sélectionnez un compte de destination différent.',
   'form.movement.error.operationNotCorrectable':
     "Les virements, paiements, avances et prêts ne permettent de modifier que la catégorie et la description ; pour corriger le montant, annulez l'opération et enregistrez-la à nouveau.",
+  'form.movement.error.originalNotFound':
+    'Le mouvement que vous essayez de modifier est introuvable ; rechargez la page et réessayez.',
   'form.movement.error.saveFailed': "Impossible d'enregistrer",
   'form.movement.actions.save': 'Enregistrer la transaction',
   'form.movement.actions.saving': 'Enregistrement…',

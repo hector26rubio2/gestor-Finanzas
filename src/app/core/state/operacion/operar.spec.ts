@@ -421,7 +421,10 @@ describe('operar corrección', () => {
 
   it('no permitido: sin permiso de editar u original desconocido', () => {
     expect(errorDe(correccion(), entorno({ permisos: [P.movimientos.crear] }))).toBe('sin_permiso');
-    expect(errorDe(correccion({ originalId: 'otro' }))).toBe('no_corregible');
+  });
+
+  it('no permitido: original desconocido', () => {
+    expect(errorDe(correccion({ originalId: 'otro' }))).toBe('movimiento_no_encontrado');
   });
 });
 

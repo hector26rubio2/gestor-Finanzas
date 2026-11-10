@@ -295,6 +295,8 @@ export default {
   'form.movement.error.targetDifferent': 'Select a different destination account.',
   'form.movement.error.operationNotCorrectable':
     'Transfers, payments, advances and loans only allow changing category and description; to fix the amount, reverse the operation and record it again.',
+  'form.movement.error.originalNotFound':
+    'The movement you are trying to edit was not found; reload the page and try again.',
   'form.movement.error.saveFailed': "Couldn't save",
   'form.movement.actions.save': 'Save transaction',
   'form.movement.actions.saving': 'Saving…',
