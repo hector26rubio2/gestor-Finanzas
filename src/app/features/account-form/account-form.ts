@@ -26,6 +26,7 @@ import { P } from '@core/session';
 import { OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { UiSelectOrCreateComponent } from '@ui/select-or-create';
+import { MontoInputDirective } from '@ui/monto-input';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
@@ -76,6 +77,7 @@ function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
     UiSelectComponent,
     UiSelectOrCreateComponent,
     NumericInputDirective,
+    MontoInputDirective,
     FieldComponent,
     IconComponent,
   ],
@@ -243,11 +245,6 @@ export class AccountFormComponent {
   mensaje(campo: FieldTree<unknown>): string {
     const estado = campo();
     return estado.touched() ? (estado.errors()[0]?.message ?? '') : '';
-  }
-
-  escribirAbono(evento: Event): void {
-    const valor = (evento.target as HTMLInputElement).value;
-    this.modelo.update((datos) => ({ ...datos, abonoDePrueba: Number(valor) || 0 }));
   }
 
   closed = () => this.store.form.set(null);

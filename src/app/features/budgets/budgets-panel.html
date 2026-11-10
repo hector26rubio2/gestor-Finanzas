@@ -57,14 +57,7 @@
             [label]="i18n.t('budgets.field.limit', { currency: store.baseCurrency() })"
             [error]="errorDeCampo()"
           >
-            <input
-              hlmInput
-              data-slot="limite"
-              type="number"
-              inputmode="decimal"
-              step="any"
-              [formField]="formulario.limite"
-            />
+            <input hlmInput data-slot="limite" finMonto step="any" [formField]="formulario.limite" />
           </fin-field>
           <div class="flex gap-2 pt-6">
             <button hlmBtn type="submit" [disabled]="presupuestos.guardando() === fila.categoria.id">

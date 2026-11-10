@@ -61,4 +61,39 @@ describe('formulario de operación de inversión', () => {
     expect(controles().length).toBeGreaterThanOrEqual(5);
     expect(sinNombre.map((control) => control.outerHTML.slice(0, 90))).toEqual([]);
   });
+
+  it('monto y precio unitario muestran el separador de miles y guardan el número exacto', async () => {
+    const fixture = await abrir();
+    fixture.componentInstance.modelo.update((modelo) => ({ ...modelo, type: '3' }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const escribir = (marca: string, texto: string) => {
+      const campo = document.body.querySelector<HTMLInputElement>(`fin-field[data-tour=${marca}] input`)!;
+      campo.value = texto;
+      campo.dispatchEvent(new Event('input'));
+      return campo;
+    };
+    const monto = escribir('form-operacion-monto', '4500000');
+    const precio = escribir('form-operacion-precio', '125500');
+    fixture.detectChanges();
+
+    expect(monto.value).toBe('4.500.000');
+    expect(precio.value).toBe('125.500');
+    expect(fixture.componentInstance.modelo().amount).toBe(4_500_000);
+    expect(fixture.componentInstance.modelo().unitPrice).toBe(125_500);
+  });
+
+  it('un monto vacío queda en null y la validación lo rechaza', async () => {
+    const fixture = await abrir();
+    const campo = document.body.querySelector<HTMLInputElement>('fin-field[data-tour=form-operacion-monto] input')!;
+
+    campo.value = '';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.modelo().amount).toBeNull();
+    expect(fixture.componentInstance.formulario.amount().invalid()).toBe(true);
+  });
 });
