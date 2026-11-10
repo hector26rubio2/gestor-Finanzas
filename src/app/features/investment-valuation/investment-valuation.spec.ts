@@ -42,4 +42,27 @@ describe('formulario de valorización de inversión', () => {
     expect(controles.length).toBeGreaterThanOrEqual(3);
     expect(sinNombre.map((control) => control.outerHTML.slice(0, 90))).toEqual([]);
   });
+
+  it('el valor muestra el separador de miles y guarda el número exacto', async () => {
+    const fixture = await abrir();
+    const campo = document.body.querySelector<HTMLInputElement>('fin-field[data-tour=form-valorizacion-valor] input')!;
+
+    campo.value = '85000000';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(campo.value).toBe('85.000.000');
+    expect(fixture.componentInstance.modelo().value).toBe(85_000_000);
+  });
+
+  it('un valor en cero no es válido', async () => {
+    const fixture = await abrir();
+    const campo = document.body.querySelector<HTMLInputElement>('fin-field[data-tour=form-valorizacion-valor] input')!;
+
+    campo.value = '0';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.formulario.value().invalid()).toBe(true);
+  });
 });

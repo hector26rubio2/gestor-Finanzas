@@ -29,6 +29,7 @@ import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { ChartCardComponent, ChartThemeService } from '@ui/chart';
 import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
+import { MontoInputDirective } from '@ui/monto-input';
 import { NumericInputDirective } from '@ui/numeric-input';
 import { UiSelectComponent, type UiOption } from '@ui/select';
 import { SimuladorDePlanificacion } from './simulador';
@@ -58,6 +59,7 @@ interface Metrica {
     HlmInput,
     HlmTabsImports,
     NumericInputDirective,
+    MontoInputDirective,
     UiSelectComponent,
     VistasGuardadasComponent,
     DeudasDelPlanComponent,

@@ -12,6 +12,7 @@ export default {
   'nav.planning': 'Planificación',
   'nav.reports': 'Reportes',
   'nav.notifications': 'Notificaciones',
+  'nav.notificationsUnread': 'Notificaciones, {count} sin leer',
   'nav.admin': 'Administración',
   'nav.settings': 'Preferencias',
   'shell.personal': 'Personal',
@@ -301,6 +302,8 @@ export default {
   'form.movement.error.targetDifferent': 'Selecciona una cuenta destino diferente.',
   'form.movement.error.operationNotCorrectable':
     'Las transferencias, pagos, avances y préstamos solo permiten cambiar categoría y descripción; para corregir el monto, reversa la operación y regístrala de nuevo.',
+  'form.movement.error.originalNotFound':
+    'No se encontró el movimiento que intentas editar; recarga la página e inténtalo de nuevo.',
   'form.movement.error.saveFailed': 'No se pudo guardar',
   'form.movement.actions.save': 'Guardar movimiento',
   'form.movement.actions.saving': 'Guardando…',

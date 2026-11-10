@@ -101,6 +101,40 @@ describe('BudgetsPanelComponent', () => {
     expect(fila(raiz, 'Ocio')?.querySelector('[role=progressbar]')).not.toBeNull();
   });
 
+  it('el límite muestra el separador de miles y se guarda con el número exacto', async () => {
+    const setBudget = vi.fn((categoryId: string, limite: { amount: string; currency: string }) =>
+      of(presupuesto(categoryId, limite.amount, limite.currency)),
+    );
+    const { fixture, raiz } = await montar([P.cuentas.categorias.listar, P.cuentas.categorias.editar], [], {
+      setBudget,
+    });
+
+    fila(raiz, 'Ocio')?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+    const campo = raiz.querySelector<HTMLInputElement>('input[data-slot=limite]')!;
+    campo.value = '1500000';
+    campo.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    expect(campo.value).toBe('1.500.000');
+    raiz.querySelector<HTMLButtonElement>('button[type=submit]')?.click();
+    await fixture.whenStable();
+
+    expect(setBudget).toHaveBeenCalledWith('c2', { amount: '1500000', currency: 'COP' });
+  });
+
+  it('un límite existente se abre con el separador de miles', async () => {
+    const { fixture, raiz } = await montar(
+      [P.cuentas.categorias.listar, P.cuentas.categorias.editar],
+      [presupuesto('c1', '2500000')],
+    );
+
+    fila(raiz, 'Mercado')?.querySelector<HTMLButtonElement>('button')?.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(raiz.querySelector<HTMLInputElement>('input[data-slot=limite]')!.value).toBe('2.500.000');
+  });
+
   it('rechaza un límite vacío o en cero sin llamar al servidor', async () => {
     const setBudget = vi.fn();
     const { fixture, raiz } = await montar([P.cuentas.categorias.listar, P.cuentas.categorias.editar], [], {
