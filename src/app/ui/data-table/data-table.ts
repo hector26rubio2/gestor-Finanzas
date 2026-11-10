@@ -87,6 +87,9 @@ export class DataTableComponent {
   readonly totalRows = input<number | null>(null);
   readonly remotePage = input(1);
   readonly selectable = input(true);
+  readonly filaActivaId = input<string | null>(null);
+  readonly densa = input(false);
+  readonly columnasOcultas = input<readonly string[]>([]);
   readonly multiSelect = input(false);
   readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
@@ -181,7 +184,10 @@ export class DataTableComponent {
     () =>
       new Set(
         this.columns()
-          .filter((column) => claveOcultaPorPrioridad(column, this.pantalla.tamano()))
+          .filter(
+            (column) =>
+              claveOcultaPorPrioridad(column, this.pantalla.tamano()) || this.columnasOcultas().includes(column.key),
+          )
           .map((column) => column.key),
       ),
   );
@@ -190,6 +196,10 @@ export class DataTableComponent {
       (header) => !this.clavesOcultasPorPrioridad().has(header.column.id),
     ),
   );
+  esFilaActiva(fila: TableRow): boolean {
+    const id = this.filaActivaId();
+    return id !== null && String(fila['id']) === id;
+  }
   alineacion(key: string): string {
     return this.columnOf(key)?.numerica ? 'tableta:text-end tableta:tabular-nums' : '';
   }

@@ -1,11 +1,11 @@
 @if (store.inspector(); as selected) {
-<fin-overlay
-  [title]="inspectorTitle()"
-  mode="inspector"
-  [wide]="store.cardPaymentMode() || isAccountInspector()"
-  (closed)="store.inspector.set(null); store.cardPaymentMode.set(false)"
+<fin-detalle
+  [titulo]="inspectorTitle()"
+  [ancho]="store.cardPaymentMode() || isAccountInspector()"
+  [acoplable]="selected.type === 'movement'"
+  (cerrado)="store.inspector.set(null); store.cardPaymentMode.set(false)"
   ><ng-container *ngTemplateOutlet="inspector"></ng-container
-></fin-overlay>
+></fin-detalle>
 }
 <ng-template #inspector
   ><section class="flex flex-col gap-4">

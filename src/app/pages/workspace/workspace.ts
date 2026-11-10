@@ -8,6 +8,7 @@ import { InvestmentOperationComponent } from '@features/investment-operation';
 import { InvestmentValuationComponent } from '@features/investment-valuation';
 import { ManagementFormComponent } from '@features/management-form';
 import { IconComponent } from '@ui/icon';
+import { ListaYDetalleComponent } from '@ui/lista-y-detalle';
 import { SinAccesoComponent } from '@ui/sin-acceso';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore } from '@core/state';
@@ -32,6 +33,7 @@ const paginasConMeta = [
     HlmButton,
     RouterOutlet,
     InspectorComponent,
+    ListaYDetalleComponent,
     AccountFormComponent,
     ManagementFormComponent,
     InvestmentOperationComponent,
