@@ -30,7 +30,7 @@
       <fin-field [label]="i18n.t('planning.sim.field.balance')">
         <input
           hlmInput
-          type="number"
+          finMonto
           min="0"
           [ngModel]="sim.ajustes()[deuda.id]?.saldo ?? deuda.saldo"
           (ngModelChange)="sim.ajustar(deuda.id, { saldo: numero($event) })"
@@ -78,7 +78,7 @@
       <fin-field [label]="i18n.t('planning.sim.field.balance')">
         <input
           hlmInput
-          type="number"
+          finMonto
           min="0"
           [ngModel]="deuda.saldo"
           (ngModelChange)="sim.ajustar(deuda.id, { saldo: numero($event) })"

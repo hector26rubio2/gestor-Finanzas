@@ -46,7 +46,7 @@ export async function guardarDialogo(
 }
 
 export async function llenarNumerosVacios(contenedor: Locator, valor: string): Promise<void> {
-  const numeros = contenedor.locator('input[type=number]');
+  const numeros = contenedor.locator('input[type=number], input[inputmode=decimal]');
   const total = await numeros.count();
   for (let i = 0; i < total; i += 1) {
     if (Number(await numeros.nth(i).inputValue()) <= 0) await numeros.nth(i).fill(valor);

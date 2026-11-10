@@ -2,7 +2,7 @@
   <fin-date-field name="date" [(ngModel)]="model['date']" required />
 </fin-field>
 <fin-field data-tour="form-monto" [label]="i18n.t('form.field.amount')">
-  <input hlmInput type="number" name="amount" min="1" [(ngModel)]="model['amount']" required />
+  <input hlmInput finMonto name="amount" min="1" [(ngModel)]="model['amount']" required />
 </fin-field>
 @if (showAccount()) {
 <fin-field data-tour="form-cuenta" [label]="sourceAccountLabel()">
