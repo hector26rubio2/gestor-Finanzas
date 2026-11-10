@@ -12,11 +12,13 @@ import {
   type EntornoDeOperacion,
   type OpcionesDeMapeo,
   type SolicitudDeOperacion,
+  operacionCompartida,
   operar,
   repartoCompleto,
 } from './operacion/operar';
 import { puedeReversar, solicitudDeReverso } from './operacion/reverso';
-import type { ApiMovement } from '@core/api/ledger.api';
+import type { ApiMovement, CreateMovementBody } from '@core/api/ledger.api';
+import type { ApiSharedPurchase } from '@core/api/purchases.api';
 
 const CATEGORIA_DE_OPERACION = 'Transferencias';
 
@@ -26,6 +28,7 @@ export class MovementCommands {
   private readonly injector = inject(Injector);
   private readonly i18n = inject(I18nService);
   private readonly capabilities = inject(CAPABILITIES);
+  private claveRecordada: { readonly huella: string; readonly clave: string } | null = null;
 
   async asentar(intencion: IntencionDeMovimiento): Promise<void> {
     const resultado = operar(intencion, this.entorno());
@@ -66,7 +69,53 @@ export class MovementCommands {
       permite: (permiso) => this.capabilities.allows(permiso),
       monedaBase: this.store.baseCurrency(),
       nuevaClave: () => crypto.randomUUID(),
+      claveDeOperacion: (huella) => this.claveParaHuella(huella),
     };
+  }
+
+  private claveParaHuella(huella: string): string {
+    if (this.claveRecordada?.huella !== huella) this.claveRecordada = { huella, clave: crypto.randomUUID() };
+    return this.claveRecordada.clave;
+  }
+
+  private movimientoDeCompraCompartida(
+    cuerpo: CreateMovementBody,
+    compartida: ApiSharedPurchase,
+    terceroId: string,
+    opciones: OpcionesDeMapeo,
+  ): Movement {
+    const tasa = cuerpo.rate ?? '1';
+    const base = String(Number(cuerpo.amount.amount) * Number(tasa));
+    const tercero = this.store.data().people.find((persona) => persona.id === terceroId);
+    return this.aMovimiento(
+      {
+        id: compartida.purchaseMovement,
+        date: compartida.date,
+        kind: cuerpo.kind,
+        effect: cuerpo.effect,
+        flow: cuerpo.flow,
+        amount: {
+          original: cuerpo.amount,
+          base: { amount: base, currency: this.store.baseCurrency() },
+          rate: tasa,
+          rateAsOf: cuerpo.rateAsOf ?? cuerpo.date,
+        },
+        links: { ...cuerpo.links },
+        linkNames: {
+          card: compartida.card,
+          ...(tercero ? { counterparty: { id: tercero.id, name: tercero.name } } : {}),
+        },
+        origin: 0,
+        description: cuerpo.description ?? null,
+        createdAt: compartida.createdAt,
+        reversalOf: null,
+        reversedBy: null,
+        purchaseApr: cuerpo.purchaseApr ?? null,
+        installments: cuerpo.installments ?? null,
+        cardBucket: cuerpo.cardBucket ?? null,
+      },
+      opciones,
+    );
   }
 
   private aMovimiento(origen: ApiMovement, opciones: OpcionesDeMapeo): Movement {
@@ -85,9 +134,22 @@ export class MovementCommands {
     switch (solicitud.via) {
       case 'movimiento': {
         const creado = await firstValueFrom(client.createMovement(solicitud.cuerpo));
-        if (solicitud.reparto)
-          await firstValueFrom(client.createSharedPurchase(repartoCompleto(creado.id, solicitud.reparto)));
         this.agregar([this.aMovimiento(creado, solicitud.presentacion)]);
+        return;
+      }
+      case 'compraCompartida': {
+        const compartida = await firstValueFrom(
+          client.asentarCompraCompartida(operacionCompartida(solicitud.cuerpo, solicitud.reparto)),
+        );
+        this.claveRecordada = null;
+        this.agregar([
+          this.movimientoDeCompraCompartida(
+            solicitud.cuerpo,
+            compartida,
+            solicitud.reparto.terceroId,
+            solicitud.presentacion,
+          ),
+        ]);
         return;
       }
       case 'correccion': {
