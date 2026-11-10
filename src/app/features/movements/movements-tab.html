@@ -1,3 +1,38 @@
+@if (kpisPlegables()) {
+<div
+  data-testid="movimientos-kpis-resumen"
+  role="group"
+  class="flex flex-wrap items-center gap-x-6 gap-y-1 rounded-lg border border-border bg-card ps-4 pe-2 py-1"
+  [attr.aria-label]="i18n.t('movements.kpi.summary.label')"
+>
+  <dl class="flex min-w-0 flex-wrap items-baseline gap-x-6 gap-y-1">
+    <div class="flex items-baseline gap-2">
+      <dt class="text-xs text-muted-foreground">{{ i18n.t('movements.kpi.summary.income') }}</dt>
+      <dd class="font-semibold text-success tabular-nums">{{ store.money(ingresosMostrados()) }}</dd>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <dt class="text-xs text-muted-foreground">{{ i18n.t('movements.kpi.summary.expense') }}</dt>
+      <dd class="font-semibold text-destructive tabular-nums">{{ store.money(gastosMostrados()) }}</dd>
+    </div>
+    <div class="flex items-baseline gap-2">
+      <dt class="text-xs text-muted-foreground">{{ i18n.t('movements.kpi.summary.net') }}</dt>
+      <dd class="font-semibold tabular-nums">{{ store.money(netoMostrado()) }}</dd>
+    </div>
+  </dl>
+  <button
+    hlmBtn
+    variant="ghost"
+    size="sm"
+    type="button"
+    class="ms-auto gap-1.5 tactil:min-h-11 tactil:min-w-11"
+    [attr.aria-expanded]="kpisDesplegados()"
+    (click)="kpisDesplegados.set(!kpisDesplegados())"
+  >
+    {{ i18n.t(kpisDesplegados() ? 'movements.kpi.summary.collapse' : 'movements.kpi.summary.expand') }}
+    <fin-icon [name]="kpisDesplegados() ? 'chevronUp' : 'chevronDown'" />
+  </button>
+</div>
+} @if (!kpisEnUnaLinea()) {
 <fin-kpi-grid data-tour="movimientos-kpis">
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
@@ -67,6 +102,7 @@
     [hint]="top ? i18n.t(hintDe('topCategory'), { amount: store.money(top.amount) }) : i18n.t('movements.kpi.topCategory.empty')"
   />
 </fin-kpi-grid>
+}
 <fin-table-zone class="relative" [attr.aria-busy]="book.movementsLoading()">
   @if (book.movementsLoading()) {
   <fin-skeleton class="absolute inset-0 z-[2] overflow-hidden opacity-90" />

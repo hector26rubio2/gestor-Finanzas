@@ -129,7 +129,8 @@
       <button
         hlmDropdownMenuCheckbox
         type="button"
-        [checked]="column.getIsVisible()"
+        [checked]="column.getIsVisible() && !columnaFijadaPorTamano(column.id)"
+        [disabled]="columnaFijadaPorTamano(column.id)"
         (triggered)="column.toggleVisibility()"
       >
         <hlm-dropdown-menu-checkbox-indicator />
@@ -141,17 +142,17 @@
 </div>
 }
 <div
-  class="min-h-0 flex-1 overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary max-[520px]:overflow-visible max-[520px]:p-2.5"
+  class="min-h-0 flex-1 overflow-auto focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary compacto:overflow-visible compacto:p-2.5"
   data-testid="table-scroll"
   tabindex="0"
   role="region"
   [attr.aria-label]="i18n.t('table.scrollRegion', { label: tableLabel() })"
 >
-  <table hlmTable class="border-separate border-spacing-0 text-left max-[520px]:block max-[520px]:w-full">
+  <table hlmTable class="border-separate border-spacing-0 text-left compacto:block compacto:w-full">
     <caption class="sr-only">
       {{ tableLabel() }}
     </caption>
-    <thead hlmTHead class="max-[520px]:sr-only">
+    <thead hlmTHead class="compacto:sr-only">
       <tr hlmTr class="border-0 hover:bg-transparent">
         @for (header of visibleHeaders(); track header.id) { @let column = header.column; @let direction =
         column.getIsSorted();
@@ -159,6 +160,7 @@
           hlmTh
           scope="col"
           class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold tracking-wide text-muted-foreground"
+          [class]="alineacion(column.id)"
           [attr.aria-sort]="column.getCanSort() ? ariaSort(direction) : null"
         >
           @if (column.id === '__select') {
@@ -185,20 +187,21 @@
         }
       </tr>
     </thead>
-    <tbody hlmTBody class="max-[520px]:grid max-[520px]:w-full max-[520px]:gap-2.5">
+    <tbody hlmTBody class="compacto:grid compacto:w-full compacto:gap-2.5">
       @for (row of visibleRows(); track row.id; let rowIndex = $index) {
       <tr
         hlmTr
-        class="max-[520px]:block max-[520px]:w-full max-[520px]:rounded-xl max-[520px]:border max-[520px]:border-border max-[520px]:px-3 max-[520px]:py-2"
+        class="compacto:block compacto:w-full compacto:rounded-xl compacto:border compacto:border-border compacto:px-3 compacto:py-2"
         [class]="selectable() ? 'cursor-pointer focus-within:bg-primary/[0.07] hover:bg-primary/[0.07]' : ''"
         [attr.data-state]="row.getIsSelected() ? 'selected' : null"
         (click)="selectable() && rowSelected.emit(row.original)"
       >
-        @for (cell of row.getVisibleCells(); track cell.id; let first = $first) { @let key = cell.column.id;
+        @for (cell of row.getVisibleCells(); track cell.id; let first = $first) { @let key = cell.column.id; @if
+        (!columnaFijadaPorTamano(key)) {
         <td
           hlmTd
-          class="border-b border-border px-[18px] py-3.5 max-[520px]:grid max-[520px]:w-full max-[520px]:grid-cols-[minmax(84px,0.6fr)_minmax(0,1fr)] max-[520px]:gap-3 max-[520px]:border-dashed max-[520px]:px-0 max-[520px]:py-2 max-[520px]:whitespace-normal max-[520px]:[overflow-wrap:anywhere] max-[520px]:before:text-xs max-[520px]:before:font-semibold max-[520px]:before:text-muted-foreground max-[520px]:before:content-[attr(data-label)] max-[520px]:last:border-b-0"
-          [class]="key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex)"
+          class="border-b border-border px-[18px] py-3.5 tableta:py-2.5 compacto:grid compacto:w-full compacto:grid-cols-[minmax(84px,0.6fr)_minmax(0,1fr)] compacto:gap-3 compacto:border-dashed compacto:px-0 compacto:py-2 compacto:whitespace-normal compacto:[overflow-wrap:anywhere] compacto:before:text-xs compacto:before:font-semibold compacto:before:text-muted-foreground compacto:before:content-[attr(data-label)] compacto:last:border-b-0"
+          [class]="key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex) + ' ' + alineacion(key)"
           [attr.data-label]="columnOf(key)?.label"
         >
           @if (key === '__select') {
@@ -230,7 +233,7 @@
             variant="ghost"
             size="sm"
             type="button"
-            class="mt-1 flex h-auto min-h-6 w-fit items-center justify-start p-0 text-xs font-semibold text-primary hover:bg-transparent max-[520px]:col-span-2"
+            class="mt-1 flex h-auto min-h-6 w-fit items-center justify-start p-0 text-xs font-semibold text-primary hover:bg-transparent compacto:col-span-2"
             [attr.aria-expanded]="isDetailOpen(row.id)"
             [attr.aria-controls]="isDetailOpen(row.id) ? detailRowId(row.id) : null"
             (click)="$event.stopPropagation(); toggleDetail(row.id)"
@@ -239,8 +242,8 @@
           </button>
           }
         </td>
-        } @if (hasDetailColumns()) {
-        <td hlmTd class="hidden border-0 max-[520px]:block max-[520px]:px-0 max-[520px]:pt-2 max-[520px]:pb-0">
+        } } @if (hasDetailColumns()) {
+        <td hlmTd class="hidden border-0 compacto:block compacto:px-0 compacto:pt-2 compacto:pb-0">
           <button
             hlmBtn
             variant="ghost"
@@ -255,10 +258,10 @@
         }
       </tr>
       @if (hasRowDetail(row.original) && isDetailOpen(row.id)) { @let detail = rowDetailTemplate();
-      <tr hlmTr class="hover:bg-transparent max-[520px]:block" [id]="detailRowId(row.id)">
+      <tr hlmTr class="hover:bg-transparent compacto:block" [id]="detailRowId(row.id)">
         <td
           hlmTd
-          class="border-b border-border bg-muted/30 px-[18px] py-3 max-[520px]:block max-[520px]:px-3"
+          class="border-b border-border bg-muted/30 px-[18px] py-3 compacto:block compacto:px-3"
           [attr.colspan]="visibleHeaders().length"
         >
           <ng-container *ngTemplateOutlet="detail; context: { $implicit: row.original }" />
@@ -280,31 +283,29 @@
 </div>
 @if (showFooter()) {
 <footer
-  class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground max-[520px]:grid max-[520px]:grid-cols-[1fr_auto] max-[520px]:items-center max-[520px]:gap-x-3 max-[520px]:gap-y-2.5 max-[520px]:px-3 max-[520px]:py-3"
+  class="flex shrink-0 flex-wrap items-center justify-between gap-4 border-t border-border px-4 py-3 text-xs text-muted-foreground compacto:grid compacto:grid-cols-[1fr_auto] compacto:items-center compacto:gap-x-3 compacto:gap-y-2.5 compacto:px-3 compacto:py-3"
 >
   <span [id]="rangeId" aria-live="polite"
     >{{ i18n.t('table.showingRange', { from: start(), to: end(), total: totalCount() }) }} @if (multiSelect() &&
     selectedCount()) { · {{ i18n.t('table.selection.count', { count: selectedCount() }) }} }</span
   >
   <label class="flex items-center gap-2.5">
-    <span class="max-[520px]:sr-only">{{ i18n.t('table.rowsPerPage') }}</span>
+    <span class="compacto:sr-only">{{ i18n.t('table.rowsPerPage') }}</span>
     <fin-select
-      class="w-[84px] max-[520px]:w-[72px]"
+      class="w-[84px] compacto:w-[72px]"
       [ariaLabel]="i18n.t('table.rowsPerPage.ariaLabel')"
       [options]="sizeOptions()"
       [ngModel]="size().toString()"
       (ngModelChange)="setSizeValue($event)"
     />
   </label>
-  <div
-    class="flex items-center gap-2.5 max-[520px]:col-span-2 max-[520px]:w-full max-[520px]:justify-center max-[520px]:gap-1.5"
-  >
+  <div class="flex items-center gap-2.5 compacto:col-span-2 compacto:w-full compacto:justify-center compacto:gap-1.5">
     <button
       hlmBtn
       variant="outline"
       size="icon-sm"
       type="button"
-      class="max-[520px]:hidden"
+      class="compacto:hidden"
       [attr.aria-label]="i18n.t('table.page.first')"
       [disabled]="currentPage() === 0"
       (click)="setPage(0)"
@@ -323,7 +324,7 @@
     >
       <fin-icon name="previous" />
     </button>
-    <label class="flex items-center gap-2.5 max-[520px]:gap-1.5">
+    <label class="flex items-center gap-2.5 compacto:gap-1.5">
       {{ i18n.t('table.page.label') }}
       <fin-select
         class="w-[84px]"
@@ -351,7 +352,7 @@
       variant="outline"
       size="icon-sm"
       type="button"
-      class="max-[520px]:hidden"
+      class="compacto:hidden"
       [attr.aria-label]="i18n.t('table.page.last')"
       [disabled]="currentPage() + 1 >= pageCount()"
       (click)="setPage(pageCount() - 1)"

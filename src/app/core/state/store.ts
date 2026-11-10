@@ -144,8 +144,8 @@ export class AppStore {
   readonly expense = computed(() => totalDeGastos(this.movements()));
   readonly avisosRecientes = signal<readonly ApiNotification[]>([]);
   readonly sinLeerDelArranque = signal(0);
-  readonly sinLeerCargados = signal<number | null>(null);
-  readonly unread = computed(() => this.sinLeerCargados() ?? this.sinLeerDelArranque());
+  readonly sinLeerMarcadas = signal<ReadonlySet<string>>(new Set());
+  readonly unread = computed(() => Math.max(0, this.sinLeerDelArranque() - this.sinLeerMarcadas().size));
   readonly debt = computed(() => this.saldos().deudaTotal());
   readonly available = computed(() => this.saldos().disponible());
   readonly baseCurrency = monedaBase;

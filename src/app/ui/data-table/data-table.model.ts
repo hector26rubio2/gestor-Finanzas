@@ -16,6 +16,7 @@ import {
   tableFeatures,
 } from '@tanstack/angular-table';
 import { IconName } from '@ui/icon/icon';
+import { TamanoDePantalla, esTableta } from '@ui/pantalla';
 
 export interface TableColumn {
   key: string;
@@ -30,6 +31,12 @@ export interface TableColumn {
   rawKey?: string;
   options?: readonly string[];
   wrap?: boolean;
+  prioridad?: 1 | 2 | 3;
+  numerica?: boolean;
+}
+
+export function claveOcultaPorPrioridad(column: TableColumn, tamano: TamanoDePantalla): boolean {
+  return esTableta(tamano) && (column.prioridad ?? 1) > 1;
 }
 
 export type TableRow = Record<string, any>;

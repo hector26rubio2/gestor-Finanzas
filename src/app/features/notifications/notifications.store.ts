@@ -1,4 +1,4 @@
-import { DestroyRef, Injectable, computed, effect, inject } from '@angular/core';
+import { DestroyRef, Injectable, computed, inject } from '@angular/core';
 import { NotificationsApi } from '@core/api';
 import { I18nService } from '@core/i18n';
 import { toViewNotification } from '@core/session';
@@ -23,11 +23,6 @@ export class NotificationsStore {
     (this.recurso.valor() ?? this.store.avisosRecientes()).map((aviso) => toViewNotification(this.i18n, aviso)),
   );
 
-  private readonly publicarSinLeer = effect(() => {
-    const completas = this.recurso.valor();
-    this.store.sinLeerCargados.set(completas ? completas.filter((aviso) => aviso.readAt === null).length : null);
-  });
-
   solicitar(destruccion?: DestroyRef): void {
     this.recurso.solicitar(destruccion);
   }
@@ -38,6 +33,7 @@ export class NotificationsStore {
 
   marcarLeidas(ids: ReadonlySet<string>): void {
     const leidaEn = new Date().toISOString();
+    this.store.sinLeerMarcadas.update((marcadas) => new Set([...marcadas, ...ids]));
     this.recurso.actualizar((avisos) =>
       avisos.map((aviso) => (ids.has(aviso.id) ? { ...aviso, readAt: aviso.readAt ?? leidaEn } : aviso)),
     );

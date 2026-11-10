@@ -38,6 +38,7 @@ export type CodigoDeError =
   | 'tasa_invalida'
   | 'tasa_de_cambio_invalida'
   | 'no_corregible'
+  | 'movimiento_no_encontrado'
   | 'compra_con_tarjeta_prohibida'
   | 'transferencia_con_tarjeta'
   | 'avance_con_cuentas_invalidas'
@@ -52,6 +53,7 @@ export const CLAVE_DE_ERROR: Readonly<Record<CodigoDeError, string>> = {
   tasa_invalida: 'form.movement.error.rateInvalid',
   tasa_de_cambio_invalida: 'form.account.error.exchangeRate',
   no_corregible: 'form.movement.error.operationNotCorrectable',
+  movimiento_no_encontrado: 'form.movement.error.originalNotFound',
   compra_con_tarjeta_prohibida: 'form.movement.error.creditPurchaseForbidden',
   transferencia_con_tarjeta: 'form.movement.error.transferCreditForbidden',
   avance_con_cuentas_invalidas: 'form.movement.error.advanceAccountInvalid',
@@ -330,8 +332,8 @@ function operarCorreccion(
 ): ResultadoDeOperacion {
   if (!env.permite(P.movimientos.editar)) return fallo('sin_permiso');
   const original = env.movimiento(intencion.originalId);
-  if (!original || original.movementSubtype || original.kind === 'payment' || original.loanRole)
-    return fallo('no_corregible');
+  if (!original) return fallo('movimiento_no_encontrado');
+  if (original.movementSubtype || original.kind === 'payment' || original.loanRole) return fallo('no_corregible');
   const validada = validarCompra(intencion.reemplazo, env, P.movimientos.editar);
   if (esError(validada)) return fallo(validada.codigo);
   return exito({

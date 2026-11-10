@@ -41,7 +41,7 @@ export class MovementsBookService {
   readonly movementColumns = computed(() => [
     { key: 'date', label: this.i18n.t('movements.column.date'), filter: 'date' as const, rawKey: 'dateIso' },
     { key: 'description', label: this.i18n.t('movements.column.description') },
-    { key: 'amount', label: this.i18n.t('movements.column.amount') },
+    { key: 'amount', numerica: true, label: this.i18n.t('movements.column.amount') },
     {
       key: 'account',
       label: this.i18n.t('movements.column.account'),
@@ -49,19 +49,26 @@ export class MovementsBookService {
     },
     {
       key: 'product',
+      prioridad: 2 as const,
       label: this.i18n.t('movements.column.product'),
       options: ['credit', 'debit'].map((clave) => this.i18n.t(`movements.column.product.${clave}`)),
     },
     {
       key: 'effect',
+      prioridad: 2 as const,
       label: this.i18n.t('movements.column.effect'),
       essential: false,
       options: ['debit', 'credit', 'pending'].map((clave) => this.i18n.t(`movements.column.effect.${clave}`)),
     },
-    { key: 'currency', label: this.i18n.t('movements.column.currency'), essential: false },
-    { key: 'financing', label: this.i18n.t('movements.column.financing'), essential: false },
-    { key: 'responsibility', label: this.i18n.t('movements.column.responsibility'), essential: false },
-    { key: 'recurrence', label: this.i18n.t('movements.column.recurrence'), essential: false },
+    { key: 'currency', prioridad: 2 as const, label: this.i18n.t('movements.column.currency'), essential: false },
+    { key: 'financing', prioridad: 2 as const, label: this.i18n.t('movements.column.financing'), essential: false },
+    {
+      key: 'responsibility',
+      prioridad: 2 as const,
+      label: this.i18n.t('movements.column.responsibility'),
+      essential: false,
+    },
+    { key: 'recurrence', prioridad: 2 as const, label: this.i18n.t('movements.column.recurrence'), essential: false },
   ]);
   private valoresDe(...campos: string[]): string[] {
     return this.pinned()

@@ -39,6 +39,10 @@ export function hechosDeMovimiento(
   return [
     [t('workspace.inspector.facts.date'), m.date],
     [t('workspace.inspector.facts.account'), accountName(m.accountId) ?? SIN_DATO],
+    [
+      t('workspace.inspector.facts.product'),
+      t(`movements.column.product.${accountType?.(m.accountId) === 'credit' ? 'credit' : 'debit'}`),
+    ],
     [t('workspace.inspector.facts.category'), m.category || t('movements.column.financing.none')],
     [
       t('workspace.inspector.facts.nature'),

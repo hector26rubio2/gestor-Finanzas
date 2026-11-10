@@ -94,7 +94,7 @@
       [label]="i18n.t('form.field.amount')"
       [error]="mensaje(formulario.amount)"
     >
-      <input hlmInput type="number" inputmode="decimal" [formField]="formulario.amount" />
+      <input hlmInput finMonto [formField]="formulario.amount" />
     </fin-field>
     <fin-field
       data-tour="form-recurrente-cuenta"

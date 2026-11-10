@@ -43,11 +43,17 @@ function claseEfectiva(modelo: MovementFormModel): string {
   return modelo.operationType === 'transfer' || modelo.operationType === 'advance' ? modelo.operationType : modelo.kind;
 }
 
+function claseOriginal(original: Movement): string {
+  return original.movementSubtype === 'transfer' || original.movementSubtype === 'advance'
+    ? original.movementSubtype
+    : original.kind;
+}
+
 function cambiaElRegistro(original: Movement, modelo: MovementFormModel, contexto: ContextoDelFormulario): boolean {
   return (
     original.date !== modelo.date ||
     original.accountId !== modelo.accountId ||
-    original.kind !== claseEfectiva(modelo) ||
+    claseOriginal(original) !== claseEfectiva(modelo) ||
     Math.abs(original.amount) !== modelo.amount ||
     (original.installmentTotal ?? 1) !== (Number(modelo.installmentTotal) || 1) ||
     (original.originalCurrency ?? 'COP') !== contexto.moneda ||
@@ -57,7 +63,7 @@ function cambiaElRegistro(original: Movement, modelo: MovementFormModel, context
 
 function deEdicion(modelo: MovementFormModel, id: string, contexto: ContextoDelFormulario): IntencionDeMovimiento {
   const original = contexto.movimiento(id);
-  if (original && cambiaElRegistro(original, modelo, contexto))
+  if (!original || cambiaElRegistro(original, modelo, contexto))
     return { tipo: 'correccion', originalId: id, reemplazo: gastoOIngreso(modelo, contexto) };
   return { tipo: 'reclasificacion', movimientoId: id, categoria: modelo.category, descripcion: modelo.description };
 }
