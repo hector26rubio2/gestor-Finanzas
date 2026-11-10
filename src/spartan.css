@@ -14,6 +14,12 @@
 @custom-variant data-open (&[data-state='open']);
 @custom-variant data-closed (&[data-state='closed']);
 @custom-variant dark (:is([data-theme='dark'], [data-theme='ocean'], [data-theme='berry']) &);
+@custom-variant compacto (@media (max-width: 599.98px));
+@custom-variant medio (@media (min-width: 600px) and (max-width: 1023.98px));
+@custom-variant amplio (@media (min-width: 1024px) and (max-width: 1279.98px));
+@custom-variant tableta (@media (min-width: 600px) and (max-width: 1279.98px));
+@custom-variant expandido (@media (min-width: 1280px));
+@custom-variant tactil (@media (pointer: coarse));
 
 @theme inline {
   --color-background: var(--bg);
