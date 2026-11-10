@@ -1,6 +1,6 @@
 import { Directive, ElementRef, OnInit, booleanAttribute, inject, input } from '@angular/core';
 
-const TECLAS_DE_CONTROL = new Set([
+export const TECLAS_DE_CONTROL = new Set([
   'Backspace',
   'Delete',
   'Tab',

@@ -12,6 +12,7 @@ export default {
   'nav.planning': 'Planificación',
   'nav.reports': 'Reportes',
   'nav.notifications': 'Notificaciones',
+  'nav.notificationsUnread': 'Notificaciones, {count} sin leer',
   'nav.admin': 'Administración',
   'nav.settings': 'Preferencias',
   'shell.personal': 'Personal',

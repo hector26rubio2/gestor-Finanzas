@@ -12,7 +12,7 @@ test.describe('Abono de tarjeta', () => {
     await atajo(page, 'n', 'p');
     const panel = panelLateral(page);
     await expect(panel.getByText(/Valor del abono/)).toBeVisible();
-    await panel.locator('input[type=number]').first().fill('900000000');
+    await panel.locator('input[inputmode=decimal]').first().fill('900000000');
     await panel.getByLabel(/Motivo/).fill(motivo);
     await expect(panel.getByText(/a favor/)).toBeVisible();
     const marca = vigilancia.marca();

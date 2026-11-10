@@ -121,7 +121,65 @@ describe('formulario de cuenta nueva', () => {
 
     expect(fixture.componentInstance.modelo().exchangeRate).toBe(4012.5);
     const campo = document.body.querySelector<HTMLInputElement>('input[name="cuenta.exchangeRate"]')!;
-    expect(Number(campo.value)).toBe(4012.5);
+    expect(campo.value).toBe('4.012,5');
+  });
+
+  it('el saldo inicial muestra el separador de miles y guarda el número exacto', async () => {
+    const { fixture } = await abrirFormulario('savings');
+
+    await escribir(fixture, 'opening', '25000000');
+
+    const campo = document.body.querySelector<HTMLInputElement>('input[name="cuenta.opening"]')!;
+    expect(campo.value).toBe('25.000.000');
+    expect(fixture.componentInstance.modelo().opening).toBe(25_000_000);
+  });
+
+  it('el cupo y la cuota de manejo muestran el separador y guardan el número exacto', async () => {
+    const { fixture } = await abrirFormulario('credit');
+
+    const cupo = document.body.querySelector<HTMLInputElement>('input[name="cuenta.limit"]')!;
+    expect(cupo.value).toBe('5.000.000');
+    await escribir(fixture, 'limit', '12500000');
+    await escribir(fixture, 'monthlyFee', '29900');
+
+    expect(cupo.value).toBe('12.500.000');
+    expect(fixture.componentInstance.modelo().limit).toBe(12_500_000);
+    expect(document.body.querySelector<HTMLInputElement>('input[name="cuenta.monthlyFee"]')!.value).toBe('29.900');
+    expect(fixture.componentInstance.modelo().monthlyFee).toBe(29_900);
+  });
+
+  it('un cupo vacío no se envía y avisa en el campo del cupo', async () => {
+    const { fixture } = await abrirFormulario('credit');
+    const crear = vi.spyOn(TestBed.inject(CatalogCommands), 'createAccount');
+
+    await escribir(fixture, 'limit', '');
+    await enviar(fixture);
+
+    expect(crear).not.toHaveBeenCalled();
+    expect(fixture.componentInstance.modelo().limit).toBeNull();
+    expect(document.body.textContent).toContain('El límite de crédito debe ser mayor a 0.');
+  });
+
+  it('el abono de prueba de una tarjeta editada usa el separador y simula con el número exacto', async () => {
+    const tarjeta: Account = {
+      id: 't1',
+      name: 'Visa',
+      type: 'credit',
+      currency: 'COP',
+      openingBalance: 0,
+      limit: 2000000,
+      cutDay: 10,
+      dueDay: 25,
+      annualRate: 30,
+      lastFour: '9999',
+    };
+    const { fixture } = await abrirFormulario('credit', tarjeta);
+
+    await escribir(fixture, 'abonoDePrueba', '1500000');
+
+    const campo = document.body.querySelector<HTMLInputElement>('input[name="cuenta.abonoDePrueba"]')!;
+    expect(campo.value).toBe('1.500.000');
+    expect(fixture.componentInstance.abonoDePrueba()).toBe(1_500_000);
   });
 
   it('al editar una tarjeta carga sus datos y guarda los cambios', async () => {
