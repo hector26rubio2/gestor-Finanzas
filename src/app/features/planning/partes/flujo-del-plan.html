@@ -41,7 +41,7 @@
       <input
         hlmInput
         class="h-8"
-        type="number"
+        finMonto
         min="0"
         step="10000"
         [attr.aria-label]="linea.nombre"
@@ -114,7 +114,7 @@
       <fin-field [label]="i18n.t('planning.sim.event.amount')">
         <input
           hlmInput
-          type="number"
+          finMonto
           min="0"
           step="10000"
           [ngModel]="cambio.monto"

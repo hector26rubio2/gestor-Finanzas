@@ -17,7 +17,7 @@ import { ObligationsApi } from './obligations.api';
 import { PeopleApi } from './people.api';
 import { PreferencesApi } from './preferences.api';
 import { PrivacyApi } from './privacy.api';
-import { PurchasesApi } from './purchases.api';
+import { type AsentarCompraCompartidaBody, PurchasesApi } from './purchases.api';
 import { RecurrencesApi } from './recurrences.api';
 import { ReportingApi } from './reporting.api';
 import { SessionApi } from './session.api';
@@ -360,6 +360,9 @@ export class FinanceApiClient {
   }
   createSharedPurchase(request: Parameters<PurchasesApi['createSharedPurchase']>[0]) {
     return this.purchasesApi.createSharedPurchase(request);
+  }
+  asentarCompraCompartida(request: AsentarCompraCompartidaBody) {
+    return this.purchasesApi.asentarCompraCompartida(request);
   }
   settlements() {
     return this.settlementsApi.settlements();

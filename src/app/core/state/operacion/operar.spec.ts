@@ -41,6 +41,7 @@ function entorno(
     permite: (permiso) => permisos === 'todos' || permisos.includes(permiso),
     monedaBase: 'COP',
     nuevaClave: () => 'clave-1',
+    claveDeOperacion: (huella) => `compartida:${huella}`,
   };
 }
 
@@ -326,13 +327,23 @@ describe('operar compra para tercero', () => {
       ...sobre,
     }) as IntencionDeMovimiento;
 
-  it('con tarjeta: compra enlazada al tercero y reparto completo, propiedad prestada', () => {
+  it('con tarjeta: operacion atomica con la compra enlazada al tercero, reparto completo y propiedad prestada', () => {
     const solicitud = solicitudDe(compra());
-    if (solicitud.via !== 'movimiento') throw new Error('via');
+    if (solicitud.via !== 'compraCompartida') throw new Error('via');
     expect(solicitud.cuerpo.links).toMatchObject({ card: 'visa', counterparty: 'camilo' });
     expect(solicitud.reparto).toEqual({ terceroId: 'camilo', descripcion: 'Compra para Camilo' });
     expect(solicitud.presentacion.propiedad).toBe('loaned');
     expect(signOf(solicitud.cuerpo.flow, solicitud.cuerpo.effect)).toBe(-1);
+  });
+
+  it('la clave de la operacion sale de una huella que cambia con monto o reparto y no con lo demas', () => {
+    const claveDe = (sobre = {}) => {
+      const solicitud = solicitudDe(compra(sobre));
+      if (solicitud.via !== 'compraCompartida') throw new Error('via');
+      return solicitud.cuerpo.idempotencyKey;
+    };
+    expect(claveDe()).toBe(claveDe());
+    expect(claveDe({ monto: 91_000 })).not.toBe(claveDe());
   });
 
   it('con una cuenta propia queda como prestamo por cobrar', () => {
@@ -421,7 +432,10 @@ describe('operar corrección', () => {
 
   it('no permitido: sin permiso de editar u original desconocido', () => {
     expect(errorDe(correccion(), entorno({ permisos: [P.movimientos.crear] }))).toBe('sin_permiso');
-    expect(errorDe(correccion({ originalId: 'otro' }))).toBe('no_corregible');
+  });
+
+  it('no permitido: original desconocido', () => {
+    expect(errorDe(correccion({ originalId: 'otro' }))).toBe('movimiento_no_encontrado');
   });
 });
 

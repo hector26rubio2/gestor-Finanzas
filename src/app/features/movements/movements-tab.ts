@@ -1,4 +1,4 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, computed, inject } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,9 @@ import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { DataTableComponent } from '@ui/data-table';
 import { SkeletonComponent } from '@ui/skeleton';
 import { KpiComponent } from '@ui/kpi';
+import { Pantalla, esTableta } from '@ui/pantalla';
+import { IconComponent } from '@ui/icon/icon';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { longestInstallmentDebt, recurringExpenseCount, topSpendingCategory } from './movement-insights';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { P } from '@core/session';
@@ -47,6 +50,8 @@ const DIAS_MAXIMOS_DEL_RESUMEN = 3650;
     TableZoneComponent,
     UiSelectComponent,
     SkeletonComponent,
+    IconComponent,
+    HlmButton,
   ],
   templateUrl: './movements-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
@@ -55,6 +60,11 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly store = inject(AppStore);
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
+  private readonly pantalla = inject(Pantalla);
+  readonly kpisDesplegados = signal(false);
+  readonly kpisEnUnaLinea = computed(() => esTableta(this.pantalla.tamano()) && !this.kpisDesplegados());
+  readonly kpisPlegables = computed(() => esTableta(this.pantalla.tamano()));
+  readonly netoMostrado = computed(() => this.ingresosMostrados() - this.gastosMostrados());
   private readonly capabilities = inject(CAPABILITIES);
   private readonly route = inject(ActivatedRoute);
   private readonly headerActions = inject(HeaderActionsService);

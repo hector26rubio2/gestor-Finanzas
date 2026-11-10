@@ -23,6 +23,7 @@ import { ColumnDef, injectTable } from '@tanstack/angular-table';
 import { I18nService } from '@core/i18n';
 import { sincronizarPaginaConLaUrl } from '@core/routing/url-state';
 import { IconComponent, IconName } from '@ui/icon/icon';
+import { Pantalla } from '@ui/pantalla';
 import { SearchFieldComponent } from '@ui/search-field/search-field';
 import { DateFieldComponent } from '@ui/date-field/date-field';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
@@ -35,6 +36,7 @@ import {
   iconoDeOrden,
   mostrarValor,
   SELECT_COLUMN,
+  claveOcultaPorPrioridad,
   SortDirection,
   TABLE_ALL_FIELDS,
   TableColumn,
@@ -64,11 +66,12 @@ import {
   templateUrl: './data-table.html',
   host: {
     class:
-      'flex min-h-0 min-w-0 flex-1 flex-col rounded-lg border border-border bg-card text-foreground max-[520px]:max-w-full max-[520px]:overflow-visible',
+      'flex min-h-0 min-w-0 flex-1 flex-col rounded-lg border border-border bg-card text-foreground compacto:max-w-full compacto:overflow-visible',
   },
 })
 export class DataTableComponent {
   readonly i18n = inject(I18nService);
+  private readonly pantalla = inject(Pantalla);
   private readonly cellTemplates = contentChildren(FinTableCellDirective);
   cellTemplate(key: string) {
     return this.cellTemplates()?.find((t) => t.column() === key)?.template ?? null;
@@ -174,7 +177,25 @@ export class DataTableComponent {
   readonly start = computed(() => (this.totalCount() ? this.currentPage() * this.size() + 1 : 0));
   readonly end = computed(() => Math.min((this.currentPage() + 1) * this.size(), this.totalCount()));
   readonly visibleRows = computed(() => this.table.getRowModel().rows);
-  readonly visibleHeaders = computed(() => this.table.getHeaderGroups()[0]?.headers ?? []);
+  private readonly clavesOcultasPorPrioridad = computed(
+    () =>
+      new Set(
+        this.columns()
+          .filter((column) => claveOcultaPorPrioridad(column, this.pantalla.tamano()))
+          .map((column) => column.key),
+      ),
+  );
+  readonly visibleHeaders = computed(() =>
+    (this.table.getHeaderGroups()[0]?.headers ?? []).filter(
+      (header) => !this.clavesOcultasPorPrioridad().has(header.column.id),
+    ),
+  );
+  alineacion(key: string): string {
+    return this.columnOf(key)?.numerica ? 'tableta:text-end tableta:tabular-nums' : '';
+  }
+  columnaFijadaPorTamano(key: string): boolean {
+    return this.clavesOcultasPorPrioridad().has(key);
+  }
   readonly selectedCount = computed(() => this.table.getSelectedRowModel().rows.length);
   readonly facetColumns = computed(() => this.columns().filter((column) => column.facet && !this.remote()));
   readonly hideableColumns = computed(() =>
@@ -411,7 +432,7 @@ export class DataTableComponent {
   detailClass(column: TableColumn, rowIndex: number): string {
     const ajuste = column.wrap ? 'max-w-[28rem] min-w-48 whitespace-normal [overflow-wrap:anywhere]' : '';
     if (column.essential !== false) return ajuste;
-    return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'max-[520px]:grid' : 'max-[520px]:hidden'}`;
+    return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'compacto:grid' : 'compacto:hidden'}`;
   }
 
   textoRecortado(column: TableColumn | undefined): boolean {

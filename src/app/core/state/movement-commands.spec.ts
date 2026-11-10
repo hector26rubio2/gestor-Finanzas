@@ -505,47 +505,151 @@ describe('MovementCommands.asentar — compras de terceros y tarjeta prestada', 
     },
   });
 
-  it('una compra con tarjeta a nombre de otra persona se reparte entera a esa persona', async () => {
-    const transport = new TransportFalso()
-      .responder('POST /api/v1/movements', {
-        body: apiMovement({
-          id: 'compra-1',
-          amount: montoDe('90000'),
-          links: { card: 'tarjeta-1', counterparty: 'persona-1' },
-          linkNames: { counterparty: { id: 'persona-1', name: 'Camilo' } },
-        }),
-      })
-      .responder('POST /api/v1/shared-purchases', { body: {} });
-    const { store, component, cambios } = pruebaRender(ComponenteVacio, {
+  const compraCompartida = {
+    tipo: 'compraParaTercero',
+    fecha: '2026-10-28',
+    descripcion: 'Compra para Camilo',
+    cuentaId: 'tarjeta-1',
+    monto: 90000,
+    categoria: 'Mercado',
+    recurrente: false,
+    terceroId: 'persona-1',
+  } as const;
+
+  const visa = {
+    id: 'tarjeta-1',
+    name: 'Visa',
+    type: 'credit',
+    currency: 'COP',
+    openingBalance: 0,
+    limit: 5000000,
+  } as const;
+
+  const compartidaRespuesta = {
+    body: {
+      id: 'compartida-1',
+      purchaseMovement: 'compra-1',
+      card: { id: 'tarjeta-1', name: 'Visa' },
+      date: '2026-10-28',
+      total: { amount: '90000', currency: 'COP' },
+      description: 'Compra para Camilo',
+      allocation: { shares: [], holderPortion: { amount: '0', currency: 'COP' } },
+      createdAt: '2026-10-28T12:00:00Z',
+    },
+  };
+
+  const montarCompartida = (transport: TransportFalso) =>
+    pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe({ accounts: [visa] }),
+      transport,
+    });
+
+  const clavesEnviadas = (transport: TransportFalso) =>
+    transport.peticiones.map(
+      (peticion) => (peticion.body as { purchase: { idempotencyKey: string } }).purchase.idempotencyKey,
+    );
+
+  it('una compra con tarjeta a nombre de otra persona llama una sola vez al endpoint atomico y nunca a movimientos', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/operations/shared-purchases', compartidaRespuesta);
+    const { store, component, cambios } = montarCompartida(transport);
+    cambios();
+
+    await component.comandos.asentar(compraCompartida);
+
+    expect(transport.peticiones).toHaveLength(1);
+    const [peticion] = transport.peticiones;
+    expect(peticion).toMatchObject({ method: 'POST', path: '/api/v1/operations/shared-purchases' });
+    expect(peticion.body).toMatchObject({
+      purchase: {
+        kind: MovementKind.cardPurchase,
+        amount: { amount: '90000', currency: 'COP' },
+        links: { card: 'tarjeta-1', counterparty: 'persona-1' },
+        idempotencyKey: expect.any(String),
+      },
+      shares: [{ counterparty: 'persona-1', basis: 1 }],
+      description: 'Compra para Camilo',
+    });
+    expect(transport.peticiones.some((p) => p.path === '/api/v1/movements')).toBe(false);
+    expect(store.data().movements[0]).toMatchObject({
+      id: 'compra-1',
+      person: 'Camilo',
+      ownership: 'loaned',
+      amount: -90000,
+      accountId: 'tarjeta-1',
+    });
+    expect(store.form()).toBeNull();
+  });
+
+  it('si el endpoint atomico falla no entra nada al store y el formulario sigue abierto', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/operations/shared-purchases', {
+      error: { status: 500, code: 'internal.error' },
+    });
+    const { store, component, cambios } = montarCompartida(transport);
+    cambios();
+    store.form.set({ tipo: 'gasto' } as never);
+    const antes = store.data().movements.length;
+
+    await expect(component.comandos.asentar(compraCompartida)).rejects.toBeDefined();
+
+    expect(store.data().movements).toHaveLength(antes);
+    expect(store.form()).not.toBeNull();
+    expect(transport.peticiones).toHaveLength(1);
+  });
+
+  it('reintentar sin cambios reusa la misma clave de idempotencia', async () => {
+    let intento = 0;
+    const transport = new TransportFalso().responder('POST /api/v1/operations/shared-purchases', () =>
+      ++intento === 1 ? { error: { status: 500, code: 'internal.error' } } : compartidaRespuesta,
+    );
+    const { component, cambios } = montarCompartida(transport);
+    cambios();
+
+    await expect(component.comandos.asentar(compraCompartida)).rejects.toBeDefined();
+    await component.comandos.asentar(compraCompartida);
+
+    const [primera, segunda] = clavesEnviadas(transport);
+    expect(primera).toEqual(segunda);
+  });
+
+  it.each([
+    ['el monto', { monto: 95000 }],
+    ['la cuenta', { cuentaId: 'tarjeta-2' }],
+    ['el reparto', { terceroId: 'persona-2' }],
+  ])('si cambia %s la clave de idempotencia se renueva', async (_, cambio) => {
+    const transport = new TransportFalso().responder('POST /api/v1/operations/shared-purchases', {
+      error: { status: 500, code: 'internal.error' },
+    });
+    const { component, cambios } = pruebaRender(ComponenteVacio, {
       session: sesionDe().conTodosLosPermisos(),
       data: datosDe({
-        accounts: [
-          { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, limit: 5000000 },
+        accounts: [visa, { ...visa, id: 'tarjeta-2', name: 'Master' }],
+        people: [
+          { id: 'persona-1', name: 'Camilo', owed: 0, owing: 0 },
+          { id: 'persona-2', name: 'Sara', owed: 0, owing: 0 },
         ],
       }),
       transport,
     });
     cambios();
 
-    await component.comandos.asentar({
-      tipo: 'compraParaTercero',
-      fecha: '2026-10-28',
-      descripcion: 'Compra para Camilo',
-      cuentaId: 'tarjeta-1',
-      monto: 90000,
-      categoria: 'Mercado',
-      recurrente: false,
-      terceroId: 'persona-1',
-    });
+    await expect(component.comandos.asentar(compraCompartida)).rejects.toBeDefined();
+    await expect(component.comandos.asentar({ ...compraCompartida, ...cambio })).rejects.toBeDefined();
 
-    const [compra, reparto] = transport.peticiones;
-    expect(compra).toMatchObject({ method: 'POST', path: '/api/v1/movements' });
-    expect(reparto).toMatchObject({ method: 'POST', path: '/api/v1/shared-purchases' });
-    expect(reparto.body).toMatchObject({
-      purchaseMovement: 'compra-1',
-      shares: [{ counterparty: 'persona-1', basis: 1 }],
-    });
-    expect(store.data().movements[0]).toMatchObject({ id: 'compra-1', person: 'Camilo', ownership: 'loaned' });
+    const [primera, segunda] = clavesEnviadas(transport);
+    expect(primera).not.toEqual(segunda);
+  });
+
+  it('tras un exito la siguiente compra identica es otra operacion con otra clave', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/operations/shared-purchases', compartidaRespuesta);
+    const { component, cambios } = montarCompartida(transport);
+    cambios();
+
+    await component.comandos.asentar(compraCompartida);
+    await component.comandos.asentar(compraCompartida);
+
+    const [primera, segunda] = clavesEnviadas(transport);
+    expect(primera).not.toEqual(segunda);
   });
 
   it('un gasto desde una cuenta a nombre de otra persona queda como préstamo a cobrar', async () => {

@@ -44,6 +44,7 @@ export const API_ROUTES = {
   recurrences: '/api/v1/recurrences',
   projectedCalendar: '/api/v1/calendar/projected',
   sharedPurchases: '/api/v1/shared-purchases',
+  sharedPurchaseOperation: '/api/v1/operations/shared-purchases',
   settlements: '/api/v1/settlements',
   card: (id: string) => `/api/v1/cards/${encodeURIComponent(id)}`,
   savedDashboard: (id: string) => `/api/v1/dashboards/${encodeURIComponent(id)}`,
