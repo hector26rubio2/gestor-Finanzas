@@ -243,6 +243,7 @@ export class RemoteBootstrap {
   private aplicarAvisos(boot: ApiBootstrap): void {
     const { recientes, sinLeer } = avisosDe(boot);
     this.store.avisosRecientes.set(recientes);
+    this.store.sinLeerMarcadas.set(new Set());
     this.store.sinLeerDelArranque.set(sinLeer);
   }
 
