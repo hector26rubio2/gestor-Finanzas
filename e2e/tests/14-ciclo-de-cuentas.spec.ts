@@ -177,7 +177,7 @@ test.describe('Ciclo de cuentas', () => {
     const detalle = await abrirDetalle(page, nombre);
     await capturar(page, info, '2-detalle-tarjeta');
     await detalle.getByRole('button', { name: 'Registrar abono' }).click();
-    await detalle.locator('input[type=number]').first().fill('250000');
+    await detalle.locator('input[inputmode=decimal]').first().fill('250000');
     await expect(detalle.getByText(/paga primero la deuda más vieja/)).toBeVisible();
     const fila = (concepto: string) => detalle.locator('tr', { hasText: concepto });
     await expect(fila('Compras a una cuota'), 'la compra más vieja se paga completa').toContainText('COP 200.000');

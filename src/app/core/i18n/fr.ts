@@ -12,6 +12,7 @@ export default {
   'nav.planning': 'Planification',
   'nav.reports': 'Rapports',
   'nav.notifications': 'Notifications',
+  'nav.notificationsUnread': 'Notifications, {count} non lues',
   'nav.admin': 'Administration',
   'nav.settings': 'Préférences',
   'shell.personal': 'Personnel',
@@ -105,6 +106,12 @@ export default {
   'movements.kpi.records.label': 'Enregistrements',
   'movements.kpi.records.hint': 'Confirmés et en attente',
   'movements.kpi.none': 'Aucune donnée',
+  'movements.kpi.summary.label': 'Résumé des indicateurs',
+  'movements.kpi.summary.income': 'Revenus',
+  'movements.kpi.summary.expense': 'Dépenses',
+  'movements.kpi.summary.net': 'Net',
+  'movements.kpi.summary.expand': 'Afficher tous les indicateurs',
+  'movements.kpi.summary.collapse': 'Masquer les indicateurs',
   'movements.kpi.recurring.label': 'Dépenses récurrentes',
   'movements.kpi.recurring.hint': 'Dans la sélection',
   'movements.kpi.page.income.hint':
@@ -300,6 +307,8 @@ export default {
   'form.movement.error.targetDifferent': 'Sélectionnez un compte de destination différent.',
   'form.movement.error.operationNotCorrectable':
     "Les virements, paiements, avances et prêts ne permettent de modifier que la catégorie et la description ; pour corriger le montant, annulez l'opération et enregistrez-la à nouveau.",
+  'form.movement.error.originalNotFound':
+    'Le mouvement que vous essayez de modifier est introuvable ; rechargez la page et réessayez.',
   'form.movement.error.saveFailed': "Impossible d'enregistrer",
   'form.movement.actions.save': 'Enregistrer la transaction',
   'form.movement.actions.saving': 'Enregistrement…',
@@ -413,6 +422,7 @@ export default {
   'workspace.inspector.defaultSubtitle': 'Informations associées',
   'workspace.inspector.facts.date': 'Date',
   'workspace.inspector.facts.account': 'Compte',
+  'workspace.inspector.facts.product': 'Crédit ou débit',
   'workspace.inspector.facts.category': 'Catégorie',
   'workspace.inspector.facts.confirmed': 'Confirmé',
   'workspace.inspector.facts.nature': 'Entrée / sortie',

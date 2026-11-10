@@ -279,10 +279,12 @@
           <kbd hlmKbdGroup class="max-[769px]:hidden"><kbd hlmKbd>Ctrl</kbd><kbd hlmKbd>K</kbd></kbd></button
         ><a hlmBtn variant="outline" size="icon" routerLink="/notifications" class="relative" data-tour="notificaciones"
           ><fin-icon name="notifications" class="[--icon-size:18px]" /><span class="sr-only"
-            >{{ i18n.t('nav.notifications') }}</span
+            >{{ store.unread() ? i18n.t('nav.notificationsUnread', { count: store.unread() }) :
+            i18n.t('nav.notifications') }}</span
           >
           @if (store.unread()) {
           <span
+            aria-hidden="true"
             class="absolute -top-1.5 -right-[5px] rounded-full bg-primary px-[5px] py-0.5 text-xs text-primary-foreground"
             >{{ store.unread() }}</span
           >
