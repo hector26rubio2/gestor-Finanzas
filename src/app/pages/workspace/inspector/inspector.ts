@@ -18,7 +18,7 @@ import { puedeReversar } from '@core/state/operacion/reverso';
 import { MovementsBookService } from '@shared/movements';
 import { BankCardComponent } from '@ui/bank-card';
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
-import { OverlayComponent } from '@ui/overlay';
+import { DetalleComponent } from '@ui/lista-y-detalle';
 import { UiSelectComponent } from '@ui/select';
 import { InspectorCard } from './inspector-card';
 import { InspectorInversion } from './inspector-inversion';
@@ -46,10 +46,11 @@ const FUENTES_DE_VALORIZACION: Readonly<Record<number, string>> = { 1: 'marketPr
     HlmInput,
     BankCardComponent,
     ConfirmDialogComponent,
-    OverlayComponent,
+    DetalleComponent,
     UiSelectComponent,
   ],
   templateUrl: './inspector.html',
+  host: { class: 'contents' },
 })
 export class InspectorComponent {
   readonly Math = Math;

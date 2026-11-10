@@ -9,6 +9,7 @@ import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
 import { DataTableComponent } from '@ui/data-table';
 import { SkeletonComponent } from '@ui/skeleton';
 import { KpiComponent } from '@ui/kpi';
+import { ListaYDetalleComponent } from '@ui/lista-y-detalle';
 import { Pantalla, esTableta } from '@ui/pantalla';
 import { IconComponent } from '@ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -61,8 +62,14 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly book = inject(MovementsBookService);
   readonly i18n = inject(I18nService);
   private readonly pantalla = inject(Pantalla);
+  protected readonly lista = inject(ListaYDetalleComponent, { optional: true });
   readonly kpisDesplegados = signal(false);
   readonly kpisEnUnaLinea = computed(() => esTableta(this.pantalla.tamano()) && !this.kpisDesplegados());
+  readonly filaActivaId = computed(() => {
+    const elegida = this.store.inspector();
+    return elegida?.type === 'movement' ? elegida.id : null;
+  });
+  readonly columnasOcultas = computed(() => (this.lista?.detalleAcoplado() ? ['account'] : []));
   readonly kpisPlegables = computed(() => esTableta(this.pantalla.tamano()));
   readonly netoMostrado = computed(() => this.ingresosMostrados() - this.gastosMostrados());
   private readonly capabilities = inject(CAPABILITIES);

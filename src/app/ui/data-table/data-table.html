@@ -160,7 +160,7 @@
           hlmTh
           scope="col"
           class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold tracking-wide text-muted-foreground"
-          [class]="alineacion(column.id)"
+          [class]="alineacion(column.id) + (densa() ? ' px-3!' : '')"
           [attr.aria-sort]="column.getCanSort() ? ariaSort(direction) : null"
         >
           @if (column.id === '__select') {
@@ -194,6 +194,8 @@
         class="compacto:block compacto:w-full compacto:rounded-xl compacto:border compacto:border-border compacto:px-3 compacto:py-2"
         [class]="selectable() ? 'cursor-pointer focus-within:bg-primary/[0.07] hover:bg-primary/[0.07]' : ''"
         [attr.data-state]="row.getIsSelected() ? 'selected' : null"
+        [attr.aria-current]="esFilaActiva(row.original) ? 'true' : null"
+        [class.bg-primary/10]="esFilaActiva(row.original)"
         (click)="selectable() && rowSelected.emit(row.original)"
       >
         @for (cell of row.getVisibleCells(); track cell.id; let first = $first) { @let key = cell.column.id; @if
@@ -201,7 +203,7 @@
         <td
           hlmTd
           class="border-b border-border px-[18px] py-3.5 tableta:py-2.5 compacto:grid compacto:w-full compacto:grid-cols-[minmax(84px,0.6fr)_minmax(0,1fr)] compacto:gap-3 compacto:border-dashed compacto:px-0 compacto:py-2 compacto:whitespace-normal compacto:[overflow-wrap:anywhere] compacto:before:text-xs compacto:before:font-semibold compacto:before:text-muted-foreground compacto:before:content-[attr(data-label)] compacto:last:border-b-0"
-          [class]="key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex) + ' ' + alineacion(key)"
+          [class]="(key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex) + ' ' + alineacion(key)) + (densa() ? ' px-3! whitespace-normal!' : '')"
           [attr.data-label]="columnOf(key)?.label"
         >
           @if (key === '__select') {
