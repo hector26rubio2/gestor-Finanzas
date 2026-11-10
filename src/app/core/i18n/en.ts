@@ -2154,12 +2154,13 @@ export default {
   'calendar.recurring.frequency.2': 'Every {n} week(s)',
   'calendar.recurring.frequency.3': 'Every {n} month(s)',
   'calendar.recurring.frequency.4': 'Every {n} year(s)',
-  'calendar.recurring.delete': 'Delete',
-  'calendar.recurring.deleteAria': 'Delete recurring {name}',
-  'calendar.recurring.deleteTitle': 'Delete this recurring item?',
-  'calendar.recurring.deleteDetail': '“{name}” stops being projected. Movements it already created are kept.',
-  'calendar.recurring.deleted': 'Recurring “{name}” deleted.',
-  'calendar.recurring.deleteFailed': 'The recurring item could not be deleted.',
+  'calendar.recurring.deactivate': 'Deactivate',
+  'calendar.recurring.deactivateAria': 'Deactivate recurring {name}',
+  'calendar.recurring.deactivateTitle': 'Deactivate this recurring item?',
+  'calendar.recurring.deactivateDetail':
+    '“{name}” stops being projected and can no longer be materialized. Movements it already created are kept.',
+  'calendar.recurring.deactivated': 'Recurring “{name}” deactivated.',
+  'calendar.recurring.deactivateFailed': 'The recurring item could not be deactivated.',
   'preferences.sections.budgets': 'Budgets',
   'budgets.title': 'Budgets by category',
   'budgets.description':
@@ -2688,7 +2689,7 @@ export default {
     'Save creates the recurring item. The tutorial does not save for you. This form also opens with Ctrl K.',
   'tutorial.guia.recurrente.lista.title': 'Recurring list',
   'tutorial.guia.recurrente.lista.text': 'Recurring items already created appear here with their frequency and amount.',
-  'tutorial.guia.recurrente.eliminar.title': 'Delete a recurring item',
+  'tutorial.guia.recurrente.eliminar.title': 'Deactivate a recurring item',
   'tutorial.guia.recurrente.eliminar.text':
     'Stops repetition going forward; what was already logged is kept. It asks to confirm.',
   'tutorial.guia.recurrente.materializar.title': 'Materialize',

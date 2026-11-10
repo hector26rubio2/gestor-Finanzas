@@ -160,10 +160,10 @@
               size="sm"
               type="button"
               class="text-destructive"
-              [attr.aria-label]="i18n.t('calendar.recurring.deleteAria', { name: recurrente.name })"
+              [attr.aria-label]="i18n.t('calendar.recurring.deactivateAria', { name: recurrente.name })"
               (click)="porEliminar.set(recurrente)"
             >
-              {{ i18n.t('calendar.recurring.delete') }}
+              {{ i18n.t('calendar.recurring.deactivate') }}
             </button>
             }
           </span>
@@ -221,9 +221,9 @@
 </section>
 <fin-confirm-dialog
   [open]="porEliminar() !== null"
-  [title]="i18n.t('calendar.recurring.deleteTitle')"
-  [description]="i18n.t('calendar.recurring.deleteDetail', { name: porEliminar()?.name ?? '' })"
-  [confirmLabel]="i18n.t('calendar.recurring.delete')"
+  [title]="i18n.t('calendar.recurring.deactivateTitle')"
+  [description]="i18n.t('calendar.recurring.deactivateDetail', { name: porEliminar()?.name ?? '' })"
+  [confirmLabel]="i18n.t('calendar.recurring.deactivate')"
   [cancelLabel]="i18n.t('savedViews.cancel')"
   (confirmed)="eliminarRecurrente()"
   (dismissed)="porEliminar.set(null)"

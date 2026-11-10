@@ -2153,12 +2153,13 @@ export default {
   'calendar.recurring.frequency.2': 'A cada {n} semana(s)',
   'calendar.recurring.frequency.3': 'A cada {n} mês(es)',
   'calendar.recurring.frequency.4': 'A cada {n} ano(s)',
-  'calendar.recurring.delete': 'Excluir',
-  'calendar.recurring.deleteAria': 'Excluir o recorrente {name}',
-  'calendar.recurring.deleteTitle': 'Excluir este recorrente?',
-  'calendar.recurring.deleteDetail': '“{name}” deixa de ser projetado. Os movimentos já gerados são mantidos.',
-  'calendar.recurring.deleted': 'Recorrente “{name}” excluído.',
-  'calendar.recurring.deleteFailed': 'Não foi possível excluir o recorrente.',
+  'calendar.recurring.deactivate': 'Desativar',
+  'calendar.recurring.deactivateAria': 'Desativar o recorrente {name}',
+  'calendar.recurring.deactivateTitle': 'Desativar este recorrente?',
+  'calendar.recurring.deactivateDetail':
+    '“{name}” deixa de ser projetado e não pode mais ser materializado. Os movimentos já gerados são mantidos.',
+  'calendar.recurring.deactivated': 'Recorrente “{name}” desativado.',
+  'calendar.recurring.deactivateFailed': 'Não foi possível desativar o recorrente.',
   'preferences.sections.budgets': 'Orçamentos',
   'budgets.title': 'Orçamentos por categoria',
   'budgets.description':
@@ -2682,7 +2683,7 @@ export default {
     'Salvar cria o recorrente. O tutorial não salva por você. Este formulário também abre com Ctrl K.',
   'tutorial.guia.recurrente.lista.title': 'Lista de recorrentes',
   'tutorial.guia.recurrente.lista.text': 'Os recorrentes já criados aparecem aqui com frequência e valor.',
-  'tutorial.guia.recurrente.eliminar.title': 'Excluir um recorrente',
+  'tutorial.guia.recurrente.eliminar.title': 'Desativar um recorrente',
   'tutorial.guia.recurrente.eliminar.text':
     'Para a repetição daqui em diante; o já registrado é mantido. Pede confirmação.',
   'tutorial.guia.recurrente.materializar.title': 'Materializar',
