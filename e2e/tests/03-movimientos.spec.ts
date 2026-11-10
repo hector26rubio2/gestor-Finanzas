@@ -184,7 +184,7 @@ test.describe('Movimientos: pago de tarjeta', () => {
     await atajo(page, 'n', 'p');
     const panel = panelLateral(page);
     await expect(panel.getByText(/Valor del abono/)).toBeVisible();
-    await panel.locator('input[type=number]').first().fill('40000');
+    await panel.locator('input[inputmode=decimal]').first().fill('40000');
     const marca = vigilancia.marca();
     await panel.getByRole('button', { name: /Confirmar abono/ }).click();
     await expect.poll(() => vigilancia.exitosasDesde(marca, /card-payments/).length).toBeGreaterThan(0);
@@ -241,7 +241,7 @@ test.describe('Movimientos: libro', () => {
       .click();
     const formulario = dialogo(page);
     await expect(formulario).toBeVisible();
-    await formulario.locator('input[name=description], input[type=text]').first().fill(`E2E reclasificado ${corrida}`);
+    await formulario.locator('input[name=description]').fill(`E2E reclasificado ${corrida}`);
     const marca = vigilancia.marca();
     await formulario.locator('button[type=submit], button:has-text("Guardar")').last().click();
     await expect.poll(() => vigilancia.exitosasDesde(marca, /classification/).length).toBeGreaterThan(0);

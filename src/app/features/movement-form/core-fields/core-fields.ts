@@ -7,12 +7,12 @@ import { P } from '@core/session/permissions';
 import { CAPABILITIES, AppStore } from '@core/state/store';
 import { Account } from '@core/state/view-model';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
-import { NumericInputDirective } from '@ui/numeric-input/numeric-input.directive';
+import { MontoInputDirective } from '@ui/monto-input';
 import { FieldComponent } from '@ui/field/field';
 
 @Component({
   selector: 'fin-movement-core-fields',
-  imports: [DateFieldComponent, HlmInput, FormsModule, UiSelectComponent, NumericInputDirective, FieldComponent],
+  imports: [DateFieldComponent, HlmInput, FormsModule, UiSelectComponent, MontoInputDirective, FieldComponent],
   templateUrl: './core-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

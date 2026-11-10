@@ -68,13 +68,28 @@ export function crearRecursoRemoto<T>(opciones: OpcionesDeRecursoRemoto<T>): Rec
     if (clave() === null) claveCargada.set(null);
   });
 
+  let recargaPendiente = false;
+  const enCurso = () => recurso.status() === 'loading' || recurso.status() === 'reloading';
+  const pedirRecarga = () => {
+    if (enCurso()) recargaPendiente = true;
+    else recurso.reload();
+  };
+  effect(() => {
+    if (recurso.status() === 'loading' || recurso.status() === 'reloading') return;
+    untracked(() => {
+      if (!recargaPendiente) return;
+      recargaPendiente = false;
+      recurso.reload();
+    });
+  });
+
   let ultimaVersion = escrituras.version();
   effect(() => {
     const version = escrituras.version();
     untracked(() => {
       if (version === ultimaVersion) return;
       ultimaVersion = version;
-      if (usuarios() > 0) recurso.reload();
+      if (usuarios() > 0) pedirRecarga();
       else obsoleto = true;
     });
   });
@@ -102,6 +117,6 @@ export function crearRecursoRemoto<T>(opciones: OpcionesDeRecursoRemoto<T>): Rec
     actualizar: (cambio) => {
       if (recurso.hasValue()) recurso.set(cambio(recurso.value() as T) as Exclude<T, undefined>);
     },
-    recargar: () => void recurso.reload(),
+    recargar: pedirRecarga,
   };
 }

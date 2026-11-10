@@ -167,14 +167,36 @@ describe('intencionDelFormulario', () => {
       ).toEqual({ tipo: 'reclasificacion', movimientoId: 'mov-1', categoria: 'Ocio', descripcion: 'Otro' });
     });
 
-    it('un movimiento desconocido tambien se reclasifica', () => {
-      expect(intencionDelFormulario(modelo({ id: 'otro' }), contexto())).toMatchObject({ tipo: 'reclasificacion' });
+    it('un movimiento desconocido se corrige para que la operacion falle en vez de guardar a medias', () => {
+      expect(intencionDelFormulario(modelo({ id: 'otro', amount: 99_000 }), contexto())).toMatchObject({
+        tipo: 'correccion',
+        originalId: 'otro',
+        reemplazo: { monto: 99_000 },
+      });
     });
 
-    it('editar una operacion de transferencia cae en correccion y la operacion la rechaza', () => {
+    it('editar solo la descripcion de una pata de transferencia es una reclasificacion', () => {
       expect(
         intencionDelFormulario(
-          modelo({ id: 'mov-1', operationType: 'transfer', targetId: 'b' }),
+          modelo({ id: 'mov-1', operationType: 'transfer', targetId: 'b', description: 'Nueva' }),
+          contexto({ movimiento: () => ({ ...original, movementSubtype: 'transfer' }) }),
+        ),
+      ).toEqual({ tipo: 'reclasificacion', movimientoId: 'mov-1', categoria: 'Mercado', descripcion: 'Nueva' });
+    });
+
+    it('editar solo la categoria de un avance es una reclasificacion', () => {
+      expect(
+        intencionDelFormulario(
+          modelo({ id: 'mov-1', operationType: 'advance', targetId: 'b', category: 'Ocio' }),
+          contexto({ movimiento: () => ({ ...original, movementSubtype: 'advance' }) }),
+        ),
+      ).toMatchObject({ tipo: 'reclasificacion', categoria: 'Ocio' });
+    });
+
+    it('cambiar el monto de una transferencia sigue siendo correccion y la operacion la rechaza', () => {
+      expect(
+        intencionDelFormulario(
+          modelo({ id: 'mov-1', operationType: 'transfer', targetId: 'b', amount: 1 }),
           contexto({ movimiento: () => ({ ...original, movementSubtype: 'transfer' }) }),
         ),
       ).toMatchObject({ tipo: 'correccion' });

@@ -1,5 +1,6 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { IconComponent } from '@ui/icon';
+import { MontoInputDirective } from '@ui/monto-input';
 import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
@@ -44,6 +45,7 @@ const FUENTES_DE_VALORIZACION: Readonly<Record<number, string>> = { 1: 'marketPr
     FormsModule,
     HlmButton,
     HlmInput,
+    MontoInputDirective,
     BankCardComponent,
     ConfirmDialogComponent,
     DetalleComponent,

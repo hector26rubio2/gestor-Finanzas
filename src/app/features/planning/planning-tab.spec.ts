@@ -168,3 +168,109 @@ describe('la pestaña de planificación (smoke)', () => {
     expect(regreso.component.sim.compraMes()).toBe(4);
   });
 });
+
+describe('los montos de la planificación (separador de miles)', () => {
+  async function montar() {
+    const pantalla = pruebaRender(PlanningTabComponent, {
+      session: sesionDe().conCapacidad(
+        P.planificacion.deudas.ver,
+        P.planificacion.compras.ver,
+        P.planificacion.vacaciones.ver,
+        P.planificacion.inversiones.ver,
+      ),
+      data: datosDe({
+        accounts: [
+          { id: 'tarjeta-1', name: 'Visa', type: 'credit', currency: 'COP', openingBalance: 0, annualRate: 26.82 },
+        ],
+        movements: [
+          {
+            id: 'm-compra',
+            date: '2026-01-05',
+            description: 'Compra grande',
+            accountId: 'tarjeta-1',
+            category: 'Compras',
+            kind: 'expense',
+            amount: -2_000_000,
+            status: 'confirmed',
+          },
+        ],
+        people: [{ id: 'p-banco', name: 'Banco', kind: 'institution', owed: 0, owing: 1_000_000 }],
+      }),
+      providers: [provideRouter([]) as unknown as Provider],
+      transport: transportDePlanificacion(),
+    });
+    pantalla.cambios();
+    await pantalla.estable();
+    return pantalla;
+  }
+
+  function camposDeMonto(raiz: HTMLElement): HTMLInputElement[] {
+    return [...raiz.querySelectorAll<HTMLInputElement>('input[finMonto]')];
+  }
+
+  function escribir(campo: HTMLInputElement, texto: string): void {
+    campo.value = texto;
+    campo.dispatchEvent(new Event('input'));
+  }
+
+  it('la compra muestra el separador y guarda el número exacto', async () => {
+    const { fixture, component, cambios } = await montar();
+    component.planningTab.set('Compra');
+    cambios();
+
+    escribir(camposDeMonto(fixture.nativeElement)[0], '12500000');
+    cambios();
+
+    expect(camposDeMonto(fixture.nativeElement)[0].value).toBe('12.500.000');
+    expect(component.sim.compraMonto()).toBe(12_500_000);
+  });
+
+  it('la meta de vacaciones y el ahorro inicial usan el separador', async () => {
+    const { fixture, component, cambios } = await montar();
+    component.planningTab.set('Vacaciones');
+    cambios();
+
+    const [meta, ahorro] = camposDeMonto(fixture.nativeElement);
+    escribir(meta, '8000000');
+    escribir(ahorro, '1250000');
+    cambios();
+
+    expect(meta.value).toBe('8.000.000');
+    expect(ahorro.value).toBe('1.250.000');
+    expect(component.sim.metaMonto()).toBe(8_000_000);
+    expect(component.sim.metaAhorroInicial()).toBe(1_250_000);
+  });
+
+  it('el aporte inicial y el mensual de la inversión usan el separador', async () => {
+    const { fixture, component, cambios } = await montar();
+    component.planningTab.set('Inversión');
+    cambios();
+
+    const [inicial, aporte] = camposDeMonto(fixture.nativeElement);
+    escribir(inicial, '30000000');
+    escribir(aporte, '450000');
+    cambios();
+
+    expect(inicial.value).toBe('30.000.000');
+    expect(aporte.value).toBe('450.000');
+    expect(component.sim.inversionInicial()).toBe(30_000_000);
+    expect(component.sim.inversionAporte()).toBe(450_000);
+  });
+
+  it('el abono mensual y el saldo de cada deuda usan el separador', async () => {
+    const { fixture, component, cambios } = await montar();
+
+    const campos = camposDeMonto(fixture.nativeElement);
+    const abono = campos.find((campo) => campo.value === '0' || campo.value === '')!;
+    escribir(abono, '1500000');
+    cambios();
+
+    expect(abono.value).toBe('1.500.000');
+    expect(component.sim.abonoMensual()).toBe(1_500_000);
+    const saldos = campos.filter((campo) => campo !== abono);
+    expect(saldos.length).toBeGreaterThan(0);
+    escribir(saldos[0], '4200000');
+    cambios();
+    expect(saldos[0].value).toBe('4.200.000');
+  });
+});

@@ -64,13 +64,21 @@ describe('AppStore en modo API', () => {
   };
 
   it('envía categoría y persona al crear un gasto y la copia optimista nace de la respuesta', async () => {
-    const payloads: CreateMovementBody[] = [];
+    const payloads: { purchase: CreateMovementBody }[] = [];
     const store = montar({
-      createMovement: vi.fn((request: CreateMovementBody) => {
+      asentarCompraCompartida: vi.fn((request: { purchase: CreateMovementBody }) => {
         payloads.push(request);
-        return of(respuesta);
+        return of({
+          id: 'compartida-1',
+          purchaseMovement: 'mov-remoto-1',
+          card: { id: 'tarjeta-1', name: 'Visa' },
+          date: '2026-09-25',
+          total: { amount: '45900', currency: 'COP' },
+          description: 'Mercado del sábado',
+          allocation: { shares: [], holderPortion: { amount: '0', currency: 'COP' } },
+          createdAt: '2026-09-25T12:00:00Z',
+        });
       }),
-      createSharedPurchase: vi.fn(() => of({})),
     });
     store.data.update((data) => ({
       ...data,
@@ -92,14 +100,14 @@ describe('AppStore en modo API', () => {
     });
 
     expect(payloads).toHaveLength(1);
-    expect(payloads[0].links).toEqual({
+    expect(payloads[0].purchase.links).toEqual({
       card: 'tarjeta-1',
       category: 'categoria-1',
       counterparty: 'persona-1',
     });
     expect(store.data().movements[0]).toMatchObject({
       id: 'mov-remoto-1',
-      category: 'Supermercado',
+      category: 'Mercado',
       person: 'Camilo',
       ownership: 'loaned',
       kind: 'expense',

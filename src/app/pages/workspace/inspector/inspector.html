@@ -285,7 +285,7 @@
           >{{ i18n.t('workspace.cardPayment.amountLabel') }}<input
             data-tour="abono-monto"
             hlmInput
-            type="number"
+            finMonto
             min="1"
             [ngModel]="tarjeta.cardPaymentAmount()"
             (ngModelChange)="tarjeta.cardPaymentAmount.set(+$event)"

@@ -50,7 +50,7 @@
         <fin-field [label]="i18n.t('planning.sim.purchase.amount')" [full]="true">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="50000"
             [ngModel]="sim.compraMonto()"
@@ -94,7 +94,7 @@
         <fin-field [label]="i18n.t('planning.sim.goal.amount')" [full]="true">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="100000"
             [ngModel]="sim.metaMonto()"
@@ -104,7 +104,7 @@
         <fin-field [label]="i18n.t('planning.sim.goal.saved')" [full]="true">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="100000"
             [ngModel]="sim.metaAhorroInicial()"
@@ -125,7 +125,7 @@
         <fin-field [label]="i18n.t('planning.sim.investment.initial')" [full]="true">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="100000"
             [ngModel]="sim.inversionInicial()"
@@ -135,7 +135,7 @@
         <fin-field [label]="i18n.t('planning.sim.investment.monthly')">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="50000"
             [ngModel]="sim.inversionAporte()"
@@ -169,7 +169,7 @@
         <fin-field [label]="i18n.t('planning.sim.extraMonthly')">
           <input
             hlmInput
-            type="number"
+            finMonto
             min="0"
             step="50000"
             [ngModel]="sim.abonoMensual()"

@@ -73,7 +73,7 @@ test.describe('Secciones', () => {
 
   test('CAL-07 los movimientos del día se leen completos y el día abre su detalle', async ({ page }) => {
     await ir(page, 'calendar');
-    await page.getByRole('button', { name: 'Hoy' }).click();
+    await page.locator('[data-tour=calendario-hoy]').click();
     const dia = page
       .locator('[data-slot=calendar-day]')
       .filter({ has: page.locator('span:not(.sr-only)') })

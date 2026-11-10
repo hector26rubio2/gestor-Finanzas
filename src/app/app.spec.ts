@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { AppComponent } from './app';
 import { FinanceApiClient } from '@core/api';
 import { P, RUNTIME_CONFIG } from '@core/session';
+import { I18nService } from '@core/i18n';
 import { AppStore, navigation } from '@core/state';
 import { provideServiceWorker } from '@angular/service-worker';
 import { USUARIO_DE_PRUEBA } from '@testing/usuario-de-prueba';
@@ -73,6 +74,42 @@ describe('AppComponent y la pantalla de entrada', () => {
     await fixture.whenStable();
 
     expect(router.url).toBe('/movements');
+  });
+
+  it.each([
+    ['es', 'Notificaciones, 3 sin leer'],
+    ['en', 'Notifications, 3 unread'],
+    ['fr', 'Notifications, 3 non lues'],
+    ['pt', 'Notificações, 3 não lidas'],
+  ])('el nombre accesible de la campana incluye el número en %s', async (idioma, esperado) => {
+    const fixture = montar();
+    const store = TestBed.inject(AppStore);
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver] });
+    store.sinLeerDelArranque.set(3);
+    await TestBed.inject(I18nService).load(idioma);
+
+    await TestBed.inject(Router).navigateByUrl('/dashboard');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const campana = fixture.nativeElement.querySelector('[data-tour="notificaciones"]') as HTMLElement;
+    expect(campana.querySelector('.sr-only')?.textContent?.trim()).toBe(esperado);
+  });
+
+  it('sin no leídas el nombre accesible es solo el título', async () => {
+    const fixture = montar();
+    const store = TestBed.inject(AppStore);
+    store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver] });
+    await TestBed.inject(I18nService).load('es');
+
+    await TestBed.inject(Router).navigateByUrl('/dashboard');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const campana = fixture.nativeElement.querySelector('[data-tour="notificaciones"]') as HTMLElement;
+    expect(campana.querySelector('.sr-only')?.textContent?.trim()).toBe('Notificaciones');
   });
 });
 

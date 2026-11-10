@@ -213,4 +213,14 @@ describe('formulario de inversión', () => {
 
     expect(sinNombre.map((control) => control.outerHTML.slice(0, 90))).toEqual([]);
   });
+
+  it('el monto de una recurrencia muestra el separador de miles y guarda el número exacto', async () => {
+    const { fixture } = await abrir('recurrence');
+
+    await escribir(fixture, 'amount', '2350000');
+
+    const campo = document.body.querySelector<HTMLInputElement>('input[name="gestion.amount"]')!;
+    expect(campo.value).toBe('2.350.000');
+    expect(fixture.componentInstance.modelo().amount).toBe(2_350_000);
+  });
 });

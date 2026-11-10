@@ -212,10 +212,10 @@ export class CalendarTabComponent implements OnInit {
     if (!recurrente) return;
     try {
       await firstValueFrom(this.api.deleteRecurrence(recurrente.id));
-      this.store.toast.set(this.i18n.t('calendar.recurring.deleted', { name: recurrente.name }));
+      this.store.toast.set(this.i18n.t('calendar.recurring.deactivated', { name: recurrente.name }));
       await this.loadCalendarProjection();
     } catch {
-      this.store.toast.set(this.i18n.t('calendar.recurring.deleteFailed'));
+      this.store.toast.set(this.i18n.t('calendar.recurring.deactivateFailed'));
     }
   }
   async materialize(item: ApiProjectedOccurrence): Promise<void> {
