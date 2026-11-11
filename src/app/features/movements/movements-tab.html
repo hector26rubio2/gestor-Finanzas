@@ -119,6 +119,9 @@
     (pageChange)="loadMovementPage($event)"
     (rowSelected)="book.inspectMovement($event)"
     [toolbar]="true"
+    [filaActivaId]="filaActivaId()"
+    [columnasOcultas]="columnasOcultas()"
+    [densa]="!!lista?.detalleAcoplado()"
     (pinnedChange)="book.pinned.set($event); loadMovementPage(1)"
   >
     <span finTableTools class="flex items-center gap-2">
