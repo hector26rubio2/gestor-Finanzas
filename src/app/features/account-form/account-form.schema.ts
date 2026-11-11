@@ -1,4 +1,14 @@
-import { hidden, max, maxLength, min, pattern, required, type SchemaFn, type SchemaPath } from '@angular/forms/signals';
+import {
+  hidden,
+  max,
+  maxLength,
+  min,
+  pattern,
+  required,
+  validate,
+  type SchemaFn,
+  type SchemaPath,
+} from '@angular/forms/signals';
 import type { AccountViewType } from '@core/api';
 
 export type MonedaDePrioridad = 'pesos' | 'dolares';
@@ -43,7 +53,11 @@ export function esquemaDeCuenta(t: Traductor): SchemaFn<DatosDeCuenta> {
     soloCredito(campo.monthlyFee);
 
     required(campo.exchangeRate, mensaje('form.account.error.exchangeRate'));
-    min(campo.exchangeRate, 1, mensaje('form.account.error.exchangeRate'));
+    validate(campo.exchangeRate, ({ value }) =>
+      value() === null || value()! > 0
+        ? undefined
+        : { kind: 'exchangeRate', message: t('form.account.error.exchangeRate') },
+    );
     required(campo.limit, mensaje('form.account.error.creditLimit'));
     min(campo.limit, 1, mensaje('form.account.error.creditLimit'));
     for (const dia of [campo.cutDay, campo.dueDay]) {

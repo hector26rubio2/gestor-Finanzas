@@ -86,6 +86,11 @@ describe('esquema de la cuenta', () => {
     expect(crear({ currency: 'USD', type: 'credit', exchangeRate: 0 }).formulario.exchangeRate().hidden()).toBe(true);
   });
 
+  it('la TRM tiene una sola regla: mayor a 0', () => {
+    expect(crear({ currency: 'USD', exchangeRate: 0.5 }).formulario.exchangeRate().errors()).toEqual([]);
+    expect(crear({ currency: 'USD', exchangeRate: -1 }).formulario.exchangeRate().errors()).toHaveLength(1);
+  });
+
   it('cambiar el tipo a tarjeta activa las reglas de crédito', () => {
     const { modelo, formulario } = crear({ limit: 0 });
     expect(formulario().valid()).toBe(true);
