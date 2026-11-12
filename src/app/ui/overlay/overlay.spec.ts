@@ -1,0 +1,90 @@
+import { Component, signal } from '@angular/core';
+import { TestBed } from '@angular/core/testing';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { Pantalla, TamanoDePantalla } from '@ui/pantalla';
+import { FinAcciones, OverlayComponent } from './index';
+
+const cerrado = vi.fn();
+
+@Component({
+  imports: [OverlayComponent, FinAcciones],
+  template: `
+    <fin-overlay title="Nuevo movimiento" [mode]="modo()" (closed)="cerrado()">
+      <form id="formulario-de-prueba"><input name="campo" /></form>
+      <footer finAcciones>
+        <button type="button">Cancelar</button>
+        <button type="submit" form="formulario-de-prueba">Guardar</button>
+      </footer>
+    </fin-overlay>
+  `,
+})
+class Anfitrion {
+  readonly modo = signal<'modal' | 'formulario' | 'inspector'>('formulario');
+  readonly cerrado = cerrado;
+}
+
+async function abrir(tamano: TamanoDePantalla, modo: 'modal' | 'formulario' | 'inspector' = 'formulario') {
+  TestBed.configureTestingModule({ providers: [{ provide: Pantalla, useValue: { tamano: signal(tamano) } }] });
+  const fixture = TestBed.createComponent(Anfitrion);
+  fixture.componentInstance.modo.set(modo);
+  fixture.detectChanges();
+  await fixture.whenStable();
+  fixture.detectChanges();
+  return fixture;
+}
+
+const superficie = () => document.body.querySelector<HTMLElement>('[data-superficie]');
+
+describe('fin-overlay en modo formulario', () => {
+  afterEach(() => {
+    TestBed.resetTestingModule();
+    cerrado.mockClear();
+    document.body.querySelectorAll('.cdk-overlay-container *').forEach((nodo) => nodo.remove());
+  });
+
+  it.each<TamanoDePantalla>(['medio', 'amplio'])('en %s se abre como hoja lateral', async (tamano) => {
+    await abrir(tamano);
+    expect(superficie()?.dataset['superficie']).toBe('hoja');
+    expect(superficie()?.getAttribute('data-slot')).toBe('sheet-content');
+    expect(superficie()?.closest('[role=dialog]')).not.toBeNull();
+  });
+
+  it.each<TamanoDePantalla>(['compacto', 'expandido'])('en %s sigue siendo diálogo centrado', async (tamano) => {
+    await abrir(tamano);
+    expect(superficie()?.dataset['superficie']).toBe('dialogo');
+    expect(superficie()?.getAttribute('data-slot')).toBe('dialog-content');
+  });
+
+  it('un modal común no cambia en tableta', async () => {
+    await abrir('medio', 'modal');
+    expect(superficie()?.dataset['superficie']).toBe('dialogo');
+  });
+
+  it('la hoja es de ancho fijo: no ofrece agarradera para cambiar el ancho', async () => {
+    await abrir('medio');
+    expect(superficie()?.querySelector('[role=separator]')).toBeNull();
+  });
+
+  it('la hoja lleva título, cerrar y barra de acciones con Guardar y Cancelar', async () => {
+    await abrir('amplio');
+    const hoja = superficie()!;
+    expect(hoja.querySelector('h2')?.textContent).toContain('Nuevo movimiento');
+    expect(hoja.querySelector('button[aria-label]')).not.toBeNull();
+    const barra = hoja.querySelector('footer[finAcciones]');
+    expect(barra).not.toBeNull();
+    expect(barra?.textContent).toContain('Guardar');
+    expect(barra?.textContent).toContain('Cancelar');
+  });
+
+  it('Escape cierra la hoja', async () => {
+    await abrir('medio');
+    superficie()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(cerrado).toHaveBeenCalledTimes(1);
+  });
+
+  it('el botón de cerrar emite el cierre', async () => {
+    await abrir('medio');
+    superficie()!.querySelector<HTMLButtonElement>('header button')!.click();
+    expect(cerrado).toHaveBeenCalledTimes(1);
+  });
+});

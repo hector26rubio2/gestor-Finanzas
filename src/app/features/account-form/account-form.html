@@ -1,4 +1,4 @@
-<fin-overlay [title]="title()" mode="modal" (closed)="closed()"
+<fin-overlay [title]="title()" mode="formulario" (closed)="closed()"
   ><form class="grid grid-cols-2 gap-[18px] max-[500px]:grid-cols-1" [formRoot]="formulario">
     @if (editing) {
     <fin-field data-tour="form-cuenta-tipo" [label]="i18n.t('form.account.field.type')">
@@ -226,7 +226,7 @@
     } @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }
-    <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+    <footer finAcciones class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="closed()">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       ><button
