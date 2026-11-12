@@ -76,6 +76,14 @@ describe('fin-overlay en modo formulario', () => {
     expect(barra?.textContent).toContain('Cancelar');
   });
 
+  it('la hoja reserva espacio al pie del cuerpo desplazable para la barra de acciones', async () => {
+    await abrir('amplio');
+    const cuerpo = superficie()!.querySelector<HTMLElement>('[data-slot=cuerpo-de-hoja]');
+    expect(cuerpo?.className).toContain('overflow-y-auto');
+    expect(cuerpo?.className).toContain('pb-[calc(6rem+env(safe-area-inset-bottom))]');
+    expect(cuerpo?.querySelector('footer[finAcciones]')).not.toBeNull();
+  });
+
   it('Escape cierra la hoja', async () => {
     await abrir('medio');
     superficie()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
