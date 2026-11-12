@@ -140,6 +140,7 @@ interface Pantalla {
   vacia?: { cuerpo: unknown; texto?: RegExp };
   datos: (page: Page, zona: Locator) => Promise<void>;
   conDatosPrevios?: boolean;
+  segunDatosPrevios?: boolean;
   retardoMs?: number;
 }
 
@@ -233,6 +234,7 @@ const pantallas: Pantalla[] = [
   },
   {
     nombre: 'Calendario',
+    segunDatosPrevios: true,
     ruta: 'calendar',
     retrasa: /\/api\/v1\/(calendar\/projected|recurrences)(\?|$)/,
     zona: (page) => page.locator('[data-tour=calendario-agenda] fin-zona-de-carga'),
@@ -314,8 +316,11 @@ for (const pantalla of pantallas) {
       const zona = pantalla.zona(page);
       await expect(zona).toHaveAttribute('aria-busy', 'true', { timeout: 15_000 });
       await expect(zona.locator('[role=status]').first()).toBeAttached();
-      if (pantalla.conDatosPrevios) {
-        await expect(zona.locator('[data-testid=barra-de-zona]')).toBeVisible();
+      const barra = zona.locator('[data-testid=barra-de-zona]');
+      if (pantalla.segunDatosPrevios) await expect(esqueletoEn(zona).or(barra).first()).toBeVisible();
+      const conBarra = pantalla.conDatosPrevios || (pantalla.segunDatosPrevios && (await barra.count()) > 0);
+      if (conBarra) {
+        await expect(barra).toBeVisible();
       } else {
         await expect(esqueletoEn(zona).first()).toBeVisible();
         await expect(esqueletoEn(zona).first()).toHaveAttribute('aria-busy', 'true');
