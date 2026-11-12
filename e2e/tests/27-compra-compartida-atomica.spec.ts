@@ -6,6 +6,7 @@ import { atajo, buscarMovimientos, dialogo, elegir, elegirPendientes, guardarMov
 
 const corrida = identificadorDeCorrida;
 const RUTA_ATOMICA = '**/api/v1/operations/shared-purchases';
+const RUTA_ATOMICA_RE = /[/]api[/]v1[/]operations[/]shared-purchases/;
 
 test.describe.configure({ mode: 'serial' });
 
@@ -89,7 +90,9 @@ test.describe('Compra compartida atómica', () => {
         body: JSON.stringify({ status: 500, code: 'internal.error', title: 'Error' }),
       }),
     );
+    const respuesta500 = page.waitForResponse((r) => RUTA_ATOMICA_RE.test(r.url()) && r.status() === 500);
     await formulario.locator('button[type=submit]').click();
+    await respuesta500;
     await expect(formulario.getByRole('alert')).toBeVisible();
     await expect(formulario).toBeVisible();
     vigilancia.aceptarErroresEsperados();
