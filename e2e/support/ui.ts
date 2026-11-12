@@ -86,6 +86,7 @@ export interface BusquedaDeMovimientos {
     description: string | null;
     amount: { original: { amount: string; currency: string } };
     reversedBy?: unknown;
+    links: Record<string, string | null>;
   }[];
 }
 

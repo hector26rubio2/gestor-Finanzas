@@ -6,20 +6,36 @@
 </fin-field>
 @if (showAccount()) {
 <fin-field data-tour="form-cuenta" [label]="sourceAccountLabel()">
-  <fin-select
-    name="accountId"
-    [(ngModel)]="model['accountId']"
-    [options]="accountOptions()"
-    [ariaLabel]="sourceAccountLabel()"
-  />
+  <div class="flex items-center gap-2">
+    <fin-select
+      class="min-w-0 flex-1"
+      name="accountId"
+      [(ngModel)]="model['accountId']"
+      [options]="accountOptions()"
+      [ariaLabel]="sourceAccountLabel()"
+    />
+    <fin-crear-cuenta-al-vuelo
+      dataTour="form-cuenta-nueva"
+      [propuesta]="propuestaOrigen()"
+      (creada)="elegirCuenta('accountId', $event)"
+    />
+  </div>
 </fin-field>
 } @if (showTargetAccount()) {
 <fin-field data-tour="form-cuenta-destino" [label]="targetAccountLabel()">
-  <fin-select
-    name="targetId"
-    [(ngModel)]="model['targetId']"
-    [options]="targetAccountOptions()"
-    [ariaLabel]="targetAccountLabel()"
-  />
+  <div class="flex items-center gap-2">
+    <fin-select
+      class="min-w-0 flex-1"
+      name="targetId"
+      [(ngModel)]="model['targetId']"
+      [options]="targetAccountOptions()"
+      [ariaLabel]="targetAccountLabel()"
+    />
+    <fin-crear-cuenta-al-vuelo
+      dataTour="form-cuenta-destino-nueva"
+      [propuesta]="propuestaDestino()"
+      (creada)="elegirCuenta('targetId', $event)"
+    />
+  </div>
 </fin-field>
 }

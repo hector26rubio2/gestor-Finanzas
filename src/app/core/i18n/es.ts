@@ -1602,6 +1602,8 @@ export default {
   'form.movement.counterparty.borrower': '¿A quién le prestaste?',
   'form.movement.counterparty.addInstitution': 'Nueva entidad',
   'form.movement.counterparty.addPerson': 'Nueva persona',
+  'form.movement.account.addAccount': 'Nueva cuenta',
+  'form.movement.account.addCard': 'Nueva tarjeta',
   'form.movement.category.add': 'Nueva categoría',
   'form.movement.cardMode.purchase': 'Compra con la tarjeta',
   'form.movement.cardMode.cashAdvance': 'Avance en efectivo',
