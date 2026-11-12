@@ -52,7 +52,7 @@ export class CatalogCommands {
     credit?: CondicionesDeTarjeta,
     lastFour?: string,
     issuerId?: string,
-  ) {
+  ): Promise<Account> {
     return this.cuentas.createAccount(name, type, opening, currency, exchangeRate, credit, lastFour, issuerId);
   }
   updateAccount(

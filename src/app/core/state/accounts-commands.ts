@@ -28,7 +28,7 @@ export class AccountsCommands {
     credit?: CondicionesDeTarjeta,
     lastFour?: string,
     issuerId?: string,
-  ) {
+  ): Promise<Account> {
     const digitos = lastFour?.trim() || undefined;
     if (digitos && !/^\d{4}$/.test(digitos)) throw new Error(this.i18n.t('form.account.error.lastFour'));
     const anual = credit?.monthlyRate === undefined ? undefined : tasaAnual(credit.monthlyRate);
@@ -60,13 +60,10 @@ export class AccountsCommands {
           issuerEntity: credit.issuerId || null,
         }),
       );
-      this.store.data.update((data) => ({
-        ...data,
-        accounts: [...data.accounts, tarjetaAAccount(created, credit)],
-      }));
+      const tarjeta = tarjetaAAccount(created, credit);
+      this.store.data.update((data) => ({ ...data, accounts: [...data.accounts, tarjeta] }));
       this.recordarTarjeta(created);
-      this.store.form.set(null);
-      return;
+      return tarjeta;
     }
     const accountRequest = {
       name,
@@ -106,7 +103,7 @@ export class AccountsCommands {
         movements: [pataDeApertura(movement, created.id, name), ...data.movements],
       }));
     }
-    this.store.form.set(null);
+    return account;
   }
 
   async updateAccount(

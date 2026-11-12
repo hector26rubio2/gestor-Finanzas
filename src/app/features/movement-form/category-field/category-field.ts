@@ -7,14 +7,22 @@ import { buildCategoryOptions } from '@features/movement-form/movement-category-
 import { FieldComponent } from '@ui/field/field';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { IconComponent } from '@ui/icon/icon';
+import { BotonDeAltaComponent, CancelarConEscape } from '@ui/select-or-create';
 import { P } from '@core/session/permissions';
 import { CAPABILITIES } from '@core/state/store';
 import { CatalogCommands } from '@core/state/catalog-commands';
 
 @Component({
   selector: 'fin-movement-category-field',
-  imports: [FormsModule, UiSelectComponent, FieldComponent, HlmButton, HlmInput, IconComponent],
+  imports: [
+    FormsModule,
+    UiSelectComponent,
+    FieldComponent,
+    HlmButton,
+    HlmInput,
+    BotonDeAltaComponent,
+    CancelarConEscape,
+  ],
   templateUrl: './category-field.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

@@ -2,7 +2,7 @@ import { HlmCheckbox } from '@spartan-ng/helm/checkbox';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, Injector, computed, effect, inject, signal, untracked } from '@angular/core';
+import { Component, Injector, OnInit, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { FormField, FormRoot, form, type FieldTree } from '@angular/forms/signals';
 import {
   AccountViewType,
@@ -33,6 +33,7 @@ import { IconComponent } from '@ui/icon';
 import { AsyncActionService } from '@core/utils';
 import { mensualDesdeAnual } from '@core/utils/tasas';
 import { type DatosDeCuenta, esquemaDeCuenta } from './account-form.schema';
+import { permisoParaTipoDeCuenta } from './propuesta-de-cuenta';
 
 export function permisoParaEditarCuenta(tipo: AccountViewType): string {
   return tipo === 'credit' ? P.cuentas.tarjetas.editar : P.cuentas.editar;
@@ -57,13 +58,6 @@ function datosIniciales(cuenta: Account | null, tipoNuevo: AccountViewType): Dat
   };
 }
 
-function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
-  if (tipo === 'credit') return P.cuentas.tarjetas.crear;
-  if (tipo === 'savings' || tipo === 'checking') return P.cuentas.ahorro.crear;
-  if (tipo === 'cash' || tipo === 'wallet') return P.cuentas.efectivo.crear;
-  return P.cuentas.crear;
-}
-
 @Component({
   selector: 'fin-account-form',
   imports: [
@@ -84,7 +78,14 @@ function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
   ],
   templateUrl: './account-form.html',
 })
-export class AccountFormComponent {
+export class AccountFormComponent implements OnInit {
+  readonly modo = input<'normal' | 'al-vuelo'>('normal');
+  readonly tipoSugerido = input<AccountViewType | null>(null);
+  readonly monedaSugerida = input<'COP' | 'USD' | null>(null);
+  readonly tiposAdmitidos = input<readonly AccountViewType[] | null>(null);
+  readonly creada = output<Account>();
+  readonly cancelada = output<void>();
+
   private readonly capabilities = inject(CAPABILITIES);
   private readonly store = inject(AppStore);
   private readonly catalogCommands = inject(CatalogCommands);
@@ -97,6 +98,15 @@ export class AccountFormComponent {
     esquemaDeCuenta((clave) => this.i18n.t(clave)),
     { name: 'cuenta', submission: { action: async () => this.save() } },
   );
+
+  ngOnInit(): void {
+    if (this.modo() !== 'al-vuelo') return;
+    this.modelo.update((datos) => ({
+      ...datos,
+      type: this.tipoSugerido() ?? this.tiposAdmitidos()?.[0] ?? datos.type,
+      currency: this.monedaSugerida() ?? datos.currency,
+    }));
+  }
 
   private readonly tasaDeCambio = inject(TasaDeCambio);
   private readonly rellenarTrm = effect(() => {
@@ -114,7 +124,8 @@ export class AccountFormComponent {
         label: this.i18n.t(`form.account.type.${value}`),
         permiso: permisoParaTipoDeCuenta(value),
       }))
-      .filter((option) => this.capabilities.allows(option.permiso)),
+      .filter((option) => this.capabilities.allows(option.permiso))
+      .filter((option) => this.tiposAdmitidos()?.includes(option.value) ?? true),
   );
   readonly currencyOptions = computed<readonly UiOption[]>(() => [
     { value: 'COP', label: this.i18n.t('form.currency.cop') },
@@ -248,7 +259,10 @@ export class AccountFormComponent {
     return estado.touched() ? (estado.errors()[0]?.message ?? '') : '';
   }
 
-  closed = () => this.store.form.set(null);
+  closed = () => {
+    if (this.modo() === 'al-vuelo') this.cancelada.emit();
+    else this.store.form.set(null);
+  };
   private datosDeCredito(datos: DatosDeCuenta) {
     return {
       limit: Number(datos.limit),
@@ -271,7 +285,7 @@ export class AccountFormComponent {
       this.error.set('');
       const permiso = permisoParaTipoDeCuenta(datos.type);
       if (!this.capabilities.allows(permiso)) throw new Error(this.i18n.t('form.account.error.forbidden'));
-      await this.actions.run(
+      const creada = await this.actions.run(
         this.saveActionKey,
         () =>
           this.catalogCommands.createAccount(
@@ -290,6 +304,8 @@ export class AccountFormComponent {
           error: (error) => (error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed')),
         },
       );
+      if (this.modo() === 'al-vuelo') this.creada.emit(creada);
+      else this.store.form.set(null);
     } catch (error) {
       this.error.set(error instanceof Error ? error.message : this.i18n.t('form.account.error.saveFailed'));
     }
