@@ -40,10 +40,11 @@ export class MovementsBookService {
   ]);
   readonly movementColumns = computed(() => [
     { key: 'date', label: this.i18n.t('movements.column.date'), filter: 'date' as const, rawKey: 'dateIso' },
-    { key: 'description', label: this.i18n.t('movements.column.description') },
+    { key: 'description', wrap: true, label: this.i18n.t('movements.column.description') },
     { key: 'amount', numerica: true, label: this.i18n.t('movements.column.amount') },
     {
       key: 'account',
+      wrap: true,
       label: this.i18n.t('movements.column.account'),
       options: this.store.data().accounts.map((account) => account.name),
     },
