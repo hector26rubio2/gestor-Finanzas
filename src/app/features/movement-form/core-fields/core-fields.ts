@@ -35,6 +35,7 @@ export class MovementCoreFieldsComponent {
   readonly showAccount = input(true);
 
   private readonly store = inject(AppStore);
+  readonly hoy = this.store.hoy();
   private readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
 

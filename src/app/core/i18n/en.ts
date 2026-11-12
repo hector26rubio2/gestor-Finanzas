@@ -297,6 +297,9 @@ export default {
   'form.movement.error.advanceAccountInvalid':
     'A cash advance must move money from a credit card to a cash or savings account.',
   'form.movement.error.amountPositive': 'The amount must be greater than 0.',
+  'form.movement.error.originalAmountPositive': 'The amount in dollars must be greater than 0.',
+  'form.movement.error.exchangeRatePositive': 'The exchange rate must be greater than 0.',
+  'form.movement.error.dateInFuture': 'You cannot record a movement dated after today.',
   'form.movement.error.accountInvalid': 'Select a valid account.',
   'form.movement.error.targetDifferent': 'Select a different destination account.',
   'form.movement.error.operationNotCorrectable':
@@ -1462,7 +1465,7 @@ export default {
   'form.error.notFound': 'It no longer exists: reload the view.',
   'form.account.error.lastFour': 'The last four digits must be four numbers.',
   'form.account.error.dayRange': 'The day must be between 1 and 31.',
-  'form.account.error.exchangeRate': 'The exchange rate must be at least 1.',
+  'form.account.error.exchangeRate': 'The exchange rate must be greater than 0.',
   'form.account.error.monthlyFee': 'The monthly fee cannot be negative.',
   'form.account.title.edit': 'Edit account',
   'form.account.title.editCard': 'Edit card',

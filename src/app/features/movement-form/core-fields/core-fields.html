@@ -1,8 +1,8 @@
 <fin-field data-tour="form-fecha" [label]="i18n.t('form.movement.field.date')">
-  <fin-date-field name="date" [(ngModel)]="model['date']" required />
+  <fin-date-field name="date" [max]="hoy" [(ngModel)]="model['date']" required />
 </fin-field>
 <fin-field data-tour="form-monto" [label]="i18n.t('form.field.amount')">
-  <input hlmInput finMonto name="amount" min="1" [(ngModel)]="model['amount']" required />
+  <input hlmInput finMonto name="amount" [(ngModel)]="model['amount']" required />
 </fin-field>
 @if (showAccount()) {
 <fin-field data-tour="form-cuenta" [label]="sourceAccountLabel()">

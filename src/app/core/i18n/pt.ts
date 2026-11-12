@@ -298,6 +298,9 @@ export default {
   'form.movement.error.advanceAccountInvalid':
     'O adiantamento deve sair de um cartão de crédito para uma conta de dinheiro ou poupança.',
   'form.movement.error.amountPositive': 'O valor deve ser maior que 0.',
+  'form.movement.error.originalAmountPositive': 'O valor em dólares deve ser maior que 0.',
+  'form.movement.error.exchangeRatePositive': 'A taxa de câmbio deve ser maior que 0.',
+  'form.movement.error.dateInFuture': 'Não é possível registrar um movimento com data posterior a hoje.',
   'form.movement.error.accountInvalid': 'Selecione uma conta válida.',
   'form.movement.error.targetDifferent': 'Selecione uma conta de destino diferente.',
   'form.movement.error.operationNotCorrectable':
@@ -1461,7 +1464,7 @@ export default {
   'form.error.notFound': 'Não existe mais: recarregue a tela.',
   'form.account.error.lastFour': 'Os quatro últimos dígitos devem ser quatro números.',
   'form.account.error.dayRange': 'O dia deve estar entre 1 e 31.',
-  'form.account.error.exchangeRate': 'A taxa de câmbio deve ser pelo menos 1.',
+  'form.account.error.exchangeRate': 'A taxa de câmbio deve ser maior que 0.',
   'form.account.error.monthlyFee': 'A taxa mensal não pode ser negativa.',
   'form.account.title.edit': 'Editar conta',
   'form.account.title.editCard': 'Editar cartão',

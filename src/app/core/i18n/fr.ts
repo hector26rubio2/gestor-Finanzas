@@ -303,6 +303,9 @@ export default {
   'form.movement.error.advanceAccountInvalid':
     "Une avance doit aller d'une carte de crédit vers un compte espèces ou épargne.",
   'form.movement.error.amountPositive': 'Le montant doit être supérieur à 0.',
+  'form.movement.error.originalAmountPositive': 'Le montant en dollars doit être supérieur à 0.',
+  'form.movement.error.exchangeRatePositive': 'Le taux de change doit être supérieur à 0.',
+  'form.movement.error.dateInFuture': "Vous ne pouvez pas enregistrer un mouvement daté après aujourd'hui.",
   'form.movement.error.accountInvalid': 'Sélectionnez un compte valide.',
   'form.movement.error.targetDifferent': 'Sélectionnez un compte de destination différent.',
   'form.movement.error.operationNotCorrectable':
@@ -1478,7 +1481,7 @@ export default {
   'form.error.notFound': "N'existe plus : rechargez la vue.",
   'form.account.error.lastFour': 'Les quatre derniers chiffres doivent être quatre nombres.',
   'form.account.error.dayRange': 'Le jour doit être compris entre 1 et 31.',
-  'form.account.error.exchangeRate': "Le taux de change doit être d'au moins 1.",
+  'form.account.error.exchangeRate': 'Le taux de change doit être supérieur à 0.',
   'form.account.error.monthlyFee': 'Les frais mensuels ne peuvent pas être négatifs.',
   'form.account.title.edit': 'Modifier le compte',
   'form.account.title.editCard': 'Modifier la carte',

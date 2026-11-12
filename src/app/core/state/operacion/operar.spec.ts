@@ -3,7 +3,7 @@ import { P } from '@core/session/permissions';
 import { CashFlow, EconomicEffect, MovementKind, signOf } from '@core/utils/movement-kinds';
 import type { Account, Movement, Person } from '../view-model';
 import type { IntencionDeMovimiento } from './intencion';
-import { type EntornoDeOperacion, operar } from './operar';
+import { CLAVE_DE_ERROR, type EntornoDeOperacion, operar } from './operar';
 
 const efectivo: Account = { id: 'efectivo', name: 'Efectivo', type: 'cash', currency: 'COP', openingBalance: 0 };
 const ahorros: Account = { id: 'ahorros', name: 'Ahorros', type: 'savings', currency: 'COP', openingBalance: 0 };
@@ -40,6 +40,7 @@ function entorno(
     movimiento: (id) => (sobre.movimientos ?? [original]).find((m) => m.id === id),
     permite: (permiso) => permisos === 'todos' || permisos.includes(permiso),
     monedaBase: 'COP',
+    hoy: '2026-12-31',
     nuevaClave: () => 'clave-1',
     claveDeOperacion: (huella) => `compartida:${huella}`,
   };
@@ -113,7 +114,18 @@ describe('operar gasto', () => {
 
   it('no permitido: en dolares sin tasa vigente o sin monto original', () => {
     expect(errorDe(gasto({ enDolares: { monto: 10, tasa: 0 } }))).toBe('tasa_de_cambio_invalida');
-    expect(errorDe(gasto({ enDolares: { monto: 0, tasa: 4000 } }))).toBe('monto_invalido');
+    expect(errorDe(gasto({ enDolares: { monto: 0, tasa: 4000 } }))).toBe('monto_en_dolares_invalido');
+  });
+
+  it('en dolares con monto original 0 avisa del monto en dolares aunque el monto en pesos tambien sea 0', () => {
+    expect(errorDe(gasto({ monto: 0, enDolares: { monto: 0, tasa: 0 } }))).toBe('monto_en_dolares_invalido');
+  });
+
+  it('la TRM acepta cualquier valor mayor a 0 y su mensaje lo dice', () => {
+    expect(solicitudDe(gasto({ enDolares: { monto: 10, tasa: 0.5 } })).via).toBe('movimiento');
+    expect(errorDe(gasto({ enDolares: { monto: 10, tasa: 0 } }))).toBe('tasa_de_cambio_invalida');
+    expect(CLAVE_DE_ERROR.tasa_de_cambio_invalida).toBe('form.movement.error.exchangeRatePositive');
+    expect(CLAVE_DE_ERROR.monto_en_dolares_invalido).toBe('form.movement.error.originalAmountPositive');
   });
 
   it('no permitido: compra con tarjeta sin permiso de creditos', () => {
@@ -465,5 +477,62 @@ describe('operar reclasificación', () => {
 
   it('no permitido: sin permiso de editar', () => {
     expect(errorDe(reclasificacion(), entorno({ permisos: [] }))).toBe('sin_permiso');
+  });
+});
+
+describe('operar con fecha futura', () => {
+  const futura = '2027-01-01';
+  const hoy = '2026-12-31';
+
+  const casos: readonly [string, Record<string, unknown>][] = [
+    ['gasto', { tipo: 'gasto', descripcion: 'x', cuentaId: 'efectivo', monto: 100, categoria: '', recurrente: false }],
+    [
+      'ingreso',
+      { tipo: 'ingreso', descripcion: 'x', cuentaId: 'ahorros', monto: 100, categoria: '', recurrente: false },
+    ],
+    [
+      'compra para tercero',
+      {
+        tipo: 'compraParaTercero',
+        descripcion: 'x',
+        cuentaId: 'efectivo',
+        monto: 100,
+        categoria: '',
+        recurrente: false,
+        terceroId: 'camilo',
+      },
+    ],
+    [
+      'transferencia',
+      { tipo: 'transferencia', descripcion: 'x', origenId: 'ahorros', destinoId: 'efectivo', monto: 100 },
+    ],
+    ['avance', { tipo: 'avance', descripcion: 'x', tarjetaId: 'visa', destinoId: 'efectivo', monto: 100 }],
+    [
+      'pago de tarjeta',
+      { tipo: 'pagoDeTarjeta', descripcion: 'x', origenId: 'ahorros', tarjetaId: 'visa', monto: 100 },
+    ],
+  ];
+
+  it.each(casos)('rechaza %s con fecha posterior a hoy', (_nombre, datos) => {
+    expect(errorDe({ ...datos, fecha: futura } as IntencionDeMovimiento)).toBe('fecha_futura');
+  });
+
+  it.each(casos)('acepta %s con fecha de hoy y del pasado', (_nombre, datos) => {
+    expect(operar({ ...datos, fecha: hoy } as IntencionDeMovimiento, entorno()).ok).toBe(true);
+    expect(operar({ ...datos, fecha: '2026-01-01' } as IntencionDeMovimiento, entorno()).ok).toBe(true);
+  });
+
+  it('rechaza una correccion cuyo reemplazo tiene fecha futura', () => {
+    expect(
+      errorDe({
+        tipo: 'correccion',
+        originalId: 'mov-1',
+        reemplazo: gasto({ fecha: futura }),
+      } as IntencionDeMovimiento),
+    ).toBe('fecha_futura');
+  });
+
+  it('el mensaje de fecha futura es uno solo', () => {
+    expect(CLAVE_DE_ERROR.fecha_futura).toBe('form.movement.error.dateInFuture');
   });
 });

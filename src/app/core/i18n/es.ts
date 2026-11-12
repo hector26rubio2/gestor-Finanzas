@@ -298,6 +298,9 @@ export default {
   'form.movement.error.advanceAccountInvalid':
     'El avance debe salir de una tarjeta de crédito hacia una cuenta de efectivo o ahorro.',
   'form.movement.error.amountPositive': 'El monto debe ser mayor a 0.',
+  'form.movement.error.originalAmountPositive': 'El monto en dólares debe ser mayor a 0.',
+  'form.movement.error.exchangeRatePositive': 'La TRM debe ser mayor a 0.',
+  'form.movement.error.dateInFuture': 'No puedes registrar un movimiento con fecha posterior a hoy.',
   'form.movement.error.accountInvalid': 'Selecciona una cuenta válida.',
   'form.movement.error.targetDifferent': 'Selecciona una cuenta destino diferente.',
   'form.movement.error.operationNotCorrectable':
@@ -1463,7 +1466,7 @@ export default {
   'form.error.notFound': 'Ya no existe: recarga la vista.',
   'form.account.error.lastFour': 'Los últimos cuatro dígitos deben ser cuatro números.',
   'form.account.error.dayRange': 'El día va de 1 a 31.',
-  'form.account.error.exchangeRate': 'La TRM debe ser mayor o igual a 1.',
+  'form.account.error.exchangeRate': 'La TRM debe ser mayor a 0.',
   'form.account.error.monthlyFee': 'La cuota de manejo no puede ser negativa.',
   'form.account.title.edit': 'Editar cuenta',
   'form.account.title.editCard': 'Editar tarjeta',
