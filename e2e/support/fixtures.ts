@@ -82,9 +82,9 @@ function escuchar(page: Page, vigilancia: Vigilancia): void {
     if (!respuesta.url().startsWith(apiUrl)) return;
     const metodo = peticion.method();
     const ruta = rutaSinOrigen(respuesta.url());
-    if (metodo === 'GET') vigilancia.lecturas.push(ruta);
-    if (metodo !== 'GET' && metodo !== 'OPTIONS')
-      vigilancia.escrituras.push({ estado: respuesta.status(), metodo, ruta });
+    const esLectura = metodo === 'GET' || (metodo === 'POST' && /^[/]api[/]v1[/]movements[/]search(\?|$)/.test(ruta));
+    if (esLectura) vigilancia.lecturas.push(ruta);
+    if (!esLectura && metodo !== 'OPTIONS') vigilancia.escrituras.push({ estado: respuesta.status(), metodo, ruta });
     if (respuesta.status() >= 400) vigilancia.fallosDeRed.push(`${respuesta.status()} ${metodo} ${ruta}`);
   });
 }

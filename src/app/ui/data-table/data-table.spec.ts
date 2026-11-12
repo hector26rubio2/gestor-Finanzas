@@ -229,3 +229,30 @@ describe('tabla de datos con detalle de fila', () => {
     expect(toggles(fixture.nativeElement as HTMLElement)).toHaveLength(0);
   });
 });
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="data" />`,
+})
+class WrapHostComponent {
+  columns: TableColumn[] = [
+    { key: 'name', label: 'Nombre', wrap: true },
+    { key: 'amount', label: 'Importe' },
+  ];
+  data = rows;
+}
+
+describe('tabla de datos: columnas con ajuste de texto', () => {
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+
+  it('limita el ancho de la celda en tableta para que la tabla no desborde', () => {
+    const fixture = TestBed.createComponent(WrapHostComponent);
+    fixture.detectChanges();
+    const celda = (fixture.nativeElement as HTMLElement).querySelector('tbody td') as HTMLElement;
+    expect(celda.classList).toContain('tableta:max-w-60');
+    expect(celda.classList).toContain('whitespace-normal');
+  });
+});
