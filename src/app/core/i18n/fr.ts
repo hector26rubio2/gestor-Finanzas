@@ -60,6 +60,8 @@ export default {
   'table.detailToggle.show': 'Voir plus',
   'table.detailToggle.hide': 'Voir moins',
   'table.empty': 'Aucun enregistrement pour ces filtres.',
+  'table.error.title': 'Impossible de charger les données',
+  'table.error.retry': 'Réessayer',
   'table.showingRange': '{from}–{to} sur {total}',
   'table.rowsPerPage': 'Lignes',
   'table.rowsPerPage.ariaLabel': 'Lignes par page',

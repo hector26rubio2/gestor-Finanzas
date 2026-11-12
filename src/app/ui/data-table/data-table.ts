@@ -100,6 +100,8 @@ export class DataTableComponent {
   readonly selectionChange = output<TableRow[]>();
   readonly pageSizeChange = output<number>();
   readonly pageChange = output<number>();
+  readonly reintentar = output<void>();
+  readonly error = input<string | null>(null);
   readonly pinnedChange = output<readonly TableFilter[]>();
 
   readonly page = signal(0);

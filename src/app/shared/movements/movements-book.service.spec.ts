@@ -229,3 +229,26 @@ describe('MovementsBookService — refetch tras el invalidado del listado (ticke
     expect(ids).toEqual(['mov-grupo-2']);
   });
 });
+
+describe('MovementsBookService — fallo al cargar una página', () => {
+  it('guarda el motivo del fallo y lo limpia cuando el reintento carga la página', async () => {
+    const transport = new TransportFalso();
+    const { component, cambios } = pruebaRender(ComponenteLibro, {
+      data: datosDe(),
+      transport,
+      session: sesionConPermisos,
+    });
+    cambios();
+
+    await component.book.loadMovementPage(2);
+    expect(component.book.errorDeCarga()).toBeTruthy();
+    expect(component.book.movementsLoading()).toBe(false);
+
+    transport.responder('POST /api/v1/movements/search', paginaCon(['mov-grupo-2'], 42));
+    await component.book.reintentarCarga();
+
+    expect(component.book.errorDeCarga()).toBeNull();
+    const ids = component.book.movementRows().map((fila) => (fila['raw'] as { id: string }).id);
+    expect(ids).toEqual(['mov-grupo-2']);
+  });
+});

@@ -60,6 +60,8 @@ export default {
   'table.detailToggle.show': 'Ver más',
   'table.detailToggle.hide': 'Ver menos',
   'table.empty': 'No hay registros para estos filtros.',
+  'table.error.title': 'No se pudieron cargar los datos',
+  'table.error.retry': 'Reintentar',
   'table.showingRange': '{from}–{to} de {total}',
   'table.rowsPerPage': 'Filas',
   'table.rowsPerPage.ariaLabel': 'Filas por página',

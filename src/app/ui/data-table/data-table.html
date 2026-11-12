@@ -278,7 +278,15 @@
           [attr.colspan]="columns().length + (multiSelect() ? 1 : 0) || 1"
           class="px-4 py-12 text-center whitespace-normal text-muted-foreground"
         >
-          {{ hasFilters() ? i18n.t('table.emptyFiltered') : i18n.t('table.empty') }}
+          @if (error(); as motivo) {
+          <div role="alert" class="flex flex-col items-center gap-3">
+            <p class="font-medium text-foreground">{{ i18n.t('table.error.title') }}</p>
+            <p>{{ motivo }}</p>
+            <button hlmBtn variant="outline" type="button" (click)="reintentar.emit()">
+              {{ i18n.t('table.error.retry') }}
+            </button>
+          </div>
+          } @else { {{ hasFilters() ? i18n.t('table.emptyFiltered') : i18n.t('table.empty') }} }
         </td>
       </tr>
       }

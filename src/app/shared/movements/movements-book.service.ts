@@ -203,6 +203,8 @@ export class MovementsBookService {
     }).format(parsed);
   }
   readonly movementsLoading = signal(false);
+  readonly errorDeCarga = signal<string | null>(null);
+  private ultimaPaginaPedida = 1;
   private cuentaFiltrada() {
     const id = this.store.accountFilter();
     return id === 'all' ? null : (this.store.account(id) ?? { id, type: 'savings' as const });
@@ -217,6 +219,8 @@ export class MovementsBookService {
     if (!this.can(P.movimientos.ver)) return;
     const request = ++this.movementRequest;
     this.movementsLoading.set(true);
+    this.errorDeCarga.set(null);
+    this.ultimaPaginaPedida = page;
     if (page === 1) this.cursores.clear();
     try {
       const period = this.store.period();
@@ -255,10 +259,16 @@ export class MovementsBookService {
       else if (page === 1) this.store.remoteMovementTotals.set(null);
     } catch (error) {
       if (request !== this.movementRequest) return;
-      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('movements.error.loadPage'));
+      const motivo = error instanceof Error ? error.message : this.i18n.t('movements.error.loadPage');
+      this.errorDeCarga.set(motivo);
+      this.store.toast.set(motivo);
     } finally {
       if (request === this.movementRequest) this.movementsLoading.set(false);
     }
+  }
+
+  reintentarCarga(): Promise<void> {
+    return this.loadMovementPage(this.ultimaPaginaPedida);
   }
   /**
    * Ticket 27: un refetch NUNCA debe borrar del libro un movimiento que acababa de

@@ -111,6 +111,8 @@
     urlKey="pagina"
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
+    [error]="book.movementRows().length ? null : book.errorDeCarga()"
+    (reintentar)="book.reintentarCarga()"
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.remoteMovementTotal()"
     [remotePage]="store.remoteMovementPage()"

@@ -277,3 +277,40 @@ class WrapSecondHostComponent {
   ];
   data = rows;
 }
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="[]" [error]="error" (reintentar)="reintentos = reintentos + 1" />`,
+})
+class ErrorHostComponent {
+  columns: TableColumn[] = [{ key: 'name', label: 'Nombre' }];
+  error: string | null = 'No se pudo cargar';
+  reintentos = 0;
+}
+
+describe('tabla de datos: fallo de carga', () => {
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+
+  it('muestra el motivo como alerta con Reintentar en vez del mensaje de tabla vacía', () => {
+    const fixture = TestBed.createComponent(ErrorHostComponent);
+    fixture.detectChanges();
+    const raiz = fixture.nativeElement as HTMLElement;
+    const alerta = raiz.querySelector('tbody [role=alert]') as HTMLElement;
+    expect(alerta.textContent).toContain('No se pudo cargar');
+    expect(raiz.querySelector('tbody')!.textContent).not.toContain('No hay registros');
+    (alerta.querySelector('button') as HTMLButtonElement).click();
+    expect(fixture.componentInstance.reintentos).toBe(1);
+  });
+
+  it('sin error conserva el mensaje de tabla vacía', () => {
+    const fixture = TestBed.createComponent(ErrorHostComponent);
+    fixture.componentInstance.error = null;
+    fixture.detectChanges();
+    const raiz = fixture.nativeElement as HTMLElement;
+    expect(raiz.querySelector('tbody [role=alert]')).toBeNull();
+    expect(raiz.querySelector('tbody')!.textContent).toContain('No hay registros');
+  });
+});
