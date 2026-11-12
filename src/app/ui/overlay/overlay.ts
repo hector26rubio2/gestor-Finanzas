@@ -94,7 +94,8 @@ import { Pantalla, esTableta } from '@ui/pantalla';
             </button>
           </header>
           <div
-            class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pt-6 tactil:[&_[data-slot=select-trigger]]:min-h-11 tactil:[&_button]:min-h-11 tactil:[&_input:not([type=checkbox]):not([type=radio])]:min-h-11"
+            data-slot="cuerpo-de-hoja"
+            class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pt-6 pb-[calc(6rem+env(safe-area-inset-bottom))] tactil:[&_[data-slot=select-trigger]]:min-h-11 tactil:[&_button]:min-h-11 tactil:[&_input:not([type=checkbox]):not([type=radio])]:min-h-11"
           >
             <ng-container [ngTemplateOutlet]="body" />
           </div>

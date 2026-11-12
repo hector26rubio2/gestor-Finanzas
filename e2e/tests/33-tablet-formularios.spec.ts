@@ -8,6 +8,11 @@ import { atajo, dialogo, elegir, esperarMovimiento, guardarMovimiento, ir } from
 const corrida = identificadorDeCorrida;
 const ANCHO_DE_HOJA = 480;
 
+const PANTALLAS_DE_PIE = [
+  { nombre: 'tablet vertical', ancho: 820, alto: 1180 },
+  { nombre: 'tablet horizontal', ancho: 1180, alto: 820 },
+];
+
 const TABLETAS = [
   { nombre: 'tablet horizontal', ancho: 1024, alto: 768 },
   { nombre: 'tablet vertical', ancho: 768, alto: 1024 },
@@ -193,6 +198,45 @@ for (const tableta of TABLETAS) {
   });
 }
 
+for (const pantalla of PANTALLAS_DE_PIE) {
+  test.describe(`Pie de acciones en ${pantalla.nombre} ${pantalla.ancho}x${pantalla.alto}`, () => {
+    test.use({ viewport: { width: pantalla.ancho, height: pantalla.alto }, hasTouch: true });
+
+    async function pegadoAlBorde(hoja: Locator): Promise<void> {
+      const caja = await medidas(hoja);
+      const pie = await medidas(hoja.locator('footer[finAcciones]'));
+      expect(Math.abs(caja.y + caja.height - (pie.y + pie.height))).toBeLessThanOrEqual(1);
+    }
+
+    test('PIE-01 el formulario corto de gasto deja el pie pegado al borde inferior de la hoja', async ({ page }) => {
+      await ir(page, 'movements');
+      await atajo(page, 'n', 'g');
+      const hoja = dialogo(page);
+      await expect(hoja).toHaveAttribute('data-superficie', 'hoja');
+      await pegadoAlBorde(hoja);
+      await expect(hoja.locator('button[type=submit]')).toBeInViewport({ ratio: 1 });
+      await expect(hoja.getByRole('button', { name: 'Cancelar' })).toBeInViewport({ ratio: 1 });
+    });
+
+    test('PIE-02 el formulario largo de tarjeta mantiene el pie pegado y solo el cuerpo se desplaza', async ({
+      page,
+    }) => {
+      await ir(page, 'movements');
+      await atajo(page, 'n', 'g');
+      const hoja = dialogo(page);
+      await elegir(hoja, 'Cuenta o tarjeta:', nombres.tarjeta);
+      const barra = hoja.locator('footer[finAcciones]');
+      const cuerpo = hoja.locator('[data-slot=cuerpo-de-hoja]');
+      await pegadoAlBorde(hoja);
+      await cuerpo.evaluate((nodo) => nodo.scrollTo({ top: nodo.scrollHeight }));
+      await pegadoAlBorde(hoja);
+      const ultimo = await medidas(hoja.locator('form').locator('input, [data-slot=select-trigger]').last());
+      expect(ultimo.y + ultimo.height).toBeLessThanOrEqual((await medidas(barra)).y + 1);
+      await expect(hoja.locator('button[type=submit]')).toBeInViewport({ ratio: 1 });
+    });
+  });
+}
+
 test.describe('Formularios en escritorio 1280x800 (control)', () => {
   test.use({ viewport: { width: 1280, height: 800 }, hasTouch: true });
 
@@ -206,6 +250,10 @@ test.describe('Formularios en escritorio 1280x800 (control)', () => {
     expect(Math.abs(caja.x + caja.width / 2 - 640)).toBeLessThanOrEqual(2);
     expect(caja.x + caja.width).toBeLessThan(1280 - 100);
     expect(caja.height).toBeLessThan(800);
+    const pie = formulario.locator('footer[finAcciones]');
+    expect(await pie.evaluate((nodo) => getComputedStyle(nodo).position)).toBe('static');
+    const cajaDePie = await medidas(pie);
+    expect(cajaDePie.y + cajaDePie.height).toBeLessThanOrEqual(caja.y + caja.height);
   });
 
   test('HOJ-11 el formulario de cuenta sigue siendo un diálogo centrado', async ({ page }) => {
