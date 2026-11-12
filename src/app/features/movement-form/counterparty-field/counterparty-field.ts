@@ -8,14 +8,22 @@ import { AppStore, CAPABILITIES } from '@core/state/store';
 import { CatalogCommands } from '@core/state/catalog-commands';
 import { PersonKind } from '@core/state/view-model';
 import { FieldComponent } from '@ui/field/field';
-import { IconComponent } from '@ui/icon/icon';
+import { BotonDeAltaComponent, CancelarConEscape } from '@ui/select-or-create';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@features/movement-form/relationship-options';
 import { CounterpartyScope } from '@features/movement-form/movement-visibility-builder';
 
 @Component({
   selector: 'fin-movement-counterparty-field',
-  imports: [FormsModule, UiSelectComponent, FieldComponent, HlmButton, HlmInput, IconComponent],
+  imports: [
+    FormsModule,
+    UiSelectComponent,
+    FieldComponent,
+    HlmButton,
+    HlmInput,
+    BotonDeAltaComponent,
+    CancelarConEscape,
+  ],
   templateUrl: './counterparty-field.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],

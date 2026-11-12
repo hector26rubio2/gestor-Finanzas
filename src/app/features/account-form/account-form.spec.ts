@@ -247,3 +247,90 @@ describe('formulario de cuenta nueva', () => {
     expect(actualizar.mock.calls[0][1]).toMatchObject({ credit: { applyPaymentPriority: false } });
   });
 });
+
+describe('formulario de cuenta al vuelo', () => {
+  beforeEach(() => TestBed.resetTestingModule());
+
+  async function abrirAlVuelo(entradas: Record<string, unknown>) {
+    window.__FINANZAS_CONFIG__ = { apiBaseUrl: 'http://api.test' };
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      providers: [
+        provideRouter([]),
+        { provide: RUNTIME_CONFIG, useValue: { apiBaseUrl: 'http://api.test' } },
+        { provide: FinanceApiClient, useValue: { dashboard: vi.fn(() => of(null)) } },
+        { provide: TrmApi, useValue: { today: () => of(4012.5) } },
+      ],
+    });
+    const store = TestBed.inject(AppStore);
+    store.user.set({
+      ...USUARIO_DE_PRUEBA,
+      capabilities: [
+        P.cuentas.ver,
+        P.cuentas.crear,
+        P.cuentas.ahorro.crear,
+        P.cuentas.efectivo.crear,
+        P.cuentas.tarjetas.crear,
+      ],
+    });
+    store.form.set({ kind: 'expense' });
+    const fixture = TestBed.createComponent(AccountFormComponent);
+    fixture.componentRef.setInput('modo', 'al-vuelo');
+    for (const [nombre, valor] of Object.entries(entradas)) fixture.componentRef.setInput(nombre, valor);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    return { fixture, store };
+  }
+
+  it('arranca con el tipo y la moneda sugeridos', async () => {
+    const { fixture } = await abrirAlVuelo({ tipoSugerido: 'credit', monedaSugerida: 'USD' });
+
+    expect(fixture.componentInstance.modelo().type).toBe('credit');
+    expect(fixture.componentInstance.modelo().currency).toBe('USD');
+    expect(document.body.querySelector('input[name="cuenta.limit"]')).not.toBeNull();
+  });
+
+  it('solo ofrece los tipos admitidos que el permiso habilita', async () => {
+    const { fixture } = await abrirAlVuelo({ tiposAdmitidos: ['cash', 'wallet', 'credit'] });
+
+    expect(fixture.componentInstance.accountTypes().map((tipo) => tipo.value)).toEqual(['cash', 'wallet', 'credit']);
+  });
+
+  it('al guardar emite la cuenta creada, no navega y deja intacto el formulario del movimiento', async () => {
+    const { fixture, store } = await abrirAlVuelo({ tipoSugerido: 'cash' });
+    const creada: Account = { id: 'nueva', name: 'Billetera', type: 'cash', currency: 'COP', openingBalance: 0 };
+    vi.spyOn(TestBed.inject(CatalogCommands), 'createAccount').mockResolvedValue(creada);
+    const emitidas: Account[] = [];
+    fixture.componentInstance.creada.subscribe((cuenta) => emitidas.push(cuenta));
+    for (const [nombre, valor] of [
+      ['name', 'Billetera'],
+      ['lastFour', '4321'],
+    ]) {
+      const campo = document.body.querySelector<HTMLInputElement>(`input[name="cuenta.${nombre}"]`)!;
+      campo.value = valor;
+      campo.dispatchEvent(new Event('input'));
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+
+    document.body.querySelector<HTMLButtonElement>('button[type=submit]')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    await vi.waitFor(() => expect(emitidas).toEqual([creada]));
+    expect(store.form()?.kind).toBe('expense');
+  });
+
+  it('cancelar emite la cancelación sin tocar el formulario del movimiento', async () => {
+    const { fixture, store } = await abrirAlVuelo({});
+    let canceladas = 0;
+    fixture.componentInstance.cancelada.subscribe(() => (canceladas += 1));
+
+    fixture.componentInstance.closed();
+
+    expect(canceladas).toBe(1);
+    expect(store.form()?.kind).toBe('expense');
+  });
+});

@@ -1620,6 +1620,8 @@ export default {
   'form.movement.counterparty.borrower': 'À qui avez-vous prêté ?',
   'form.movement.counterparty.addInstitution': 'Nouvel établissement',
   'form.movement.counterparty.addPerson': 'Nouvelle personne',
+  'form.movement.account.addAccount': 'Nouveau compte',
+  'form.movement.account.addCard': 'Nouvelle carte',
   'form.movement.category.add': 'Nouvelle catégorie',
   'form.movement.cardMode.purchase': 'Achat par carte',
   'form.movement.cardMode.cashAdvance': "Avance d'espèces",

@@ -9,10 +9,20 @@ import { Account } from '@core/state/view-model';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { MontoInputDirective } from '@ui/monto-input';
 import { FieldComponent } from '@ui/field/field';
+import { CrearCuentaAlVueloComponent } from '@features/account-form/crear-cuenta-al-vuelo';
+import { propuestaDeCuenta, type PropuestaDeCuenta } from '@features/account-form/propuesta-de-cuenta';
 
 @Component({
   selector: 'fin-movement-core-fields',
-  imports: [DateFieldComponent, HlmInput, FormsModule, UiSelectComponent, MontoInputDirective, FieldComponent],
+  imports: [
+    DateFieldComponent,
+    HlmInput,
+    FormsModule,
+    UiSelectComponent,
+    MontoInputDirective,
+    FieldComponent,
+    CrearCuentaAlVueloComponent,
+  ],
   templateUrl: './core-fields.html',
   host: { style: 'display: contents' },
   viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
@@ -61,6 +71,33 @@ export class MovementCoreFieldsComponent {
         .accounts.filter((cuenta) => cuenta.type !== 'credit' && cuenta.id !== origen?.id && mismaMoneda(cuenta))
         .map((cuenta) => this.opcion(cuenta)),
     ];
+  }
+
+  propuestaOrigen(): PropuestaDeCuenta | null {
+    return propuestaDeCuenta({
+      destino: 'origen',
+      kind: this.kind(),
+      operation: this.operation(),
+      permite: (permiso) => this.caps.allows(permiso),
+      monedaDelMovimiento: this.model['originalCurrency'] === 'USD' ? 'USD' : undefined,
+    });
+  }
+
+  propuestaDestino(): PropuestaDeCuenta | null {
+    return propuestaDeCuenta({
+      destino: 'destino',
+      kind: this.kind(),
+      operation: this.operation(),
+      permite: (permiso) => this.caps.allows(permiso),
+      monedaDelMovimiento:
+        this.operation() === 'transfer'
+          ? this.store.account(String(this.model['accountId'] ?? ''))?.currency
+          : undefined,
+    });
+  }
+
+  elegirCuenta(campo: 'accountId' | 'targetId', cuenta: Account): void {
+    this.model[campo] = cuenta.id;
   }
 
   sourceAccountLabel(): string {

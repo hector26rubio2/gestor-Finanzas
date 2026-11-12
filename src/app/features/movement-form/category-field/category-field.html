@@ -8,23 +8,22 @@
       [ariaLabel]="i18n.t('form.movement.field.category')"
     />
     @if (puedeCrear()) {
-    <button
+    <fin-boton-de-alta
       data-tour="form-categoria-nueva"
-      hlmBtn
-      type="button"
-      variant="outline"
-      size="icon"
-      [attr.aria-label]="i18n.t('form.movement.category.add')"
-      [attr.aria-expanded]="creando()"
-      (click)="creando.set(!creando())"
-    >
-      <fin-icon name="plus" />
-    </button>
+      [etiqueta]="i18n.t('form.movement.category.add')"
+      [abierto]="creando()"
+      (alternar)="creando.set(!creando())"
+    />
     }
   </div>
 </fin-field>
 @if (creando()) {
-<fin-field data-tour="form-categoria-alta" [label]="i18n.t('form.movement.category.add')">
+<fin-field
+  finCancelarConEscape
+  (cancelar)="creando.set(false)"
+  data-tour="form-categoria-alta"
+  [label]="i18n.t('form.movement.category.add')"
+>
   <div class="flex items-center gap-2">
     <input
       hlmInput

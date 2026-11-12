@@ -7,13 +7,21 @@ import { P } from '@core/session/permissions';
 import { CatalogCommands } from '@core/state/catalog-commands';
 import { AppStore, CAPABILITIES } from '@core/state/store';
 import { FieldComponent } from '@ui/field/field';
-import { IconComponent } from '@ui/icon/icon';
+import { BotonDeAltaComponent, CancelarConEscape } from '@ui/select-or-create';
 import { UiOption, UiSelectComponent } from '@ui/select/select';
 import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@features/movement-form/relationship-options';
 
 @Component({
   selector: 'fin-movement-attribution-field',
-  imports: [FormsModule, UiSelectComponent, FieldComponent, HlmButton, HlmInput, IconComponent],
+  imports: [
+    FormsModule,
+    UiSelectComponent,
+    FieldComponent,
+    HlmButton,
+    HlmInput,
+    BotonDeAltaComponent,
+    CancelarConEscape,
+  ],
   template: `
     <fin-field data-tour="form-atribucion" [label]="i18n.t('form.movement.field.person')">
       <div class="flex items-center gap-2">
@@ -25,22 +33,20 @@ import { DEFAULT_RELATIONSHIP, Relationship, relationshipOptions } from '@featur
           [ariaLabel]="i18n.t('form.movement.field.person')"
         />
         @if (puedeCrear()) {
-          <button
-            hlmBtn
-            type="button"
-            variant="outline"
-            size="icon"
-            [attr.aria-label]="i18n.t('form.movement.counterparty.addPerson')"
-            [attr.aria-expanded]="creando()"
-            (click)="creando.set(!creando())"
-          >
-            <fin-icon name="plus" />
-          </button>
+          <fin-boton-de-alta
+            [etiqueta]="i18n.t('form.movement.counterparty.addPerson')"
+            [abierto]="creando()"
+            (alternar)="creando.set(!creando())"
+          />
         }
       </div>
     </fin-field>
     @if (creando()) {
-      <fin-field [label]="i18n.t('form.movement.counterparty.addPerson')">
+      <fin-field
+        finCancelarConEscape
+        (cancelar)="creando.set(false)"
+        [label]="i18n.t('form.movement.counterparty.addPerson')"
+      >
         <div class="flex items-center gap-2">
           <input
             hlmInput
