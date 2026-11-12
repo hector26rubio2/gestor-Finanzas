@@ -11,7 +11,8 @@ describe('contenedorDeDetalle', () => {
     ['amplio', false, 'superpuesto'],
     ['compacto', true, 'superpuesto'],
     ['medio', true, 'superpuesto'],
-    ['expandido', true, 'superpuesto'],
+    ['expandido', true, 'acoplado'],
+    ['expandido', false, 'superpuesto'],
   ])('en %s con habilitado=%s usa %s', (tamano, habilitado, esperado) => {
     expect(contenedorDeDetalle(tamano, habilitado)).toBe(esperado);
   });
@@ -79,7 +80,7 @@ describe('lista y detalle', () => {
     expect(panel()).toBeNull();
   });
 
-  it.each<TamanoDePantalla>(['compacto', 'medio', 'expandido'])('en %s usa el contenedor superpuesto', (tamano) => {
+  it.each<TamanoDePantalla>(['compacto', 'medio'])('en %s usa el contenedor superpuesto', (tamano) => {
     const { fixture, anfitrion, panel, superpuesto } = montar(tamano);
     anfitrion.abierto.set(true);
     fixture.detectChanges();

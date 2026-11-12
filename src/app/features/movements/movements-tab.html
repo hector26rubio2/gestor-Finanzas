@@ -18,6 +18,7 @@
       <dd class="font-semibold tabular-nums">{{ store.money(netoMostrado()) }}</dd>
     </div>
   </dl>
+  @if (!lista?.detalleAcoplado()) {
   <button
     hlmBtn
     variant="ghost"
@@ -30,6 +31,7 @@
     {{ i18n.t(kpisDesplegados() ? 'movements.kpi.summary.collapse' : 'movements.kpi.summary.expand') }}
     <fin-icon [name]="kpisDesplegados() ? 'chevronUp' : 'chevronDown'" />
   </button>
+  }
 </div>
 @if (!kpisEnUnaLinea()) {
 <fin-kpi-grid data-tour="movimientos-kpis">
