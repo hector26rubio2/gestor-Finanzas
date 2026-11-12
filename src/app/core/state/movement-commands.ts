@@ -2,6 +2,7 @@ import { inject, Injectable, Injector } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import type { Movement } from './view-model';
 import { FinanceApiClient } from '@core/api/api-client';
+import { ApiRequestError } from '@core/http/api-http-client';
 import { P } from '@core/session/permissions';
 import { toMovement } from '@core/session/mappers/movements.mapper';
 import { I18nService } from '@core/i18n';
@@ -21,6 +22,7 @@ import type { ApiMovement, CreateMovementBody } from '@core/api/ledger.api';
 import type { ApiSharedPurchase } from '@core/api/purchases.api';
 
 const CATEGORIA_DE_OPERACION = 'Transferencias';
+const CODIGO_FECHA_FUTURA = 'movement.date_in_future';
 
 @Injectable({ providedIn: 'root' })
 export class MovementCommands {
@@ -30,12 +32,25 @@ export class MovementCommands {
   private readonly capabilities = inject(CAPABILITIES);
   private claveRecordada: { readonly huella: string; readonly clave: string } | null = null;
 
+  validar(intencion: IntencionDeMovimiento): string | null {
+    const resultado = operar(intencion, this.entorno());
+    return resultado.ok ? null : this.i18n.t(CLAVE_DE_ERROR[resultado.error.codigo]);
+  }
+
   async asentar(intencion: IntencionDeMovimiento): Promise<void> {
     const resultado = operar(intencion, this.entorno());
     if (!resultado.ok) throw new Error(this.i18n.t(CLAVE_DE_ERROR[resultado.error.codigo]));
-    await this.ejecutar(resultado.solicitud);
+    await this.ejecutar(resultado.solicitud).catch((error: unknown) => {
+      throw this.traducido(error);
+    });
     this.store.invalidarListadoDeMovimientos();
     this.store.form.set(null);
+  }
+
+  private traducido(error: unknown): unknown {
+    return error instanceof ApiRequestError && error.problem.code === CODIGO_FECHA_FUTURA
+      ? new Error(this.i18n.t(CLAVE_DE_ERROR.fecha_futura))
+      : error;
   }
 
   async reversar(movimiento: Movement): Promise<void> {
@@ -68,6 +83,7 @@ export class MovementCommands {
       movimiento: (id) => this.store.movimiento(id),
       permite: (permiso) => this.capabilities.allows(permiso),
       monedaBase: this.store.baseCurrency(),
+      hoy: this.store.hoy(),
       nuevaClave: () => crypto.randomUUID(),
       claveDeOperacion: (huella) => this.claveParaHuella(huella),
     };

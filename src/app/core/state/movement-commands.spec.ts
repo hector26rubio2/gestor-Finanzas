@@ -337,6 +337,36 @@ describe('MovementCommands.asentar — alta de movimientos', () => {
   });
 });
 
+describe('MovementCommands.asentar — fecha futura rechazada por la API', () => {
+  it('traduce el código movement.date_in_future al mismo aviso del formulario', async () => {
+    const transport = new TransportFalso().responder('POST /api/v1/movements', {
+      error: {
+        status: 400,
+        code: 'movement.date_in_future',
+        detail: 'Un movimiento no puede tener una fecha posterior a hoy.',
+      },
+    });
+    const { component, cambios } = pruebaRender(ComponenteVacio, {
+      session: sesionDe().conTodosLosPermisos(),
+      data: datosDe(),
+      transport,
+    });
+    cambios();
+
+    await expect(
+      component.comandos.asentar({
+        tipo: 'gasto',
+        fecha: '2026-10-01',
+        descripcion: 'Almuerzo',
+        cuentaId: 'cuenta-2',
+        monto: 45900,
+        categoria: '',
+        recurrente: false,
+      }),
+    ).rejects.toThrow('No puedes registrar un movimiento con fecha posterior a hoy.');
+  });
+});
+
 describe('MovementCommands.asentar — edición/reclasificación', () => {
   function editor() {
     const transport = new TransportFalso().responder('PUT /api/v1/movements/mov-1/classification', {

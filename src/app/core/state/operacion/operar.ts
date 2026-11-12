@@ -25,6 +25,7 @@ export interface EntornoDeOperacion {
   movimiento(id: string): Movement | undefined;
   permite(permiso: string): boolean;
   readonly monedaBase: string;
+  readonly hoy: string;
   nuevaClave(): string;
   claveDeOperacion(huella: string): string;
 }
@@ -32,6 +33,8 @@ export interface EntornoDeOperacion {
 export type CodigoDeError =
   | 'sin_permiso'
   | 'monto_invalido'
+  | 'monto_en_dolares_invalido'
+  | 'fecha_futura'
   | 'cuenta_invalida'
   | 'destino_invalido'
   | 'contraparte_requerida'
@@ -47,11 +50,13 @@ export type CodigoDeError =
 export const CLAVE_DE_ERROR: Readonly<Record<CodigoDeError, string>> = {
   sin_permiso: 'form.error.forbidden',
   monto_invalido: 'form.movement.error.amountPositive',
+  monto_en_dolares_invalido: 'form.movement.error.originalAmountPositive',
+  fecha_futura: 'form.movement.error.dateInFuture',
   cuenta_invalida: 'form.movement.error.accountInvalid',
   destino_invalido: 'form.movement.error.targetDifferent',
   contraparte_requerida: 'form.movement.error.counterpartyRequired',
   tasa_invalida: 'form.movement.error.rateInvalid',
-  tasa_de_cambio_invalida: 'form.account.error.exchangeRate',
+  tasa_de_cambio_invalida: 'form.movement.error.exchangeRatePositive',
   no_corregible: 'form.movement.error.operationNotCorrectable',
   movimiento_no_encontrado: 'form.movement.error.originalNotFound',
   compra_con_tarjeta_prohibida: 'form.movement.error.creditPurchaseForbidden',
@@ -195,9 +200,9 @@ function validarCompra(
   permisoBase: string,
 ): { readonly cuenta: Account } | ErrorDeOperacion {
   if (!env.permite(permisoBase)) return { codigo: 'sin_permiso' };
-  if (!montoValido(intencion.monto)) return { codigo: 'monto_invalido' };
-  if (intencion.enDolares && !montoValido(intencion.enDolares.monto)) return { codigo: 'monto_invalido' };
+  if (intencion.enDolares && !montoValido(intencion.enDolares.monto)) return { codigo: 'monto_en_dolares_invalido' };
   if (intencion.enDolares && !(intencion.enDolares.tasa > 0)) return { codigo: 'tasa_de_cambio_invalida' };
+  if (!montoValido(intencion.monto)) return { codigo: 'monto_invalido' };
   const cuenta = env.cuenta(intencion.cuentaId);
   if (!cuenta) return { codigo: 'cuenta_invalida' };
   if (intencion.tipo === 'ingreso') {
@@ -470,7 +475,24 @@ function operarReclasificacion(
   });
 }
 
+const fechaDe = (intencion: IntencionDeMovimiento): string | undefined => {
+  switch (intencion.tipo) {
+    case 'reclasificacion':
+      return undefined;
+    case 'correccion':
+      return intencion.reemplazo.fecha;
+    default:
+      return intencion.fecha;
+  }
+};
+
+const esFechaFutura = (intencion: IntencionDeMovimiento, hoy: string): boolean => {
+  const fecha = fechaDe(intencion);
+  return fecha !== undefined && fecha > hoy;
+};
+
 export function operar(intencion: IntencionDeMovimiento, env: EntornoDeOperacion): ResultadoDeOperacion {
+  if (esFechaFutura(intencion, env.hoy)) return fallo('fecha_futura');
   switch (intencion.tipo) {
     case 'gasto':
     case 'ingreso':

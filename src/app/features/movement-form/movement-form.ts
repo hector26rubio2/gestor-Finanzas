@@ -283,6 +283,11 @@ export class MovementFormComponent {
         personaPorNombre: (nombre) => this.store.data().people.find((persona) => persona.name === nombre),
         movimiento: (id) => this.store.movimiento(id),
       });
+      const invalido = this.movementCommands.validar(intencion);
+      if (invalido) {
+        this.error.set(invalido);
+        return;
+      }
       await this.actions.run(this.saveActionKey, () => this.movementCommands.asentar(intencion), {
         loading: this.i18n.t('form.movement.toast.loading'),
         success: this.i18n.t('form.movement.toast.success'),
