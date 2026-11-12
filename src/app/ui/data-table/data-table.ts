@@ -440,7 +440,9 @@ export class DataTableComponent {
   }
 
   detailClass(column: TableColumn, rowIndex: number): string {
-    const ajuste = column.wrap ? 'max-w-[28rem] min-w-48 whitespace-normal [overflow-wrap:anywhere]' : '';
+    const ajuste = column.wrap
+      ? 'max-w-[28rem] min-w-48 tableta:max-w-60 tableta:min-w-36 whitespace-normal [overflow-wrap:anywhere]'
+      : '';
     if (column.essential !== false) return ajuste;
     return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'compacto:grid' : 'compacto:hidden'}`;
   }

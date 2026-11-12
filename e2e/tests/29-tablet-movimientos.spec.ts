@@ -70,6 +70,19 @@ for (const tableta of TABLETAS) {
       expect(medidas.tablaScroll).toBeLessThanOrEqual(medidas.tablaVista);
     });
 
+    test(`TAB-08 una descripción y una cuenta largas no desbordan la tabla`, async ({ page }) => {
+      const medidas = await page.evaluate(() => {
+        const celdas = [...document.querySelectorAll('main table tbody tr')[0].querySelectorAll('td')].filter(
+          (celda) => (celda as HTMLElement).offsetParent !== null,
+        );
+        celdas[1].textContent = 'E2E compartida doble clic 1731400000000 con una descripción larga de prueba';
+        celdas[3].textContent = 'Cuenta de ahorros personal de la corrida e2e con nombre largo';
+        const tabla = document.querySelector('[data-testid=table-scroll]')!;
+        return { tablaScroll: tabla.scrollWidth, tablaVista: tabla.clientWidth };
+      });
+      expect(medidas.tablaScroll).toBeLessThanOrEqual(medidas.tablaVista);
+    });
+
     test(`TAB-02 la tabla muestra solo las cuatro columnas de prioridad 1`, async ({ page }) => {
       expect(await cabeceras(page)).toEqual(CABECERAS_DE_PRIORIDAD_1);
     });
