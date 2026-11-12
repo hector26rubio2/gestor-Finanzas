@@ -136,6 +136,9 @@ test.describe('Movimientos en escritorio 1280x800 (control)', () => {
     await abrirMovimientos(page);
     expect(await cabeceras(page)).toEqual(CABECERAS_DE_ESCRITORIO);
     await expect(page.locator('fin-kpi-grid')).toBeVisible();
-    await expect(page.getByTestId('movimientos-kpis-resumen')).toHaveCount(0);
+    await expect(page.getByTestId('movimientos-kpis-resumen').getByRole('button')).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
   });
 });

@@ -10,7 +10,7 @@ import { DataTableComponent } from '@ui/data-table';
 import { SkeletonComponent } from '@ui/skeleton';
 import { KpiComponent } from '@ui/kpi';
 import { ListaYDetalleComponent } from '@ui/lista-y-detalle';
-import { Pantalla, esTableta } from '@ui/pantalla';
+import { Pantalla, type TamanoDePantalla } from '@ui/pantalla';
 import { IconComponent } from '@ui/icon/icon';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { longestInstallmentDebt, recurringExpenseCount, topSpendingCategory } from './movement-insights';
@@ -40,6 +40,10 @@ export function movementsKpiHintKey(kpi: MovementsKpi): string {
 
 const DIAS_MAXIMOS_DEL_RESUMEN = 3650;
 
+export function kpisDesplegadosDeEntrada(tamano: TamanoDePantalla): boolean {
+  return tamano === 'expandido';
+}
+
 @Component({
   selector: 'app-movements-tab',
   imports: [
@@ -63,14 +67,13 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   readonly i18n = inject(I18nService);
   private readonly pantalla = inject(Pantalla);
   protected readonly lista = inject(ListaYDetalleComponent, { optional: true });
-  readonly kpisDesplegados = signal(false);
-  readonly kpisEnUnaLinea = computed(() => esTableta(this.pantalla.tamano()) && !this.kpisDesplegados());
+  readonly kpisDesplegados = signal(kpisDesplegadosDeEntrada(this.pantalla.tamano()));
+  readonly kpisEnUnaLinea = computed(() => !this.kpisDesplegados());
   readonly filaActivaId = computed(() => {
     const elegida = this.store.inspector();
     return elegida?.type === 'movement' ? elegida.id : null;
   });
   readonly columnasOcultas = computed(() => (this.lista?.detalleAcoplado() ? ['account'] : []));
-  readonly kpisPlegables = computed(() => esTableta(this.pantalla.tamano()));
   readonly netoMostrado = computed(() => this.ingresosMostrados() - this.gastosMostrados());
   private readonly capabilities = inject(CAPABILITIES);
   private readonly route = inject(ActivatedRoute);

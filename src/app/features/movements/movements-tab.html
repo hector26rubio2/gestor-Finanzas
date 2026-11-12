@@ -1,4 +1,3 @@
-@if (kpisPlegables()) {
 <div
   data-testid="movimientos-kpis-resumen"
   role="group"
@@ -32,7 +31,7 @@
     <fin-icon [name]="kpisDesplegados() ? 'chevronUp' : 'chevronDown'" />
   </button>
 </div>
-} @if (!kpisEnUnaLinea()) {
+@if (!kpisEnUnaLinea()) {
 <fin-kpi-grid data-tour="movimientos-kpis">
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
