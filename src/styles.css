@@ -242,6 +242,42 @@
       transition-duration: 0.01ms !important;
     }
   }
+  @media (pointer: coarse) {
+    :where(button, [role='button']):not(
+      [role='switch'],
+      [role='checkbox'],
+      [role='radio'],
+      :where(td, th, [data-slot='calendar']) *
+    ),
+    input:not([type='checkbox'], [type='radio'], [type='range'], [type='color']),
+    a[data-slot='button'],
+    [data-slot='select-trigger'],
+    [data-slot='combobox-trigger'],
+    [data-slot='tabs-trigger'] {
+      min-height: 2.75rem;
+    }
+    :where(button, [role='button']):not(
+      [role='switch'],
+      [role='checkbox'],
+      [role='radio'],
+      :where(td, th, [data-slot='calendar']) *
+    ) {
+      min-width: 2.75rem;
+    }
+    a[data-slot='button'] {
+      min-width: 2.75rem;
+    }
+    [data-slot='tabs-list'] {
+      min-height: 2.75rem;
+      height: auto;
+    }
+  }
+  @media (pointer: coarse) and (max-width: 599.98px) {
+    :where(td, th) :where(button, [role='button']):not([role='switch'], [role='checkbox'], [role='radio']) {
+      min-height: 2.75rem;
+      min-width: 2.75rem;
+    }
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
