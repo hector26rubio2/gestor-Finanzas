@@ -9,7 +9,7 @@
     />
     @if (puedeCrear()) {
     <fin-boton-de-alta
-      dataTour="form-categoria-nueva"
+      data-tour="form-categoria-nueva"
       [etiqueta]="i18n.t('form.movement.category.add')"
       [abierto]="creando()"
       (alternar)="creando.set(!creando())"

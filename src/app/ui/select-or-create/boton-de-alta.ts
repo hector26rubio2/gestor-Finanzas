@@ -6,14 +6,13 @@ import { IconComponent } from '@ui/icon/icon';
 @Component({
   selector: 'fin-boton-de-alta',
   imports: [HlmButton, IconComponent],
-  host: { style: 'display: contents' },
+  host: { class: 'inline-flex shrink-0' },
   template: `
     <button
       hlmBtn
       type="button"
       variant="outline"
       size="icon"
-      [attr.data-tour]="dataTour()"
       [attr.aria-label]="abierto() ? i18n.t('form.actions.cancel') : etiqueta()"
       [attr.aria-expanded]="abierto()"
       (click)="alternar.emit()"
@@ -30,7 +29,6 @@ export class BotonDeAltaComponent {
   readonly i18n = inject(I18nService);
   readonly etiqueta = input.required<string>();
   readonly abierto = input(false);
-  readonly dataTour = input<string | null>(null);
   readonly alternar = output<void>();
   private readonly anfitrion = inject<ElementRef<HTMLElement>>(ElementRef);
   private estabaAbierto = false;
