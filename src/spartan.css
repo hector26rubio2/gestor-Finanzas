@@ -18,6 +18,7 @@
 @custom-variant medio (@media (min-width: 600px) and (max-width: 1023.98px));
 @custom-variant amplio (@media (min-width: 1024px) and (max-width: 1279.98px));
 @custom-variant tableta (@media (min-width: 600px) and (max-width: 1279.98px));
+@custom-variant hoja (@media (max-width: 1279.98px));
 @custom-variant expandido (@media (min-width: 1280px));
 @custom-variant tactil (@media (pointer: coarse));
 
