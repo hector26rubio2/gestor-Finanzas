@@ -227,7 +227,9 @@
             {{ display(row.original[key]) }}
           </button>
           } @else if (textoRecortado(columnOf(key))) {
-          <span class="line-clamp-2" [attr.title]="display(row.original[key])">{{ display(row.original[key]) }}</span>
+          <span class="line-clamp-2 tableta:line-clamp-1" [attr.title]="display(row.original[key])"
+            >{{ display(row.original[key]) }}</span
+          >
           } @else { {{ display(row.original[key]) }} } @if (key === firstColumnKey() && hasRowDetail(row.original)) {
           <button
             data-tour="tabla-detalle"

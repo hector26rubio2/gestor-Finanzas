@@ -255,4 +255,25 @@ describe('tabla de datos: columnas con ajuste de texto', () => {
     expect(celda.classList).toContain('tableta:max-w-60');
     expect(celda.classList).toContain('whitespace-normal');
   });
+
+  it('recorta el texto a una línea en tableta para que la fila no crezca', () => {
+    const fixture = TestBed.createComponent(WrapSecondHostComponent);
+    fixture.detectChanges();
+    const recorte = (fixture.nativeElement as HTMLElement).querySelector('tbody td span[title]') as HTMLElement;
+    expect(recorte.classList).toContain('line-clamp-2');
+    expect(recorte.classList).toContain('tableta:line-clamp-1');
+    expect(recorte.getAttribute('title')).toBe(String(rows[0]['name']));
+  });
 });
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="data" />`,
+})
+class WrapSecondHostComponent {
+  columns: TableColumn[] = [
+    { key: 'amount', label: 'Importe' },
+    { key: 'name', label: 'Nombre', wrap: true },
+  ];
+  data = rows;
+}
