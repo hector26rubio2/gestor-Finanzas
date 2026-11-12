@@ -21,6 +21,7 @@
     "test:ui": "node scripts/visual-test.mjs",
     "test:permisos": "node scripts/permisos-por-seccion.mjs",
     "test:a11y": "node scripts/accesibilidad.mjs",
+    "test:contraste": "node --test scripts/contraste-de-tokens.test.mjs",
     "test:atlas": "node --test scripts/atlas/portal.test.mjs",
     "api:tipos": "openapi-typescript openapi/v1.json -o src/app/core/api/generado/esquema.d.ts",
     "diagramas": "node scripts/diagramas.mjs",

@@ -10,14 +10,14 @@
   --surface: #fff;
   --text: #1e2130;
   --muted: #5a6a80;
-  --line: #e4e7ec;
-  --control-line: #d0d5dd;
+  --line: #c9cbd0;
+  --control-line: #8b8f94;
   --accent: #4f46e5;
   --accent-soft: #eef2ff;
   --accent-contrast: #fff;
   --danger: #be123c;
   --panel: #f1f2f6;
-  --warning: #d97706;
+  --warning: #a55a05;
   --success: #047857;
   --shadow: 0 20px 55px #1e293b1f;
   --font: 'Public Sans', system-ui, sans-serif;
@@ -31,8 +31,8 @@
   --surface: #191d33;
   --text: #eef0fa;
   --muted: #9ea3bd;
-  --line: #2b2f4a;
-  --control-line: #565c82;
+  --line: #3c4058;
+  --control-line: #64698c;
   --accent: #8b95fa;
   --accent-soft: #262a4d;
   --accent-contrast: #14162b;
@@ -74,7 +74,7 @@
   --accent-contrast: #fff;
   --danger: #a8323c;
   --panel: #f7efe4;
-  --warning: #a97b2e;
+  --warning: #8b6526;
   --success: #39745c;
 }
 :root[data-theme='berry'] {
@@ -106,8 +106,8 @@
     --surface: #191d33;
     --text: #eef0fa;
     --muted: #9ea3bd;
-    --line: #2b2f4a;
-    --control-line: #565c82;
+    --line: #3c4058;
+    --control-line: #64698c;
     --accent: #8b95fa;
     --accent-soft: #262a4d;
     --accent-contrast: #14162b;
@@ -232,7 +232,7 @@
   }
   input::placeholder,
   textarea::placeholder {
-    color: color-mix(in srgb, var(--muted) 78%, transparent);
+    color: var(--muted);
   }
   @media (prefers-reduced-motion: reduce) {
     *,
