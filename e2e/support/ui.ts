@@ -5,7 +5,8 @@ import type { Vigilancia } from './fixtures';
 export const dialogo = (page: Page): Locator =>
   page.locator('[role=dialog], [data-superficie=dialogo], [data-superficie=hoja]').last();
 
-export const panelLateral = (page: Page): Locator => page.locator('[role=dialog], [data-slot=sheet-content]').last();
+export const panelLateral = (page: Page): Locator =>
+  page.locator('[role=dialog], [data-slot=sheet-content], main [role=complementary]').last();
 
 export async function ir(page: Page, ruta: string): Promise<void> {
   await page.goto(`/${ruta}`, { waitUntil: 'domcontentloaded' });
