@@ -2,7 +2,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { apiUrl } from './entorno';
 import type { Vigilancia } from './fixtures';
 
-export const dialogo = (page: Page): Locator => page.locator('[role=dialog]').last();
+export const dialogo = (page: Page): Locator =>
+  page.locator('[role=dialog], [data-superficie=dialogo], [data-superficie=hoja]').last();
 
 export const panelLateral = (page: Page): Locator =>
   page.locator('[role=dialog], [data-slot=sheet-content], main [role=complementary]').last();

@@ -10,7 +10,7 @@ import { DateFieldComponent } from '@ui/date-field';
 import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { MontoInputDirective } from '@ui/monto-input';
-import { OverlayComponent } from '@ui/overlay';
+import { FinAcciones, OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { type DatosDeValorizacion, esquemaDeValorizacion } from './investment-valuation.schema';
 
@@ -26,6 +26,7 @@ import { type DatosDeValorizacion, esquemaDeValorizacion } from './investment-va
     IconComponent,
     MontoInputDirective,
     OverlayComponent,
+    FinAcciones,
     UiSelectComponent,
   ],
   templateUrl: './investment-valuation.html',

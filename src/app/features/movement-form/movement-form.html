@@ -1,4 +1,4 @@
-<fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)"
+<fin-overlay [title]="title()" mode="formulario" (closed)="store.form.set(null)"
   ><form class="flex flex-col gap-5" (ngSubmit)="submit()">
     @let vis = visibility();
     <fin-segmented
@@ -77,7 +77,7 @@
     } @if (error()) {
     <p class="text-destructive" role="alert">{{ error() }}</p>
     }
-    <footer class="flex justify-end gap-2.5 border-t border-border pt-[18px]">
+    <footer finAcciones class="flex justify-end gap-2.5 border-t border-border pt-[18px]">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       >@if (model['kind']) {

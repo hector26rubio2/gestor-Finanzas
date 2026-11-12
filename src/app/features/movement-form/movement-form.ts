@@ -7,7 +7,7 @@ import { I18nService } from '@core/i18n';
 import { P } from '@core/session/permissions';
 import { CAPABILITIES, CapabilitiesProvider, AppStore, FEATURES } from '@core/state/store';
 import { MovementCommands } from '@core/state/movement-commands';
-import { OverlayComponent } from '@ui/overlay/overlay';
+import { FinAcciones, OverlayComponent } from '@ui/overlay';
 import { MovementCategoryFieldComponent } from './category-field/category-field';
 import { MovementCoreFieldsComponent } from './core-fields/core-fields';
 import { MovementCurrencyFieldsComponent } from './currency-fields/currency-fields';
@@ -92,6 +92,7 @@ const OPERACIONES_DE_INGRESO: readonly MovementOperationType[] = ['normal', 'rec
     HlmInput,
     FormsModule,
     OverlayComponent,
+    FinAcciones,
     SegmentedComponent,
     MovementCoreFieldsComponent,
     MovementCategoryFieldComponent,

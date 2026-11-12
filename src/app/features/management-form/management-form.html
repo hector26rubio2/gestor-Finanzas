@@ -1,4 +1,4 @@
-<fin-overlay [title]="title()" mode="modal" (closed)="store.form.set(null)">
+<fin-overlay [title]="title()" mode="formulario" (closed)="store.form.set(null)">
   <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" [formRoot]="formulario">
     @if (kind() === 'person') {
     <div class="col-span-full max-[500px]:col-auto">
@@ -124,7 +124,7 @@
     } @if (error()) {
     <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
     }
-    <footer class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+    <footer finAcciones class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
       <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
         <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
       ><button data-tour="form-gestion-guardar" hlmBtn size="lg" type="submit">

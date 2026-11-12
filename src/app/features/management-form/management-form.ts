@@ -9,7 +9,7 @@ import { FormField, FormRoot, form, type FieldTree } from '@angular/forms/signal
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { CAPABILITIES, AppStore, PersonKind, CatalogCommands } from '@core/state';
-import { OverlayComponent } from '@ui/overlay';
+import { FinAcciones, OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { MontoInputDirective } from '@ui/monto-input';
 import { FieldComponent } from '@ui/field';
@@ -29,6 +29,7 @@ const RIESGOS_NUMERICOS = { Bajo: 1, Medio: 2, Alto: 3 } as const;
     FormField,
     FormRoot,
     OverlayComponent,
+    FinAcciones,
     UiSelectComponent,
     MontoInputDirective,
     FieldComponent,

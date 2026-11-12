@@ -11,7 +11,7 @@ import { FieldComponent } from '@ui/field';
 import { IconComponent } from '@ui/icon';
 import { MontoInputDirective } from '@ui/monto-input';
 import { NumericInputDirective } from '@ui/numeric-input';
-import { OverlayComponent } from '@ui/overlay';
+import { FinAcciones, OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { type DatosDeOperacion, esquemaDeOperacion } from './investment-operation.schema';
 
@@ -37,6 +37,7 @@ const TIPOS: readonly (readonly [number, string])[] = [
     NumericInputDirective,
     MontoInputDirective,
     OverlayComponent,
+    FinAcciones,
     UiSelectComponent,
   ],
   templateUrl: './investment-operation.html',

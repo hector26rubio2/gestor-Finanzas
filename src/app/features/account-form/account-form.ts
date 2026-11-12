@@ -23,7 +23,7 @@ import {
 } from '@shared/tarjetas';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
-import { OverlayComponent } from '@ui/overlay';
+import { FinAcciones, OverlayComponent } from '@ui/overlay';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { UiSelectOrCreateComponent } from '@ui/select-or-create';
 import { MontoInputDirective } from '@ui/monto-input';
@@ -74,6 +74,7 @@ function permisoParaTipoDeCuenta(tipo: AccountViewType): string {
     FormRoot,
     NgTemplateOutlet,
     OverlayComponent,
+    FinAcciones,
     UiSelectComponent,
     UiSelectOrCreateComponent,
     NumericInputDirective,

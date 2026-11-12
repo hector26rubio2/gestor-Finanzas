@@ -37,6 +37,7 @@ import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon/icon';
+import { Pantalla, esTableta } from '@ui/pantalla';
 
 @Component({
   selector: 'fin-overlay',
@@ -51,11 +52,12 @@ import { IconComponent } from '@ui/icon/icon';
   ],
   template: `
     <ng-template #body><ng-content /></ng-template>
-    @if (mode() === 'modal') {
+    @if (superficie() === 'dialogo') {
       <hlm-dialog state="open" (stateChanged)="onStateChanged($event)">
         <hlm-dialog-content
           *hlmDialogPortal="let ctx"
           [showCloseButton]="false"
+          data-superficie="dialogo"
           class="flex max-h-[calc(100dvh-2rem)] w-[min(48rem,calc(100vw-2rem))] max-w-none flex-col gap-0 p-0 sm:max-w-none"
         >
           <header class="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-5">
@@ -69,11 +71,41 @@ import { IconComponent } from '@ui/icon/icon';
           ></ng-scrollbar>
         </hlm-dialog-content>
       </hlm-dialog>
+    } @else if (superficie() === 'hoja') {
+      <hlm-sheet side="right" state="open" (stateChanged)="onStateChanged($event)">
+        <hlm-sheet-content
+          *hlmSheetPortal="let ctx"
+          [showCloseButton]="false"
+          data-superficie="hoja"
+          [style.width]="ANCHO_DE_HOJA"
+          class="w-full gap-0 p-0 data-[side=right]:sm:max-w-none"
+        >
+          <header class="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
+            <h2 hlmSheetTitle class="text-lg font-semibold">{{ title() }}</h2>
+            <button
+              hlmBtn
+              variant="ghost"
+              size="icon-sm"
+              class="tactil:size-11"
+              hlmSheetClose
+              [attr.aria-label]="i18n.t('overlay.close')"
+            >
+              <fin-icon name="close" />
+            </button>
+          </header>
+          <div
+            class="min-h-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-contain px-6 pt-6 tactil:[&_[data-slot=select-trigger]]:min-h-11 tactil:[&_button]:min-h-11 tactil:[&_input:not([type=checkbox]):not([type=radio])]:min-h-11"
+          >
+            <ng-container [ngTemplateOutlet]="body" />
+          </div>
+        </hlm-sheet-content>
+      </hlm-sheet>
     } @else {
       <hlm-sheet side="right" state="open" (stateChanged)="onStateChanged($event)">
         <hlm-sheet-content
           *hlmSheetPortal="let ctx"
           [showCloseButton]="false"
+          data-superficie="inspector"
           [class]="
             ancho()
               ? 'data-[side=right]:sm:max-w-none'
@@ -116,10 +148,16 @@ import { IconComponent } from '@ui/icon/icon';
 })
 export class OverlayComponent {
   readonly i18n = inject(I18nService);
+  private readonly pantalla = inject(Pantalla);
+  protected readonly ANCHO_DE_HOJA = 'min(480px, 92vw)';
   readonly title = input(this.i18n.t('overlay.defaultTitle'));
-  readonly mode = input<'modal' | 'inspector'>('inspector');
+  readonly mode = input<'modal' | 'formulario' | 'inspector'>('inspector');
   readonly wide = input(false);
   readonly closed = output<void>();
+  protected readonly superficie = computed<'dialogo' | 'hoja' | 'inspector'>(() => {
+    if (this.mode() === 'inspector') return 'inspector';
+    return this.mode() === 'formulario' && esTableta(this.pantalla.tamano()) ? 'hoja' : 'dialogo';
+  });
   private emittedClose = false;
 
   protected readonly PASO_DE_TECLADO = 32;
