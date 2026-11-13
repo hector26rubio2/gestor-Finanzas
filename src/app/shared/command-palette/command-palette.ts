@@ -1,4 +1,15 @@
-import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
+import {
+  Component,
+  Injector,
+  afterNextRender,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
+import { BrnCommand } from '@spartan-ng/brain/command';
 import { CommandPaletteService } from './command-palette.service';
 import { Router } from '@angular/router';
 import { HlmCommandImports } from '@spartan-ng/helm/command';
@@ -63,10 +74,12 @@ function escribiendo(destino: EventTarget | null): boolean {
       @if (abierto()) {
         <hlm-command [filter]="aceptarTodo" (searchChange)="buscado.set($event)">
           <hlm-command-input [placeholder]="i18n.t('command.placeholder')" (keydown.enter)="confirmar($event)" />
+          @if (!hayResultados()) {
+            <p role="status" data-testid="paleta-sin-resultados" class="py-6 text-center text-sm text-muted-foreground">
+              {{ i18n.t('command.empty') }}
+            </p>
+          }
           <div hlmCommandList class="max-h-[min(64vh,32rem)]">
-            @if (!hayResultados()) {
-              <p class="py-6 text-center text-sm text-muted-foreground">{{ i18n.t('command.empty') }}</p>
-            }
             @for (grupo of grupos(); track grupo.id) {
               @if (grupo.items.length) {
                 <hlm-command-group>
@@ -118,7 +131,24 @@ export class CommandPaletteComponent {
   readonly abierto = this.servicio.abierto;
   readonly buscado = signal('');
 
+  private readonly comando = viewChild(BrnCommand);
+  private readonly inyector = inject(Injector);
+
   constructor() {
+    effect(() => {
+      const comando = this.comando();
+      if (!comando) return;
+      if (!this.hayResultados()) {
+        comando.keyManager.setActiveItem(-1);
+        return;
+      }
+      afterNextRender(
+        () => {
+          if (!comando.keyManager.activeItem) comando.keyManager.setFirstItemActive();
+        },
+        { injector: this.inyector },
+      );
+    });
     effect(() => {
       if (this.abierto()) untracked(() => this.buscado.set(''));
     });
