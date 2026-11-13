@@ -60,6 +60,7 @@ export default {
   'table.detailToggle.show': 'Voir plus',
   'table.detailToggle.hide': 'Voir moins',
   'table.empty': 'Aucun enregistrement pour ces filtres.',
+  'kpi.grid.label': 'Indicateurs',
   'table.error.title': 'Impossible de charger les données',
   'table.error.retry': 'Réessayer',
   'table.showingRange': '{from}–{to} sur {total}',

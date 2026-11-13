@@ -60,6 +60,7 @@ export default {
   'table.detailToggle.show': 'Show more',
   'table.detailToggle.hide': 'Show less',
   'table.empty': 'No records match these filters.',
+  'kpi.grid.label': 'Indicators',
   'table.error.title': 'The data could not be loaded',
   'table.error.retry': 'Retry',
   'table.showingRange': '{from}–{to} of {total}',
