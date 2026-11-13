@@ -89,4 +89,10 @@ describe('toMovement con opciones de presentación', () => {
   it('sin opciones conserva el comportamiento del listado', () => {
     expect(toMovement(i18n, EMPTY_KIND_CATALOG, api())).toMatchObject({ ownership: 'own', recurring: false });
   });
+
+  it('conserva el momento de registro para ubicar el movimiento por hora en el calendario', () => {
+    const movimiento = toMovement(i18n, EMPTY_KIND_CATALOG, api({ createdAt: '2026-09-25T14:30:00Z' }));
+
+    expect(movimiento.registradoEl).toBe('2026-09-25T14:30:00Z');
+  });
 });

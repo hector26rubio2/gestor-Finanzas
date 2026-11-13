@@ -13,10 +13,14 @@ import { Rango, crearMovimientosDelPeriodo, crearResumenDelAnio } from '@shared/
 import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { cardDues, creditCards } from '@features/accounts/card-insights';
+import { FormsModule } from '@angular/forms';
+import { DateFieldComponent } from '@ui/date-field';
+import { franjasDelDia, horasVisibles } from './franjas-horarias';
+import { type RangoDeFechas, enRango, rangoSiguiente, rangoVisible } from './periodos';
 
 @Component({
   selector: 'app-calendar-tab',
-  imports: [HlmButton, ConfirmDialogComponent, ZonaDeCargaComponent],
+  imports: [FormsModule, HlmButton, ConfirmDialogComponent, DateFieldComponent, ZonaDeCargaComponent],
   templateUrl: './calendar-tab.html',
   host: { class: TAB_PAGE_HOST_CLASS },
 })
@@ -125,6 +129,36 @@ export class CalendarTabComponent implements OnInit {
     const weekStart = Math.floor(selectedIndex / 7) * 7;
     return days.slice(weekStart, weekStart + 7);
   });
+  readonly diasConFranjas = computed(() =>
+    this.visibleCalendarDays().map((day) => {
+      const movimientos = this.store.dayMoves(day.iso);
+      return {
+        ...day,
+        ...franjasDelDia(movimientos),
+        total: movimientos.length,
+        titulo: new Intl.DateTimeFormat(this.locale(), { weekday: 'short', day: 'numeric', timeZone: 'UTC' }).format(
+          new Date(`${day.iso}T00:00:00Z`),
+        ),
+      };
+    }),
+  );
+  readonly horasDeLaVista = computed(() =>
+    horasVisibles(this.diasConFranjas().flatMap((day) => [...day.porHora.keys()])),
+  );
+  readonly columnasDeHoras = computed(
+    () =>
+      `4.5rem repeat(${this.visibleCalendarDays().length}, minmax(${this.calendarView() === 'week' ? '7rem' : '0'}, 1fr))`,
+  );
+  etiquetaDeHora(hora: number): string {
+    return new Intl.DateTimeFormat(this.locale(), { hour: 'numeric', timeZone: 'UTC' }).format(
+      new Date(Date.UTC(2026, 0, 1, hora)),
+    );
+  }
+  abrirMovimiento(iso: string, id: string): void {
+    this.store.selectedCalendarDate.set(iso);
+    this.store.calendarReturnDate.set(iso);
+    this.store.inspect('movement', id);
+  }
   readonly calendarTitle = computed(() => {
     const date = new Date(`${this.store.selectedCalendarDate()}T00:00:00Z`);
     const view = this.calendarView();
@@ -154,8 +188,8 @@ export class CalendarTabComponent implements OnInit {
   }
 
   private async cargarProyeccion(): Promise<void> {
-    const start = `${this.calendarYear()}-${String(this.calendarMonth() + 1).padStart(2, '0')}-01`;
-    const end = new Date(Date.UTC(this.calendarYear(), this.calendarMonth() + 1, 0)).toISOString().slice(0, 10);
+    const start = this.periodoVisible().desde;
+    const end = this.periodoSiguiente().hasta;
     let fallaronProyecciones = false;
     let fallaronRecurrentes = false;
 
@@ -186,6 +220,51 @@ export class CalendarTabComponent implements OnInit {
   readonly vencimientos = computed(() =>
     cardDues(creditCards(this.store.data().accounts), (tarjeta) => this.store.deudaDe(tarjeta), this.store.hoy()),
   );
+  private readonly anclaDelPeriodo = computed(() => {
+    const vista = this.calendarView();
+    if (vista === 'day' || vista === 'week') return this.store.selectedCalendarDate();
+    const mes = vista === 'year' ? 1 : this.calendarMonth() + 1;
+    return `${this.calendarYear()}-${String(mes).padStart(2, '0')}-01`;
+  });
+  protected readonly LIMITE_DE_AGENDA = 8;
+  readonly periodoVisible = computed(() => rangoVisible(this.calendarView(), this.anclaDelPeriodo()));
+  readonly periodoSiguiente = computed(() => rangoSiguiente(this.calendarView(), this.anclaDelPeriodo()));
+  private ocurrenciasEn(rango: RangoDeFechas): readonly ApiProjectedOccurrence[] {
+    return this.projectedOccurrences()
+      .filter((item) => enRango(item.occurrence, rango))
+      .sort((a, b) => a.occurrence.localeCompare(b.occurrence));
+  }
+  readonly ocurrenciasPendientes = computed(() => this.ocurrenciasEn(this.periodoVisible()));
+  readonly ocurrenciasProximas = computed(() => this.ocurrenciasEn(this.periodoSiguiente()));
+  readonly recurrentesDelPeriodo = computed(() => {
+    const visible = this.periodoVisible();
+    const conPendiente = new Set(this.ocurrenciasPendientes().map((item) => item.recurrence.id));
+    return this.recurrences().filter(
+      (recurrente) =>
+        conPendiente.has(recurrente.id) || recurrente.materializedOccurrences.some((fecha) => enRango(fecha, visible)),
+    );
+  });
+  readonly vencimientosPendientes = computed(() =>
+    this.vencimientos().filter((vencimiento) => enRango(vencimiento.date, this.periodoVisible())),
+  );
+  readonly vencimientosProximos = computed(() =>
+    this.vencimientos().filter((vencimiento) => enRango(vencimiento.date, this.periodoSiguiente())),
+  );
+  readonly movimientosPendientes = computed(() =>
+    this.proximosMovimientos().filter((movimiento) => enRango(movimiento.date, this.periodoVisible())),
+  );
+  readonly movimientosProximos = computed(() =>
+    this.proximosMovimientos().filter((movimiento) => enRango(movimiento.date, this.periodoSiguiente())),
+  );
+  readonly hayPendientes = computed(
+    () =>
+      this.ocurrenciasPendientes().length + this.vencimientosPendientes().length + this.movimientosPendientes().length >
+      0,
+  );
+  readonly hayProximos = computed(
+    () =>
+      this.ocurrenciasProximas().length + this.vencimientosProximos().length + this.movimientosProximos().length > 0,
+  );
   readonly proximosMovimientos = computed(() => {
     const hoy = this.store.hoy();
     // Ticket 25: en la vista anual la agenda sale del resumen acotado (≤ 7 derivados);
@@ -196,10 +275,11 @@ export class CalendarTabComponent implements OnInit {
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 7);
   });
-  readonly sinCompromisos = computed(
-    () => !this.projectedOccurrences().length && !this.vencimientos().length && !this.proximosMovimientos().length,
+  readonly sinCompromisos = computed(() => !this.hayPendientes() && !this.hayProximos());
+  readonly hayAgenda = computed(
+    () =>
+      this.recurrentesDelPeriodo().length > 0 || this.recurrentesDesactivados().length > 0 || !this.sinCompromisos(),
   );
-  readonly hayAgenda = computed(() => this.recurrences().length > 0 || !this.sinCompromisos());
   readonly cargandoAgenda = computed(() => this.proyeccionCargando() || this.cargandoRango());
   fechaCorta(iso: string): string {
     return new Intl.DateTimeFormat(this.locale(), { day: 'numeric', month: 'short', timeZone: 'UTC' }).format(
@@ -250,6 +330,7 @@ export class CalendarTabComponent implements OnInit {
   }
   setCalendarView(view: 'day' | 'week' | 'month' | 'year'): void {
     this.calendarView.set(view);
+    void this.loadCalendarProjection();
   }
   shiftCalendar(direction: -1 | 1): void {
     const selected = new Date(`${this.store.selectedCalendarDate()}T00:00:00Z`);
@@ -273,6 +354,14 @@ export class CalendarTabComponent implements OnInit {
     this.calendarYear.set(hoy.anio);
     this.calendarMonth.set(hoy.mes);
     this.store.selectedCalendarDate.set(hoy.iso);
+    void this.loadCalendarProjection();
+  }
+  irAFecha(iso: string): void {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return;
+    const [anio, mes] = iso.split('-').map(Number);
+    this.calendarYear.set(anio);
+    this.calendarMonth.set(mes - 1);
+    this.store.selectedCalendarDate.set(iso);
     void this.loadCalendarProjection();
   }
   openCalendarMonth(month: number): void {

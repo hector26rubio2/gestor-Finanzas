@@ -24,6 +24,11 @@ const DESACTIVADO = {
   createdAt: '2026-01-01T00:00:00Z',
 };
 
+function hoyIso(): string {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
 const proveedores: Provider[] = [provideRouter([]) as unknown as Provider];
 
 function transporteCon(desactivados: unknown) {
@@ -74,7 +79,9 @@ describe('calendario, reactivar un recurrente', () => {
     });
     const { fixture, store, cambios, estable } = await montar(transport, P.calendario.recurrencias.deshabilitar);
     transport
-      .responder('GET /api/v1/recurrences', { body: [{ ...DESACTIVADO, isActive: true }] })
+      .responder('GET /api/v1/recurrences', {
+        body: [{ ...DESACTIVADO, isActive: true, materializedOccurrences: [hoyIso()] }],
+      })
       .responder('GET /api/v1/recurrences/inactive', { body: [] });
 
     await fixture.componentInstance.reactivarRecurrente(DESACTIVADO);

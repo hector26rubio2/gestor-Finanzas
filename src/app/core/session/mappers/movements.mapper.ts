@@ -32,6 +32,7 @@ export function toMovement(
   return {
     id: source.id,
     date: source.date,
+    registradoEl: source.createdAt,
     description: source.description ?? opciones.descripcion ?? i18n.t('movements.fallback.noDescription'),
     accountId,
     accountName: (source.linkNames['account'] ?? source.linkNames['card'])?.name,
