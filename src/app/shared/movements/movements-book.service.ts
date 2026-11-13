@@ -50,6 +50,7 @@ export class MovementsBookService {
     },
     {
       key: 'product',
+      hidden: true,
       prioridad: 2 as const,
       label: this.i18n.t('movements.column.product'),
       options: ['credit', 'debit'].map((clave) => this.i18n.t(`movements.column.product.${clave}`)),
@@ -61,10 +62,17 @@ export class MovementsBookService {
       essential: false,
       options: ['debit', 'credit', 'pending'].map((clave) => this.i18n.t(`movements.column.effect.${clave}`)),
     },
-    { key: 'currency', prioridad: 2 as const, label: this.i18n.t('movements.column.currency'), essential: false },
+    {
+      key: 'currency',
+      hidden: true,
+      prioridad: 2 as const,
+      label: this.i18n.t('movements.column.currency'),
+      essential: false,
+    },
     { key: 'financing', prioridad: 2 as const, label: this.i18n.t('movements.column.financing'), essential: false },
     {
       key: 'responsibility',
+      wrap: true,
       prioridad: 2 as const,
       label: this.i18n.t('movements.column.responsibility'),
       essential: false,

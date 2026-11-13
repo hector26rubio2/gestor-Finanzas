@@ -113,6 +113,16 @@ describe('MovementsBookService — columnas de entrada/salida y cuotas', () => {
     expect(fila('compra')['product']).toBe('Crédito');
   });
 
+  it('en la tabla arrancan ocultas las columnas que el detalle ya cuenta: crédito o débito y moneda', () => {
+    const { component, cambios } = pruebaRender(ComponenteLibro, { data: datosDe(), session: sesionConPermisos });
+    cambios();
+    const ocultas = component.book
+      .movementColumns()
+      .filter((columna) => 'hidden' in columna && columna.hidden)
+      .map((columna) => columna.key);
+    expect(ocultas).toEqual(['product', 'currency']);
+  });
+
   it('un movimiento recurrente muestra el chulito con su frecuencia', () => {
     const { store, component } = pruebaRender(ComponenteLibro, {
       data: datosDe(),

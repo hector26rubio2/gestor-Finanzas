@@ -159,7 +159,7 @@
         <th
           hlmTh
           scope="col"
-          class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold tracking-wide text-muted-foreground"
+          class="sticky top-0 z-[1] h-auto border-b border-border bg-card px-[18px] py-3.5 text-xs font-semibold expandido:px-3.5 tracking-wide text-muted-foreground"
           [class]="alineacion(column.id) + (densa() ? ' px-3!' : '')"
           [attr.aria-sort]="column.getCanSort() ? ariaSort(direction) : null"
         >
@@ -202,7 +202,7 @@
         (!columnaFijadaPorTamano(key)) {
         <td
           hlmTd
-          class="border-b border-border px-[18px] py-3.5 tableta:py-2.5 compacto:grid compacto:w-full compacto:grid-cols-[minmax(84px,0.6fr)_minmax(0,1fr)] compacto:gap-3 compacto:border-dashed compacto:px-0 compacto:py-2 compacto:whitespace-normal compacto:[overflow-wrap:anywhere] compacto:before:text-xs compacto:before:font-semibold compacto:before:text-muted-foreground compacto:before:content-[attr(data-label)] compacto:last:border-b-0"
+          class="border-b border-border px-[18px] py-3.5 expandido:px-3.5 tableta:py-2.5 compacto:grid compacto:w-full compacto:grid-cols-[minmax(84px,0.6fr)_minmax(0,1fr)] compacto:gap-3 compacto:border-dashed compacto:px-0 compacto:py-2 compacto:whitespace-normal compacto:[overflow-wrap:anywhere] compacto:before:text-xs compacto:before:font-semibold compacto:before:text-muted-foreground compacto:before:content-[attr(data-label)] compacto:last:border-b-0"
           [class]="(key === '__select' ? '' : detailClass(columnOf(key)!, rowIndex) + ' ' + alineacion(key)) + (densa() ? ' px-3! whitespace-normal!' : '')"
           [attr.data-label]="columnOf(key)?.label"
         >
