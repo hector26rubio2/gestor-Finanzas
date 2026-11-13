@@ -234,6 +234,22 @@ describe('pantalla de acceso', () => {
     }
   });
 
+  it('un rechazo del servidor (403, 409, 422) no culpa a la conexión', async () => {
+    for (const status of [403, 409, 422]) {
+      const transport = new TransportFalso()
+        .responder(METODOS, { body: { google: true, password: true } })
+        .responder(LOGIN, { error: { status, code: 'user.super_admin_already_exists' } });
+      const montado = await montar(transport);
+      escribe(montado, 'lectora', 'clave');
+
+      await montado.component.loginWithPassword();
+
+      expect(montado.component.passwordError()).toBe(
+        'El servidor no permitió entrar con esta cuenta. Avisa a quien administra la aplicación.',
+      );
+    }
+  });
+
   it('cualquier otro fallo anuncia que revise la conexión', async () => {
     const transport = new TransportFalso()
       .responder(METODOS, { body: { google: true, password: true } })

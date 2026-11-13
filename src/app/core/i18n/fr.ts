@@ -1523,6 +1523,8 @@ export default {
   'login.password.tooMany': 'Trop de tentatives. Attendez une minute et réessayez.',
   'login.password.unavailable': "La connexion par mot de passe n'est pas disponible sur ce serveur.",
   'login.password.failed': 'Connexion impossible. Vérifiez la connexion et réessayez.',
+  'login.password.rejected':
+    "Le serveur n'a pas autorisé la connexion avec ce compte. Prévenez la personne qui administre l'application.",
   'login.signInToContinueAny': 'Connectez-vous pour continuer.',
   'workspace.person.purchases.title': 'Achats partagés',
   'workspace.person.purchases.ofTotal': 'sur {total}',

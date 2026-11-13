@@ -1506,6 +1506,7 @@ export default {
   'login.password.tooMany': 'Tentativas demais. Aguarde um minuto e tente de novo.',
   'login.password.unavailable': 'O acesso com senha não está disponível neste servidor.',
   'login.password.failed': 'Não foi possível entrar. Verifique a conexão e tente de novo.',
+  'login.password.rejected': 'O servidor não permitiu entrar com esta conta. Avise quem administra a aplicação.',
   'login.signInToContinueAny': 'Entre para continuar.',
   'workspace.person.purchases.title': 'Compras compartilhadas',
   'workspace.person.purchases.ofTotal': 'de {total}',

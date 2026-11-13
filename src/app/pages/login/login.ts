@@ -69,6 +69,7 @@ export class LoginComponent {
     if (status === 401) return this.i18n.t('login.password.invalid');
     if (status === 429) return this.i18n.t('login.password.tooMany');
     if (status === 404 || status === 503) return this.i18n.t('login.password.unavailable');
+    if (status >= 400 && status < 500) return this.i18n.t('login.password.rejected');
     return this.i18n.t('login.password.failed');
   }
   selectedLocale = this.store.preferences().locale;
