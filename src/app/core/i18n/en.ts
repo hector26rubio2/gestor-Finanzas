@@ -2171,6 +2171,12 @@ export default {
     '“{name}” stops being projected and can no longer be materialized. Movements it already created are kept.',
   'calendar.recurring.deactivated': 'Recurring “{name}” deactivated.',
   'calendar.recurring.deactivateFailed': 'The recurring item could not be deactivated.',
+  'calendar.recurring.reactivate': 'Reactivate',
+  'calendar.recurring.reactivateAria': 'Reactivate the recurring item {name}',
+  'calendar.recurring.reactivated': 'Recurring item “{name}” reactivated.',
+  'calendar.recurring.reactivateFailed': 'The recurring item could not be reactivated.',
+  'calendar.recurring.inactiveTitle': 'Deactivated ({n})',
+  'calendar.recurring.inactiveAria': 'Deactivated recurring items',
   'preferences.sections.budgets': 'Budgets',
   'budgets.title': 'Budgets by category',
   'budgets.description':

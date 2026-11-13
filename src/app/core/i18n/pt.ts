@@ -2169,6 +2169,12 @@ export default {
     '“{name}” deixa de ser projetado e não pode mais ser materializado. Os movimentos já gerados são mantidos.',
   'calendar.recurring.deactivated': 'Recorrente “{name}” desativado.',
   'calendar.recurring.deactivateFailed': 'Não foi possível desativar o recorrente.',
+  'calendar.recurring.reactivate': 'Reativar',
+  'calendar.recurring.reactivateAria': 'Reativar o recorrente {name}',
+  'calendar.recurring.reactivated': 'Recorrente «{name}» reativado.',
+  'calendar.recurring.reactivateFailed': 'Não foi possível reativar o recorrente.',
+  'calendar.recurring.inactiveTitle': 'Desativados ({n})',
+  'calendar.recurring.inactiveAria': 'Recorrentes desativados',
   'preferences.sections.budgets': 'Orçamentos',
   'budgets.title': 'Orçamentos por categoria',
   'budgets.description':

@@ -41,6 +41,7 @@ export class CalendarTabComponent implements OnInit {
 
   readonly projectedOccurrences = signal<readonly ApiProjectedOccurrence[]>([]);
   readonly recurrences = signal<readonly ApiRecurrence[]>([]);
+  readonly recurrentesDesactivados = signal<readonly ApiRecurrence[]>([]);
   readonly week = computed(() => [
     this.i18n.t('calendar.weekday.mon'),
     this.i18n.t('calendar.weekday.tue'),
@@ -171,6 +172,11 @@ export class CalendarTabComponent implements OnInit {
       } catch {
         fallaronRecurrentes = true;
       }
+      try {
+        this.recurrentesDesactivados.set(await firstValueFrom(this.api.inactiveRecurrences()));
+      } catch {
+        this.recurrentesDesactivados.set([]);
+      }
     }
 
     if (fallaronProyecciones && fallaronRecurrentes) this.store.toast.set(this.i18n.t('calendar.load.failedBoth'));
@@ -216,6 +222,15 @@ export class CalendarTabComponent implements OnInit {
       await this.loadCalendarProjection();
     } catch {
       this.store.toast.set(this.i18n.t('calendar.recurring.deactivateFailed'));
+    }
+  }
+  async reactivarRecurrente(recurrente: ApiRecurrence): Promise<void> {
+    try {
+      await firstValueFrom(this.api.reactivateRecurrence(recurrente.id));
+      this.store.toast.set(this.i18n.t('calendar.recurring.reactivated', { name: recurrente.name }));
+      await this.loadCalendarProjection();
+    } catch {
+      this.store.toast.set(this.i18n.t('calendar.recurring.reactivateFailed'));
     }
   }
   async materialize(item: ApiProjectedOccurrence): Promise<void> {

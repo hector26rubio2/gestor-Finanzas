@@ -2190,6 +2190,12 @@ export default {
     "« {name} » n'est plus projeté et ne peut plus être matérialisé. Les mouvements déjà générés sont conservés.",
   'calendar.recurring.deactivated': 'Récurrent « {name} » désactivé.',
   'calendar.recurring.deactivateFailed': 'Impossible de désactiver le récurrent.',
+  'calendar.recurring.reactivate': 'Réactiver',
+  'calendar.recurring.reactivateAria': 'Réactiver le récurrent {name}',
+  'calendar.recurring.reactivated': 'Récurrent « {name} » réactivé.',
+  'calendar.recurring.reactivateFailed': 'Impossible de réactiver le récurrent.',
+  'calendar.recurring.inactiveTitle': 'Désactivés ({n})',
+  'calendar.recurring.inactiveAria': 'Récurrents désactivés',
   'preferences.sections.budgets': 'Budgets',
   'budgets.title': 'Budgets par catégorie',
   'budgets.description':

@@ -47,6 +47,18 @@ export class RecurrencesApi {
     return this.transport.request<readonly ApiRecurrence[]>({ method: 'GET', path: API_ROUTES.recurrences });
   }
 
+  inactiveRecurrences() {
+    return this.transport.request<readonly ApiRecurrence[]>({ method: 'GET', path: API_ROUTES.inactiveRecurrences });
+  }
+
+  reactivateRecurrence(id: string) {
+    return this.transport.request<ApiRecurrence>({
+      method: 'POST',
+      path: API_ROUTES.recurrenceReactivation(id),
+      body: {},
+    });
+  }
+
   createRecurrence(request: unknown) {
     return this.transport.request<ApiRecurrence>({ method: 'POST', path: API_ROUTES.recurrences, body: request });
   }
