@@ -113,6 +113,16 @@ describe('MovementsBookService — columnas de entrada/salida y cuotas', () => {
     expect(fila('compra')['product']).toBe('Crédito');
   });
 
+  it('en la tabla arrancan ocultas las columnas que el detalle ya cuenta: crédito o débito y moneda', () => {
+    const { component, cambios } = pruebaRender(ComponenteLibro, { data: datosDe(), session: sesionConPermisos });
+    cambios();
+    const ocultas = component.book
+      .movementColumns()
+      .filter((columna) => 'hidden' in columna && columna.hidden)
+      .map((columna) => columna.key);
+    expect(ocultas).toEqual(['product', 'currency']);
+  });
+
   it('un movimiento recurrente muestra el chulito con su frecuencia', () => {
     const { store, component } = pruebaRender(ComponenteLibro, {
       data: datosDe(),
@@ -225,6 +235,29 @@ describe('MovementsBookService — refetch tras el invalidado del listado (ticke
     // Navegación de página con cursor: sin invalidación previa.
     await component.book.loadMovementPage(2);
 
+    const ids = component.book.movementRows().map((fila) => (fila['raw'] as { id: string }).id);
+    expect(ids).toEqual(['mov-grupo-2']);
+  });
+});
+
+describe('MovementsBookService — fallo al cargar una página', () => {
+  it('guarda el motivo del fallo y lo limpia cuando el reintento carga la página', async () => {
+    const transport = new TransportFalso();
+    const { component, cambios } = pruebaRender(ComponenteLibro, {
+      data: datosDe(),
+      transport,
+      session: sesionConPermisos,
+    });
+    cambios();
+
+    await component.book.loadMovementPage(2);
+    expect(component.book.errorDeCarga()).toBeTruthy();
+    expect(component.book.movementsLoading()).toBe(false);
+
+    transport.responder('POST /api/v1/movements/search', paginaCon(['mov-grupo-2'], 42));
+    await component.book.reintentarCarga();
+
+    expect(component.book.errorDeCarga()).toBeNull();
     const ids = component.book.movementRows().map((fila) => (fila['raw'] as { id: string }).id);
     expect(ids).toEqual(['mov-grupo-2']);
   });

@@ -49,10 +49,26 @@ describe('fin-overlay en modo formulario', () => {
     expect(superficie()?.closest('[role=dialog]')).not.toBeNull();
   });
 
-  it.each<TamanoDePantalla>(['compacto', 'expandido'])('en %s sigue siendo diálogo centrado', async (tamano) => {
-    await abrir(tamano);
+  it('en expandido sigue siendo diálogo centrado', async () => {
+    await abrir('expandido');
     expect(superficie()?.dataset['superficie']).toBe('dialogo');
     expect(superficie()?.getAttribute('data-slot')).toBe('dialog-content');
+  });
+
+  it('en compacto se abre como hoja inferior al 90 % de la pantalla', async () => {
+    await abrir('compacto');
+    const hoja = superficie()!;
+    expect(hoja.dataset['superficie']).toBe('hoja');
+    expect(hoja.getAttribute('data-side')).toBe('bottom');
+    expect(hoja.style.height).toBe('90dvh');
+    expect(hoja.style.width).toBe('');
+    expect(hoja.querySelector('[data-slot=cuerpo-de-hoja]')).not.toBeNull();
+  });
+
+  it.each<TamanoDePantalla>(['medio', 'amplio'])('en %s la hoja entra por la derecha', async (tamano) => {
+    await abrir(tamano);
+    expect(superficie()?.getAttribute('data-side')).toBe('right');
+    expect(superficie()?.style.height).toBe('');
   });
 
   it('un modal común no cambia en tableta', async () => {

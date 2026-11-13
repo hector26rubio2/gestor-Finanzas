@@ -1,4 +1,3 @@
-@if (kpisPlegables()) {
 <div
   data-testid="movimientos-kpis-resumen"
   role="group"
@@ -19,6 +18,7 @@
       <dd class="font-semibold tabular-nums">{{ store.money(netoMostrado()) }}</dd>
     </div>
   </dl>
+  @if (!lista?.detalleAcoplado()) {
   <button
     hlmBtn
     variant="ghost"
@@ -31,8 +31,9 @@
     {{ i18n.t(kpisDesplegados() ? 'movements.kpi.summary.collapse' : 'movements.kpi.summary.expand') }}
     <fin-icon [name]="kpisDesplegados() ? 'chevronUp' : 'chevronDown'" />
   </button>
+  }
 </div>
-} @if (!kpisEnUnaLinea()) {
+@if (!kpisEnUnaLinea()) {
 <fin-kpi-grid data-tour="movimientos-kpis">
   <fin-kpi
     [label]="i18n.t('movements.kpi.income.label')"
@@ -112,6 +113,8 @@
     urlKey="pagina"
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
+    [error]="book.movementRows().length ? null : book.errorDeCarga()"
+    (reintentar)="book.reintentarCarga()"
     [pageSize]="store.remoteMovementSize()"
     [totalRows]="store.remoteMovementTotal()"
     [remotePage]="store.remoteMovementPage()"

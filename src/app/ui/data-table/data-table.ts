@@ -100,6 +100,8 @@ export class DataTableComponent {
   readonly selectionChange = output<TableRow[]>();
   readonly pageSizeChange = output<number>();
   readonly pageChange = output<number>();
+  readonly reintentar = output<void>();
+  readonly error = input<string | null>(null);
   readonly pinnedChange = output<readonly TableFilter[]>();
 
   readonly page = signal(0);
@@ -441,7 +443,7 @@ export class DataTableComponent {
 
   detailClass(column: TableColumn, rowIndex: number): string {
     const ajuste = column.wrap
-      ? 'max-w-[28rem] min-w-48 tableta:max-w-60 tableta:min-w-36 whitespace-normal [overflow-wrap:anywhere]'
+      ? 'max-w-[28rem] min-w-40 tableta:max-w-60 tableta:min-w-36 whitespace-normal [overflow-wrap:anywhere]'
       : '';
     if (column.essential !== false) return ajuste;
     return `${ajuste} ${this.isRowExpanded(rowIndex) ? 'compacto:grid' : 'compacto:hidden'}`;

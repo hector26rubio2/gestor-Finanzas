@@ -37,7 +37,7 @@ import { HlmDialogImports } from '@spartan-ng/helm/dialog';
 import { HlmSheetImports } from '@spartan-ng/helm/sheet';
 import { I18nService } from '@core/i18n';
 import { IconComponent } from '@ui/icon/icon';
-import { Pantalla, esTableta } from '@ui/pantalla';
+import { Pantalla } from '@ui/pantalla';
 
 @Component({
   selector: 'fin-overlay',
@@ -72,13 +72,14 @@ import { Pantalla, esTableta } from '@ui/pantalla';
         </hlm-dialog-content>
       </hlm-dialog>
     } @else if (superficie() === 'hoja') {
-      <hlm-sheet side="right" state="open" (stateChanged)="onStateChanged($event)">
+      <hlm-sheet [side]="ladoDeHoja()" state="open" (stateChanged)="onStateChanged($event)">
         <hlm-sheet-content
           *hlmSheetPortal="let ctx"
           [showCloseButton]="false"
           data-superficie="hoja"
-          [style.width]="ANCHO_DE_HOJA"
-          class="w-full gap-0 p-0 data-[side=right]:sm:max-w-none"
+          [style.width]="ladoDeHoja() === 'right' ? ANCHO_DE_HOJA : null"
+          [style.height]="ladoDeHoja() === 'bottom' ? ALTO_DE_HOJA_INFERIOR : null"
+          class="w-full gap-0 p-0 data-[side=bottom]:rounded-t-2xl data-[side=right]:sm:max-w-none"
         >
           <header class="flex shrink-0 items-center justify-between gap-4 border-b border-border px-6 py-4">
             <h2 hlmSheetTitle class="text-lg font-semibold">{{ title() }}</h2>
@@ -151,14 +152,18 @@ export class OverlayComponent {
   readonly i18n = inject(I18nService);
   private readonly pantalla = inject(Pantalla);
   protected readonly ANCHO_DE_HOJA = 'min(480px, 92vw)';
+  protected readonly ALTO_DE_HOJA_INFERIOR = '90dvh';
   readonly title = input(this.i18n.t('overlay.defaultTitle'));
   readonly mode = input<'modal' | 'formulario' | 'inspector'>('inspector');
   readonly wide = input(false);
   readonly closed = output<void>();
   protected readonly superficie = computed<'dialogo' | 'hoja' | 'inspector'>(() => {
     if (this.mode() === 'inspector') return 'inspector';
-    return this.mode() === 'formulario' && esTableta(this.pantalla.tamano()) ? 'hoja' : 'dialogo';
+    return this.mode() === 'formulario' && this.pantalla.tamano() !== 'expandido' ? 'hoja' : 'dialogo';
   });
+  protected readonly ladoDeHoja = computed<'right' | 'bottom'>(() =>
+    this.pantalla.tamano() === 'compacto' ? 'bottom' : 'right',
+  );
   private emittedClose = false;
 
   protected readonly PASO_DE_TECLADO = 32;

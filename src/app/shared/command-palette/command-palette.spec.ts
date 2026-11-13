@@ -52,6 +52,56 @@ describe('paleta de comandos', () => {
     expect(mensajes.some((mensaje) => mensaje.includes('NG0953'))).toBe(false);
   });
 
+  it('sin resultados el aviso queda fuera de la lista, como estado, y el campo no apunta a un elemento inexistente', async () => {
+    const fixture = TestBed.createComponent(CommandPaletteComponent);
+    TestBed.inject(CommandPaletteService).abrir();
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]')!;
+    entrada.value = 'zzzz-no-existe';
+    entrada.dispatchEvent(new Event('input', { bubbles: true }));
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const lista = document.querySelector('[role=listbox]')!;
+    const hijosAjenos = [...lista.children].filter(
+      (hijo) => !['option', 'group', 'presentation'].includes(hijo.getAttribute('role') ?? ''),
+    );
+    expect(hijosAjenos).toEqual([]);
+    const aviso = document.querySelector('[role=status][data-testid=paleta-sin-resultados]');
+    expect(aviso?.textContent?.trim()).toBeTruthy();
+    expect(lista.contains(aviso)).toBe(false);
+    for (const atributo of ['aria-controls', 'aria-activedescendant']) {
+      const id = entrada.getAttribute(atributo);
+      if (id) expect(document.getElementById(id), `${atributo}=${id}`).not.toBeNull();
+    }
+  });
+
+  it('tras una búsqueda sin resultados, al volver a haber comandos el primero queda activo', async () => {
+    const fixture = TestBed.createComponent(CommandPaletteComponent);
+    TestBed.inject(CommandPaletteService).abrir();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const entrada = document.querySelector<HTMLInputElement>('input[role=combobox]')!;
+    const buscar = async (texto: string) => {
+      entrada.value = texto;
+      entrada.dispatchEvent(new Event('input', { bubbles: true }));
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
+    };
+
+    await buscar('zzzz-no-existe');
+    await buscar('movim');
+
+    const activo = entrada.getAttribute('aria-activedescendant');
+    expect(activo).toBeTruthy();
+    expect(document.getElementById(activo!)?.getAttribute('role')).toBe('option');
+  });
+
   it('el comando de tutorial lanza el recorrido de la página', async () => {
     const iniciar = vi.spyOn(TestBed.inject(TutorialService), 'iniciar').mockResolvedValue();
     const fixture = TestBed.createComponent(CommandPaletteComponent);

@@ -4,7 +4,7 @@ import { Pantalla, TamanoDePantalla } from '@ui/pantalla';
 export type ContenedorDeDetalle = 'acoplado' | 'superpuesto';
 
 export function contenedorDeDetalle(tamano: TamanoDePantalla, habilitado: boolean): ContenedorDeDetalle {
-  return habilitado && tamano === 'amplio' ? 'acoplado' : 'superpuesto';
+  return habilitado && (tamano === 'amplio' || tamano === 'expandido') ? 'acoplado' : 'superpuesto';
 }
 
 @Component({

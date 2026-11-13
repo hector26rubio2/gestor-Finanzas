@@ -48,6 +48,9 @@ jobs:
       - name: Pruebas unitarias
         run: pnpm test
 
+      - name: Contraste de los tokens de color
+        run: pnpm test:contraste
+
       - name: Compilar
         run: pnpm build
 

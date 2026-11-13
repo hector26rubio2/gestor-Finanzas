@@ -60,6 +60,9 @@ export default {
   'table.detailToggle.show': 'Show more',
   'table.detailToggle.hide': 'Show less',
   'table.empty': 'No records match these filters.',
+  'kpi.grid.label': 'Indicators',
+  'table.error.title': 'The data could not be loaded',
+  'table.error.retry': 'Retry',
   'table.showingRange': '{from}–{to} of {total}',
   'table.rowsPerPage': 'Rows',
   'table.rowsPerPage.ariaLabel': 'Rows per page',
@@ -1504,6 +1507,8 @@ export default {
   'login.password.tooMany': 'Too many attempts. Wait a minute and try again.',
   'login.password.unavailable': 'Password sign-in is not available on this server.',
   'login.password.failed': 'Could not sign in. Check the connection and try again.',
+  'login.password.rejected':
+    'The server did not allow this account to sign in. Contact whoever manages the application.',
   'login.signInToContinueAny': 'Sign in to continue.',
   'workspace.person.purchases.title': 'Shared purchases',
   'workspace.person.purchases.ofTotal': 'of {total}',

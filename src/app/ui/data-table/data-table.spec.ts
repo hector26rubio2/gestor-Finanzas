@@ -255,4 +255,62 @@ describe('tabla de datos: columnas con ajuste de texto', () => {
     expect(celda.classList).toContain('tableta:max-w-60');
     expect(celda.classList).toContain('whitespace-normal');
   });
+
+  it('recorta el texto a una línea en tableta para que la fila no crezca', () => {
+    const fixture = TestBed.createComponent(WrapSecondHostComponent);
+    fixture.detectChanges();
+    const recorte = (fixture.nativeElement as HTMLElement).querySelector('tbody td span[title]') as HTMLElement;
+    expect(recorte.classList).toContain('line-clamp-2');
+    expect(recorte.classList).toContain('tableta:line-clamp-1');
+    expect(recorte.getAttribute('title')).toBe(String(rows[0]['name']));
+  });
+});
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="data" />`,
+})
+class WrapSecondHostComponent {
+  columns: TableColumn[] = [
+    { key: 'amount', label: 'Importe' },
+    { key: 'name', label: 'Nombre', wrap: true },
+  ];
+  data = rows;
+}
+
+@Component({
+  imports: [DataTableComponent],
+  template: `<fin-table [columns]="columns" [rows]="[]" [error]="error" (reintentar)="reintentos = reintentos + 1" />`,
+})
+class ErrorHostComponent {
+  columns: TableColumn[] = [{ key: 'name', label: 'Nombre' }];
+  error: string | null = 'No se pudo cargar';
+  reintentos = 0;
+}
+
+describe('tabla de datos: fallo de carga', () => {
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+  });
+
+  it('muestra el motivo como alerta con Reintentar en vez del mensaje de tabla vacía', () => {
+    const fixture = TestBed.createComponent(ErrorHostComponent);
+    fixture.detectChanges();
+    const raiz = fixture.nativeElement as HTMLElement;
+    const alerta = raiz.querySelector('tbody [role=alert]') as HTMLElement;
+    expect(alerta.textContent).toContain('No se pudo cargar');
+    expect(raiz.querySelector('tbody')!.textContent).not.toContain('No hay registros');
+    (alerta.querySelector('button') as HTMLButtonElement).click();
+    expect(fixture.componentInstance.reintentos).toBe(1);
+  });
+
+  it('sin error conserva el mensaje de tabla vacía', () => {
+    const fixture = TestBed.createComponent(ErrorHostComponent);
+    fixture.componentInstance.error = null;
+    fixture.detectChanges();
+    const raiz = fixture.nativeElement as HTMLElement;
+    expect(raiz.querySelector('tbody [role=alert]')).toBeNull();
+    expect(raiz.querySelector('tbody')!.textContent).toContain('No hay registros');
+  });
 });
