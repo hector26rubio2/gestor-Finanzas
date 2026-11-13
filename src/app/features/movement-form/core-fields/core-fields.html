@@ -1,6 +1,11 @@
 <fin-field data-tour="form-fecha" [label]="i18n.t('form.movement.field.date')">
   <fin-date-field name="date" [max]="hoy" [(ngModel)]="model['date']" required />
 </fin-field>
+@if (admiteHora()) {
+<fin-field data-tour="form-hora" [label]="i18n.t('form.movement.field.time')">
+  <input hlmInput type="time" name="time" [(ngModel)]="model['time']" />
+</fin-field>
+}
 <fin-field data-tour="form-monto" [label]="i18n.t('form.field.amount')">
   <input hlmInput finMonto name="amount" [(ngModel)]="model['amount']" required />
 </fin-field>

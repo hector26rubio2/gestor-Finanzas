@@ -41,6 +41,7 @@ export interface CreateMovementBody {
   purchaseApr?: number;
   cardBucket?: number;
   installments?: number;
+  time?: string;
 }
 
 export interface CreateTransferBody {
@@ -89,6 +90,7 @@ export interface ApiMovement {
   purchaseApr: number | null;
   cardBucket?: number | null;
   installments?: number | null;
+  time?: string | null;
 }
 
 export interface ApiOperation {

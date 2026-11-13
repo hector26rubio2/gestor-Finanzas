@@ -69,6 +69,11 @@ describe('intencionDelFormulario', () => {
     });
   });
 
+  it('la hora del formulario viaja en la intención y vacía no se manda', () => {
+    expect(intencionDelFormulario(modelo({ time: '14:30' }), contexto())).toMatchObject({ hora: '14:30' });
+    expect(intencionDelFormulario(modelo({ time: '' }), contexto())).not.toHaveProperty('hora', '');
+  });
+
   it('gasto en dolares lleva el monto original y la tasa', () => {
     expect(
       intencionDelFormulario(modelo({ originalAmount: 10, exchangeRate: 4000 }), contexto({ moneda: 'USD' })),

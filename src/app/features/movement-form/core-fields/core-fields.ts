@@ -39,6 +39,11 @@ export class MovementCoreFieldsComponent {
   private readonly caps = inject(CAPABILITIES);
   readonly i18n = inject(I18nService);
 
+  admiteHora(): boolean {
+    const operation = this.operation();
+    return operation === 'normal' && (this.kind() === 'expense' || this.kind() === 'income');
+  }
+
   private opcion(cuenta: Account): UiOption {
     return { value: cuenta.id, label: `${cuenta.name} · ${this.i18n.t(`form.account.type.${cuenta.type}`)}` };
   }

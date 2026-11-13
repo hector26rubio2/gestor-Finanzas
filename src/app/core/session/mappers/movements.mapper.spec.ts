@@ -95,4 +95,12 @@ describe('toMovement con opciones de presentación', () => {
 
     expect(movimiento.registradoEl).toBe('2026-09-25T14:30:00Z');
   });
+
+  it('trae la hora del movimiento en horas y minutos, o nada si no la tiene', () => {
+    const conHora = toMovement(i18n, EMPTY_KIND_CATALOG, api({ time: '14:30:00' }));
+    const sinHora = toMovement(i18n, EMPTY_KIND_CATALOG, api({ time: null }));
+
+    expect(conHora.hora).toBe('14:30');
+    expect(sinHora.hora).toBeUndefined();
+  });
 });

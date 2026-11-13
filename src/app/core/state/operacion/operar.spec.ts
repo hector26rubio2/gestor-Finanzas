@@ -86,6 +86,14 @@ describe('operar gasto', () => {
     expect(solicitud.presentacion.propiedad).toBeUndefined();
   });
 
+  it('con hora la envía con segundos; sin hora no la envía', () => {
+    const conHora = solicitudDe(gasto({ hora: '14:30' }));
+    const sinHora = solicitudDe(gasto());
+    if (conHora.via !== 'movimiento' || sinHora.via !== 'movimiento') throw new Error('via');
+    expect(conHora.cuerpo.time).toBe('14:30:00');
+    expect(sinHora.cuerpo.time).toBeUndefined();
+  });
+
   it('con tarjeta: compra de tarjeta con cuotas y tasa anual propia', () => {
     const solicitud = solicitudDe(gasto({ cuentaId: 'visa', cuotas: 6, tasaDeCuota: 1, balde: 3 }));
     if (solicitud.via !== 'movimiento') throw new Error('via');

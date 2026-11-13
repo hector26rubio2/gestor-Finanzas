@@ -33,6 +33,7 @@ export function toMovement(
     id: source.id,
     date: source.date,
     registradoEl: source.createdAt,
+    ...(source.time ? { hora: source.time.slice(0, 5) } : {}),
     description: source.description ?? opciones.descripcion ?? i18n.t('movements.fallback.noDescription'),
     accountId,
     accountName: (source.linkNames['account'] ?? source.linkNames['card'])?.name,

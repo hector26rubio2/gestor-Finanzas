@@ -258,6 +258,7 @@ export default {
   'form.movement.type.income': 'Receita',
   'form.movement.field.operationType': 'Tipo',
   'form.movement.field.date': 'Data',
+  'form.movement.field.time': 'Hora (opcional)',
   'form.movement.field.sourceAccount': 'Conta de origem',
   'form.movement.field.account': 'Conta ou cartão',
   'form.movement.field.targetAccount': 'Conta de destino',

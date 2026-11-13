@@ -1,5 +1,6 @@
 export interface ConFechaYRegistro {
   date: string;
+  hora?: string;
   registradoEl?: string;
 }
 
@@ -18,6 +19,8 @@ function fechaLocalIso(fecha: Date): string {
 }
 
 export function horaLocalDe(movimiento: ConFechaYRegistro): number | null {
+  const propia = /^(\d{2}):\d{2}/.exec(movimiento.hora ?? '');
+  if (propia) return Number(propia[1]);
   if (!movimiento.registradoEl) return null;
   const registro = new Date(movimiento.registradoEl);
   if (Number.isNaN(registro.getTime())) return null;

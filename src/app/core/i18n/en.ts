@@ -258,6 +258,7 @@ export default {
   'form.movement.type.income': 'Income',
   'form.movement.field.operationType': 'Type',
   'form.movement.field.date': 'Date',
+  'form.movement.field.time': 'Time (optional)',
   'form.movement.field.sourceAccount': 'Source account',
   'form.movement.field.account': 'Account or card',
   'form.movement.field.targetAccount': 'Destination account',

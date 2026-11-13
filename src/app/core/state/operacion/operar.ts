@@ -191,6 +191,7 @@ function cuerpoSinClave(
     purchaseApr: conTarjeta ? aprPropia : undefined,
     installments: conTarjeta ? cuotas : undefined,
     cardBucket: conTarjeta && intencion.balde ? intencion.balde : undefined,
+    time: intencion.hora ? `${intencion.hora}:00` : undefined,
   };
 }
 

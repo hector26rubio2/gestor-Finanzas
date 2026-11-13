@@ -9,6 +9,11 @@ describe('hora local de un movimiento', () => {
     expect(horaLocalDe({ date: '2026-11-12', registradoEl: local(2026, 11, 12, 14, 35) })).toBe(14);
   });
 
+  it('la hora propia del movimiento manda sobre la de registro', () => {
+    expect(horaLocalDe({ date: '2026-11-10', hora: '08:05', registradoEl: local(2026, 11, 12, 21) })).toBe(8);
+    expect(horaLocalDe({ date: '2026-11-10', hora: '23:59' })).toBe(23);
+  });
+
   it('no tiene hora si se registró otro día', () => {
     expect(horaLocalDe({ date: '2026-11-10', registradoEl: local(2026, 11, 12, 9) })).toBeNull();
   });

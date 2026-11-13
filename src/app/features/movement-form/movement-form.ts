@@ -44,6 +44,7 @@ export type MovementFormModel = {
   kind: MovementKind;
   operationType: MovementOperationType;
   date: string;
+  time?: string;
   description: string;
   accountId: string;
   targetId: string;
@@ -150,6 +151,7 @@ export class MovementFormComponent {
     this.model = {
       kind: isMovementKind(context.kind) ? context.kind : '',
       date: m?.date ?? this.store.hoy(),
+      time: m?.hora ?? '',
       accountId: context.accountId ?? m?.accountId ?? this.cuentaPredeterminada(),
       targetId: context.targetId ?? '',
       description: m?.description ?? '',
