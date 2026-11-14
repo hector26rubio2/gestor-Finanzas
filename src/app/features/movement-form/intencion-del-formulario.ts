@@ -16,6 +16,7 @@ export interface ContextoDelFormulario {
 function datosDeCompra(modelo: MovementFormModel, contexto: ContextoDelFormulario) {
   return {
     fecha: modelo.date,
+    ...(modelo.time ? { hora: modelo.time } : {}),
     descripcion: modelo.description,
     cuentaId: modelo.accountId,
     monto: modelo.amount,

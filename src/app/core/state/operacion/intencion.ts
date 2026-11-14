@@ -20,6 +20,7 @@ interface DatosDeCompra extends DatosBase {
   readonly tasaDeCuota?: number;
   readonly balde?: number;
   readonly enDolares?: MontoEnDolares;
+  readonly hora?: string;
 }
 
 export interface IntencionDeGasto extends DatosDeCompra {

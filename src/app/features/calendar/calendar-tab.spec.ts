@@ -262,6 +262,26 @@ describe('calendario, botón Hoy', () => {
     expect(estado(component)).toEqual({ anio: 2026, mes: 10, seleccionado: '2026-11-09' });
   });
 
+  it('ir a una fecha concreta mueve el periodo y selecciona ese día', async () => {
+    const { component, fixture, cambios } = await montarEnFecha(new Date(2026, 10, 9, 12));
+
+    component.irAFecha('2024-02-29');
+    cambios();
+
+    expect(estado(component)).toEqual({ anio: 2024, mes: 1, seleccionado: '2024-02-29' });
+    const campo = (fixture.nativeElement as HTMLElement).querySelector('[data-tour="calendario-ir-a-fecha"]');
+    expect(campo).not.toBeNull();
+  });
+
+  it('ir a una fecha vacía o inválida no mueve el calendario', async () => {
+    const { component } = await montarEnFecha(new Date(2026, 10, 9, 12));
+
+    component.irAFecha('');
+    component.irAFecha('no-es-fecha');
+
+    expect(estado(component)).toEqual({ anio: 2026, mes: 10, seleccionado: '2026-11-09' });
+  });
+
   it('cruza el año hacia atrás y hacia delante', async () => {
     const { component } = await montarEnFecha(new Date(2026, 11, 31, 12));
     component.shiftCalendar(1);

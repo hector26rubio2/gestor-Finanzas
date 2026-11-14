@@ -2,6 +2,8 @@ import { sumBy } from '@core/utils/money';
 export interface Movement {
   id: string;
   date: string;
+  registradoEl?: string;
+  hora?: string;
   description: string;
   accountId: string;
   accountName?: string;

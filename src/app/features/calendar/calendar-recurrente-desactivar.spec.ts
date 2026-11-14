@@ -24,13 +24,28 @@ const RECURRENTE = {
   createdAt: '2026-01-01T00:00:00Z',
 };
 
+function hoyIso(): string {
+  const hoy = new Date();
+  return `${hoy.getFullYear()}-${String(hoy.getMonth() + 1).padStart(2, '0')}-${String(hoy.getDate()).padStart(2, '0')}`;
+}
+
 const proveedores: Provider[] = [provideRouter([]) as unknown as Provider];
 
 describe('calendario, desactivar un recurrente', () => {
   it('el botón dice Desactivar', async () => {
     const transport = new TransportFalso()
       .responder(/^POST \/api\/v1\/movements\/search/, { body: { items: [], hasNext: false } })
-      .responder('GET /api/v1/calendar/projected', { body: [] })
+      .responder('GET /api/v1/calendar/projected', {
+        body: [
+          {
+            recurrence: { id: RECURRENTE.id, name: RECURRENTE.name },
+            occurrence: hoyIso(),
+            amount: RECURRENTE.amount,
+            kind: 2,
+          },
+        ],
+      })
+      .responder('GET /api/v1/recurrences/inactive', { body: [] })
       .responder('GET /api/v1/recurrences', { body: [RECURRENTE] });
     const { fixture, cambios, estable } = pruebaRender(CalendarTabComponent, {
       session: sesionDe().conCapacidad(
