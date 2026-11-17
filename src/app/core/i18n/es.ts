@@ -222,6 +222,7 @@ export default {
   'calendar.weekday.sun': 'Dom',
   'calendar.day.ariaLabel': '{label}, {count} movimientos',
   'calendar.day.more': '+{count} más',
+  'calendar.balance.projected': 'Saldo previsto: {amount}',
   'calendar.card.cut': 'Corte · {name}',
   'calendar.card.due': 'Pago · {name}',
   'calendar.hours.allDay': 'Todo el día',

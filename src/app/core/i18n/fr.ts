@@ -227,6 +227,7 @@ export default {
   'calendar.weekday.sun': 'Dim',
   'calendar.day.ariaLabel': '{label}, {count} transactions',
   'calendar.day.more': '+{count} de plus',
+  'calendar.balance.projected': 'Solde prévu : {amount}',
   'calendar.card.cut': 'Clôture · {name}',
   'calendar.card.due': 'Paiement · {name}',
   'calendar.hours.allDay': 'Toute la journée',

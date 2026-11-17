@@ -18,6 +18,7 @@ import { DateFieldComponent } from '@ui/date-field';
 import { type FechaDeTarjeta, fechasDeTarjeta } from './fechas-de-tarjeta';
 import { franjasDelDia, horasVisibles } from './franjas-horarias';
 import { type RangoDeFechas, enRango, rangoSiguiente, rangoVisible } from './periodos';
+import { efectoEnElDisponible, inicioDeLaProyeccion, saldosProyectados } from './saldo-proyectado';
 
 @Component({
   selector: 'app-calendar-tab',
@@ -143,6 +144,32 @@ export class CalendarTabComponent implements OnInit {
   etiquetaDeTarjeta(fecha: FechaDeTarjeta): string {
     return this.i18n.t(fecha.tipo === 'corte' ? 'calendar.card.cut' : 'calendar.card.due', { name: fecha.nombre });
   }
+  private readonly saldosPorDia = computed(() => {
+    const base = this.store.baseCurrency();
+    const plantillas = new Map(this.recurrences().map((recurrente) => [recurrente.id, recurrente.movementTemplate]));
+    const previstos = this.projectedOccurrences()
+      .filter((item) => item.amount.currency === base)
+      .map((item) => ({
+        fecha: item.occurrence,
+        monto: efectoEnElDisponible(plantillas.get(item.recurrence.id) ?? null, Number(item.amount.amount)),
+      }));
+    const pagos = this.vencimientos().map((vencimiento) => ({
+      fecha: vencimiento.date,
+      monto: -this.store.deudaDe(vencimiento.account),
+    }));
+    return saldosProyectados({
+      hoy: this.store.hoy(),
+      disponibleHoy: this.store.available(),
+      eventos: [...previstos, ...pagos],
+      dias: this.calendarDays().map((day) => day.iso),
+    });
+  });
+  saldoCompacto(saldo: number): string {
+    return new Intl.NumberFormat(this.locale(), { notation: 'compact', maximumFractionDigits: 1 }).format(saldo);
+  }
+  saldoProyectado(iso: string): number | null {
+    return this.saldosPorDia().get(iso) ?? null;
+  }
   readonly diasConFranjas = computed(() =>
     this.visibleCalendarDays().map((day) => {
       const movimientos = this.store.dayMoves(day.iso);
@@ -202,8 +229,8 @@ export class CalendarTabComponent implements OnInit {
   }
 
   private async cargarProyeccion(): Promise<void> {
-    const start = this.periodoVisible().desde;
     const end = this.periodoSiguiente().hasta;
+    const start = inicioDeLaProyeccion(this.store.hoy(), this.periodoVisible().desde, end);
     let fallaronProyecciones = false;
     let fallaronRecurrentes = false;
 
