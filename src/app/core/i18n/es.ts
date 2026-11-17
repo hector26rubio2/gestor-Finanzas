@@ -222,6 +222,8 @@ export default {
   'calendar.weekday.sun': 'Dom',
   'calendar.day.ariaLabel': '{label}, {count} movimientos',
   'calendar.day.more': '+{count} más',
+  'calendar.card.cut': 'Corte · {name}',
+  'calendar.card.due': 'Pago · {name}',
   'calendar.hours.allDay': 'Todo el día',
   'calendar.agenda.title': 'Próximos compromisos',
   'calendar.agenda.pending': 'Pendientes de este periodo',

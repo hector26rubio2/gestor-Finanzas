@@ -115,7 +115,13 @@
           <span class="sr-only"
             >{{ i18n.t('calendar.day.ariaLabel', { label: day.label, count: store.dayMoves(day.iso).length }) }}</span
           >
-          @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
+          @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
+          <span
+            data-slot="calendar-card-mark"
+            class="mt-[5px] block w-full shrink-0 overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-warning"
+            >{{ etiquetaDeTarjeta(fecha) }}</span
+          >
+          } @for (m of store.dayMoves(day.iso).slice(0, calendarView() === 'day' ? 8 : 2); track m.id) {
           <span
             class="mt-[5px] block w-full shrink-0 overflow-hidden text-xs text-ellipsis whitespace-nowrap"
             [class]="m.amount > 0 ? 'text-success' : 'text-destructive'"
@@ -160,7 +166,17 @@
             >
               {{ day.titulo }}
             </button>
-            @for (m of day.sinHora; track m.id) {
+            @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
+            <button
+              type="button"
+              data-slot="calendar-card-date"
+              class="block w-full truncate rounded-md border border-warning/40 px-1.5 py-1 text-start text-xs font-medium text-warning"
+              [attr.title]="etiquetaDeTarjeta(fecha)"
+              (click)="store.inspect('account', fecha.tarjetaId)"
+            >
+              {{ etiquetaDeTarjeta(fecha) }}
+            </button>
+            } @for (m of day.sinHora; track m.id) {
             <button
               type="button"
               data-slot="calendar-event"
