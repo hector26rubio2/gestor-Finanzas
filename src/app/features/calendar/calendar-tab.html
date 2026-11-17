@@ -115,7 +115,15 @@
           <span class="sr-only"
             >{{ i18n.t('calendar.day.ariaLabel', { label: day.label, count: store.dayMoves(day.iso).length }) }}</span
           >
-          @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
+          @if (saldoProyectado(day.iso) !== null) { @let saldo = saldoProyectado(day.iso) ?? 0;
+          <small
+            data-slot="calendar-balance"
+            class="block w-full shrink-0 overflow-hidden text-[0.75rem] text-ellipsis whitespace-nowrap text-muted-foreground tabular-nums"
+            [class]="saldo < 0 ? 'text-destructive' : ''"
+            [attr.title]="i18n.t('calendar.balance.projected', { amount: store.money(saldo) })"
+            >{{ saldoCompacto(saldo) }}</small
+          >
+          } @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
           <span
             data-slot="calendar-card-mark"
             class="mt-[5px] block w-full shrink-0 overflow-hidden text-xs font-medium text-ellipsis whitespace-nowrap text-warning"
@@ -166,7 +174,14 @@
             >
               {{ day.titulo }}
             </button>
-            @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
+            @if (saldoProyectado(day.iso) !== null) { @let saldo = saldoProyectado(day.iso) ?? 0;
+            <small
+              data-slot="calendar-balance"
+              class="px-1.5 text-xs text-muted-foreground tabular-nums"
+              [class]="saldo < 0 ? 'text-destructive' : ''"
+              >{{ i18n.t('calendar.balance.projected', { amount: store.money(saldo) }) }}</small
+            >
+            } @for (fecha of tarjetasDelDia(day.iso); track fecha.tarjetaId + fecha.tipo) {
             <button
               type="button"
               data-slot="calendar-card-date"

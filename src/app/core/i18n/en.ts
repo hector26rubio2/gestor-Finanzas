@@ -222,6 +222,7 @@ export default {
   'calendar.weekday.sun': 'Sun',
   'calendar.day.ariaLabel': '{label}, {count} transactions',
   'calendar.day.more': '+{count} more',
+  'calendar.balance.projected': 'Projected balance: {amount}',
   'calendar.card.cut': 'Statement · {name}',
   'calendar.card.due': 'Payment due · {name}',
   'calendar.hours.allDay': 'All day',
