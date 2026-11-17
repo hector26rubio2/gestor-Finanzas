@@ -227,6 +227,8 @@ export default {
   'calendar.weekday.sun': 'Dim',
   'calendar.day.ariaLabel': '{label}, {count} transactions',
   'calendar.day.more': '+{count} de plus',
+  'calendar.card.cut': 'Clôture · {name}',
+  'calendar.card.due': 'Paiement · {name}',
   'calendar.hours.allDay': 'Toute la journée',
   'calendar.agenda.title': 'Engagements à venir',
   'calendar.agenda.pending': 'En attente sur cette période',

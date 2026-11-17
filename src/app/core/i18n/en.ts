@@ -222,6 +222,8 @@ export default {
   'calendar.weekday.sun': 'Sun',
   'calendar.day.ariaLabel': '{label}, {count} transactions',
   'calendar.day.more': '+{count} more',
+  'calendar.card.cut': 'Statement · {name}',
+  'calendar.card.due': 'Payment due · {name}',
   'calendar.hours.allDay': 'All day',
   'calendar.agenda.title': 'Upcoming commitments',
   'calendar.agenda.pending': 'Pending in this period',

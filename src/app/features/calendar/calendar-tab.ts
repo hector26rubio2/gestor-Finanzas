@@ -15,6 +15,7 @@ import { ZonaDeCargaComponent } from '@ui/zona-de-carga';
 import { cardDues, creditCards } from '@features/accounts/card-insights';
 import { FormsModule } from '@angular/forms';
 import { DateFieldComponent } from '@ui/date-field';
+import { type FechaDeTarjeta, fechasDeTarjeta } from './fechas-de-tarjeta';
 import { franjasDelDia, horasVisibles } from './franjas-horarias';
 import { type RangoDeFechas, enRango, rangoSiguiente, rangoVisible } from './periodos';
 
@@ -129,6 +130,19 @@ export class CalendarTabComponent implements OnInit {
     const weekStart = Math.floor(selectedIndex / 7) * 7;
     return days.slice(weekStart, weekStart + 7);
   });
+  private readonly fechasDeTarjetas = computed(() => {
+    const dias = this.calendarDays();
+    return fechasDeTarjeta(creditCards(this.store.data().accounts), {
+      desde: dias[0].iso,
+      hasta: dias[dias.length - 1].iso,
+    });
+  });
+  tarjetasDelDia(iso: string): readonly FechaDeTarjeta[] {
+    return this.fechasDeTarjetas().get(iso) ?? [];
+  }
+  etiquetaDeTarjeta(fecha: FechaDeTarjeta): string {
+    return this.i18n.t(fecha.tipo === 'corte' ? 'calendar.card.cut' : 'calendar.card.due', { name: fecha.nombre });
+  }
   readonly diasConFranjas = computed(() =>
     this.visibleCalendarDays().map((day) => {
       const movimientos = this.store.dayMoves(day.iso);
