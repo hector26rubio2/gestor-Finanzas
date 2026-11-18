@@ -29,8 +29,17 @@ export function conPosicionesDeDeuda(
   const debtByPerson = new Map(debts.map((debt) => [debt.counterparty.id, debt]));
   return people.map((person) => {
     const position = debtByPerson.get(person.id);
-    return position
-      ? { ...person, owed: parseMoney(position.receivable), owing: parseMoney(position.ownDebt) }
-      : person;
+    if (!position) return person;
+    const otras = (position.otherCurrencies ?? []).map((saldo) => ({
+      currency: saldo.currency,
+      owed: parseMoney(saldo.receivable),
+      owing: parseMoney(saldo.ownDebt),
+    }));
+    return {
+      ...person,
+      owed: parseMoney(position.receivable),
+      owing: parseMoney(position.ownDebt),
+      ...(otras.length ? { otherCurrencies: otras } : {}),
+    };
   });
 }

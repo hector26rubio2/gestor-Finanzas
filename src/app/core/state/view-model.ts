@@ -56,12 +56,18 @@ export type PersonRelationship = 'Familia' | 'Amistad' | 'Trabajo' | 'Cliente' |
 
 export type PersonKind = 'person' | 'institution';
 
+export interface DeudaEnOtraMoneda {
+  currency: string;
+  owed: number;
+  owing: number;
+}
 export interface Person {
   id: string;
   name: string;
   kind?: PersonKind;
   owed: number;
   owing: number;
+  otherCurrencies?: readonly DeudaEnOtraMoneda[];
   relationship?: PersonRelationship;
   email?: string;
   averagePaymentDays?: number;

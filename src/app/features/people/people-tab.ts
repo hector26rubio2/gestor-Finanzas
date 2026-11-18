@@ -12,6 +12,7 @@ import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
 import { Comportamiento, DeudaConPersona, comportamientoDePago, masAtrasado } from './deudas';
+import { monedasDe, totalesEnOtrasMonedas } from './otras-monedas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
 @Component({
@@ -62,7 +63,7 @@ export class PeopleTabComponent {
       name: p.name,
       kind: this.i18n.t(p.kind === 'institution' ? 'people.kind.institution' : 'people.kind.person'),
       relationship: p.relationship ?? SIN_DATO,
-      currency: this.store.baseCurrency(),
+      currency: monedasDe(p, this.store.baseCurrency()),
       owed: this.numero(p.owed),
       owing: this.numero(p.owing),
       balance: this.numero(p.owed - p.owing),
@@ -129,6 +130,7 @@ export class PeopleTabComponent {
       (valor) => compactMoney(valor, this.store.preferences().locale),
     );
   });
+  readonly otrasMonedas = computed(() => totalesEnOtrasMonedas(this.people.personas()));
   readonly peopleOwed = computed(() => sumBy(this.people.personas(), (p) => p.owed));
   readonly peopleOwing = computed(() => sumBy(this.people.personas(), (p) => p.owing));
   readonly slowestPayer = computed(() => {

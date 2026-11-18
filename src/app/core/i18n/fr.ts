@@ -1008,6 +1008,9 @@ export default {
   'people.kpi.owed.hint': 'Créances',
   'people.kpi.owing.label': 'Je dois',
   'people.kpi.owing.hint': 'Mes propres obligations',
+  'people.otherCurrencies.notice':
+    'Certaines dettes sont dans une autre devise et ne sont pas comprises dans les totaux ci-dessus.',
+  'people.otherCurrencies.line': '{currency} : on vous doit {owed} · vous devez {owing}',
   'people.kpi.count.label': 'Personnes',
   'people.kpi.count.hint': 'Avec relations actives',
   'people.kpi.slowest.label': 'Plus grand retard',

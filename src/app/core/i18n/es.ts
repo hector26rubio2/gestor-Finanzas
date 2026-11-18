@@ -998,6 +998,8 @@ export default {
   'people.kpi.owed.hint': 'Cuentas por cobrar',
   'people.kpi.owing.label': 'Les debo',
   'people.kpi.owing.hint': 'Obligaciones propias',
+  'people.otherCurrencies.notice': 'Hay deudas en otra moneda que no suman en los totales de arriba.',
+  'people.otherCurrencies.line': '{currency}: te deben {owed} · debes {owing}',
   'people.kpi.count.label': 'Personas',
   'people.kpi.count.hint': 'Con relaciones activas',
   'people.kpi.slowest.label': 'Mayor retraso',
