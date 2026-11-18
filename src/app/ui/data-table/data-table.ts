@@ -20,6 +20,7 @@ import { HlmDropdownMenuImports } from '@spartan-ng/helm/dropdown-menu';
 import { HlmAutocompleteImports } from '@spartan-ng/helm/autocomplete';
 import { HlmTableImports } from '@spartan-ng/helm/table';
 import { ColumnDef, injectTable } from '@tanstack/angular-table';
+import { guardarColumnasOcultas, leerColumnasOcultas } from './columnas-recordadas';
 import { I18nService } from '@core/i18n';
 import { sincronizarPaginaConLaUrl } from '@core/routing/url-state';
 import { IconComponent, IconName } from '@ui/icon/icon';
@@ -94,6 +95,7 @@ export class DataTableComponent {
   readonly toolbar = input<boolean | null>(null);
   readonly showFooter = input(true);
   readonly urlKey = input<string | null>(null);
+  readonly recordarColumnas = input<string | null>(null);
   readonly rowHasDetail = input<(row: TableRow) => boolean>(() => true);
   readonly rowDetailLabel = input<((row: TableRow, abierto: boolean) => string) | null>(null);
   readonly rowSelected = output<TableRow>();
@@ -251,9 +253,10 @@ export class DataTableComponent {
       untracked(() => {
         if (visibilityApplied || !columns.length) return;
         visibilityApplied = true;
-        const hidden = columns.filter((column) => column.hidden);
-        if (hidden.length)
-          this.table.setColumnVisibility(Object.fromEntries(hidden.map((column) => [column.key, false])));
+        const clave = this.recordarColumnas();
+        const guardadas = clave ? leerColumnasOcultas(clave) : null;
+        const ocultas = guardadas ?? columns.filter((column) => column.hidden).map((column) => column.key);
+        if (ocultas.length) this.table.setColumnVisibility(Object.fromEntries(ocultas.map((key) => [key, false])));
       });
     });
     let primerCalculo = true;
@@ -265,6 +268,21 @@ export class DataTableComponent {
       }
       if (!untracked(this.remote) && untracked(this.page) !== 0) this.page.set(0);
     });
+  }
+
+  alternarColumna(columna: { toggleVisibility: () => void }): void {
+    columna.toggleVisibility();
+    this.recordarEleccionDeColumnas();
+  }
+
+  recordarEleccionDeColumnas(): void {
+    const clave = this.recordarColumnas();
+    if (!clave) return;
+    const ocultas = this.table
+      .getAllLeafColumns()
+      .filter((columna) => columna.id !== SELECT_COLUMN && !columna.getIsVisible())
+      .map((columna) => columna.id);
+    guardarColumnasOcultas(clave, ocultas);
   }
 
   isRowExpanded(index: number): boolean {
