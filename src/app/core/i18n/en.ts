@@ -1049,6 +1049,7 @@ export default {
   'people.debts.column.installmentNumber': 'Installment no.',
   'people.debts.column.pending': 'Left to pay',
   'people.debts.installmentOf': '{current} of {total}',
+  'people.debts.installmentsLeft': '{count} left',
   'people.payment.none': 'No history',
   'people.payment.summary': '{days} days avg. · {late} late',
   'people.noData': 'No data',
