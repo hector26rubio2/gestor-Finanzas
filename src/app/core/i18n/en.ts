@@ -998,6 +998,8 @@ export default {
   'people.kpi.owed.hint': 'Receivables',
   'people.kpi.owing.label': 'I owe',
   'people.kpi.owing.hint': 'My own obligations',
+  'people.otherCurrencies.notice': 'Some debts are in another currency and are not included in the totals above.',
+  'people.otherCurrencies.line': '{currency}: owed to you {owed} · you owe {owing}',
   'people.kpi.count.label': 'People',
   'people.kpi.count.hint': 'With active relationships',
   'people.kpi.slowest.label': 'Slowest payer',

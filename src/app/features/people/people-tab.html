@@ -38,6 +38,23 @@
     />
   </fin-kpi-grid>
 </fin-zona-de-carga>
+@if (otrasMonedas().length) {
+<div
+  role="note"
+  data-testid="aviso-otras-monedas"
+  class="shrink-0 rounded-lg border border-warning/40 bg-warning/10 px-3.5 py-2.5 text-sm"
+>
+  <p class="font-medium">{{ i18n.t('people.otherCurrencies.notice') }}</p>
+  <ul class="mt-1 grid gap-0.5 text-xs">
+    @for (saldo of otrasMonedas(); track saldo.currency) {
+    <li>
+      {{ i18n.t('people.otherCurrencies.line', { currency: saldo.currency, owed: importe(saldo.owed, saldo.currency),
+      owing: importe(saldo.owing, saldo.currency) }) }}
+    </li>
+    }
+  </ul>
+</div>
+}
 <fin-chart-card
   class="shrink-0"
   [title]="i18n.t('people.chart.balances')"

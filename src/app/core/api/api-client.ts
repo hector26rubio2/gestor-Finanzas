@@ -53,7 +53,7 @@ export type { ApiCard } from './cards.api';
 export { CategoriesApi } from './categories.api';
 export type { ApiCategory } from './categories.api';
 export { PeopleApi } from './people.api';
-export type { ApiCounterparty, ApiDebtPosition } from './people.api';
+export type { ApiCounterparty, ApiDebtPosition, ApiDebtCurrencyBalance } from './people.api';
 export { ObligationsApi } from './obligations.api';
 export { InvestmentsApi } from './investments.api';
 export type {

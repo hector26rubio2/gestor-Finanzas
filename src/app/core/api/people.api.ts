@@ -19,11 +19,18 @@ export interface ApiCounterparty {
 export const COUNTERPARTY_KIND = { person: 1, institution: 2 } as const;
 export type CounterpartyKindValue = (typeof COUNTERPARTY_KIND)[keyof typeof COUNTERPARTY_KIND];
 
+export interface ApiDebtCurrencyBalance {
+  currency: string;
+  ownDebt: ApiMoney;
+  receivable: ApiMoney;
+}
+
 export interface ApiDebtPosition {
   counterparty: ApiLinkRef;
   ownDebt: ApiMoney;
   receivable: ApiMoney;
   asOf: string;
+  otherCurrencies?: readonly ApiDebtCurrencyBalance[] | null;
 }
 
 @Injectable({ providedIn: 'root' })
