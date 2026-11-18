@@ -134,7 +134,18 @@
                   }
                 </td>
               </tr>
-              }
+              @if (deuda.abonos.length) {
+              <tr data-testid="historial-abonos">
+                <td colspan="9" class="px-2 pb-2 text-xs text-muted-foreground">
+                  <p class="font-semibold">{{ i18n.t('people.debts.history') }}</p>
+                  <ul>
+                    @for (abono of deuda.abonos; track $index) {
+                    <li>{{ textoDeAbono(abono, deuda.moneda) }}</li>
+                    }
+                  </ul>
+                </td>
+              </tr>
+              } }
             </tbody>
           </table>
         </ng-template>

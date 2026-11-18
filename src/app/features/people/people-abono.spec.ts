@@ -22,7 +22,12 @@ function obligacion(id: string, status: number, pendiente: string) {
     status,
     totalOutstanding: dinero(pendiente),
     interestPolicies: [],
-    entries: [{ type: 1, date: '2026-08-15', principalDelta: dinero('300000') }],
+    entries: [
+      { type: 1, date: '2026-08-15', principalDelta: dinero('300000') },
+      ...(id === 'abierta'
+        ? [{ type: 4, date: '2026-09-15', principalDelta: dinero('-50000'), note: 'Cuota de septiembre' }]
+        : []),
+    ],
     terms: null,
   };
 }
@@ -86,5 +91,14 @@ describe('Personas, abono a una deuda', () => {
     const { raiz } = await montar([]);
 
     expect(botones(raiz)).toHaveLength(0);
+  });
+
+  it('muestra en el historial cada abono con su motivo', async () => {
+    const { raiz } = await montar([P.movimientos.pagos.crear]);
+
+    const historial = raiz.querySelector('[data-testid="historial-abonos"]')?.textContent?.replace(/\s+/g, ' ') ?? '';
+    expect(historial).toContain('2026-09-15');
+    expect(historial).toMatch(/50[.,]000/);
+    expect(historial).toContain('Cuota de septiembre');
   });
 });

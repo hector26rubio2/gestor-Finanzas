@@ -41,6 +41,31 @@ describe('deudasDe', () => {
     });
   });
 
+  it('lista los abonos con fecha, monto y el motivo guardado', () => {
+    const [deuda] = deudasDe(
+      [
+        obligacion({
+          entries: [
+            { type: 2, date: '2026-08-15', principalDelta: { amount: '300000', currency: 'COP' } },
+            {
+              type: 4,
+              date: '2026-09-15',
+              principalDelta: { amount: '-50000', currency: 'COP' },
+              note: 'Cuota de septiembre',
+            },
+            { type: 4, date: '2026-10-15', principalDelta: { amount: '-20000', currency: 'COP' }, note: null },
+          ],
+        }),
+      ],
+      '2026-10-28',
+    );
+
+    expect(deuda.abonos).toEqual([
+      { fecha: '2026-10-15', monto: 20000, nota: null },
+      { fecha: '2026-09-15', monto: 50000, nota: 'Cuota de septiembre' },
+    ]);
+  });
+
   it('con tasa mensual la cuota es la fija del sistema francés', () => {
     const [deuda] = deudasDe([obligacion({ terms: { ...obligacion().terms!, monthlyRate: 0.02 } })], '2026-10-28');
     expect(deuda.cuota).toBeCloseTo(53558, 0);

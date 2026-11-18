@@ -12,7 +12,7 @@ import { I18nService } from '@core/i18n';
 import { formatNumber, sumBy } from '@core/utils';
 import { SIN_DATO, compactMoney } from '@shared/utils';
 import { PeopleStore } from './people.store';
-import { Comportamiento, DeudaConPersona, comportamientoDePago, masAtrasado } from './deudas';
+import { AbonoDeDeuda, Comportamiento, DeudaConPersona, comportamientoDePago, masAtrasado } from './deudas';
 import { monedasDe, totalesEnOtrasMonedas } from './otras-monedas';
 import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/chart';
 
@@ -74,6 +74,10 @@ export class PeopleTabComponent {
   );
   deudasDe(personaId: unknown): DeudaConPersona[] {
     return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
+  }
+  textoDeAbono(abono: AbonoDeDeuda, moneda: string): string {
+    const base = `${abono.fecha} · ${this.importe(abono.monto, moneda)}`;
+    return abono.nota ? `${base} · ${abono.nota}` : base;
   }
   puedeAbonar(deuda: DeudaConPersona): boolean {
     return !deuda.saldada && (this.can(P.movimientos.pagos.crear) || this.can(P.movimientos.crear));

@@ -57,7 +57,7 @@ export interface ApiObligation {
   description: string | null;
   status: number;
   totalOutstanding: ApiMoney;
-  entries?: readonly { type: number; date: string; principalDelta: ApiMoney }[];
+  entries?: readonly { type: number; date: string; principalDelta: ApiMoney; note?: string | null }[];
   terms?: {
     product: number;
     monthlyRate: number | null;
