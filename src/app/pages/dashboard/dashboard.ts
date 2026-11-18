@@ -6,6 +6,7 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { BienvenidaBetaComponent } from '@features/bienvenida-beta';
 import { periodoDeLaEscala } from '@features/movements/filtros-por-url';
 import { P } from '@core/session';
 import { IconComponent } from '@ui/icon';
@@ -49,6 +50,7 @@ type VistaDelTablero = (typeof VISTAS_DEL_TABLERO)[number];
 @Component({
   providers: [DashboardPeriodo],
   imports: [
+    BienvenidaBetaComponent,
     SelectorDeTablerosComponent,
     HlmAlertImports,
     SkeletonComponent,

@@ -779,6 +779,12 @@ export default {
   'admin.toast.errorStatusFailed': "Impossible de mettre à jour le statut de l'erreur.",
   'dashboard.greeting': 'Bonjour, {name}',
   'dashboard.subtitle': "Explorez vos finances : chaque filtre met à jour tout l'affichage.",
+  'beta.welcome.title': 'Bienvenue dans Finanzas',
+  'beta.welcome.body':
+    'Votre compte est en lecture seule : vous pouvez consulter le tableau de bord, les mouvements, les comptes et le calendrier.',
+  'beta.welcome.upgrade':
+    'Pour saisir ou modifier des données, demandez à un propriétaire de votre organisation de changer votre rôle.',
+  'beta.welcome.dismiss': 'Compris',
   'dashboard.readOnly.title': 'Votre accès est en lecture seule',
   'dashboard.readOnly.detail':
     "Vous pouvez consulter les informations, mais pas enregistrer de mouvements ni créer de comptes. Demandez à un administrateur de votre organisation un rôle avec des droits d'écriture.",
