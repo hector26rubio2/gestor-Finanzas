@@ -11,14 +11,14 @@ import type { CondicionesDeTarjeta } from './store';
  */
 
 /** Aplasta sobre `terms` las condiciones del crédito (prioridades/FI/dualCurrency). */
-export function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta): unknown {
+export function conPrioridad(terms: unknown, credito: CondicionesDeTarjeta, moneda: string): unknown {
   if (!terms || typeof terms !== 'object') return terms;
   return {
     ...terms,
     ...(credito.paymentPriority ? { paymentPriority: credito.paymentPriority } : {}),
     ...(credito.foreignPaymentPriority ? { foreignPaymentPriority: credito.foreignPaymentPriority } : {}),
     ...(credito.monthlyFee !== undefined
-      ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: 'COP' } : null }
+      ? { monthlyFee: credito.monthlyFee > 0 ? { amount: String(credito.monthlyFee), currency: moneda } : null }
       : {}),
     ...(credito.dualCurrency !== undefined ? { dualCurrency: credito.dualCurrency } : {}),
     ...(credito.applyPaymentPriority !== undefined ? { applyPaymentPriority: credito.applyPaymentPriority } : {}),
