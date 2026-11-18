@@ -111,6 +111,7 @@
   <fin-table
     data-tour="movimientos-tabla"
     urlKey="pagina"
+    recordarColumnas="movimientos"
     [columns]="book.movementColumns()"
     [rows]="book.movementRows()"
     [error]="book.movementRows().length ? null : book.errorDeCarga()"

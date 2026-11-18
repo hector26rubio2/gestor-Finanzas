@@ -131,7 +131,7 @@
         type="button"
         [checked]="column.getIsVisible() && !columnaFijadaPorTamano(column.id)"
         [disabled]="columnaFijadaPorTamano(column.id)"
-        (triggered)="column.toggleVisibility()"
+        (triggered)="alternarColumna(column)"
       >
         <hlm-dropdown-menu-checkbox-indicator />
         {{ columnOf(column.id)?.label ?? column.id }}
