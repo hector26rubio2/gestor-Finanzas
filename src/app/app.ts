@@ -58,6 +58,7 @@ const FORM_KINDS_SIN_MOVIMIENTO: readonly string[] = [
   'investment',
   'investment-operation',
   'investment-valuation',
+  'debt-payment',
   'recurrence',
 ];
 

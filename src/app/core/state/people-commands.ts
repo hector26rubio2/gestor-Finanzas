@@ -6,6 +6,7 @@ import { I18nService } from '@core/i18n';
 import { COUNTERPARTY_KIND } from '@core/api/people.api';
 import type { ApiSettlement } from '@core/api/settlements.api';
 import { P } from '@core/session/permissions';
+import { toMovement } from '@core/session/mappers/movements.mapper';
 import { AppStore, CAPABILITIES } from './store';
 import { renombrarEnMovimientos } from './catalog-mappers';
 
@@ -117,4 +118,33 @@ export class PeopleCommands {
       }),
     );
   }
+
+  async abonarDeuda(solicitud: SolicitudDeAbono): Promise<void> {
+    const puede = this.capabilities.allows(P.movimientos.pagos.crear) || this.capabilities.allows(P.movimientos.crear);
+    if (!puede) throw new Error(this.i18n.t('form.error.forbidden'));
+    if (!(solicitud.amount > 0)) throw new Error(this.i18n.t('form.movement.error.amountPositive'));
+    const pago = await firstValueFrom(
+      this.client.registerObligationPayment(solicitud.obligationId, {
+        date: solicitud.date,
+        amount: { amount: String(solicitud.amount), currency: solicitud.currency },
+        account: solicitud.accountId,
+        ...(solicitud.note?.trim() ? { note: solicitud.note.trim() } : {}),
+        idempotencyKey: crypto.randomUUID(),
+      }),
+    );
+    const movimiento = toMovement(this.i18n, this.store.kindCatalog(), pago.movement);
+    this.store.data.update((data) => ({
+      ...data,
+      movements: [movimiento, ...data.movements.filter((item) => item.id !== movimiento.id)],
+    }));
+  }
+}
+
+export interface SolicitudDeAbono {
+  obligationId: string;
+  date: string;
+  amount: number;
+  currency: string;
+  accountId: string;
+  note?: string;
 }

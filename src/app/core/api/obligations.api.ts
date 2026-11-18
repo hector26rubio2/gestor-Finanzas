@@ -28,6 +28,19 @@ export interface CreateLoanBody {
   borrowedCardName?: string;
 }
 
+export interface RegisterPaymentBody {
+  date: string;
+  amount: ApiMoney;
+  account: string;
+  note?: string;
+  idempotencyKey: string;
+}
+
+export interface ApiObligationPayment {
+  obligation: { id: string };
+  movement: ApiMovement;
+}
+
 export interface ApiLoan {
   obligation: { id: string; counterparty: ApiLinkRef; dueOn: string | null };
   terms: { product: number; monthlyRate: number | null; termMonths: number | null; cardMode: number | null };
@@ -65,6 +78,14 @@ export class ObligationsApi {
 
   obligations() {
     return this.transport.request<readonly ApiObligation[]>({ method: 'GET', path: API_ROUTES.obligations });
+  }
+
+  registerPayment(obligationId: string, request: RegisterPaymentBody) {
+    return this.transport.request<ApiObligationPayment>({
+      method: 'POST',
+      path: `${API_ROUTES.obligations}/${obligationId}/payments`,
+      body: request,
+    });
   }
 
   createLoan(request: CreateLoanBody) {

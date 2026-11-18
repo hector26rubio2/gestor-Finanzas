@@ -5,6 +5,7 @@ import { HeaderActionsService } from '@shared/header-actions.service';
 import { ActivatedRoute, RouterOutlet } from '@angular/router';
 import { AccountFormComponent } from '@features/account-form';
 import { InvestmentOperationComponent } from '@features/investment-operation';
+import { DebtPaymentComponent } from '@features/debt-payment';
 import { InvestmentValuationComponent } from '@features/investment-valuation';
 import { ManagementFormComponent } from '@features/management-form';
 import { IconComponent } from '@ui/icon';
@@ -37,6 +38,7 @@ const paginasConMeta = [
     AccountFormComponent,
     ManagementFormComponent,
     InvestmentOperationComponent,
+    DebtPaymentComponent,
     InvestmentValuationComponent,
     SinAccesoComponent,
     IconComponent,

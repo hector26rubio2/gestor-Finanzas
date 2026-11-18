@@ -178,6 +178,9 @@ export class FinanceApiClient {
   createLoan(...args: Parameters<ObligationsApi['createLoan']>) {
     return this.obligationsApi.createLoan(...args);
   }
+  registerObligationPayment(...args: Parameters<ObligationsApi['registerPayment']>) {
+    return this.obligationsApi.registerPayment(...args);
+  }
   obligations() {
     return this.obligationsApi.obligations();
   }

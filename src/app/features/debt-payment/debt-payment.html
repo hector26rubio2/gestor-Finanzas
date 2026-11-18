@@ -1,0 +1,64 @@
+<fin-overlay
+  [title]="i18n.t('form.debtPayment.title', { name: debt()?.persona ?? '' })"
+  mode="formulario"
+  (closed)="store.form.set(null)"
+>
+  <form class="grid grid-cols-2 gap-4 max-[500px]:grid-cols-1" [formRoot]="formulario">
+    <p class="col-span-full text-sm text-muted-foreground" data-testid="abono-pendiente">{{ pendingText() }}</p>
+    <fin-field
+      data-tour="form-abono-fecha"
+      [label]="i18n.t('form.debtPayment.field.date')"
+      [error]="mensaje(formulario.date)"
+    >
+      <fin-date-field [formField]="formulario.date" [ariaLabel]="i18n.t('form.debtPayment.field.date')" />
+    </fin-field>
+    <fin-field
+      data-tour="form-abono-monto"
+      [label]="i18n.t('form.debtPayment.field.amount') + ' (' + currency() + ')'"
+      [error]="mensaje(formulario.amount)"
+    >
+      <input
+        hlmInput
+        finMonto
+        [formField]="formulario.amount"
+        [attr.aria-label]="i18n.t('form.debtPayment.field.amount')"
+      />
+    </fin-field>
+    <fin-field
+      data-tour="form-abono-cuenta"
+      class="col-span-full"
+      [label]="i18n.t('form.debtPayment.field.account')"
+      [error]="mensaje(formulario.account)"
+    >
+      @if (accountOptions().length) {
+      <fin-select
+        [formField]="formulario.account"
+        [options]="accountOptions()"
+        [ariaLabel]="i18n.t('form.debtPayment.field.account')"
+      />
+      } @else {
+      <p class="text-sm text-destructive" data-testid="abono-sin-cuentas">
+        {{ i18n.t('form.debtPayment.error.noAccounts', { currency: currency() }) }}
+      </p>
+      }
+    </fin-field>
+    <fin-field data-tour="form-abono-nota" class="col-span-full" [label]="i18n.t('form.debtPayment.field.note')">
+      <input
+        hlmInput
+        [formField]="formulario.note"
+        autocomplete="off"
+        [attr.aria-label]="i18n.t('form.debtPayment.field.note')"
+      />
+    </fin-field>
+    @if (error()) {
+    <p class="col-span-full text-destructive max-[500px]:col-auto" role="alert">{{ error() }}</p>
+    }
+    <footer finAcciones class="col-span-full flex justify-end gap-2.5 max-[500px]:col-auto">
+      <button hlmBtn variant="outline" size="lg" type="button" (click)="store.form.set(null)">
+        <fin-icon name="close" /> {{ i18n.t('form.actions.cancel') }}</button
+      ><button data-tour="form-abono-guardar" hlmBtn size="lg" type="submit" [disabled]="!accountOptions().length">
+        {{ i18n.t('form.actions.save') }}
+      </button>
+    </footer>
+  </form>
+</fin-overlay>
