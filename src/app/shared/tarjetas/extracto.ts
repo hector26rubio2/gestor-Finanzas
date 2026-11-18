@@ -1,5 +1,4 @@
 import type { Movement } from '@core/state';
-import { sumBy } from '@core/utils';
 import { type CardBucket, PRIORIDAD_EN_PESOS, conceptoDeCompra } from '@core/api';
 
 export interface CompraPendiente {
@@ -28,6 +27,12 @@ export interface AplicacionDeAbono {
 }
 
 const redondear = (valor: number) => Math.round(valor * 100) / 100;
+
+function sumBy<T>(items: Iterable<T>, valor: (item: T) => number): number {
+  let total = 0;
+  for (const item of items) total = redondear(total + valor(item));
+  return total;
+}
 
 export function comprasPendientes(
   movimientos: readonly Movement[],
