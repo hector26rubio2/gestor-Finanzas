@@ -1,6 +1,19 @@
-import { AfterViewInit, Component, ElementRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+  untracked,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
+import { sincronizarConLaUrl } from '@core/routing/url-state';
+import { esCuentaValida, esPeriodoValido } from './filtros-por-url';
 import { FormsModule } from '@angular/forms';
 import { toCsv, downloadCsv, sumBy, addDaysToIso, addMonthsToIso } from '@core/utils';
 import { KpiGridComponent } from '@ui/kpi-grid';
@@ -167,6 +180,25 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
 
+  private claveDelListado = this.claveActual();
+
+  constructor() {
+    sincronizarConLaUrl('periodo', this.store.period, 'all', esPeriodoValido);
+    sincronizarConLaUrl('cuenta', this.store.accountFilter, 'all', esCuentaValida);
+    effect(() => {
+      const clave = this.claveActual();
+      untracked(() => {
+        if (clave === this.claveDelListado) return;
+        this.claveDelListado = clave;
+        void this.book.loadMovementPage(1);
+      });
+    });
+  }
+
+  private claveActual(): string {
+    return `${this.store.period()}|${this.store.accountFilter()}`;
+  }
+
   ngOnInit(): void {
     this.headerActions.exportMovements.set(() => this.exportMovements());
   }
@@ -223,6 +255,7 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   loadMovementPage(page: number): void {
+    if (page === 1) this.claveDelListado = this.claveActual();
     void this.book.loadMovementPage(page);
   }
   changeMovementPageSize(size: number): void {

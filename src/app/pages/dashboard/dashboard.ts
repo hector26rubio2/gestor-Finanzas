@@ -6,6 +6,7 @@ import { CdkDropList } from '@angular/cdk/drag-drop';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { periodoDeLaEscala } from '@features/movements/filtros-por-url';
 import { P } from '@core/session';
 import { IconComponent } from '@ui/icon';
 import { DataTableComponent, FinTableCellDirective } from '@ui/data-table';
@@ -86,6 +87,9 @@ export class DashboardComponent extends DashboardKpis {
   readonly anchor = this.periodo.anchor;
   readonly range = this.periodo.range;
   readonly historiaEtiqueta = this.periodo.historiaEtiqueta;
+  readonly verTodosParams = computed(() => ({
+    periodo: periodoDeLaEscala(this.scale(), this.range().start),
+  }));
 
   readonly P = P;
   readonly customizing = signal(false);

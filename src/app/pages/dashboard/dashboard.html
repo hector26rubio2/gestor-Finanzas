@@ -382,7 +382,13 @@
         <h2 class="my-1 text-base">{{ i18n.t('dashboard.recent.title') }}</h2>
       </div>
       @if (caps.allows(P.movimientos.ver)) {
-      <a hlmBtn variant="ghost" size="sm" class="rounded-full text-primary" routerLink="/movements"
+      <a
+        hlmBtn
+        variant="ghost"
+        size="sm"
+        class="rounded-full text-primary"
+        routerLink="/movements"
+        [queryParams]="verTodosParams()"
         >{{ i18n.t('dashboard.recent.seeAll') }}<fin-icon name="next"
       /></a>
       }

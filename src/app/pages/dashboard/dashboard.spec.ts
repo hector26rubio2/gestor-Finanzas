@@ -60,6 +60,29 @@ describe('DashboardComponent y las cifras del servidor', () => {
     expect(hasta).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
+  it('«Ver todos» abre Movimientos con el periodo que se está viendo', async () => {
+    const fixture = montar();
+    TestBed.inject(AppStore).user.set({
+      ...USUARIO_DE_PRUEBA,
+      capabilities: [P.dashboard.ver, P.dashboard.tabla.ver, P.movimientos.ver],
+    });
+    TestBed.inject(AppStore).remoteState.set('ready');
+    const componente = fixture.componentInstance;
+    componente.periodo.scale.set('month');
+    componente.periodo.anchor.set('2026-03-18');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const enlace = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a[href^="/movements"]');
+    expect(enlace?.getAttribute('href')).toBe('/movements?periodo=2026-03');
+
+    componente.periodo.scale.set('year');
+    fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).querySelector('a[href^="/movements"]')?.getAttribute('href')).toBe(
+      '/movements?periodo=2026',
+    );
+  });
+
   it('un filtro local devuelve el cálculo a la pantalla, porque el servidor no lo conoce', async () => {
     const fixture = montar();
     fixture.detectChanges();
