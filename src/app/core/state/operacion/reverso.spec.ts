@@ -48,6 +48,52 @@ describe('puedeReversar', () => {
   });
 });
 
+describe('puedeReversar por tipo de movimiento', () => {
+  const casos: { tipo: string; movimiento: Movement; cuenta: 'cash' | 'credit'; permiso: string }[] = [
+    {
+      tipo: 'transferencia',
+      movimiento: { ...gasto, movementSubtype: 'transfer' },
+      cuenta: 'cash',
+      permiso: P.movimientos.transferencias.deshabilitar,
+    },
+    {
+      tipo: 'pago',
+      movimiento: { ...gasto, kind: 'payment' },
+      cuenta: 'cash',
+      permiso: P.movimientos.pagos.deshabilitar,
+    },
+    {
+      tipo: 'avance',
+      movimiento: { ...gasto, movementSubtype: 'advance' },
+      cuenta: 'credit',
+      permiso: P.movimientos.avances.deshabilitar,
+    },
+    {
+      tipo: 'préstamo',
+      movimiento: { ...gasto, loanRole: 'lent' },
+      cuenta: 'cash',
+      permiso: P.movimientos.prestamos.deshabilitar,
+    },
+    {
+      tipo: 'crédito',
+      movimiento: gasto,
+      cuenta: 'credit',
+      permiso: P.movimientos.creditos.deshabilitar,
+    },
+  ];
+
+  it.each(casos)('$tipo: solo con el permiso general y el de su familia', ({ movimiento, cuenta, permiso }) => {
+    expect(puedeReversar(movimiento, cuenta, permitir(P.movimientos.deshabilitar))).toBe(false);
+    expect(puedeReversar(movimiento, cuenta, permitir(permiso))).toBe(false);
+    expect(puedeReversar(movimiento, cuenta, permitir(P.movimientos.deshabilitar, permiso))).toBe(true);
+  });
+
+  it.each(casos)('$tipo: el permiso de otra familia no alcanza', ({ movimiento, cuenta, permiso }) => {
+    const ajenos = casos.map((caso) => caso.permiso).filter((otro) => otro !== permiso);
+    expect(puedeReversar(movimiento, cuenta, permitir(P.movimientos.deshabilitar, ...ajenos))).toBe(false);
+  });
+});
+
 describe('solicitudDeReverso', () => {
   it('fecha del reverso: hoy, o la del movimiento si es futura, con motivo fijo', () => {
     expect(solicitudDeReverso(gasto, '2026-10-08')).toEqual({
