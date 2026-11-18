@@ -422,6 +422,7 @@ export default {
   'form.debtPayment.error.saveFailed': 'Não foi possível registrar o pagamento.',
   'toast.debtPayment.created': 'Pagamento registrado.',
   'people.debts.pay': 'Abater',
+  'people.debts.history': 'Pagamentos feitos',
   'workspace.actions.deactivateAccount': 'Desativar conta',
   'workspace.actions.editAccount': 'Editar',
   'workspace.actions.noMovements': 'Sem transações',

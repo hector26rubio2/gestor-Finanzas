@@ -422,6 +422,7 @@ export default {
   'form.debtPayment.error.saveFailed': 'No se pudo registrar el abono.',
   'toast.debtPayment.created': 'Abono registrado.',
   'people.debts.pay': 'Abonar',
+  'people.debts.history': 'Abonos hechos',
   'workspace.actions.deactivateAccount': 'Desactivar cuenta',
   'workspace.actions.editAccount': 'Editar',
   'workspace.actions.noMovements': 'Sin movimientos',

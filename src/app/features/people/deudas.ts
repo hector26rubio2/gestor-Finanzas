@@ -6,6 +6,12 @@ import { cuotaFija, enFraccion } from '@core/utils/tasas';
 const ASIENTO = { desembolso: 1, cargo: 2, pago: 4 } as const;
 const SALDADA = 2;
 
+export interface AbonoDeDeuda {
+  fecha: string;
+  monto: number;
+  nota: string | null;
+}
+
 export interface DeudaConPersona {
   id: string;
   personaId: string;
@@ -20,6 +26,7 @@ export interface DeudaConPersona {
   pendiente: number;
   tarjeta: string | null;
   pagos: number;
+  abonos: AbonoDeDeuda[];
   saldada: boolean;
 }
 
@@ -49,6 +56,10 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
       pendiente: parseMoney(o.totalOutstanding),
       tarjeta: o.terms?.borrowedCardName ?? null,
       pagos: asientos.filter((a) => a.type === ASIENTO.pago).length,
+      abonos: asientos
+        .filter((a) => a.type === ASIENTO.pago)
+        .map((a) => ({ fecha: a.date, monto: Math.abs(parseMoney(a.principalDelta)), nota: a.note?.trim() || null }))
+        .sort((a, b) => b.fecha.localeCompare(a.fecha)),
       saldada: o.status === SALDADA,
     };
   });

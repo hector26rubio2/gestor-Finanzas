@@ -26,6 +26,7 @@ const DEUDA: DeudaConPersona = {
   pendiente: 200000,
   tarjeta: null,
   pagos: 1,
+  abonos: [],
   saldada: false,
 };
 
