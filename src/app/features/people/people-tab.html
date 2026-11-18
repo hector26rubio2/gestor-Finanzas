@@ -105,6 +105,7 @@
                 <th data-tour="deuda-columna-comportamiento" scope="col" class="px-2 py-1.5 font-semibold">
                   {{ i18n.t('people.column.payment') }}
                 </th>
+                <th scope="col" class="px-2 py-1.5"><span class="sr-only">{{ i18n.t('people.debts.pay') }}</span></th>
               </tr>
             </thead>
             <tbody>
@@ -118,6 +119,20 @@
                 <td class="px-2 py-1.5">{{ numeroDeCuota(deuda) }}</td>
                 <td class="px-2 py-1.5">{{ importe(deuda.pendiente, deuda.moneda) }}</td>
                 <td class="px-2 py-1.5">{{ estadoDeDeuda(deuda) }}</td>
+                <td class="px-2 py-1.5 text-right">
+                  @if (puedeAbonar(deuda)) {
+                  <button
+                    hlmBtn
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    data-testid="abonar-deuda"
+                    (click)="abonar(deuda)"
+                  >
+                    {{ i18n.t('people.debts.pay') }}
+                  </button>
+                  }
+                </td>
               </tr>
               }
             </tbody>

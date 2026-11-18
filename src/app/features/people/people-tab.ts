@@ -1,4 +1,5 @@
 import { Component, inject, computed } from '@angular/core';
+import { HlmButton } from '@spartan-ng/helm/button';
 import { DataTableComponent, FinTableRowDetailDirective } from '@ui/data-table';
 import { KpiComponent } from '@ui/kpi';
 import { KpiGridComponent } from '@ui/kpi-grid';
@@ -21,6 +22,7 @@ import { ChartCardComponent, ChartThemeService, barrasHorizontales } from '@ui/c
     ChartCardComponent,
     DataTableComponent,
     FinTableRowDetailDirective,
+    HlmButton,
     KpiComponent,
     KpiGridComponent,
     TableZoneComponent,
@@ -72,6 +74,12 @@ export class PeopleTabComponent {
   );
   deudasDe(personaId: unknown): DeudaConPersona[] {
     return this.people.deudas().filter((deuda) => deuda.personaId === personaId);
+  }
+  puedeAbonar(deuda: DeudaConPersona): boolean {
+    return !deuda.saldada && (this.can(P.movimientos.pagos.crear) || this.can(P.movimientos.crear));
+  }
+  abonar(deuda: DeudaConPersona): void {
+    this.store.form.set({ kind: 'debt-payment', targetId: deuda.id });
   }
   tieneDeudas = (fila: Record<string, unknown>): boolean => this.deudasDe(fila['id']).length > 0;
   etiquetaDeDeudas = (fila: Record<string, unknown>, abierto: boolean): string =>
