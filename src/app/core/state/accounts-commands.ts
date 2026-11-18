@@ -125,7 +125,7 @@ export class AccountsCommands {
           name,
           creditLimit: { amount: String(credito.limit), currency: actual.currency },
           cycle: { statementDay: credito.cutDay, paymentDueDay: credito.dueDay },
-          terms: conPrioridad(conTasa(actual.terms, credito.monthlyRate), credito),
+          terms: conPrioridad(conTasa(actual.terms, credito.monthlyRate), credito, actual.currency),
           issuer: actual.issuer,
           lastFour: lastFour ?? null,
           isActive: actual.isActive,
