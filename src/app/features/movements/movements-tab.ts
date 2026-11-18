@@ -11,6 +11,7 @@ import {
   untracked,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { sincronizarConLaUrl } from '@core/routing/url-state';
 import { esCuentaValida, esPeriodoValido } from './filtros-por-url';
@@ -185,6 +186,12 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   constructor() {
     sincronizarConLaUrl('periodo', this.store.period, 'all', esPeriodoValido);
     sincronizarConLaUrl('cuenta', this.store.accountFilter, 'all', esCuentaValida);
+    const parametros = toSignal(this.route.queryParamMap);
+    effect(() => {
+      const mapa = parametros();
+      if (!mapa || mapa.has('cuenta')) return;
+      if (untracked(this.store.accountFilter) !== 'all') this.store.accountFilter.set('all');
+    });
     effect(() => {
       const clave = this.claveActual();
       untracked(() => {
@@ -204,10 +211,11 @@ export class MovementsTabComponent implements OnInit, AfterViewInit, OnDestroy {
   }
   ngOnDestroy(): void {
     this.headerActions.exportMovements.set(null);
-    if (this.book.pinned().length) {
-      this.book.pinned.set([]);
-      void this.book.loadMovementPage(1);
-    }
+    const habiaCuenta = this.store.accountFilter() !== 'all';
+    const habiaFiltrosFijados = this.book.pinned().length > 0;
+    if (habiaCuenta) this.store.accountFilter.set('all');
+    if (habiaFiltrosFijados) this.book.pinned.set([]);
+    if (habiaCuenta || habiaFiltrosFijados) void this.book.loadMovementPage(1);
   }
 
   readonly periodYear = computed(() => (this.store.period() === 'all' ? 'all' : this.store.period().slice(0, 4)));

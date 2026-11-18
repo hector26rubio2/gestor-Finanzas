@@ -3,6 +3,7 @@ import { IconComponent } from '@ui/icon';
 import { MontoInputDirective } from '@ui/monto-input';
 import { Component, DestroyRef, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
@@ -64,6 +65,7 @@ export class InspectorComponent {
   private readonly features = inject(FEATURES);
   private readonly api = inject(FinanceApiClient);
   private readonly movementsBook = inject(MovementsBookService);
+  private readonly router = inject(Router);
   private readonly movementCommands = inject(MovementCommands);
   private readonly accountsCommands = inject(AccountsCommands);
   private readonly peopleCommands = inject(PeopleCommands);
@@ -91,8 +93,7 @@ export class InspectorComponent {
   }
   verTodosLosMovimientos(id: string) {
     this.store.inspector.set(null);
-    this.store.accountFilter.set(id);
-    void this.movementsBook.loadMovementPage(1);
+    void this.router.navigate(['/movements'], { queryParams: { cuenta: id } });
   }
 
   openDayMovement(id: string) {

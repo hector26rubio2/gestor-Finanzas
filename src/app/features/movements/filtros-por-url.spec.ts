@@ -100,6 +100,27 @@ describe('Movimientos abierto desde un enlace', () => {
     expect(listados.length).toBeLessThanOrEqual(2);
   });
 
+  it('quitar la cuenta de la URL vuelve a mostrar todas las cuentas', async () => {
+    const { store, cambios, estable } = await montarDesde('/movements?cuenta=cuenta-9');
+    expect(store.accountFilter()).toBe('cuenta-9');
+
+    await TestBed.inject(Router).navigateByUrl('/movements');
+    cambios();
+    await estable();
+    cambios();
+
+    expect(store.accountFilter()).toBe('all');
+  });
+
+  it('al salir de Movimientos la cuenta no se queda puesta para la próxima visita', async () => {
+    const { store, fixture } = await montarDesde('/movements?cuenta=cuenta-9');
+    expect(store.accountFilter()).toBe('cuenta-9');
+
+    fixture.destroy();
+
+    expect(store.accountFilter()).toBe('all');
+  });
+
   it('ignora un periodo inválido y deja el listado completo', async () => {
     const { store } = await montarDesde('/movements?periodo=cualquier-cosa');
 
