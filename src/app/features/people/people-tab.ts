@@ -105,9 +105,14 @@ export class PeopleTabComponent {
     return deuda.cuota === null ? SIN_DATO : this.importe(deuda.cuota, deuda.moneda);
   }
   numeroDeCuota(deuda: DeudaConPersona): string {
-    return deuda.totalCuotas === null
-      ? SIN_DATO
-      : this.i18n.t('people.debts.installmentOf', { current: deuda.cuotaActual ?? 1, total: deuda.totalCuotas });
+    if (deuda.totalCuotas === null) return SIN_DATO;
+    const posicion = this.i18n.t('people.debts.installmentOf', {
+      current: deuda.cuotaActual ?? 1,
+      total: deuda.totalCuotas,
+    });
+    return deuda.cuotasRestantes === null
+      ? posicion
+      : `${posicion} · ${this.i18n.t('people.debts.installmentsLeft', { count: deuda.cuotasRestantes })}`;
   }
   estadoDeDeuda(deuda: DeudaConPersona): string {
     return deuda.saldada

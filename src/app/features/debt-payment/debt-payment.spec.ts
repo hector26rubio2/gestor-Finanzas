@@ -23,6 +23,7 @@ const DEUDA: DeudaConPersona = {
   cuota: 50000,
   cuotaActual: 3,
   totalCuotas: 6,
+  cuotasRestantes: 5,
   pendiente: 200000,
   tarjeta: null,
   pagos: 1,

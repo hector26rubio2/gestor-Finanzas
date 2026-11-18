@@ -1049,6 +1049,7 @@ export default {
   'people.debts.column.installmentNumber': 'N.º de cuota',
   'people.debts.column.pending': 'Falta por pagar',
   'people.debts.installmentOf': '{current} de {total}',
+  'people.debts.installmentsLeft': 'faltan {count}',
   'people.payment.none': 'Sin historial',
   'people.payment.summary': '{days} días prom. · {late} tardíos',
   'people.noData': 'Sin datos',

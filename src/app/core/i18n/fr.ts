@@ -1062,6 +1062,7 @@ export default {
   'people.debts.column.installmentNumber': 'N° d’échéance',
   'people.debts.column.pending': 'Reste à payer',
   'people.debts.installmentOf': '{current} sur {total}',
+  'people.debts.installmentsLeft': '{count} restantes',
   'people.payment.none': 'Aucun historique',
   'people.payment.summary': '{days} jours moy. · {late} en retard',
   'people.noData': 'Aucune donnée',

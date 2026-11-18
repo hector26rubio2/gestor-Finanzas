@@ -41,6 +41,30 @@ describe('deudasDe', () => {
     });
   });
 
+  it('las cuotas que faltan bajan con cada abono y nunca son negativas', () => {
+    const conAbonos = (cantidad: number) =>
+      obligacion({
+        terms: { ...obligacion().terms!, termMonths: 6 },
+        entries: [
+          { type: 2, date: '2026-08-15', principalDelta: { amount: '300000', currency: 'COP' } },
+          ...Array.from({ length: cantidad }, (_, i) => ({
+            type: 4,
+            date: `2026-09-${String(i + 1).padStart(2, '0')}`,
+            principalDelta: { amount: '-50000', currency: 'COP' },
+          })),
+        ],
+      });
+
+    expect(deudasDe([conAbonos(0)], '2026-10-28')[0].cuotasRestantes).toBe(6);
+    expect(deudasDe([conAbonos(2)], '2026-10-28')[0].cuotasRestantes).toBe(4);
+    expect(deudasDe([conAbonos(9)], '2026-10-28')[0].cuotasRestantes).toBe(0);
+  });
+
+  it('sin plazo pactado no hay cuotas que faltan', () => {
+    const [deuda] = deudasDe([obligacion({ terms: null })], '2026-10-28');
+    expect(deuda.cuotasRestantes).toBeNull();
+  });
+
   it('lista los abonos con fecha, monto y el motivo guardado', () => {
     const [deuda] = deudasDe(
       [

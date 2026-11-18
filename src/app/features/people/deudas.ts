@@ -23,6 +23,7 @@ export interface DeudaConPersona {
   cuota: number | null;
   cuotaActual: number | null;
   totalCuotas: number | null;
+  cuotasRestantes: number | null;
   pendiente: number;
   tarjeta: string | null;
   pagos: number;
@@ -42,6 +43,7 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
       .filter((a) => a.type === ASIENTO.desembolso || a.type === ASIENTO.cargo)
       .reduce((total, a) => total + parseMoney(a.principalDelta), 0);
     const totalCuotas = o.terms?.termMonths ?? null;
+    const abonos = asientos.filter((a) => a.type === ASIENTO.pago);
     return {
       id: o.id,
       personaId: o.counterparty.id,
@@ -53,11 +55,11 @@ export function deudasDe(obligaciones: readonly ApiObligation[], hoy: string): D
       cuota: totalCuotas ? Math.round(cuotaFija(valor, enFraccion(o.terms?.monthlyRate ?? 0), totalCuotas)) : null,
       cuotaActual: totalCuotas ? cuotaEnCurso(o.openedOn, totalCuotas, hoy) : null,
       totalCuotas,
+      cuotasRestantes: totalCuotas ? Math.max(0, totalCuotas - abonos.length) : null,
       pendiente: parseMoney(o.totalOutstanding),
       tarjeta: o.terms?.borrowedCardName ?? null,
-      pagos: asientos.filter((a) => a.type === ASIENTO.pago).length,
-      abonos: asientos
-        .filter((a) => a.type === ASIENTO.pago)
+      pagos: abonos.length,
+      abonos: abonos
         .map((a) => ({ fecha: a.date, monto: Math.abs(parseMoney(a.principalDelta)), nota: a.note?.trim() || null }))
         .sort((a, b) => b.fecha.localeCompare(a.fecha)),
       saldada: o.status === SALDADA,
