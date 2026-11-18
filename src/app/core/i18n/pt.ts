@@ -769,6 +769,11 @@ export default {
   'admin.toast.errorStatusFailed': 'Não foi possível atualizar o estado do erro.',
   'dashboard.greeting': 'Olá, {name}',
   'dashboard.subtitle': 'Explore suas finanças: cada filtro atualiza toda a visual.',
+  'beta.welcome.title': 'Bem-vindo ao Finanzas',
+  'beta.welcome.body': 'Sua conta é somente leitura: você pode ver o painel, os movimentos, as contas e o calendário.',
+  'beta.welcome.upgrade':
+    'Para registrar ou editar dados, peça a um proprietário da sua organização que mude seu papel.',
+  'beta.welcome.dismiss': 'Entendi',
   'dashboard.readOnly.title': 'Seu acesso é somente leitura',
   'dashboard.readOnly.detail':
     'Você pode ver as informações, mas não registrar movimentações nem criar contas. Peça a um administrador da sua organização um papel com permissões de escrita.',

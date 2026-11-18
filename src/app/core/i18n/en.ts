@@ -770,6 +770,10 @@ export default {
   'admin.toast.errorStatusFailed': "Couldn't update the error's status.",
   'dashboard.greeting': 'Hi, {name}',
   'dashboard.subtitle': 'Explore your finances: every filter updates the whole view.',
+  'beta.welcome.title': 'Welcome to Finanzas',
+  'beta.welcome.body': 'Your account is read-only: you can see the dashboard, movements, accounts and calendar.',
+  'beta.welcome.upgrade': 'To record or edit data, ask an owner of your organization to change your role.',
+  'beta.welcome.dismiss': 'Got it',
   'dashboard.readOnly.title': 'You have read-only access',
   'dashboard.readOnly.detail':
     'You can view information but not record movements or create accounts. Ask an administrator of your organization to assign you a role with write permissions.',

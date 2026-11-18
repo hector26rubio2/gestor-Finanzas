@@ -1,0 +1,16 @@
+@if (visible()) {
+<section
+  role="note"
+  data-testid="bienvenida-beta"
+  class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3 text-sm"
+>
+  <div class="grid gap-1">
+    <h2 class="font-semibold">{{ i18n.t('beta.welcome.title') }}</h2>
+    <p>{{ i18n.t('beta.welcome.body') }}</p>
+    <p class="text-muted-foreground">{{ i18n.t('beta.welcome.upgrade') }}</p>
+  </div>
+  <button hlmBtn type="button" variant="outline" data-testid="bienvenida-beta-cerrar" (click)="entendido()">
+    {{ i18n.t('beta.welcome.dismiss') }}
+  </button>
+</section>
+}
