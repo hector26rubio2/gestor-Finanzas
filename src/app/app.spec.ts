@@ -86,6 +86,7 @@ describe('AppComponent y la pantalla de entrada', () => {
     const store = TestBed.inject(AppStore);
     store.user.set({ ...USUARIO_DE_PRUEBA, capabilities: [P.dashboard.ver] });
     store.sinLeerDelArranque.set(3);
+    store.preferences.update((preferencias) => ({ ...preferencias, locale: idioma }));
     await TestBed.inject(I18nService).load(idioma);
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
