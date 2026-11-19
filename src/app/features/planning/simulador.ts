@@ -43,6 +43,8 @@ const RENDIMIENTO_SUPUESTO = 8;
 let secuencia = 0;
 const nuevoId = (prefijo: string) => `${prefijo}:${Date.now().toString(36)}${(secuencia++).toString(36)}`;
 
+const MAXIMO_DE_ESCENARIOS_GUARDADOS = 5;
+
 @Injectable()
 export class SimuladorDePlanificacion {
   private readonly store = inject(AppStore);
@@ -368,15 +370,22 @@ export class SimuladorDePlanificacion {
   guardarEscenario(nombre: string): void {
     const escenario = this.escenario();
     this.escenariosGuardados.update((lista) => [
-      ...lista.slice(-5),
+      ...lista.slice(1 - MAXIMO_DE_ESCENARIOS_GUARDADOS),
       {
         id: nuevoId('escenario'),
-        nombre: nombre.trim() || this.i18n.t('planning.sim.compare.defaultName', { n: lista.length + 1 }),
+        nombre: nombre.trim() || this.nombrePorDefecto(lista),
         saldoTotal: escenario.saldoTotal,
         ahorroAcumulado: escenario.ahorroAcumulado,
         flujoLibre: escenario.flujoLibre,
       },
     ]);
+  }
+
+  private nombrePorDefecto(lista: readonly EscenarioGuardado[]): string {
+    const usados = new Set(lista.map((e) => e.nombre));
+    let n = lista.length + 1;
+    while (usados.has(this.i18n.t('planning.sim.compare.defaultName', { n }))) n++;
+    return this.i18n.t('planning.sim.compare.defaultName', { n });
   }
 
   quitarEscenario(id: string): void {
