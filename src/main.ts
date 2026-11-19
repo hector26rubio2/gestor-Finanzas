@@ -3,7 +3,7 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { accionInterceptor } from '@core/http/accion';
 import { registroDePeticionesInterceptor } from '@core/http/registro-de-peticiones';
 import { HistorialDeNavegacion } from '@core/routing/historial-de-navegacion';
-import { cifradoInterceptor, escriturasInterceptor } from '@core/http/interceptores';
+import { cifradoInterceptor, escriturasInterceptor, sesionVencidaInterceptor } from '@core/http/interceptores';
 import { ErrorHandler, inject, isDevMode, provideAppInitializer } from '@angular/core';
 import { provideServiceWorker } from '@angular/service-worker';
 import { ActualizacionPwa } from '@core/pwa/actualizacion.service';
@@ -51,7 +51,13 @@ bootstrapApplication(AppComponent, {
     { provide: ErrorHandler, useClass: FinanzasErrorHandler },
     { provide: TitleStrategy, useClass: FinanzasTitleStrategy },
     provideHttpClient(
-      withInterceptors([accionInterceptor, registroDePeticionesInterceptor, escriturasInterceptor, cifradoInterceptor]),
+      withInterceptors([
+        accionInterceptor,
+        registroDePeticionesInterceptor,
+        escriturasInterceptor,
+        sesionVencidaInterceptor,
+        cifradoInterceptor,
+      ]),
     ),
     { provide: API_TRANSPORT, useClass: HttpApiTransport },
     provideAppInitializer(() => inject(I18nService).load(inject(PREFERENCES)().locale)),

@@ -1,7 +1,8 @@
 import { HttpErrorResponse, HttpEvent, HttpInterceptorFn, HttpRequest, HttpResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
+import { Injector, inject } from '@angular/core';
 import { Observable, catchError, from, of, switchMap, tap, throwError } from 'rxjs';
 import { ApiWritesBus } from '@core/api/api-writes';
+import { RemoteBootstrap } from '@core/session/remote-bootstrap';
 import { RUNTIME_CONFIG } from '@core/session/runtime';
 import { AppStore } from '@core/state/store';
 import {
@@ -91,4 +92,25 @@ export const cifradoInterceptor: HttpInterceptorFn = (req, next) => {
     );
 
   return enviar(false);
+};
+
+const RUTA_DE_ACCESO = '/api/v1/auth/';
+
+export const sesionVencidaInterceptor: HttpInterceptorFn = (req, next) => {
+  const injector = inject(Injector);
+  const config = inject(RUNTIME_CONFIG);
+  return next(req).pipe(
+    catchError((error: unknown) => {
+      const propia = !!config.apiBaseUrl && req.url.startsWith(config.apiBaseUrl);
+      if (
+        error instanceof HttpErrorResponse &&
+        error.status === 401 &&
+        propia &&
+        esEscritura(req.method, req.url) &&
+        !req.url.includes(RUTA_DE_ACCESO)
+      )
+        void injector.get(RemoteBootstrap).pollSession();
+      return throwError(() => error);
+    }),
+  );
 };

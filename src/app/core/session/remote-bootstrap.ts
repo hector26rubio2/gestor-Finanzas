@@ -1,3 +1,4 @@
+import { safeReturnPath } from './return-url';
 import { DestroyRef, Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiWritesBus } from '@core/api/api-writes';
@@ -318,8 +319,11 @@ export class RemoteBootstrap {
       this.aplicarSesion(session, boot.featureFlags);
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) {
+        this.canal?.close();
+        this.canal = null;
         this.store.user.set(null);
         this.store.remoteState.set('anonymous');
+        await this.pedirIniciarSesion();
         return;
       }
     } finally {
@@ -373,6 +377,13 @@ export class RemoteBootstrap {
     this.store.inspector.set(null);
     this.reiniciarMovimientos();
     await this.router.navigateByUrl('/login', { replaceUrl: true });
+  }
+
+  private async pedirIniciarSesion(): Promise<void> {
+    const volver = safeReturnPath(this.router.url);
+    await this.router
+      .navigate(['/login'], { replaceUrl: true, queryParams: volver ? { returnUrl: volver } : {} })
+      .catch(() => false);
   }
 
   async pollSession(): Promise<void> {
