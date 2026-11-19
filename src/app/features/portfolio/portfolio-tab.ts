@@ -76,7 +76,11 @@ export class PortfolioTabComponent {
   });
   readonly costValueOption = computed(() => {
     const palette = this.temaGrafica.palette();
-    const cartera = [...this.store.data().investments].sort((a, b) => b.value - a.value).slice(0, 8);
+    const cartera = this.store
+      .data()
+      .investments.filter((i) => i.currency === this.store.baseCurrency())
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
     return barrasHorizontales(
       palette,
       cartera.map((i) => i.name),
