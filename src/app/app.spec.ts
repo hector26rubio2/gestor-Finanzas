@@ -89,12 +89,14 @@ describe('AppComponent y la pantalla de entrada', () => {
     await TestBed.inject(I18nService).load(idioma);
 
     await TestBed.inject(Router).navigateByUrl('/dashboard');
-    fixture.detectChanges();
-    await fixture.whenStable();
-    fixture.detectChanges();
 
-    const campana = fixture.nativeElement.querySelector('[data-tour="notificaciones"]') as HTMLElement;
-    expect(campana.querySelector('.sr-only')?.textContent?.trim()).toBe(esperado);
+    await vi.waitFor(async () => {
+      fixture.detectChanges();
+      await fixture.whenStable();
+      fixture.detectChanges();
+      const campana = fixture.nativeElement.querySelector('[data-tour="notificaciones"]') as HTMLElement;
+      expect(campana.querySelector('.sr-only')?.textContent?.trim()).toBe(esperado);
+    });
   });
 
   it('sin no leídas el nombre accesible es solo el título', async () => {
