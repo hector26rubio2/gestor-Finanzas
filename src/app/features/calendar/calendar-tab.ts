@@ -1,4 +1,5 @@
 import { Component, inject, computed, signal, OnInit } from '@angular/core';
+import { ordenarAgenda } from './agenda';
 import { fechaDeHoy } from './fecha-de-hoy';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
@@ -316,6 +317,30 @@ export class CalendarTabComponent implements OnInit {
       .sort((a, b) => a.date.localeCompare(b.date))
       .slice(0, 7);
   });
+  readonly agendaProxima = computed(() =>
+    ordenarAgenda([
+      ...this.ocurrenciasProximas().map((item) => ({ tipo: 'recurrente' as const, fecha: item.occurrence, item })),
+      ...this.vencimientosProximos().map((vencimiento) => ({
+        tipo: 'vencimiento' as const,
+        fecha: vencimiento.date,
+        vencimiento,
+      })),
+      ...this.movimientosProximos().map((movimiento) => ({
+        tipo: 'movimiento' as const,
+        fecha: movimiento.date,
+        movimiento,
+      })),
+    ]),
+  );
+  claveDeAgenda(entrada: ReturnType<typeof this.agendaProxima>[number]): string {
+    const id =
+      entrada.tipo === 'recurrente'
+        ? entrada.item.recurrence.id
+        : entrada.tipo === 'vencimiento'
+          ? entrada.vencimiento.account.id
+          : entrada.movimiento.id;
+    return `${entrada.tipo}:${entrada.fecha}:${id}`;
+  }
   readonly sinCompromisos = computed(() => !this.hayPendientes() && !this.hayProximos());
   readonly hayAgenda = computed(
     () =>
