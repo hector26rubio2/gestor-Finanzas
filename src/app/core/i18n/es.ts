@@ -1125,6 +1125,8 @@ export default {
   'preferences.invite.error': 'No fue posible invitar.',
   'preferences.localeUpdatedLog': 'Formato regional actualizado',
   'preferences.themeSavedLog': 'Tema “{name}” guardado',
+  'preferences.themeDelete': 'Borrar mi tema',
+  'preferences.themeDeletedLog': 'Tema “{name}” borrado',
   'preferences.saveError': 'No fue posible guardar las preferencias.',
   'reports.filtersAriaLabel': 'Filtros de reportes',
   'reports.periodLabel': 'Periodo',

@@ -1125,6 +1125,8 @@ export default {
   'preferences.invite.error': "Couldn't send the invitation.",
   'preferences.localeUpdatedLog': 'Regional format updated',
   'preferences.themeSavedLog': 'Theme “{name}” saved',
+  'preferences.themeDelete': 'Delete my theme',
+  'preferences.themeDeletedLog': 'Theme “{name}” deleted',
   'preferences.saveError': "Couldn't save your preferences.",
   'reports.filtersAriaLabel': 'Report filters',
   'reports.periodLabel': 'Period',

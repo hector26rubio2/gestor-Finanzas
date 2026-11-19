@@ -7,7 +7,7 @@ import { RUNTIME_CONFIG } from '@core/session';
 import { AppStore } from '@core/state';
 import { PreferencesTabComponent } from './preferences-tab';
 
-type Pedido = { language: string; theme: string; font: string; density: string };
+type Pedido = { language: string; theme: string; font: string; density: string; customThemeJson?: string | null };
 
 function montar(actualizar = vi.fn((pedido: Pedido) => of(pedido))) {
   TestBed.resetTestingModule();
@@ -79,5 +79,32 @@ describe('Preferencias: cada opción cambia la app y se guarda', () => {
     await Promise.resolve();
 
     expect(store.toast.texto()).toBe('Sin conexión');
+  });
+});
+
+describe('Preferencias: borrar el tema propio', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const TEMA = {
+    name: 'Mi tema',
+    primary: '#15803d',
+    secondary: '#ecf5ee',
+    text: '#14261a',
+    surface: '#ffffff',
+    border: '#d6e5da',
+    background: '#f4f8f5',
+    radius: 12,
+  };
+
+  it('borrarMiTema quita el tema propio, avisa con su nombre y lo envía sin él', () => {
+    const { componente, actualizar, store } = montar();
+    store.preferences.update((p) => ({ ...p, customSaved: TEMA }));
+
+    componente.borrarMiTema();
+
+    expect(store.preferences().customSaved).toBeUndefined();
+    expect(store.toast.texto()).toContain('Mi tema');
+    const enviado = JSON.parse((actualizar.mock.calls.at(-1)![0] as Pedido).customThemeJson ?? 'null');
+    expect(enviado === null || !('saved' in enviado)).toBe(true);
   });
 });

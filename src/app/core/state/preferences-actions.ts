@@ -56,6 +56,18 @@ export class PreferencesActions {
     this.guardarPreferenciasEnSegundoPlano();
   }
 
+  borrarTemaPropio(): void {
+    const preferencias = this.store.preferences();
+    if (!preferencias.customSaved) return;
+    const base: Preferences['theme'] = esColorOscuro(preferencias.background ?? DEFAULT_PALETTE.background)
+      ? 'dark'
+      : 'light';
+    const enUso = preferencias.custom;
+    this.store.preferences.update((p) => ({ ...p, customSaved: undefined }));
+    if (enUso) this.usarTema(base);
+    else this.guardarPreferenciasEnSegundoPlano();
+  }
+
   private guardarPreferenciasEnSegundoPlano(): void {
     void this.persistPreferences().catch((error) =>
       this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError')),

@@ -219,6 +219,11 @@ export class PreferencesTabComponent implements OnInit {
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
     this.preferencesActions.usarTema(theme);
   }
+  borrarMiTema(): void {
+    const nombre = this.store.preferences().customSaved?.name ?? '';
+    this.preferencesActions.borrarTemaPropio();
+    this.store.toast.set(this.i18n.t('preferences.themeDeletedLog', { name: nombre }));
+  }
   usarMiTema(): void {
     const guardado = this.store.preferences().customSaved;
     if (guardado) this.preferencesActions.usarTemaPropio(guardado);
