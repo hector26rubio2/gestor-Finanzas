@@ -89,9 +89,11 @@ export class DashboardComponent extends DashboardKpis {
   readonly anchor = this.periodo.anchor;
   readonly range = this.periodo.range;
   readonly historiaEtiqueta = this.periodo.historiaEtiqueta;
-  readonly verTodosParams = computed(() => ({
-    periodo: periodoDeLaEscala(this.scale(), this.range().start),
-  }));
+  readonly verTodosParams = computed(() => {
+    const periodo = periodoDeLaEscala(this.scale(), this.range().start);
+    const cuenta = this.datos.accountId();
+    return cuenta === 'all' ? { periodo } : { periodo, cuenta };
+  });
 
   readonly P = P;
   readonly customizing = signal(false);
