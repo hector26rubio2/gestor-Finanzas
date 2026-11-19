@@ -2017,6 +2017,8 @@ export default {
   'planning.sim.metric.purchaseEndsHint': 'Con los abonos del escenario',
   'planning.sim.metric.goal': 'Meta',
   'planning.sim.metric.goalHint': 'En {n} meses',
+  'planning.sim.metric.goalMissing': 'Falta para la meta',
+  'planning.sim.metric.goalMissingDone': 'Meta ya cubierta con lo ahorrado',
   'planning.sim.metric.neededSaving': 'Ahorro mensual necesario',
   'planning.sim.metric.neededSavingHint': 'Para llegar a tiempo',
   'planning.sim.metric.avgFreeCash': 'Te queda libre al mes',

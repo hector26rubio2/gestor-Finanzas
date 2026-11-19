@@ -2013,6 +2013,8 @@ export default {
   'planning.sim.metric.purchaseEndsHint': 'With the scenario payments',
   'planning.sim.metric.goal': 'Goal',
   'planning.sim.metric.goalHint': 'In {n} months',
+  'planning.sim.metric.goalMissing': 'Left to reach the goal',
+  'planning.sim.metric.goalMissingDone': 'Goal already covered by savings',
   'planning.sim.metric.neededSaving': 'Monthly saving needed',
   'planning.sim.metric.neededSavingHint': 'To get there on time',
   'planning.sim.metric.avgFreeCash': 'Free each month',

@@ -230,6 +230,14 @@ export class PlanningTabComponent {
             hint: t('planning.sim.metric.goalHint', { n: sim.mesesAlaMeta() }),
           },
           {
+            label: t('planning.sim.metric.goalMissing'),
+            value: this.money(sim.faltaParaLaMeta()),
+            hint:
+              sim.faltaParaLaMeta() === 0
+                ? t('planning.sim.metric.goalMissingDone')
+                : t('planning.sim.metric.goalHint', { n: sim.mesesAlaMeta() }),
+          },
+          {
             label: t('planning.sim.metric.neededSaving'),
             value: this.money(sim.aporteNecesarioMeta()),
             hint: t('planning.sim.metric.neededSavingHint'),
