@@ -295,6 +295,19 @@ export abstract class DashboardKpis extends DashboardVisuals {
     if (disponibles.length) this.newKpiFormula = disponibles[0].value as KpiFormula;
     this.kpiCreatorOpen.set(true);
   }
+  private motivoDeRechazoDelKpi(
+    label: string,
+    dimension: Dimension | 'none',
+    filtro: KpiFilter | undefined,
+  ): string | null {
+    if (!label) return 'dashboard.kpiForm.error.noLabel';
+    if (dimension !== 'none' && !filtro) return 'dashboard.kpiForm.error.noFilterValue';
+    if (filtro && !FORMULAS_FILTRABLES.includes(this.newKpiFormula)) return 'dashboard.kpiForm.error.notFilterable';
+    const repetido = filtro
+      ? this.usedKpiKeys().has(claveDeKpi(this.newKpiFormula, filtro))
+      : this.usedKpiFormulas().has(this.newKpiFormula);
+    return repetido ? 'dashboard.kpiForm.error.duplicate' : null;
+  }
   createKpi(event: Event) {
     event.preventDefault();
     if (!this.caps.allows(P.dashboard.widget.crear)) return;
@@ -302,14 +315,11 @@ export abstract class DashboardKpis extends DashboardVisuals {
     const dimension = this.newKpiDimension();
     const filtro: KpiFilter | undefined =
       dimension !== 'none' && this.newKpiFilterValue ? { dimension, value: this.newKpiFilterValue } : undefined;
-    if (!label || (dimension !== 'none' && !filtro)) return;
-    if (
-      filtro
-        ? this.usedKpiKeys().has(claveDeKpi(this.newKpiFormula, filtro))
-        : this.usedKpiFormulas().has(this.newKpiFormula)
-    )
+    const rechazo = this.motivoDeRechazoDelKpi(label, dimension, filtro);
+    if (rechazo) {
+      this.store.toast.set(this.i18n.t(rechazo));
       return;
-    if (filtro && !FORMULAS_FILTRABLES.includes(this.newKpiFormula)) return;
+    }
     this.kpiLayout.saveDefinitions([
       ...this.customKpis(),
       {
