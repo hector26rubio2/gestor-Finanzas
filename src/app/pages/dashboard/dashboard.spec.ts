@@ -83,6 +83,24 @@ describe('DashboardComponent y las cifras del servidor', () => {
     );
   });
 
+  it('«Ver todos» conserva el filtro de cuenta del tablero', async () => {
+    const fixture = montar();
+    TestBed.inject(AppStore).user.set({
+      ...USUARIO_DE_PRUEBA,
+      capabilities: [P.dashboard.ver, P.dashboard.tabla.ver, P.movimientos.ver],
+    });
+    TestBed.inject(AppStore).remoteState.set('ready');
+    const componente = fixture.componentInstance;
+    componente.periodo.scale.set('month');
+    componente.periodo.anchor.set('2026-03-18');
+    componente.datos.accountId.set('banco');
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    const enlace = (fixture.nativeElement as HTMLElement).querySelector<HTMLAnchorElement>('a[href^="/movements"]');
+    expect(enlace?.getAttribute('href')).toBe('/movements?periodo=2026-03&cuenta=banco');
+  });
+
   it('un filtro local devuelve el cálculo a la pantalla, porque el servidor no lo conoce', async () => {
     const fixture = montar();
     fixture.detectChanges();
