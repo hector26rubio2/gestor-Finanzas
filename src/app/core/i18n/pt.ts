@@ -2012,6 +2012,8 @@ export default {
   'planning.sim.metric.purchaseEndsHint': 'Com as amortizações do cenário',
   'planning.sim.metric.goal': 'Meta',
   'planning.sim.metric.goalHint': 'Em {n} meses',
+  'planning.sim.metric.goalMissing': 'Falta para a meta',
+  'planning.sim.metric.goalMissingDone': 'Meta já coberta com o poupado',
   'planning.sim.metric.neededSaving': 'Poupança mensal necessária',
   'planning.sim.metric.neededSavingHint': 'Para chegar a tempo',
   'planning.sim.metric.avgFreeCash': 'Sobra por mês',

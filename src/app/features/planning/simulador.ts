@@ -226,9 +226,8 @@ export class SimuladorDePlanificacion {
   readonly flujoLibreMinimo = computed(() => Math.min(...this.escenario().flujoLibre));
   readonly flujoLibreMinimoBase = computed(() => Math.min(...this.base().flujoLibre));
 
-  readonly aporteNecesarioMeta = computed(() =>
-    Math.round(Math.max(0, this.metaMonto() - this.metaAhorroInicial()) / Math.max(1, this.mesesAlaMeta())),
-  );
+  readonly faltaParaLaMeta = computed(() => Math.max(0, this.metaMonto() - this.metaAhorroInicial()));
+  readonly aporteNecesarioMeta = computed(() => Math.round(this.faltaParaLaMeta() / Math.max(1, this.mesesAlaMeta())));
   readonly flujoLibrePromedio = computed(() => {
     const tramo = this.escenario().flujoLibre.slice(0, this.mesesAlaMeta());
     return tramo.length ? Math.round(sumBy(tramo, (v) => v) / tramo.length) : 0;

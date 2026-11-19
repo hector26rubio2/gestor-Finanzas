@@ -2033,6 +2033,8 @@ export default {
   'planning.sim.metric.purchaseEndsHint': 'Avec les remboursements du scénario',
   'planning.sim.metric.goal': 'Objectif',
   'planning.sim.metric.goalHint': 'En {n} mois',
+  'planning.sim.metric.goalMissing': 'Reste à épargner',
+  'planning.sim.metric.goalMissingDone': "Objectif déjà couvert par l'épargne",
   'planning.sim.metric.neededSaving': 'Épargne mensuelle nécessaire',
   'planning.sim.metric.neededSavingHint': 'Pour arriver à temps',
   'planning.sim.metric.avgFreeCash': 'Reste libre par mois',
