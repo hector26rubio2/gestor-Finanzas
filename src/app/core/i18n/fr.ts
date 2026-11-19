@@ -1139,6 +1139,8 @@ export default {
   'preferences.invite.error': "Impossible d'envoyer l'invitation.",
   'preferences.localeUpdatedLog': 'Format régional mis à jour',
   'preferences.themeSavedLog': 'Thème « {name} » enregistré',
+  'preferences.themeDelete': 'Supprimer mon thème',
+  'preferences.themeDeletedLog': 'Thème « {name} » supprimé',
   'preferences.saveError': "Impossible d'enregistrer les préférences.",
   'reports.filtersAriaLabel': 'Filtres des rapports',
   'reports.periodLabel': 'Période',

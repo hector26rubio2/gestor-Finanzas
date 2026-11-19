@@ -48,6 +48,17 @@
             ></i>
             {{ miTema.name }}
           </button>
+          <button
+            hlmBtn
+            variant="ghost"
+            size="sm"
+            type="button"
+            data-testid="borrar-mi-tema"
+            [disabled]="!canCustomize()"
+            (click)="borrarMiTema()"
+          >
+            {{ i18n.t('preferences.themeDelete') }}
+          </button>
           }
         </div>
         @if (canCustomize()) {
