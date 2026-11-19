@@ -232,6 +232,16 @@
           >
             <fin-icon name="edit" />
           </button>
+          <button
+            hlmBtn
+            variant="ghost"
+            size="icon-sm"
+            data-testid="desactivar-categoria"
+            [attr.aria-label]="i18n.t('preferences.categories.deactivateAria', { name: category.name })"
+            (click)="porDesactivar.set(category)"
+          >
+            <fin-icon name="trash" />
+          </button>
           }
         </li>
         }
@@ -301,3 +311,12 @@
     }
   </div>
 </hlm-tabs>
+<fin-confirm-dialog
+  [open]="porDesactivar() !== null"
+  [title]="i18n.t('preferences.categories.deactivateTitle', { name: porDesactivar()?.name ?? '' })"
+  [description]="textoDeDesactivar()"
+  [confirmLabel]="i18n.t('preferences.categories.deactivate')"
+  [cancelLabel]="i18n.t('form.actions.cancel')"
+  (confirmed)="desactivarCategoria()"
+  (dismissed)="porDesactivar.set(null)"
+/>

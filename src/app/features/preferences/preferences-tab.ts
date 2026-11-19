@@ -15,12 +15,13 @@ import { BudgetsPanelComponent } from '@features/budgets/budgets-panel';
 import { PrivacySectionComponent } from './privacy/privacy-section';
 import { ThemeStudioComponent } from './theme-studio/theme-studio';
 import { CategoryIconComponent } from '@ui/category-icon';
+import { ConfirmDialogComponent } from '@ui/confirm-dialog';
 import { TAB_PAGE_HOST_CLASS } from '@shared/tab-page-layout';
-import { ApiAdminRole, ApiOrganizationMember, FinanceApiClient } from '@core/api';
+import { ApiAdminRole, ApiCategory, ApiOrganizationMember, FinanceApiClient } from '@core/api';
 import { IconComponent } from '@ui/icon';
 import { UiOption, UiSelectComponent } from '@ui/select';
 import { P, RemoteBootstrap } from '@core/session';
-import { CAPABILITIES, AppStore, FEATURES, PreferencesActions } from '@core/state';
+import { CAPABILITIES, AppStore, CatalogCommands, FEATURES, PreferencesActions } from '@core/state';
 import { I18nService } from '@core/i18n';
 
 const SECCIONES = [
@@ -38,6 +39,7 @@ type Seccion = (typeof SECCIONES)[number];
 @Component({
   selector: 'app-preferences-tab',
   imports: [
+    ConfirmDialogComponent,
     ZonaDeCargaComponent,
     BudgetsPanelComponent,
     CategoryIconComponent,
@@ -216,6 +218,28 @@ export class PreferencesTabComponent implements OnInit {
     }
   }
 
+  readonly porDesactivar = signal<ApiCategory | null>(null);
+  private readonly catalogo = inject(CatalogCommands);
+  readonly textoDeDesactivar = computed(() => {
+    const categoria = this.porDesactivar();
+    if (!categoria) return '';
+    const usos = this.usosDe(categoria);
+    const base = this.i18n.t('preferences.categories.deactivateDetail');
+    return usos > 0 ? `${base} ${this.i18n.t('preferences.categories.deactivateInUse', { count: usos })}` : base;
+  });
+  usosDe(categoria: ApiCategory): number {
+    return this.store.data().movements.filter((movimiento) => movimiento.category === categoria.name).length;
+  }
+  async desactivarCategoria(): Promise<void> {
+    const categoria = this.porDesactivar();
+    this.porDesactivar.set(null);
+    if (!categoria) return;
+    try {
+      await this.catalogo.desactivarCategoria(categoria.id);
+    } catch (error) {
+      this.store.toast.set(error instanceof Error ? error.message : this.i18n.t('preferences.saveError'));
+    }
+  }
   setTheme(theme: (typeof this.themeDefs)[number]['id']): void {
     this.preferencesActions.usarTema(theme);
   }
