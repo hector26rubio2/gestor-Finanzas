@@ -4,7 +4,7 @@ import { of, throwError } from 'rxjs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { FinanceApiClient } from '@core/api';
 import { RUNTIME_CONFIG } from '@core/session';
-import { AppStore } from '@core/state';
+import { AppStore, CatalogCommands } from '@core/state';
 import { PreferencesTabComponent } from './preferences-tab';
 
 type Pedido = { language: string; theme: string; font: string; density: string; customThemeJson?: string | null };
@@ -106,5 +106,88 @@ describe('Preferencias: borrar el tema propio', () => {
     expect(store.toast.texto()).toContain('Mi tema');
     const enviado = JSON.parse((actualizar.mock.calls.at(-1)![0] as Pedido).customThemeJson ?? 'null');
     expect(enviado === null || !('saved' in enviado)).toBe(true);
+  });
+});
+
+describe('Preferencias: desactivar una categoría', () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  const categoria = (cambios: Record<string, unknown> = {}) =>
+    ({
+      id: 'c1',
+      name: 'Mercado',
+      type: 2,
+      color: '#123456',
+      icon: 'tag',
+      parent: null,
+      isActive: true,
+      createdAt: '2026-01-01T00:00:00Z',
+      ...cambios,
+    }) as never;
+
+  function montarConCategoria() {
+    const montado = montar();
+    const desactivar = vi.spyOn(TestBed.inject(CatalogCommands), 'desactivarCategoria').mockResolvedValue(undefined);
+    montado.store.categories.set([categoria()]);
+    return { ...montado, desactivar };
+  }
+
+  it('el aviso cuenta los movimientos cargados que la usan', () => {
+    const { componente, store } = montarConCategoria();
+    const movimiento = (id: string, categoriaDelMovimiento: string) => ({
+      id,
+      date: '2026-10-01',
+      description: id,
+      accountId: 'a',
+      category: categoriaDelMovimiento,
+      kind: 'expense' as const,
+      amount: -10,
+      status: 'confirmed' as const,
+    });
+    store.data.update((datos) => ({
+      ...datos,
+      movements: [movimiento('1', 'Mercado'), movimiento('2', 'Mercado'), movimiento('3', 'Ocio')],
+    }));
+    componente.porDesactivar.set(categoria());
+
+    expect(componente.usosDe(categoria())).toBe(2);
+    expect(componente.textoDeDesactivar()).toContain('2');
+  });
+
+  it('sin movimientos el aviso no menciona usos', () => {
+    const { componente } = montarConCategoria();
+    componente.porDesactivar.set(categoria());
+
+    expect(componente.textoDeDesactivar()).not.toMatch(/\d/);
+  });
+
+  it('confirmar desactiva la categoría elegida y cierra la confirmación', async () => {
+    const { componente, desactivar } = montarConCategoria();
+    componente.porDesactivar.set(categoria());
+
+    await componente.desactivarCategoria();
+
+    expect(desactivar).toHaveBeenCalledWith('c1');
+    expect(componente.porDesactivar()).toBeNull();
+  });
+
+  it('descartar no desactiva nada', async () => {
+    const { componente, desactivar } = montarConCategoria();
+    componente.porDesactivar.set(categoria());
+
+    componente.porDesactivar.set(null);
+    await componente.desactivarCategoria();
+
+    expect(desactivar).not.toHaveBeenCalled();
+  });
+
+  it('si falla avisa con el motivo en lugar de callar', async () => {
+    const { componente, store, desactivar } = montarConCategoria();
+    desactivar.mockRejectedValueOnce(new Error('Tu acceso no permite esta operación.'));
+    componente.porDesactivar.set(categoria());
+
+    await componente.desactivarCategoria();
+
+    expect(store.toast.texto()).toBe('Tu acceso no permite esta operación.');
   });
 });

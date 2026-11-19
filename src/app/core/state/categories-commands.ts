@@ -1,13 +1,16 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { FinanceApiClient } from '@core/api/api-client';
 import { I18nService } from '@core/i18n';
-import { AppStore } from './store';
+import { P } from '@core/session/permissions';
+import { AppStore, CAPABILITIES } from './store';
 import { renombrarEnMovimientos } from './catalog-mappers';
 
 /** Comandos de alta/edición de categorías, con renombrado propagado a los movimientos. */
 @Injectable({ providedIn: 'root' })
 export class CategoriesCommands {
+  private readonly capabilities = inject(CAPABILITIES);
+
   constructor(
     private readonly store: AppStore,
     private readonly client: FinanceApiClient,
@@ -57,5 +60,22 @@ export class CategoriesCommands {
       }));
     this.store.form.set(null);
     this.store.toast.set(this.i18n.t('toast.category.updated', { name: guardada.name }));
+  }
+
+  async desactivarCategoria(id: string) {
+    if (!this.capabilities.allows(P.cuentas.categorias.editar)) throw new Error(this.i18n.t('form.error.forbidden'));
+    const actual = this.store.categories().find((category) => category.id === id);
+    if (!actual) throw new Error(this.i18n.t('form.error.notFound'));
+    const guardada = await firstValueFrom(
+      this.client.updateCategory(id, {
+        name: actual.name,
+        color: actual.color,
+        icon: actual.icon,
+        parent: actual.parent,
+        isActive: false,
+      }),
+    );
+    this.store.categories.update((items) => items.map((item) => (item.id === id ? guardada : item)));
+    this.store.toast.set(this.i18n.t('toast.category.deactivated', { name: guardada.name }));
   }
 }
