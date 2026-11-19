@@ -364,7 +364,8 @@
       }
       <section data-tour="calendario-proximos">
         <h2 class="mt-0 text-base">{{ i18n.t('calendar.agenda.title') }}</h2>
-        @for (item of ocurrenciasProximas().slice(0, LIMITE_DE_AGENDA); track item.recurrence.id + item.occurrence) {
+        @for (entrada of agendaProxima().slice(0, LIMITE_DE_AGENDA); track claveDeAgenda(entrada)) { @switch
+        (entrada.tipo) { @case ('recurrente') {
         <button
           data-tour="calendario-materializar"
           hlmBtn
@@ -372,45 +373,48 @@
           data-slot="agenda-item"
           class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-primary border-dashed py-3 text-start text-xs font-normal whitespace-normal text-foreground disabled:opacity-50 [&_b]:text-destructive"
           [disabled]="!can(P.calendario.proyecciones.crear)"
-          (click)="materialize(item)"
+          (click)="materialize(entrada.item)"
         >
           <span
-            >{{ fechaCorta(item.occurrence) }} · {{ i18n.t('calendar.agenda.projected', { name: item.recurrence.name })
-            }}</span
-          ><b>{{ store.money(+item.amount.amount, item.amount.currency) }}</b>
+            >{{ fechaCorta(entrada.item.occurrence) }} · {{ i18n.t('calendar.agenda.projected', { name:
+            entrada.item.recurrence.name }) }}</span
+          ><b>{{ store.money(+entrada.item.amount.amount, entrada.item.amount.currency) }}</b>
         </button>
-        } @if (ocurrenciasProximas().length > LIMITE_DE_AGENDA) {
-        <p class="py-2 text-xs text-primary" data-testid="proximos-mas">
-          {{ i18n.t('calendar.day.more', { count: ocurrenciasProximas().length - LIMITE_DE_AGENDA }) }}
-        </p>
-        } @for (vencimiento of vencimientosProximos(); track vencimiento.account.id) {
+        } @case ('vencimiento') {
         <button
           hlmBtn
           variant="ghost"
           data-slot="agenda-item"
           class="h-auto w-full justify-between rounded-none border-b border-s-[3px] border-border border-s-warning py-3 text-start text-xs font-normal whitespace-normal text-foreground [&_b]:text-destructive"
-          (click)="store.inspect('account', vencimiento.account.id)"
+          (click)="store.inspect('account', entrada.vencimiento.account.id)"
         >
           <span class="grid min-w-0">
-            <span class="truncate" [attr.title]="vencimiento.account.name"
-              >{{ i18n.t('calendar.agenda.cardDue', { name: vencimiento.account.name }) }}</span
+            <span class="truncate" [attr.title]="entrada.vencimiento.account.name"
+              >{{ i18n.t('calendar.agenda.cardDue', { name: entrada.vencimiento.account.name }) }}</span
             >
             <small class="text-muted-foreground"
-              >{{ i18n.t('calendar.agenda.dueOn', { date: fechaCorta(vencimiento.date) }) }}</small
+              >{{ i18n.t('calendar.agenda.dueOn', { date: fechaCorta(entrada.vencimiento.date) }) }}</small
             >
           </span>
-          <b class="shrink-0">{{ store.money(-store.balance(vencimiento.account), vencimiento.account.currency) }}</b>
+          <b class="shrink-0"
+            >{{ store.money(-store.balance(entrada.vencimiento.account), entrada.vencimiento.account.currency) }}</b
+          >
         </button>
-        } @for (m of movimientosProximos(); track m.id) {
+        } @case ('movimiento') {
         <button
           hlmBtn
           variant="ghost"
           data-slot="agenda-item"
           class="h-auto w-full justify-between rounded-none border-b border-border py-3 text-start text-xs font-normal whitespace-normal text-foreground [&_b]:text-destructive"
-          (click)="store.inspect('movement', m.id)"
+          (click)="store.inspect('movement', entrada.movimiento.id)"
         >
-          <span>{{ fechaCorta(m.date) }} · {{ m.description }}</span><b>{{ store.money(m.amount) }}</b>
+          <span>{{ fechaCorta(entrada.movimiento.date) }} · {{ entrada.movimiento.description }}</span
+          ><b>{{ store.money(entrada.movimiento.amount) }}</b>
         </button>
+        } } } @if (agendaProxima().length > LIMITE_DE_AGENDA) {
+        <p class="py-2 text-xs text-primary" data-testid="proximos-mas">
+          {{ i18n.t('calendar.day.more', { count: agendaProxima().length - LIMITE_DE_AGENDA }) }}
+        </p>
         } @if (!hayProximos()) {
         <p class="text-sm text-muted-foreground">{{ i18n.t('calendar.agenda.empty') }}</p>
         }
