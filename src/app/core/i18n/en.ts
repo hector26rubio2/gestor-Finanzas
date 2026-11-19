@@ -594,6 +594,7 @@ export default {
   'admin.roles.activate': 'Activate',
   'admin.roles.deactivate': 'Deactivate',
   'admin.roles.deleteAriaLabel': 'Delete role',
+  'admin.roles.inUse': 'In use by {count} person(s): reassign them before deleting the role',
   'admin.roles.confirmDelete': 'Delete the role "{name}"? It will be removed from anyone who has it assigned.',
   'admin.roles.pager.previous': 'Previous',
   'admin.roles.pager.next': 'Next',

@@ -595,6 +595,7 @@ export default {
   'admin.roles.activate': 'Ativar',
   'admin.roles.deactivate': 'Desativar',
   'admin.roles.deleteAriaLabel': 'Excluir função',
+  'admin.roles.inUse': 'Em uso por {count} pessoa(s): reatribua-as antes de excluir a função',
   'admin.roles.confirmDelete': 'Excluir a função "{name}"? Será removida de quem a tiver atribuída.',
   'admin.roles.pager.previous': 'Anterior',
   'admin.roles.pager.next': 'Próxima',

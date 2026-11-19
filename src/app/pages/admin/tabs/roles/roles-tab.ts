@@ -110,7 +110,9 @@ import { AdminPermissionsStore } from '@pages/admin/stores/admin-permissions.sto
                   variant="destructive"
                   size="icon-sm"
                   [attr.aria-label]="i18n.t('admin.roles.deleteAriaLabel') + ': ' + row.raw.name"
-                  (click)="deleting.set(row.raw)"
+                  [disabled]="row.members > 0"
+                  [attr.title]="row.members > 0 ? i18n.t('admin.roles.inUse', { count: row.members }) : null"
+                  (click)="pedirBorrado(row.raw)"
                 >
                   <fin-icon name="trash" />
                 </button>
@@ -202,10 +204,20 @@ export class RolesTabComponent {
     this.creating.set(false);
   }
 
+  pedirBorrado(role: ApiAdminRole): void {
+    const enUso = this.memberCount(role.id);
+    if (enUso > 0) {
+      this.app.toast.set(this.i18n.t('admin.roles.inUse', { count: enUso }));
+      return;
+    }
+    this.deleting.set(role);
+  }
+
   async confirmDelete(): Promise<void> {
     const role = this.deleting();
     this.deleting.set(null);
     if (!role) return;
+    if (this.memberCount(role.id) > 0) return;
     try {
       await this.comandos.eliminarRol(role);
       this.app.toast.set(this.i18n.t('admin.toast.deleteRoleSucceeded', { name: role.name }));
