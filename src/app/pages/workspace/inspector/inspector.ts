@@ -8,14 +8,23 @@ import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
 import { FinanceApiClient } from '@core/api';
-import type { ApiSharedPurchase, ApiSettlement } from '@core/api';
+import type { ApiInvestmentOperation, ApiSharedPurchase, ApiSettlement, ApiValuation } from '@core/api';
 import { parseMoney } from '@core/utils';
+import { fechaDeReverso } from '@core/utils/dates';
 import { I18nService } from '@core/i18n';
 import { P } from '@core/session';
 import { permisoParaEditarCuenta } from '@features/account-form';
 import { PeopleStore } from '@features/people';
 import type { Account, Movement } from '@core/state';
-import { CAPABILITIES, AccountsCommands, AppStore, FEATURES, MovementCommands, PeopleCommands } from '@core/state';
+import {
+  CAPABILITIES,
+  AccountsCommands,
+  AppStore,
+  CatalogCommands,
+  FEATURES,
+  MovementCommands,
+  PeopleCommands,
+} from '@core/state';
 import { puedeReversar } from '@core/state/operacion/reverso';
 import { MovementsBookService } from '@shared/movements';
 import { BankCardComponent } from '@ui/bank-card';
@@ -69,6 +78,7 @@ export class InspectorComponent {
   private readonly movementCommands = inject(MovementCommands);
   private readonly accountsCommands = inject(AccountsCommands);
   private readonly peopleCommands = inject(PeopleCommands);
+  private readonly catalogCommands = inject(CatalogCommands);
 
   readonly canReverseSelected = computed(() => {
     const movimiento = this.selectedMovement();
@@ -132,6 +142,9 @@ export class InspectorComponent {
   readonly historialDeInversion = new InspectorInversion(() =>
     this.store.inspector()?.type === 'investment' ? this.store.inspector()?.id : undefined,
   );
+  puedeReversarInversion(): boolean {
+    return this.can(P.patrimonio.inversiones.editar);
+  }
   fechaDeOperacion(iso: string): string {
     return iso.slice(0, 10);
   }
@@ -194,11 +207,56 @@ export class InspectorComponent {
     this.pendingConfirm.set({ kind: 'deactivateAccount', account, restore: this.store.inspector() });
     this.store.inspector.set(null);
   }
+  askReverseInvestmentOperation(operacion: ApiInvestmentOperation): void {
+    if (!operacion.movement || operacion.reversedBy) return;
+    this.confirmKind.set('reverseInvestmentOperation');
+    this.pendingConfirm.set({ kind: 'reverseInvestmentOperation', operacion, restore: this.store.inspector() });
+    this.store.inspector.set(null);
+  }
+  askVoidInvestmentValuation(valorizacion: ApiValuation): void {
+    if (valorizacion.voided) return;
+    this.confirmKind.set('voidInvestmentValuation');
+    this.pendingConfirm.set({ kind: 'voidInvestmentValuation', valorizacion, restore: this.store.inspector() });
+    this.store.inspector.set(null);
+  }
   confirmPending(): void {
     const pending = this.pendingConfirm();
     this.pendingConfirm.set(null);
     if (pending?.kind === 'reverse') void this.reverseMovement(pending.movement);
     else if (pending?.kind === 'deactivateAccount') void this.deactivateAccount(pending.account);
+    else if (pending?.kind === 'reverseInvestmentOperation') {
+      this.store.inspector.set(pending.restore);
+      void this.reverseInvestmentOperation(pending.operacion);
+    } else if (pending?.kind === 'voidInvestmentValuation') {
+      this.store.inspector.set(pending.restore);
+      void this.voidInvestmentValuation(pending.valorizacion);
+    }
+  }
+  async reverseInvestmentOperation(operacion: ApiInvestmentOperation): Promise<void> {
+    const inversion = this.selectedInvestment();
+    if (!inversion || !operacion.movement) return;
+    try {
+      await this.catalogCommands.reverseInvestmentOperation(
+        inversion.id,
+        operacion.movement,
+        fechaDeReverso(operacion.date, this.store.hoy()),
+      );
+    } catch (error) {
+      this.store.toast.set(
+        error instanceof Error ? error.message : this.i18n.t('workspace.messages.investmentReverseFailed'),
+      );
+    }
+  }
+  async voidInvestmentValuation(valorizacion: ApiValuation): Promise<void> {
+    const inversion = this.selectedInvestment();
+    if (!inversion) return;
+    try {
+      await this.catalogCommands.voidInvestmentValuation(inversion.id, valorizacion.id);
+    } catch (error) {
+      this.store.toast.set(
+        error instanceof Error ? error.message : this.i18n.t('workspace.messages.investmentVoidFailed'),
+      );
+    }
   }
   dismissPending(): void {
     const pending = this.pendingConfirm();
@@ -208,10 +266,18 @@ export class InspectorComponent {
   }
   readonly pendingConfirm = signal<
     | { kind: 'reverse'; movement: Movement; restore: ReturnType<AppStore['inspector']> }
+    | {
+        kind: 'reverseInvestmentOperation';
+        operacion: ApiInvestmentOperation;
+        restore: ReturnType<AppStore['inspector']>;
+      }
+    | { kind: 'voidInvestmentValuation'; valorizacion: ApiValuation; restore: ReturnType<AppStore['inspector']> }
     | { kind: 'deactivateAccount'; account: Account; restore: ReturnType<AppStore['inspector']> }
     | null
   >(null);
-  private readonly confirmKind = signal<'reverse' | 'deactivateAccount'>('reverse');
+  private readonly confirmKind = signal<
+    'reverse' | 'deactivateAccount' | 'reverseInvestmentOperation' | 'voidInvestmentValuation'
+  >('reverse');
   readonly confirmPrefix = computed(() => `workspace.confirm.${this.confirmKind()}`);
   async reverseMovement(movement: Movement) {
     try {

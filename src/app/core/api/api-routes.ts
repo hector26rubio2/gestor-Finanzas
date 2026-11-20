@@ -56,6 +56,10 @@ export const API_ROUTES = {
   investment: (id: string) => `/api/v1/investments/${encodeURIComponent(id)}`,
   investmentOperations: (id: string) => `/api/v1/investments/${encodeURIComponent(id)}/operations`,
   investmentValuations: (id: string) => `/api/v1/investments/${encodeURIComponent(id)}/valuations`,
+  investmentOperationReverse: (id: string, movement: string) =>
+    `/api/v1/investments/${encodeURIComponent(id)}/operations/${encodeURIComponent(movement)}/reverse`,
+  investmentValuationVoid: (id: string, valuation: string) =>
+    `/api/v1/investments/${encodeURIComponent(id)}/valuations/${encodeURIComponent(valuation)}/void`,
   superAdminPermission: (code: string) => `/api/v1/superadmin/permissions/${encodeURIComponent(code)}`,
   cardStatus: (id: string) => `/api/v1/cards/${encodeURIComponent(id)}/status`,
   notificationRead: (id: string) => `/api/v1/notifications/${encodeURIComponent(id)}/read`,

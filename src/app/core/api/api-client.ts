@@ -196,6 +196,12 @@ export class FinanceApiClient {
   registerInvestmentOperation(...args: Parameters<InvestmentsApi['registerOperation']>) {
     return this.investmentsApi.registerOperation(...args);
   }
+  reverseInvestmentOperation(...args: Parameters<InvestmentsApi['reverseOperation']>) {
+    return this.investmentsApi.reverseOperation(...args);
+  }
+  voidInvestmentValuation(...args: Parameters<InvestmentsApi['voidValuation']>) {
+    return this.investmentsApi.voidValuation(...args);
+  }
   investmentOperations(...args: Parameters<InvestmentsApi['listOperations']>) {
     return this.investmentsApi.listOperations(...args);
   }

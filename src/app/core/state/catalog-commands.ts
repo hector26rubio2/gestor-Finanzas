@@ -89,6 +89,12 @@ export class CatalogCommands {
   addInvestmentValuation(...args: Parameters<InvestmentsCommands['addInvestmentValuation']>) {
     return this.inversiones.addInvestmentValuation(...args);
   }
+  reverseInvestmentOperation(...args: Parameters<InvestmentsCommands['reverseInvestmentOperation']>) {
+    return this.inversiones.reverseInvestmentOperation(...args);
+  }
+  voidInvestmentValuation(...args: Parameters<InvestmentsCommands['voidInvestmentValuation']>) {
+    return this.inversiones.voidInvestmentValuation(...args);
+  }
   investmentOperations(id: string) {
     return this.inversiones.investmentOperations(id);
   }
