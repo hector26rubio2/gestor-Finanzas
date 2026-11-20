@@ -507,6 +507,22 @@ export default {
   'workspace.confirm.reverse.description':
     'A reversal linked to the original transaction will be recorded, and it will stop affecting your balances.',
   'workspace.confirm.reverse.action': 'Reverse transaction',
+  'toast.investment.operationReversed': 'Operation reversed; the original stays in the history.',
+  'toast.investment.valuationVoided': 'Valuation voided.',
+  'workspace.messages.investmentReverseFailed': 'The operation could not be reversed.',
+  'workspace.messages.investmentVoidFailed': 'The valuation could not be voided.',
+  'workspace.investment.reverse': 'Reverse',
+  'workspace.investment.void': 'Void',
+  'workspace.investment.reversed': 'Reversed',
+  'workspace.investment.voided': 'Voided',
+  'workspace.confirm.reverseInvestmentOperation.title': 'Reverse this operation?',
+  'workspace.confirm.reverseInvestmentOperation.description':
+    'The opposite entry is recorded in the ledger. The position, the account and the gain go back to how they were; the original operation stays in the history.',
+  'workspace.confirm.reverseInvestmentOperation.action': 'Reverse operation',
+  'workspace.confirm.voidInvestmentValuation.title': 'Void this valuation?',
+  'workspace.confirm.voidInvestmentValuation.description':
+    'The position goes back to the previous valuation. The voided one stays marked in the history.',
+  'workspace.confirm.voidInvestmentValuation.action': 'Void valuation',
   'workspace.confirm.deactivateAccount.title': 'Deactivate this account?',
   'workspace.confirm.deactivateAccount.description':
     "The account will stop being shown and can't be used in new transactions.",

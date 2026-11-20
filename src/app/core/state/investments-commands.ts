@@ -145,6 +145,19 @@ export class InvestmentsCommands {
     this.store.toast.set(this.i18n.t('toast.investment.valuationAdded'));
   }
 
+  async reverseInvestmentOperation(id: string, movement: string, date: string) {
+    await firstValueFrom(
+      this.client.reverseInvestmentOperation(id, movement, { date, reason: 'Reversado desde la aplicación' }),
+    );
+    this.store.invalidarListadoDeMovimientos();
+    this.store.toast.set(this.i18n.t('toast.investment.operationReversed'));
+  }
+
+  async voidInvestmentValuation(id: string, valuation: string) {
+    await firstValueFrom(this.client.voidInvestmentValuation(id, valuation));
+    this.store.toast.set(this.i18n.t('toast.investment.valuationVoided'));
+  }
+
   investmentOperations(id: string) {
     return firstValueFrom(this.client.investmentOperations(id));
   }

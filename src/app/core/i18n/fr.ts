@@ -515,6 +515,22 @@ export default {
   'workspace.confirm.reverse.description':
     "Une opération d'annulation liée à l'opération d'origine sera enregistrée et celle-ci n'affectera plus vos soldes.",
   'workspace.confirm.reverse.action': "Annuler l'opération",
+  'toast.investment.operationReversed': "Opération annulée ; l'originale reste dans l'historique.",
+  'toast.investment.valuationVoided': 'Valorisation annulée.',
+  'workspace.messages.investmentReverseFailed': "Impossible d'annuler l'opération.",
+  'workspace.messages.investmentVoidFailed': "Impossible d'annuler la valorisation.",
+  'workspace.investment.reverse': 'Annuler',
+  'workspace.investment.void': 'Invalider',
+  'workspace.investment.reversed': 'Annulée',
+  'workspace.investment.voided': 'Invalidée',
+  'workspace.confirm.reverseInvestmentOperation.title': 'Annuler cette opération ?',
+  'workspace.confirm.reverseInvestmentOperation.description':
+    "L'écriture inverse est enregistrée dans le grand livre. La position, le compte et le gain reviennent à leur état antérieur ; l'opération d'origine reste dans l'historique.",
+  'workspace.confirm.reverseInvestmentOperation.action': "Annuler l'opération",
+  'workspace.confirm.voidInvestmentValuation.title': 'Invalider cette valorisation ?',
+  'workspace.confirm.voidInvestmentValuation.description':
+    "La position revient à la valorisation précédente. L'invalidée reste marquée dans l'historique.",
+  'workspace.confirm.voidInvestmentValuation.action': 'Invalider la valorisation',
   'workspace.confirm.deactivateAccount.title': 'Désactiver ce compte ?',
   'workspace.confirm.deactivateAccount.description':
     'Le compte ne sera plus affiché et ne pourra plus servir à de nouvelles opérations.',

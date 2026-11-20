@@ -9,6 +9,7 @@ export interface ApiValuation {
   value: ApiMoney;
   source: number;
   reference: string | null;
+  voided?: boolean;
 }
 
 export interface ApiInvestment {
@@ -59,6 +60,12 @@ export interface ApiInvestmentOperation {
   amount: ApiMoney;
   quantity: string | null;
   unitPrice: ApiMoney | null;
+  reversedBy?: string | null;
+}
+
+export interface ApiReverseOperationRequest {
+  date: string;
+  reason?: string | null;
 }
 
 export interface ApiValuationRequest {
@@ -103,6 +110,21 @@ export class InvestmentsApi {
       method: 'POST',
       path: API_ROUTES.investmentOperations(id),
       body: request,
+    });
+  }
+
+  reverseOperation(id: string, movement: string, request: ApiReverseOperationRequest) {
+    return this.transport.request<ApiInvestmentOperation>({
+      method: 'POST',
+      path: API_ROUTES.investmentOperationReverse(id, movement),
+      body: request,
+    });
+  }
+
+  voidValuation(id: string, valuation: string) {
+    return this.transport.request<ApiValuation>({
+      method: 'POST',
+      path: API_ROUTES.investmentValuationVoid(id, valuation),
     });
   }
 

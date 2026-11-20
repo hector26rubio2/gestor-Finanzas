@@ -508,6 +508,22 @@ export default {
   'workspace.confirm.reverse.description':
     'Será registrada uma reversão vinculada à transação original, que deixará de afetar seus saldos.',
   'workspace.confirm.reverse.action': 'Reverter transação',
+  'toast.investment.operationReversed': 'Operação revertida; a original fica no histórico.',
+  'toast.investment.valuationVoided': 'Avaliação anulada.',
+  'workspace.messages.investmentReverseFailed': 'Não foi possível reverter a operação.',
+  'workspace.messages.investmentVoidFailed': 'Não foi possível anular a avaliação.',
+  'workspace.investment.reverse': 'Reverter',
+  'workspace.investment.void': 'Anular',
+  'workspace.investment.reversed': 'Revertida',
+  'workspace.investment.voided': 'Anulada',
+  'workspace.confirm.reverseInvestmentOperation.title': 'Reverter esta operação?',
+  'workspace.confirm.reverseInvestmentOperation.description':
+    'O lançamento contrário é registrado no livro. A posição, a conta e o ganho voltam ao que eram; a operação original fica no histórico.',
+  'workspace.confirm.reverseInvestmentOperation.action': 'Reverter operação',
+  'workspace.confirm.voidInvestmentValuation.title': 'Anular esta avaliação?',
+  'workspace.confirm.voidInvestmentValuation.description':
+    'A posição volta à avaliação anterior. A anulada fica marcada no histórico.',
+  'workspace.confirm.voidInvestmentValuation.action': 'Anular avaliação',
   'workspace.confirm.deactivateAccount.title': 'Desativar esta conta?',
   'workspace.confirm.deactivateAccount.description':
     'A conta deixará de ser exibida e não poderá ser usada em novas transações.',
