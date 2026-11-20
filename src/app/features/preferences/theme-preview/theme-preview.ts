@@ -63,12 +63,10 @@ const BARRAS = [42, 68, 55, 80, 47, 90, 62];
         </div>
         <ul class="grid divide-y divide-border rounded-lg border border-border bg-card text-xs">
           <li class="flex justify-between px-2.5 py-1.5">
-            <span>{{ i18n.t('preferences.preview.rowIncome') }}</span
-            ><b class="text-success">+$4,2 M</b>
+            <span>{{ i18n.t('preferences.preview.rowIncome') }}</span><b class="text-success">+$4,2 M</b>
           </li>
           <li class="flex justify-between px-2.5 py-1.5">
-            <span>{{ i18n.t('preferences.preview.rowExpense') }}</span
-            ><b>-$180.000</b>
+            <span>{{ i18n.t('preferences.preview.rowExpense') }}</span><b>-$180.000</b>
           </li>
         </ul>
         <div class="flex flex-wrap gap-2">
