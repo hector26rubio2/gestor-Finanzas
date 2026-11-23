@@ -22,6 +22,19 @@
     }
   </hlm-toggle-group>
 
+  @if (fallo()) {
+  <div
+    role="alert"
+    data-testid="error-de-avisos"
+    class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-destructive/40 bg-destructive/5 px-4 py-3 text-sm"
+  >
+    <span>{{ i18n.t('notifications.loadError') }}</span>
+    <button hlmBtn variant="outline" size="sm" type="button" data-testid="reintentar-avisos" (click)="reintentar()">
+      {{ i18n.t('notifications.retry') }}
+    </button>
+  </div>
+  }
+
   <fin-zona-de-carga tipo="lista" [filas]="5" [cargando]="cargando()" [hayDatos]="grupos().length > 0">
     <div class="grid gap-4">
       @for (grupo of grupos(); track grupo.clave) {
@@ -92,6 +105,17 @@
           }
         </ul>
       </section>
+      } @if (restantes() > 0) {
+      <button
+        hlmBtn
+        variant="outline"
+        type="button"
+        class="justify-self-center"
+        data-testid="mostrar-mas-avisos"
+        (click)="mostrarMas()"
+      >
+        {{ i18n.t('notifications.showMore', { n: restantes() }) }}
+      </button>
       }
     </div>
     <fin-empty
