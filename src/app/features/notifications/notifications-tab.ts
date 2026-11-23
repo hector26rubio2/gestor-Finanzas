@@ -21,6 +21,8 @@ const ICONO_POR_TIPO: Readonly<Record<string, IconName>> = {
 
 type Filtro = 'all' | 'unread';
 
+export const TAMANO_DE_PAGINA_DE_AVISOS = 20;
+
 @Component({
   selector: 'app-notifications-tab',
   imports: [HlmButton, HlmToggleGroupImports, IconComponent, EmptyStateComponent, ZonaDeCargaComponent],
@@ -32,6 +34,7 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
   private api = inject(FinanceApiClient);
   private readonly notifications = inject(NotificationsStore);
   readonly cargando = this.notifications.cargando;
+  readonly fallo = this.notifications.fallo;
   private readonly headerActions = inject(HeaderActionsService);
   readonly i18n = inject(I18nService);
   readonly puedeMarcar = this.capabilities.allows(P.notificaciones.editar);
@@ -47,8 +50,13 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
     { value: 'all', label: this.i18n.t('notifications.filter.all'), total: this.todas().length },
     { value: 'unread', label: this.i18n.t('notifications.filter.unread'), total: this.sinLeer() },
   ]);
+  readonly mostrados = signal(TAMANO_DE_PAGINA_DE_AVISOS);
+  private readonly filtradas = computed(() =>
+    this.filtro() === 'unread' ? this.todas().filter((n) => !n.read) : this.todas(),
+  );
+  readonly restantes = computed(() => Math.max(0, this.filtradas().length - this.mostrados()));
   readonly grupos = computed(() => {
-    const visibles = this.filtro() === 'unread' ? this.todas().filter((n) => !n.read) : this.todas();
+    const visibles = this.filtradas().slice(0, this.mostrados());
     return agruparPorFecha(visibles, new Date()).map((grupo) => ({
       ...grupo,
       titulo: this.i18n.t(`notifications.group.${grupo.clave}`),
@@ -69,6 +77,15 @@ export class NotificationsTabComponent implements OnInit, OnDestroy {
 
   cambiarFiltro(valor: string): void {
     this.filtro.set(valor === 'unread' ? 'unread' : 'all');
+    this.mostrados.set(TAMANO_DE_PAGINA_DE_AVISOS);
+  }
+
+  mostrarMas(): void {
+    this.mostrados.update((actual) => actual + TAMANO_DE_PAGINA_DE_AVISOS);
+  }
+
+  reintentar(): void {
+    this.notifications.recargar();
   }
 
   icono(notificacion: AppNotification): IconName {
