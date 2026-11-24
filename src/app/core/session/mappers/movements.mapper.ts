@@ -57,6 +57,9 @@ export function toMovement(
         ? { installmentTotal: opciones.plazoMeses, installmentCurrent: 1 }
         : {}),
     ...(conceptoDeCargo(source) ? { cardBucket: conceptoDeCargo(source) } : {}),
+    ...(source.allocation?.length
+      ? { desglose: source.allocation.map((parte) => ({ concepto: parte.bucket, monto: parseMoney(parte.amount) })) }
+      : {}),
     ...(source.purchaseApr !== null && source.purchaseApr !== undefined
       ? { purchaseApr: source.purchaseApr }
       : opciones.aprAnual !== undefined

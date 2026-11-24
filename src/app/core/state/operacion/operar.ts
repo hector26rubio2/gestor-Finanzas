@@ -427,8 +427,24 @@ function operarPagoDeTarjeta(
       card: tarjeta.id,
       description: intencion.descripcion,
       idempotencyKey: env.nuevaClave(),
+      ...desgloseDelPago(intencion.desglose, origen.currency),
     },
   });
+}
+
+function desgloseDelPago(
+  desglose: readonly { readonly concepto: number; readonly monto: number }[] | undefined,
+  moneda: string,
+): Pick<CreateCardPaymentBody, 'allocation'> {
+  const partes = (desglose ?? []).filter((parte) => parte.monto > 0);
+  return partes.length
+    ? {
+        allocation: partes.map((parte) => ({
+          bucket: parte.concepto,
+          amount: { amount: String(parte.monto), currency: moneda },
+        })),
+      }
+    : {};
 }
 
 function operarTarjetaPrestada(

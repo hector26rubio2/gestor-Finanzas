@@ -207,7 +207,21 @@
       <p class="text-xs text-muted-foreground">{{ i18n.t('workspace.person.settlements.empty') }}</p>
       }
     </section>
-    } }
+    } } @if (store.inspector()?.type === 'movement' && selectedMovement()?.desglose?.length) {
+    <section
+      data-testid="desglose-del-pago"
+      class="grid gap-2"
+      [attr.aria-label]="i18n.t('workspace.cardPayment.breakdown.title')"
+    >
+      <h3>{{ i18n.t('workspace.cardPayment.breakdown.title') }}</h3>
+      @for (parte of selectedMovement()!.desglose!; track $index) {
+      <div class="flex items-baseline justify-between gap-3 border-b border-border py-2 text-sm">
+        <b class="min-w-0 truncate">{{ etiquetaDeConcepto(parte.concepto) }}</b>
+        <b class="flex-none tabular-nums">{{ store.money(parte.monto) }}</b>
+      </div>
+      }
+    </section>
+    }
     <footer class="mt-[22px] flex gap-[9px]">
       @if (store.inspector()?.type === 'movement') { @if (can(P.movimientos.editar)) {
       <button data-tour="detalle-editar" hlmBtn variant="outline" class="h-[42px] flex-1" (click)="editSelected()">

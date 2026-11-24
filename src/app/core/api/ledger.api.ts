@@ -53,6 +53,11 @@ export interface CreateTransferBody {
   idempotencyKey: string;
 }
 
+export interface ApiCardPaymentPart {
+  bucket: number;
+  amount: ApiMoney;
+}
+
 export interface CreateCardPaymentBody {
   date: string;
   amount: ApiMoney;
@@ -60,6 +65,7 @@ export interface CreateCardPaymentBody {
   card: string;
   description?: string;
   idempotencyKey: string;
+  allocation?: readonly ApiCardPaymentPart[];
 }
 
 export interface CreateCashAdvanceBody {
@@ -91,6 +97,7 @@ export interface ApiMovement {
   cardBucket?: number | null;
   installments?: number | null;
   time?: string | null;
+  allocation?: readonly ApiCardPaymentPart[] | null;
 }
 
 export interface ApiOperation {

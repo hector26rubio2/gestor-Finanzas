@@ -500,6 +500,7 @@ export default {
   'workspace.cardPayment.estimatedBalance': 'Solde estimé',
   'workspace.cardPayment.table.balanceBefore': 'Solde avant',
   'workspace.cardPayment.table.applied': 'Appliqué',
+  'workspace.cardPayment.breakdown.title': 'Répartition du paiement',
   'workspace.cardPayment.table.balanceAfter': 'Solde après',
   'workspace.cardPayment.confirm': 'Confirmer le paiement',
   'workspace.messages.movementReversed': "Mouvement annulé ; l'original reste dans l'historique.",
