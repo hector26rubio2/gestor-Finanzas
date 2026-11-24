@@ -7,7 +7,7 @@ import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { HlmButton } from '@spartan-ng/helm/button';
 import { HlmInput } from '@spartan-ng/helm/input';
-import { FinanceApiClient } from '@core/api';
+import { FinanceApiClient, claveDeConcepto } from '@core/api';
 import type { ApiInvestmentOperation, ApiSharedPurchase, ApiSettlement, ApiValuation } from '@core/api';
 import { parseMoney } from '@core/utils';
 import { fechaDeReverso } from '@core/utils/dates';
@@ -147,6 +147,9 @@ export class InspectorComponent {
   }
   fechaDeOperacion(iso: string): string {
     return iso.slice(0, 10);
+  }
+  etiquetaDeConcepto(concepto: number): string {
+    return this.i18n.t(`card.bucket.${claveDeConcepto(concepto) ?? 'fees'}`);
   }
   claveDeOperacion(tipo: number): string {
     return `form.investment.operation.type.${TIPOS_DE_OPERACION[tipo] ?? 'contribution'}`;

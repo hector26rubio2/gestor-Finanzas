@@ -155,6 +155,9 @@ export class InspectorCard {
             tarjetaId: card.id,
             descripcion: this.motivoDeAbono().trim() || `Abono a ${card.name}`,
             monto: this.cardPaymentAmount(),
+            desglose: this.paymentAllocation()
+              .filter((fila) => fila.aplicado > 0)
+              .map((fila) => ({ concepto: fila.concepto, monto: fila.aplicado })),
           }),
         {
           loading: this.i18n.t('form.movement.toast.loading'),

@@ -273,6 +273,41 @@ describe('operar pago de tarjeta', () => {
     });
   });
 
+  it('con desglose manda cada parte con su concepto y la moneda de la cuenta que paga', () => {
+    const desglose = [
+      { concepto: 2, monto: 20_000 },
+      { concepto: 5, monto: 80_000 },
+    ];
+
+    expect(solicitudDe(pago({ desglose }))).toMatchObject({
+      cuerpo: {
+        allocation: [
+          { bucket: 2, amount: { amount: '20000', currency: 'COP' } },
+          { bucket: 5, amount: { amount: '80000', currency: 'COP' } },
+        ],
+      },
+    });
+  });
+
+  it('las partes en cero no viajan y un desglose vacío no manda nada', () => {
+    const conCero = solicitudDe(
+      pago({
+        desglose: [
+          { concepto: 2, monto: 0 },
+          { concepto: 5, monto: 100_000 },
+        ],
+      }),
+    ) as unknown as {
+      cuerpo: { allocation: { bucket: number }[] };
+    };
+
+    expect(conCero.cuerpo.allocation.map((parte) => parte.bucket)).toEqual([5]);
+    expect((solicitudDe(pago({ desglose: [] })) as unknown as { cuerpo: object }).cuerpo).not.toHaveProperty(
+      'allocation',
+    );
+    expect((solicitudDe(pago()) as unknown as { cuerpo: object }).cuerpo).not.toHaveProperty('allocation');
+  });
+
   it('no permitido: sin permiso o cuentas inexistentes', () => {
     expect(errorDe(pago(), entorno({ permisos: [P.movimientos.crear] }))).toBe('sin_permiso');
     expect(errorDe(pago({ tarjetaId: 'fantasma' }))).toBe('destino_invalido');

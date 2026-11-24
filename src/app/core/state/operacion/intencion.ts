@@ -59,6 +59,7 @@ export interface IntencionDePagoDeTarjeta extends DatosBase {
   readonly origenId: string;
   readonly tarjetaId: string;
   readonly monto: number;
+  readonly desglose?: readonly { readonly concepto: number; readonly monto: number }[];
 }
 
 export type ProductoDePrestamo = NonNullable<Movement['loanProduct']>;

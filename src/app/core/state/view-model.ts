@@ -21,6 +21,7 @@ export interface Movement {
   installmentTotal?: number;
   purchaseApr?: number;
   cardBucket?: number;
+  desglose?: readonly { readonly concepto: number; readonly monto: number }[];
   loanRole?: 'lent' | 'borrowed' | 'repayment';
   loanProduct?: 'personal' | 'mortgage' | 'vehicle' | 'education' | 'other';
   movementSubtype?: 'transfer' | 'advance';

@@ -493,6 +493,7 @@ export default {
   'workspace.cardPayment.estimatedBalance': 'Saldo estimado',
   'workspace.cardPayment.table.balanceBefore': 'Saldo antes',
   'workspace.cardPayment.table.applied': 'Aplicación',
+  'workspace.cardPayment.breakdown.title': 'Reparto del pago',
   'workspace.cardPayment.table.balanceAfter': 'Saldo después',
   'workspace.cardPayment.confirm': 'Confirmar abono',
   'workspace.messages.movementReversed': 'Movimiento reversado; el original permanece en el historial.',

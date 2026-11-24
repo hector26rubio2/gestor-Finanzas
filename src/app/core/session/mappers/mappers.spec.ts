@@ -230,3 +230,51 @@ describe('reversos y efecto económico', () => {
     expect(totalDeIngresos([ingreso])).toBe(100000);
   });
 });
+
+describe('desglose del pago de tarjeta', () => {
+  const i18n = { t: (clave: string) => clave } as unknown as I18nService;
+  const pago = (allocation?: ApiMovement['allocation']): ApiMovement => ({
+    id: 'p1',
+    date: '2026-09-25',
+    kind: MovementKind.cardPayment,
+    effect: 3,
+    flow: 1,
+    amount: {
+      original: { amount: '100000', currency: 'COP' },
+      base: { amount: '100000', currency: 'COP' },
+      rate: '1',
+      rateAsOf: '2026-09-25',
+    },
+    links: { card: 'tarjeta-1' },
+    linkNames: {},
+    origin: 0,
+    description: 'Abono',
+    createdAt: '2026-09-25T12:00:00Z',
+    reversalOf: null,
+    reversedBy: null,
+    purchaseApr: null,
+    ...(allocation === undefined ? {} : { allocation }),
+  });
+
+  it('el movimiento trae cada parte con su concepto y su monto', () => {
+    const movimiento = toMovement(
+      i18n,
+      EMPTY_KIND_CATALOG,
+      pago([
+        { bucket: 2, amount: { amount: '20000', currency: 'COP' } },
+        { bucket: 5, amount: { amount: '80000', currency: 'COP' } },
+      ]),
+    );
+
+    expect(movimiento.desglose).toEqual([
+      { concepto: 2, monto: 20_000 },
+      { concepto: 5, monto: 80_000 },
+    ]);
+  });
+
+  it('sin desglose, o con uno vacío, el movimiento no lo trae', () => {
+    expect(toMovement(i18n, EMPTY_KIND_CATALOG, pago()).desglose).toBeUndefined();
+    expect(toMovement(i18n, EMPTY_KIND_CATALOG, pago([])).desglose).toBeUndefined();
+    expect(toMovement(i18n, EMPTY_KIND_CATALOG, pago(null)).desglose).toBeUndefined();
+  });
+});
